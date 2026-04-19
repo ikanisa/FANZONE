@@ -5,19 +5,34 @@ import { MemoryRouter } from 'react-router-dom';
 
 import type { AdminRole } from '../../config/constants';
 import { Sidebar } from './Sidebar';
-import { AuthContext, DEMO_ADMIN, type AuthState } from '../../hooks/auth-context';
+import { AuthContext, type AuthState } from '../../hooks/auth-context';
+
+const baseAdmin = {
+  id: 'test-admin-001',
+  user_id: 'test-user-001',
+  phone: '+35699123456',
+  display_name: 'Test admin',
+  role: 'super_admin' as const,
+  permissions: {},
+  is_active: true,
+  invited_by: null,
+  last_login_at: '2026-01-01T00:00:00.000Z',
+  created_at: '2026-01-01T00:00:00.000Z',
+  updated_at: '2026-01-01T00:00:00.000Z',
+};
 
 function buildAuthState(role: AdminRole): AuthState {
   return {
     session: null,
     admin: {
-      ...DEMO_ADMIN,
+      ...baseAdmin,
       role,
       display_name: `${role} user`,
     },
     isLoading: false,
     error: null,
-    signIn: async () => {},
+    requestOtp: async () => true,
+    verifyOtp: async () => true,
     signOut: async () => {},
   };
 }

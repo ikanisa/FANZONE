@@ -1,30 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../features/settings/data/preferences_gateway.dart';
 import '../models/notification_model.dart';
-import '../providers/auth_provider.dart';
+import '../providers/auth_provider.dart' show authStateProvider;
 
 part 'notification_service.g.dart';
 
 @riverpod
 class NotificationService extends _$NotificationService {
   NotificationSettingsGateway get _gateway =>
-      getIt<NotificationSettingsGateway>();
+      ref.read(notificationSettingsGatewayProvider);
+  String? get _currentUserId => Supabase.instance.client.auth.currentUser?.id;
 
   @override
   FutureOr<NotificationPreferences> build() async {
     ref.watch(authStateProvider);
 
-    final userId = ref.read(authServiceProvider).currentUser?.id;
+    final userId = _currentUserId;
     if (userId == null) return const NotificationPreferences();
 
     return _gateway.getNotificationPreferences(userId);
   }
 
   Future<void> updatePreferences(NotificationPreferences prefs) async {
-    final userId = ref.read(authServiceProvider).currentUser?.id;
+    final userId = _currentUserId;
     if (userId == null) return;
 
     await _gateway.saveNotificationPreferences(userId, prefs);
@@ -35,7 +37,7 @@ class NotificationService extends _$NotificationService {
     required String token,
     required String platform,
   }) async {
-    final userId = ref.read(authServiceProvider).currentUser?.id;
+    final userId = _currentUserId;
     if (userId == null) return;
 
     await _gateway.registerDeviceToken(
@@ -47,7 +49,7 @@ class NotificationService extends _$NotificationService {
 
   Future<void> deactivateDeviceToken(String token) async {
     await _gateway.deactivateDeviceToken(
-      userId: ref.read(authServiceProvider).currentUser?.id,
+      userId: _currentUserId,
       token: token,
     );
   }
@@ -59,7 +61,7 @@ class NotificationService extends _$NotificationService {
   }
 
   Future<void> markAllRead() async {
-    final userId = ref.read(authServiceProvider).currentUser?.id;
+    final userId = _currentUserId;
     if (userId == null) return;
 
     await _gateway.markAllNotificationsRead(userId);
@@ -72,7 +74,7 @@ class NotificationService extends _$NotificationService {
     required bool enabled,
   }) async {
     await _gateway.setMatchAlertEnabled(
-      userId: ref.read(authServiceProvider).currentUser?.id,
+      userId: _currentUserId,
       matchId: matchId,
       enabled: enabled,
     );
@@ -84,10 +86,10 @@ class NotificationService extends _$NotificationService {
 FutureOr<List<NotificationItem>> notificationLog(Ref ref) async {
   ref.watch(authStateProvider);
 
-  final userId = ref.read(authServiceProvider).currentUser?.id;
+  final userId = Supabase.instance.client.auth.currentUser?.id;
   if (userId == null) return const [];
 
-  return getIt<NotificationSettingsGateway>().getNotificationLog(userId);
+  return ref.read(notificationSettingsGatewayProvider).getNotificationLog(userId);
 }
 
 @riverpod
@@ -99,8 +101,8 @@ FutureOr<int> unreadNotificationCount(Ref ref) async {
 final matchAlertEnabledProvider = FutureProvider.autoDispose
     .family<bool, String>((ref, matchId) async {
       ref.watch(authStateProvider);
-      return getIt<NotificationSettingsGateway>().isMatchAlertEnabled(
-        userId: ref.read(authServiceProvider).currentUser?.id,
+      return ref.read(notificationSettingsGatewayProvider).isMatchAlertEnabled(
+        userId: Supabase.instance.client.auth.currentUser?.id,
         matchId: matchId,
       );
     });
@@ -109,8 +111,8 @@ final matchAlertEnabledProvider = FutureProvider.autoDispose
 FutureOr<UserStats> userStats(Ref ref) async {
   ref.watch(authStateProvider);
 
-  final userId = ref.read(authServiceProvider).currentUser?.id;
+  final userId = Supabase.instance.client.auth.currentUser?.id;
   if (userId == null) return const UserStats();
 
-  return getIt<NotificationSettingsGateway>().getUserStats(userId);
+  return ref.read(notificationSettingsGatewayProvider).getUserStats(userId);
 }

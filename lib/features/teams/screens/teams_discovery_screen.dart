@@ -202,7 +202,7 @@ class _TeamsDiscoveryScreenState extends ConsumerState<TeamsDiscoveryScreen> {
                       team: supported[index],
                       index: index,
                       onTap: () =>
-                          context.push('/clubs/team/${supported[index].id}'),
+                          context.push('/team/${supported[index].id}'),
                     ),
                   ),
                 ),
@@ -233,7 +233,7 @@ class _TeamsDiscoveryScreenState extends ConsumerState<TeamsDiscoveryScreen> {
                       team: featured[index],
                       index: index,
                       onTap: () =>
-                          context.push('/clubs/team/${featured[index].id}'),
+                          context.push('/team/${featured[index].id}'),
                     ),
                   ),
                 ),
@@ -277,7 +277,7 @@ class _TeamsDiscoveryScreenState extends ConsumerState<TeamsDiscoveryScreen> {
                       team: remaining[index],
                       index: index,
                       onTap: () =>
-                          context.push('/clubs/team/${remaining[index].id}'),
+                          context.push('/team/${remaining[index].id}'),
                     ),
                   ),
                 ),

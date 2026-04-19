@@ -114,6 +114,7 @@ class AppConfig {
     }
   }
 
+  static bool get isDevelopment => environment == AppEnvironment.development;
   static bool get isProduction => environment == AppEnvironment.production;
   static bool get hasSupabaseConfig =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;

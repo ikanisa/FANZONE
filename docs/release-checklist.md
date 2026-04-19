@@ -4,8 +4,8 @@
 
 - Audit Supabase auth, RLS, storage rules, edge functions, migrations, backups, and rollback paths in the production project.
 - Review `ios/Flutter/AppConfig.xcconfig` and confirm the bundle ID, team ID, and APNs environment are correct for release signing.
-- Create `env/production.json` from `env/production.example.json` and keep `ENABLE_GLOBAL_CHALLENGES=false` until the weekly jackpot backend is live.
-- Replace all placeholder values in `env/production.json` and the platform signing/Firebase files before promoting a build.
+- Create a local `env/production.json` from `env/production.example.json` and keep `ENABLE_GLOBAL_CHALLENGES=false` until the weekly jackpot backend is live.
+- Replace all placeholder values in your local `env/production.json` and the platform signing/Firebase files before promoting a build.
 
 ## Android release
 
@@ -32,7 +32,7 @@
 - Run `./tool/supabase_fet_supply_smoke.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
 - Review `docs/fet-supply-governance.md` before any manual minting or promotional credit.
 - Check `public.fet_supply_overview.remaining_mintable` before any manual grant, promo credit, or reward backfill.
-- Validate password reset email templates and redirect URLs.
+- Validate WhatsApp OTP delivery, expiry, and rate-limit behaviour in the production auth project.
 
 ## Operational readiness
 

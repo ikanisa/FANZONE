@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
@@ -26,7 +25,6 @@ abstract interface class AccountSettingsGateway {
   );
 }
 
-@LazySingleton(as: AccountSettingsGateway)
 class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
   SupabaseAccountSettingsGateway(this._cache, this._connection);
 

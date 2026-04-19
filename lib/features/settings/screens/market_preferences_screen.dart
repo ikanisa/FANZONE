@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/di/injection.dart';
+import '../../../core/di/gateway_providers.dart';
 import '../../../core/market/launch_market.dart';
-import '../../../features/settings/data/preferences_gateway.dart';
 import '../../../models/user_market_preferences_model.dart';
 import '../../../providers/market_preferences_provider.dart';
 import '../../../providers/region_provider.dart';
@@ -266,7 +265,7 @@ class _MarketPreferencesScreenState
     );
 
     setState(() => _saving = true);
-    await getIt<MarketPreferencesGateway>().saveUserMarketPreferences(
+    await ref.read(marketPreferencesGatewayProvider).saveUserMarketPreferences(
       nextPreferences,
     );
     ref.invalidate(userMarketPreferencesProvider);

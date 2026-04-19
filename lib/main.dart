@@ -9,17 +9,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'config/app_config.dart';
-import 'core/di/injection.dart';
+import 'core/di/gateway_providers.dart';
 import 'core/logging/app_logger.dart';
 import 'core/performance/app_startup.dart';
 import 'core/runtime/app_runtime_state.dart';
 import 'core/storage/structured_cache_store.dart';
 import 'firebase_options.dart';
-import 'features/auth/data/auth_gateway.dart';
 import 'services/app_telemetry.dart';
 import 'services/product_analytics_service.dart';
 
 StreamSubscription<AuthState>? _authStateSubscription;
+List<Override> _providerOverrides = const [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +42,7 @@ Future<void> main() async {
     beforeRunApp: () async {
       await Future.wait<void>([
         StructuredCacheStore.init(),
-        configureDependencies(),
+        resolveAsyncOverrides().then((o) => _providerOverrides = o),
       ]);
       appRuntime.retrySupabaseInitialization = retrySupabaseInitialization;
       appStartupProfiler.mark('structured_cache_ready');
@@ -53,7 +53,7 @@ Future<void> main() async {
   );
 
   await startup.prepare();
-  runApp(const ProviderScope(child: FanzoneApp()));
+  runApp(ProviderScope(overrides: _providerOverrides, child: const FanzoneApp()));
   startup.start();
 }
 
@@ -103,7 +103,7 @@ Future<void> _initializeSupabase() async {
     appStartupProfiler.mark('supabase_ready');
     appRuntime.notifyAuthStateChanged();
     await _authStateSubscription?.cancel();
-    _authStateSubscription = getIt<AuthGateway>().onAuthStateChange.listen((_) {
+    _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((_) {
       appRuntime.notifyAuthStateChanged();
       unawaited(ProductAnalytics.flush());
       unawaited(AppTelemetry.flush());

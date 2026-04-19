@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../core/di/injection.dart';
-import '../features/predict/data/daily_challenge_gateway.dart';
+import '../core/di/gateway_providers.dart';
 import '../models/daily_challenge_model.dart';
 import '../providers/auth_provider.dart';
 
@@ -13,7 +12,7 @@ class DailyChallengeService extends _$DailyChallengeService {
   @override
   FutureOr<DailyChallenge?> build() async {
     ref.watch(authStateProvider);
-    return getIt<DailyChallengeGateway>().getTodaysDailyChallenge();
+    return ref.read(dailyChallengeGatewayProvider).getTodaysDailyChallenge();
   }
 
   Future<void> submitPrediction({
@@ -21,7 +20,7 @@ class DailyChallengeService extends _$DailyChallengeService {
     required int homeScore,
     required int awayScore,
   }) async {
-    await getIt<DailyChallengeGateway>().submitDailyPrediction(
+    await ref.read(dailyChallengeGatewayProvider).submitDailyPrediction(
       challengeId: challengeId,
       homeScore: homeScore,
       awayScore: awayScore,
@@ -43,7 +42,7 @@ FutureOr<DailyChallengeEntry?> myDailyEntry(Ref ref) async {
   final challenge = await ref.watch(dailyChallengeServiceProvider.future);
   if (challenge == null) return null;
 
-  return getIt<DailyChallengeGateway>().getMyDailyEntry(
+  return ref.read(dailyChallengeGatewayProvider).getMyDailyEntry(
     challengeId: challenge.id,
     userId: userId,
   );
@@ -56,5 +55,5 @@ FutureOr<List<DailyChallengeEntry>> dailyChallengeHistory(Ref ref) async {
   final userId = ref.read(authServiceProvider).currentUser?.id;
   if (userId == null) return const [];
 
-  return getIt<DailyChallengeGateway>().getDailyChallengeHistory(userId);
+  return ref.read(dailyChallengeGatewayProvider).getDailyChallengeHistory(userId);
 }

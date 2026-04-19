@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -11,7 +10,6 @@ abstract interface class LeaderboardGateway {
   Future<int?> getUserRank(String userId);
 }
 
-@LazySingleton(as: LeaderboardGateway)
 class SupabaseLeaderboardGateway implements LeaderboardGateway {
   SupabaseLeaderboardGateway(this._connection);
 
@@ -44,11 +42,7 @@ class SupabaseLeaderboardGateway implements LeaderboardGateway {
         );
       }
 
-      return (leaderboard.isEmpty && allowPredictSeedFallback
-              ? fallbackLeaderboard
-              : leaderboard)
-          .map((row) => row.toJson())
-          .toList(growable: false);
+      return leaderboard.map((row) => row.toJson()).toList(growable: false);
     } catch (error) {
       AppLogger.d('Failed to load global leaderboard: $error');
       return _seededLeaderboard();
@@ -81,7 +75,7 @@ class SupabaseLeaderboardGateway implements LeaderboardGateway {
       return null;
     } catch (error) {
       AppLogger.d('Failed to resolve user rank: $error');
-      return allowPredictSeedFallback ? 4 : null;
+      return null;
     }
   }
 

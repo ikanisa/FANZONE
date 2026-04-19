@@ -33,7 +33,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.admin_grant_access(
-  p_email text,
+  p_phone text,
   p_role text
 )
 RETURNS public.admin_users
@@ -45,13 +45,14 @@ DECLARE
   v_actor_user_id uuid := public.require_super_admin_user();
   v_actor_admin_id uuid;
   v_target_user_id uuid;
-  v_normalized_email text := lower(trim(coalesce(p_email, '')));
+  v_normalized_phone text := regexp_replace(trim(coalesce(p_phone, '')), '[^0-9+]', '', 'g');
   v_role text := lower(trim(coalesce(p_role, '')));
   v_existing public.admin_users%ROWTYPE;
   v_result public.admin_users%ROWTYPE;
+  v_target_display_name text;
 BEGIN
-  IF v_normalized_email = '' THEN
-    RAISE EXCEPTION 'Email is required';
+  IF v_normalized_phone = '' THEN
+    RAISE EXCEPTION 'WhatsApp number is required';
   END IF;
 
   IF v_role NOT IN ('super_admin', 'admin', 'moderator', 'viewer') THEN
@@ -72,12 +73,21 @@ BEGIN
   SELECT id
   INTO v_target_user_id
   FROM auth.users
-  WHERE lower(email) = v_normalized_email
+  WHERE phone = v_normalized_phone
   LIMIT 1;
 
   IF v_target_user_id IS NULL THEN
-    RAISE EXCEPTION 'The target user must sign in before admin access can be granted';
+    RAISE EXCEPTION 'The target user must sign in with their WhatsApp number before admin access can be granted';
   END IF;
+
+  SELECT coalesce(
+    nullif(trim(raw_user_meta_data ->> 'display_name'), ''),
+    nullif(trim(raw_user_meta_data ->> 'full_name'), ''),
+    concat('Admin ', right(v_normalized_phone, 4))
+  )
+  INTO v_target_display_name
+  FROM auth.users
+  WHERE id = v_target_user_id;
 
   SELECT *
   INTO v_existing
@@ -88,8 +98,8 @@ BEGIN
   IF FOUND THEN
     UPDATE public.admin_users
     SET
-      email = v_normalized_email,
-      display_name = coalesce(nullif(trim(display_name), ''), split_part(v_normalized_email, '@', 1)),
+      phone = v_normalized_phone,
+      display_name = coalesce(nullif(trim(display_name), ''), v_target_display_name),
       role = v_role,
       is_active = true,
       invited_by = coalesce(invited_by, v_actor_admin_id),
@@ -100,7 +110,7 @@ BEGIN
   ELSE
     INSERT INTO public.admin_users (
       user_id,
-      email,
+      phone,
       display_name,
       role,
       is_active,
@@ -108,8 +118,8 @@ BEGIN
     )
     VALUES (
       v_target_user_id,
-      v_normalized_email,
-      split_part(v_normalized_email, '@', 1),
+      v_normalized_phone,
+      v_target_display_name,
       v_role,
       true,
       v_actor_admin_id
@@ -137,7 +147,7 @@ BEGIN
     CASE WHEN v_existing.id IS NOT NULL THEN to_jsonb(v_existing) ELSE NULL END,
     to_jsonb(v_result),
     jsonb_build_object(
-      'email', v_normalized_email,
+      'phone', v_normalized_phone,
       'role', v_role
     )
   );

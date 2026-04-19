@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,7 +38,7 @@ class AllLeaguesScreen extends ConsumerWidget {
       body: RefreshIndicator(
         color: FzColors.accent,
         onRefresh: () async {
-          HapticFeedback.mediumImpact();
+          unawaited(HapticFeedback.mediumImpact());
           ref.invalidate(otherLeaguesProvider);
           await ref.read(otherLeaguesProvider.future);
         },

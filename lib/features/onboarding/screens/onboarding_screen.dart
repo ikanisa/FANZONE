@@ -4,14 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/cache/cache_service.dart';
-import '../../../core/di/injection.dart';
+import '../../../core/di/gateway_providers.dart';
 import '../../../core/constants/phone_presets.dart';
 import '../../../core/market/launch_market.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../data/team_search_database.dart';
-import '../../../features/onboarding/data/onboarding_gateway.dart';
-import '../../../features/settings/data/preferences_gateway.dart';
 import '../../../models/user_market_preferences_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/market_preferences_provider.dart';
@@ -245,9 +242,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _completeOnboarding() async {
     final localTeam = ref.read(selectedLocalTeamProvider);
     final popularTeam = ref.read(selectedPopularTeamProvider);
-    final popularTeamIds = <String>{
-      if (popularTeam != null) popularTeam.id,
-    };
+    final popularTeamIds = <String>{if (popularTeam != null) popularTeam.id};
     if (localTeam != null) {
       popularTeamIds.remove(localTeam.id);
     }
@@ -258,11 +253,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ? defaultFocusTagsForRegion(launchRegion)
         : selectedTags.toList();
 
-    await getIt<OnboardingGateway>().saveOnboardingTeams(
+    await ref.read(onboardingGatewayProvider).saveOnboardingTeams(
       localTeam: localTeam,
       popularTeamIds: popularTeamIds,
     );
-    await getIt<MarketPreferencesGateway>().saveUserMarketPreferences(
+    await ref.read(marketPreferencesGatewayProvider).saveUserMarketPreferences(
       UserMarketPreferences(
         primaryRegion: launchRegion,
         selectedRegions: {'global', launchRegion}.toList(),
@@ -280,7 +275,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     ref.invalidate(homeLaunchEventsProvider);
     ref.invalidate(spotlightChallengesProvider);
 
-    await getIt<CacheService>().setBool('onboarding_complete', true);
+    await ref.read(cacheServiceProvider).setBool('onboarding_complete', true);
     if (!mounted) return;
     context.go('/');
   }
@@ -428,7 +423,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           phoneHint: _phoneHint,
           buttonLabel: _loading
               ? 'SENDING...'
-              : (_canUseOtp ? 'SEND OTP' : 'VERIFICATION REQUIRED'),
+              : (_canUseOtp
+                    ? 'SEND CODE VIA WHATSAPP'
+                    : 'VERIFICATION REQUIRED'),
         );
       case _otpStep:
         return OnboardingOtpStep(

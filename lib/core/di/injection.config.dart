@@ -34,7 +34,7 @@ import 'package:fanzone/features/predict/data/daily_challenge_gateway.dart'
 import 'package:fanzone/features/predict/data/leaderboard_gateway.dart'
     as _i532;
 import 'package:fanzone/features/predict/data/prediction_pool_gateway.dart'
-    as _i756;
+    as _i995;
 import 'package:fanzone/features/predict/data/prediction_slip_gateway.dart'
     as _i897;
 import 'package:fanzone/features/profile/data/contest_gateway.dart' as _i807;
@@ -125,10 +125,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i329.SupabaseEventCatalogGateway(gh<_i535.SupabaseConnection>()),
     );
     gh.lazySingleton<_i441.SearchCatalogGateway>(
-      () => _i441.SupabaseSearchCatalogGateway(
-        gh<_i555.CompetitionCatalogGateway>(),
-        gh<_i756.TeamCatalogGateway>(),
-      ),
+      () => _i441.SupabaseSearchCatalogGateway(gh<_i535.SupabaseConnection>()),
     );
     gh.lazySingleton<_i554.CatalogGateway>(
       () => _i554.SupabaseCatalogGateway(
@@ -190,8 +187,8 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i738.FeedGateway>(),
       ),
     );
-    gh.lazySingleton<_i756.PredictionPoolGateway>(
-      () => _i756.SupabasePredictionPoolGateway(gh<_i535.SupabaseConnection>()),
+    gh.lazySingleton<_i995.PredictionPoolGateway>(
+      () => _i995.SupabasePredictionPoolGateway(gh<_i535.SupabaseConnection>()),
     );
     gh.lazySingleton<_i532.LeaderboardGateway>(
       () => _i532.SupabaseLeaderboardGateway(gh<_i535.SupabaseConnection>()),
@@ -204,7 +201,7 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i521.PredictGateway>(
       () => _i521.SupabasePredictGateway(
-        gh<_i756.PredictionPoolGateway>(),
+        gh<_i995.PredictionPoolGateway>(),
         gh<_i532.LeaderboardGateway>(),
         gh<_i948.DailyChallengeGateway>(),
         gh<_i897.PredictionSlipGateway>(),

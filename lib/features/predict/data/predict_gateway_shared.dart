@@ -2,7 +2,7 @@ import '../../../config/app_config.dart';
 import '../../../models/daily_challenge_model.dart';
 import 'predict_gateway_models.dart';
 
-bool get allowPredictSeedFallback => !AppConfig.isProduction;
+bool get allowPredictSeedFallback => AppConfig.isDevelopment;
 
 Never throwPredictUnavailable(String action) {
   throw StateError('$action is unavailable right now. Please try again.');

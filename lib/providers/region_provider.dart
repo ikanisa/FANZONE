@@ -1,9 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../core/market/launch_market.dart';
-import '../features/onboarding/data/onboarding_gateway.dart';
-import '../features/settings/data/preferences_gateway.dart';
 
 /// User region derived from explicit market preferences first, then teams.
 ///
@@ -12,7 +10,7 @@ enum UserRegion { africa, europe, northAmerica, global }
 
 /// Provider that resolves the user's region from market preferences or teams.
 final userRegionProvider = FutureProvider<UserRegion>((ref) async {
-  final marketPreferences = await getIt<MarketPreferencesGateway>()
+  final marketPreferences = await ref.read(marketPreferencesGatewayProvider)
       .getUserMarketPreferences();
   final preferredRegion = normalizeRegionKey(marketPreferences.primaryRegion);
 
@@ -20,7 +18,7 @@ final userRegionProvider = FutureProvider<UserRegion>((ref) async {
   if (preferredRegion == 'europe') return UserRegion.europe;
   if (preferredRegion == 'north_america') return UserRegion.northAmerica;
 
-  final cached = await getIt<OnboardingGateway>().getCachedFavoriteTeams();
+  final cached = await ref.read(onboardingGatewayProvider).getCachedFavoriteTeams();
   if (cached.isEmpty) return UserRegion.global;
 
   // Priority: local team > first team with a country code

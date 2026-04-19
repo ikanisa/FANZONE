@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -183,7 +185,7 @@ class _MembershipShareSheet extends ConsumerWidget {
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () async {
-                        HapticFeedback.selectionClick();
+                        unawaited(HapticFeedback.selectionClick());
                         final text = fanId != null
                             ? '🏟️ I\'m Fan #$fanId on FANZONE!\n'
                                   '${tier.name} Tier • ${supportedIds.length} clubs supported\n'
@@ -208,7 +210,7 @@ class _MembershipShareSheet extends ConsumerWidget {
                     onPressed: fanId == null
                         ? null
                         : () async {
-                            HapticFeedback.selectionClick();
+                            unawaited(HapticFeedback.selectionClick());
                             await Clipboard.setData(ClipboardData(text: fanId));
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(

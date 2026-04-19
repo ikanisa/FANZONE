@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -18,7 +17,6 @@ abstract interface class PredictionPoolGateway {
   Future<ScorePool?> getPoolDetail(String id);
 }
 
-@LazySingleton(as: PredictionPoolGateway)
 class SupabasePredictionPoolGateway implements PredictionPoolGateway {
   SupabasePredictionPoolGateway(this._connection);
 
@@ -56,8 +54,7 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
           .whereType<Map>()
           .map((row) => _poolFromRow(Map<String, dynamic>.from(row)))
           .toList(growable: false);
-      if (pools.isNotEmpty) return pools;
-      return _seededPools();
+      return pools;
     } catch (error) {
       AppLogger.d('Failed to load pools: $error');
       return _seededPools();
@@ -126,7 +123,7 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
           .whereType<Map>()
           .map((row) => _poolEntryFromRow(Map<String, dynamic>.from(row)))
           .toList(growable: false);
-      return entries.isEmpty ? _cachedEntries(userId) : entries;
+      return entries;
     } catch (error) {
       AppLogger.d('Failed to load pool entries: $error');
       return _cachedEntries(userId);

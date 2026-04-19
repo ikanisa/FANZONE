@@ -56,7 +56,7 @@ class WalletScreen extends ConsumerWidget {
             balanceAsync: balanceAsync,
             currency: currency,
             onRedeem: AppConfig.enableRewards || AppConfig.enableMarketplace
-                ? () => context.push('/wallet/rewards')
+                ? () => context.push('/rewards')
                 : null,
             onSend: () {
               if (!isAuthenticated) {

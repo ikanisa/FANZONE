@@ -3,12 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/cache/cache_service.dart';
-import '../../../core/di/injection.dart';
+import '../../../core/cache/shared_preferences_cache_service.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
-import '../../../widgets/common/fz_brand_logo.dart';
 
 /// Splash screen — logo animation → wait for init → route guest-first.
 ///
@@ -46,20 +44,17 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _waitForInitAndNavigate() async {
-    // Wait for Supabase init to actually finish
-    await appRuntime.supabaseReady;
-
-    // Ensure animation has had at minimum 1.2s to play
-    if (_controller.isAnimating) {
-      await _controller.forward().orCancel.catchError((_) {});
-    }
+    await Future.wait<void>([
+      Future<void>.delayed(const Duration(milliseconds: 1500)),
+      appRuntime.supabaseReady,
+    ]);
 
     if (!mounted) return;
-    _navigateToNextScreen();
+    await _navigateToNextScreen();
   }
 
   Future<void> _navigateToNextScreen() async {
-    final cache = getIt<CacheService>();
+    final cache = SharedPreferencesCacheService.global;
     final onboardingDone = await cache.getBool('onboarding_complete') ?? false;
 
     if (!mounted) return;
@@ -81,36 +76,88 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       backgroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,
       body: Center(
-        child: FadeTransition(
-          opacity: _fadeIn,
-          child: ScaleTransition(
-            scale: _scale,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Logo mark
-                const FzBrandLogo(width: 96, height: 96),
-                const SizedBox(height: 20),
-                Text(
-                  'FANZONE',
-                  style: FzTypography.score(
-                    size: 28,
-                    weight: FontWeight.w700,
-                    color: isDark ? FzColors.darkText : FzColors.lightText,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: MediaQuery.sizeOf(context).width * 1.2,
+              height: MediaQuery.sizeOf(context).width * 1.2,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: FzColors.accent.withValues(alpha: 0.1),
+                boxShadow: [
+                  BoxShadow(
+                    color: FzColors.accent.withValues(alpha: 0.08),
+                    blurRadius: 120,
+                    spreadRadius: 40,
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Football · Predict · Earn',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            FadeTransition(
+              opacity: _fadeIn,
+              child: ScaleTransition(
+                scale: _scale,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        style: FzTypography.display(
+                          size: 60,
+                          color: isDark
+                              ? FzColors.darkText
+                              : FzColors.lightText,
+                          letterSpacing: 12,
+                        ),
+                        children: const [
+                          TextSpan(text: 'FAN'),
+                          TextSpan(
+                            text: 'ZONE',
+                            style: TextStyle(color: FzColors.accent),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: FzColors.darkSurface2,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: FzColors.darkBorder),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: FzColors.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Malta\'s Football Fan Network',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: FzColors.darkMuted,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

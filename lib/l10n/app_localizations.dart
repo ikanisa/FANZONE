@@ -750,25 +750,25 @@ abstract class S {
   /// No description provided for @loginPhoneHint.
   ///
   /// In en, this message translates to:
-  /// **'Phone number'**
+  /// **'WhatsApp number'**
   String get loginPhoneHint;
 
   /// No description provided for @loginOtpHint.
   ///
   /// In en, this message translates to:
-  /// **'Enter verification code'**
+  /// **'Enter WhatsApp verification code'**
   String get loginOtpHint;
 
   /// No description provided for @loginSendOtp.
   ///
   /// In en, this message translates to:
-  /// **'Send Code'**
+  /// **'Send Code Via WhatsApp'**
   String get loginSendOtp;
 
   /// No description provided for @loginVerify.
   ///
   /// In en, this message translates to:
-  /// **'Verify'**
+  /// **'Verify Code'**
   String get loginVerify;
 
   /// No description provided for @loginSkip.

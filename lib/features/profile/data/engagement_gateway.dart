@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../models/community_contest_model.dart';
 import '../../../models/fan_identity_model.dart';
@@ -10,7 +9,6 @@ import 'season_leaderboard_gateway.dart';
 abstract interface class EngagementGateway
     implements ContestGateway, SeasonLeaderboardGateway, FanProfileGateway {}
 
-@LazySingleton(as: EngagementGateway)
 class SupabaseEngagementGateway implements EngagementGateway {
   SupabaseEngagementGateway(
     this._contests,

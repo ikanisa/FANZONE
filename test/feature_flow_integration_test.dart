@@ -9,7 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:fanzone/features/auth/data/auth_gateway.dart';
 import 'package:fanzone/features/auth/screens/whatsapp_login_screen.dart';
-import 'package:fanzone/features/pools/screens/pool_detail_screen.dart';
+import 'package:fanzone/features/pools/widgets/pool_join_sheet.dart';
 import 'package:fanzone/features/predict/data/predict_gateway.dart';
 import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
@@ -39,18 +39,19 @@ void main() {
       await _pumpLoginFlow(tester, gateway);
 
       await tester.enterText(find.byType(TextFormField), '+35699112233');
-      await tester.tap(find.text('Send code via SMS'));
+      await tester.tap(find.text('SEND CODE VIA WHATSAPP'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
       expect(gateway.sentPhones, ['+35699112233']);
-      expect(find.text('Verify & Continue'), findsOneWidget);
+      expect(find.text('VERIFY CODE'), findsOneWidget);
 
       final otpFields = find.byType(TextField);
       for (var index = 0; index < 6; index++) {
         await tester.enterText(otpFields.at(index), '${index + 1}');
         await tester.pump();
       }
+      await tester.tap(find.text('VERIFY CODE'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
@@ -167,24 +168,40 @@ void main() {
       tester,
     ) async {
       final poolService = _RecordingPoolService([samplePool()]);
+      final pool = samplePool();
 
       await pumpAppScreen(
         tester,
-        const PoolDetailScreen(poolId: 'pool_1'),
+        Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  builder: (_) => PoolJoinSheet(
+                    pool: pool,
+                    isDark: false,
+                    textColor: Colors.black,
+                    muted: Colors.grey,
+                  ),
+                ),
+                child: const Text('Open pool join'),
+              ),
+            ),
+          ),
+        ),
         overrides: [
           poolServiceProvider.overrideWith(() => poolService),
-          poolDetailProvider(
-            'pool_1',
-          ).overrideWith((ref) async => samplePool()),
           isAuthenticatedProvider.overrideWith((ref) => true),
           userCurrencyProvider.overrideWith((ref) async => 'EUR'),
         ],
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.textContaining('Join for'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.text('Open pool join'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('JOIN POOL'), findsOneWidget);
 
       await tester.tap(find.byIcon(LucideIcons.plus).at(0));
       await tester.tap(find.byIcon(LucideIcons.plus).at(0));

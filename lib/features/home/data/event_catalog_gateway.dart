@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
@@ -23,7 +22,6 @@ abstract interface class EventCatalogGateway {
   });
 }
 
-@LazySingleton(as: EventCatalogGateway)
 class SupabaseEventCatalogGateway implements EventCatalogGateway {
   SupabaseEventCatalogGateway(this._connection);
 
@@ -35,13 +33,14 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
     bool upcomingOnly = false,
     int? limit,
   }) async {
-    final fallback = _fallbackFeaturedEvents(
-      activeOnly: activeOnly,
-      upcomingOnly: upcomingOnly,
-      limit: limit,
-    );
     final client = _connection.client;
-    if (client == null) return fallback;
+    if (client == null) {
+      return _fallbackFeaturedEvents(
+        activeOnly: activeOnly,
+        upcomingOnly: upcomingOnly,
+        limit: limit,
+      );
+    }
 
     try {
       final rows = await client.from('featured_events').select();
@@ -58,10 +57,14 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
         upcomingOnly: upcomingOnly,
         limit: limit,
       );
-      return filtered.isEmpty ? fallback : filtered;
+      return filtered;
     } catch (error) {
       AppLogger.d('Failed to load featured events: $error');
-      return fallback;
+      return _fallbackFeaturedEvents(
+        activeOnly: activeOnly,
+        upcomingOnly: upcomingOnly,
+        limit: limit,
+      );
     }
   }
 
@@ -80,13 +83,14 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
     List<String>? regionValues,
     int? limit,
   }) async {
-    final fallback = _fallbackGlobalChallenges(
-      eventTag: eventTag,
-      regionValues: regionValues,
-      limit: limit,
-    );
     final client = _connection.client;
-    if (client == null) return fallback;
+    if (client == null) {
+      return _fallbackGlobalChallenges(
+        eventTag: eventTag,
+        regionValues: regionValues,
+        limit: limit,
+      );
+    }
 
     try {
       final rows = await client.from('global_challenges').select();
@@ -103,10 +107,14 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
         regionValues: regionValues,
         limit: limit,
       );
-      return filtered.isEmpty ? fallback : filtered;
+      return filtered;
     } catch (error) {
       AppLogger.d('Failed to load global challenges: $error');
-      return fallback;
+      return _fallbackGlobalChallenges(
+        eventTag: eventTag,
+        regionValues: regionValues,
+        limit: limit,
+      );
     }
   }
 
@@ -115,7 +123,7 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
     bool upcomingOnly = false,
     int? limit,
   }) {
-    if (AppConfig.isProduction) return const <FeaturedEventModel>[];
+    if (!AppConfig.isDevelopment) return const <FeaturedEventModel>[];
     return filterEvents(
       fallbackEvents(),
       activeOnly: activeOnly,
@@ -129,7 +137,7 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
     List<String>? regionValues,
     int? limit,
   }) {
-    if (AppConfig.isProduction) return const <GlobalChallengeModel>[];
+    if (!AppConfig.isDevelopment) return const <GlobalChallengeModel>[];
     return filterChallenges(
       fallbackChallenges(),
       eventTag: eventTag,

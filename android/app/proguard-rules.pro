@@ -22,10 +22,6 @@
 -keep class io.supabase.** { *; }
 -dontwarn io.supabase.**
 
-# ── Sentry ──
--keep class io.sentry.** { *; }
--dontwarn io.sentry.**
-
 # ── Kotlin serialization (used by some plugins) ──
 -keepattributes *Annotation*
 -keepattributes Signature

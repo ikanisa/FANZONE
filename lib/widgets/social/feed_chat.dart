@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,12 +56,13 @@ class _FeedChatState extends ConsumerState<FeedChat> {
 
     try {
       await sendFeedMessage(
+        ref,
         channelType: widget.channelType,
         channelId: widget.channelId,
         content: text,
       );
       _controller.clear();
-      HapticFeedback.lightImpact();
+      unawaited(HapticFeedback.lightImpact());
     } catch (e) {
       setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     } finally {
@@ -117,10 +120,11 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                     onReact: (emoji) async {
                       try {
                         await reactToMessage(
+                          ref,
                           messageId: message.id,
                           emoji: emoji,
                         );
-                        HapticFeedback.selectionClick();
+                        unawaited(HapticFeedback.selectionClick());
                       } catch (_) {}
                     },
                   );

@@ -19,8 +19,8 @@ INSERT INTO auth.users (id, email)
 VALUES ('00000000-0000-0000-0000-000000000000', 'system@fanzone.machine') 
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.admin_users (user_id, email, display_name, role, is_active)
-VALUES ('00000000-0000-0000-0000-000000000000', 'system@fanzone.machine', 'System (Machine)', 'super_admin', true)
+INSERT INTO public.admin_users (user_id, phone, display_name, role, is_active)
+VALUES ('00000000-0000-0000-0000-000000000000', NULL, 'System (Machine)', 'super_admin', true)
 ON CONFLICT (user_id) DO NOTHING;
 
 -- -----------------------------------------------------------------

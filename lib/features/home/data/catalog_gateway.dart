@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../models/competition_model.dart';
 import '../../../models/featured_event_model.dart';
@@ -24,7 +23,6 @@ abstract interface class CatalogGateway
         EventCatalogGateway,
         SearchCatalogGateway {}
 
-@LazySingleton(as: CatalogGateway)
 class SupabaseCatalogGateway implements CatalogGateway {
   SupabaseCatalogGateway(
     this._competitions,

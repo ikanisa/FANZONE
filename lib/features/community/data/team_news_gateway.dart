@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
@@ -16,7 +15,6 @@ abstract interface class TeamNewsGateway {
   Future<TeamNewsModel?> getTeamNewsDetail(String newsId);
 }
 
-@LazySingleton(as: TeamNewsGateway)
 class SupabaseTeamNewsGateway implements TeamNewsGateway {
   SupabaseTeamNewsGateway(this._connection);
 
@@ -48,13 +46,13 @@ class SupabaseTeamNewsGateway implements TeamNewsGateway {
               (row) => TeamNewsModel.fromJson(Map<String, dynamic>.from(row)),
             )
             .toList(growable: false);
-        if (news.isNotEmpty) return news;
+        return news;
       } catch (error) {
         AppLogger.d('Failed to load team news: $error');
       }
     }
 
-    if (AppConfig.isProduction) return const <TeamNewsModel>[];
+    if (!AppConfig.isDevelopment) return const <TeamNewsModel>[];
 
     final seeded = seedTeamNews(teamId);
     final filtered = category == null || category.isEmpty
@@ -83,7 +81,7 @@ class SupabaseTeamNewsGateway implements TeamNewsGateway {
       }
     }
 
-    if (AppConfig.isProduction) return null;
+    if (!AppConfig.isDevelopment) return null;
 
     for (final item in [
       ...seedTeamNews('liverpool'),

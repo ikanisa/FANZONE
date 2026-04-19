@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
@@ -32,7 +31,6 @@ abstract interface class CompetitionPreferencesGateway {
   });
 }
 
-@LazySingleton(as: CompetitionPreferencesGateway)
 class SupabaseCompetitionPreferencesGateway
     implements CompetitionPreferencesGateway {
   SupabaseCompetitionPreferencesGateway(this._cache, this._connection);

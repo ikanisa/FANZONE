@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +18,7 @@ Future<void> showProfileIdentityPicker(
   required List<FavoriteTeamRecordDto> teams,
   required String? selectedTeamId,
 }) async {
-  HapticFeedback.selectionClick();
+  unawaited(HapticFeedback.selectionClick());
   await showDialog<void>(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.72),

@@ -11,6 +11,7 @@ type SearchPaletteProps = Pick<
   | 'groupedResults'
   | 'isOpen'
   | 'isLoading'
+  | 'error'
   | 'selectedIndex'
   | 'setSelectedIndex'
   | 'close'
@@ -25,6 +26,7 @@ export function SearchPalette({
   groupedResults,
   isOpen,
   isLoading,
+  error,
   selectedIndex,
   setSelectedIndex,
   close,
@@ -103,6 +105,15 @@ export function SearchPalette({
             )}
 
             {!isLoading &&
+              error &&
+              query.length >= 2 && (
+                <div className="search-palette-error" role="alert">
+                  <p className="text-sm">{error}</p>
+                </div>
+              )}
+
+            {!isLoading &&
+              !error &&
               Object.keys(groupedResults).length === 0 &&
               query.length >= 2 && (
                 <div className="search-palette-empty">
@@ -110,37 +121,42 @@ export function SearchPalette({
                 </div>
               )}
 
-            {Object.entries(groupedResults).map(([type, items]) => (
-              <div key={type}>
-                <div className="search-palette-group-label">
-                  {TYPE_ICONS[type as keyof typeof TYPE_ICONS] || '📄'} {type}s
+            {!error &&
+              Object.entries(groupedResults).map(([type, items]) => (
+                <div key={type}>
+                  <div className="search-palette-group-label">
+                    {TYPE_ICONS[type as keyof typeof TYPE_ICONS] || '📄'} {type}s
+                  </div>
+                  {items.map((item) => {
+                    const itemIndex = flatIndex++;
+                    return (
+                      <button
+                        key={item.id}
+                        className={`search-palette-item ${
+                          itemIndex === selectedIndex
+                            ? 'search-palette-item-active'
+                            : ''
+                        }`}
+                        onClick={() => {
+                          navigate(item.route);
+                          close();
+                        }}
+                        onMouseEnter={() => setSelectedIndex(itemIndex)}
+                      >
+                        <div className="search-palette-item-content">
+                          <span className="font-medium">{item.title}</span>
+                          <span className="text-xs text-muted">
+                            {item.subtitle}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted mono">
+                          {item.id}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
-                {items.map((item) => {
-                  const itemIndex = flatIndex++;
-                  return (
-                    <button
-                      key={item.id}
-                      className={`search-palette-item ${
-                        itemIndex === selectedIndex
-                          ? 'search-palette-item-active'
-                          : ''
-                      }`}
-                      onClick={() => {
-                        navigate(item.route);
-                        close();
-                      }}
-                      onMouseEnter={() => setSelectedIndex(itemIndex)}
-                    >
-                      <div className="search-palette-item-content">
-                        <span className="font-medium">{item.title}</span>
-                        <span className="text-xs text-muted">{item.subtitle}</span>
-                      </div>
-                      <span className="text-xs text-muted mono">{item.id}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
+              ))}
           </div>
         )}
 

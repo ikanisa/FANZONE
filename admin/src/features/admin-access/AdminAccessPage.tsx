@@ -14,7 +14,7 @@ import type { AdminRole } from '../../config/constants';
 export function AdminAccessPage() {
   const [page] = useState(0);
   const [showInvite, setShowInvite] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitePhone, setInvitePhone] = useState('');
   const [inviteRole, setInviteRole] = useState<AdminRole>('viewer');
   const [confirmRevoke, setConfirmRevoke] = useState<AdminUser | null>(null);
 
@@ -27,12 +27,12 @@ export function AdminAccessPage() {
   const activeCount = admins.filter(a => a.is_active).length;
 
   const handleInvite = async () => {
-    if (!inviteEmail.trim()) return;
+    if (!invitePhone.trim()) return;
     await inviteMutation.mutateAsync({
-      p_email: inviteEmail.trim(),
+      p_phone: invitePhone.trim(),
       p_role: inviteRole,
     });
-    setShowInvite(false); setInviteEmail(''); setInviteRole('viewer');
+    setShowInvite(false); setInvitePhone(''); setInviteRole('viewer');
   };
 
   const handleRevoke = async () => {
@@ -50,7 +50,7 @@ export function AdminAccessPage() {
 
   return (
     <div>
-      <PageHeader title="Admin Access" subtitle="Manage admin users, roles, and permissions" actions={<button className="btn btn-primary" onClick={() => setShowInvite(!showInvite)}><UserPlus size={16} /> Invite Admin</button>} />
+      <PageHeader title="Admin Access" subtitle="Manage admin users, roles, and permissions" actions={<button className="btn btn-primary" onClick={() => setShowInvite(!showInvite)}><UserPlus size={16} /> Grant Access</button>} />
 
       <div className="grid grid-4 gap-4 mb-6">
         <KpiCard label="Total Admins" value={admins.length} icon={<Users size={18} />} />
@@ -64,12 +64,12 @@ export function AdminAccessPage() {
         <div className="card mb-4">
           <h3 className="text-md font-semibold mb-2 flex items-center gap-2"><UserPlus size={18} className="text-accent" /> Grant Admin Access</h3>
           <p className="text-sm text-muted mb-4">
-            This grants admin access to an existing FANZONE account. The user must already have signed in at least once.
+            This grants admin access to an existing FANZONE account provisioned on a WhatsApp-enabled phone number. The user must already have signed in at least once.
           </p>
           <div className="flex gap-4 items-end">
             <div className="field-group" style={{ flex: 2 }}>
-              <label className="label">Email</label>
-              <input className="input" type="email" placeholder="admin@fanzone.mt" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} autoFocus />
+              <label className="label">WhatsApp Number</label>
+              <input className="input" type="tel" placeholder="+356 99 123 456" value={invitePhone} onChange={e => setInvitePhone(e.target.value)} autoFocus />
             </div>
             <div className="field-group" style={{ flex: 1 }}>
               <label className="label">Role</label>
@@ -81,7 +81,7 @@ export function AdminAccessPage() {
             </div>
             <div className="flex gap-2">
               <button className="btn btn-secondary" onClick={() => setShowInvite(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleInvite} disabled={!inviteEmail.trim() || inviteMutation.isPending}>
+              <button className="btn btn-primary" onClick={handleInvite} disabled={!invitePhone.trim() || inviteMutation.isPending}>
                 {inviteMutation.isPending ? 'Granting...' : 'Grant Access'}
               </button>
             </div>
@@ -112,12 +112,12 @@ export function AdminAccessPage() {
        error ? <ErrorState onRetry={() => refetch()} /> : (
         <div className="data-table-container">
           <table className="data-table">
-            <thead><tr><th>Admin</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th>Created</th><th className="cell-actions">Actions</th></tr></thead>
+            <thead><tr><th>Admin</th><th>WhatsApp Number</th><th>Role</th><th>Status</th><th>Last Login</th><th>Created</th><th className="cell-actions">Actions</th></tr></thead>
             <tbody>
               {admins.map(a => (
                 <tr key={a.id}>
                   <td className="font-medium">{a.display_name}</td>
-                  <td className="text-muted">{a.email}</td>
+                  <td className="text-muted">{a.phone || '—'}</td>
                   <td>
                     <select className="input select" style={{ width: 130, padding: '2px 8px', fontSize: 'var(--fz-text-xs)' }} value={a.role} onChange={e => handleRoleChange(a, e.target.value as AdminRole)} disabled={a.role === 'super_admin' || changeRoleMutation.isPending}>
                       <option value="viewer">Viewer</option>

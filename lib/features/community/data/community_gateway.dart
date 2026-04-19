@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../models/feed_message_model.dart';
 import '../../../models/team_contribution_model.dart';
@@ -15,7 +14,6 @@ export 'team_support_gateway.dart';
 abstract interface class CommunityGateway
     implements TeamSupportGateway, TeamNewsGateway, FeedGateway {}
 
-@LazySingleton(as: CommunityGateway)
 class SupabaseCommunityGateway implements CommunityGateway {
   SupabaseCommunityGateway(this._support, this._news, this._feed);
 

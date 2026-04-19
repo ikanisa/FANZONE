@@ -60,7 +60,7 @@ class LeaguesDiscoveryContent extends ConsumerWidget {
     return RefreshIndicator(
       color: FzColors.accent,
       onRefresh: () async {
-        HapticFeedback.mediumImpact();
+        await HapticFeedback.mediumImpact();
         ref.invalidate(top5EuropeanLeaguesProvider);
         ref.invalidate(majorCompetitionsProvider);
         ref.invalidate(localLeaguesProvider(primaryRegion));
@@ -274,7 +274,7 @@ class _ForYouCardData {
     return _ForYouCardData(
       label: team.teamName,
       caption: 'Favorite',
-      route: '/clubs/team/${team.teamId}',
+      route: '/team/${team.teamId}',
       teamName: team.teamName,
       teamCrestUrl: team.teamCrestUrl,
     );

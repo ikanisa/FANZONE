@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../core/errors/app_exception.dart';
 import '../core/errors/failures.dart';
 import '../core/logging/app_logger.dart';
@@ -20,7 +20,7 @@ class WalletService extends _$WalletService {
     final userId = ref.read(authServiceProvider).currentUser?.id;
     if (userId == null) return 0;
 
-    return getIt<WalletGateway>().getAvailableBalance(userId);
+    return ref.read(walletGatewayProvider).getAvailableBalance(userId);
   }
 
   Future<void> transferByFanId(String fanId, int amount) async {
@@ -46,7 +46,7 @@ class WalletService extends _$WalletService {
     state = const AsyncValue.loading();
 
     try {
-      await getIt<WalletGateway>().transferByFanId(
+      await ref.read(walletGatewayProvider).transferByFanId(
         WalletTransferByFanIdDto(fanId: fanId, amount: amount),
       );
 
@@ -71,7 +71,7 @@ class TransactionService extends _$TransactionService {
     final userId = ref.read(authServiceProvider).currentUser?.id;
     if (userId == null) return const [];
 
-    return getIt<WalletGateway>().getTransactions(userId);
+    return ref.read(walletGatewayProvider).getTransactions(userId);
   }
 }
 
@@ -79,6 +79,6 @@ class TransactionService extends _$TransactionService {
 class FanClubService extends _$FanClubService {
   @override
   FutureOr<List<FanClub>> build() async {
-    return getIt<WalletGateway>().getFanClubs();
+    return ref.read(walletGatewayProvider).getFanClubs();
   }
 }

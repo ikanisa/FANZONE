@@ -44,7 +44,7 @@ class _CreatePoolSheetState extends ConsumerState<_CreatePoolSheet> {
         context,
         title: 'Sign in to create a pool',
         message: 'Phone verification is required to create and manage pools.',
-        from: '/predict',
+        from: '/pools',
       );
       return;
     }

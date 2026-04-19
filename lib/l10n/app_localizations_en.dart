@@ -353,16 +353,16 @@ class SEn extends S {
   String get loginSubtitle => 'The Global Football Prediction Platform';
 
   @override
-  String get loginPhoneHint => 'Phone number';
+  String get loginPhoneHint => 'WhatsApp number';
 
   @override
-  String get loginOtpHint => 'Enter verification code';
+  String get loginOtpHint => 'Enter WhatsApp verification code';
 
   @override
-  String get loginSendOtp => 'Send Code';
+  String get loginSendOtp => 'Send Code Via WhatsApp';
 
   @override
-  String get loginVerify => 'Verify';
+  String get loginVerify => 'Verify Code';
 
   @override
   String get loginSkip => 'Continue as Guest';

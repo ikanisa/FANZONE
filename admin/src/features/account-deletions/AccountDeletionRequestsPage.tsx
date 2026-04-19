@@ -80,7 +80,6 @@ export function AccountDeletionRequestsPage() {
     fnName: 'admin_update_account_deletion_request',
     invalidateKeys: [['account-deletion-requests']],
     successMessage: 'Deletion request updated.',
-    demoFn: async () => ({ updated: true }),
   });
 
   function openRequest(request: AccountDeletionRequestRecord) {

@@ -1,14 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../core/di/injection.dart';
-import '../features/auth/data/auth_gateway.dart';
+import '../core/di/gateway_providers.dart';
 import '../services/auth_service.dart';
 
 enum AuthExitIntent { none, manualSignOut }
 
 final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService(getIt<AuthGateway>());
+  return AuthService(ref.read(authGatewayProvider));
 });
 
 final authExitIntentProvider = StateProvider<AuthExitIntent>((ref) {
@@ -34,8 +33,22 @@ final currentUserProvider = Provider<User?>((ref) {
   return ref.read(authServiceProvider).currentUser;
 });
 
+/// True when any session exists (anonymous or phone-verified).
 final isAuthenticatedProvider = Provider<bool>((ref) {
   return ref.watch(currentUserProvider) != null;
+});
+
+/// True when the current user is an anonymous/guest user.
+final isGuestProvider = Provider<bool>((ref) {
+  ref.watch(authStateProvider);
+  return ref.read(authServiceProvider).isAnonymousUser;
+});
+
+/// True only when the user is fully authenticated (non-anonymous).
+final isFullyAuthenticatedProvider = Provider<bool>((ref) {
+  final isAuth = ref.watch(isAuthenticatedProvider);
+  final isGuest = ref.watch(isGuestProvider);
+  return isAuth && !isGuest;
 });
 
 final sessionExpiredProvider = Provider<bool>((ref) {

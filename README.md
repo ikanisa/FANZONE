@@ -47,7 +47,7 @@ Out of scope for this repository today:
 - Flutter web, desktop, or non-mobile platforms
 - local Supabase emulation/configuration baked into the repo
 - real-money payments or gambling flows
-- production crash reporting integration through Sentry, despite `SENTRY_DSN` placeholders still existing in some env templates
+- third-party crash reporting; runtime failures are captured through the Supabase-backed telemetry path
 
 ## Architecture Summary
 
@@ -248,8 +248,6 @@ Optional mobile keys currently supported by code:
 | `ENABLE_FEATURED_EVENTS` | Featured/global event surfaces |
 | `ENABLE_GLOBAL_CHALLENGES` | Jackpot/global challenge surface |
 | `ENABLE_REGION_DISCOVERY` | Regional discovery/onboarding flows |
-| `SENTRY_DSN` | Reserved in templates and CI, but not used by the current telemetry implementation |
-
 Important:
 
 - the example JSON files contain placeholders and are not enough for a real backend connection
@@ -286,7 +284,6 @@ Required admin vars:
 | --- | --- | --- |
 | `VITE_SUPABASE_URL` | Yes for live admin | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Yes for live admin | Supabase anon key |
-| `VITE_ALLOW_DEMO_MODE` | Optional | Only honored in local dev when Supabase env is missing |
 
 Use the committed template file and keep your real `admin/.env` local:
 
@@ -298,7 +295,7 @@ cp admin/.env.example admin/.env
 
 Admin auth assumptions:
 
-- login is email/password through Supabase Auth
+- login is WhatsApp OTP through Supabase phone auth
 - the authenticated user must also have an active row in `public.admin_users`
 - role enforcement is `viewer < moderator < admin < super_admin`
 
@@ -591,14 +588,14 @@ Current GitHub Actions jobs encode part of the production operating model:
 ### Mobile auth
 
 - Supabase Auth is the source of truth
-- the user-facing login flow is phone OTP
+- the user-facing login flow is WhatsApp OTP sent to the user phone number
 - guest browsing is possible for some surfaces
 - protected routes redirect to `/login`
 - onboarding writes profile, team, and market preference data after auth or guest progression
 
 ### Admin auth
 
-- email/password Supabase Auth login
+- the admin console uses the same WhatsApp OTP flow as the mobile app
 - access also requires an active `admin_users` row
 - routes are role-gated in the frontend and should also be protected by backend policy/RPC checks
 
@@ -704,9 +701,9 @@ Provide real signing values through:
 Check:
 
 - `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
-- the user exists in Supabase Auth
-- the same user also has an active `admin_users` row
-- local demo mode is only available when env vars are missing and `VITE_ALLOW_DEMO_MODE=true`
+- the admin user exists in Supabase Auth as a phone identity that can receive WhatsApp OTP
+- the same authenticated user also has an active `admin_users` row
+- missing admin env now hard-locks auth and data access instead of falling back to demo content
 
 ### Supabase audit scripts fail with missing `supabase/.temp/pooler-url`
 
@@ -726,10 +723,6 @@ Check:
 - `GOOGLE_SERVICE_ACCOUNT_JSON` is configured in Supabase
 - APNs is configured for iOS
 - you are testing on a physical device, not a simulator
-
-### `SENTRY_DSN` is set but no remote crash reports appear
-
-That is expected with the current code. `SENTRY_DSN` is not consumed by the mobile app today. Runtime failures are captured through the Supabase-backed telemetry path in [`lib/services/app_telemetry.dart`](lib/services/app_telemetry.dart) and `public.log_app_runtime_errors_batch`, not through a Sentry SDK.
 
 ## Common Issues And Gotchas
 
@@ -835,7 +828,6 @@ Observed directly from the current code and config:
 
 - `ENABLE_GLOBAL_CHALLENGES` is `false` in the tracked env templates and CI; jackpot/global challenge rollout is not yet treated as fully live
 - social feed, AI analysis, advanced stats, community contests, and seasonal leaderboards are implemented unevenly and gated by build flags
-- external crash reporting is not wired even though `SENTRY_DSN` still appears in templates
 - only English localization is committed
 - local Supabase dev bootstrap is incomplete in-repo; most backend work assumes a real project
 - the admin repo slice depends on browser-side Supabase auth and still needs broader component and integration coverage beyond the core RBAC guards

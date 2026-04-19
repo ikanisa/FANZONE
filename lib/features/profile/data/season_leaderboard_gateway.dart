@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -18,7 +17,6 @@ abstract interface class SeasonLeaderboardGateway {
   Future<List<LeaderboardSeason>> getCompletedSeasons();
 }
 
-@LazySingleton(as: SeasonLeaderboardGateway)
 class SupabaseSeasonLeaderboardGateway implements SeasonLeaderboardGateway {
   SupabaseSeasonLeaderboardGateway(this._connection);
 
@@ -27,7 +25,7 @@ class SupabaseSeasonLeaderboardGateway implements SeasonLeaderboardGateway {
   @override
   Future<List<LeaderboardSeason>> getActiveLeaderboardSeasons() async {
     final client = _connection.client;
-    if (client == null) return fallbackActiveSeasons();
+    if (client == null) return _fallbackActiveSeasons();
 
     try {
       final rows = await client
@@ -41,10 +39,10 @@ class SupabaseSeasonLeaderboardGateway implements SeasonLeaderboardGateway {
             (row) => LeaderboardSeason.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      return seasons.isEmpty ? fallbackActiveSeasons() : seasons;
+      return seasons;
     } catch (error) {
       AppLogger.d('Failed to load active leaderboard seasons: $error');
-      return fallbackActiveSeasons();
+      return _fallbackActiveSeasons();
     }
   }
 
@@ -53,7 +51,7 @@ class SupabaseSeasonLeaderboardGateway implements SeasonLeaderboardGateway {
     String seasonId,
   ) async {
     final client = _connection.client;
-    if (client == null) return fallbackSeasonRankings(seasonId);
+    if (client == null) return _fallbackSeasonRankings(seasonId);
 
     try {
       final rows = await client
@@ -68,10 +66,10 @@ class SupabaseSeasonLeaderboardGateway implements SeasonLeaderboardGateway {
                 SeasonLeaderboardEntry.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      return entries.isEmpty ? fallbackSeasonRankings(seasonId) : entries;
+      return entries;
     } catch (error) {
       AppLogger.d('Failed to load season rankings: $error');
-      return fallbackSeasonRankings(seasonId);
+      return _fallbackSeasonRankings(seasonId);
     }
   }
 
@@ -90,7 +88,7 @@ class SupabaseSeasonLeaderboardGateway implements SeasonLeaderboardGateway {
   @override
   Future<List<LeaderboardSeason>> getCompletedSeasons() async {
     final client = _connection.client;
-    if (client == null) return fallbackCompletedSeasons();
+    if (client == null) return _fallbackCompletedSeasons();
 
     try {
       final rows = await client
@@ -104,10 +102,28 @@ class SupabaseSeasonLeaderboardGateway implements SeasonLeaderboardGateway {
             (row) => LeaderboardSeason.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      return seasons.isEmpty ? fallbackCompletedSeasons() : seasons;
+      return seasons;
     } catch (error) {
       AppLogger.d('Failed to load completed leaderboard seasons: $error');
-      return fallbackCompletedSeasons();
+      return _fallbackCompletedSeasons();
     }
+  }
+
+  List<LeaderboardSeason> _fallbackActiveSeasons() {
+    return allowEngagementSeedFallback
+        ? fallbackActiveSeasons()
+        : const <LeaderboardSeason>[];
+  }
+
+  List<SeasonLeaderboardEntry> _fallbackSeasonRankings(String seasonId) {
+    return allowEngagementSeedFallback
+        ? fallbackSeasonRankings(seasonId)
+        : const <SeasonLeaderboardEntry>[];
+  }
+
+  List<LeaderboardSeason> _fallbackCompletedSeasons() {
+    return allowEngagementSeedFallback
+        ? fallbackCompletedSeasons()
+        : const <LeaderboardSeason>[];
   }
 }

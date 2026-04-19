@@ -109,8 +109,8 @@ See `docs/privacy-policy.md` for the full text.
 ## App Access
 
 If reviewers need login credentials to test the app:
-- The app supports phone OTP authentication
-- Provide a test phone number and OTP for review
+- The app supports WhatsApp OTP authentication only
+- Provide a test WhatsApp-enabled phone number and OTP for review
 
 ---
 

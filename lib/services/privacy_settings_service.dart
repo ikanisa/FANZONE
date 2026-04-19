@@ -1,25 +1,32 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../core/di/injection.dart';
-import '../features/settings/data/preferences_gateway.dart';
+import '../core/cache/shared_preferences_cache_service.dart';
+import '../core/supabase/supabase_connection.dart';
+import '../features/settings/data/account_settings_gateway.dart';
 import '../models/privacy_settings_model.dart';
-import 'auth_service.dart';
 
+/// Static privacy settings service.
+/// Uses Supabase directly for auth since it's called from non-Riverpod contexts.
 class PrivacySettingsService {
-  const PrivacySettingsService._();
+  static String? get _userId => Supabase.instance.client.auth.currentUser?.id;
+
+  static AccountSettingsGateway? _gateway;
+  static AccountSettingsGateway get _accountSettings =>
+      _gateway ??= SupabaseAccountSettingsGateway(
+        SharedPreferencesCacheService.global,
+        SupabaseConnectionImpl(),
+      );
 
   static Future<PrivacySettingsModel> getSettings() async {
-    final userId = getIt<AuthService>().currentUser?.id;
-    if (userId == null) return PrivacySettingsModel.defaults;
-    return getIt<AccountSettingsGateway>().getPrivacySettings(userId);
+    final userId = _userId;
+    if (userId == null) return const PrivacySettingsModel();
+    return _accountSettings.getPrivacySettings(userId);
   }
 
   static Future<void> saveSettings(PrivacySettingsModel settings) async {
-    final userId = getIt<AuthService>().currentUser?.id;
-    if (userId == null) {
-      throw const AuthException('Sign in to update privacy settings.');
-    }
+    final userId = _userId;
+    if (userId == null) return;
 
-    await getIt<AccountSettingsGateway>().savePrivacySettings(userId, settings);
+    await _accountSettings.savePrivacySettings(userId, settings);
   }
 }

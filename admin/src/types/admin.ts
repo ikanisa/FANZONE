@@ -3,7 +3,7 @@ import type { AdminRole } from '../config/constants';
 export interface AdminUser {
   id: string;
   user_id: string;
-  email: string;
+  phone: string | null;
   display_name: string;
   role: AdminRole;
   permissions: Record<string, boolean>;
@@ -27,7 +27,7 @@ export interface AuditLog {
   ip_address: string | null;
   created_at: string;
   admin_name?: string;
-  admin_email?: string;
+  admin_phone?: string;
 }
 
 export interface AdminNote {

@@ -62,7 +62,7 @@ class ProfileScreen extends ConsumerWidget {
                   Tooltip(
                     message: 'Open settings',
                     child: InkWell(
-                      onTap: () => context.go('/profile/settings'),
+                      onTap: () => context.go('/settings'),
                       borderRadius: FzRadii.fullRadius,
                       child: Container(
                         width: 40,

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../core/errors/app_exception.dart';
 import '../core/logging/app_logger.dart';
 import '../features/wallet/data/wallet_gateway.dart';
@@ -10,7 +10,7 @@ import 'wallet_service.dart';
 
 final marketplaceOffersProvider =
     FutureProvider.autoDispose<List<MarketplaceOffer>>((ref) async {
-      return getIt<WalletGateway>().getMarketplaceOffers();
+      return ref.read(walletGatewayProvider).getMarketplaceOffers();
     });
 
 final marketplaceRedemptionsProvider =
@@ -18,7 +18,7 @@ final marketplaceRedemptionsProvider =
       ref.watch(authStateProvider);
       final userId = ref.read(authServiceProvider).currentUser?.id;
       if (userId == null) return const [];
-      return getIt<WalletGateway>().getMarketplaceRedemptions(userId);
+      return ref.read(walletGatewayProvider).getMarketplaceRedemptions(userId);
     });
 
 class MarketplaceService {
@@ -45,5 +45,5 @@ class MarketplaceService {
 }
 
 final marketplaceServiceProvider = Provider<MarketplaceService>(
-  (ref) => MarketplaceService(ref, getIt<WalletGateway>()),
+  (ref) => MarketplaceService(ref, ref.read(walletGatewayProvider)),
 );

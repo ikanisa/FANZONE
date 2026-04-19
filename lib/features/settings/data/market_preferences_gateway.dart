@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
@@ -16,7 +15,6 @@ abstract interface class MarketPreferencesGateway {
   Future<void> syncCachedMarketPreferencesIfAuthenticated();
 }
 
-@LazySingleton(as: MarketPreferencesGateway)
 class SupabaseMarketPreferencesGateway implements MarketPreferencesGateway {
   SupabaseMarketPreferencesGateway(this._cache, this._connection);
 

@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,7 +86,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _onRefresh() async {
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
     ref.invalidate(competitionsProvider);
     ref.invalidate(matchesByDateProvider(_selectedDate));
 

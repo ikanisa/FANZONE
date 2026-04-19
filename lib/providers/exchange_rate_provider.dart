@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/di/injection.dart';
-import '../features/wallet/data/wallet_gateway.dart';
+import '../core/di/gateway_providers.dart';
 
 class FetExchangeRate {
   const FetExchangeRate({
@@ -24,7 +23,7 @@ const _defaultRates = [
 final fetExchangeRatesProvider =
     FutureProvider.autoDispose<List<FetExchangeRate>>((ref) async {
       try {
-        final response = await getIt<WalletGateway>().getFetExchangeRates();
+        final response = await ref.read(walletGatewayProvider).getFetExchangeRates();
         if (response.isEmpty) return _defaultRates;
 
         return response

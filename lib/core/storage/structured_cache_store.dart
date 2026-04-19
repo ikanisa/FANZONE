@@ -139,7 +139,7 @@ abstract final class StructuredCacheStore {
       kind: snapshot.kind,
       payload: payload
           .whereType<Map>()
-          .map((row) => Map<String, dynamic>.from(row))
+          .map(Map<String, dynamic>.from)
           .toList(growable: false),
       cachedAt: snapshot.cachedAt,
       expiresAt: snapshot.expiresAt,

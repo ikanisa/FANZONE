@@ -333,7 +333,8 @@ async function fetchLiveRatesFromGemini(): Promise<
     "- Do not include markdown, prose, or code fences.",
     "- Use the most recent rates available from reputable financial sources.",
     "- Rates must be positive numbers.",
-    "- Do not invent rates. If a rate cannot be found, use a reasonable estimate based on recent historical data.",
+    "- Do not invent, estimate, or interpolate rates.",
+    "- If a rate cannot be found with confidence, omit that currency instead of guessing.",
     "- Round large rates (>100) to integers. Round small rates (<10) to 2 decimal places.",
   ].join("\n");
 
@@ -365,6 +366,19 @@ async function fetchLiveRatesFromGemini(): Promise<
     if (!deduped.has(entry.currency)) {
       deduped.set(entry.currency, entry.rate);
     }
+  }
+
+  const missingCurrencies = targetCurrencies.filter((currency) =>
+    !deduped.has(currency)
+  );
+  if (missingCurrencies.length > 0) {
+    console.error(
+      `[${FUNCTION_NAME}] Gemini response missing live rates for:`,
+      missingCurrencies.join(", "),
+    );
+    throw new Error(
+      `Gemini returned incomplete exchange rates: missing ${missingCurrencies.join(", ")}`,
+    );
   }
 
   return [...deduped.entries()].map(([currency, rate]) => ({ currency, rate }));

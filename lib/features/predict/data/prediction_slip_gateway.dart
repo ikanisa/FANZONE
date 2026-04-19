@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -15,7 +14,6 @@ abstract interface class PredictionSlipGateway {
   });
 }
 
-@LazySingleton(as: PredictionSlipGateway)
 class SupabasePredictionSlipGateway implements PredictionSlipGateway {
   SupabasePredictionSlipGateway(this._connection);
 
@@ -79,14 +77,14 @@ class SupabasePredictionSlipGateway implements PredictionSlipGateway {
             .eq('user_id', userId)
             .order('submitted_at', ascending: false)
             .limit(limit);
-        final slips = (rows as List)
-            .whereType<Map>()
-            .map(
+      final slips = (rows as List)
+          .whereType<Map>()
+          .map(
               (row) =>
                   PredictionSlipModel.fromJson(Map<String, dynamic>.from(row)),
-            )
-            .toList(growable: false);
-        if (slips.isNotEmpty) return slips;
+          )
+          .toList(growable: false);
+        return slips;
       } catch (error) {
         AppLogger.d('Failed to load prediction slips: $error');
       }

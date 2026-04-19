@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
@@ -21,7 +20,6 @@ abstract interface class CompetitionCatalogGateway {
   );
 }
 
-@LazySingleton(as: CompetitionCatalogGateway)
 class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
   SupabaseCompetitionCatalogGateway(this._connection);
 
@@ -32,12 +30,10 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
     int? tier,
     bool featuredOnly = false,
   }) async {
-    final fallback = _fallbackCompetitions(
-      tier: tier,
-      featuredOnly: featuredOnly,
-    );
     final client = _connection.client;
-    if (client == null) return fallback;
+    if (client == null) {
+      return _fallbackCompetitions(tier: tier, featuredOnly: featuredOnly);
+    }
 
     try {
       final rows = await client.from('competitions').select();
@@ -53,10 +49,10 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
         tier: tier,
         featuredOnly: featuredOnly,
       );
-      return filtered.isEmpty ? fallback : filtered;
+      return filtered;
     } catch (error) {
       AppLogger.d('Failed to load competitions: $error');
-      return fallback;
+      return _fallbackCompetitions(tier: tier, featuredOnly: featuredOnly);
     }
   }
 
@@ -73,9 +69,8 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
   Future<List<StandingRowModel>> getCompetitionStandings(
     CompetitionStandingsFilter filter,
   ) async {
-    final fallback = _fallbackStandings(filter.competitionId);
     final client = _connection.client;
-    if (client == null) return fallback;
+    if (client == null) return _fallbackStandings(filter.competitionId);
 
     try {
       var query = client
@@ -92,10 +87,10 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
             (row) => StandingRowModel.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      return standings.isEmpty ? fallback : standings;
+      return standings;
     } catch (error) {
       AppLogger.d('Failed to load standings: $error');
-      return fallback;
+      return _fallbackStandings(filter.competitionId);
     }
   }
 
@@ -103,7 +98,7 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
     int? tier,
     bool featuredOnly = false,
   }) {
-    if (AppConfig.isProduction) return const <CompetitionModel>[];
+    if (!AppConfig.isDevelopment) return const <CompetitionModel>[];
     return filterCompetitions(
       fallbackCompetitions,
       tier: tier,
@@ -112,7 +107,7 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
   }
 
   List<StandingRowModel> _fallbackStandings(String competitionId) {
-    if (AppConfig.isProduction) return const <StandingRowModel>[];
+    if (!AppConfig.isDevelopment) return const <StandingRowModel>[];
     return fallbackStandings(competitionId);
   }
 }

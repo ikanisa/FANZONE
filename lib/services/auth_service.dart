@@ -15,6 +15,13 @@ class AuthService {
 
   bool get isAuthenticated => _gateway.isAuthenticated;
 
+  /// Whether the current user is an anonymous/guest user.
+  bool get isAnonymousUser => _gateway.isAnonymousUser;
+
+  /// Whether the current user is fully authenticated (non-anonymous).
+  bool get isFullyAuthenticated =>
+      _gateway.isAuthenticated && !_gateway.isAnonymousUser;
+
   Future<bool> sendOtp(String phone) async {
     try {
       return await _gateway.sendOtp(phone);
@@ -34,6 +41,31 @@ class AuthService {
     } catch (error) {
       AppLogger.d('verifyOtp error: $error');
       rethrow;
+    }
+  }
+
+  /// Sign in as an anonymous/guest user via Supabase anonymous auth.
+  Future<AuthResponse> signInAnonymously() async {
+    try {
+      return await _gateway.signInAnonymously();
+    } on AuthException {
+      rethrow;
+    } catch (error) {
+      AppLogger.d('signInAnonymously error: $error');
+      rethrow;
+    }
+  }
+
+  /// Merge anonymous user data into authenticated user after OTP upgrade.
+  Future<void> mergeAnonymousToAuthenticated(
+    String anonId,
+    String authId,
+  ) async {
+    try {
+      await _gateway.mergeAnonymousToAuthenticated(anonId, authId);
+    } catch (error) {
+      AppLogger.d('mergeAnonymousToAuthenticated error: $error');
+      // Don't rethrow — merge failure should not block the upgrade
     }
   }
 

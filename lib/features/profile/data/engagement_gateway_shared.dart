@@ -3,7 +3,7 @@ import '../../../models/community_contest_model.dart';
 import '../../../models/fan_identity_model.dart';
 import '../../../models/leaderboard_season_model.dart';
 
-bool get allowEngagementSeedFallback => !AppConfig.isProduction;
+bool get allowEngagementSeedFallback => AppConfig.isDevelopment;
 
 List<CommunityContest> fallbackOpenContests() {
   if (!allowEngagementSeedFallback) return const <CommunityContest>[];

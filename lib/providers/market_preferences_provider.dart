@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../core/market/launch_market.dart';
-import '../features/settings/data/preferences_gateway.dart';
 import '../models/featured_event_model.dart';
 import '../models/global_challenge_model.dart';
 import '../models/user_market_preferences_model.dart';
@@ -11,7 +10,7 @@ import 'featured_events_provider.dart';
 final userMarketPreferencesProvider =
     FutureProvider.autoDispose<UserMarketPreferences>((ref) async {
       ref.keepAlive();
-      return getIt<MarketPreferencesGateway>().getUserMarketPreferences();
+      return ref.read(marketPreferencesGatewayProvider).getUserMarketPreferences();
     });
 
 final primaryMarketRegionProvider = Provider<String>((ref) {

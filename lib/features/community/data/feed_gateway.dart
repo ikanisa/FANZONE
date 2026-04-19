@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:injectable/injectable.dart';
 
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
@@ -27,7 +26,6 @@ abstract interface class FeedGateway {
   });
 }
 
-@LazySingleton(as: FeedGateway)
 class SupabaseFeedGateway implements FeedGateway {
   SupabaseFeedGateway(this._cache, this._connection);
 

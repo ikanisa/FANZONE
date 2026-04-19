@@ -35,7 +35,7 @@ class ProfileQuickLinksCard extends StatelessWidget {
               ProfileLinkRow(
                 icon: LucideIcons.target,
                 label: 'Predictions',
-                onTap: () => context.go('/predict'),
+                onTap: () => context.go('/pools'),
               ),
             if (showPredictions && showWallet)
               const Divider(height: 0.5, indent: 56),
@@ -50,8 +50,8 @@ class ProfileQuickLinksCard extends StatelessWidget {
             if (AppConfig.enableRewards)
               ProfileLinkRow(
                 icon: LucideIcons.award,
-                label: 'Badges',
-                onTap: () => context.go('/profile'),
+                label: 'Rewards',
+                onTap: () => context.go('/rewards'),
               ),
           ],
         ),
@@ -64,13 +64,13 @@ class ProfileQuickLinksCard extends StatelessWidget {
               ProfileLinkRow(
                 icon: LucideIcons.shield,
                 label: 'Memberships',
-                onTap: () => context.push('/clubs/membership'),
+                onTap: () => context.push('/memberships'),
               ),
               const Divider(height: 0.5, indent: 56),
               ProfileLinkRow(
                 icon: LucideIcons.fingerprint,
                 label: 'Fan ID',
-                onTap: () => context.push('/clubs/fan-id'),
+                onTap: () => context.push('/fan-id'),
               ),
             ],
           ),
@@ -111,19 +111,19 @@ class ProfileAccountLinksCard extends StatelessWidget {
             ProfileLinkRow(
               icon: LucideIcons.lock,
               label: 'Privacy',
-              onTap: () => context.go('/profile/settings/privacy'),
+              onTap: () => context.go('/privacy'),
             ),
             const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(
               icon: LucideIcons.bell,
               label: 'Inbox',
-              onTap: () => context.go('/profile/notification-settings'),
+              onTap: () => context.go('/notifications'),
             ),
             const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(
               icon: LucideIcons.settings,
               label: 'Preferences',
-              onTap: () => context.go('/profile/settings'),
+              onTap: () => context.go('/settings'),
             ),
             const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(

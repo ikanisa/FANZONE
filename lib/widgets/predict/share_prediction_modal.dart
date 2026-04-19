@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -167,7 +169,7 @@ class _SharePredictionSheet extends StatelessWidget {
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () async {
-                        HapticFeedback.selectionClick();
+                        unawaited(HapticFeedback.selectionClick());
                         await SharePlus.instance.share(
                           ShareParams(text: shareText),
                         );
@@ -187,7 +189,7 @@ class _SharePredictionSheet extends StatelessWidget {
                   const SizedBox(width: 10),
                   OutlinedButton.icon(
                     onPressed: () async {
-                      HapticFeedback.selectionClick();
+                      unawaited(HapticFeedback.selectionClick());
                       await Clipboard.setData(ClipboardData(text: shareText));
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(

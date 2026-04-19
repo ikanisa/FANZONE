@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../core/errors/app_exception.dart';
 import '../core/errors/failures.dart';
 import '../core/logging/app_logger.dart';
@@ -52,7 +52,7 @@ class PredictionSlipService {
 }
 
 final predictionSlipServiceProvider = Provider<PredictionSlipService>((ref) {
-  return PredictionSlipService(getIt<PredictionSlipGateway>());
+  return PredictionSlipService(ref.read(predictionSlipGatewayProvider));
 });
 
 final myPredictionSlipsProvider =

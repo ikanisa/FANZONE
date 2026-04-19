@@ -3,12 +3,11 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { env } from '../config/env';
 
 export const adminEnvError =
-  'Admin environment is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.';
+  'Admin environment is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable WhatsApp OTP sign-in.';
 
 type AdminSupabaseClient = SupabaseClient;
 
 export const isSupabaseConfigured = Boolean(env.supabaseUrl && env.supabaseAnonKey);
-export const isDemoMode = !isSupabaseConfigured && env.allowDemoMode;
 
 let supabaseClient: AdminSupabaseClient | null = null;
 

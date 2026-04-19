@@ -165,7 +165,7 @@ class _LeagueTableTab extends StatelessWidget {
             }
             return StandingsTable(
               rows: rows.cast(),
-              onTapTeam: (teamId) => context.push('/clubs/team/$teamId'),
+              onTapTeam: (teamId) => context.push('/team/$teamId'),
             );
           },
           loading: () => const FzCard(
@@ -306,7 +306,7 @@ class _LeagueTeamsTab extends StatelessWidget {
             return FzCard(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: InkWell(
-                onTap: () => context.push('/clubs/team/${team.id}'),
+                onTap: () => context.push('/team/${team.id}'),
                 child: Row(
                   children: [
                     TeamAvatar(name: team.name),

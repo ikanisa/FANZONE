@@ -1,24 +1,36 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../core/di/injection.dart';
-import '../features/settings/data/preferences_gateway.dart';
+import '../core/cache/shared_preferences_cache_service.dart';
+import '../core/supabase/supabase_connection.dart';
+import '../features/settings/data/account_settings_gateway.dart';
 import '../models/account_deletion_request_model.dart';
-import 'auth_service.dart';
 
+/// Static account deletion service.
+/// Uses Supabase directly for auth and creates its own gateway instance,
+/// since it's called from non-Riverpod contexts.
 class AccountDeletionService {
   const AccountDeletionService._();
 
+  static String? get _userId => Supabase.instance.client.auth.currentUser?.id;
+
+  static AccountSettingsGateway? _gateway;
+  static AccountSettingsGateway get _accountSettings =>
+      _gateway ??= SupabaseAccountSettingsGateway(
+        SharedPreferencesCacheService.global,
+        SupabaseConnectionImpl(),
+      );
+
   static Future<AccountDeletionRequestModel?> getLatestRequest() async {
-    final userId = getIt<AuthService>().currentUser?.id;
+    final userId = _userId;
     if (userId == null) return null;
-    return getIt<AccountSettingsGateway>().getAccountDeletionRequest(userId);
+    return _accountSettings.getAccountDeletionRequest(userId);
   }
 
   static Future<AccountDeletionRequestModel> createRequest({
     required String reason,
     String? contactEmail,
   }) async {
-    final userId = getIt<AuthService>().currentUser?.id;
+    final userId = _userId;
     if (userId == null) {
       throw const AuthException('Sign in to request account deletion.');
     }
@@ -30,7 +42,7 @@ class AccountDeletionService {
       );
     }
 
-    return getIt<AccountSettingsGateway>().submitAccountDeletionRequest(
+    return _accountSettings.submitAccountDeletionRequest(
       userId: userId,
       reason: trimmedReason,
       feedback: contactEmail,
@@ -40,14 +52,13 @@ class AccountDeletionService {
   static Future<AccountDeletionRequestModel> cancelRequest(
     String requestId,
   ) async {
-    final userId = getIt<AuthService>().currentUser?.id;
+    final userId = _userId;
     if (userId == null) {
       throw const AuthException('Sign in to manage deletion requests.');
     }
 
-    await getIt<AccountSettingsGateway>().cancelAccountDeletionRequest(userId);
-    final latest = await getIt<AccountSettingsGateway>()
-        .getAccountDeletionRequest(userId);
+    await _accountSettings.cancelAccountDeletionRequest(userId);
+    final latest = await _accountSettings.getAccountDeletionRequest(userId);
     if (latest == null) {
       throw const AuthException('Deletion request could not be loaded.');
     }

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/cache/cache_service.dart';
-import '../../../core/di/injection.dart';
+import '../../../core/di/gateway_providers.dart';
 import '../../../data/team_search_database.dart';
 import '../../../providers/favorite_teams_provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -16,7 +16,7 @@ final profileIdentityProvider =
 
 class ProfileIdentityController
     extends AutoDisposeAsyncNotifier<FavoriteTeamRecordDto?> {
-  CacheService get _cache => getIt<CacheService>();
+  CacheService get _cache => ref.read(cacheServiceProvider);
 
   @override
   Future<FavoriteTeamRecordDto?> build() => _loadSelection();

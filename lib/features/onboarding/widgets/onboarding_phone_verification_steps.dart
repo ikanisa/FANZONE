@@ -17,7 +17,7 @@ class OnboardingPhoneStep extends StatelessWidget {
     required this.onNext,
     this.countryCode = '+356',
     this.phoneHint = '79XX XXXX',
-    this.buttonLabel = 'SEND OTP',
+    this.buttonLabel = 'SEND CODE VIA WHATSAPP',
   });
 
   final Color textColor;
@@ -45,7 +45,7 @@ class OnboardingPhoneStep extends StatelessWidget {
             OnboardingSectionTitle(title: 'ENTER PHONE', textColor: textColor),
             const SizedBox(height: 8),
             Text(
-              'We\'ll send you a code to verify your account.',
+              'We\'ll send you a 6-digit code on WhatsApp to verify your account.',
               style: TextStyle(fontSize: 14, color: muted, height: 1.45),
             ),
             const SizedBox(height: 24),
@@ -144,7 +144,7 @@ class OnboardingOtpStep extends StatelessWidget {
     required this.canVerify,
     required this.onBack,
     required this.onNext,
-    this.buttonLabel = 'VERIFY',
+    this.buttonLabel = 'VERIFY CODE',
   });
 
   final Color textColor;
@@ -171,7 +171,7 @@ class OnboardingOtpStep extends StatelessWidget {
             OnboardingSectionTitle(title: 'VERIFY OTP', textColor: textColor),
             const SizedBox(height: 8),
             Text(
-              'Enter the 6-digit code sent to your phone.',
+              'Enter the 6-digit code sent to your WhatsApp.',
               style: TextStyle(fontSize: 14, color: muted, height: 1.45),
             ),
             const SizedBox(height: 24),

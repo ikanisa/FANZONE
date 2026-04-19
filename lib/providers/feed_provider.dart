@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/di/injection.dart';
-import '../features/community/data/feed_gateway.dart';
+import '../core/di/gateway_providers.dart';
 import '../models/feed_message_model.dart';
 
 final AutoDisposeStreamProviderFamily<List<FeedMessage>, String>
@@ -14,16 +13,17 @@ feedMessagesProvider = StreamProvider.family
 
       final channelType = parts[0];
       final channelId = parts.sublist(1).join(':');
-      return getIt<FeedGateway>().watchFeedMessages(channelType, channelId);
+      return ref.read(feedGatewayProvider).watchFeedMessages(channelType, channelId);
     });
 
-Future<void> sendFeedMessage({
+Future<void> sendFeedMessage(
+  WidgetRef ref, {
   required String channelType,
   required String channelId,
   required String content,
   String? replyTo,
 }) {
-  return getIt<FeedGateway>().sendFeedMessage(
+  return ref.read(feedGatewayProvider).sendFeedMessage(
     channelType: channelType,
     channelId: channelId,
     content: content,
@@ -31,11 +31,12 @@ Future<void> sendFeedMessage({
   );
 }
 
-Future<void> reactToMessage({
+Future<void> reactToMessage(
+  WidgetRef ref, {
   required String messageId,
   required String emoji,
 }) {
-  return getIt<FeedGateway>().reactToMessage(
+  return ref.read(feedGatewayProvider).reactToMessage(
     messageId: messageId,
     emoji: emoji,
   );

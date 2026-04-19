@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/logging/app_logger.dart';
@@ -8,6 +7,8 @@ abstract class AuthGateway {
   bool get isInitialized;
 
   bool get isAuthenticated;
+
+  bool get isAnonymousUser;
 
   User? get currentUser;
 
@@ -19,24 +20,35 @@ abstract class AuthGateway {
 
   Future<void> verifyOtp(String phone, String otp);
 
+  Future<AuthResponse> signInAnonymously();
+
   Future<void> signOut();
 
   Future<bool> isOnboardingCompletedForCurrentUser();
+
+  Future<void> mergeAnonymousToAuthenticated(String anonId, String authId);
 }
 
-@LazySingleton(as: AuthGateway)
 class SupabaseAuthGateway implements AuthGateway {
   SupabaseAuthGateway(this._connection);
 
   final SupabaseConnection _connection;
 
   static const _timeout = Duration(seconds: 20);
+  static const _otpChannel = OtpChannel.whatsapp;
 
   @override
   bool get isInitialized => _connection.isInitialized;
 
   @override
   bool get isAuthenticated => _connection.isAuthenticated;
+
+  @override
+  bool get isAnonymousUser {
+    final user = _connection.currentUser;
+    if (user == null) return false;
+    return user.isAnonymous;
+  }
 
   @override
   User? get currentUser => _connection.currentUser;
@@ -50,7 +62,9 @@ class SupabaseAuthGateway implements AuthGateway {
   @override
   Future<bool> sendOtp(String phone) async {
     final client = _requireClient();
-    await client.auth.signInWithOtp(phone: phone).timeout(_timeout);
+    await client.auth
+        .signInWithOtp(phone: phone, channel: _otpChannel)
+        .timeout(_timeout);
     return true;
   }
 
@@ -58,12 +72,29 @@ class SupabaseAuthGateway implements AuthGateway {
   Future<void> verifyOtp(String phone, String otp) async {
     final client = _requireClient();
     final response = await client.auth
+        // Supabase uses the phone OTP verifier type `sms` for phone codes,
+        // even when the delivery channel is WhatsApp.
         .verifyOTP(type: OtpType.sms, phone: phone, token: otp)
         .timeout(_timeout);
 
     if (response.session == null) {
       throw const AuthException('Invalid OTP. Please try again.');
     }
+  }
+
+  @override
+  Future<AuthResponse> signInAnonymously() async {
+    final client = _requireClient();
+    final response =
+        await client.auth.signInAnonymously().timeout(_timeout);
+
+    if (response.session == null) {
+      throw const AuthException(
+        'Could not create guest session. Please try again.',
+      );
+    }
+
+    return response;
   }
 
   @override
@@ -92,6 +123,20 @@ class SupabaseAuthGateway implements AuthGateway {
         .timeout(_timeout);
 
     return profile?['onboarding_completed'] == true;
+  }
+
+  @override
+  Future<void> mergeAnonymousToAuthenticated(
+    String anonId,
+    String authId,
+  ) async {
+    final client = _requireClient();
+    await client
+        .rpc('merge_anonymous_to_authenticated', params: {
+          'p_anon_id': anonId,
+          'p_auth_id': authId,
+        })
+        .timeout(const Duration(seconds: 30));
   }
 
   SupabaseClient _requireClient() {

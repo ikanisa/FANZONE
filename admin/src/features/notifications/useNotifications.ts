@@ -7,15 +7,6 @@ import {
 import type { Campaign } from '../../types';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
-/* ── Demo Data ── */
-const DEMO_CAMPAIGNS: Campaign[] = [
-  { id: 'cmp-1', title: 'Weekend Pool Bonanza', message: '🏆 Double FET rewards on all weekend pools! Create or join a pool before Saturday.', type: 'in_app', segment: { all_users: true }, status: 'sent', scheduled_at: '2026-04-18T08:00:00Z', sent_at: '2026-04-18T08:01:00Z', recipient_count: 3847, country: 'MT', created_by: 'a-001', created_at: '2026-04-17T14:00:00Z', updated_at: '2026-04-18T08:01:00Z' },
-  { id: 'cmp-2', title: 'UCL Quarter-Finals Alert', message: '⚽ Liverpool vs Barcelona tonight! Place your free prediction and win up to 200 FET.', type: 'push', segment: { has_predicted_ucl: true }, status: 'sent', scheduled_at: '2026-04-22T16:00:00Z', sent_at: '2026-04-22T16:00:30Z', recipient_count: 1245, country: 'MT', created_by: 'a-001', created_at: '2026-04-20T10:00:00Z', updated_at: '2026-04-22T16:00:30Z' },
-  { id: 'cmp-3', title: 'New Partner: Café del Mar', message: '☀️ Café del Mar is now on FANZONE! Redeem your FET for exclusive sunset sessions.', type: 'in_app', segment: { min_balance_fet: 500 }, status: 'scheduled', scheduled_at: '2026-04-25T10:00:00Z', sent_at: null, recipient_count: 0, country: 'MT', created_by: 'a-002', created_at: '2026-04-18T11:00:00Z', updated_at: '2026-04-18T11:00:00Z' },
-  { id: 'cmp-4', title: 'Re-engage Dormant Users', message: '👋 We miss you! Come back and claim your 100 FET welcome-back bonus.', type: 'push', segment: { inactive_days: 14 }, status: 'draft', scheduled_at: null, sent_at: null, recipient_count: 0, country: 'MT', created_by: 'a-001', created_at: '2026-04-17T09:00:00Z', updated_at: '2026-04-17T09:00:00Z' },
-  { id: 'cmp-5', title: 'MPL Season Finale', message: '🇲🇹 The Malta Premier League season finale is this weekend! Predict all 4 matches for a bonus.', type: 'in_app', segment: { all_users: true }, status: 'draft', scheduled_at: null, sent_at: null, recipient_count: 0, country: 'MT', created_by: 'a-002', created_at: '2026-04-16T15:00:00Z', updated_at: '2026-04-16T15:00:00Z' },
-];
-
 /* ── Hooks ── */
 export function useCampaigns(pagination: PaginationOpts, filters?: { status?: string; search?: string }) {
   return useSupabasePaginated<Campaign>(['campaigns', filters], 'campaigns', {
@@ -31,14 +22,6 @@ export function useCampaigns(pagination: PaginationOpts, filters?: { status?: st
       return q;
     },
     order: { column: 'created_at', ascending: false },
-    demoData: DEMO_CAMPAIGNS.filter(c => {
-      if (filters?.status && filters.status !== 'all' && c.status !== filters.status) return false;
-      if (filters?.search) {
-        const q = filters.search.toLowerCase();
-        return c.title.toLowerCase().includes(q) || c.message.toLowerCase().includes(q);
-      }
-      return true;
-    }),
   });
 }
 
@@ -53,7 +36,6 @@ export function useCreateCampaign() {
     fnName: 'admin_create_campaign',
     invalidateKeys: [['campaigns']],
     successMessage: 'Campaign created.',
-    demoFn: async () => ({ created: true, id: `cmp-new-${Date.now()}` }),
   });
 }
 
@@ -62,7 +44,6 @@ export function useUpdateCampaignStatus() {
     fnName: 'admin_update_campaign_status',
     invalidateKeys: [['campaigns']],
     successMessage: 'Campaign status updated.',
-    demoFn: async () => ({ updated: true }),
   });
 }
 
@@ -72,7 +53,6 @@ export function useSendCampaign() {
     invalidateKeys: [['campaigns'], ['dashboard-alerts']],
     successMessage: 'Campaign dispatched.',
     errorMessage: 'Failed to dispatch campaign.',
-    demoFn: async () => ({ sent: true }),
   });
 }
 
@@ -81,6 +61,5 @@ export function useDeleteCampaign() {
     fnName: 'admin_delete_campaign',
     invalidateKeys: [['campaigns']],
     successMessage: 'Campaign deleted.',
-    demoFn: async () => ({ deleted: true }),
   });
 }

@@ -161,10 +161,10 @@
 
   "loginTitle": "Welcome to FANZONE",
   "loginSubtitle": "The Global Football Prediction Platform",
-  "loginPhoneHint": "Phone number",
-  "loginOtpHint": "Enter verification code",
-  "loginSendOtp": "Send Code",
-  "loginVerify": "Verify",
+  "loginPhoneHint": "WhatsApp number",
+  "loginOtpHint": "Enter WhatsApp verification code",
+  "loginSendOtp": "Send Code Via WhatsApp",
+  "loginVerify": "Verify Code",
   "loginSkip": "Continue as Guest",
 
   "onboardingWelcome": "Welcome to FANZONE",

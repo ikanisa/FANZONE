@@ -1,16 +1,25 @@
 import 'dart:convert';
 
-import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../logging/app_logger.dart';
 import 'cache_service.dart';
 
-@LazySingleton(as: CacheService)
 class SharedPreferencesCacheService implements CacheService {
   SharedPreferencesCacheService(this._prefs);
 
   final SharedPreferences _prefs;
+
+  /// Lazy global instance for use by static services outside Riverpod scope.
+  static SharedPreferencesCacheService? _global;
+  static SharedPreferencesCacheService get global =>
+      _global ??= throw StateError(
+        'SharedPreferencesCacheService.global not initialized. '
+        'Call SharedPreferencesCacheService.initGlobal() first.',
+      );
+  static void initGlobal(SharedPreferences prefs) {
+    _global = SharedPreferencesCacheService(prefs);
+  }
 
   @override
   Future<String?> getString(String key) async => _prefs.getString(key);
@@ -59,7 +68,7 @@ class SharedPreferencesCacheService implements CacheService {
 
       return decoded
           .whereType<Map>()
-          .map((row) => Map<String, dynamic>.from(row))
+          .map(Map<String, dynamic>.from)
           .toList(growable: false);
     } catch (error) {
       _logDecodeError(debugLabel ?? key, error);

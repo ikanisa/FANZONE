@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -24,7 +23,6 @@ abstract interface class MatchDetailGateway {
   Future<MatchAiAnalysis?> getMatchAiAnalysis(String matchId);
 }
 
-@LazySingleton(as: MatchDetailGateway)
 class SupabaseMatchDetailGateway implements MatchDetailGateway {
   SupabaseMatchDetailGateway(this._connection);
 

@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
@@ -32,7 +31,6 @@ abstract interface class TeamSupportGateway {
   Future<List<Map<String, dynamic>>> getFeaturedTeamsRaw();
 }
 
-@LazySingleton(as: TeamSupportGateway)
 class SupabaseTeamSupportGateway implements TeamSupportGateway {
   SupabaseTeamSupportGateway(this._cache, this._connection);
 
@@ -62,14 +60,11 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
           .map((row) => row['team_id']?.toString())
           .whereType<String>()
           .toSet();
-      if (supported.isNotEmpty) {
-        await _cache.setStringList(
-          '$_supportedPrefix$userId',
-          supported.toList()..sort(),
-        );
-        return supported;
-      }
-      return cached;
+      await _cache.setStringList(
+        '$_supportedPrefix$userId',
+        supported.toList()..sort(),
+      );
+      return supported;
     } catch (error) {
       AppLogger.d('Failed to load supported teams: $error');
       return cached;
@@ -143,7 +138,7 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
       }
     }
 
-    if (AppConfig.isProduction) return null;
+    if (!AppConfig.isDevelopment) return null;
 
     final supporters = await getTeamAnonymousFans(teamId);
     final totalFet = await _cachedContributionTotal(teamId);
@@ -179,13 +174,13 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
                   AnonymousFanRecord.fromJson(Map<String, dynamic>.from(row)),
             )
             .toList(growable: false);
-        if (supporters.isNotEmpty) return supporters;
+        return supporters;
       } catch (error) {
         AppLogger.d('Failed to load anonymous fans: $error');
       }
     }
 
-    if (AppConfig.isProduction) return const <AnonymousFanRecord>[];
+    if (!AppConfig.isDevelopment) return const <AnonymousFanRecord>[];
 
     final count = limit.clamp(0, 6);
     return List<AnonymousFanRecord>.generate(
@@ -260,14 +255,11 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
                 TeamContributionModel.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      if (contributions.isNotEmpty) {
-        await _cache.setJson(
-          _contributionKey(userId, teamId),
-          contributions.map(teamContributionToJson).toList(growable: false),
-        );
-        return contributions;
-      }
-      return AppConfig.isProduction ? const <TeamContributionModel>[] : cached;
+      await _cache.setJson(
+        _contributionKey(userId, teamId),
+        contributions.map(teamContributionToJson).toList(growable: false),
+      );
+      return contributions;
     } catch (error) {
       AppLogger.d('Failed to load contribution history: $error');
       return cached;
@@ -287,15 +279,15 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
             .limit(6);
         final teams = (rows as List)
             .whereType<Map>()
-            .map((row) => Map<String, dynamic>.from(row))
+            .map(Map<String, dynamic>.from)
             .toList(growable: false);
-        if (teams.isNotEmpty) return teams;
+        return teams;
       } catch (error) {
         AppLogger.d('Failed to load featured teams: $error');
       }
     }
 
-    if (AppConfig.isProduction) return const <Map<String, dynamic>>[];
+    if (!AppConfig.isDevelopment) return const <Map<String, dynamic>>[];
 
     return const [
       {'id': 'liverpool', 'name': 'Liverpool', 'fan_count': 24000},

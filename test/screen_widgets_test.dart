@@ -14,13 +14,15 @@ import 'package:fanzone/features/identity/screens/fan_id_screen.dart';
 import 'package:fanzone/features/leaderboard/screens/leaderboard_screen.dart';
 import 'package:fanzone/features/predict/screens/predict_screen.dart';
 import 'package:fanzone/features/profile/providers/profile_identity_provider.dart';
+import 'package:fanzone/features/profile/screens/notifications_screen.dart';
 import 'package:fanzone/features/profile/screens/profile_screen.dart';
 import 'package:fanzone/features/settings/screens/privacy_settings_screen.dart';
 import 'package:fanzone/features/social/screens/social_hub_screen.dart';
-import 'package:fanzone/features/teams/screens/team_profile_screen.dart';
+import 'package:fanzone/features/teams/screens/team_profile_canonical_screen.dart';
 import 'package:fanzone/models/featured_event_model.dart';
 import 'package:fanzone/models/match_advanced_stats_model.dart';
 import 'package:fanzone/models/match_odds_model.dart';
+import 'package:fanzone/models/notification_model.dart';
 import 'package:fanzone/models/pool.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
 import 'package:fanzone/models/match_model.dart';
@@ -500,6 +502,65 @@ void main() {
       expect(find.text('Contribute'), findsOneWidget);
       expect(find.text('About'), findsOneWidget);
       expect(find.text('LATEST MATCH'), findsOneWidget);
+    });
+
+    testWidgets('social hub shows a visible error state when teams fail', (
+      tester,
+    ) async {
+      await pumpAppScreen(
+        tester,
+        const SocialHubScreen(),
+        overrides: [
+          teamsProvider.overrideWith((ref) async => throw StateError('boom')),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Could not load social hub'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+    });
+
+    testWidgets('team profile keeps the shell visible on load failure', (
+      tester,
+    ) async {
+      await pumpAppScreen(
+        tester,
+        const TeamProfileScreen(teamId: 'missing'),
+        overrides: [
+          teamProvider('missing').overrideWith(
+            (ref) async => throw StateError('boom'),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Team Profile'), findsOneWidget);
+      expect(find.text('Could not load team profile'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+    });
+
+    testWidgets('notifications screen keeps the canonical inbox language', (
+      tester,
+    ) async {
+      await pumpAppScreen(
+        tester,
+        const NotificationsScreen(),
+        overrides: [
+          notificationLogProvider.overrideWith((ref) async => [
+            NotificationItem(
+              id: 'notif_1',
+              type: 'pool_settled',
+              title: 'Pool settled',
+              body: 'Your derby pool has been graded.',
+              sentAt: DateTime(2026, 4, 19, 12),
+            ),
+          ]),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Inbox'), findsOneWidget);
+      expect(find.text('Pool settled'), findsOneWidget);
     });
 
     testWidgets('match detail screen renders scoreboard and tabs', (

@@ -104,7 +104,7 @@ class MembershipDetailsCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => context.push('/clubs/team/${activeClub.id}'),
+                  onPressed: () => context.push('/team/${activeClub.id}'),
                   child: const Text('View Club'),
                 ),
               ),

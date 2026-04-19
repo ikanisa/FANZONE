@@ -248,19 +248,19 @@ class _DesktopSidebar extends StatelessWidget {
       const _DesktopNavItem(
         label: 'Pools',
         icon: LucideIcons.swords,
-        route: '/predict',
+        route: '/pools',
         matcher: _isPredictPath,
       ),
       const _DesktopNavItem(
         label: 'Jackpots',
         icon: LucideIcons.zap,
-        route: '/predict/jackpot',
+        route: '/jackpot',
         matcher: _isJackpotPath,
       ),
       const _DesktopNavItem(
         label: 'Leaderboard',
         icon: LucideIcons.trophy,
-        route: '/profile/leaderboard',
+        route: '/leaderboard',
         matcher: _isLeaderboardPath,
       ),
       const _DesktopNavItem(
@@ -415,7 +415,7 @@ class _MobileBottomNav extends StatelessWidget {
         keyName: 'pools',
         label: 'Pools',
         icon: LucideIcons.swords,
-        route: '/predict',
+        route: '/pools',
       ),
       _MobileNavItem(
         keyName: 'profile',
@@ -619,13 +619,15 @@ bool _isFixturesPath(String path) =>
     path.startsWith('/following');
 
 bool _isPredictPath(String path) =>
-    (path == '/predict' ||
+    (path == '/pools' ||
+        path.startsWith('/pools/') ||
+        path == '/predict' ||
         path.startsWith('/predict/') ||
-        path == '/pools' ||
         path.startsWith('/pool/')) &&
     !_isJackpotPath(path);
 
-bool _isJackpotPath(String path) => path == '/predict/jackpot' || path == '/jackpot';
+bool _isJackpotPath(String path) =>
+    path == '/jackpot' || path == '/predict/jackpot';
 
 bool _isWalletPath(String path) => path == '/wallet' || path.startsWith('/wallet/');
 
@@ -637,9 +639,12 @@ bool _isLeaderboardPath(String path) =>
 bool _isProfilePath(String path) =>
     path == '/profile' ||
     path.startsWith('/profile/') ||
-    path.startsWith('/clubs') ||
     path.startsWith('/notifications') ||
+    path.startsWith('/notification-settings') ||
     path.startsWith('/settings') ||
+    path.startsWith('/privacy') ||
     path.startsWith('/fan-id') ||
     path.startsWith('/memberships') ||
-    path.startsWith('/social');
+    path.startsWith('/social') ||
+    path.startsWith('/team/') ||
+    path.startsWith('/teams');

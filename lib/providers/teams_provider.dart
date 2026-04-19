@@ -1,29 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/di/injection.dart';
-import '../features/home/data/team_catalog_gateway.dart';
+import '../core/di/gateway_providers.dart';
 import '../models/team_model.dart';
 
 final teamsProvider = FutureProvider.autoDispose<List<TeamModel>>((ref) async {
   ref.keepAlive();
-  return getIt<TeamCatalogGateway>().getTeams();
+  return ref.read(teamCatalogGatewayProvider).getTeams();
 });
 
 final teamsByCompetitionProvider = FutureProvider.family
     .autoDispose<List<TeamModel>, String>((ref, competitionId) async {
-      return getIt<TeamCatalogGateway>().getTeams(competitionId: competitionId);
+      return ref.read(teamCatalogGatewayProvider).getTeams(competitionId: competitionId);
     });
 
 final teamProvider = FutureProvider.family.autoDispose<TeamModel?, String>((
   ref,
   teamId,
 ) async {
-  return getIt<TeamCatalogGateway>().getTeam(teamId);
+  return ref.read(teamCatalogGatewayProvider).getTeam(teamId);
 });
 
 final featuredTeamsProvider = FutureProvider.autoDispose<List<TeamModel>>((
   ref,
 ) async {
   ref.keepAlive();
-  return getIt<TeamCatalogGateway>().getTeams(featuredOnly: true);
+  return ref.read(teamCatalogGatewayProvider).getTeams(featuredOnly: true);
 });

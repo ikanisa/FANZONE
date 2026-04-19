@@ -31,18 +31,19 @@ Stream<T> pollMatchStream<T>(Future<T> Function() loader) {
   controller.onCancel = () async {
     timer?.cancel();
     timer = null;
+    await controller.close();
   };
 
   return controller.stream;
 }
 
 List<MatchModel> fallbackMatchesForFilter(MatchesFilter filter) {
-  if (AppConfig.isProduction) return const <MatchModel>[];
+  if (!AppConfig.isDevelopment) return const <MatchModel>[];
   return applyMatchesFilter(seedMatches(), filter);
 }
 
 MatchOddsModel? fallbackOddsOrNull(String matchId) {
-  if (AppConfig.isProduction) return null;
+  if (!AppConfig.isDevelopment) return null;
   return seedOdds(matchId);
 }
 

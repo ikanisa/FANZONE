@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
@@ -87,7 +86,6 @@ class FetExchangeRateDto {
   final double rate;
 }
 
-@LazySingleton(as: WalletGateway)
 class SupabaseWalletGateway implements WalletGateway {
   SupabaseWalletGateway(this._connection);
 
@@ -173,10 +171,8 @@ class SupabaseWalletGateway implements WalletGateway {
               ),
             )
             .toList(growable: false);
-        if (transactions.isNotEmpty) {
-          _localTransactions[userId] = transactions;
-          return transactions;
-        }
+        _localTransactions[userId] = transactions;
+        return transactions;
       } catch (error) {
         AppLogger.d('Failed to load wallet transactions: $error');
       }
@@ -195,9 +191,9 @@ class SupabaseWalletGateway implements WalletGateway {
             .select()
             .eq('is_active', true)
             .order('rank');
-        final clubs = (rows as List)
-            .whereType<Map>()
-            .map(
+      final clubs = (rows as List)
+          .whereType<Map>()
+          .map(
               (row) => FanClub(
                 id: row['id']?.toString() ?? '',
                 name: row['name']?.toString() ?? '',
@@ -209,7 +205,7 @@ class SupabaseWalletGateway implements WalletGateway {
               ),
             )
             .toList(growable: false);
-        if (clubs.isNotEmpty) return clubs;
+        return clubs;
       } catch (error) {
         AppLogger.d('Failed to load fan clubs: $error');
       }
@@ -258,7 +254,7 @@ class SupabaseWalletGateway implements WalletGateway {
               (row) => CurrencyRateDto.fromJson(Map<String, dynamic>.from(row)),
             )
             .toList(growable: false);
-        if (rates.isNotEmpty) return rates;
+        return rates;
       } catch (error) {
         AppLogger.d('Failed to load currency rates: $error');
       }
@@ -362,7 +358,7 @@ class SupabaseWalletGateway implements WalletGateway {
               (row) => MarketplaceOffer.fromRow(Map<String, dynamic>.from(row)),
             )
             .toList(growable: false);
-        if (offers.isNotEmpty) return offers;
+        return offers;
       } catch (error) {
         AppLogger.d('Failed to load marketplace offers: $error');
       }
@@ -419,10 +415,8 @@ class SupabaseWalletGateway implements WalletGateway {
                   MarketplaceRedemption.fromRow(Map<String, dynamic>.from(row)),
             )
             .toList(growable: false);
-        if (redemptions.isNotEmpty) {
-          _localRedemptions[userId] = redemptions;
-          return redemptions;
-        }
+        _localRedemptions[userId] = redemptions;
+        return redemptions;
       } catch (error) {
         AppLogger.d('Failed to load redemptions: $error');
       }
@@ -484,7 +478,7 @@ class SupabaseWalletGateway implements WalletGateway {
             rate: fetPerEur * eurRate,
           ));
         }
-        if (rates.length > 1) return rates;
+        return rates;
       } catch (error) {
         AppLogger.d('Failed to load FET exchange rates: $error');
       }
@@ -509,7 +503,7 @@ class SupabaseWalletGateway implements WalletGateway {
     }
   }
 
-  bool get _allowSeedFallback => !AppConfig.isProduction;
+  bool get _allowSeedFallback => AppConfig.isDevelopment;
 
   int _cachedBalance(String userId) {
     final cached = _localBalances[userId];

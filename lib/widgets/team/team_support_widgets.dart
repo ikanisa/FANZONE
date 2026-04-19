@@ -258,7 +258,7 @@ class ContributionCTA extends StatelessWidget {
       case 'other_payment_link':
         return 'External payment link';
       default:
-        return 'Coming soon';
+        return 'Unavailable for this club';
     }
   }
 }

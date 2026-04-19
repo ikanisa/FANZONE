@@ -12,6 +12,7 @@ void main() {
     );
 
     expect(find.text('FANZONE'), findsOneWidget);
-    expect(find.text('Continue as guest'), findsOneWidget);
+    expect(find.text('VERIFY VIA WHATSAPP'), findsOneWidget);
+    expect(find.text('SEND CODE VIA WHATSAPP'), findsOneWidget);
   });
 }

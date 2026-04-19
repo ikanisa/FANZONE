@@ -75,7 +75,7 @@ class _PredictScreenState extends ConsumerState<PredictScreen>
       builder: (_) => const _CreatePoolSheet(),
     ).whenComplete(() {
       if (!mounted || !widget.openCreateSheet) return;
-      context.go('/predict');
+      context.go('/pools');
     });
   }
 

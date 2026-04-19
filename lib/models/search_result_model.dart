@@ -20,7 +20,7 @@ class SearchResultModel {
       case SearchResultType.competition:
         return '/league/$id';
       case SearchResultType.team:
-        return '/clubs/team/$id';
+        return '/team/$id';
       case SearchResultType.match:
         return '/match/$id';
     }

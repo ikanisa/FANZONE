@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -22,7 +21,6 @@ abstract interface class DailyChallengeGateway {
   Future<List<DailyChallengeEntry>> getDailyChallengeHistory(String userId);
 }
 
-@LazySingleton(as: DailyChallengeGateway)
 class SupabaseDailyChallengeGateway implements DailyChallengeGateway {
   SupabaseDailyChallengeGateway(this._connection);
 
@@ -43,7 +41,7 @@ class SupabaseDailyChallengeGateway implements DailyChallengeGateway {
           .order('date', ascending: false)
           .limit(1)
           .maybeSingle();
-      if (row == null) return _seededDailyChallenge();
+      if (row == null) return null;
       return DailyChallenge.fromJson(Map<String, dynamic>.from(row));
     } catch (error) {
       AppLogger.d('Failed to load daily challenge: $error');
@@ -119,14 +117,14 @@ class SupabaseDailyChallengeGateway implements DailyChallengeGateway {
             .select()
             .eq('user_id', userId)
             .order('submitted_at', ascending: false);
-        final entries = (rows as List)
-            .whereType<Map>()
-            .map(
+      final entries = (rows as List)
+          .whereType<Map>()
+          .map(
               (row) =>
                   DailyChallengeEntry.fromJson(Map<String, dynamic>.from(row)),
-            )
-            .toList(growable: false);
-        if (entries.isNotEmpty) return entries;
+          )
+          .toList(growable: false);
+        return entries;
       } catch (error) {
         AppLogger.d('Failed to load daily challenge history: $error');
       }

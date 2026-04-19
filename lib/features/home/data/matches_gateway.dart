@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../models/live_match_event.dart';
 import '../../../models/match_advanced_stats_model.dart';
@@ -14,7 +13,6 @@ import 'match_listing_gateway.dart';
 abstract interface class MatchesGateway
     implements MatchListingGateway, MatchDetailGateway {}
 
-@LazySingleton(as: MatchesGateway)
 class SupabaseMatchesGateway implements MatchesGateway {
   SupabaseMatchesGateway(this._listing, this._detail);
 

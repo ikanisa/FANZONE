@@ -1,16 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/cache/cache_service.dart';
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../core/logging/app_logger.dart';
 import '../core/utils/currency_utils.dart';
-import '../features/onboarding/data/onboarding_gateway.dart';
-import '../features/wallet/data/wallet_gateway.dart';
 import 'auth_provider.dart';
 
 final liveRatesProvider = FutureProvider<void>((ref) async {
   try {
-    final rates = await getIt<WalletGateway>().getCurrencyRates();
+    final rates = await ref.read(walletGatewayProvider).getCurrencyRates();
     if (rates.isEmpty) return;
 
     updateLiveRates(rates.map((rate) => rate.toJson()).toList(growable: false));
@@ -24,20 +21,20 @@ final userCurrencyProvider = FutureProvider<String>((ref) async {
   ref.watch(liveRatesProvider);
   ref.watch(authStateProvider);
 
-  final cache = getIt<CacheService>();
+  final cache = ref.read(cacheServiceProvider);
   final cached = await cache.getString('user_currency');
   final userId = ref.read(authServiceProvider).currentUser?.id;
 
   if (userId == null) {
-    final guestCurrency = await _guessGuestCurrency(cached);
+    final guestCurrency = await _guessGuestCurrency(ref, cached);
     await cache.setString('user_currency', guestCurrency);
     return guestCurrency;
   }
 
   try {
-    await getIt<OnboardingGateway>().syncCachedTeamsIfAuthenticated();
+    await ref.read(onboardingGatewayProvider).syncCachedTeamsIfAuthenticated();
 
-    final currencyCode = await getIt<WalletGateway>().guessUserCurrency(userId);
+    final currencyCode = await ref.read(walletGatewayProvider).guessUserCurrency(userId);
     if (currencyCode != null && currencyCode.isNotEmpty) {
       await cache.setString('user_currency', currencyCode);
       return currencyCode;
@@ -46,7 +43,7 @@ final userCurrencyProvider = FutureProvider<String>((ref) async {
     AppLogger.d('Failed to infer backend currency: $error');
   }
 
-  final fallback = await _guessGuestCurrency(cached);
+  final fallback = await _guessGuestCurrency(ref, cached);
   await cache.setString('user_currency', fallback);
   return fallback;
 });
@@ -73,15 +70,15 @@ final userFanIdProvider = FutureProvider<String?>((ref) async {
   if (userId == null) return null;
 
   try {
-    return getIt<WalletGateway>().getFanId(userId);
+    return ref.read(walletGatewayProvider).getFanId(userId);
   } catch (error) {
     AppLogger.d('Failed to load fan id: $error');
     return null;
   }
 });
 
-Future<String> _guessGuestCurrency(String? cached) async {
-  final cachedTeams = await getIt<OnboardingGateway>().getCachedFavoriteTeams();
+Future<String> _guessGuestCurrency(Ref ref, String? cached) async {
+  final cachedTeams = await ref.read(onboardingGatewayProvider).getCachedFavoriteTeams();
   if (cachedTeams.isEmpty) return cached ?? 'EUR';
 
   final entries = cachedTeams

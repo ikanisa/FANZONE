@@ -20,7 +20,7 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS public.admin_users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
+  phone TEXT,
   display_name TEXT NOT NULL DEFAULT '',
   role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('super_admin', 'admin', 'moderator', 'viewer')),
   is_active BOOLEAN NOT NULL DEFAULT true,

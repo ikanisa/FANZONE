@@ -448,7 +448,7 @@ BEGIN
       SELECT
         al.*,
         au.display_name AS admin_name,
-        au.email AS admin_email
+        au.phone AS admin_phone
       FROM public.admin_audit_logs al
       LEFT JOIN public.admin_users au
         ON au.id = al.admin_user_id

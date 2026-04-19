@@ -7,7 +7,7 @@ FANZONE ("we", "us", or "our") is operated by IKANISA. This Privacy Policy expla
 ## 1. Information We Collect
 
 ### 1.1 Information You Provide
-- **Account Information**: Email address or phone number used for authentication.
+- **Account Information**: WhatsApp-enabled phone number used for OTP authentication.
 - **Profile Information**: Display name, team preferences, and fan identity (anonymous handle).
 - **User-Generated Content**: Predictions, pool participation, and community interactions.
 

@@ -29,7 +29,7 @@ class _JoinPoolSheetState extends ConsumerState<_JoinPoolSheet> {
         title: 'Sign in to join this pool',
         message:
             'Guests can browse pools freely. Phone verification is only required when you want to join one.',
-        from: '/predict/pool/${widget.pool.id}',
+        from: '/pool/${widget.pool.id}',
       );
       return;
     }

@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -134,7 +135,7 @@ class MatchDetailScreen extends ConsumerWidget {
                           ? 'Disable match alerts'
                           : 'Enable match alerts',
                       onPressed: () async {
-                        HapticFeedback.selectionClick();
+                        unawaited(HapticFeedback.selectionClick());
                         final nextValue = !matchAlertsEnabled;
                         await ref
                             .read(notificationServiceProvider.notifier)

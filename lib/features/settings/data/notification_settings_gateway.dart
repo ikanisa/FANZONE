@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
@@ -44,7 +43,6 @@ abstract interface class NotificationSettingsGateway {
   Future<UserStats> getUserStats(String userId);
 }
 
-@LazySingleton(as: NotificationSettingsGateway)
 class SupabaseNotificationSettingsGateway
     implements NotificationSettingsGateway {
   SupabaseNotificationSettingsGateway(this._cache, this._connection);
@@ -329,7 +327,7 @@ class SupabaseNotificationSettingsGateway
   Future<UserStats> getUserStats(String userId) async {
     final client = _connection.client;
     if (client == null) {
-      return AppConfig.isProduction ? const UserStats() : fallbackUserStats;
+      return AppConfig.isDevelopment ? fallbackUserStats : const UserStats();
     }
 
     try {
@@ -341,12 +339,12 @@ class SupabaseNotificationSettingsGateway
           .eq('user_id', userId)
           .maybeSingle();
       if (row == null) {
-        return AppConfig.isProduction ? const UserStats() : fallbackUserStats;
+        return AppConfig.isDevelopment ? fallbackUserStats : const UserStats();
       }
       return UserStats.fromJson(Map<String, dynamic>.from(row));
     } catch (error) {
       AppLogger.d('Failed to load user stats: $error');
-      return AppConfig.isProduction ? const UserStats() : fallbackUserStats;
+      return AppConfig.isDevelopment ? fallbackUserStats : const UserStats();
     }
   }
 

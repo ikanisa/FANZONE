@@ -25,7 +25,7 @@ class FanzoneApp extends ConsumerWidget {
     return MaterialApp.router(
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
-      theme: FzTheme.light(),
+      theme: FzTheme.dark(),
       darkTheme: FzTheme.dark(),
       themeMode: themeMode,
       routerConfig: router,

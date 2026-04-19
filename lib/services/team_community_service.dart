@@ -2,12 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../core/errors/app_exception.dart';
 import '../core/errors/failures.dart';
 import '../core/logging/app_logger.dart';
-import '../features/community/data/team_news_gateway.dart';
-import '../features/community/data/team_support_gateway.dart';
 import '../models/team_contribution_model.dart';
 import '../models/team_news_model.dart';
 import '../models/team_supporter_model.dart';
@@ -24,7 +22,7 @@ class SupportedTeamsService extends _$SupportedTeamsService {
     final userId = ref.read(authServiceProvider).currentUser?.id;
     if (userId == null) return const <String>{};
 
-    return getIt<TeamSupportGateway>().getSupportedTeamIds(userId);
+    return ref.read(teamSupportGatewayProvider).getSupportedTeamIds(userId);
   }
 
   Future<String?> supportTeam(String teamId) async {
@@ -33,7 +31,7 @@ class SupportedTeamsService extends _$SupportedTeamsService {
     }
 
     try {
-      final fanId = await getIt<TeamSupportGateway>().supportTeam(teamId);
+      final fanId = await ref.read(teamSupportGatewayProvider).supportTeam(teamId);
       final current = state.valueOrNull ?? <String>{};
       state = AsyncValue.data({...current, teamId});
       return fanId;
@@ -50,7 +48,7 @@ class SupportedTeamsService extends _$SupportedTeamsService {
     }
 
     try {
-      await getIt<TeamSupportGateway>().unsupportTeam(teamId);
+      await ref.read(teamSupportGatewayProvider).unsupportTeam(teamId);
       final current = state.valueOrNull ?? <String>{};
       state = AsyncValue.data({...current}..remove(teamId));
     } catch (error, stack) {
@@ -75,7 +73,7 @@ class SupportedTeamsService extends _$SupportedTeamsService {
 
 @riverpod
 FutureOr<TeamCommunityStats?> teamCommunityStats(Ref ref, String teamId) async {
-  return getIt<TeamSupportGateway>().getTeamCommunityStats(teamId);
+  return ref.read(teamSupportGatewayProvider).getTeamCommunityStats(teamId);
 }
 
 @riverpod
@@ -84,7 +82,7 @@ FutureOr<List<AnonymousFanRecord>> teamAnonymousFans(
   String teamId, {
   int limit = 50,
 }) async {
-  return getIt<TeamSupportGateway>().getTeamAnonymousFans(teamId, limit: limit);
+  return ref.read(teamSupportGatewayProvider).getTeamAnonymousFans(teamId, limit: limit);
 }
 
 @riverpod
@@ -104,7 +102,7 @@ class TeamContributionService extends _$TeamContributionService {
     state = const AsyncValue.loading();
 
     try {
-      final balanceAfter = await getIt<TeamSupportGateway>().contributeFet(
+      final balanceAfter = await ref.read(teamSupportGatewayProvider).contributeFet(
         teamId,
         amount,
       );
@@ -128,7 +126,7 @@ FutureOr<List<TeamContributionModel>> teamContributionHistory(
   final userId = ref.read(authServiceProvider).currentUser?.id;
   if (userId == null) return const [];
 
-  return getIt<TeamSupportGateway>().getTeamContributionHistory(userId, teamId);
+  return ref.read(teamSupportGatewayProvider).getTeamContributionHistory(userId, teamId);
 }
 
 @riverpod
@@ -138,7 +136,7 @@ FutureOr<List<TeamNewsModel>> teamNews(
   String? category,
   int limit = 20,
 }) async {
-  return getIt<TeamNewsGateway>().getTeamNews(
+  return ref.read(teamNewsGatewayProvider).getTeamNews(
     teamId,
     category: category,
     limit: limit,
@@ -147,10 +145,10 @@ FutureOr<List<TeamNewsModel>> teamNews(
 
 @riverpod
 FutureOr<TeamNewsModel?> teamNewsDetail(Ref ref, String newsId) async {
-  return getIt<TeamNewsGateway>().getTeamNewsDetail(newsId);
+  return ref.read(teamNewsGatewayProvider).getTeamNewsDetail(newsId);
 }
 
 @riverpod
 FutureOr<List<Map<String, dynamic>>> featuredTeamsRaw(Ref ref) async {
-  return getIt<TeamSupportGateway>().getFeaturedTeamsRaw();
+  return ref.read(teamSupportGatewayProvider).getFeaturedTeamsRaw();
 }

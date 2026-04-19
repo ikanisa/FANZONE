@@ -13,7 +13,7 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS public.admin_users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
+  phone TEXT,
   display_name TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'viewer' CHECK (role IN ('super_admin','admin','moderator','viewer')),
   permissions JSONB DEFAULT '{}',
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 );
 
 CREATE INDEX IF NOT EXISTS idx_admin_users_user_id ON public.admin_users(user_id);
-CREATE INDEX IF NOT EXISTS idx_admin_users_email ON public.admin_users(email);
+CREATE INDEX IF NOT EXISTS idx_admin_users_phone ON public.admin_users(phone);
 
 -- ======================
 -- 2) admin_audit_logs — immutable action log

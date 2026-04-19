@@ -276,7 +276,7 @@ class _PoolCard extends ConsumerWidget {
     return FzCard(
       onTap: () {
         HapticFeedback.selectionClick();
-        context.push('/predict/pool/${pool.id}');
+        context.push('/pool/${pool.id}');
       },
       padding: const EdgeInsets.all(16),
       child: Column(

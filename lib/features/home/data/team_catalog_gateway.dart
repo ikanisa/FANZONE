@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
@@ -12,7 +11,6 @@ abstract interface class TeamCatalogGateway {
   Future<TeamModel?> getTeam(String teamId);
 }
 
-@LazySingleton(as: TeamCatalogGateway)
 class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
   SupabaseTeamCatalogGateway(this._connection);
 
@@ -23,12 +21,13 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
     String? competitionId,
     bool featuredOnly = false,
   }) async {
-    final fallback = _fallbackTeams(
-      competitionId: competitionId,
-      featuredOnly: featuredOnly,
-    );
     final client = _connection.client;
-    if (client == null) return fallback;
+    if (client == null) {
+      return _fallbackTeams(
+        competitionId: competitionId,
+        featuredOnly: featuredOnly,
+      );
+    }
 
     try {
       final rows = await client.from('teams').select();
@@ -41,10 +40,13 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
         competitionId: competitionId,
         featuredOnly: featuredOnly,
       );
-      return filtered.isEmpty ? fallback : filtered;
+      return filtered;
     } catch (error) {
       AppLogger.d('Failed to load teams: $error');
-      return fallback;
+      return _fallbackTeams(
+        competitionId: competitionId,
+        featuredOnly: featuredOnly,
+      );
     }
   }
 
@@ -61,7 +63,7 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
     String? competitionId,
     bool featuredOnly = false,
   }) {
-    if (AppConfig.isProduction) return const <TeamModel>[];
+    if (!AppConfig.isDevelopment) return const <TeamModel>[];
     return filterTeams(
       fallbackTeams,
       competitionId: competitionId,

@@ -1,6 +1,6 @@
 // FANZONE Admin — Generic Supabase + TanStack Query Wrapper
 import { useQuery, useMutation, useQueryClient, type QueryKey } from '@tanstack/react-query';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../lib/supabase';
+import { adminEnvError, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useToast } from './useToast';
 import { PAGE_SIZE } from '../config/constants';
 
@@ -50,11 +50,10 @@ export function useSupabasePaginated<T>(
     select?: string;
     filters?: (query: AdminListQuery<T>) => AdminListQuery<T>;
     order?: { column: string; ascending?: boolean };
-    demoData?: T[];
     enabled?: boolean;
   },
 ) {
-  const { pagination, select = '*', filters, order, demoData = [], enabled = true } = opts;
+  const { pagination, select = '*', filters, order, enabled = true } = opts;
   const ps = pagination.pageSize || PAGE_SIZE;
   const from = pagination.page * ps;
   const to = from + ps - 1;
@@ -62,11 +61,6 @@ export function useSupabasePaginated<T>(
   return useQuery<PaginatedResult<T>>({
     queryKey: [...queryKey, pagination.page, ps],
     queryFn: async (): Promise<PaginatedResult<T>> => {
-      if (isDemoMode) {
-        // Demo mode: paginate demoData locally
-        const paged = demoData.slice(from, to + 1);
-        return { data: paged, count: demoData.length, page: pagination.page, pageSize: ps };
-      }
       if (!isSupabaseConfigured) return throwMissingAdminEnv();
 
       let query = supabase.from(table).select(select, { count: 'exact' }) as unknown as AdminListQuery<T>;
@@ -90,17 +84,15 @@ export function useSupabaseList<T>(
     select?: string;
     filters?: (query: AdminListQuery<T>) => AdminListQuery<T>;
     order?: { column: string; ascending?: boolean };
-    demoData?: T[];
     enabled?: boolean;
     limit?: number;
   },
 ) {
-  const { select = '*', filters, order, demoData = [], enabled = true, limit } = opts;
+  const { select = '*', filters, order, enabled = true, limit } = opts;
 
   return useQuery<T[]>({
     queryKey,
     queryFn: async (): Promise<T[]> => {
-      if (isDemoMode) return demoData;
       if (!isSupabaseConfigured) return throwMissingAdminEnv();
 
       let query = supabase.from(table).select(select) as unknown as AdminListQuery<T>;
@@ -121,14 +113,13 @@ export function useSupabaseRpc<T>(
   queryKey: QueryKey,
   fnName: string,
   args: Record<string, unknown> = {},
-  opts?: { demoData?: T; enabled?: boolean },
+  opts?: { enabled?: boolean },
 ) {
-  const { demoData, enabled = true } = opts ?? {};
+  const { enabled = true } = opts ?? {};
 
   return useQuery<T>({
     queryKey,
     queryFn: async (): Promise<T> => {
-      if (isDemoMode && demoData !== undefined) return demoData;
       if (!isSupabaseConfigured) return throwMissingAdminEnv();
 
       const { data, error } = await supabase.rpc(fnName, args);
@@ -171,13 +162,9 @@ export function useRpcMutation<TArgs extends Record<string, unknown>>(opts: {
   invalidateKeys?: QueryKey[];
   successMessage?: string;
   errorMessage?: string;
-  demoFn?: (args: TArgs) => Promise<unknown>;
 }) {
   return useSupabaseMutation<TArgs>({
     mutationFn: async (args: TArgs) => {
-      if (isDemoMode && opts.demoFn) {
-        return opts.demoFn(args);
-      }
       if (!isSupabaseConfigured) return throwMissingAdminEnv();
       const { data, error } = await supabase.rpc(opts.fnName, args);
       if (error) throw new Error(error.message);

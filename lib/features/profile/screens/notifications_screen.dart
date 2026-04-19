@@ -1,155 +1,233 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+
+import '../../../models/notification_model.dart';
+import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
-import '../../../services/notification_service.dart';
-import '../../../models/notification_model.dart';
 
-/// Notifications screen — displays notification log + unread badge.
-class NotificationsScreen extends ConsumerWidget {
+/// Inbox screen aligned to the original reference shell and naming.
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  NotificationService? _notificationController;
+
+  @override
+  void dispose() {
+    final controller = _notificationController;
+    if (controller != null) {
+      try {
+        unawaited(controller.markAllRead().catchError((_) {}));
+      } catch (_) {
+        // Ignore teardown-time failures when Supabase/auth is unavailable.
+      }
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _notificationController ??= ref.read(notificationServiceProvider.notifier);
     final notificationsAsync = ref.watch(notificationLogProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'NOTIFICATIONS',
-          style: FzTypography.display(
-            size: 24,
-            color: isDark ? FzColors.darkText : FzColors.lightText,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              ref.read(notificationServiceProvider.notifier).markAllRead();
-            },
-            child: const Text(
-              'Mark all read',
-              style: TextStyle(fontSize: 12, color: FzColors.accent),
-            ),
-          ),
-        ],
-      ),
-      body: notificationsAsync.when(
-        data: (notifications) {
-          if (notifications.isEmpty) {
-            return Center(
-              child: StateView.empty(
-                title: 'No notifications yet',
-                subtitle:
-                    'Goal alerts, pool updates, and more will appear here.',
-                icon: LucideIcons.bell,
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: notifications.length,
-            itemBuilder: (context, index) {
-              final item = notifications[index];
-              final isUnread = item.readAt == null;
-
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: GestureDetector(
-                  onTap: () {
-                    if (isUnread) {
-                      ref
-                          .read(notificationServiceProvider.notifier)
-                          .markAsRead(item.id);
-                    }
-                    // Navigate based on notification type
-                    _handleNotificationTap(context, item);
-                  },
-                  child: FzCard(
-                    padding: const EdgeInsets.all(14),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: _colorForType(
-                              item.type,
-                            ).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            _iconForType(item.type),
-                            size: 16,
-                            color: _colorForType(item.type),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.title,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: isUnread
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                                  color: isDark
-                                      ? FzColors.darkText
-                                      : FzColors.lightText,
-                                ),
-                              ),
-                              if (item.body.isNotEmpty) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  item.body,
-                                  style: TextStyle(fontSize: 12, color: muted),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                              const SizedBox(height: 4),
-                              Text(
-                                _formatTime(item.sentAt),
-                                style: TextStyle(fontSize: 10, color: muted),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isUnread)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            margin: const EdgeInsets.only(top: 4),
-                            decoration: const BoxDecoration(
-                              color: FzColors.accent,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Inbox',
+                      style: FzTypography.display(
+                        size: 36,
+                        color: isDark ? FzColors.darkText : FzColors.lightText,
+                      ),
                     ),
                   ),
+                  InkWell(
+                    onTap: () =>
+                        ref.read(notificationServiceProvider.notifier).markAllRead(),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? FzColors.darkSurface2
+                            : FzColors.lightSurface2,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color:
+                              isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        LucideIcons.badgeCheck,
+                        size: 18,
+                        color: muted,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: notificationsAsync.when(
+                data: (notifications) {
+                  if (notifications.isEmpty) {
+                    return Center(
+                      child: StateView.empty(
+                        title: 'Nothing here',
+                        subtitle: 'Pool updates and alerts will land here.',
+                        icon: LucideIcons.bell,
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+                    itemCount: notifications.length,
+                    itemBuilder: (context, index) {
+                      final item = notifications[index];
+                      final isUnread = item.readAt == null;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: GestureDetector(
+                          onTap: () {
+                            if (isUnread) {
+                              ref
+                                  .read(notificationServiceProvider.notifier)
+                                  .markAsRead(item.id);
+                            }
+                            _handleNotificationTap(context, item);
+                          },
+                          child: FzCard(
+                            padding: const EdgeInsets.all(14),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: isUnread
+                                        ? _colorForType(item.type).withValues(
+                                            alpha: 0.1,
+                                          )
+                                        : (isDark
+                                              ? FzColors.darkSurface2
+                                              : FzColors.lightSurface2),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isUnread
+                                          ? _colorForType(item.type).withValues(
+                                              alpha: 0.2,
+                                            )
+                                          : (isDark
+                                                ? FzColors.darkBorder
+                                                : FzColors.lightBorder),
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    _iconForType(item.type),
+                                    size: 16,
+                                    color: _colorForType(item.type),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              item.title,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w700,
+                                                color: isDark
+                                                    ? FzColors.darkText
+                                                    : FzColors.lightText,
+                                              ),
+                                            ),
+                                          ),
+                                          Text(
+                                            _formatTime(item.sentAt),
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                              color: muted,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (item.body.isNotEmpty) ...[
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          item.body,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: muted,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                if (isUnread)
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    margin: const EdgeInsets.only(
+                                      top: 4,
+                                      left: 8,
+                                    ),
+                                    decoration: const BoxDecoration(
+                                      color: FzColors.accent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stackTrace) => Center(
+                  child: StateView.error(
+                    title: 'Could not load inbox',
+                    onRetry: () => ref.invalidate(notificationLogProvider),
+                  ),
                 ),
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: StateView.error(
-            title: 'Could not load notifications',
-            onRetry: () => ref.invalidate(notificationLogProvider),
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -174,7 +252,7 @@ class NotificationsScreen extends ConsumerWidget {
       case 'marketing':
         return LucideIcons.megaphone;
       case 'system':
-        return LucideIcons.info;
+        return LucideIcons.zap;
       default:
         return LucideIcons.bell;
     }
@@ -218,12 +296,12 @@ class NotificationsScreen extends ConsumerWidget {
     final competitionId = _stringValue(item.data['competition_id']);
     final screen = _stringValue(item.data['screen']);
 
-    if (poolId != null) return '/predict/pool/$poolId';
-    if (challengeId != null) return '/profile/daily-challenge';
+    if (poolId != null) return '/pool/$poolId';
+    if (challengeId != null) return '/profile';
     if (newsId != null && teamId != null) {
-      return '/clubs/team/$teamId/news/$newsId';
+      return '/team/$teamId/news/$newsId';
     }
-    if (teamId != null) return '/clubs/team/$teamId';
+    if (teamId != null) return '/team/$teamId';
     if (competitionId != null) return '/league/$competitionId';
     if (matchId != null) return '/match/$matchId';
 
@@ -231,7 +309,7 @@ class NotificationsScreen extends ConsumerWidget {
       if (screen == '/profile') {
         switch (item.type) {
           case 'daily_challenge':
-            return '/profile/daily-challenge';
+            return '/profile';
           case 'wallet':
           case 'wallet_credit':
           case 'wallet_debit':
@@ -246,9 +324,9 @@ class NotificationsScreen extends ConsumerWidget {
     switch (item.type) {
       case 'pool_update':
       case 'pool_settled':
-        return '/predict';
+        return '/pools';
       case 'daily_challenge':
-        return '/profile/daily-challenge';
+        return '/profile';
       case 'wallet':
       case 'wallet_credit':
       case 'wallet_debit':
@@ -258,25 +336,22 @@ class NotificationsScreen extends ConsumerWidget {
     }
   }
 
-  String? _stringValue(dynamic value) {
-    final normalized = value?.toString().trim();
-    if (normalized == null || normalized.isEmpty) {
-      return null;
-    }
-    return normalized;
+  static String? _stringValue(Object? value) {
+    if (value == null) return null;
+    final stringValue = value.toString().trim();
+    return stringValue.isEmpty ? null : stringValue;
   }
 
-  String _formatTime(DateTime date) {
-    final diff = DateTime.now().difference(date);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return '${date.day}/${date.month}';
+  static String _formatTime(DateTime sentAt) {
+    final diff = DateTime.now().difference(sentAt);
+    if (diff.inDays > 0) return '${diff.inDays}d';
+    if (diff.inHours > 0) return '${diff.inHours}h';
+    if (diff.inMinutes > 0) return '${diff.inMinutes}m';
+    return 'Now';
   }
 }
 
-/// Notification settings screen — manage notification preferences.
+/// Hidden advanced notification settings surface retained for ops parity.
 class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
 

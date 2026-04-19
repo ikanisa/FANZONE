@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../models/daily_challenge_model.dart';
 import '../../../models/pool.dart';
@@ -22,7 +21,6 @@ abstract interface class PredictGateway
         DailyChallengeGateway,
         PredictionSlipGateway {}
 
-@LazySingleton(as: PredictGateway)
 class SupabasePredictGateway implements PredictGateway {
   SupabasePredictGateway(
     this._pools,

@@ -1,11 +1,12 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../core/di/injection.dart';
+import '../../../core/di/gateway_providers.dart';
 import '../../../data/team_search_database.dart';
-import '../../../features/onboarding/data/onboarding_gateway.dart';
 import '../../../features/profile/providers/profile_identity_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
@@ -35,8 +36,8 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
   }
 
   Future<void> _addTeam(OnboardingTeam team) async {
-    HapticFeedback.selectionClick();
-    await getIt<OnboardingGateway>().addFavoriteTeam(team);
+    unawaited(HapticFeedback.selectionClick());
+    await ref.read(onboardingGatewayProvider).addFavoriteTeam(team);
     await ref.read(profileIdentityProvider.notifier).refresh();
     if (mounted) {
       _searchController.clear();
@@ -45,8 +46,8 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
   }
 
   Future<void> _removeTeam(String teamId) async {
-    HapticFeedback.lightImpact();
-    await getIt<OnboardingGateway>().deleteFavoriteTeam(teamId);
+    unawaited(HapticFeedback.lightImpact());
+    await ref.read(onboardingGatewayProvider).deleteFavoriteTeam(teamId);
     await ref.read(profileIdentityProvider.notifier).refresh();
   }
 

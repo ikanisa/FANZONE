@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -20,7 +19,6 @@ abstract interface class MatchListingGateway {
   Stream<List<MatchModel>> watchUpcomingMatches();
 }
 
-@LazySingleton(as: MatchListingGateway)
 class SupabaseMatchListingGateway implements MatchListingGateway {
   SupabaseMatchListingGateway(this._connection);
 
@@ -28,9 +26,8 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
   @override
   Future<List<MatchModel>> getMatches(MatchesFilter filter) async {
-    final fallback = fallbackMatchesForFilter(filter);
     final client = _connection.client;
-    if (client == null) return fallback;
+    if (client == null) return fallbackMatchesForFilter(filter);
 
     try {
       var query = client.from('matches').select();
@@ -61,10 +58,10 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
           .map((row) => MatchModel.fromJson(Map<String, dynamic>.from(row)))
           .toList(growable: false);
 
-      return matches.isEmpty ? fallback : matches;
+      return matches;
     } catch (error) {
       AppLogger.d('Failed to load matches: $error');
-      return fallback;
+      return fallbackMatchesForFilter(filter);
     }
   }
 

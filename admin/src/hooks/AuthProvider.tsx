@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 
-import { supabase, isDemoMode, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { AdminUser } from '../types';
-import { AuthContext, DEMO_ADMIN, UNCONFIGURED_ADMIN_ERROR } from './auth-context';
+import { AuthContext, UNCONFIGURED_ADMIN_ERROR } from './auth-context';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -21,16 +21,26 @@ interface InitialAuthSnapshot {
   error: string | null;
 }
 
-function getInitialAuthSnapshot(): InitialAuthSnapshot {
-  if (isDemoMode) {
-    return {
-      session: null,
-      admin: DEMO_ADMIN,
-      isLoading: false,
-      error: null,
-    };
+function toAdminAuthErrorMessage(error: unknown, fallback: string) {
+  if (!(error instanceof Error)) {
+    return fallback;
   }
 
+  const message = error.message.toLowerCase();
+  if (message.includes('otp') || message.includes('token')) {
+    return 'The verification code is invalid or expired. Request a new WhatsApp code and try again.';
+  }
+  if (message.includes('signups not allowed') || message.includes('user not found')) {
+    return 'This WhatsApp number is not provisioned for FANZONE admin access.';
+  }
+  if (message.includes('rate limit')) {
+    return 'Too many code requests. Wait a moment and try again.';
+  }
+
+  return error.message || fallback;
+}
+
+function getInitialAuthSnapshot(): InitialAuthSnapshot {
   if (!isSupabaseConfigured) {
     return {
       session: null,
@@ -58,10 +68,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [error, setError] = useState<string | null>(initialSnapshot.error);
 
   const fetchAdminProfile = useCallback(async (userId: string): Promise<AdminProfileResult> => {
-    if (isDemoMode) {
-      return { admin: DEMO_ADMIN, error: null };
-    }
-
     try {
       const { data, error: fetchError } = await supabase
         .from('admin_users')
@@ -90,7 +96,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   useEffect(() => {
-    if (!isSupabaseConfigured || isDemoMode) {
+    if (!isSupabaseConfigured) {
       return;
     }
 
@@ -134,36 +140,75 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, [fetchAdminProfile]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    if (isDemoMode) {
-      setAdmin(DEMO_ADMIN);
-      setError(null);
-      return;
-    }
-
+  const requestOtp = useCallback(async (phone: string) => {
     if (!isSupabaseConfigured) {
       setError(UNCONFIGURED_ADMIN_ERROR);
-      return;
+      return false;
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const { error: authError } = await supabase.auth.signInWithOtp({
+        phone,
+        options: {
+          channel: 'whatsapp',
+          shouldCreateUser: false,
+        },
       });
 
       if (authError) throw authError;
     } catch (authError: unknown) {
-      setError(authError instanceof Error ? authError.message : 'Sign in failed.');
+      setError(
+        toAdminAuthErrorMessage(
+          authError,
+          'Unable to send a WhatsApp verification code.',
+        ),
+      );
       setIsLoading(false);
+      return false;
     }
+
+    setIsLoading(false);
+    return true;
+  }, []);
+
+  const verifyOtp = useCallback(async (phone: string, otp: string) => {
+    if (!isSupabaseConfigured) {
+      setError(UNCONFIGURED_ADMIN_ERROR);
+      return false;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { error: authError } = await supabase.auth.verifyOtp({
+        phone,
+        token: otp,
+        // Supabase expects the shared phone verifier type `sms` here even
+        // when the OTP was delivered through the WhatsApp channel.
+        type: 'sms',
+      });
+
+      if (authError) throw authError;
+    } catch (authError: unknown) {
+      setError(
+        toAdminAuthErrorMessage(
+          authError,
+          'Unable to verify the WhatsApp code.',
+        ),
+      );
+      setIsLoading(false);
+      return false;
+    }
+
+    return true;
   }, []);
 
   const signOut = useCallback(async () => {
-    if (isDemoMode) {
+    if (!isSupabaseConfigured) {
       setSession(null);
       setAdmin(null);
       setError(null);
@@ -178,7 +223,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   return (
     <AuthContext.Provider
-      value={{ session, admin, isLoading, error, signIn, signOut }}
+      value={{ session, admin, isLoading, error, requestOtp, verifyOtp, signOut }}
     >
       {children}
     </AuthContext.Provider>

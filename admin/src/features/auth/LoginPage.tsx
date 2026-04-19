@@ -1,19 +1,79 @@
 // FANZONE Admin — Login Page
-import { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { Loader } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Loader, MessageCircle } from 'lucide-react';
+
 import logoImg from '../../assets/logo-128.png';
-import { isDemoMode } from '../../lib/supabase';
+import { useAuth } from '../../hooks/useAuth';
+
+type LoginStep = 'phone' | 'otp';
+
+const OTP_LENGTH = 6;
+
+function normalizePhone(rawPhone: string) {
+  const trimmed = rawPhone.trim();
+  if (!trimmed) return '';
+
+  const digits = trimmed.replace(/\D/g, '');
+  return trimmed.startsWith('+') ? `+${digits}` : digits;
+}
+
+function isValidPhone(rawPhone: string) {
+  const normalized = normalizePhone(rawPhone);
+  const digits = normalized.replace(/\D/g, '');
+  return normalized.startsWith('+') && digits.length >= 8;
+}
 
 export function LoginPage() {
-  const { signIn, isLoading, error } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { requestOtp, verifyOtp, isLoading, error } = useAuth();
+  const [step, setStep] = useState<LoginStep>('phone');
+  const [phone, setPhone] = useState('');
+  const [sentPhone, setSentPhone] = useState('');
+  const [otp, setOtp] = useState<string[]>(() => Array(OTP_LENGTH).fill(''));
+  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
-    await signIn(email.trim(), password.trim());
+  const normalizedPhone = useMemo(() => normalizePhone(phone), [phone]);
+  const canRequestOtp = isValidPhone(phone) && !isLoading;
+  const canVerifyOtp = otp.join('').length === OTP_LENGTH && !isLoading;
+
+  const handleRequestOtp = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!canRequestOtp) return;
+
+    const sent = await requestOtp(normalizedPhone);
+    if (!sent) return;
+    setSentPhone(normalizedPhone);
+    setOtp(Array(OTP_LENGTH).fill(''));
+    setStep('otp');
+  };
+
+  const handleVerifyOtp = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!canVerifyOtp || !sentPhone) return;
+    await verifyOtp(sentPhone, otp.join(''));
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, '').slice(-1);
+    setOtp((current) => {
+      const next = [...current];
+      next[index] = digit;
+      return next;
+    });
+
+    if (digit && index < OTP_LENGTH - 1) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const goBackToPhone = () => {
+    setStep('phone');
+    setOtp(Array(OTP_LENGTH).fill(''));
   };
 
   return (
@@ -25,55 +85,93 @@ export function LoginPage() {
           <p className="login-subtitle">Admin Console</p>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
-          {isDemoMode && (
-            <div className="login-info">
-              Demo mode is enabled for local development. Live admin writes are disabled.
-            </div>
+        <form className="login-form" onSubmit={step === 'phone' ? handleRequestOtp : handleVerifyOtp}>
+          {error && <div className="login-error">{error}</div>}
+
+          {step === 'phone' ? (
+            <>
+              <div className="login-step-header">
+                <MessageCircle size={22} />
+                <h2>VERIFY VIA WHATSAPP</h2>
+              </div>
+
+              <p className="login-step-copy">
+                Use your provisioned WhatsApp number to access the FANZONE admin console.
+              </p>
+
+              <div className="field-group">
+                <label className="label" htmlFor="login-phone">WhatsApp Number</label>
+                <input
+                  id="login-phone"
+                  type="tel"
+                  className="input"
+                  placeholder="+356 99 123 456"
+                  value={phone}
+                  onChange={event => setPhone(event.target.value)}
+                  autoComplete="tel"
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary w-full btn-lg"
+                disabled={!canRequestOtp}
+              >
+                {isLoading ? <Loader size={18} className="spin" /> : 'Send Code Via WhatsApp'}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="login-step-header">
+                <MessageCircle size={22} />
+                <h2>ENTER OTP</h2>
+              </div>
+
+              <p className="login-step-copy">
+                Enter the 6-digit code sent to <strong>{sentPhone}</strong> on WhatsApp.
+              </p>
+
+              <div className="otp-grid" aria-label="WhatsApp verification code">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={node => {
+                      otpRefs.current[index] = node;
+                    }}
+                    className="otp-input"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                    maxLength={1}
+                    value={digit}
+                    onChange={event => handleOtpChange(index, event.target.value)}
+                    onKeyDown={event => handleOtpKeyDown(index, event)}
+                    aria-label={`OTP digit ${index + 1}`}
+                    autoFocus={index === 0}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary w-full btn-lg"
+                disabled={!canVerifyOtp}
+              >
+                {isLoading ? <Loader size={18} className="spin" /> : 'Verify Code'}
+              </button>
+
+              <button
+                type="button"
+                className="login-secondary"
+                onClick={goBackToPhone}
+                disabled={isLoading}
+              >
+                Use another WhatsApp number
+              </button>
+            </>
           )}
-
-          {error && (
-            <div className="login-error">
-              {error}
-            </div>
-          )}
-
-          <div className="field-group">
-            <label className="label" htmlFor="login-email">Email</label>
-            <input
-              id="login-email"
-              type="email"
-              className="input"
-              placeholder="admin@fanzone.mt"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              autoComplete="email"
-              autoFocus
-              required
-            />
-          </div>
-
-          <div className="field-group">
-            <label className="label" htmlFor="login-password">Password</label>
-            <input
-              id="login-password"
-              type="password"
-              className="input"
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary w-full btn-lg"
-            disabled={isLoading || !email.trim() || !password.trim()}
-          >
-            {isLoading ? <Loader size={18} className="spin" /> : 'Sign In'}
-          </button>
         </form>
 
         <p className="login-footer">FANZONE Malta — Internal Use Only</p>
@@ -123,6 +221,25 @@ export function LoginPage() {
           flex-direction: column;
           gap: var(--fz-sp-5);
         }
+        .login-step-header {
+          display: flex;
+          align-items: center;
+          gap: var(--fz-sp-3);
+          color: var(--fz-accent);
+        }
+        .login-step-header h2 {
+          margin: 0;
+          font-size: var(--fz-text-lg);
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          color: inherit;
+        }
+        .login-step-copy {
+          margin: 0;
+          font-size: var(--fz-text-sm);
+          line-height: 1.6;
+          color: var(--fz-muted);
+        }
         .login-error {
           background: var(--fz-error-bg);
           color: var(--fz-error);
@@ -138,6 +255,39 @@ export function LoginPage() {
           border-radius: var(--fz-radius);
           font-size: var(--fz-text-sm);
           border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+        .otp-grid {
+          display: grid;
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+          gap: var(--fz-sp-2);
+        }
+        .otp-input {
+          width: 100%;
+          height: 52px;
+          text-align: center;
+          border-radius: var(--fz-radius);
+          border: 1px solid var(--fz-border);
+          background: var(--fz-surface-2);
+          color: var(--fz-text);
+          font-size: var(--fz-text-xl);
+          font-weight: 700;
+        }
+        .otp-input:focus {
+          outline: none;
+          border-color: var(--fz-accent);
+          box-shadow: 0 0 0 1px color-mix(in srgb, var(--fz-accent) 35%, transparent);
+        }
+        .login-secondary {
+          border: 0;
+          background: transparent;
+          color: var(--fz-muted);
+          font-size: var(--fz-text-xs);
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .login-secondary:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
         .login-footer {
           text-align: center;

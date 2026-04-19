@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../app_router.dart' show router;
 import '../config/app_config.dart';
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../core/logging/app_logger.dart';
 import '../core/runtime/app_runtime_state.dart';
 import '../features/auth/data/auth_gateway.dart';
@@ -137,7 +137,7 @@ class PushNotificationService {
 
     final poolId = data['pool_id']?.toString();
     if (poolId != null && poolId.isNotEmpty) {
-      router.go('/predict/pool/$poolId');
+      router.go('/pool/$poolId');
       return;
     }
 
@@ -158,17 +158,17 @@ class PushNotificationService {
     switch (type) {
       case 'pool_settled':
       case 'pool_joined':
-        router.go('/predict');
+        router.go('/pools');
         return;
       case 'wallet_credit':
       case 'wallet_debit':
         router.go('/wallet');
         return;
       case 'daily_challenge':
-        router.go('/profile/daily-challenge');
+        router.go('/profile');
         return;
       default:
-        router.go('/profile/notifications');
+        router.go('/notifications');
         return;
     }
   }
@@ -183,6 +183,24 @@ class PushNotificationService {
     }
     if (normalized == '/home' || normalized == '/home/') {
       return '/';
+    }
+    if (normalized == '/predict') return '/pools';
+    if (normalized == '/predict/jackpot') return '/jackpot';
+    if (normalized.startsWith('/predict/pool/')) {
+      return normalized.replaceFirst('/predict/pool/', '/pool/');
+    }
+    if (normalized == '/profile/notifications') return '/notifications';
+    if (normalized == '/profile/settings') return '/settings';
+    if (normalized == '/profile/settings/privacy') return '/privacy';
+    if (normalized == '/profile/daily-challenge') return '/profile';
+    if (normalized == '/profile/prediction-history') return '/profile';
+    if (normalized == '/profile/seasonal-leaderboard') return '/leaderboard';
+    if (normalized == '/profile/contests') return '/profile';
+    if (normalized == '/clubs/membership') return '/memberships';
+    if (normalized == '/clubs/social') return '/social';
+    if (normalized == '/clubs/fan-id') return '/fan-id';
+    if (normalized.startsWith('/clubs/team/')) {
+      return normalized.replaceFirst('/clubs/team/', '/team/');
     }
     return normalized;
   }
@@ -247,8 +265,8 @@ final pushNotificationServiceProvider = Provider<PushNotificationService>((
   ref,
 ) {
   return PushNotificationService(
-    getIt<AuthGateway>(),
-    getIt<NotificationSettingsGateway>(),
+    ref.read(authGatewayProvider),
+    ref.read(notificationSettingsGatewayProvider),
   );
 });
 

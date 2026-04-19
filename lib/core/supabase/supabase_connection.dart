@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../runtime/app_runtime_state.dart';
@@ -17,7 +16,6 @@ abstract class SupabaseConnection {
   Stream<AuthState> get authStateChanges;
 }
 
-@LazySingleton(as: SupabaseConnection)
 class SupabaseConnectionImpl implements SupabaseConnection {
   @override
   bool get isInitialized => appRuntime.supabaseInitialized;

@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -17,7 +16,6 @@ abstract interface class ContestGateway {
   Future<List<CommunityContest>> getSettledContests();
 }
 
-@LazySingleton(as: ContestGateway)
 class SupabaseContestGateway implements ContestGateway {
   SupabaseContestGateway(this._connection);
 
@@ -26,7 +24,7 @@ class SupabaseContestGateway implements ContestGateway {
   @override
   Future<List<CommunityContest>> getOpenContests() async {
     final client = _connection.client;
-    if (client == null) return fallbackOpenContests();
+    if (client == null) return _fallbackOpenContests();
 
     try {
       final rows = await client
@@ -40,10 +38,10 @@ class SupabaseContestGateway implements ContestGateway {
             (row) => CommunityContest.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      return contests.isEmpty ? fallbackOpenContests() : contests;
+      return contests;
     } catch (error) {
       AppLogger.d('Failed to load open contests: $error');
-      return fallbackOpenContests();
+      return _fallbackOpenContests();
     }
   }
 
@@ -59,7 +57,7 @@ class SupabaseContestGateway implements ContestGateway {
   @override
   Future<List<ContestEntry>> getContestEntries(String contestId) async {
     final client = _connection.client;
-    if (client == null) return fallbackContestEntries(contestId);
+    if (client == null) return _fallbackContestEntries(contestId);
 
     try {
       final rows = await client
@@ -71,10 +69,10 @@ class SupabaseContestGateway implements ContestGateway {
           .whereType<Map>()
           .map((row) => ContestEntry.fromJson(Map<String, dynamic>.from(row)))
           .toList(growable: false);
-      return entries.isEmpty ? fallbackContestEntries(contestId) : entries;
+      return entries;
     } catch (error) {
       AppLogger.d('Failed to load contest entries: $error');
-      return fallbackContestEntries(contestId);
+      return _fallbackContestEntries(contestId);
     }
   }
 
@@ -93,7 +91,7 @@ class SupabaseContestGateway implements ContestGateway {
   @override
   Future<List<CommunityContest>> getSettledContests() async {
     final client = _connection.client;
-    if (client == null) return fallbackSettledContests();
+    if (client == null) return _fallbackSettledContests();
 
     try {
       final rows = await client
@@ -107,10 +105,28 @@ class SupabaseContestGateway implements ContestGateway {
             (row) => CommunityContest.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      return contests.isEmpty ? fallbackSettledContests() : contests;
+      return contests;
     } catch (error) {
       AppLogger.d('Failed to load settled contests: $error');
-      return fallbackSettledContests();
+      return _fallbackSettledContests();
     }
+  }
+
+  List<CommunityContest> _fallbackOpenContests() {
+    return allowEngagementSeedFallback
+        ? fallbackOpenContests()
+        : const <CommunityContest>[];
+  }
+
+  List<ContestEntry> _fallbackContestEntries(String contestId) {
+    return allowEngagementSeedFallback
+        ? fallbackContestEntries(contestId)
+        : const <ContestEntry>[];
+  }
+
+  List<CommunityContest> _fallbackSettledContests() {
+    return allowEngagementSeedFallback
+        ? fallbackSettledContests()
+        : const <CommunityContest>[];
   }
 }

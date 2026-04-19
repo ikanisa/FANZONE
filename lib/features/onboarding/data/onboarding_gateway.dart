@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/cache/cache_service.dart';
@@ -32,7 +31,6 @@ abstract class OnboardingGateway {
   Future<void> deleteFavoriteTeam(String teamId);
 }
 
-@LazySingleton(as: OnboardingGateway)
 class SupabaseOnboardingGateway implements OnboardingGateway {
   SupabaseOnboardingGateway(this._catalog, this._cache, this._connection);
 

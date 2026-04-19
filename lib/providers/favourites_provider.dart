@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/di/injection.dart';
+import '../core/di/gateway_providers.dart';
 import '../core/logging/app_logger.dart';
 import '../data/team_search_database.dart';
 import '../features/onboarding/data/onboarding_gateway.dart';
@@ -37,8 +37,8 @@ class FavouritesState {
 
 class FavouritesNotifier extends AsyncNotifier<FavouritesState> {
   CompetitionPreferencesGateway get _gateway =>
-      getIt<CompetitionPreferencesGateway>();
-  OnboardingGateway get _onboardingGateway => getIt<OnboardingGateway>();
+      ref.read(competitionPreferencesGatewayProvider);
+  OnboardingGateway get _onboardingGateway => ref.read(onboardingGatewayProvider);
 
   @override
   Future<FavouritesState> build() async {
