@@ -4,6 +4,7 @@
 
 - **App name**: FANZONE
 - **Package name**: `app.fanzone.football`
+- **Current release version**: `1.1.0 (6)`
 - **Default language**: English (United States)
 - **Category**: Sports
 - **Tags**: Football, Predictions, Fan Engagement, Fantasy Sports
@@ -111,6 +112,7 @@ See `docs/privacy-policy.md` for the full text.
 If reviewers need login credentials to test the app:
 - The app supports WhatsApp OTP authentication only
 - Provide a test WhatsApp-enabled phone number and OTP for review
+- Provide a short note that core browsing flows also load for guest access where available
 
 ---
 
@@ -147,3 +149,9 @@ Users can request account deletion via Settings → Request Account Deletion.
 | Production | Public release |
 
 **Recommended**: Start with **Internal testing** to validate the end-to-end flow, then promote to Closed testing before Production.
+
+## Submission Package
+
+- **Upload artifact**: `build/app/outputs/bundle/release/app-release.aab`
+- **Do not upload for Play distribution**: `build/app/outputs/flutter-apk/app-release.apk`
+- **Release handoff reference**: [android-release-handoff-2026-04-19.md](/Volumes/PRO-G40/FANZONE/docs/android-release-handoff-2026-04-19.md:1)

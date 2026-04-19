@@ -1,5 +1,14 @@
 # Production Release Checklist
 
+## Current Android snapshot
+
+- Latest validated Android handoff: [android-release-handoff-2026-04-19.md](/Volumes/PRO-G40/FANZONE/docs/android-release-handoff-2026-04-19.md:1)
+- Current production Android package: `app.fanzone.football`
+- Current release version: `1.1.0+6`
+- Current Android release artifacts:
+  - `build/app/outputs/flutter-apk/app-release.apk`
+  - `build/app/outputs/bundle/release/app-release.aab`
+
 ## Required before shipping
 
 - Audit Supabase auth, RLS, storage rules, edge functions, migrations, backups, and rollback paths in the production project.

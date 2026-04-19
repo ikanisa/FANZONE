@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import type { Session } from '@supabase/supabase-js';
+import {
+  FunctionsFetchError,
+  FunctionsHttpError,
+  FunctionsRelayError,
+  type Session,
+} from '@supabase/supabase-js';
 
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { AdminUser } from '../types';
@@ -21,6 +26,17 @@ interface InitialAuthSnapshot {
   error: string | null;
 }
 
+interface WhatsAppOtpSendResponse {
+  success?: boolean;
+  message?: string;
+  error?: string;
+}
+
+interface WhatsAppOtpVerifyResponse extends WhatsAppOtpSendResponse {
+  access_token?: string;
+  refresh_token?: string;
+}
+
 function toAdminAuthErrorMessage(error: unknown, fallback: string) {
   if (!(error instanceof Error)) {
     return fallback;
@@ -36,8 +52,44 @@ function toAdminAuthErrorMessage(error: unknown, fallback: string) {
   if (message.includes('rate limit')) {
     return 'Too many code requests. Wait a moment and try again.';
   }
+  if (message.includes('whatsapp api not configured')) {
+    return 'WhatsApp OTP delivery is not configured for this environment.';
+  }
+  if (message.includes('failed to create session')) {
+    return 'Authentication succeeded, but the admin session could not be created. Check auth configuration and try again.';
+  }
+  if (message.includes('jwt signing secret is not configured')) {
+    return 'WhatsApp auth is missing its JWT signing secret in this environment.';
+  }
 
   return error.message || fallback;
+}
+
+async function getFunctionErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const payload = await error.context.json() as { error?: string };
+      if (typeof payload?.error === 'string' && payload.error.trim()) {
+        return payload.error;
+      }
+    } catch {
+      // Fall through to the generic error message.
+    }
+  }
+
+  if (
+    error instanceof FunctionsHttpError ||
+    error instanceof FunctionsRelayError ||
+    error instanceof FunctionsFetchError
+  ) {
+    return error.message || fallback;
+  }
+
+  if (error instanceof Error) {
+    return error.message || fallback;
+  }
+
+  return fallback;
 }
 
 function getInitialAuthSnapshot(): InitialAuthSnapshot {
@@ -150,15 +202,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
 
     try {
-      const { error: authError } = await supabase.auth.signInWithOtp({
-        phone,
-        options: {
-          channel: 'whatsapp',
-          shouldCreateUser: false,
+      const { data, error: invokeError } = await supabase.functions.invoke<WhatsAppOtpSendResponse>(
+        'whatsapp-otp',
+        {
+          body: {
+            action: 'send',
+            phone,
+          },
         },
-      });
+      );
 
-      if (authError) throw authError;
+      if (invokeError) {
+        throw new Error(
+          await getFunctionErrorMessage(
+            invokeError,
+            'Unable to send a WhatsApp verification code.',
+          ),
+        );
+      }
+
+      if (data?.success !== true) {
+        throw new Error(
+          data?.error || 'Unable to send a WhatsApp verification code.',
+        );
+      }
     } catch (authError: unknown) {
       setError(
         toAdminAuthErrorMessage(
@@ -184,15 +251,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
 
     try {
-      const { error: authError } = await supabase.auth.verifyOtp({
-        phone,
-        token: otp,
-        // Supabase expects the shared phone verifier type `sms` here even
-        // when the OTP was delivered through the WhatsApp channel.
-        type: 'sms',
+      const { data, error: invokeError } = await supabase.functions.invoke<WhatsAppOtpVerifyResponse>(
+        'whatsapp-otp',
+        {
+          body: {
+            action: 'verify',
+            phone,
+            otp,
+          },
+        },
+      );
+
+      if (invokeError) {
+        throw new Error(
+          await getFunctionErrorMessage(
+            invokeError,
+            'Unable to verify the WhatsApp code.',
+          ),
+        );
+      }
+
+      if (data?.success !== true) {
+        throw new Error(data?.error || 'Unable to verify the WhatsApp code.');
+      }
+
+      if (!data.access_token) {
+        throw new Error('Server did not return a valid session.');
+      }
+
+      const refreshToken =
+        typeof data.refresh_token === 'string' && data.refresh_token.length > 0
+          ? data.refresh_token
+          : data.access_token;
+
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: data.access_token,
+        // The custom WhatsApp auth flow mints a signed access token directly.
+        // Supabase still expects a non-empty refresh token when restoring a
+        // client session, so we reuse the access token as a session seed until
+        // the short-lived token expires and the admin signs in again.
+        refresh_token: refreshToken,
       });
 
-      if (authError) throw authError;
+      if (sessionError) {
+        throw sessionError;
+      }
     } catch (authError: unknown) {
       setError(
         toAdminAuthErrorMessage(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'core/errors/app_error_boundary.dart';
+import 'core/lifecycle/app_lifecycle_observer.dart';
 import 'theme/app_theme.dart';
 import 'theme/colors.dart';
 import 'app_router.dart';
@@ -42,7 +43,11 @@ class FanzoneApp extends ConsumerWidget {
 
       builder: (context, child) {
         return AppErrorBoundary(
-          child: _SessionExpiryGuard(child: child ?? const SizedBox.shrink()),
+          child: AppLifecycleObserverWidget(
+            child: _SessionExpiryGuard(
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ),
         );
       },
     );

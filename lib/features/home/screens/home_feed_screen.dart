@@ -5,6 +5,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../data/team_search_database.dart';
 import '../../../features/profile/providers/profile_identity_provider.dart';
+import '../../../models/match_model.dart';
+import '../../../providers/competitions_provider.dart';
 import '../../../providers/matches_provider.dart';
 import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
@@ -14,7 +16,6 @@ import '../../../widgets/common/fz_badge.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
-import '../widgets/daily_challenge_card.dart';
 
 class HomeFeedScreen extends ConsumerWidget {
   const HomeFeedScreen({super.key});
@@ -34,6 +35,14 @@ class HomeFeedScreen extends ConsumerWidget {
     final supportedIds =
         ref.watch(supportedTeamsServiceProvider).valueOrNull ??
         const <String>{};
+    final competitions =
+        ref.watch(competitionsProvider).valueOrNull ?? const [];
+    final competitionLabels = {
+      for (final competition in competitions)
+        competition.id: competition.shortName.isNotEmpty
+            ? competition.shortName
+            : competition.name,
+    };
     final profileIdentity = ref.watch(profileIdentityProvider).valueOrNull;
     final fallbackInsightTeam = _resolveInsightTeam(supportedIds);
     final insightTeamId =
@@ -75,7 +84,7 @@ class HomeFeedScreen extends ConsumerWidget {
                   _RoundActionButton(
                     tooltip: 'Open registry',
                     icon: LucideIcons.shield,
-                    onTap: () => context.go('/fan-id'),
+                    onTap: () => context.go('/registry'),
                   ),
                 ],
               ),
@@ -96,8 +105,6 @@ class HomeFeedScreen extends ConsumerWidget {
                         teamId: insightTeamId,
                         teamName: insightTeamName,
                       ),
-                      const SizedBox(height: 12),
-                      const DailyChallengeCard(),
                       const SizedBox(height: 24),
                       _HomeSectionHeader(
                         icon: LucideIcons.activity,
@@ -114,15 +121,16 @@ class HomeFeedScreen extends ConsumerWidget {
                         _CompactEmptyCard(
                           icon: LucideIcons.trophy,
                           title: 'No Live Matches',
-                          subtitle:
-                              'Check the upcoming slate and lock your next picks.',
+                          subtitle: 'Check upcoming.',
                           muted: muted,
                         )
                       else
-                        MatchListCard(
-                          matches: liveMatches.take(4).toList(),
-                          onTapMatch: (match) =>
+                        _MatchGrid(
+                          matches: liveMatches,
+                          competitionLabels: competitionLabels,
+                          onPredict: (match) =>
                               context.push('/match/${match.id}'),
+                          onPool: () => context.push('/pools/create'),
                         ),
                       const SizedBox(height: 24),
                       _HomeSectionHeader(
@@ -144,16 +152,17 @@ class HomeFeedScreen extends ConsumerWidget {
                       if (upcomingMatches.isEmpty)
                         _CompactEmptyCard(
                           icon: LucideIcons.calendar,
-                          title: 'No Upcoming Matches',
-                          subtitle:
-                              'The next prediction window will appear here.',
+                          title: 'No Upcoming',
+                          subtitle: 'None left.',
                           muted: muted,
                         )
                       else
-                        MatchListCard(
-                          matches: upcomingMatches.take(6).toList(),
-                          onTapMatch: (match) =>
+                        _MatchGrid(
+                          matches: upcomingMatches,
+                          competitionLabels: competitionLabels,
+                          onPredict: (match) =>
                               context.push('/match/${match.id}'),
+                          onPool: () => context.push('/pools/create'),
                         ),
                     ],
                   );
@@ -184,6 +193,308 @@ class HomeFeedScreen extends ConsumerWidget {
       if (supportedIds.contains(team.id)) return team;
     }
     return null;
+  }
+}
+
+class _MatchGrid extends StatelessWidget {
+  const _MatchGrid({
+    required this.matches,
+    required this.competitionLabels,
+    required this.onPredict,
+    required this.onPool,
+  });
+
+  final List<MatchModel> matches;
+  final Map<String, String> competitionLabels;
+  final ValueChanged<MatchModel> onPredict;
+  final VoidCallback onPool;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 12.0;
+        final columns = constraints.maxWidth >= 720 ? 2 : 1;
+        final cardWidth =
+            (constraints.maxWidth - (gap * (columns - 1))) / columns;
+
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final match in matches)
+              SizedBox(
+                width: cardWidth,
+                child: _HomeMatchCard(
+                  match: match,
+                  competitionLabel:
+                      competitionLabels[match.competitionId] ??
+                      match.competitionId.toUpperCase(),
+                  onPredict: () => onPredict(match),
+                  onPool: onPool,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _HomeMatchCard extends StatelessWidget {
+  const _HomeMatchCard({
+    required this.match,
+    required this.competitionLabel,
+    required this.onPredict,
+    required this.onPool,
+  });
+
+  final MatchModel match;
+  final String competitionLabel;
+  final VoidCallback onPredict;
+  final VoidCallback onPool;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+    final surface2 = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    const accent2 = FzColors.coral;
+    final scoreText = match.isLive ? (match.scoreDisplay ?? 'LIVE') : 'VS';
+
+    return Container(
+      key: ValueKey('home-match-card-${match.id}'),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: FzRadii.cardRadius,
+        border: Border.all(
+          color: match.isLive
+              ? FzColors.danger.withValues(alpha: 0.30)
+              : border,
+        ),
+        boxShadow: [
+          if (match.isLive)
+            BoxShadow(
+              color: FzColors.danger.withValues(alpha: 0.08),
+              blurRadius: 24,
+              spreadRadius: -10,
+              offset: const Offset(0, 10),
+            ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          if (match.isLive)
+            Positioned(
+              top: -40,
+              right: 0,
+              left: 0,
+              child: IgnorePointer(
+                child: Center(
+                  child: Container(
+                    width: 192,
+                    height: 192,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: FzColors.danger.withValues(alpha: 0.05),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: FzBadge(
+                          label: '$competitionLabel · ${match.kickoffLabel}',
+                          variant: FzBadgeVariant.ghost,
+                          fontSize: 9,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (match.isLive) FzBadge.live(),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: onPredict,
+                  borderRadius: BorderRadius.circular(FzRadii.compact),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _TeamColumn(
+                            name: match.homeTeam,
+                            logoUrl: match.homeLogoUrl,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 72,
+                          child: Center(
+                            child: Text(
+                              scoreText,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: match.isLive
+                                    ? FzColors.danger
+                                    : textColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: _TeamColumn(
+                            name: match.awayTeam,
+                            logoUrl: match.awayLogoUrl,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _HomeMatchButton(
+                        label: 'PREDICT',
+                        icon: LucideIcons.target,
+                        backgroundColor: match.isLive
+                            ? FzColors.danger
+                            : accent2.withValues(alpha: 0.10),
+                        foregroundColor: match.isLive
+                            ? FzColors.darkBg
+                            : accent2,
+                        borderColor: match.isLive
+                            ? FzColors.danger
+                            : accent2.withValues(alpha: 0.20),
+                        onTap: onPredict,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _HomeMatchButton(
+                        label: 'POOL',
+                        icon: LucideIcons.swords,
+                        backgroundColor: surface2,
+                        foregroundColor: FzColors.accent,
+                        borderColor: FzColors.accent.withValues(alpha: 0.20),
+                        onTap: onPool,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TeamColumn extends StatelessWidget {
+  const _TeamColumn({required this.name, required this.logoUrl});
+
+  final String name;
+  final String? logoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = Theme.of(context).brightness == Brightness.dark
+        ? FzColors.darkText
+        : FzColors.lightText;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TeamAvatar(name: name, logoUrl: logoUrl, size: 40),
+        const SizedBox(height: 8),
+        Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeMatchButton extends StatelessWidget {
+  const _HomeMatchButton({
+    required this.label,
+    required this.icon,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    required this.borderColor,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Color borderColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 14, color: foregroundColor),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: foregroundColor,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

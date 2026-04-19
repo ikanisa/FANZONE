@@ -537,12 +537,6 @@ abstract class S {
   /// **'Notifications'**
   String get profileNotifications;
 
-  /// No description provided for @profileHistory.
-  ///
-  /// In en, this message translates to:
-  /// **'Prediction History'**
-  String get profileHistory;
-
   /// No description provided for @profileSignIn.
   ///
   /// In en, this message translates to:

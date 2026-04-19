@@ -32,5 +32,6 @@ done < <(find "supabase/migrations" -maxdepth 1 -type f -name '*.sql' | sort)
 echo "Running bootstrap verification suites..."
 psql "${db_url}" --set ON_ERROR_STOP=1 --file "supabase/tests/bootstrap_required_objects.sql"
 psql "${db_url}" --set ON_ERROR_STOP=1 --file "supabase/tests/admin_data_plane_verification.sql"
+psql "${db_url}" --set ON_ERROR_STOP=1 --file "supabase/tests/whatsapp_auth_verification.sql"
 
 echo "Supabase bootstrap smoke passed."

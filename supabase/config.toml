@@ -211,8 +211,8 @@ web3 = 30
 # secret = ""
 
 [auth.email]
-# FANZONE does not support email/password authentication. Keep email auth
-# disabled and use phone auth with the WhatsApp OTP channel instead.
+# FANZONE does not support built-in Supabase email authentication. Account
+# verification is handled by the custom `whatsapp-otp` Edge Function instead.
 enable_signup = false
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
@@ -221,8 +221,8 @@ double_confirm_changes = true
 enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
-# Legacy email-auth throttle. FANZONE keeps email auth disabled, so these email
-# OTP settings are retained only to satisfy Supabase config shape.
+# Legacy email-auth throttle. These settings remain only to satisfy Supabase's
+# config shape because FANZONE does not use built-in email auth.
 max_frequency = "1s"
 # Unused because email OTP is not enabled in FANZONE.
 otp_length = 6
@@ -251,13 +251,11 @@ otp_expiry = 3600
 # content_path = "./templates/password_changed_notification.html"
 
 [auth.sms]
-# Allow/disallow new user signups via phone auth to your project.
-enable_signup = true
-# If enabled, users need to confirm their phone number before signing in.
+# FANZONE does not use built-in Supabase phone OTP. WhatsApp OTP delivery and
+# verification are owned by the `whatsapp-otp` Edge Function.
+enable_signup = false
 enable_confirmations = false
-# Template for sending OTP to users.
-template = "Your FANZONE WhatsApp code is {{ .Code }}"
-# Controls the minimum amount of time that must pass before sending another phone OTP.
+template = "Unused: FANZONE auth is delivered by the whatsapp-otp Edge Function"
 max_frequency = "5s"
 
 # Use pre-defined map of phone number to OTP for testing.
@@ -281,8 +279,8 @@ max_frequency = "5s"
 # enabled = true
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
-# FANZONE uses WhatsApp Cloud API for OTP delivery via the `whatsapp-otp`
-# Edge Function. No Supabase-native SMS provider (Twilio) is needed.
+# FANZONE uses WhatsApp Cloud API through the `whatsapp-otp` Edge Function, so
+# the built-in phone provider must stay disabled.
 # Secrets: WABA_ACCESS_TOKEN, WABA_PHONE_NUMBER_ID (set via `supabase secrets set`)
 # [auth.sms.twilio]
 # enabled = false

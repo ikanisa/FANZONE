@@ -20,6 +20,7 @@ BEGIN
       ('public.fet_transactions_admin'),
       ('public.fet_wallet_transactions'),
       ('public.fet_wallets'),
+      ('public.otp_verifications'),
       ('public.prediction_challenge_entries'),
       ('public.prediction_challenges'),
       ('public.profiles'),
@@ -41,6 +42,7 @@ BEGIN
       ('public.admin_publish_team_news(uuid)'),
       ('public.admin_trigger_currency_rate_refresh()'),
       ('public.admin_trigger_team_news_ingestion(text,text,text[],integer)'),
+      ('public.find_auth_user_by_phone(text)'),
       ('public.is_service_role_request()'),
       ('public.require_active_admin_user()'),
       ('public.resolve_auth_user_phone(uuid)')

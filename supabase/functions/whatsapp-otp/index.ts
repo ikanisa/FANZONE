@@ -15,13 +15,16 @@
 //   WABA_PHONE_NUMBER_ID    — WhatsApp Business phone number ID
 //   SUPABASE_URL            — Supabase project URL
 //   SUPABASE_SERVICE_ROLE_KEY — Service role key for admin operations
-//   SUPABASE_ANON_KEY       — Anon key for session creation
+//   SUPABASE_JWT_SECRET     — JWT signing secret for custom access tokens
 //
 // Optional:
 //   WABA_OTP_TEMPLATE_NAME  — Template name (default: "gikundiro")
 //   OTP_EXPIRY_SECONDS      — OTP validity in seconds (default: 600)
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import {
+  createClient,
+  type SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import {
   buildCorsHeaders,
   getErrorMessage,
@@ -29,7 +32,7 @@ import {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_JWT_SECRET = Deno.env.get("SUPABASE_JWT_SECRET")?.trim() || "";
 
 const WABA_ACCESS_TOKEN = Deno.env.get("WABA_ACCESS_TOKEN")?.trim() || "";
 const WABA_PHONE_NUMBER_ID = Deno.env.get("WABA_PHONE_NUMBER_ID")?.trim() || "";
@@ -78,6 +81,81 @@ async function verifyOtpHash(otp: string, hash: string): Promise<boolean> {
     result |= computed.charCodeAt(i) ^ hash.charCodeAt(i);
   }
   return result === 0;
+}
+
+function base64UrlEncode(data: Uint8Array): string {
+  return btoa(String.fromCharCode(...data))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+async function signJwt(
+  payload: Record<string, unknown>,
+  secret: string,
+): Promise<string> {
+  const header = { alg: "HS256", typ: "JWT" };
+  const encodedHeader = base64UrlEncode(
+    new TextEncoder().encode(JSON.stringify(header)),
+  );
+  const encodedPayload = base64UrlEncode(
+    new TextEncoder().encode(JSON.stringify(payload)),
+  );
+  const signingInput = `${encodedHeader}.${encodedPayload}`;
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(signingInput),
+  );
+
+  return `${signingInput}.${base64UrlEncode(new Uint8Array(signature))}`;
+}
+
+async function generateSessionTokens(
+  userId: string,
+  phone: string,
+  jwtSecret: string,
+): Promise<{ access_token: string; expires_in: number; expires_at: number }> {
+  const now = Math.floor(Date.now() / 1000);
+  const expiresIn = 3600;
+  const expiresAt = now + expiresIn;
+
+  const accessTokenPayload = {
+    aud: "authenticated",
+    exp: expiresAt,
+    iat: now,
+    iss: `${SUPABASE_URL}/auth/v1`,
+    sub: userId,
+    role: "authenticated",
+    aal: "aal1",
+    session_id: crypto.randomUUID(),
+    email: null,
+    phone,
+    is_anonymous: false,
+    app_metadata: {
+      provider: "phone",
+      providers: ["phone"],
+    },
+    user_metadata: {
+      phone,
+      phone_verified: true,
+    },
+    amr: [{ method: "otp", timestamp: now }],
+  };
+
+  return {
+    access_token: await signJwt(accessTokenPayload, jwtSecret),
+    expires_in: expiresIn,
+    expires_at: expiresAt,
+  };
 }
 
 // ── WhatsApp Cloud API ──
@@ -148,81 +226,44 @@ async function sendWhatsAppOtp(
   }
 }
 
-// ── JWT Generation ──
+// ── Session creation ──
 
-function base64UrlEncode(data: Uint8Array): string {
-  return btoa(String.fromCharCode(...data))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
-async function signJwt(
-  payload: Record<string, unknown>,
-  secret: string,
-): Promise<string> {
-  const header = { alg: "HS256", typ: "JWT" };
-
-  const headerB64 = base64UrlEncode(
-    new TextEncoder().encode(JSON.stringify(header)),
-  );
-  const payloadB64 = base64UrlEncode(
-    new TextEncoder().encode(JSON.stringify(payload)),
-  );
-
-  const signingInput = `${headerB64}.${payloadB64}`;
-
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(signingInput),
-  );
-
-  const sigB64 = base64UrlEncode(new Uint8Array(signature));
-  return `${headerB64}.${payloadB64}.${sigB64}`;
-}
-
-async function generateSessionTokens(
+async function createSessionForPhone(
+  supabase: SupabaseClient,
   userId: string,
   phone: string,
-  jwtSecret: string,
-): Promise<{ access_token: string; expires_in: number; expires_at: number }> {
-  const now = Math.floor(Date.now() / 1000);
-  const expiresIn = 3600; // 1 hour
-  const expiresAt = now + expiresIn;
+): Promise<Response> {
+  if (!SUPABASE_JWT_SECRET) {
+    return Response.json(
+      { error: "JWT signing secret is not configured for WhatsApp auth." },
+      { status: 503, headers: CORS_HEADERS },
+    );
+  }
 
-  const accessTokenPayload = {
-    aud: "authenticated",
-    exp: expiresAt,
-    iat: now,
-    iss: `${SUPABASE_URL}/auth/v1`,
-    sub: userId,
-    phone: phone,
-    role: "authenticated",
-    session_id: crypto.randomUUID(),
-    is_anonymous: false,
-    app_metadata: {
-      provider: "phone",
-      providers: ["phone"],
-    },
-    user_metadata: {
-      phone: phone,
-      phone_verified: true,
-    },
-    amr: [{ method: "otp", timestamp: now }],
-  };
+  const session = await generateSessionTokens(
+    userId,
+    phone,
+    SUPABASE_JWT_SECRET,
+  );
+  const { data: userData, error: userError } = await supabase.auth.admin
+    .getUserById(userId);
 
-  const access_token = await signJwt(accessTokenPayload, jwtSecret);
+  if (userError) {
+    console.error("Failed to load user after WhatsApp verification:", userError);
+    return Response.json(
+      { error: "Failed to load authenticated user." },
+      { status: 500, headers: CORS_HEADERS },
+    );
+  }
 
-  return { access_token, expires_in: expiresIn, expires_at: expiresAt };
+  return Response.json({
+    success: true,
+    access_token: session.access_token,
+    refresh_token: null,
+    expires_in: session.expires_in,
+    expires_at: session.expires_at,
+    user: userData?.user || { id: userId, phone },
+  }, { headers: CORS_HEADERS });
 }
 
 // ── Action: Send OTP ──
@@ -386,7 +427,7 @@ async function handleVerify(
   const { data: existingUserId } = await supabase
     .rpc("find_auth_user_by_phone", { p_phone: normalized });
 
-  if (existingUserId) {
+  if (typeof existingUserId === "string" && existingUserId.length > 0) {
     userId = existingUserId;
 
     // Ensure phone is confirmed
@@ -420,63 +461,8 @@ async function handleVerify(
     );
   }
 
-  // Generate session JWT
-  const jwtSecret = Deno.env.get("SUPABASE_JWT_SECRET");
-
-  if (!jwtSecret) {
-    // Fallback: use signInWithPassword with temp password
-    const tempPassword = crypto.randomUUID() + crypto.randomUUID();
-
-    await supabase.auth.admin.updateUserById(userId, {
-      password: tempPassword,
-    });
-
-    const anonClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    const { data: signInData, error: signInError } =
-      await anonClient.auth.signInWithPassword({
-        phone: normalized,
-        password: tempPassword,
-      });
-
-    // Rotate password to invalidate it
-    await supabase.auth.admin.updateUserById(userId, {
-      password: crypto.randomUUID() + crypto.randomUUID(),
-    });
-
-    if (signInError || !signInData.session) {
-      return Response.json(
-        { error: "Failed to create session" },
-        { status: 500, headers: CORS_HEADERS },
-      );
-    }
-
-    return Response.json({
-      success: true,
-      access_token: signInData.session.access_token,
-      refresh_token: signInData.session.refresh_token,
-      expires_in: signInData.session.expires_in,
-      expires_at: signInData.session.expires_at,
-      user: signInData.user,
-    }, { headers: CORS_HEADERS });
-  }
-
-  // Preferred path: mint JWT directly
-  const session = await generateSessionTokens(userId, normalized, jwtSecret);
-
-  // Get user data
-  const { data: userData } = await supabase.auth.admin.getUserById(userId);
-
-  return Response.json({
-    success: true,
-    access_token: session.access_token,
-    refresh_token: null,
-    expires_in: session.expires_in,
-    expires_at: session.expires_at,
-    user: userData?.user || { id: userId, phone: normalized },
-  }, { headers: CORS_HEADERS });
+  const resolvedUserId = userId;
+  return await createSessionForPhone(supabase, resolvedUserId, normalized);
 }
 
 // ── Main handler ──

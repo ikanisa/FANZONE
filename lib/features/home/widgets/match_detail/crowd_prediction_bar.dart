@@ -18,90 +18,158 @@ class _CrowdPredictionBar extends ConsumerWidget {
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
-    // TODO: Replace with actual crowd prediction data from Supabase aggregate
-    // For now, simulate realistic distribution
-    const homePercent = 42;
-    const drawPercent = 26;
-    const awayPercent = 32;
+    final crowdAsync = ref.watch(crowdPredictionProvider(matchId));
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: border),
+    return crowdAsync.when(
+      loading: () => _buildBar(
+        surface: surface,
+        border: border,
+        textColor: textColor,
+        muted: muted,
+        homePercent: 34,
+        drawPercent: 33,
+        awayPercent: 33,
+        totalVotes: 0,
+        isLoading: true,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'CROWD PREDICTION',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: muted,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 14),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (crowd) {
+        if (crowd == null || crowd.total == 0) {
+          return _buildBar(
+            surface: surface,
+            border: border,
+            textColor: textColor,
+            muted: muted,
+            homePercent: 34,
+            drawPercent: 33,
+            awayPercent: 33,
+            totalVotes: 0,
+            isLoading: false,
+          );
+        }
 
-          // Distribution bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: SizedBox(
-              height: 8,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: homePercent,
-                    child: Container(color: FzColors.accent),
+        final (h, d, a) = crowd.normalized;
+        return _buildBar(
+          surface: surface,
+          border: border,
+          textColor: textColor,
+          muted: muted,
+          homePercent: h,
+          drawPercent: d,
+          awayPercent: a,
+          totalVotes: crowd.total,
+          isLoading: false,
+        );
+      },
+    );
+  }
+
+  Widget _buildBar({
+    required Color surface,
+    required Color border,
+    required Color textColor,
+    required Color muted,
+    required int homePercent,
+    required int drawPercent,
+    required int awayPercent,
+    required int totalVotes,
+    required bool isLoading,
+  }) {
+    return AnimatedOpacity(
+      opacity: isLoading ? 0.5 : 1.0,
+      duration: const Duration(milliseconds: 300),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'CROWD PREDICTION',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: muted,
+                    letterSpacing: 1.2,
                   ),
-                  const SizedBox(width: 2),
-                  Expanded(
-                    flex: drawPercent,
-                    child: Container(color: FzColors.coral),
+                ),
+                const Spacer(),
+                if (totalVotes > 0)
+                  Text(
+                    '$totalVotes votes',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: muted.withValues(alpha: 0.7),
+                    ),
                   ),
-                  const SizedBox(width: 2),
-                  Expanded(
-                    flex: awayPercent,
-                    child: Container(color: FzColors.blue),
-                  ),
-                ],
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Distribution bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
+                height: 8,
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: homePercent.clamp(1, 98),
+                      child: Container(color: FzColors.accent),
+                    ),
+                    const SizedBox(width: 2),
+                    Expanded(
+                      flex: drawPercent.clamp(1, 98),
+                      child: Container(color: FzColors.coral),
+                    ),
+                    const SizedBox(width: 2),
+                    Expanded(
+                      flex: awayPercent.clamp(1, 98),
+                      child: Container(color: FzColors.blue),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          // Labels
-          Row(
-            children: [
-              _CrowdLabel(
-                color: FzColors.accent,
-                label: 'HOME',
-                percent: homePercent,
-                textColor: textColor,
-                muted: muted,
-              ),
-              const Spacer(),
-              _CrowdLabel(
-                color: FzColors.coral,
-                label: 'DRAW',
-                percent: drawPercent,
-                textColor: textColor,
-                muted: muted,
-              ),
-              const Spacer(),
-              _CrowdLabel(
-                color: FzColors.blue,
-                label: 'AWAY',
-                percent: awayPercent,
-                textColor: textColor,
-                muted: muted,
-                alignEnd: true,
-              ),
-            ],
-          ),
-        ],
+            // Labels
+            Row(
+              children: [
+                _CrowdLabel(
+                  color: FzColors.accent,
+                  label: 'HOME',
+                  percent: homePercent,
+                  textColor: textColor,
+                  muted: muted,
+                ),
+                const Spacer(),
+                _CrowdLabel(
+                  color: FzColors.coral,
+                  label: 'DRAW',
+                  percent: drawPercent,
+                  textColor: textColor,
+                  muted: muted,
+                ),
+                const Spacer(),
+                _CrowdLabel(
+                  color: FzColors.blue,
+                  label: 'AWAY',
+                  percent: awayPercent,
+                  textColor: textColor,
+                  muted: muted,
+                  alignEnd: true,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

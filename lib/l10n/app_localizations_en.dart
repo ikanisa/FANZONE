@@ -243,9 +243,6 @@ class SEn extends S {
   String get profileNotifications => 'Notifications';
 
   @override
-  String get profileHistory => 'Prediction History';
-
-  @override
   String get profileSignIn => 'Sign in to unlock all features';
 
   @override

@@ -13,6 +13,7 @@ import '../../../models/match_ai_analysis_model.dart';
 import '../../../models/match_model.dart';
 import '../../../models/match_player_stats_model.dart';
 import '../../../providers/competitions_provider.dart';
+import '../../../providers/crowd_prediction_provider.dart';
 import '../../../providers/match_detail_providers.dart';
 import '../../../providers/matches_provider.dart';
 import '../../../services/notification_service.dart';

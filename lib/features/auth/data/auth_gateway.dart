@@ -119,16 +119,22 @@ class SupabaseAuthGateway implements AuthGateway {
       );
     }
 
-    // Set session from the Edge Function response
-    await client.auth.setSession(accessToken);
+    try {
+      final sessionSeed =
+          refreshToken != null && refreshToken.isNotEmpty
+              ? refreshToken
+              : accessToken;
 
-    // If we have a refresh token, also recover that session
-    if (refreshToken != null && refreshToken.isNotEmpty) {
-      try {
-        await client.auth.setSession(accessToken);
-      } catch (e) {
-        AppLogger.d('setSession with refresh token failed: $e');
-      }
+      // The custom WhatsApp auth flow issues an access token directly. The
+      // Supabase Flutter client still expects a non-empty refresh token when
+      // restoring local session state, so we reuse the access token as a
+      // compatibility seed until the short-lived session expires.
+      await client.auth.setSession(sessionSeed, accessToken: accessToken);
+    } catch (error) {
+      AppLogger.d('Failed to recover session from WhatsApp OTP response: $error');
+      throw const AuthException(
+        'Server returned an invalid session. Please try again.',
+      );
     }
   }
 

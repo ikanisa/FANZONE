@@ -27,7 +27,6 @@ import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/pools/screens/pool_detail_screen.dart';
 import 'features/predict/screens/jackpot_challenge_screen.dart';
 import 'features/predict/screens/predict_screen.dart';
-import 'features/predict/screens/prediction_history_screen.dart';
 import 'features/profile/screens/notifications_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/rewards/screens/rewards_screen.dart';
@@ -124,10 +123,7 @@ final router = GoRouter(
       path: '/predict/pool/:poolId',
       redirect: (context, state) => '/pool/${state.pathParameters['poolId']}',
     ),
-    GoRoute(
-      path: '/predict/jackpot',
-      redirect: (context, state) => '/jackpot',
-    ),
+    GoRoute(path: '/predict/jackpot', redirect: (context, state) => '/jackpot'),
     GoRoute(path: '/clubs', redirect: (context, state) => '/memberships'),
     GoRoute(
       path: '/clubs/membership',
@@ -185,7 +181,7 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/profile/prediction-history',
-      redirect: (context, state) => '/prediction-history',
+      redirect: (context, state) => '/profile',
     ),
     GoRoute(
       path: '/profile/seasonal-leaderboard',
@@ -195,14 +191,8 @@ final router = GoRouter(
       path: '/profile/contests',
       redirect: (context, state) => '/profile',
     ),
-    GoRoute(
-      path: '/profile/wallet',
-      redirect: (context, state) => '/wallet',
-    ),
-    GoRoute(
-      path: '/wallet/rewards',
-      redirect: (context, state) => '/rewards',
-    ),
+    GoRoute(path: '/profile/wallet', redirect: (context, state) => '/wallet'),
+    GoRoute(path: '/wallet/rewards', redirect: (context, state) => '/rewards'),
     GoRoute(path: '/registry', redirect: (context, state) => '/fan-id'),
     if (AppConfig.enableFeaturedEvents)
       GoRoute(
@@ -353,19 +343,14 @@ final router = GoRouter(
               builder: (context, state) => const ProfileScreen(),
             ),
             GoRoute(
-              path: '/prediction-history',
-              pageBuilder: (context, state) => _fadeSlideTransition(
-                state,
-                const PredictionHistoryScreen(),
-              ),
-            ),
-            GoRoute(
               path: '/leaderboard',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
                 AppConfig.enableLeaderboard
                     ? const LeaderboardScreen()
-                    : const FeatureUnavailableScreen(featureName: 'Leaderboard'),
+                    : const FeatureUnavailableScreen(
+                        featureName: 'Leaderboard',
+                      ),
               ),
             ),
             GoRoute(
@@ -375,10 +360,8 @@ final router = GoRouter(
               routes: [
                 GoRoute(
                   path: 'favorite-teams',
-                  pageBuilder: (context, state) => _fadeSlideTransition(
-                    state,
-                    const FavoriteTeamsScreen(),
-                  ),
+                  pageBuilder: (context, state) =>
+                      _fadeSlideTransition(state, const FavoriteTeamsScreen()),
                 ),
                 GoRoute(
                   path: 'market-preferences',
@@ -489,8 +472,7 @@ bool _requiresFullAuthPath(String path) {
     return true;
   }
 
-  return path.startsWith('/settings') ||
-      path.startsWith('/profile/settings');
+  return path.startsWith('/settings') || path.startsWith('/profile/settings');
 }
 
 CustomTransitionPage<void> _fadeSlideTransition(

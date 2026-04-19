@@ -98,6 +98,17 @@ void main() {
         expect(find.text('Live Action'), findsOneWidget);
         expect(find.text('Upcoming'), findsOneWidget);
         expect(find.byTooltip('Create pool'), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey('home-match-card-home_live')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey('home-match-card-home_upcoming')),
+          findsOneWidget,
+        );
+        expect(find.text('PREDICT'), findsNWidgets(2));
+        expect(find.text('POOL'), findsNWidgets(2));
+        expect(find.text('FREE ENTRY'), findsNothing);
         expect(find.text('MATCHDAY HUB'), findsNothing);
       },
     );
@@ -322,9 +333,7 @@ void main() {
       await pumpAppScreen(
         tester,
         const FanIdScreen(),
-        overrides: [
-          userFanIdProvider.overrideWith((ref) async => '123456'),
-        ],
+        overrides: [userFanIdProvider.overrideWith((ref) async => '123456')],
       );
       await tester.pumpAndSettle();
 
@@ -342,9 +351,7 @@ void main() {
       await pumpAppScreen(
         tester,
         const PrivacySettingsScreen(),
-        overrides: [
-          isAuthenticatedProvider.overrideWith((ref) => false),
-        ],
+        overrides: [isAuthenticatedProvider.overrideWith((ref) => false)],
       );
       await tester.pumpAndSettle();
 
@@ -461,9 +468,9 @@ void main() {
               ),
             ],
           ),
-          teamMatchesProvider(team.id).overrideWith(
-            (ref) => Stream.value([match]),
-          ),
+          teamMatchesProvider(
+            team.id,
+          ).overrideWith((ref) => Stream.value([match])),
           teamCommunityStatsProvider(team.id).overrideWith(
             (ref) async => const TeamCommunityStats(
               teamId: 'hamrun',
@@ -527,9 +534,9 @@ void main() {
         tester,
         const TeamProfileScreen(teamId: 'missing'),
         overrides: [
-          teamProvider('missing').overrideWith(
-            (ref) async => throw StateError('boom'),
-          ),
+          teamProvider(
+            'missing',
+          ).overrideWith((ref) async => throw StateError('boom')),
         ],
       );
       await tester.pumpAndSettle();
@@ -546,15 +553,17 @@ void main() {
         tester,
         const NotificationsScreen(),
         overrides: [
-          notificationLogProvider.overrideWith((ref) async => [
-            NotificationItem(
-              id: 'notif_1',
-              type: 'pool_settled',
-              title: 'Pool settled',
-              body: 'Your derby pool has been graded.',
-              sentAt: DateTime(2026, 4, 19, 12),
-            ),
-          ]),
+          notificationLogProvider.overrideWith(
+            (ref) async => [
+              NotificationItem(
+                id: 'notif_1',
+                type: 'pool_settled',
+                title: 'Pool settled',
+                body: 'Your derby pool has been graded.',
+                sentAt: DateTime(2026, 4, 19, 12),
+              ),
+            ],
+          ),
         ],
       );
       await tester.pumpAndSettle();
