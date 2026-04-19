@@ -200,6 +200,11 @@ class _PredictTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _CrowdPredictionBar(matchId: match.id),
+        ),
+        const SizedBox(height: 12),
         MatchResultMarket(match: match),
         CorrectScoreMarket(match: match),
         const SizedBox(height: 16),

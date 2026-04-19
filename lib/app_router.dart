@@ -27,6 +27,7 @@ import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/pools/screens/pool_detail_screen.dart';
 import 'features/predict/screens/jackpot_challenge_screen.dart';
 import 'features/predict/screens/predict_screen.dart';
+import 'features/predict/screens/prediction_history_screen.dart';
 import 'features/profile/screens/notifications_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/rewards/screens/rewards_screen.dart';
@@ -184,7 +185,7 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/profile/prediction-history',
-      redirect: (context, state) => '/profile',
+      redirect: (context, state) => '/prediction-history',
     ),
     GoRoute(
       path: '/profile/seasonal-leaderboard',
@@ -350,6 +351,13 @@ final router = GoRouter(
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
+            ),
+            GoRoute(
+              path: '/prediction-history',
+              pageBuilder: (context, state) => _fadeSlideTransition(
+                state,
+                const PredictionHistoryScreen(),
+              ),
             ),
             GoRoute(
               path: '/leaderboard',

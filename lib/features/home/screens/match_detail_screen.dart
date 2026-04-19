@@ -24,6 +24,7 @@ import '../../../widgets/match/match_list_widgets.dart';
 import '../../../widgets/predict/accordion_market.dart';
 
 part '../widgets/match_detail/ai_analysis_card.dart';
+part '../widgets/match_detail/crowd_prediction_bar.dart';
 part '../widgets/match_detail/h2h_table_predict_tabs.dart';
 part '../widgets/match_detail/insights_tab.dart';
 part '../widgets/match_detail/lineups_tab.dart';

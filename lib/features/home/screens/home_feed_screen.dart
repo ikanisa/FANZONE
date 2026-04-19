@@ -14,6 +14,7 @@ import '../../../widgets/common/fz_badge.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
+import '../widgets/daily_challenge_card.dart';
 
 class HomeFeedScreen extends ConsumerWidget {
   const HomeFeedScreen({super.key});
@@ -95,6 +96,8 @@ class HomeFeedScreen extends ConsumerWidget {
                         teamId: insightTeamId,
                         teamName: insightTeamName,
                       ),
+                      const SizedBox(height: 12),
+                      const DailyChallengeCard(),
                       const SizedBox(height: 24),
                       _HomeSectionHeader(
                         icon: LucideIcons.activity,

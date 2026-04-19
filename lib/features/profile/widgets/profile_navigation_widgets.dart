@@ -37,6 +37,14 @@ class ProfileQuickLinksCard extends StatelessWidget {
                 label: 'Predictions',
                 onTap: () => context.go('/pools'),
               ),
+            if (showPredictions)
+              const Divider(height: 0.5, indent: 56),
+            if (showPredictions)
+              ProfileLinkRow(
+                icon: LucideIcons.history,
+                label: 'Prediction History',
+                onTap: () => context.push('/prediction-history'),
+              ),
             if (showPredictions && showWallet)
               const Divider(height: 0.5, indent: 56),
             if (showWallet)
