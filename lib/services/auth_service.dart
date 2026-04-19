@@ -56,13 +56,24 @@ class AuthService {
     }
   }
 
+  Future<String?> issueAnonymousUpgradeClaim() async {
+    try {
+      return await _gateway.issueAnonymousUpgradeClaim();
+    } on AuthException {
+      rethrow;
+    } catch (error) {
+      AppLogger.d('issueAnonymousUpgradeClaim error: $error');
+      rethrow;
+    }
+  }
+
   /// Merge anonymous user data into authenticated user after OTP upgrade.
   Future<void> mergeAnonymousToAuthenticated(
     String anonId,
-    String authId,
+    String claimToken,
   ) async {
     try {
-      await _gateway.mergeAnonymousToAuthenticated(anonId, authId);
+      await _gateway.mergeAnonymousToAuthenticated(anonId, claimToken);
     } catch (error) {
       AppLogger.d('mergeAnonymousToAuthenticated error: $error');
       // Don't rethrow — merge failure should not block the upgrade

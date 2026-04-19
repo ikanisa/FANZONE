@@ -93,7 +93,7 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
     }
 
     try {
-      final rows = await client.from('global_challenges').select();
+      final rows = await client.from('global_challenge_catalog_entries').select();
       final challenges = (rows as List)
           .whereType<Map>()
           .map(

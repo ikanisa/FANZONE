@@ -1,0 +1,5 @@
+-- FANZONE local seed entrypoint.
+--
+-- The project's durable bootstrap/reference data is defined in migrations so
+-- that fresh environments stay deterministic. This file exists to satisfy the
+-- CLI `db.seed.sql_paths` contract during `supabase db reset`.

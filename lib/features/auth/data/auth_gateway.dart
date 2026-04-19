@@ -31,12 +31,15 @@ abstract class AuthGateway {
   /// Sign in as an anonymous/guest user.
   Future<AuthResponse> signInAnonymously();
 
+  /// Creates a short-lived claim proving control of the current anonymous user.
+  Future<String?> issueAnonymousUpgradeClaim();
+
   Future<void> signOut();
 
   Future<bool> isOnboardingCompletedForCurrentUser();
 
   /// Merge anonymous user data into the authenticated user profile.
-  Future<void> mergeAnonymousToAuthenticated(String anonId, String authId);
+  Future<void> mergeAnonymousToAuthenticated(String anonId, String claimToken);
 }
 
 class SupabaseAuthGateway implements AuthGateway {
@@ -150,6 +153,16 @@ class SupabaseAuthGateway implements AuthGateway {
   }
 
   @override
+  Future<String?> issueAnonymousUpgradeClaim() async {
+    final client = _requireClient();
+    final result = await client
+        .rpc('issue_anonymous_upgrade_claim')
+        .timeout(_timeout);
+    if (result is String && result.isNotEmpty) return result;
+    return null;
+  }
+
+  @override
   Future<void> signOut() async {
     final client = _connection.client;
     if (client == null) return;
@@ -180,13 +193,13 @@ class SupabaseAuthGateway implements AuthGateway {
   @override
   Future<void> mergeAnonymousToAuthenticated(
     String anonId,
-    String authId,
+    String claimToken,
   ) async {
     final client = _requireClient();
     await client
         .rpc(
-          'merge_anonymous_to_authenticated',
-          params: {'p_anon_id': anonId, 'p_auth_id': authId},
+          'merge_anonymous_to_authenticated_secure',
+          params: {'p_anon_id': anonId, 'p_claim_token': claimToken},
         )
         .timeout(const Duration(seconds: 30));
   }

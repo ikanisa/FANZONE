@@ -36,12 +36,14 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
   bool _loading = false;
   String? _error;
   String? _anonymousUserId;
+  String? _anonymousUpgradeClaim;
 
   @override
   void initState() {
     super.initState();
     // Capture the current anonymous user ID before upgrade
     _anonymousUserId = ref.read(authServiceProvider).currentUser?.id;
+    unawaited(_prepareAnonymousUpgradeClaim());
   }
 
   @override
@@ -81,6 +83,18 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
     0,
     (count, c) => count + c.text.trim().length,
   );
+
+  Future<void> _prepareAnonymousUpgradeClaim() async {
+    if (_anonymousUserId == null) return;
+    try {
+      _anonymousUpgradeClaim = await ref
+          .read(authServiceProvider)
+          .issueAnonymousUpgradeClaim();
+    } catch (_) {
+      // Keep the upgrade flow usable; merge will simply be skipped if the
+      // server-side claim could not be created.
+    }
+  }
 
   Future<void> _sendOtp() async {
     final phone = _fullPhone;
@@ -133,11 +147,12 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
       // Merge anonymous data to the new authenticated user
       final newUserId = ref.read(authServiceProvider).currentUser?.id;
       if (_anonymousUserId != null &&
+          _anonymousUpgradeClaim != null &&
           newUserId != null &&
           _anonymousUserId != newUserId) {
         await ref.read(authServiceProvider).mergeAnonymousToAuthenticated(
           _anonymousUserId!,
-          newUserId,
+          _anonymousUpgradeClaim!,
         );
       }
 

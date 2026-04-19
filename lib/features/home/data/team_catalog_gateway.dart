@@ -30,7 +30,7 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
     }
 
     try {
-      final rows = await client.from('teams').select();
+      final rows = await client.from('team_catalog_entries').select();
       final teams = (rows as List)
           .whereType<Map>()
           .map((row) => TeamModel.fromJson(Map<String, dynamic>.from(row)))
