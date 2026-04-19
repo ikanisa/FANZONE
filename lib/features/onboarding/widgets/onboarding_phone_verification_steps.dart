@@ -65,7 +65,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                           : FzColors.lightBorder,
                     ),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       countryCode,
                       style: const TextStyle(

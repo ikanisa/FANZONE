@@ -172,10 +172,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
 
     try {
-      await ref.read(authServiceProvider).verifyOtp(
-        _fullPhone,
-        _otpControllers.map((controller) => controller.text).join(),
-      );
+      await ref
+          .read(authServiceProvider)
+          .verifyOtp(
+            _fullPhone,
+            _otpControllers.map((controller) => controller.text).join(),
+          );
       if (!mounted) return;
       _setStep(_favoriteTeamStep);
     } on AuthException catch (error) {
@@ -406,7 +408,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           canContinue: _loading
               ? false
               : (_canUseOtp
-                    ? _phoneController.text.replaceAll(RegExp(r'\D'), '').length >=
+                    ? _phoneController.text
+                              .replaceAll(RegExp(r'\D'), '')
+                              .length >=
                           6
                     : true),
           onBack: () => _setStep(_welcomeStep),

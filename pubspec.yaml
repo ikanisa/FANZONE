@@ -28,7 +28,6 @@ dependencies:
 
   # ── Data / Backend ──
   supabase_flutter: ^2.9.0
-  sentry_flutter: ^9.7.0
 
   # ── Models ──
   freezed_annotation: ^2.4.4

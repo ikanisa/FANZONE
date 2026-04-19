@@ -16,7 +16,7 @@ class AppConfig {
 
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
-  static const sentryDsn = String.fromEnvironment('SENTRY_DSN');
+
   static const imageCdnBaseUrl = String.fromEnvironment('IMAGE_CDN_BASE_URL');
   static const staticCdnBaseUrl = String.fromEnvironment('STATIC_CDN_BASE_URL');
   static const staticAssetVersion = String.fromEnvironment(
@@ -119,11 +119,4 @@ class AppConfig {
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
   static bool get hasImageCdn => imageCdnBaseUrl.trim().startsWith('http');
   static bool get hasStaticCdn => staticCdnBaseUrl.trim().startsWith('http');
-  static bool get hasSentry {
-    final normalized = sentryDsn.trim().toLowerCase();
-    if (normalized.isEmpty) return false;
-    if (normalized.startsWith('replace_')) return false;
-    if (normalized.contains('replace-with')) return false;
-    return normalized.startsWith('http');
-  }
 }

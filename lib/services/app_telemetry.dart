@@ -1,21 +1,10 @@
-import 'package:sentry_flutter/sentry_flutter.dart';
-
-import '../config/app_config.dart';
 import '../core/logging/app_logger.dart';
 
-/// Centralized crash reporting bootstrap.
+/// Centralized error capture — logs errors locally.
+/// No external crash reporting service is used.
 class AppTelemetry {
-  static bool _initialized = false;
-  static Future<void>? _initializing;
-  static final List<({Object error, StackTrace stackTrace, String? reason})>
-  _pending = [];
-
-  static Future<void> start() {
-    final initializing = _initializing;
-    if (initializing != null) return initializing;
-
-    _initializing = _startInternal();
-    return _initializing!;
+  static Future<void> start() async {
+    // No-op: no external crash reporting service.
   }
 
   static Future<void> captureException(
@@ -24,55 +13,5 @@ class AppTelemetry {
     String? reason,
   }) async {
     AppLogger.d('${reason ?? 'Captured error'}: $error');
-
-    if (!AppConfig.hasSentry) {
-      return;
-    }
-
-    if (!_initialized) {
-      _pending.add((error: error, stackTrace: stackTrace, reason: reason));
-      return;
-    }
-
-    await _sendToSentry(error, stackTrace, reason: reason);
-  }
-
-  static Future<void> _sendToSentry(
-    Object error,
-    StackTrace stackTrace, {
-    String? reason,
-  }) async {
-    await Sentry.captureException(
-      error,
-      stackTrace: stackTrace,
-      withScope: (scope) {
-        if (reason != null) {
-          scope.setTag('reason', reason);
-        }
-        scope.setTag('environment', AppConfig.environmentName);
-      },
-    );
-  }
-
-  static Future<void> _startInternal() async {
-    if (!AppConfig.hasSentry) return;
-
-    await SentryFlutter.init((options) {
-      options.dsn = AppConfig.sentryDsn;
-      options.environment = AppConfig.environmentName;
-      options.enableAutoSessionTracking = true;
-      options.attachViewHierarchy = true;
-      options.tracesSampleRate = AppConfig.isProduction ? 0.1 : 1.0;
-    });
-
-    _initialized = true;
-    for (final pending in _pending) {
-      await _sendToSentry(
-        pending.error,
-        pending.stackTrace,
-        reason: pending.reason,
-      );
-    }
-    _pending.clear();
   }
 }
