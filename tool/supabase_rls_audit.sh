@@ -6,18 +6,22 @@ if ! command -v psql >/dev/null 2>&1; then
   exit 1
 fi
 
-if [[ ! -f "supabase/.temp/pooler-url" ]]; then
-  echo "Missing supabase/.temp/pooler-url. Link the repo to a Supabase project first."
-  exit 1
-fi
+db_url="${SUPABASE_RLS_DB_URL:-${SUPABASE_DB_URL:-}}"
 
-if [[ -z "${SUPABASE_DB_PASSWORD:-}" ]]; then
-  echo "SUPABASE_DB_PASSWORD must be set to run the RLS audit."
-  exit 1
-fi
+if [[ -z "${db_url}" ]]; then
+  if [[ ! -f "supabase/.temp/pooler-url" ]]; then
+    echo "Set SUPABASE_RLS_DB_URL or SUPABASE_DB_URL, or link the repo to a Supabase project first."
+    exit 1
+  fi
 
-pooler_url="$(<supabase/.temp/pooler-url)"
-db_url="${pooler_url/@/:${SUPABASE_DB_PASSWORD}@}"
+  if [[ -z "${SUPABASE_DB_PASSWORD:-}" ]]; then
+    echo "SUPABASE_DB_PASSWORD must be set when SUPABASE_RLS_DB_URL or SUPABASE_DB_URL is not provided."
+    exit 1
+  fi
+
+  pooler_url="$(<supabase/.temp/pooler-url)"
+  db_url="${pooler_url/@/:${SUPABASE_DB_PASSWORD}@}"
+fi
 
 psql "${db_url}" \
   --set ON_ERROR_STOP=1 \

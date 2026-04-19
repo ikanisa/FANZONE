@@ -25,7 +25,7 @@ FANZONE should not launch until all of the following are true.
 5. The mobile product center is coherent.
    - the shipping app behaves like the reference concept: prediction-first, fan identity/social/wallet-supportive, football-utility-fast
 6. Production observability exists.
-   - crash reporting
+   - a validated crash-reporting strategy, whether local-only or external
    - function logging review
    - launch-day alerting for settlement, notifications, and ingestion freshness
 
@@ -260,13 +260,13 @@ Files:
 
 Required changes:
 
-- Enable real production Sentry DSN.
+- Decide whether launch needs external crash reporting or whether the current local logging path is acceptable for launch.
 - document environment validation
 - add startup guardrails for missing critical defines
 
 Acceptance criteria:
 
-- Production build reports startup, fatal, and screen-level crashes to Sentry.
+- Production build has a documented and tested crash-reporting path, and operators know where to inspect failures.
 
 ## Workstream C: Data and settlement hardening
 
@@ -467,7 +467,7 @@ Acceptance criteria:
 | P0 | Remove client-authored sensitive audit logging | [`useAuditLog.ts`](</Volumes/PRO-G40/FANZONE/admin/src/hooks/useAuditLog.ts:7>) plus server mutation paths | sensitive audit events are server-authored |
 | P0 | Ship pool settlement reconciliation surfaces | [`20260418121500_p0_hardening_fixups.sql`](</Volumes/PRO-G40/FANZONE/supabase/migrations/20260418121500_p0_hardening_fixups.sql:667>), [`20260419150000_pool_settlement_reconciliation.sql`](</Volumes/PRO-G40/FANZONE/supabase/migrations/20260419150000_pool_settlement_reconciliation.sql:1>), [`fet-supply-governance.md`](</Volumes/PRO-G40/FANZONE/docs/fet-supply-governance.md:25>) | settlement totals reconcile exactly and operators can report on demand |
 | P0 | Remove AI-search ingestion from launch-critical match state | [`gemini-sports-data/gemini.ts`](</Volumes/PRO-G40/FANZONE/supabase/functions/gemini-sports-data/gemini.ts:24>), [`handler.ts`](</Volumes/PRO-G40/FANZONE/supabase/functions/gemini-sports-data/handler.ts:27>) | no launch-critical football state depends on Gemini search extraction |
-| P0 | Enable production crash reporting | [`env/production.json`](</Volumes/PRO-G40/FANZONE/env/production.json:1>) | Sentry events visible from production build |
+| P0 | Finalize production crash-reporting approach | [`env/production.json`](</Volumes/PRO-G40/FANZONE/env/production.json:1>) | The chosen crash-reporting path is documented, tested, and visible to operators |
 | P0 | Add integration smoke tests | new `integration_test/` | critical mobile flows covered end to end |
 
 ### P1 immediately after blockers

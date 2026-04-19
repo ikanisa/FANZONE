@@ -127,7 +127,7 @@ If reviewers need login credentials to test the app:
 | Phone number | Yes | No | Authentication |
 | Device identifiers | Yes | No | Push notifications (FCM token) |
 | App interactions | Yes | No | Product operation, rankings, and support |
-| Crash logs | Conditional | No | Stability monitoring when Sentry is configured |
+| Crash logs | No | No | No third-party crash-reporting service is active in the current release build |
 | In-app purchases | No | No | N/A (no real-money purchases) |
 | Location | No | No | N/A |
 | Photos/Videos | No | No | N/A |

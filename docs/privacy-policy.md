@@ -15,7 +15,7 @@ FANZONE ("we", "us", or "our") is operated by IKANISA. This Privacy Policy expla
 - **Device Information**: Device type, operating system version, and unique device identifiers.
 - **Push Notification Tokens**: Firebase Cloud Messaging (FCM) tokens for delivering notifications.
 - **Usage Data**: Core product events needed to operate predictions, wallets, leaderboards, and support workflows.
-- **Crash Reports**: Error logs and diagnostic data collected via Sentry when crash reporting is enabled for a release.
+- **Crash Reports**: No dedicated third-party crash-reporting service is active in the current release build. If that changes in a future release, this policy will be updated before rollout.
 
 ### 1.3 Information We Do NOT Collect
 - **Location Data**: We do not collect, request, or process your geographic location.
@@ -39,7 +39,6 @@ We use the information we collect to:
 Your data is processed and stored using:
 - **Supabase** (PostgreSQL): Account data, predictions, wallets, and community content. Hosted in the EU.
 - **Firebase (Google Cloud)**: Push notification delivery.
-- **Sentry**: Error tracking and crash reporting when enabled for a release.
 
 All data transfers use industry-standard encryption (TLS 1.2+).
 
@@ -48,7 +47,7 @@ All data transfers use industry-standard encryption (TLS 1.2+).
 We do **not** sell, trade, or rent your personal information to third parties.
 
 We may share data with:
-- **Service Providers**: Supabase, Firebase, and Sentry for the sole purpose of operating the App.
+- **Service Providers**: Supabase and Firebase for the sole purpose of operating the App.
 - **Legal Requirements**: When required by law, legal process, or government request.
 - **Safety**: To protect the rights, property, or safety of IKANISA, our users, or the public.
 

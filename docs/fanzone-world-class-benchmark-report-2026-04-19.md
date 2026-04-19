@@ -166,7 +166,7 @@ The biggest admin problem is control depth. FANZONE’s admin has good breadth a
 | Legal and compliance posture | Superbru, Kalshi, regulated sportsbook disclaimers | Eligibility, rules, source-of-truth settlement, jurisdiction awareness | FANZONE’s concept is safer than sportsbook cash wagering, but token staking and prize splitting still require careful wording, rules, and market-specific governance | Needs hardening |
 | Analytics maturity | Stripe, Shopify, FanDuel-style event ops | Deep product and ops observability | Admin has analytics screens, but there is no evidence yet of a mature instrumentation strategy, experiment loop, or anomaly detection fabric | Behind |
 | Admin tooling | Stripe Workbench, Shopify Admin | Search, drilldown, approvals, logs, linked objects | FANZONE admin has strong breadth and visually solid foundations, but not enough investigation power or operator safety | Good start, not world-class |
-| Release quality | Flutter official testing guidance, BMW/Nubank | Green test pyramid, release automation, crash monitoring, variants | Current mobile release quality is not acceptable because compile and tests are failing and Sentry is blank in prod config ([`production.json`](</Volumes/PRO-G40/FANZONE/env/production.json:5>)) | Red |
+| Release quality | Flutter official testing guidance, BMW/Nubank | Green test pyramid, release automation, crash monitoring, variants | Current mobile release quality is not acceptable because compile and tests are failing and the crash-reporting path is still only local logging, with no documented production monitoring workflow ([`app_telemetry.dart`](</Volumes/PRO-G40/FANZONE/lib/services/app_telemetry.dart:3>)) | Red |
 | Scalability to multiple countries and markets | BMW, Google Pay, Nubank | Country variants, localized content, consistent releases | FANZONE has some groundwork in market preferences and region discovery, but not yet the hard architecture and operational rigor for Europe-scale rollout | Partial groundwork only |
 
 ### Platform and operations matrix
@@ -177,7 +177,7 @@ The biggest admin problem is control depth. FANZONE’s admin has good breadth a
 | Real-time model | Flashscore, live-score leaders | Event-sourced or authoritative low-latency match updates | Some Supabase streaming exists ([`following_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/following_screen.dart:508>)), but no evidence of a benchmark-grade end-to-end live data plane | Behind |
 | Ledger integrity | Stripe-like financial systems | Immutable transaction history and explainable settlement | Wallet transaction logging exists and admin token operations are partly RPC-based, but payout remainder handling needs tightening | At risk |
 | Operator safety | Stripe, Shopify | Client never authors sensitive truth | FANZONE still has browser-authored audit log inserts and direct client-side redemption mutation paths | Behind |
-| Observability | Stripe Workbench, Supabase function logging | Unified logs, errors, object inspection, alerting | Supabase function logging exists in platform docs and FANZONE uses Sentry package, but production DSN is blank and there is no unified operator console for incidents | Behind |
+| Observability | Stripe Workbench, Supabase function logging | Unified logs, errors, object inspection, alerting | Supabase function logging exists in platform docs, but the mobile app currently uses only local telemetry logging and there is no unified operator console for incidents | Behind |
 
 ## 3. Mobile app critical analysis
 
@@ -389,7 +389,7 @@ FANZONE is not at that standard today.
 The app uses `--dart-define` style config plus environment JSON ([`app_config.dart`](</Volumes/PRO-G40/FANZONE/lib/config/app_config.dart:5>), [`production.json`](</Volumes/PRO-G40/FANZONE/env/production.json:1>)). That is directionally correct. The gaps are:
 
 - default values and tests are drifting
-- prod Sentry DSN is blank
+- external crash reporting is not wired; the current mobile telemetry path is local-only
 - feature flags are doing product-shape work that should eventually become more disciplined release/config management
 
 ### Release hardening
@@ -397,7 +397,7 @@ The app uses `--dart-define` style config plus environment JSON ([`app_config.da
 This is below world-class. Specific blockers:
 
 - mobile build/test not clean
-- crash reporting not wired in production config
+- crash reporting is still local-only and not connected to an operator-facing production workflow
 - global challenges still intentionally disabled in prod config ([`production.json`](</Volumes/PRO-G40/FANZONE/env/production.json:16>), [`release-checklist.md`](</Volumes/PRO-G40/FANZONE/docs/release-checklist.md:3>))
 
 ### Plugin and package risk
@@ -405,7 +405,7 @@ This is below world-class. Specific blockers:
 The package set is not reckless, but there are risks:
 
 - `google_fonts` runtime usage is noted in the pubspec comment ([`pubspec.yaml`](</Volumes/PRO-G40/FANZONE/pubspec.yaml:74>)); that can create startup and consistency risk if not bundled properly
-- Firebase messaging, Supabase, Sentry, Share, URL launcher, SVG, cache, Hive all create cross-platform integration surfaces that need explicit ownership and test coverage
+- Firebase messaging, Supabase, Share, URL launcher, SVG, cache, Hive, and any future external telemetry client all create cross-platform integration surfaces that need explicit ownership and test coverage
 
 ### Cross-platform consistency and future scalability
 
@@ -532,9 +532,9 @@ FANZONE’s concept is safer than real-money betting, but the transfer plus rede
 
 ### Observability and analytics
 
-Supabase function logging is available in the platform. FANZONE also carries Sentry in mobile packages. The problem is the integration bar:
+Supabase function logging is available in the platform. The mobile app currently uses only local telemetry logging. The problem is the integration bar:
 
-- production Sentry DSN is blank
+- there is no external crash-reporting pipeline today
 - I found no unified incident workflow
 - admin analytics are present as a screen category, but not obviously tied to operational anomalies or experiment loops
 
@@ -842,7 +842,7 @@ Uniquely invent:
 7. Error handling and loading strategies are inconsistent across features.
 8. Performance budgets are not visible.
 9. Offline strategy is not productized.
-10. Production Sentry is not configured.
+10. Production crash reporting is still local-only.
 11. Feature flags are carrying too much product-shape responsibility.
 12. There is still legacy IA residue in the route layer.
 13. Plugin surface is wide and not obviously governed by explicit risk ownership.
@@ -955,7 +955,7 @@ Uniquely invent:
 - Fix compile and failing test issues.
 - Add integration tests for onboarding, prediction entry, wallet transfer, redemption, and match alert flows.
 - Remove wide direct Supabase access from providers and services; establish repository boundaries.
-- Turn on production Sentry.
+- Decide whether to keep launch telemetry local-only or add an external crash-reporting pipeline.
 - Define performance budgets for home, match detail, and wallet.
 
 #### P1
@@ -1018,7 +1018,7 @@ Uniquely invent:
 - Authoritative sports data source for core match state.
 - Wallet split clarity in user experience.
 - Rules and void logic on every challenge.
-- Production crash reporting and alerting.
+- Production telemetry and alerting with a documented operator workflow.
 - Abuse controls for transfers and redemptions.
 
 ### Must build in v2

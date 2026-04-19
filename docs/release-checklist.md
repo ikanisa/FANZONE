@@ -4,8 +4,8 @@
 
 - Audit Supabase auth, RLS, storage rules, edge functions, migrations, backups, and rollback paths in the production project.
 - Review `ios/Flutter/AppConfig.xcconfig` and confirm the bundle ID, team ID, and APNs environment are correct for release signing.
-- Prepare a production dart-define file from `env/production.example.json` and keep `ENABLE_GLOBAL_CHALLENGES=false` until the weekly jackpot backend is live.
-- Replace placeholder values such as `SENTRY_DSN=REPLACE_WITH...` before promoting a build.
+- Create `env/production.json` from `env/production.example.json` and keep `ENABLE_GLOBAL_CHALLENGES=false` until the weekly jackpot backend is live.
+- Replace all placeholder values in `env/production.json` and the platform signing/Firebase files before promoting a build.
 
 ## Android release
 
@@ -37,6 +37,6 @@
 ## Operational readiness
 
 - `ci.yml` is the canonical mobile/backend pipeline. Keep its build flags aligned with `env/production.example.json`.
-- Add Sentry alert rules for crash-free sessions, startup crashes, and unhandled exceptions.
+- Validate the current error-reporting path for the release build. The mobile app currently logs locally unless an external crash-reporting client is added explicitly.
 - Validate notification tokens are registering and `push-notify` can dispatch from production credentials.
 - Confirm release notes, privacy disclosures, and support contact details are ready.
