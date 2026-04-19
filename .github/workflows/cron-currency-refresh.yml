@@ -1,0 +1,39 @@
+name: Currency Refresh Cron
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CURRENCY_SYNC_SECRET: ${{ secrets.CURRENCY_SYNC_SECRET }}
+
+jobs:
+  refresh-currency-rates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger currency refresh
+        run: |
+          echo "Triggering currency refresh at $(date -u)"
+
+          RESPONSE=$(curl -sS -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "x-currency-sync-secret: $CURRENCY_SYNC_SECRET" \
+            "$SUPABASE_URL/functions/v1/gemini-currency-rates" \
+            -d '{}')
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "Currency refresh failed"
+            exit 1
+          fi

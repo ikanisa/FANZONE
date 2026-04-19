@@ -1,0 +1,227 @@
+{
+  "@@locale": "en",
+  "@@last_modified": "2026-04-18T03:36:00+02:00",
+
+  "appName": "FANZONE",
+  "@appName": { "description": "Application name" },
+
+  "navScores": "Scores",
+  "@navScores": { "description": "Bottom nav: Scores tab" },
+  "navFixtures": "Fixtures",
+  "@navFixtures": { "description": "Bottom nav: Fixtures tab" },
+  "navFollowing": "Following",
+  "@navFollowing": { "description": "Bottom nav: Following tab" },
+  "navPredict": "Predict",
+  "@navPredict": { "description": "Bottom nav: Predict tab" },
+  "navProfile": "Profile",
+  "@navProfile": { "description": "Bottom nav: Profile tab" },
+
+  "homeGreeting": "Good {timeOfDay}",
+  "@homeGreeting": {
+    "description": "Home screen greeting",
+    "placeholders": {
+      "timeOfDay": { "type": "String", "example": "morning" }
+    }
+  },
+  "homeSubtitle": "Football Prediction Hub",
+  "@homeSubtitle": { "description": "Home screen subtitle" },
+
+  "homeTabLive": "Live",
+  "homeTabToday": "Today",
+  "homeTabFollowing": "Following",
+  "homeTabAll": "All Leagues",
+
+  "matchStatusLive": "LIVE",
+  "matchStatusFT": "FT",
+  "matchStatusUpcoming": "Upcoming",
+  "matchStatusPostponed": "POSTPONED",
+  "matchStatusHT": "HT",
+  "matchKickoff": "Kickoff",
+  "matchVs": "vs",
+
+  "leagueStandings": "Standings",
+  "leagueFixtures": "Fixtures",
+  "leagueResults": "Results",
+  "leagueTeams": "Teams",
+
+  "standingsPos": "Pos",
+  "standingsTeam": "Team",
+  "standingsP": "P",
+  "standingsW": "W",
+  "standingsD": "D",
+  "standingsL": "L",
+  "standingsGD": "GD",
+  "standingsPts": "Pts",
+
+  "predictTitle": "Predict",
+  "predictSlip": "Prediction Slip",
+  "predictMatchResult": "Match Result",
+  "predictExactScore": "Exact Score",
+  "predictStake": "Stake",
+  "predictProjectedEarn": "Projected Earn",
+  "predictSubmit": "Submit Prediction",
+  "predictClear": "Clear All",
+  "predictMarketHome": "{team} to Win",
+  "@predictMarketHome": {
+    "placeholders": { "team": { "type": "String" } }
+  },
+  "predictMarketDraw": "Draw",
+  "predictMarketAway": "{team} to Win",
+  "@predictMarketAway": {
+    "placeholders": { "team": { "type": "String" } }
+  },
+
+  "poolTitle": "POOL",
+  "poolStatus": "Status",
+  "poolLockTime": "LOCK TIME",
+  "poolStake": "STAKE",
+  "poolTotalPool": "TOTAL POOL",
+  "poolParticipants": "PARTICIPANTS",
+  "poolCreatedBy": "CREATED BY",
+  "poolPrediction": "PREDICTION",
+  "poolJoinFor": "Join for {stake} FET",
+  "@poolJoinFor": {
+    "placeholders": { "stake": { "type": "int" } }
+  },
+  "poolJoinTitle": "JOIN POOL",
+  "poolConfirmStake": "Confirm & Stake",
+  "poolRequiredStake": "REQUIRED STAKE",
+  "poolShareMessage": "Join my prediction pool on FANZONE! 🏆⚽\n{url}",
+  "@poolShareMessage": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "poolShareSubject": "FANZONE Pool Invite",
+  "poolStatusOpen": "OPEN",
+  "poolStatusLocked": "LOCKED",
+  "poolStatusSettled": "SETTLED",
+  "poolStatusVoid": "VOID",
+  "poolIsClosed": "Pool is {status}",
+  "@poolIsClosed": {
+    "placeholders": { "status": { "type": "String" } }
+  },
+
+  "walletTitle": "FET Wallet",
+  "walletBalance": "Balance",
+  "walletTransactions": "Transactions",
+  "walletTransfer": "Transfer",
+  "walletSend": "Send FET",
+  "walletRecipient": "Recipient",
+  "walletAmount": "Amount",
+  "walletInsufficientBalance": "Insufficient FET balance",
+
+  "profileTitle": "Profile",
+  "profileSettings": "Settings",
+  "profileWallet": "Wallet",
+  "profileLeaderboard": "Leaderboard",
+  "profileNotifications": "Notifications",
+  "profileHistory": "Prediction History",
+  "profileSignIn": "Sign in to unlock all features",
+  "profileSignInCta": "Sign In",
+  "profileSignOut": "Sign Out",
+  "profileGuest": "Guest User",
+
+  "settingsTitle": "Settings",
+  "settingsTheme": "Theme",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsThemeSystem": "System",
+  "settingsLanguage": "Language",
+  "settingsAbout": "About FANZONE",
+  "settingsVersion": "Version {version}",
+  "@settingsVersion": {
+    "placeholders": { "version": { "type": "String" } }
+  },
+
+  "leaderboardTitle": "Leaderboard",
+  "leaderboardRank": "Rank",
+  "leaderboardPoints": "Points",
+  "leaderboardPredictions": "Predictions",
+
+  "searchTitle": "Search",
+  "searchHint": "Search teams, leagues, matches...",
+  "searchNoResults": "No results found",
+  "searchCompetitions": "Competitions",
+  "searchTeams": "Teams",
+  "searchMatches": "Matches",
+
+  "teamProfile": "Team Profile",
+  "teamFans": "{count} fans",
+  "@teamFans": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "teamSupport": "Support",
+  "teamNews": "News",
+  "teamFixtures": "Fixtures",
+  "teamCommunity": "Community",
+
+  "followingTitle": "Following",
+  "followingEmpty": "You haven't followed any teams or leagues yet.",
+  "followingDiscoverCaption": "Explore teams and leagues to follow",
+  "followingDiscover": "Discover",
+
+  "loginTitle": "Welcome to FANZONE",
+  "loginSubtitle": "The Global Football Prediction Platform",
+  "loginPhoneHint": "Phone number",
+  "loginOtpHint": "Enter verification code",
+  "loginSendOtp": "Send Code",
+  "loginVerify": "Verify",
+  "loginSkip": "Continue as Guest",
+
+  "onboardingWelcome": "Welcome to FANZONE",
+  "onboardingSubtitle": "Predict. Compete. Win.",
+  "onboardingNext": "Next",
+  "onboardingDone": "Get Started",
+
+  "commonRetry": "Retry",
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "commonClose": "Close",
+  "commonDone": "Done",
+  "commonLoading": "Loading...",
+  "commonError": "Something went wrong",
+  "commonEmpty": "Nothing here yet",
+  "commonNetworkError": "Network error. Check your connection and try again.",
+  "commonFet": "FET",
+  "commonJustNow": "just now",
+  "commonMinAgo": "{count}m ago",
+  "@commonMinAgo": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "commonHrAgo": "{count}h ago",
+  "@commonHrAgo": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "commonYesterday": "Yesterday",
+  "commonDaysAgo": "{count}d ago",
+  "@commonDaysAgo": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "featureUnavailableTitle": "{feature} is coming soon",
+  "@featureUnavailableTitle": {
+    "placeholders": { "feature": { "type": "String" } }
+  },
+  "featureUnavailableSubtitle": "This feature will be available in a future update.",
+
+  "notificationsTitle": "Notifications",
+  "notificationsEmpty": "No notifications yet",
+
+  "featuredEventBannerCta": "View Event",
+  "@featuredEventBannerCta": { "description": "CTA on featured event banner" },
+  "eventHubTitle": "{eventName}",
+  "@eventHubTitle": {
+    "description": "Event hub screen title",
+    "placeholders": { "eventName": { "type": "String" } }
+  },
+  "eventMatches": "Event Matches",
+  "eventChallenges": "Event Challenges",
+  "eventLeaderboard": "Event Leaderboard",
+  "trendingGlobally": "Trending Globally",
+  "regionAfrica": "Africa",
+  "regionEurope": "Europe",
+  "regionAmericas": "Americas",
+  "regionGlobal": "Global",
+  "popularTeamsTitle": "Popular Teams",
+  "pickYourLocal": "Pick your local favorite team",
+  "onboardingLocalHint": "Search your favorite team from any league worldwide"
+}

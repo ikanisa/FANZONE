@@ -1,0 +1,126 @@
+/* ═══════════════════════════════════════════════════════════
+   FANZONE Admin — Design System Tokens & Global Styles
+   Dark-first premium ops console. Malta red accents.
+   Mirrors Flutter FzColors for brand consistency.
+   ═══════════════════════════════════════════════════════════ */
+
+@import './reset.css';
+
+:root {
+  /* ── Surface Palette (Warm Stone) ── */
+  --fz-bg:          #0C0A09;
+  --fz-surface:     #1C1917;
+  --fz-surface-2:   #292524;
+  --fz-surface-3:   #44403C;
+  --fz-surface-4:   #57534E;
+  --fz-border:      #292524;
+  --fz-border-2:    #44403C;
+
+  /* ── Text ── */
+  --fz-text:        #FAFAF9;
+  --fz-text-secondary: #D6D3D1;
+  --fz-muted:       #A8A29E;
+  --fz-muted-2:     #78716C;
+
+  /* ── Brand / Semantic ── */
+  --fz-accent:      #0EA5E9;
+  --fz-accent-hover:#38BDF8;
+  --fz-accent-dark: #0284C7;
+  --fz-malta-red:   #EF4444;
+  --fz-malta-red-hover: #F87171;
+  --fz-amber:       #F59E0B;
+  --fz-violet:      #6366F1;
+
+  /* ── Status ── */
+  --fz-success:     #22C55E;
+  --fz-success-bg:  rgba(34, 197, 94, 0.12);
+  --fz-warning:     #F59E0B;
+  --fz-warning-bg:  rgba(245, 158, 11, 0.12);
+  --fz-error:       #EF4444;
+  --fz-error-bg:    rgba(239, 68, 68, 0.12);
+  --fz-info:        #0EA5E9;
+  --fz-info-bg:     rgba(14, 165, 233, 0.12);
+
+  /* ── Typography ── */
+  --fz-font:        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --fz-mono:        'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+
+  /* ── Size Scale ── */
+  --fz-text-xs:     0.6875rem;   /* 11px */
+  --fz-text-sm:     0.8125rem;   /* 13px */
+  --fz-text-base:   0.875rem;    /* 14px */
+  --fz-text-md:     1rem;        /* 16px */
+  --fz-text-lg:     1.125rem;    /* 18px */
+  --fz-text-xl:     1.25rem;     /* 20px */
+  --fz-text-2xl:    1.5rem;      /* 24px */
+  --fz-text-3xl:    1.875rem;    /* 30px */
+
+  /* ── Spacing ── */
+  --fz-sp-1:  4px;
+  --fz-sp-2:  8px;
+  --fz-sp-3:  12px;
+  --fz-sp-4:  16px;
+  --fz-sp-5:  20px;
+  --fz-sp-6:  24px;
+  --fz-sp-8:  32px;
+  --fz-sp-10: 40px;
+  --fz-sp-12: 48px;
+  --fz-sp-16: 64px;
+
+  /* ── Radius ── */
+  --fz-radius-sm:   4px;
+  --fz-radius:      8px;
+  --fz-radius-md:   10px;
+  --fz-radius-lg:   12px;
+  --fz-radius-xl:   16px;
+  --fz-radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --fz-shadow-sm:   0 1px 2px rgba(0,0,0,0.3);
+  --fz-shadow:      0 2px 8px rgba(0,0,0,0.4);
+  --fz-shadow-lg:   0 4px 16px rgba(0,0,0,0.5);
+  --fz-shadow-xl:   0 8px 32px rgba(0,0,0,0.6);
+
+  /* ── Transitions ── */
+  --fz-transition:  150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --fz-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Layout ── */
+  --fz-sidebar-w:   260px;
+  --fz-sidebar-collapsed-w: 64px;
+  --fz-topbar-h:    56px;
+}
+
+/* ── Base Body ── */
+body {
+  font-family: var(--fz-font);
+  font-size: var(--fz-text-base);
+  color: var(--fz-text);
+  background: var(--fz-bg);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--fz-surface-3);
+  border-radius: var(--fz-radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fz-surface-4);
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--fz-accent);
+  color: var(--fz-text);
+}

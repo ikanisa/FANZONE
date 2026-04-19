@@ -1,0 +1,68 @@
+name: fanzone
+description: "FANZONE — The global football prediction & fan engagement platform."
+publish_to: 'none'
+
+version: 1.1.0+5
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # ── Navigation ──
+  go_router: ^15.1.2
+
+  # ── State Management ──
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # ── Firebase ──
+  firebase_core: ^4.7.0
+  firebase_messaging: ^16.2.0
+
+  # ── Data / Backend ──
+  supabase_flutter: ^2.9.0
+  sentry_flutter: ^9.7.0
+
+  # ── Models ──
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # ── Local Storage ──
+  shared_preferences: ^2.5.3
+
+  # ── UI / Design ──
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  lucide_icons: ^0.257.0
+  shimmer: ^3.0.0
+
+  # ── Utilities ──
+  intl: ^0.20.2
+  share_plus: ^12.0.2
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.2.1
+  url_launcher: ^6.3.2
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.15
+  freezed: ^2.5.8
+  json_serializable: ^6.9.4
+  riverpod_generator: ^2.6.3
+
+flutter:
+  generate: true
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+
+  # Fonts loaded via google_fonts package at runtime

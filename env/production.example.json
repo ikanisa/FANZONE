@@ -1,0 +1,19 @@
+{
+  "APP_ENV": "production",
+  "SUPABASE_URL": "https://your-project-ref.supabase.co",
+  "SUPABASE_ANON_KEY": "your-anon-key",
+  "SENTRY_DSN": "",
+  "ENABLE_PREDICTIONS": "true",
+  "ENABLE_WALLET": "true",
+  "ENABLE_LEADERBOARD": "true",
+  "ENABLE_REWARDS": "true",
+  "ENABLE_MEMBERSHIP": "true",
+  "ENABLE_NOTIFICATIONS": "true",
+  "ENABLE_TEAM_COMMUNITIES": "true",
+  "ENABLE_FAN_IDENTITY": "true",
+  "ENABLE_MARKETPLACE": "true",
+  "ENABLE_FEATURED_EVENTS": "true",
+  "ENABLE_GLOBAL_CHALLENGES": "false",
+  "ENABLE_REGION_DISCOVERY": "true",
+  "ENABLE_DEEP_LINKING": "true"
+}

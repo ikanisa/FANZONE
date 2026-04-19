@@ -1,0 +1,59 @@
+# FANZONE — Auto-Settlement Cron
+# Runs every 15 minutes to settle finished pools and prediction slips.
+# Fallback for when pg_cron is not available on the Supabase plan.
+
+name: Auto-Settle Cron
+
+on:
+  schedule:
+    # Every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Manual trigger for testing
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+jobs:
+  auto-settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger auto-settlement
+        run: |
+          echo "🔄 Triggering auto-settlement at $(date -u)"
+
+          RESPONSE=$(curl -sS -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            "$SUPABASE_URL/functions/v1/auto-settle" \
+            -d '{}')
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✅ Auto-settlement completed successfully"
+
+            # Parse summary
+            POOLS=$(echo "$BODY" | jq -r '.total_pools_settled // 0')
+            SLIPS=$(echo "$BODY" | jq -r '.total_slips_settled // 0')
+            NOTIFS=$(echo "$BODY" | jq -r '.total_notifications // 0')
+
+            echo "📊 Pools settled: $POOLS"
+            echo "📊 Slips settled: $SLIPS"
+            echo "📊 Notifications sent: $NOTIFS"
+          elif [ "$HTTP_CODE" -eq 207 ]; then
+            echo "⚠️ Auto-settlement completed with partial errors"
+            echo "$BODY" | jq '.errors // []'
+          else
+            echo "❌ Auto-settlement failed (HTTP $HTTP_CODE)"
+            echo "$BODY"
+            exit 1
+          fi

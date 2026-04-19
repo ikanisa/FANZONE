@@ -1,0 +1,28 @@
+# FANZONE Admin Panel — Cloudflare Pages Config
+
+name = "fanzone-admin"
+compatibility_date = "2026-04-18"
+
+# Build configuration
+[build]
+command = "npm run build"
+cwd = "admin"
+
+[build.environment]
+NODE_VERSION = "22"
+
+# Output directory (relative to admin/)
+[build.output]
+directory = "dist"
+
+# Production environment
+[env.production]
+name = "fanzone-admin"
+# Set these in Cloudflare Pages dashboard:
+# VITE_SUPABASE_URL = "https://your-project.supabase.co"
+# VITE_SUPABASE_ANON_KEY = "your-anon-key"
+
+# Preview environment (develop branch)
+[env.preview]
+name = "fanzone-admin-preview"
+# Uses same env vars from dashboard

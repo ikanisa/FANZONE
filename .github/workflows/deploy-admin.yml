@@ -1,0 +1,65 @@
+# FANZONE Admin Panel — Cloudflare Pages Deployment
+# Deploys to Production on `main` push, Preview on `develop` push.
+
+name: Deploy Admin Panel
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'admin/**'
+  workflow_dispatch:
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: admin/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: admin
+
+      - name: Type check
+        run: npx tsc --noEmit
+        working-directory: admin
+
+      - name: Build
+        run: npm run build
+        working-directory: admin
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy admin/dist --project-name=fanzone-admin --branch=${{ github.ref_name }}
+
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Admin Panel Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+            echo "**URL:** https://fanzone-admin.pages.dev" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Environment:** Preview" >> $GITHUB_STEP_SUMMARY
+            echo "**URL:** https://${{ github.ref_name }}.fanzone-admin.pages.dev" >> $GITHUB_STEP_SUMMARY
+          fi
