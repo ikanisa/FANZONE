@@ -9,17 +9,25 @@ import 'package:fanzone/data/team_search_database.dart';
 import 'package:fanzone/features/fixtures/screens/fixtures_screen.dart';
 import 'package:fanzone/features/home/screens/home_feed_screen.dart';
 import 'package:fanzone/features/home/screens/home_screen.dart';
-import 'package:fanzone/features/leaderboard/screens/leaderboard_screen.dart';
 import 'package:fanzone/features/home/screens/match_detail_screen.dart';
+import 'package:fanzone/features/identity/screens/fan_id_screen.dart';
+import 'package:fanzone/features/leaderboard/screens/leaderboard_screen.dart';
 import 'package:fanzone/features/predict/screens/predict_screen.dart';
 import 'package:fanzone/features/profile/providers/profile_identity_provider.dart';
 import 'package:fanzone/features/profile/screens/profile_screen.dart';
+import 'package:fanzone/features/settings/screens/privacy_settings_screen.dart';
+import 'package:fanzone/features/social/screens/social_hub_screen.dart';
+import 'package:fanzone/features/teams/screens/team_profile_screen.dart';
 import 'package:fanzone/models/featured_event_model.dart';
 import 'package:fanzone/models/match_advanced_stats_model.dart';
 import 'package:fanzone/models/match_odds_model.dart';
+import 'package:fanzone/models/pool.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
 import 'package:fanzone/models/match_model.dart';
 import 'package:fanzone/models/match_player_stats_model.dart';
+import 'package:fanzone/models/team_contribution_model.dart';
+import 'package:fanzone/models/team_model.dart';
+import 'package:fanzone/models/team_supporter_model.dart';
 import 'package:fanzone/providers/auth_provider.dart';
 import 'package:fanzone/providers/competitions_provider.dart';
 import 'package:fanzone/providers/currency_provider.dart';
@@ -304,6 +312,194 @@ void main() {
       );
       expect(find.text('Memberships'), findsOneWidget);
       expect(find.text('Preferences'), findsOneWidget);
+    });
+
+    testWidgets('fan id screen follows the canonical identity layout', (
+      tester,
+    ) async {
+      await pumpAppScreen(
+        tester,
+        const FanIdScreen(),
+        overrides: [
+          userFanIdProvider.overrideWith((ref) async => '123456'),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('My Fan ID'), findsOneWidget);
+      expect(find.text('FAN ID SPECIFICATION'), findsOneWidget);
+      expect(find.text('123456'), findsOneWidget);
+      expect(find.text('Auto-assigned on first app open'), findsOneWidget);
+      expect(find.text('IDENTITY RULES'), findsOneWidget);
+      expect(find.text('Anonymous'), findsOneWidget);
+    });
+
+    testWidgets('privacy settings screen matches the source sections', (
+      tester,
+    ) async {
+      await pumpAppScreen(
+        tester,
+        const PrivacySettingsScreen(),
+        overrides: [
+          isAuthenticatedProvider.overrideWith((ref) => false),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Privacy'), findsOneWidget);
+      expect(find.text('Phone Number Hidden'), findsOneWidget);
+      expect(find.text('Anonymous Contributions'), findsOneWidget);
+      expect(find.text('Display Name on Leaderboards'), findsOneWidget);
+      expect(find.text('Allow Friends to Find Me'), findsOneWidget);
+      expect(
+        find.text('* Verification required to change visibility settings.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('social hub screen keeps the original tabs and fan-zone hero', (
+      tester,
+    ) async {
+      const team = TeamModel(
+        id: 'hamrun',
+        name: 'Hamrun Spartans',
+        shortName: 'Hamrun',
+        country: 'Malta',
+        fanCount: 1240,
+      );
+
+      await pumpAppScreen(
+        tester,
+        const SocialHubScreen(),
+        overrides: [
+          poolServiceProvider.overrideWith(
+            () => FakePoolService([
+              samplePool(),
+              ScorePool(
+                id: 'pool_2',
+                matchId: 'match_1',
+                matchName: 'Hamrun Spartans vs Valletta FC',
+                creatorId: 'creator_2',
+                creatorName: 'GozitanFan',
+                creatorPrediction: 'Hamrun Spartans 1 - 0 Valletta FC',
+                stake: 100,
+                totalPool: 900,
+                participantsCount: 10,
+                status: 'open',
+                lockAt: DateTime(2026, 4, 19, 20),
+              ),
+            ]),
+          ),
+          teamsProvider.overrideWith((ref) async => const [team]),
+          supportedTeamsServiceProvider.overrideWith(
+            () => _StaticSupportedTeamsController(const {'hamrun'}),
+          ),
+          userFanIdProvider.overrideWith((ref) async => '123456'),
+          teamAnonymousFansProvider(team.id).overrideWith(
+            (ref) async => [
+              AnonymousFanRecord(
+                anonymousFanId: 'Hamrun_Ultra',
+                joinedAt: DateTime(2026, 4, 1),
+              ),
+              AnonymousFanRecord(
+                anonymousFanId: '123456',
+                joinedAt: DateTime(2026, 4, 2),
+              ),
+            ],
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Social Hub'), findsOneWidget);
+      expect(find.text('Friends'), findsOneWidget);
+      expect(find.text('Club Fan Zone'), findsOneWidget);
+      await tester.tap(find.text('Club Fan Zone'));
+      await tester.pumpAndSettle();
+      expect(find.text('HAMRUN FANS'), findsOneWidget);
+      expect(find.text('FAN LEADERBOARD'), findsOneWidget);
+    });
+
+    testWidgets('team profile screen restores the original tab contract', (
+      tester,
+    ) async {
+      const team = TeamModel(
+        id: 'hamrun',
+        name: 'Hamrun Spartans',
+        shortName: 'Hamrun',
+        country: 'Malta',
+        leagueName: 'Malta Premier League',
+        competitionIds: ['mpl'],
+        fanCount: 1240,
+        fetContributionsEnabled: true,
+      );
+      final match = sampleMatch(
+        id: 'hamrun_match',
+        competitionId: 'mpl',
+        homeTeam: 'Hamrun Spartans',
+        awayTeam: 'Valletta FC',
+        status: 'finished',
+        ftHome: 2,
+        ftAway: 0,
+      );
+
+      await pumpAppScreen(
+        tester,
+        const TeamProfileScreen(teamId: 'hamrun'),
+        overrides: [
+          teamProvider(team.id).overrideWith((ref) async => team),
+          teamsProvider.overrideWith((ref) async => const [team]),
+          competitionsProvider.overrideWith(
+            (ref) async => [
+              sampleCompetition(
+                id: 'mpl',
+                name: 'Malta Premier League',
+                shortName: 'MPL',
+                country: 'Malta',
+              ),
+            ],
+          ),
+          teamMatchesProvider(team.id).overrideWith(
+            (ref) => Stream.value([match]),
+          ),
+          teamCommunityStatsProvider(team.id).overrideWith(
+            (ref) async => const TeamCommunityStats(
+              teamId: 'hamrun',
+              teamName: 'Hamrun Spartans',
+              fanCount: 1240,
+              totalFetContributed: 48200,
+              contributionCount: 84,
+              supportersLast30d: 42,
+            ),
+          ),
+          teamAnonymousFansProvider(team.id).overrideWith(
+            (ref) async => [
+              AnonymousFanRecord(
+                anonymousFanId: '102948',
+                joinedAt: DateTime(2026, 4, 1),
+              ),
+              AnonymousFanRecord(
+                anonymousFanId: '483291',
+                joinedAt: DateTime(2026, 4, 2),
+              ),
+            ],
+          ),
+          supportedTeamsServiceProvider.overrideWith(
+            () => _StaticSupportedTeamsController(const {'hamrun'}),
+          ),
+          isAuthenticatedProvider.overrideWith((ref) => true),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Team Profile'), findsOneWidget);
+      expect(find.text('Hamrun Spartans'), findsOneWidget);
+      expect(find.text('Overview'), findsOneWidget);
+      expect(find.text('Members'), findsOneWidget);
+      expect(find.text('Fixtures'), findsOneWidget);
+      expect(find.text('Contribute'), findsOneWidget);
+      expect(find.text('About'), findsOneWidget);
+      expect(find.text('LATEST MATCH'), findsOneWidget);
     });
 
     testWidgets('match detail screen renders scoreboard and tabs', (

@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/cache/cache_service.dart';
 import '../../../core/di/injection.dart';
+import '../../../core/constants/phone_presets.dart';
 import '../../../core/market/launch_market.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../data/team_search_database.dart';
@@ -82,7 +83,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return ref.read(authServiceProvider).isAuthenticated;
   }
 
-  _PhoneRegionPreset get _phonePreset => _resolvePhonePreset();
+  PhonePreset get _phonePreset => _resolvePhonePreset();
 
   String get _dialCode => _phonePreset.dialCode;
 
@@ -486,150 +487,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
-  _PhoneRegionPreset _resolvePhonePreset() {
+  PhonePreset _resolvePhonePreset() {
     final localeCountry = WidgetsBinding
         .instance
         .platformDispatcher
         .locale
         .countryCode
         ?.toUpperCase();
-    final localePreset = _presetForCountryCode(localeCountry);
+    final localePreset = phonePresetForCountry(localeCountry);
     if (localePreset != null) return localePreset;
 
     final selectedRegion = normalizeRegionKey(
       ref.read(selectedLaunchRegionProvider),
     );
-    switch (selectedRegion) {
-      case 'africa':
-        return const _PhoneRegionPreset(
-          dialCode: '+250',
-          hint: '7XX XXX XXX',
-          minDigits: 9,
-        );
-      case 'europe':
-        return const _PhoneRegionPreset(
-          dialCode: '+44',
-          hint: '7XXX XXX XXX',
-          minDigits: 9,
-        );
-      case 'north_america':
-        return const _PhoneRegionPreset(
-          dialCode: '+1',
-          hint: '555 123 4567',
-          minDigits: 10,
-        );
-      default:
-        return const _PhoneRegionPreset(
-          dialCode: '+1',
-          hint: '555 123 4567',
-          minDigits: 10,
-        );
-    }
+    return phonePresetForRegion(selectedRegion);
   }
-
-  _PhoneRegionPreset? _presetForCountryCode(String? code) {
-    switch (code) {
-      case 'MT':
-        return const _PhoneRegionPreset(
-          dialCode: '+356',
-          hint: '79XX XXXX',
-          minDigits: 8,
-        );
-      case 'RW':
-        return const _PhoneRegionPreset(
-          dialCode: '+250',
-          hint: '7XX XXX XXX',
-          minDigits: 9,
-        );
-      case 'NG':
-        return const _PhoneRegionPreset(
-          dialCode: '+234',
-          hint: '80X XXX XXXX',
-          minDigits: 10,
-        );
-      case 'KE':
-        return const _PhoneRegionPreset(
-          dialCode: '+254',
-          hint: '7XX XXX XXX',
-          minDigits: 9,
-        );
-      case 'UG':
-        return const _PhoneRegionPreset(
-          dialCode: '+256',
-          hint: '7XX XXX XXX',
-          minDigits: 9,
-        );
-      case 'GB':
-        return const _PhoneRegionPreset(
-          dialCode: '+44',
-          hint: '7XXX XXX XXX',
-          minDigits: 10,
-        );
-      case 'ES':
-        return const _PhoneRegionPreset(
-          dialCode: '+34',
-          hint: '6XX XXX XXX',
-          minDigits: 9,
-        );
-      case 'DE':
-        return const _PhoneRegionPreset(
-          dialCode: '+49',
-          hint: '15XX XXX XXX',
-          minDigits: 10,
-        );
-      case 'FR':
-        return const _PhoneRegionPreset(
-          dialCode: '+33',
-          hint: '6 XX XX XX XX',
-          minDigits: 9,
-        );
-      case 'IT':
-        return const _PhoneRegionPreset(
-          dialCode: '+39',
-          hint: '3XX XXX XXXX',
-          minDigits: 10,
-        );
-      case 'PT':
-        return const _PhoneRegionPreset(
-          dialCode: '+351',
-          hint: '9XX XXX XXX',
-          minDigits: 9,
-        );
-      case 'NL':
-        return const _PhoneRegionPreset(
-          dialCode: '+31',
-          hint: '6 XX XX XX XX',
-          minDigits: 9,
-        );
-      case 'US':
-      case 'CA':
-        return const _PhoneRegionPreset(
-          dialCode: '+1',
-          hint: '555 123 4567',
-          minDigits: 10,
-        );
-      case 'MX':
-        return const _PhoneRegionPreset(
-          dialCode: '+52',
-          hint: '55 1234 5678',
-          minDigits: 10,
-        );
-      default:
-        return null;
-    }
-  }
-}
-
-class _PhoneRegionPreset {
-  const _PhoneRegionPreset({
-    required this.dialCode,
-    required this.hint,
-    required this.minDigits,
-  });
-
-  final String dialCode;
-  final String hint;
-  final int minDigits;
 }
 
 class _OnboardingInfoBanner extends StatelessWidget {

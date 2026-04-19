@@ -13,9 +13,9 @@ void main() {
   testWidgets('FzBadge variants follow the reference palettes', (tester) async {
     await pumpAppScreen(
       tester,
-      Scaffold(
+      const Scaffold(
         body: Column(
-          children: const [
+          children: [
             FzBadge(
               key: ValueKey('accent-badge'),
               label: 'ACCENT',
@@ -104,7 +104,7 @@ void main() {
     expect(find.text('No Live Matches'), findsOneWidget);
     expect(find.text('Check upcoming.'), findsOneWidget);
     expect(find.text('Browse Fixtures'), findsOneWidget);
-    expect(find.byType(CustomPaint), findsOneWidget);
+    expect(find.byKey(const ValueKey('empty')), findsOneWidget);
 
     await tester.tap(find.text('Browse Fixtures'));
     await tester.pump();

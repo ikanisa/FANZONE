@@ -122,55 +122,46 @@ class FzEmptyState extends StatelessWidget {
 }
 
 class _DashedRoundedRectPainter extends CustomPainter {
-  const _DashedRoundedRectPainter({
-    required this.color,
-    required this.radius,
-    this.strokeWidth = 1,
-    this.dash = 6,
-    this.gap = 4,
-  });
+  const _DashedRoundedRectPainter({required this.color, required this.radius});
 
   final Color color;
   final double radius;
-  final double strokeWidth;
-  final double dash;
-  final double gap;
+
+  static const double _strokeWidth = 1;
+  static const double _dash = 6;
+  static const double _gap = 4;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final inset = strokeWidth / 2;
+    const inset = _strokeWidth / 2;
     final rect = Rect.fromLTWH(
       inset,
       inset,
-      size.width - strokeWidth,
-      size.height - strokeWidth,
+      size.width - _strokeWidth,
+      size.height - _strokeWidth,
     );
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
     final path = Path()..addRRect(rrect);
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
+      ..strokeWidth = _strokeWidth;
 
     for (final metric in path.computeMetrics()) {
       double distance = 0;
       while (distance < metric.length) {
-        final currentDash = (distance + dash).clamp(0.0, metric.length);
+        final currentDash = (distance + _dash).clamp(0.0, metric.length);
         canvas.drawPath(
           metric.extractPath(distance, currentDash.toDouble()),
           paint,
         );
-        distance += dash + gap;
+        distance += _dash + _gap;
       }
     }
   }
 
   @override
   bool shouldRepaint(_DashedRoundedRectPainter oldDelegate) {
-    return color != oldDelegate.color ||
-        radius != oldDelegate.radius ||
-        strokeWidth != oldDelegate.strokeWidth ||
-        dash != oldDelegate.dash ||
-        gap != oldDelegate.gap;
+    return color != oldDelegate.color || radius != oldDelegate.radius;
   }
 }

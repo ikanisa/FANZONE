@@ -187,6 +187,36 @@ class SupabaseWalletGateway implements WalletGateway {
 
   @override
   Future<List<FanClub>> getFanClubs() async {
+    final client = _connection.client;
+    if (client != null) {
+      try {
+        final rows = await client
+            .from('fan_clubs')
+            .select()
+            .eq('is_active', true)
+            .order('rank');
+        final clubs = (rows as List)
+            .whereType<Map>()
+            .map(
+              (row) => FanClub(
+                id: row['id']?.toString() ?? '',
+                name: row['name']?.toString() ?? '',
+                members: (row['member_count'] as num?)?.toInt() ?? 0,
+                totalPool: (row['total_pool_fet'] as num?)?.toInt() ?? 0,
+                crest: row['crest_url']?.toString() ?? '',
+                league: row['league']?.toString() ?? '',
+                rank: (row['rank'] as num?)?.toInt() ?? 0,
+              ),
+            )
+            .toList(growable: false);
+        if (clubs.isNotEmpty) return clubs;
+      } catch (error) {
+        AppLogger.d('Failed to load fan clubs: $error');
+      }
+    }
+
+    if (!_allowSeedFallback) return const <FanClub>[];
+
     return const [
       FanClub(
         id: 'liverpool',
@@ -431,6 +461,35 @@ class SupabaseWalletGateway implements WalletGateway {
 
   @override
   Future<List<FetExchangeRateDto>> getFetExchangeRates() async {
+    final client = _connection.client;
+    if (client != null) {
+      try {
+        // Base peg: 100 FET = 1 EUR. Derive other rates from currency_rates.
+        const fetPerEur = 0.01; // 1 FET = 0.01 EUR
+        final rows = await client
+            .from('currency_rates')
+            .select('target_currency, rate')
+            .eq('base_currency', 'EUR')
+            .order('target_currency');
+        final rates = <FetExchangeRateDto>[
+          const FetExchangeRateDto(currency: 'EUR', symbol: '€', rate: fetPerEur),
+        ];
+        for (final row in (rows as List).whereType<Map>()) {
+          final target = row['target_currency']?.toString();
+          final eurRate = (row['rate'] as num?)?.toDouble();
+          if (target == null || eurRate == null || target == 'EUR') continue;
+          rates.add(FetExchangeRateDto(
+            currency: target,
+            symbol: _currencySymbol(target),
+            rate: fetPerEur * eurRate,
+          ));
+        }
+        if (rates.length > 1) return rates;
+      } catch (error) {
+        AppLogger.d('Failed to load FET exchange rates: $error');
+      }
+    }
+
     if (!_allowSeedFallback) return const <FetExchangeRateDto>[];
 
     return const [
@@ -438,6 +497,16 @@ class SupabaseWalletGateway implements WalletGateway {
       FetExchangeRateDto(currency: 'USD', symbol: '\$', rate: 0.011),
       FetExchangeRateDto(currency: 'RWF', symbol: 'FRw', rate: 14.5),
     ];
+  }
+
+  String _currencySymbol(String code) {
+    switch (code) {
+      case 'USD': return '\$';
+      case 'GBP': return '£';
+      case 'RWF': return 'FRw';
+      case 'EUR': return '€';
+      default: return code;
+    }
   }
 
   bool get _allowSeedFallback => !AppConfig.isProduction;

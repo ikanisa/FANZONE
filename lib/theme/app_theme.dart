@@ -49,12 +49,12 @@ abstract final class FzTheme {
       ),
 
       // Cards
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: FzColors.darkSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: FzRadii.cardRadius,
-          side: const BorderSide(color: FzColors.darkBorder, width: 1),
+          side: BorderSide(color: FzColors.darkBorder, width: 1),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -83,7 +83,9 @@ abstract final class FzTheme {
         selectedColor: FzColors.accent,
         labelStyle: textTheme.labelSmall!,
         side: const BorderSide(color: FzColors.darkBorder),
-        shape: RoundedRectangleBorder(borderRadius: FzRadii.compactRadius),
+        shape: const RoundedRectangleBorder(
+          borderRadius: FzRadii.compactRadius,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
 
@@ -92,7 +94,7 @@ abstract final class FzTheme {
         backgroundColor: FzColors.darkSurface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: const BorderRadius.vertical(
+          borderRadius: BorderRadius.vertical(
             top: Radius.circular(FzRadii.card),
           ),
         ),
@@ -181,12 +183,12 @@ abstract final class FzTheme {
         elevation: 0,
       ),
 
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: FzColors.lightSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: FzRadii.cardRadius,
-          side: const BorderSide(color: FzColors.lightBorder, width: 1),
+          side: BorderSide(color: FzColors.lightBorder, width: 1),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -212,7 +214,9 @@ abstract final class FzTheme {
         selectedColor: FzColors.accentDark,
         labelStyle: textTheme.labelSmall!,
         side: const BorderSide(color: FzColors.lightBorder),
-        shape: RoundedRectangleBorder(borderRadius: FzRadii.compactRadius),
+        shape: const RoundedRectangleBorder(
+          borderRadius: FzRadii.compactRadius,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
 
@@ -220,7 +224,7 @@ abstract final class FzTheme {
         backgroundColor: FzColors.lightSurface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: const BorderRadius.vertical(
+          borderRadius: BorderRadius.vertical(
             top: Radius.circular(FzRadii.card),
           ),
         ),

@@ -155,9 +155,9 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            _SourceCard(
+                            const _SourceCard(
                               child: Column(
-                                children: const [
+                                children: [
                                   _GuaranteeRow(
                                     icon: LucideIcons.smartphone,
                                     iconColor: Color(0xFF25D366),
@@ -272,10 +272,7 @@ class _SettingsHeader extends StatelessWidget {
         children: [
           IconButton(
             onPressed: onBack,
-            icon: Icon(
-              LucideIcons.chevronLeft,
-              color: textColor,
-            ),
+            icon: Icon(LucideIcons.chevronLeft, color: textColor),
           ),
           Expanded(
             child: Column(
@@ -310,10 +307,7 @@ class _SettingsHeader extends StatelessWidget {
 }
 
 class _SourceCard extends StatelessWidget {
-  const _SourceCard({
-    required this.child,
-    this.padding = EdgeInsets.zero,
-  });
+  const _SourceCard({required this.child, this.padding = EdgeInsets.zero});
 
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -392,11 +386,7 @@ class _GuaranteeRow extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: muted,
-                    height: 1.45,
-                  ),
+                  style: TextStyle(fontSize: 12, color: muted, height: 1.45),
                 ),
               ],
             ),
@@ -460,22 +450,14 @@ class _VisibilityControlRow extends StatelessWidget {
                       ),
                       if (!enabled) ...[
                         const SizedBox(width: 8),
-                        Icon(
-                          LucideIcons.lock,
-                          size: 12,
-                          color: muted,
-                        ),
+                        Icon(LucideIcons.lock, size: 12, color: muted),
                       ],
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: muted,
-                      height: 1.45,
-                    ),
+                    style: TextStyle(fontSize: 12, color: muted, height: 1.45),
                   ),
                 ],
               ),
