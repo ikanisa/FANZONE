@@ -39,20 +39,21 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
             // Header title
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 20),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       'Profile',
                       style: FzTypography.display(
-                        size: 32,
+                        size: 36,
+                        letterSpacing: 0.4,
                         color: isDark ? FzColors.darkText : FzColors.lightText,
                       ),
                     ),

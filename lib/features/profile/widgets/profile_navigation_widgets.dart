@@ -239,9 +239,12 @@ class ProfileSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return FzCard(
       borderRadius: 20,
       padding: EdgeInsets.zero,
+      color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
       child: Column(children: children),
     );
   }
@@ -267,7 +270,7 @@ class VerifyAccountRow extends StatelessWidget {
             SizedBox(width: 14),
             Expanded(
               child: Text(
-                'Verify Phone',
+                'Verify WhatsApp',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,

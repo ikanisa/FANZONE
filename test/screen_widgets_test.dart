@@ -243,7 +243,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Profile'), findsOneWidget);
-      expect(find.text('Fan ID: 123456'), findsOneWidget);
+      expect(find.text('Fan ID 123456'), findsOneWidget);
       expect(find.text('Activity'), findsOneWidget);
       expect(find.text('Clubs'), findsOneWidget);
       expect(find.text('Account'), findsOneWidget);

@@ -85,14 +85,14 @@ Future<void> showProfileIdentityPicker(
                     border: Border.all(color: border),
                   ),
                   child: Text(
-                    'You need to support a team first. Add teams in Favorites to unlock logo identity.',
+                    'You need to support a team first.\nAdd a team during onboarding to change your logo.',
                     style: TextStyle(fontSize: 12, color: muted, height: 1.45),
                   ),
                 )
               else
                 Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
+                  spacing: 16,
+                  runSpacing: 16,
                   children: [
                     for (final team in teams)
                       GestureDetector(
@@ -106,45 +106,38 @@ Future<void> showProfileIdentityPicker(
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
-                          width: 72,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          width: 64,
+                          height: 64,
                           decoration: BoxDecoration(
-                            color: isDark
-                                ? FzColors.darkSurface
-                                : FzColors.lightSurface,
+                            color: selectedTeamId == team.teamId
+                                ? FzColors.accent.withValues(alpha: 0.1)
+                                : (isDark
+                                      ? FzColors.darkSurface
+                                      : FzColors.lightSurface),
                             borderRadius: BorderRadius.circular(18),
                             border: Border.all(
                               color: selectedTeamId == team.teamId
                                   ? FzColors.accent
                                   : border,
-                              width: selectedTeamId == team.teamId ? 1.4 : 1,
                             ),
+                            boxShadow: selectedTeamId == team.teamId
+                                ? [
+                                    BoxShadow(
+                                      color: FzColors.accent.withValues(
+                                        alpha: 0.12,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ]
+                                : null,
                           ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TeamAvatar(
-                                name: team.teamName,
-                                logoUrl: team.teamCrestUrl,
-                                size: 40,
-                              ),
-                              const SizedBox(height: 8),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                ),
-                                child: Text(
-                                  team.teamShortName ?? team.teamName,
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          child: Center(
+                            child: TeamAvatar(
+                              name: team.teamName,
+                              logoUrl: team.teamCrestUrl,
+                              size: 40,
+                            ),
                           ),
                         ),
                       ),

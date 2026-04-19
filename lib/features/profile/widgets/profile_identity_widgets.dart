@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../core/utils/currency_utils.dart';
 import '../../../data/team_search_database.dart';
-import '../../../providers/currency_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fet_display.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 
 class ProfileHeaderCard extends ConsumerWidget {
@@ -115,13 +114,14 @@ class ProfileHeaderCard extends ConsumerWidget {
                         Expanded(
                           child: Text(
                             fanId != null && fanId!.isNotEmpty
-                                ? 'Fan ID: $fanId'
+                                ? 'Fan ID $fanId'
                                 : (isAuthenticated
                                       ? 'FANZONE Member'
                                       : 'Guest'),
                             style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
+                              fontFamily: 'monospace',
                             ),
                           ),
                         ),
@@ -149,18 +149,15 @@ class ProfileHeaderCard extends ConsumerWidget {
                             ),
                           ),
                           child: balanceAsync.when(
-                            data: (balance) {
-                              final currency =
-                                  ref.watch(userCurrencyProvider).valueOrNull ??
-                                  'EUR';
-                              return Text(
-                                formatFET(balance, currency),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              );
-                            },
+                            data: (balance) => FETDisplaySpan(
+                              amount: balance,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              fetColor: isDark
+                                  ? FzColors.darkText
+                                  : FzColors.lightText,
+                              localColor: muted,
+                            ),
                             loading: () => const Text(
                               'Loading wallet...',
                               style: TextStyle(
@@ -175,11 +172,11 @@ class ProfileHeaderCard extends ConsumerWidget {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
+              ),
+            ],
+          ),
               ),
             ],
           ),
@@ -215,22 +212,32 @@ class ProfileHeaderCard extends ConsumerWidget {
               ),
             ),
           ],
-          favoriteTeamsAsync.when(
-            data: (teams) {
-              if (teams.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.only(top: 14),
-                  child: Text(
-                    'Supported teams',
-                    style: TextStyle(fontSize: 12, color: muted),
-                  ),
-                );
-              }
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 16),
+            padding: const EdgeInsets.only(top: 16),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                ),
+              ),
+            ),
+            child: favoriteTeamsAsync.when(
+              data: (teams) {
+                if (teams.isEmpty) {
+                  return Text(
+                    'SUPPORTED TEAMS',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: muted,
+                      letterSpacing: 1.2,
+                    ),
+                  );
+                }
 
-              return Padding(
-                padding: const EdgeInsets.only(top: 14),
-                child: Wrap(
-                  alignment: WrapAlignment.center,
+                return Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
@@ -259,27 +266,26 @@ class ProfileHeaderCard extends ConsumerWidget {
                           child: TeamAvatar(
                             name: team.teamName,
                             logoUrl: team.teamCrestUrl,
-                            size: 28,
+                            size: 24,
                           ),
                         ),
                       ),
                   ],
-                ),
-              );
-            },
-            loading: () => const Padding(
-              padding: EdgeInsets.only(top: 14),
-              child: SizedBox(
+                );
+              },
+              loading: () => const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-            ),
-            error: (_, _) => Padding(
-              padding: const EdgeInsets.only(top: 14),
-              child: Text(
-                'Supported teams unavailable',
-                style: TextStyle(fontSize: 12, color: muted),
+              error: (_, _) => Text(
+                'SUPPORTED TEAMS UNAVAILABLE',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: muted,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
           ),
