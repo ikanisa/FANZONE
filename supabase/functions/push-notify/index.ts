@@ -256,6 +256,9 @@ Deno.serve(async (req: Request) => {
     // Filter based on notification type → preference column mapping
     const typeToColumn: Partial<Record<string, NotificationPreferenceKey>> = {
       goal: "goal_alerts",
+      match_goal: "goal_alerts",
+      match_kickoff: "goal_alerts",
+      match_result: "goal_alerts",
       pool_settled: "pool_updates",
       pool_joined: "pool_updates",
       daily_challenge: "daily_challenge",

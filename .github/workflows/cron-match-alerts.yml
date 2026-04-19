@@ -1,0 +1,60 @@
+# FANZONE — Match Alert Dispatch Cron
+# Runs every 5 minutes to dispatch kickoff/goal/result push alerts.
+# Fallback for when pg_cron orchestration is unavailable.
+
+name: Match Alert Dispatch Cron
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+jobs:
+  dispatch-match-alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger match alert dispatch
+        run: |
+          echo "🔔 Triggering match-alert dispatch at $(date -u)"
+
+          RESPONSE=$(curl -sS -w "\n%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            "$SUPABASE_URL/functions/v1/dispatch-match-alerts" \
+            -d '{}')
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "❌ Match alert dispatch failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+
+          ERROR_COUNT=$(echo "$BODY" | jq '.errors | length // 0')
+          KICKOFF_SENT=$(echo "$BODY" | jq -r '.kickoff_sent // 0')
+          GOAL_SENT=$(echo "$BODY" | jq -r '.goal_sent // 0')
+          RESULT_SENT=$(echo "$BODY" | jq -r '.result_sent // 0')
+          LOG_ROWS=$(echo "$BODY" | jq -r '.dispatch_rows_written // 0')
+
+          echo "📊 Kickoff alerts: $KICKOFF_SENT"
+          echo "📊 Goal alerts: $GOAL_SENT"
+          echo "📊 Result alerts: $RESULT_SENT"
+          echo "📊 Dispatch log rows: $LOG_ROWS"
+
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "⚠️ Match alert dispatch returned errors:"
+            echo "$BODY" | jq '.errors'
+            exit 1
+          fi
+
+          echo "✅ Match alert dispatch completed successfully"

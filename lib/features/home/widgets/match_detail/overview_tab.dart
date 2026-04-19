@@ -158,7 +158,7 @@ class _OverviewTab extends ConsumerWidget {
             padding: EdgeInsets.all(16),
             child: SizedBox(
               height: 56,
-              child: Center(child: CircularProgressIndicator()),
+              child: const FzGlassLoader(message: 'Syncing...'),
             ),
           ),
           error: (error, stackTrace) => FzCard(

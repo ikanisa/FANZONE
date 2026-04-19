@@ -257,13 +257,23 @@ async function createSessionForPhone(
     );
   }
 
+  const sessionPayload = {
+    access_token: session.access_token,
+    refresh_token: null,
+    expires_in: session.expires_in,
+    expires_at: session.expires_at,
+    token_type: "bearer",
+    user: userData?.user || { id: userId, phone },
+  };
+
   return Response.json({
     success: true,
     access_token: session.access_token,
     refresh_token: null,
     expires_in: session.expires_in,
     expires_at: session.expires_at,
-    user: userData?.user || { id: userId, phone },
+    session_string: JSON.stringify(sessionPayload),
+    user: sessionPayload.user,
   }, { headers: CORS_HEADERS });
 }
 

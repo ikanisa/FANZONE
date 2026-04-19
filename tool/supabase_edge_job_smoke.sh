@@ -65,6 +65,9 @@ echo "Verifying unauthorized access is rejected..."
 auto_settle_unauth="$(call_edge "auto-settle" "" '{}')"
 expect_status "auto-settle unauthorized" "${auto_settle_unauth}" "401"
 
+dispatch_match_alerts_unauth="$(call_edge "dispatch-match-alerts" "" '{}')"
+expect_status "dispatch-match-alerts unauthorized" "${dispatch_match_alerts_unauth}" "401"
+
 push_notify_unauth="$(call_edge "push-notify" "" '{}')"
 expect_status "push-notify unauthorized" "${push_notify_unauth}" "401"
 
@@ -80,6 +83,14 @@ auto_settle_auth="$(call_edge "auto-settle" "" '{}' \
 if [[ "${auto_settle_auth}" != "200" && "${auto_settle_auth}" != "207" ]]; then
   echo "auto-settle authorized expected HTTP 200 or 207 but got ${auto_settle_auth}"
   cat /tmp/auto-settle.body 2>/dev/null || true
+  exit 1
+fi
+
+dispatch_match_alerts_auth="$(call_edge "dispatch-match-alerts" "" '{}' \
+  -H "x-cron-secret: ${CRON_SECRET}")"
+if [[ "${dispatch_match_alerts_auth}" != "200" && "${dispatch_match_alerts_auth}" != "207" ]]; then
+  echo "dispatch-match-alerts authorized expected HTTP 200 or 207 but got ${dispatch_match_alerts_auth}"
+  cat /tmp/dispatch-match-alerts.body 2>/dev/null || true
   exit 1
 fi
 

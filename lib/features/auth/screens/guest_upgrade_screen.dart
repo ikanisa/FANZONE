@@ -11,6 +11,7 @@ import '../../../core/constants/phone_presets.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Screen for upgrading a guest/anonymous user to a fully authenticated user
 /// via WhatsApp OTP verification. Reuses the same WhatsApp Cloud API pipeline.
@@ -79,10 +80,8 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
     return '$_dialCode$digits';
   }
 
-  int get _otpLength => _otpControllers.fold<int>(
-    0,
-    (count, c) => count + c.text.trim().length,
-  );
+  int get _otpLength =>
+      _otpControllers.fold<int>(0, (count, c) => count + c.text.trim().length);
 
   Future<void> _prepareAnonymousUpgradeClaim() async {
     if (_anonymousUserId == null) return;
@@ -97,6 +96,10 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
   }
 
   Future<void> _sendOtp() async {
+    if (_anonymousUpgradeClaim == null && _anonymousUserId != null) {
+      await _prepareAnonymousUpgradeClaim();
+    }
+
     final phone = _fullPhone;
     if (_phoneController.text.replaceAll(RegExp(r'\D'), '').length <
         _phonePreset.minDigits) {
@@ -150,10 +153,12 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
           _anonymousUpgradeClaim != null &&
           newUserId != null &&
           _anonymousUserId != newUserId) {
-        await ref.read(authServiceProvider).mergeAnonymousToAuthenticated(
-          _anonymousUserId!,
-          _anonymousUpgradeClaim!,
-        );
+        await ref
+            .read(authServiceProvider)
+            .mergeAnonymousToAuthenticated(
+              _anonymousUserId!,
+              _anonymousUpgradeClaim!,
+            );
       }
 
       if (!mounted) return;
@@ -407,8 +412,9 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
                     elevation: 0,
                     backgroundColor: const Color(0xFF25D366),
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor:
-                        const Color(0xFF25D366).withValues(alpha: 0.4),
+                    disabledBackgroundColor: const Color(
+                      0xFF25D366,
+                    ).withValues(alpha: 0.4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

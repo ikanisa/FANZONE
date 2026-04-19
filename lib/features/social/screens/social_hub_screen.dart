@@ -12,6 +12,7 @@ import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
 import '../../../widgets/common/state_view.dart';
 import '../widgets/social_hub_widgets.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 class SocialHubScreen extends ConsumerStatefulWidget {
   const SocialHubScreen({super.key});
@@ -83,7 +84,7 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
                                   friends: _buildFriendHandles(pools, _friendQuery),
                                 ),
                                 loading: () => const Center(
-                                  child: CircularProgressIndicator(),
+                                  child: const FzGlassLoader(),
                                 ),
                                 error: (_, _) => StateView.error(
                                   title: 'Could not load friends',
@@ -112,7 +113,7 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
                     ),
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const FzGlassLoader(message: 'Syncing...'),
                 error: (_, _) => StateView.error(
                   title: 'Could not load social hub',
                   onRetry: () => ref.invalidate(teamsProvider),

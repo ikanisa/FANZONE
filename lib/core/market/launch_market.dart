@@ -143,23 +143,72 @@ String? regionFromCountryName(String? country) {
 String? _regionFromCountryNameFallback(String name) {
   // Africa
   const africa = {
-    'algeria', 'benin', 'botswana', 'burkina faso', 'cameroon',
-    "côte d'ivoire", "cote d'ivoire", 'democratic republic of the congo',
-    'dr congo', 'egypt', 'ethiopia', 'ghana', 'guinea-bissau', 'kenya',
-    'madagascar', 'mali', 'morocco', 'mozambique', 'namibia', 'niger',
-    'nigeria', 'rwanda', 'senegal', 'south africa', 'tanzania', 'togo',
-    'tunisia', 'uganda', 'zambia', 'zimbabwe',
+    'algeria',
+    'benin',
+    'botswana',
+    'burkina faso',
+    'cameroon',
+    "côte d'ivoire",
+    "cote d'ivoire",
+    'democratic republic of the congo',
+    'dr congo',
+    'egypt',
+    'ethiopia',
+    'ghana',
+    'guinea-bissau',
+    'kenya',
+    'madagascar',
+    'mali',
+    'morocco',
+    'mozambique',
+    'namibia',
+    'niger',
+    'nigeria',
+    'rwanda',
+    'senegal',
+    'south africa',
+    'tanzania',
+    'togo',
+    'tunisia',
+    'uganda',
+    'zambia',
+    'zimbabwe',
   };
   // Europe
   const europe = {
-    'austria', 'belgium', 'czech republic', 'denmark', 'england', 'finland',
-    'france', 'germany', 'greece', 'hungary', 'ireland', 'italy', 'malta',
-    'netherlands', 'norway', 'poland', 'portugal', 'romania', 'scotland',
-    'spain', 'sweden', 'switzerland', 'turkey', 'united kingdom', 'wales',
+    'austria',
+    'belgium',
+    'czech republic',
+    'denmark',
+    'england',
+    'finland',
+    'france',
+    'germany',
+    'greece',
+    'hungary',
+    'ireland',
+    'italy',
+    'malta',
+    'netherlands',
+    'norway',
+    'poland',
+    'portugal',
+    'romania',
+    'scotland',
+    'spain',
+    'sweden',
+    'switzerland',
+    'turkey',
+    'united kingdom',
+    'wales',
   };
   // North America
   const northAmerica = {
-    'canada', 'mexico', 'united states', 'united states of america', 'usa',
+    'canada',
+    'mexico',
+    'united states',
+    'united states of america',
+    'usa',
   };
 
   if (africa.contains(name)) return 'africa';
@@ -265,7 +314,8 @@ List<String> defaultFocusTagsForRegion(String region) {
     final scoped = options
         .where(
           (option) =>
-              option.regionKey == 'global' || option.regionKey == normalizedRegion,
+              option.regionKey == 'global' ||
+              option.regionKey == normalizedRegion,
         )
         .map((option) => option.tag)
         .toList(growable: false);

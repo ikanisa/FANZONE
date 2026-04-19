@@ -20,6 +20,7 @@ import '../../data/team_search_database.dart' as team_db;
 // ── Core layer ─────────────────────────────────────────────
 import '../cache/cache_service.dart';
 import '../cache/shared_preferences_cache_service.dart';
+import '../logging/app_logger.dart';
 import '../supabase/supabase_connection.dart';
 
 // ── Feature gateways ───────────────────────────────────────
@@ -80,10 +81,7 @@ String _bootstrapPlatformKey() {
   }
 }
 
-String _regionForTeamRow(
-  Map<String, dynamic> row,
-  BootstrapConfig config,
-) {
+String _regionForTeamRow(Map<String, dynamic> row, BootstrapConfig config) {
   final countryCode = row['country_code']?.toString();
   final regionFromCode = config.regionForCountryCode(countryCode);
   if (regionFromCode != 'global') return regionFromCode;
@@ -171,7 +169,10 @@ Future<void> refreshRuntimeBootstrapData({
   if (connection == null) return;
 
   try {
-    final remoteCatalog = await _loadRemoteTeamSearchCatalog(connection, config);
+    final remoteCatalog = await _loadRemoteTeamSearchCatalog(
+      connection,
+      config,
+    );
     if (remoteCatalog != null) {
       team_db.initTeamSearchDatabase(catalog: remoteCatalog);
     }
@@ -202,11 +203,11 @@ final authGatewayProvider = Provider<AuthGateway>((ref) {
 
 final competitionPreferencesGatewayProvider =
     Provider<CompetitionPreferencesGateway>((ref) {
-  return SupabaseCompetitionPreferencesGateway(
-    ref.watch(cacheServiceProvider),
-    ref.watch(supabaseConnectionProvider),
-  );
-});
+      return SupabaseCompetitionPreferencesGateway(
+        ref.watch(cacheServiceProvider),
+        ref.watch(supabaseConnectionProvider),
+      );
+    });
 
 final accountSettingsGatewayProvider = Provider<AccountSettingsGateway>((ref) {
   return SupabaseAccountSettingsGateway(
@@ -217,14 +218,15 @@ final accountSettingsGatewayProvider = Provider<AccountSettingsGateway>((ref) {
 
 final notificationSettingsGatewayProvider =
     Provider<NotificationSettingsGateway>((ref) {
-  return SupabaseNotificationSettingsGateway(
-    ref.watch(cacheServiceProvider),
-    ref.watch(supabaseConnectionProvider),
-  );
-});
+      return SupabaseNotificationSettingsGateway(
+        ref.watch(cacheServiceProvider),
+        ref.watch(supabaseConnectionProvider),
+      );
+    });
 
-final marketPreferencesGatewayProvider =
-    Provider<MarketPreferencesGateway>((ref) {
+final marketPreferencesGatewayProvider = Provider<MarketPreferencesGateway>((
+  ref,
+) {
   return SupabaseMarketPreferencesGateway(
     ref.watch(cacheServiceProvider),
     ref.watch(supabaseConnectionProvider),
@@ -235,8 +237,9 @@ final marketPreferencesGatewayProvider =
 // HOME / CATALOG
 // ═══════════════════════════════════════════════════════════
 
-final competitionCatalogGatewayProvider =
-    Provider<CompetitionCatalogGateway>((ref) {
+final competitionCatalogGatewayProvider = Provider<CompetitionCatalogGateway>((
+  ref,
+) {
   return SupabaseCompetitionCatalogGateway(
     ref.watch(supabaseConnectionProvider),
   );
@@ -251,9 +254,7 @@ final eventCatalogGatewayProvider = Provider<EventCatalogGateway>((ref) {
 });
 
 final searchCatalogGatewayProvider = Provider<SearchCatalogGateway>((ref) {
-  return SupabaseSearchCatalogGateway(
-    ref.watch(supabaseConnectionProvider),
-  );
+  return SupabaseSearchCatalogGateway(ref.watch(supabaseConnectionProvider));
 });
 
 final catalogGatewayProvider = Provider<CatalogGateway>((ref) {
@@ -329,8 +330,9 @@ final contestGatewayProvider = Provider<ContestGateway>((ref) {
   return SupabaseContestGateway(ref.watch(supabaseConnectionProvider));
 });
 
-final seasonLeaderboardGatewayProvider =
-    Provider<SeasonLeaderboardGateway>((ref) {
+final seasonLeaderboardGatewayProvider = Provider<SeasonLeaderboardGateway>((
+  ref,
+) {
   return SupabaseSeasonLeaderboardGateway(
     ref.watch(supabaseConnectionProvider),
   );
@@ -392,11 +394,11 @@ final walletGatewayProvider = Provider<WalletGateway>((ref) {
 
 final bootstrapConfigServiceProvider =
     ChangeNotifierProvider<BootstrapConfigService>((ref) {
-  return BootstrapConfigService(
-    ref.watch(cacheServiceProvider),
-    ref.watch(supabaseConnectionProvider),
-  );
-});
+      return BootstrapConfigService(
+        ref.watch(cacheServiceProvider),
+        ref.watch(supabaseConnectionProvider),
+      );
+    });
 
 /// Preloaded bootstrap config — available synchronously after startup.
 final bootstrapConfigProvider = Provider<BootstrapConfig>((ref) {
@@ -432,10 +434,14 @@ Future<List<Override>> resolveAsyncOverrides() async {
   try {
     catalog = await _loadRemoteTeamSearchCatalog(connection, config);
   } catch (e) {
-    AppLogger.d('Startup: DB team catalog load failed, falling back to JSON: $e');
+    AppLogger.d(
+      'Startup: DB team catalog load failed, falling back to JSON: $e',
+    );
   }
   if (catalog == null || catalog.allTeams.isEmpty) {
-    final raw = await rootBundle.loadString('assets/data/team_search_database.json');
+    final raw = await rootBundle.loadString(
+      'assets/data/team_search_database.json',
+    );
     catalog = TeamSearchCatalog.fromRawJson(raw);
   }
   team_db.initTeamSearchDatabase(catalog: catalog);

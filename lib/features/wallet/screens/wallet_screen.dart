@@ -18,6 +18,7 @@ import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../../../services/wallet_service.dart';
 import '../widgets/wallet_screen_components.dart';
 import '../widgets/wallet_transfer_sheets.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Wallet screen aligned to the primary reference wallet hub.
 class WalletScreen extends ConsumerWidget {
@@ -167,7 +168,7 @@ class WalletScreen extends ConsumerWidget {
             },
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: CircularProgressIndicator()),
+              child: const FzGlassLoader(message: 'Syncing...'),
             ),
             error: (_, _) => StateView.error(
               title: 'Could not load wallet history',

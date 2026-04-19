@@ -23,21 +23,27 @@ void initTeamSearchDatabase({
 
 List<OnboardingTeam> get allTeams {
   if (_gateway != null) {
-    try { return _gateway!.allTeams; } catch (_) {}
+    try {
+      return _gateway!.allTeams;
+    } catch (_) {}
   }
   return activeTeamSearchCatalog.allTeams;
 }
 
 List<OnboardingTeam> searchTeams(String query, {int limit = 10}) {
   if (_gateway != null) {
-    try { return _gateway!.searchTeams(query, limit: limit); } catch (_) {}
+    try {
+      return _gateway!.searchTeams(query, limit: limit);
+    } catch (_) {}
   }
   return activeTeamSearchCatalog.search(query, limit: limit);
 }
 
 List<OnboardingTeam> popularTeamsForRegion(String region) {
   if (_gateway != null) {
-    try { return _gateway!.popularTeamsForRegion(region); } catch (_) {}
+    try {
+      return _gateway!.popularTeamsForRegion(region);
+    } catch (_) {}
   }
   return activeTeamSearchCatalog.popularForRegion(region);
 }

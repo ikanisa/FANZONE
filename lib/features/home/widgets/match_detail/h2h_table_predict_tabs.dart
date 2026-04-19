@@ -104,7 +104,7 @@ class _H2HTab extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const FzGlassLoader(message: 'Syncing...'),
       error: (err, st) => StateView.error(
         title: 'H2H unavailable',
         onRetry: () =>

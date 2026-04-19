@@ -10,6 +10,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// FET Exchange screen — global multi-currency payout visualization.
 ///
@@ -167,7 +168,7 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
                 );
               }).toList(),
             ),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const FzGlassLoader(message: 'Syncing...'),
             error: (_, _) =>
                 Text('Rate data unavailable', style: TextStyle(color: muted)),
           ),
@@ -224,7 +225,7 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
                   ),
                   loading: () => const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Center(child: CircularProgressIndicator()),
+                    child: const FzGlassLoader(message: 'Syncing...'),
                   ),
                   error: (_, _) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),

@@ -12,6 +12,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/team_crest.dart';
 import '../../../providers/favorite_teams_provider.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Settings > Favorite Teams management screen.
 ///
@@ -69,7 +70,7 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
         ),
       ),
       body: savedTeamsAsync.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const FzGlassLoader(message: 'Syncing...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

@@ -6,6 +6,7 @@ import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/team/team_widgets.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Individual team news article detail view.
 class TeamNewsDetailScreen extends ConsumerWidget {
@@ -180,7 +181,7 @@ class TeamNewsDetailScreen extends ConsumerWidget {
         );
       },
       loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: const FzGlassLoader(message: 'Syncing...'),
       ),
       error: (_, _) => Scaffold(
         appBar: AppBar(),

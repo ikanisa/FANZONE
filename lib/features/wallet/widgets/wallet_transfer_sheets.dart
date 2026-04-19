@@ -12,6 +12,7 @@ import '../../../services/wallet_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 typedef WalletTransferSubmit = Future<void> Function(String fanId, int amount);
 
@@ -420,7 +421,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                         ? const SizedBox(
                             width: 14,
                             height: 14,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: const FzGlassLoader(useBackdrop: false),
                           )
                         : const Icon(LucideIcons.send, size: 16),
                     label: Text(

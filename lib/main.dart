@@ -53,7 +53,9 @@ Future<void> main() async {
   );
 
   await startup.prepare();
-  runApp(ProviderScope(overrides: _providerOverrides, child: const FanzoneApp()));
+  runApp(
+    ProviderScope(overrides: _providerOverrides, child: const FanzoneApp()),
+  );
   startup.start();
 }
 
@@ -104,11 +106,12 @@ Future<void> _initializeSupabase() async {
     appStartupProfiler.mark('supabase_ready');
     appRuntime.notifyAuthStateChanged();
     await _authStateSubscription?.cancel();
-    _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((_) {
-      appRuntime.notifyAuthStateChanged();
-      unawaited(ProductAnalytics.flush());
-      unawaited(AppTelemetry.flush());
-    });
+    _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange
+        .listen((_) {
+          appRuntime.notifyAuthStateChanged();
+          unawaited(ProductAnalytics.flush());
+          unawaited(AppTelemetry.flush());
+        });
   } catch (error, stackTrace) {
     appRuntime.supabaseInitError = 'Could not connect to server.';
     await AppTelemetry.captureException(

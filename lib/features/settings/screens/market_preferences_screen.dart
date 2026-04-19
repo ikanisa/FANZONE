@@ -11,6 +11,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 class MarketPreferencesScreen extends ConsumerStatefulWidget {
   const MarketPreferencesScreen({super.key});
@@ -44,7 +45,7 @@ class _MarketPreferencesScreenState
           .watch(userMarketPreferencesProvider)
           .when(
             data: (preferences) => _buildContent(context, preferences, isDark),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const FzGlassLoader(message: 'Syncing...'),
             error: (_, _) => StateView.error(
               title: 'Could not load market preferences',
               onRetry: () => ref.invalidate(userMarketPreferencesProvider),

@@ -337,9 +337,12 @@ class _FakeAuthGateway implements AuthGateway {
   }
 
   @override
+  Future<String?> issueAnonymousUpgradeClaim() async => 'test-claim';
+
+  @override
   Future<void> mergeAnonymousToAuthenticated(
     String anonId,
-    String authId,
+    String claimToken,
   ) async {}
 }
 

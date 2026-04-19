@@ -119,17 +119,26 @@ class AppConfig {
   }
 
   static String get imageCdnBaseUrl =>
-      _remoteConfigValue<String>('image_cdn_base_url') ??
-      _imageCdnBaseUrlDefault;
+      (_remoteConfigValue<String>('image_cdn_base_url')?.trim().isNotEmpty ??
+          false)
+      ? _remoteConfigValue<String>('image_cdn_base_url')!.trim()
+      : _imageCdnBaseUrlDefault;
 
   static String get staticCdnBaseUrl =>
-      _remoteConfigValue<String>('static_cdn_base_url') ??
-      _staticCdnBaseUrlDefault;
+      (_remoteConfigValue<String>('static_cdn_base_url')?.trim().isNotEmpty ??
+          false)
+      ? _remoteConfigValue<String>('static_cdn_base_url')!.trim()
+      : _staticCdnBaseUrlDefault;
 
-  static String get staticAssetVersion =>
-      _remoteConfigValue<String>('static_asset_version') ??
-      _remoteConfigValue<num>('static_asset_version')?.toString() ??
-      _staticAssetVersionDefault;
+  static String get staticAssetVersion => (() {
+    final stringValue = _remoteConfigValue<String>(
+      'static_asset_version',
+    )?.trim();
+    if (stringValue != null && stringValue.isNotEmpty) return stringValue;
+    final numericValue = _remoteConfigValue<num>('static_asset_version');
+    if (numericValue != null) return numericValue.toString();
+    return _staticAssetVersionDefault;
+  })();
 
   static bool get enablePredictions =>
       _featureFlag('predictions', _enablePredictionsDefault);
@@ -157,10 +166,8 @@ class AppConfig {
       _featureFlag('advanced_stats', _enableAdvancedStatsDefault);
   static bool get enableCommunityContests =>
       _featureFlag('community_contests', _enableCommunityContestsDefault);
-  static bool get enableSeasonalLeaderboards => _featureFlag(
-    'seasonal_leaderboards',
-    _enableSeasonalLeaderboardsDefault,
-  );
+  static bool get enableSeasonalLeaderboards =>
+      _featureFlag('seasonal_leaderboards', _enableSeasonalLeaderboardsDefault);
   static bool get enableDeepLinking =>
       _featureFlag('deep_linking', _enableDeepLinkingDefault);
 

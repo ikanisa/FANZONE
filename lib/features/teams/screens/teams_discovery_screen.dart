@@ -11,6 +11,7 @@ import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/team/team_widgets.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Teams discovery screen — browse, search, and support teams.
 class TeamsDiscoveryScreen extends ConsumerStatefulWidget {
@@ -287,7 +288,7 @@ class _TeamsDiscoveryScreenState extends ConsumerState<TeamsDiscoveryScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const FzGlassLoader(message: 'Syncing...'),
         error: (_, _) => StateView.error(
           title: 'Could not load teams',
           onRetry: () => ref.invalidate(teamsProvider),

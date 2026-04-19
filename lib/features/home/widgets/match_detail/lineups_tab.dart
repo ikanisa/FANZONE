@@ -57,7 +57,7 @@ class _LineupsTab extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const FzGlassLoader(message: 'Syncing...'),
       error: (err, st) => StateView.error(
         title: 'Could not load lineups',
         onRetry: () => ref.invalidate(matchPlayerStatsProvider(match.id)),

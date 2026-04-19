@@ -3,6 +3,8 @@
 /// Phone presets are now backed by the `phone_presets` Supabase table
 /// via [BootstrapConfig].  The hardcoded switch statement is kept only
 /// as an offline fallback for first cold start.
+library;
+
 import '../config/bootstrap_config.dart';
 import '../config/runtime_bootstrap.dart';
 
@@ -101,34 +103,90 @@ PhonePreset phonePresetForRegion(String normalizedRegionKey) {
 PhonePreset? _hardcodedPresetForCountry(String? code) {
   switch (code) {
     case 'MT':
-      return const PhonePreset(dialCode: '+356', hint: '79XX XXXX', minDigits: 8);
+      return const PhonePreset(
+        dialCode: '+356',
+        hint: '79XX XXXX',
+        minDigits: 8,
+      );
     case 'RW':
-      return const PhonePreset(dialCode: '+250', hint: '7XX XXX XXX', minDigits: 9);
+      return const PhonePreset(
+        dialCode: '+250',
+        hint: '7XX XXX XXX',
+        minDigits: 9,
+      );
     case 'NG':
-      return const PhonePreset(dialCode: '+234', hint: '80X XXX XXXX', minDigits: 10);
+      return const PhonePreset(
+        dialCode: '+234',
+        hint: '80X XXX XXXX',
+        minDigits: 10,
+      );
     case 'KE':
-      return const PhonePreset(dialCode: '+254', hint: '7XX XXX XXX', minDigits: 9);
+      return const PhonePreset(
+        dialCode: '+254',
+        hint: '7XX XXX XXX',
+        minDigits: 9,
+      );
     case 'UG':
-      return const PhonePreset(dialCode: '+256', hint: '7XX XXX XXX', minDigits: 9);
+      return const PhonePreset(
+        dialCode: '+256',
+        hint: '7XX XXX XXX',
+        minDigits: 9,
+      );
     case 'GB':
-      return const PhonePreset(dialCode: '+44', hint: '7XXX XXX XXX', minDigits: 10);
+      return const PhonePreset(
+        dialCode: '+44',
+        hint: '7XXX XXX XXX',
+        minDigits: 10,
+      );
     case 'DE':
-      return const PhonePreset(dialCode: '+49', hint: '15XX XXX XXX', minDigits: 10);
+      return const PhonePreset(
+        dialCode: '+49',
+        hint: '15XX XXX XXX',
+        minDigits: 10,
+      );
     case 'FR':
-      return const PhonePreset(dialCode: '+33', hint: '6 XX XX XX XX', minDigits: 9);
+      return const PhonePreset(
+        dialCode: '+33',
+        hint: '6 XX XX XX XX',
+        minDigits: 9,
+      );
     case 'IT':
-      return const PhonePreset(dialCode: '+39', hint: '3XX XXX XXXX', minDigits: 10);
+      return const PhonePreset(
+        dialCode: '+39',
+        hint: '3XX XXX XXXX',
+        minDigits: 10,
+      );
     case 'ES':
-      return const PhonePreset(dialCode: '+34', hint: '6XX XXX XXX', minDigits: 9);
+      return const PhonePreset(
+        dialCode: '+34',
+        hint: '6XX XXX XXX',
+        minDigits: 9,
+      );
     case 'PT':
-      return const PhonePreset(dialCode: '+351', hint: '9XX XXX XXX', minDigits: 9);
+      return const PhonePreset(
+        dialCode: '+351',
+        hint: '9XX XXX XXX',
+        minDigits: 9,
+      );
     case 'NL':
-      return const PhonePreset(dialCode: '+31', hint: '6 XX XX XX XX', minDigits: 9);
+      return const PhonePreset(
+        dialCode: '+31',
+        hint: '6 XX XX XX XX',
+        minDigits: 9,
+      );
     case 'US':
     case 'CA':
-      return const PhonePreset(dialCode: '+1', hint: '555 123 4567', minDigits: 10);
+      return const PhonePreset(
+        dialCode: '+1',
+        hint: '555 123 4567',
+        minDigits: 10,
+      );
     case 'MX':
-      return const PhonePreset(dialCode: '+52', hint: '55 1234 5678', minDigits: 10);
+      return const PhonePreset(
+        dialCode: '+52',
+        hint: '55 1234 5678',
+        minDigits: 10,
+      );
     default:
       return null;
   }

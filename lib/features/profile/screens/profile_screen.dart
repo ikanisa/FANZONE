@@ -35,9 +35,7 @@ class ProfileScreen extends ConsumerWidget {
     final showWallet = isAuthenticated && flags.wallet;
     final showPredictions = isAuthenticated && flags.predictions;
     const showClubs = true;
-    final showRewards =
-        isAuthenticated &&
-        (flags.rewards || flags.marketplace);
+    final showRewards = isAuthenticated && (flags.rewards || flags.marketplace);
 
     return Scaffold(
       body: SafeArea(

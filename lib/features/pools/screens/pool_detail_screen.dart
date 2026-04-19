@@ -9,6 +9,7 @@ import '../../../theme/typography.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../core/config/feature_flags.dart';
 import '../widgets/pool_detail_sections.dart';
+import '../../../widgets/common/fz_shimmer.dart';
 
 /// Pool detail screen — full dedicated page matching the original design.
 ///
@@ -51,7 +52,7 @@ class PoolDetailScreen extends ConsumerWidget {
         ],
       ),
       body: poolAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ScoresPageSkeleton(),
         error: (e, _) => StateView.error(
           title: 'Cannot load pool',
           subtitle: e.toString(),

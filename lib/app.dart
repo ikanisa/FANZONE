@@ -45,9 +45,7 @@ class FanzoneApp extends ConsumerWidget {
       builder: (context, child) {
         return AppErrorBoundary(
           child: AppLifecycleObserverWidget(
-            child: _SessionExpiryGuard(
-              child: child ?? const SizedBox.shrink(),
-            ),
+            child: _SessionExpiryGuard(child: child ?? const SizedBox.shrink()),
           ),
         );
       },

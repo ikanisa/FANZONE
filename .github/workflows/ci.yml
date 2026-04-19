@@ -102,6 +102,9 @@ jobs:
             supabase/functions/whatsapp-otp/index.ts \
             supabase/functions/auto-settle/index.ts \
             supabase/functions/push-notify/index.ts \
+            supabase/functions/dispatch-match-alerts/index.ts \
+            supabase/functions/dispatch-match-alerts/dispatch.ts \
+            supabase/functions/dispatch-match-alerts/dispatch_test.ts \
             supabase/functions/gemini-team-news/index.ts \
             supabase/functions/gemini-currency-rates/index.ts
 
@@ -111,6 +114,7 @@ jobs:
             supabase/functions/whatsapp-otp/index.ts \
             supabase/functions/auto-settle/index.ts \
             supabase/functions/push-notify/index.ts \
+            supabase/functions/dispatch-match-alerts/index.ts \
             supabase/functions/gemini-team-news/index.ts \
             supabase/functions/gemini-currency-rates/index.ts
 

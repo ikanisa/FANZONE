@@ -4,7 +4,6 @@ import '../../../data/team_search_database.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import 'team_search_catalog.dart';
 
 abstract class OnboardingGateway {
   List<OnboardingTeam> get allTeams;
@@ -144,9 +143,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
       debugLabel: 'favorite teams',
     );
 
-    return cached
-        .map(FavoriteTeamRecordDto.fromJson)
-        .toList(growable: false);
+    return cached.map(FavoriteTeamRecordDto.fromJson).toList(growable: false);
   }
 
   @override
@@ -170,9 +167,8 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
 
       final remoteRows = (data as List)
           .map(
-            (row) => FavoriteTeamRecordDto.fromJson(
-              Map<String, dynamic>.from(row),
-            ),
+            (row) =>
+                FavoriteTeamRecordDto.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
       if (remoteRows.isNotEmpty) {
@@ -347,9 +343,28 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     }
     final code = countryCode.toUpperCase();
     const african = {
-      'RW', 'NG', 'KE', 'ZA', 'EG', 'TZ', 'UG', 'GH',
-      'TN', 'DZ', 'MA', 'CD', 'SN', 'CI', 'ML', 'BF',
-      'NE', 'TG', 'BJ', 'GW', 'ET', 'CM',
+      'RW',
+      'NG',
+      'KE',
+      'ZA',
+      'EG',
+      'TZ',
+      'UG',
+      'GH',
+      'TN',
+      'DZ',
+      'MA',
+      'CD',
+      'SN',
+      'CI',
+      'ML',
+      'BF',
+      'NE',
+      'TG',
+      'BJ',
+      'GW',
+      'ET',
+      'CM',
     };
     const northAmerican = {'US', 'CA', 'MX'};
 

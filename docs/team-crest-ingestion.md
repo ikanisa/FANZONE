@@ -124,6 +124,8 @@ The function accepts either:
 - service-role bearer auth
 - `x-team-crest-sync-secret`
 
+The deployed function should use `--no-verify-jwt` because the authorization model is enforced inside the function itself. This keeps batch and cron callers from needing an extra platform JWT on top of the sync secret.
+
 ## Required environment variables
 
 - `SUPABASE_URL`
@@ -136,3 +138,20 @@ Optional:
 - `TEAM_CREST_SYNC_SECRET`
 - `TEAM_CREST_BUCKET`
 
+## Deploy
+
+Once the machine has access to the target Supabase project and the remote DB password:
+
+```bash
+SUPABASE_DB_PASSWORD=... \
+GEMINI_API_KEY=... \
+TEAM_CREST_SYNC_SECRET=... \
+./tool/deploy_team_crests.sh kjuhheobmdvjwgnzlcwx
+```
+
+What the script does:
+
+- links the repo to the target Supabase project
+- pushes the new crest-registry migration
+- updates function secrets when provided
+- deploys `gemini-team-crests` with `--no-verify-jwt`

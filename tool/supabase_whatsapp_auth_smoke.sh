@@ -102,6 +102,28 @@ if [[ -n "${WHATSAPP_AUTH_TEST_PHONE:-}" ]]; then
     echo "Running live WhatsApp OTP verify smoke..."
     verify_status="$(call_whatsapp_auth "live_verify" "$(printf '{"action":"verify","phone":"%s","otp":"%s"}' "${WHATSAPP_AUTH_TEST_PHONE}" "${WHATSAPP_AUTH_TEST_OTP}")")"
     expect_status "live_verify" "${verify_status}" "200"
+
+    LIVE_VERIFY_BODY="$(cat "${tmp_dir}/live_verify.body")" python3 - <<'PY'
+import json
+import os
+import sys
+
+payload = json.loads(os.environ["LIVE_VERIFY_BODY"])
+
+if payload.get("success") is not True:
+    print("Live WhatsApp verify response did not report success.")
+    sys.exit(1)
+
+if not isinstance(payload.get("access_token"), str) or not payload["access_token"]:
+    print("Live WhatsApp verify response is missing access_token.")
+    sys.exit(1)
+
+if not isinstance(payload.get("session_string"), str) or not payload["session_string"]:
+    print("Live WhatsApp verify response is missing session_string.")
+    sys.exit(1)
+
+print("live_verify payload OK")
+PY
   fi
 fi
 

@@ -16,6 +16,7 @@ import '../../../widgets/common/fz_badge.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
+import '../../../widgets/common/fz_shimmer.dart';
 
 class HomeFeedScreen extends ConsumerWidget {
   const HomeFeedScreen({super.key});
@@ -169,7 +170,7 @@ class HomeFeedScreen extends ConsumerWidget {
                 },
                 loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 80),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const ScoresPageSkeleton(),
                 ),
                 error: (error, stackTrace) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 60),

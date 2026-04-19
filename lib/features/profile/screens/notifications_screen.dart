@@ -11,6 +11,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Inbox screen aligned to the original reference shell and naming.
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -218,7 +219,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const FzGlassLoader(message: 'Syncing...'),
                 error: (error, stackTrace) => Center(
                   child: StateView.error(
                     title: 'Could not load inbox',
@@ -421,7 +422,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
             ),
           ],
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const FzGlassLoader(message: 'Syncing...'),
         error: (error, stackTrace) => Center(
           child: StateView.error(
             title: 'Could not load settings',

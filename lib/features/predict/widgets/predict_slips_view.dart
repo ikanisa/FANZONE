@@ -38,7 +38,7 @@ class _MySlipsView extends StatelessWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const FzGlassLoader(message: 'Syncing...'),
       error: (error, stack) => StateView.error(
         title: 'Could not load slips',
         subtitle: 'Pull down to try again.',

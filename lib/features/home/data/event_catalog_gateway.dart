@@ -1,4 +1,3 @@
-
 import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -93,7 +92,9 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
     }
 
     try {
-      final rows = await client.from('global_challenge_catalog_entries').select();
+      final rows = await client
+          .from('global_challenge_catalog_entries')
+          .select();
       final challenges = (rows as List)
           .whereType<Map>()
           .map(

@@ -165,9 +165,7 @@ class BootstrapConfig {
           .map((entry) => entry.value.toJson()..['country_code'] = entry.key)
           .toList(growable: false),
       'currency_display': currencyDisplay.entries
-          .map(
-            (entry) => entry.value.toJson()..['currency_code'] = entry.key,
-          )
+          .map((entry) => entry.value.toJson()..['currency_code'] = entry.key)
           .toList(growable: false),
       'feature_flags': featureFlags,
       'app_config': appConfig,

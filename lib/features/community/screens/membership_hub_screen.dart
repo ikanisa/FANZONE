@@ -15,6 +15,7 @@ import '../widgets/contribution_history_list.dart';
 import '../widgets/digital_membership_card.dart';
 import '../widgets/membership_details_card.dart';
 import '../widgets/membership_hub_widgets.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 class MembershipHubScreen extends ConsumerStatefulWidget {
   const MembershipHubScreen({super.key});
@@ -120,7 +121,7 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                   RepaintBoundary(
                     child: contributionsAsync.when(
                       data: (contributions) => ContributionHistoryList(contributions: contributions, membershipTier: membershipTier),
-                      loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: CircularProgressIndicator())),
+                      loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: const FzGlassLoader(message: 'Syncing...')),
                       error: (error, stackTrace) => StateView.error(
                         title: 'Could not load contribution history',
                         onRetry: () => ref.invalidate(teamContributionHistoryProvider(activeClub.id)),
@@ -159,7 +160,7 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const FzGlassLoader(message: 'Syncing...'),
         error: (error, stackTrace) => StateView.error(title: 'Could not load membership hub', onRetry: () => ref.invalidate(teamsProvider)),
       ),
     );

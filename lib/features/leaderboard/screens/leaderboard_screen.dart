@@ -8,6 +8,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/state_view.dart';
 import '../widgets/leaderboard_widgets.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Canonical leaderboard screen aligned to the reference UI.
 class LeaderboardScreen extends ConsumerStatefulWidget {
@@ -81,7 +82,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         ),
       ),
       body: leaderboardAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const FzGlassLoader(message: 'Syncing...'),
         error: (error, stackTrace) => StateView.error(
           title: 'Could not load leaderboard',
           onRetry: () => ref.invalidate(globalLeaderboardProvider),

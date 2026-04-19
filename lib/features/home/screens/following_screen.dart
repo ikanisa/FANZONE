@@ -15,6 +15,7 @@ import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 import '../widgets/following_widgets.dart';
+import '../../../widgets/common/fz_shimmer.dart';
 
 class FollowingScreen extends ConsumerStatefulWidget {
   const FollowingScreen({super.key});
@@ -76,7 +77,7 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen>
         ),
       ),
       body: favouritesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ScoresPageSkeleton(),
         error: (err, st) => Center(
           child: StateView.error(
             title: 'Could not load favourites',
@@ -227,7 +228,7 @@ class _FollowedMatchesTab extends ConsumerWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ScoresPageSkeleton(),
       error: (err, st) => StateView.error(
         title: 'Could not load matches',
         onRetry: () => ref.invalidate(_followedMatchesProvider),

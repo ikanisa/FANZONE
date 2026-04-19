@@ -14,6 +14,7 @@ import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 import '../../../widgets/match/standings_table.dart';
+import '../../../widgets/common/fz_shimmer.dart';
 
 class LeagueHubScreen extends ConsumerWidget {
   const LeagueHubScreen({super.key, required this.leagueId});
@@ -131,7 +132,7 @@ class LeagueHubScreen extends ConsumerWidget {
         );
       },
       loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+          const Scaffold(body: ScoresPageSkeleton()),
       error: (error, stack) => Scaffold(
         appBar: AppBar(title: const Text('Competition')),
         body: StateView.error(
@@ -170,7 +171,7 @@ class _LeagueTableTab extends StatelessWidget {
           },
           loading: () => const FzCard(
             padding: EdgeInsets.all(20),
-            child: Center(child: CircularProgressIndicator()),
+            child: const ScoresPageSkeleton(),
           ),
           error: (error, stackTrace) => StateView.empty(
             title: 'No table',
@@ -234,7 +235,7 @@ class _LeagueFixturesTab extends StatelessWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ScoresPageSkeleton(),
       error: (error, stackTrace) => StateView.error(
         title: 'Fixtures unavailable',
         subtitle: 'Try again later.',
@@ -273,7 +274,7 @@ class _LeagueResultsTab extends StatelessWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ScoresPageSkeleton(),
       error: (error, stackTrace) => StateView.error(
         title: 'Results unavailable',
         subtitle: 'Try again later.',
@@ -328,7 +329,7 @@ class _LeagueTeamsTab extends StatelessWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ScoresPageSkeleton(),
       error: (error, stackTrace) => StateView.error(
         title: 'Teams unavailable',
         subtitle: 'Try again later.',
@@ -450,7 +451,7 @@ class _LeagueStatsTab extends StatelessWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ScoresPageSkeleton(),
       error: (_, _) => StateView.empty(
         title: 'Competition stats unavailable',
         subtitle: 'Try again later.',

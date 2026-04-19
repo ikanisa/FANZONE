@@ -8,6 +8,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../services/privacy_settings_service.dart';
 import '../../../theme/colors.dart';
 import '../widgets/privacy_widgets.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 class PrivacySettingsScreen extends ConsumerStatefulWidget {
   const PrivacySettingsScreen({super.key});
@@ -100,7 +101,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
             PrivacySettingsHeader(onBack: () => context.go('/profile'), muted: muted, textColor: textColor),
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const FzGlassLoader(message: 'Syncing...')
                   : Align(
                       alignment: Alignment.topCenter,
                       child: ConstrainedBox(

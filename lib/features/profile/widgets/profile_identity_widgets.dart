@@ -8,6 +8,7 @@ import '../../../theme/radii.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fet_display.dart';
 import '../../../widgets/match/match_list_widgets.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 class ProfileHeaderCard extends ConsumerWidget {
   const ProfileHeaderCard({
@@ -277,7 +278,7 @@ class ProfileHeaderCard extends ConsumerWidget {
               loading: () => const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: const FzGlassLoader(useBackdrop: false),
               ),
               error: (_, _) => Text(
                 'SUPPORTED TEAMS UNAVAILABLE',

@@ -10,6 +10,7 @@ import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -94,7 +95,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   ],
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const FzGlassLoader(message: 'Syncing...'),
               error: (error, stackTrace) => StateView.error(
                 title: 'Search unavailable',
                 subtitle: 'Try again.',

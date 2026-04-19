@@ -10,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/feed_provider.dart';
 import '../../theme/colors.dart';
 import '../common/state_view.dart';
+import '../../widgets/common/fz_glass_loader.dart';
 
 /// Reusable social feed chat widget — drop into any channel.
 ///
@@ -131,7 +132,7 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                 },
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const FzGlassLoader(message: 'Syncing...'),
             error: (e, _) => StateView.error(
               title: 'Could not load chat',
               onRetry: () => ref.invalidate(feedMessagesProvider(_channelKey)),

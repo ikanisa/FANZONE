@@ -11,6 +11,7 @@ import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 enum _OddsFormat { decimal, fractional, american }
 
@@ -144,7 +145,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: CircularProgressIndicator()),
+                child: const FzGlassLoader(message: 'Syncing...'),
               ),
               error: (_, _) => FzCard(
                 padding: const EdgeInsets.all(16),

@@ -8,6 +8,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Weekly Jackpot Challenge screen — 10-match prediction challenge.
 ///
@@ -215,7 +216,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
                 },
                 loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const FzGlassLoader(message: 'Syncing...'),
                 ),
                 error: (error, _) => StateView.fromError(
                   error,

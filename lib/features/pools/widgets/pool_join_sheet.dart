@@ -14,6 +14,7 @@ import '../../../services/pool_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Shows the pool join bottom sheet.
 Future<void> showPoolJoinSheet(

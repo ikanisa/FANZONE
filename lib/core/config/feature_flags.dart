@@ -11,6 +11,8 @@
 ///   final flags = ref.read(featureFlagsProvider);
 ///   if (flags.predictions) { ... }
 ///   ```
+library;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/app_config.dart';
@@ -33,8 +35,10 @@ class FeatureFlags {
   bool get leaderboard => _flag('leaderboard', AppConfig.enableLeaderboard);
   bool get rewards => _flag('rewards', AppConfig.enableRewards);
   bool get membership => _flag('membership', AppConfig.enableMembership);
-  bool get notifications => _flag('notifications', AppConfig.enableNotifications);
-  bool get teamCommunities => _flag('team_communities', AppConfig.enableTeamCommunities);
+  bool get notifications =>
+      _flag('notifications', AppConfig.enableNotifications);
+  bool get teamCommunities =>
+      _flag('team_communities', AppConfig.enableTeamCommunities);
 
   // ── V2 Features ──
 
@@ -42,16 +46,22 @@ class FeatureFlags {
   bool get fanIdentity => _flag('fan_identity', AppConfig.enableFanIdentity);
   bool get marketplace => _flag('marketplace', AppConfig.enableMarketplace);
   bool get aiAnalysis => _flag('ai_analysis', AppConfig.enableAiAnalysis);
-  bool get advancedStats => _flag('advanced_stats', AppConfig.enableAdvancedStats);
-  bool get communityContests => _flag('community_contests', AppConfig.enableCommunityContests);
-  bool get seasonalLeaderboards => _flag('seasonal_leaderboards', AppConfig.enableSeasonalLeaderboards);
+  bool get advancedStats =>
+      _flag('advanced_stats', AppConfig.enableAdvancedStats);
+  bool get communityContests =>
+      _flag('community_contests', AppConfig.enableCommunityContests);
+  bool get seasonalLeaderboards =>
+      _flag('seasonal_leaderboards', AppConfig.enableSeasonalLeaderboards);
   bool get deepLinking => _flag('deep_linking', AppConfig.enableDeepLinking);
 
   // ── Global Launch Features ──
 
-  bool get featuredEvents => _flag('featured_events', AppConfig.enableFeaturedEvents);
-  bool get globalChallenges => _flag('global_challenges', AppConfig.enableGlobalChallenges);
-  bool get regionDiscovery => _flag('region_discovery', AppConfig.enableRegionDiscovery);
+  bool get featuredEvents =>
+      _flag('featured_events', AppConfig.enableFeaturedEvents);
+  bool get globalChallenges =>
+      _flag('global_challenges', AppConfig.enableGlobalChallenges);
+  bool get regionDiscovery =>
+      _flag('region_discovery', AppConfig.enableRegionDiscovery);
 
   /// Check any flag by name (for dynamic/generic use).
   bool isEnabled(String key, {bool defaultValue = false}) =>

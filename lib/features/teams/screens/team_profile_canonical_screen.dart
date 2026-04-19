@@ -15,6 +15,7 @@ import '../../../theme/colors.dart';
 import '../../../widgets/common/state_view.dart';
 import '../widgets/team_profile_header.dart';
 import '../widgets/team_profile_tabs.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 class TeamProfileScreen extends ConsumerStatefulWidget {
   const TeamProfileScreen({super.key, required this.teamId});
@@ -115,7 +116,7 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
         );
       },
       loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: const FzGlassLoader(message: 'Syncing...'),
       ),
       error: (error, _) => _buildStateScaffold(
         context,

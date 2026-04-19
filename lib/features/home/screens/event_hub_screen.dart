@@ -12,6 +12,7 @@ import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import 'package:go_router/go_router.dart';
+import '../../../widgets/common/fz_shimmer.dart';
 
 /// Screen for a featured event (World Cup, UCL Final, etc.).
 ///
@@ -51,7 +52,7 @@ class EventHubScreen extends ConsumerWidget {
               showGlobalChallenges: ref.watch(featureFlagsProvider).globalChallenges,
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const ScoresPageSkeleton(),
           error: (error, _) => StateView.error(
             title: 'Could not load event',
             onRetry: () => ref.invalidate(featuredEventByTagProvider(eventTag)),
@@ -232,7 +233,7 @@ class _EventContent extends StatelessWidget {
             },
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: Center(child: CircularProgressIndicator()),
+              child: const ScoresPageSkeleton(),
             ),
             error: (_, _) =>
                 StateView.error(title: 'Could not load challenges'),

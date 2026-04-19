@@ -15,6 +15,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 class RewardsScreen extends ConsumerWidget {
   const RewardsScreen({super.key});
@@ -122,7 +123,7 @@ class RewardsScreen extends ConsumerWidget {
               },
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 32),
-                child: Center(child: CircularProgressIndicator()),
+                child: const FzGlassLoader(message: 'Syncing...'),
               ),
               error: (_, _) => StateView.error(
                 title: 'Could not load rewards',
@@ -164,7 +165,7 @@ class RewardsScreen extends ConsumerWidget {
                 },
                 loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const FzGlassLoader(message: 'Syncing...'),
                 ),
                 error: (_, _) => StateView.error(
                   title: 'Could not load redemption history',

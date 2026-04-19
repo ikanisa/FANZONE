@@ -1,4 +1,7 @@
-import { DEFAULT_GEMINI_MODEL } from "./constants.ts";
+import {
+  DEFAULT_GEMINI_FALLBACK_MODEL,
+  DEFAULT_GEMINI_MODEL,
+} from "./constants.ts";
 import { HttpError, requireEnv } from "./http.ts";
 import { crestLookupResponseSchema } from "./schemas.ts";
 import type {
@@ -301,64 +304,114 @@ export async function fetchCrestCandidate(
   input: TeamCrestInput,
 ): Promise<GeminiLookupResult> {
   const apiKey = requireEnv("GEMINI_API_KEY");
-  const modelName = Deno.env.get("GEMINI_MODEL")?.trim() ||
+  const primaryModelName = Deno.env.get("GEMINI_MODEL")?.trim() ||
     DEFAULT_GEMINI_MODEL;
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${
-      encodeURIComponent(apiKey)
-    }`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: buildPrompt(input) }],
-        }],
-        tools: [
-          { googleSearch: {} },
-          { urlContext: {} },
-        ],
-        generationConfig: {
-          temperature: 0.1,
-          responseMimeType: "application/json",
-          responseJsonSchema: crestLookupResponseSchema,
-        },
-      }),
-      signal: AbortSignal.timeout(45_000),
-    },
-  );
+  const fallbackModelName = Deno.env.get("GEMINI_FALLBACK_MODEL")?.trim() ||
+    DEFAULT_GEMINI_FALLBACK_MODEL;
 
-  const rawText = await response.text();
-  let raw: Record<string, unknown>;
+  const tryModel = async (modelName: string) => {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${
+        encodeURIComponent(apiKey)
+      }`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: buildPrompt(input) }],
+          }],
+          tools: [
+            { googleSearch: {} },
+            { urlContext: {} },
+          ],
+          generationConfig: {
+            temperature: 0.1,
+            responseMimeType: "application/json",
+            responseJsonSchema: crestLookupResponseSchema,
+          },
+        }),
+        signal: AbortSignal.timeout(45_000),
+      },
+    );
+
+    const rawText = await response.text();
+    let raw: Record<string, unknown>;
+
+    try {
+      raw = JSON.parse(rawText) as Record<string, unknown>;
+    } catch {
+      throw new HttpError(
+        502,
+        "Gemini returned a non-JSON HTTP response.",
+        {
+          model_name: modelName,
+          rawText,
+        },
+      );
+    }
+
+    if (!response.ok) {
+      throw new HttpError(
+        response.status === 429 ? 429 : 502,
+        response.status === 429
+          ? "Gemini API rate limit or quota exceeded."
+          : "Gemini API request failed.",
+        {
+          model_name: modelName,
+          response: raw,
+          status: response.status,
+        },
+      );
+    }
+
+    const text = extractResponseText(raw);
+
+    return {
+      raw_response: raw,
+      parsed: parseStructuredResponse(text),
+      grounding: extractGrounding(raw),
+      model_name: modelName,
+    } satisfies GeminiLookupResult;
+  };
 
   try {
-    raw = JSON.parse(rawText) as Record<string, unknown>;
-  } catch {
-    throw new HttpError(
-      502,
-      "Gemini returned a non-JSON HTTP response.",
-      rawText,
-    );
+    return await tryModel(primaryModelName);
+  } catch (error) {
+    const shouldFallback = error instanceof HttpError &&
+      (error.status === 429 || error.status >= 500) &&
+      fallbackModelName &&
+      fallbackModelName !== primaryModelName;
+
+    if (!shouldFallback) {
+      throw error;
+    }
+
+    console.warn("[gemini-team-crests] Primary Gemini model failed, retrying fallback model.", {
+      primary_model: primaryModelName,
+      fallback_model: fallbackModelName,
+      error,
+    });
+
+    try {
+      return await tryModel(fallbackModelName);
+    } catch (fallbackError) {
+      throw new HttpError(
+        fallbackError instanceof HttpError ? fallbackError.status : 502,
+        fallbackError instanceof HttpError
+          ? fallbackError.message
+          : "Gemini fallback model request failed.",
+        {
+          primary_model: primaryModelName,
+          fallback_model: fallbackModelName,
+          primary_error: error instanceof HttpError ? error.details ?? error.message : String(error),
+          fallback_error: fallbackError instanceof HttpError
+            ? fallbackError.details ?? fallbackError.message
+            : String(fallbackError),
+        },
+      );
+    }
   }
-
-  if (!response.ok) {
-    throw new HttpError(
-      response.status === 429 ? 429 : 502,
-      response.status === 429
-        ? "Gemini API rate limit or quota exceeded."
-        : "Gemini API request failed.",
-      raw,
-    );
-  }
-
-  const text = extractResponseText(raw);
-
-  return {
-    raw_response: raw,
-    parsed: parseStructuredResponse(text),
-    grounding: extractGrounding(raw),
-    model_name: modelName,
-  };
 }

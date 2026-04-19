@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/theme/app_theme.dart';
 
 Future<void> pumpAppScreen(
@@ -14,6 +15,7 @@ Future<void> pumpAppScreen(
   bool reduceMotion = true,
 }) async {
   SharedPreferences.setMockInitialValues({});
+  final sharedPreferences = await SharedPreferences.getInstance();
   tester.view
     ..physicalSize = surfaceSize
     ..devicePixelRatio = 1;
@@ -24,7 +26,10 @@ Future<void> pumpAppScreen(
 
   await tester.pumpWidget(
     ProviderScope(
-      overrides: overrides,
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+        ...overrides,
+      ],
       child: MediaQuery(
         data: MediaQueryData(
           size: surfaceSize,

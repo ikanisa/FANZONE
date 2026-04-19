@@ -23,6 +23,7 @@ import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_shimmer.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
+import 'package:fanzone/widgets/common/fz_glass_loader.dart';
 
 part '../widgets/predict_pool_create_sheet.dart';
 part '../widgets/predict_pool_join_sheet.dart';

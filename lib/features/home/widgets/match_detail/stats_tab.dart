@@ -285,7 +285,7 @@ class _StatsTab extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const FzGlassLoader(message: 'Syncing...'),
       error: (err, st) => _BasicStatsView(
         match: match,
         isDark: isDark,

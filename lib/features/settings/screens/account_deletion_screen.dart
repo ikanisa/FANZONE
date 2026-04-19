@@ -11,6 +11,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 class AccountDeletionScreen extends ConsumerStatefulWidget {
   const AccountDeletionScreen({super.key});
@@ -184,7 +185,7 @@ class _AccountDeletionScreenState extends ConsumerState<AccountDeletionScreen> {
           else if (_loading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 32),
-              child: Center(child: CircularProgressIndicator()),
+              child: const FzGlassLoader(message: 'Syncing...'),
             )
           else if (_error != null && _request == null)
             StateView.error(
@@ -226,7 +227,7 @@ class _AccountDeletionScreenState extends ConsumerState<AccountDeletionScreen> {
                           ? const SizedBox(
                               width: 14,
                               height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: const FzGlassLoader(useBackdrop: false),
                             )
                           : const Icon(LucideIcons.xCircle, size: 16),
                       label: Text(
