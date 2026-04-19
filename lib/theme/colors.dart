@@ -18,13 +18,13 @@ abstract final class FzColors {
   // Dark Theme (default) — Warm Stone palette
   // Night Sandstone foundation — UNTOUCHED.
   // ════════════════════════════════════════════
-  static const darkBg = Color(0xFF0C0A09);       // Stone 950
-  static const darkSurface = Color(0xFF1C1917);   // Stone 900
-  static const darkSurface2 = Color(0xFF292524);  // Stone 800
-  static const darkSurface3 = Color(0xFF44403C);  // Stone 700
-  static const darkBorder = Color(0xFF292524);    // Stone 800
-  static const darkText = Color(0xFFFDFCF0);      // Cream — enhanced readability
-  static const darkMuted = Color(0xFFA8A29E);     // Stone 400
+  static const darkBg = Color(0xFF09090B);
+  static const darkSurface = Color(0xFF131418);
+  static const darkSurface2 = Color(0xFF18191E);
+  static const darkSurface3 = Color(0xFF22232A);
+  static const darkBorder = Color(0xFF272831);
+  static const darkText = Color(0xFFFDFCF0);
+  static const darkMuted = Color(0xFF8B8E99);
 
   // ════════════════════════════════════════════
   // Light Theme

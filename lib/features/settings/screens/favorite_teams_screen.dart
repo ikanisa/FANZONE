@@ -23,7 +23,7 @@ class FavoriteTeamsScreen extends ConsumerStatefulWidget {
 class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
-  List<Map<String, dynamic>> _savedTeams = [];
+  List<FavoriteTeamRecordDto> _savedTeams = [];
   bool _loading = true;
 
   @override
@@ -129,7 +129,7 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
                   const SizedBox(height: 8),
                   ...searchResults.map((team) {
                     final alreadyAdded = _savedTeams.any(
-                      (t) => t['team_id'] == team.id,
+                      (saved) => saved.teamId == team.id,
                     );
                     return ListTile(
                       leading: TeamCrest(
@@ -217,10 +217,10 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
                   ),
 
                 ..._savedTeams.map((saved) {
-                  final name = saved['team_name'] ?? 'Unknown';
-                  final countryCode = saved['team_country_code'] ?? '';
-                  final source = saved['source'] ?? '';
-                  final teamId = saved['team_id'] ?? '';
+                  final name = saved.teamName;
+                  final countryCode = saved.teamCountryCode ?? '';
+                  final source = saved.source;
+                  final teamId = saved.teamId;
 
                   // Try to find the team in DB for emoji
                   final dbTeam = allTeams
@@ -244,9 +244,7 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
                     child: ListTile(
                       leading: TeamCrest(
                         label: dbTeam?.shortName ?? name,
-                        crestUrl:
-                            saved['team_crest_url']?.toString() ??
-                            dbTeam?.resolvedCrestUrl,
+                        crestUrl: saved.teamCrestUrl ?? dbTeam?.resolvedCrestUrl,
                         fallbackEmoji: dbTeam?.logoEmoji ?? '⚽',
                         size: 40,
                         backgroundColor: isDark

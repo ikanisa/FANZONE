@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/accessibility/motion.dart';
+
 /// Wraps a child widget with a staggered fade + slide-up entrance animation.
 ///
 /// Used for list items (match cards, pool cards, etc.) to create the
@@ -38,14 +40,13 @@ class _FzAnimatedEntryState extends State<FzAnimatedEntry>
   late final AnimationController _controller;
   late final Animation<double> _opacity;
   late final Animation<Offset> _slide;
+  bool _didScheduleForward = false;
+  bool _prefersReducedMotion = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: widget.duration,
-      vsync: this,
-    );
+    _controller = AnimationController(duration: widget.duration, vsync: this);
 
     final curved = CurvedAnimation(
       parent: _controller,
@@ -57,6 +58,23 @@ class _FzAnimatedEntryState extends State<FzAnimatedEntry>
       begin: Offset(0, widget.slideOffset),
       end: Offset.zero,
     ).animate(curved);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _prefersReducedMotion = prefersReducedMotion(context);
+
+    if (_prefersReducedMotion) {
+      _controller.value = 1;
+      return;
+    }
+
+    if (_didScheduleForward) {
+      return;
+    }
+
+    _didScheduleForward = true;
 
     // Stagger based on index — cap at 8 items to avoid long waits
     final cappedIndex = widget.index.clamp(0, 8);
@@ -75,12 +93,13 @@ class _FzAnimatedEntryState extends State<FzAnimatedEntry>
 
   @override
   Widget build(BuildContext context) {
+    if (_prefersReducedMotion) {
+      return widget.child;
+    }
+
     return FadeTransition(
       opacity: _opacity,
-      child: SlideTransition(
-        position: _slide,
-        child: widget.child,
-      ),
+      child: SlideTransition(position: _slide, child: widget.child),
     );
   }
 }

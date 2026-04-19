@@ -124,24 +124,32 @@ class ProfileScreen extends ConsumerWidget {
                       style: TextStyle(fontSize: 12, color: muted),
                     )
                   else
-                    GestureDetector(
-                      onTap: () => context.go('/login'),
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: FzColors.accent.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          'Verify phone to unlock predictions and transfers',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: FzColors.accent,
+                    Semantics(
+                      button: true,
+                      label: 'Verify phone number',
+                      hint: 'Opens the phone verification screen',
+                      child: Tooltip(
+                        message: 'Verify phone number',
+                        child: GestureDetector(
+                          onTap: () => context.go('/login'),
+                          child: Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: FzColors.accent.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'Verify phone to unlock predictions and transfers',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: FzColors.accent,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -150,53 +158,65 @@ class ProfileScreen extends ConsumerWidget {
                   if (isAuthenticated && fanId != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: GestureDetector(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: fanId));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Fan ID copied'),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: FzColors.accent.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: FzColors.accent.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                LucideIcons.hash,
-                                size: 12,
-                                color: FzColors.accent.withValues(alpha: 0.7),
+                      child: Semantics(
+                        button: true,
+                        label: 'Copy Fan ID $fanId',
+                        hint: 'Copies your Fan ID to the clipboard',
+                        child: Tooltip(
+                          message: 'Copy Fan ID',
+                          child: GestureDetector(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: fanId));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Fan ID copied'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 5,
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Fan ID: $fanId',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: FzColors.accent,
-                                  letterSpacing: 1,
+                              decoration: BoxDecoration(
+                                color: FzColors.accent.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: FzColors.accent.withValues(alpha: 0.2),
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                LucideIcons.copy,
-                                size: 10,
-                                color: FzColors.accent.withValues(alpha: 0.6),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    LucideIcons.hash,
+                                    size: 12,
+                                    color: FzColors.accent.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Fan ID: $fanId',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: FzColors.accent,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    LucideIcons.copy,
+                                    size: 10,
+                                    color: FzColors.accent.withValues(
+                                      alpha: 0.6,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),

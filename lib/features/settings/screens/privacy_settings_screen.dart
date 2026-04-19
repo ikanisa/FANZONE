@@ -378,7 +378,8 @@ class _VisibilityToggle extends StatelessWidget {
                 child: Switch.adaptive(
                   value: value && enabled,
                   onChanged: enabled ? onChanged : null,
-                  activeColor: FzColors.accent,
+                  activeTrackColor: FzColors.accent.withValues(alpha: 0.35),
+                  activeThumbColor: FzColors.accent,
                 ),
               ),
             ],

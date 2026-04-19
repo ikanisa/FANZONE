@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../core/network/supabase_provider.dart';
 import '../../models/feed_message_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/feed_provider.dart';
@@ -48,9 +47,6 @@ class _FeedChatState extends ConsumerState<FeedChat> {
     final text = _controller.text.trim();
     if (text.isEmpty || _isSending) return;
 
-    final client = ref.read(supabaseClientProvider);
-    if (client == null) return;
-
     setState(() {
       _isSending = true;
       _error = null;
@@ -58,7 +54,6 @@ class _FeedChatState extends ConsumerState<FeedChat> {
 
     try {
       await sendFeedMessage(
-        client: client,
         channelType: widget.channelType,
         channelId: widget.channelId,
         content: text,
@@ -120,11 +115,8 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                     isDark: isDark,
                     muted: muted,
                     onReact: (emoji) async {
-                      final client = ref.read(supabaseClientProvider);
-                      if (client == null) return;
                       try {
                         await reactToMessage(
-                          client: client,
                           messageId: message.id,
                           emoji: emoji,
                         );

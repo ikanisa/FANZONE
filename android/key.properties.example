@@ -1,3 +1,7 @@
+# Copy this file to android/key.properties and replace every placeholder before
+# building production artifacts. You can also override each value at build time
+# with FANZONE_UPLOAD_STORE_FILE, FANZONE_UPLOAD_STORE_PASSWORD,
+# FANZONE_UPLOAD_KEY_ALIAS, and FANZONE_UPLOAD_KEY_PASSWORD.
 storeFile=upload-keystore.jks
 storePassword=replace-me
 keyAlias=upload

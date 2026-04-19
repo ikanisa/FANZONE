@@ -6,7 +6,7 @@ part of 'pool_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$poolDetailHash() => r'25c3309c04161be80205c2ba5ac64e4373ea74ca';
+String _$poolDetailHash() => r'1ac61b01cb851f76adab61c132cb2a21d0f87b6e';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,24 +29,16 @@ class _SystemHash {
   }
 }
 
-/// Provider for a single pool by ID — used by PoolDetailScreen.
-///
-/// Copied from [poolDetail].
+/// See also [poolDetail].
 @ProviderFor(poolDetail)
 const poolDetailProvider = PoolDetailFamily();
 
-/// Provider for a single pool by ID — used by PoolDetailScreen.
-///
-/// Copied from [poolDetail].
+/// See also [poolDetail].
 class PoolDetailFamily extends Family<AsyncValue<ScorePool?>> {
-  /// Provider for a single pool by ID — used by PoolDetailScreen.
-  ///
-  /// Copied from [poolDetail].
+  /// See also [poolDetail].
   const PoolDetailFamily();
 
-  /// Provider for a single pool by ID — used by PoolDetailScreen.
-  ///
-  /// Copied from [poolDetail].
+  /// See also [poolDetail].
   PoolDetailProvider call(String id) {
     return PoolDetailProvider(id);
   }
@@ -73,13 +65,9 @@ class PoolDetailFamily extends Family<AsyncValue<ScorePool?>> {
   String? get name => r'poolDetailProvider';
 }
 
-/// Provider for a single pool by ID — used by PoolDetailScreen.
-///
-/// Copied from [poolDetail].
+/// See also [poolDetail].
 class PoolDetailProvider extends AutoDisposeFutureProvider<ScorePool?> {
-  /// Provider for a single pool by ID — used by PoolDetailScreen.
-  ///
-  /// Copied from [poolDetail].
+  /// See also [poolDetail].
   PoolDetailProvider(String id)
     : this._internal(
         (ref) => poolDetail(ref as PoolDetailRef, id),
@@ -158,7 +146,7 @@ class _PoolDetailProviderElement
   String get id => (origin as PoolDetailProvider).id;
 }
 
-String _$poolServiceHash() => r'918652b462276dcf6d524e8bb7ead4d89d5566ae';
+String _$poolServiceHash() => r'282a5d828ae6d41cc4cdb7961f5be3e516400154';
 
 /// See also [PoolService].
 @ProviderFor(PoolService)
@@ -174,7 +162,7 @@ final poolServiceProvider =
     );
 
 typedef _$PoolService = AutoDisposeAsyncNotifier<List<ScorePool>>;
-String _$myEntriesHash() => r'ec114d79b643dd120888658c7da3f4a11698e4f4';
+String _$myEntriesHash() => r'e80933716b82455af8bec4a5c5e768d4f60e0394';
 
 /// See also [MyEntries].
 @ProviderFor(MyEntries)

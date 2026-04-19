@@ -37,6 +37,7 @@ migrate_working_dir/
 /ios/Pods/
 /android/vendor/
 /supabase/.temp/
+/output/
 
 # Environment secrets
 .env

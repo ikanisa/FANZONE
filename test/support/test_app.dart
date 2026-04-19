@@ -1,0 +1,47 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:fanzone/theme/app_theme.dart';
+
+Future<void> pumpAppScreen(
+  WidgetTester tester,
+  Widget child, {
+  List<Override> overrides = const [],
+  ThemeMode themeMode = ThemeMode.dark,
+  Size surfaceSize = const Size(390, 844),
+  bool reduceMotion = true,
+}) async {
+  SharedPreferences.setMockInitialValues({});
+  tester.view
+    ..physicalSize = surfaceSize
+    ..devicePixelRatio = 1;
+  addTearDown(() {
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: MediaQuery(
+        data: MediaQueryData(
+          size: surfaceSize,
+          devicePixelRatio: 1,
+          textScaler: TextScaler.noScaling,
+          disableAnimations: reduceMotion,
+          accessibleNavigation: reduceMotion,
+        ),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: FzTheme.light(),
+          darkTheme: FzTheme.dark(),
+          themeMode: themeMode,
+          home: child,
+        ),
+      ),
+    ),
+  );
+  await tester.pump();
+}

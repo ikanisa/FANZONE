@@ -6,11 +6,9 @@ part of 'daily_challenge_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$myDailyEntryHash() => r'277258a147964ee48f1817db45ec6cfb0c29490a';
+String _$myDailyEntryHash() => r'dc61bbfe667ed957bf68692e84cd53f6b5c7252f';
 
-/// Provider for the user's entry in today's challenge.
-///
-/// Copied from [myDailyEntry].
+/// See also [myDailyEntry].
 @ProviderFor(myDailyEntry)
 final myDailyEntryProvider =
     AutoDisposeFutureProvider<DailyChallengeEntry?>.internal(
@@ -27,11 +25,9 @@ final myDailyEntryProvider =
 // ignore: unused_element
 typedef MyDailyEntryRef = AutoDisposeFutureProviderRef<DailyChallengeEntry?>;
 String _$dailyChallengeHistoryHash() =>
-    r'f16db0191426523e410a34763f5e15dad8452aa3';
+    r'1c2d88c592d1a43088768c635db61b5eb95ae05d';
 
-/// Provider for user's daily challenge history (last 30 days).
-///
-/// Copied from [dailyChallengeHistory].
+/// See also [dailyChallengeHistory].
 @ProviderFor(dailyChallengeHistory)
 final dailyChallengeHistoryProvider =
     AutoDisposeFutureProvider<List<DailyChallengeEntry>>.internal(
@@ -49,11 +45,9 @@ final dailyChallengeHistoryProvider =
 typedef DailyChallengeHistoryRef =
     AutoDisposeFutureProviderRef<List<DailyChallengeEntry>>;
 String _$dailyChallengeServiceHash() =>
-    r'04c098aab32c86e93affe3fe1bd21708df8df28d';
+    r'576a827bafbc3305279d2f639480128a7a544f92';
 
-/// Service for daily free prediction challenges.
-///
-/// Copied from [DailyChallengeService].
+/// See also [DailyChallengeService].
 @ProviderFor(DailyChallengeService)
 final dailyChallengeServiceProvider =
     AutoDisposeAsyncNotifierProvider<

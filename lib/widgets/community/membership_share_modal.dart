@@ -15,16 +15,13 @@ import '../../../theme/typography.dart';
 /// - Premium card visualization with fan ID and tier
 /// - Supported clubs count
 /// - Share to socials + copy Fan ID
-void showMembershipShareModal(
-  BuildContext context, {
-  required WidgetRef ref,
-}) {
+void showMembershipShareModal(BuildContext context, {required WidgetRef ref}) {
   showModalBottomSheet<void>(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
-    builder: (_) => ProviderScope(
-      parent: ProviderScope.containerOf(context),
+    builder: (_) => UncontrolledProviderScope(
+      container: ProviderScope.containerOf(context),
       child: const _MembershipShareSheet(),
     ),
   );
@@ -42,7 +39,7 @@ class _MembershipShareSheet extends ConsumerWidget {
     final fanProfile = ref.watch(fanProfileProvider).valueOrNull;
     final supportedIds =
         ref.watch(supportedTeamsServiceProvider).valueOrNull ??
-            const <String>{};
+        const <String>{};
 
     final tier = _tierForLevel(fanProfile?.currentLevel ?? 0);
 
@@ -82,9 +79,7 @@ class _MembershipShareSheet extends ConsumerWidget {
                     ],
                   ),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: tier.color.withValues(alpha: 0.25),
-                  ),
+                  border: Border.all(color: tier.color.withValues(alpha: 0.25)),
                 ),
                 child: Column(
                   children: [
@@ -191,12 +186,10 @@ class _MembershipShareSheet extends ConsumerWidget {
                         HapticFeedback.selectionClick();
                         final text = fanId != null
                             ? '🏟️ I\'m Fan #$fanId on FANZONE!\n'
-                                '${tier.name} Tier • ${supportedIds.length} clubs supported\n'
-                                'Join me! https://play.google.com/store/apps/details?id=app.fanzone.football'
+                                  '${tier.name} Tier • ${supportedIds.length} clubs supported\n'
+                                  'Join me! https://play.google.com/store/apps/details?id=app.fanzone.football'
                             : '🏟️ Join me on FANZONE!\nhttps://play.google.com/store/apps/details?id=app.fanzone.football';
-                        await SharePlus.instance.share(
-                          ShareParams(text: text),
-                        );
+                        await SharePlus.instance.share(ShareParams(text: text));
                       },
                       icon: const Icon(Icons.share_rounded, size: 16),
                       label: const Text('Share Card'),
@@ -216,14 +209,10 @@ class _MembershipShareSheet extends ConsumerWidget {
                         ? null
                         : () async {
                             HapticFeedback.selectionClick();
-                            await Clipboard.setData(
-                              ClipboardData(text: fanId),
-                            );
+                            await Clipboard.setData(ClipboardData(text: fanId));
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Fan ID copied'),
-                              ),
+                              const SnackBar(content: Text('Fan ID copied')),
                             );
                           },
                     icon: const Icon(Icons.copy_rounded, size: 16),
@@ -231,8 +220,9 @@ class _MembershipShareSheet extends ConsumerWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: textColor,
                       side: BorderSide(
-                        color:
-                            isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                        color: isDark
+                            ? FzColors.darkBorder
+                            : FzColors.lightBorder,
                       ),
                       padding: const EdgeInsets.symmetric(
                         vertical: 14,
@@ -305,10 +295,7 @@ class _CardMetric extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(fontSize: 10, color: muted),
-        ),
+        Text(label, style: TextStyle(fontSize: 10, color: muted)),
       ],
     );
   }

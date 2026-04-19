@@ -4,18 +4,18 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../models/team_contribution_model.dart';
 import '../../../models/team_model.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../providers/fan_identity_provider.dart';
 import '../../../providers/teams_provider.dart';
 import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
-import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
-import '../../../widgets/match/match_list_widgets.dart';
 import '../../../widgets/team/team_widgets.dart';
+import '../widgets/contribution_history_list.dart';
+import '../widgets/digital_membership_card.dart';
+import '../widgets/membership_details_card.dart';
 
 enum _MembershipFilter { myClubs, malta, european }
 
@@ -52,11 +52,28 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
       appBar: AppBar(
         centerTitle: true,
         toolbarHeight: 68,
-        title: _HubAppBarTitle(
-          kicker: 'Fan Clubs',
-          title: 'Membership Hub',
-          textColor: textColor,
-          muted: muted,
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'FAN CLUBS',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: muted,
+                letterSpacing: 1.1,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Membership Hub',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
+            ),
+          ],
         ),
       ),
       body: teamsAsync.when(
@@ -96,11 +113,13 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                         },
                 ),
                 const SizedBox(height: 10),
-                _DigitalMembershipCard(
-                  activeClub: activeClub,
-                  fanId: fanId,
-                  membershipTier: membershipTier,
-                  clubSplit: clubSplit,
+                RepaintBoundary(
+                  child: DigitalMembershipCard(
+                    activeClub: activeClub,
+                    fanId: fanId,
+                    membershipTier: membershipTier,
+                    clubSplit: clubSplit,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 const _SectionTitleRow(title: 'MEMBERSHIP DETAILS'),
@@ -113,13 +132,15 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                     icon: LucideIcons.badgeCheck,
                   )
                 else
-                  _MembershipDetailsCard(
-                    activeClub: activeClub,
-                    membershipTier: membershipTier,
-                    clubSplit: clubSplit,
-                    levelLabel: fanProfile != null
-                        ? 'Lv.${fanProfile.currentLevel}'
-                        : 'Supporter',
+                  RepaintBoundary(
+                    child: MembershipDetailsCard(
+                      activeClub: activeClub,
+                      membershipTier: membershipTier,
+                      clubSplit: clubSplit,
+                      levelLabel: fanProfile != null
+                          ? 'Lv.${fanProfile.currentLevel}'
+                          : 'Supporter',
+                    ),
                   ),
                 const SizedBox(height: 20),
                 const _SectionTitleRow(title: 'CONTRIBUTION HISTORY'),
@@ -132,19 +153,21 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                     icon: LucideIcons.receipt,
                   )
                 else
-                  contributionsAsync.when(
-                    data: (contributions) => _ContributionHistoryList(
-                      contributions: contributions,
-                      membershipTier: membershipTier,
-                    ),
-                    loading: () => const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (error, stackTrace) => StateView.error(
-                      title: 'Could not load contribution history',
-                      onRetry: () => ref.invalidate(
-                        teamContributionHistoryProvider(activeClub.id),
+                  RepaintBoundary(
+                    child: contributionsAsync.when(
+                      data: (contributions) => ContributionHistoryList(
+                        contributions: contributions,
+                        membershipTier: membershipTier,
+                      ),
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (error, stackTrace) => StateView.error(
+                        title: 'Could not load contribution history',
+                        onRetry: () => ref.invalidate(
+                          teamContributionHistoryProvider(activeClub.id),
+                        ),
                       ),
                     ),
                   ),
@@ -172,20 +195,13 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                     ],
                   )
                 else
-                  Column(
-                    children: [
-                      for (var i = 0; i < supportedTeams.length; i++) ...[
-                        SupportedTeamCard(
-                          team: supportedTeams[i],
-                          index: i,
-                          onTap: () => context.push(
-                            '/clubs/team/${supportedTeams[i].id}',
-                          ),
-                        ),
-                        if (i < supportedTeams.length - 1)
-                          const SizedBox(height: 8),
-                      ],
-                    ],
+                  RepaintBoundary(
+                    child: _ClubList(
+                      teams: supportedTeams,
+                      supportedIds: supportedIds,
+                      onTapTeam: (team) =>
+                          context.push('/clubs/team/${team.id}'),
+                    ),
                   ),
               ] else ...[
                 _DiscoverSearchCard(
@@ -213,29 +229,13 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                     ],
                   )
                 else
-                  Column(
-                    children: [
-                      for (var i = 0; i < filteredTeams.length; i++) ...[
-                        if (supportedIds.contains(filteredTeams[i].id))
-                          SupportedTeamCard(
-                            team: filteredTeams[i],
-                            index: i,
-                            onTap: () => context.push(
-                              '/clubs/team/${filteredTeams[i].id}',
-                            ),
-                          )
-                        else
-                          TeamCard(
-                            team: filteredTeams[i],
-                            index: i,
-                            onTap: () => context.push(
-                              '/clubs/team/${filteredTeams[i].id}',
-                            ),
-                          ),
-                        if (i < filteredTeams.length - 1)
-                          const SizedBox(height: 8),
-                      ],
-                    ],
+                  RepaintBoundary(
+                    child: _ClubList(
+                      teams: filteredTeams,
+                      supportedIds: supportedIds,
+                      onTapTeam: (team) =>
+                          context.push('/clubs/team/${team.id}'),
+                    ),
                   ),
               ],
             ],
@@ -312,43 +312,37 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
   }
 }
 
-class _HubAppBarTitle extends StatelessWidget {
-  const _HubAppBarTitle({
-    required this.kicker,
-    required this.title,
-    required this.textColor,
-    required this.muted,
+// ── Small private widgets kept inline (not worth separate files) ──
+
+class _ClubList extends StatelessWidget {
+  const _ClubList({
+    required this.teams,
+    required this.supportedIds,
+    required this.onTapTeam,
   });
 
-  final String kicker;
-  final String title;
-  final Color textColor;
-  final Color muted;
+  final List<TeamModel> teams;
+  final Set<String> supportedIds;
+  final ValueChanged<TeamModel> onTapTeam;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          kicker.toUpperCase(),
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: muted,
-            letterSpacing: 1.1,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: textColor,
-          ),
-        ),
-      ],
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: teams.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final team = teams[index];
+        if (supportedIds.contains(team.id)) {
+          return SupportedTeamCard(
+            team: team,
+            index: index,
+            onTap: () => onTapTeam(team),
+          );
+        }
+        return TeamCard(team: team, index: index, onTap: () => onTapTeam(team));
+      },
     );
   }
 }
@@ -377,17 +371,17 @@ class _MembershipTabBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _MembershipTabButton(
+          _TabButton(
             label: 'My Clubs',
             selected: filter == _MembershipFilter.myClubs,
             onTap: () => onChanged(_MembershipFilter.myClubs),
           ),
-          _MembershipTabButton(
+          _TabButton(
             label: 'Malta',
             selected: filter == _MembershipFilter.malta,
             onTap: () => onChanged(_MembershipFilter.malta),
           ),
-          _MembershipTabButton(
+          _TabButton(
             label: 'European Fan Clubs',
             selected: filter == _MembershipFilter.european,
             onTap: () => onChanged(_MembershipFilter.european),
@@ -398,8 +392,8 @@ class _MembershipTabBar extends StatelessWidget {
   }
 }
 
-class _MembershipTabButton extends StatelessWidget {
-  const _MembershipTabButton({
+class _TabButton extends StatelessWidget {
+  const _TabButton({
     required this.label,
     required this.selected,
     required this.onTap,
@@ -467,398 +461,6 @@ class _SectionTitleRow extends StatelessWidget {
         if (actionLabel != null && onAction != null)
           TextButton(onPressed: onAction, child: Text(actionLabel!)),
       ],
-    );
-  }
-}
-
-class _DigitalMembershipCard extends StatelessWidget {
-  const _DigitalMembershipCard({
-    required this.activeClub,
-    required this.fanId,
-    required this.membershipTier,
-    required this.clubSplit,
-  });
-
-  final TeamModel? activeClub;
-  final String? fanId;
-  final String membershipTier;
-  final int clubSplit;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? Colors.white70 : Colors.black54;
-    final formattedFanId = fanId == null || fanId!.length < 6
-        ? '— — —'
-        : '${fanId!.substring(0, 3)} ${fanId!.substring(3)}';
-
-    return FzCard(
-      padding: EdgeInsets.zero,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [FzColors.accent, FzColors.violet],
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    membershipTier.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white70,
-                      letterSpacing: 1.4,
-                    ),
-                  ),
-                ),
-                if (activeClub != null)
-                  TeamAvatar(
-                    name: activeClub!.name,
-                    logoUrl: activeClub!.logoUrl ?? activeClub!.crestUrl,
-                    size: 42,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Text(
-              activeClub?.name ?? 'FANZONE Supporter',
-              style: FzTypography.display(size: 28, color: Colors.white),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              activeClub == null
-                  ? 'Join a club to activate your supporter registry card.'
-                  : (activeClub!.leagueName ??
-                        activeClub!.country ??
-                        'Supporter registry'),
-              style: TextStyle(fontSize: 12, color: muted),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: _CardStat(label: 'Fan ID', value: formattedFanId),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _CardStat(
-                    label: 'Status',
-                    value: activeClub == null ? 'PENDING' : 'ACTIVE',
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _CardStat(label: 'FET Split', value: '$clubSplit%'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CardStat extends StatelessWidget {
-  const _CardStat({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: const TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              color: Colors.white70,
-              letterSpacing: 0.8,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MembershipDetailsCard extends StatelessWidget {
-  const _MembershipDetailsCard({
-    required this.activeClub,
-    required this.membershipTier,
-    required this.clubSplit,
-    required this.levelLabel,
-  });
-
-  final TeamModel activeClub;
-  final String membershipTier;
-  final int clubSplit;
-  final String levelLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    return FzCard(
-      padding: const EdgeInsets.all(20),
-      borderColor: FzColors.violet.withValues(alpha: 0.24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Align(
-            alignment: Alignment.topRight,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: FzColors.violet.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                membershipTier,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: FzColors.violet,
-                  letterSpacing: 0.7,
-                ),
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              TeamAvatar(
-                name: activeClub.name,
-                logoUrl: activeClub.logoUrl ?? activeClub.crestUrl,
-                size: 56,
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      activeClub.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      activeClub.leagueName ??
-                          activeClub.country ??
-                          'Supporter registry',
-                      style: TextStyle(fontSize: 12, color: muted),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _MembershipMetricCard(
-                  label: 'Supporter Tier',
-                  value: levelLabel,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _MembershipMetricCard(
-                  label: 'FET to Club',
-                  value: '$clubSplit%',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => context.push('/clubs/team/${activeClub.id}'),
-                  child: const Text('View Club'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton(
-                  onPressed: () => context.push('/wallet'),
-                  child: const Text('Support With FET'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MembershipMetricCard extends StatelessWidget {
-  const _MembershipMetricCard({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: muted,
-              letterSpacing: 0.8,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ContributionHistoryList extends StatelessWidget {
-  const _ContributionHistoryList({
-    required this.contributions,
-    required this.membershipTier,
-  });
-
-  final List<TeamContributionModel> contributions;
-  final String membershipTier;
-
-  @override
-  Widget build(BuildContext context) {
-    if (contributions.isEmpty) {
-      return StateView.empty(
-        title: 'No verified contributions yet',
-        subtitle:
-            'Your supporter payments and FET support will appear here once they are recorded.',
-        icon: LucideIcons.receipt,
-      );
-    }
-
-    return Column(
-      children: [
-        for (var i = 0; i < contributions.length; i++) ...[
-          _ContributionHistoryRow(
-            contribution: contributions[i],
-            membershipTier: membershipTier,
-          ),
-          if (i < contributions.length - 1) const SizedBox(height: 8),
-        ],
-      ],
-    );
-  }
-}
-
-class _ContributionHistoryRow extends StatelessWidget {
-  const _ContributionHistoryRow({
-    required this.contribution,
-    required this.membershipTier,
-  });
-
-  final TeamContributionModel contribution;
-  final String membershipTier;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final amountLabel = contribution.amountFet != null
-        ? 'FET ${contribution.amountFet}'
-        : '${contribution.currencyCode ?? 'EUR'} ${contribution.amountMoney?.toStringAsFixed(2) ?? '0.00'}';
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatMediumDate(contribution.createdAt);
-
-    return FzCard(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  amountLabel,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(date, style: TextStyle(fontSize: 11, color: muted)),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                membershipTier,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: FzColors.violet,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                contribution.status.toUpperCase(),
-                style: TextStyle(fontSize: 10, color: muted),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

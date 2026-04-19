@@ -17,14 +17,20 @@ class AppConfig {
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
   static const sentryDsn = String.fromEnvironment('SENTRY_DSN');
+  static const imageCdnBaseUrl = String.fromEnvironment('IMAGE_CDN_BASE_URL');
+  static const staticCdnBaseUrl = String.fromEnvironment('STATIC_CDN_BASE_URL');
+  static const staticAssetVersion = String.fromEnvironment(
+    'STATIC_ASSET_VERSION',
+    defaultValue: '1',
+  );
 
   static const enablePredictions = bool.fromEnvironment(
     'ENABLE_PREDICTIONS',
-    defaultValue: false,
+    defaultValue: true,
   );
   static const enableWallet = bool.fromEnvironment(
     'ENABLE_WALLET',
-    defaultValue: false,
+    defaultValue: true,
   );
   static const enableLeaderboard = bool.fromEnvironment(
     'ENABLE_LEADERBOARD',
@@ -32,7 +38,7 @@ class AppConfig {
   );
   static const enableRewards = bool.fromEnvironment(
     'ENABLE_REWARDS',
-    defaultValue: false,
+    defaultValue: true,
   );
   static const enableMembership = bool.fromEnvironment(
     'ENABLE_MEMBERSHIP',
@@ -55,11 +61,11 @@ class AppConfig {
   );
   static const enableFanIdentity = bool.fromEnvironment(
     'ENABLE_FAN_IDENTITY',
-    defaultValue: false,
+    defaultValue: true,
   );
   static const enableMarketplace = bool.fromEnvironment(
     'ENABLE_MARKETPLACE',
-    defaultValue: false,
+    defaultValue: true,
   );
   static const enableAiAnalysis = bool.fromEnvironment(
     'ENABLE_AI_ANALYSIS',
@@ -111,6 +117,8 @@ class AppConfig {
   static bool get isProduction => environment == AppEnvironment.production;
   static bool get hasSupabaseConfig =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
+  static bool get hasImageCdn => imageCdnBaseUrl.trim().startsWith('http');
+  static bool get hasStaticCdn => staticCdnBaseUrl.trim().startsWith('http');
   static bool get hasSentry {
     final normalized = sentryDsn.trim().toLowerCase();
     if (normalized.isEmpty) return false;

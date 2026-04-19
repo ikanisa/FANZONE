@@ -270,7 +270,7 @@ class _MarketPreferencesScreenState
     ref.invalidate(userRegionProvider);
     ref.invalidate(homeLaunchEventsProvider);
     ref.invalidate(spotlightChallengesProvider);
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     setState(() => _saving = false);
     ScaffoldMessenger.of(

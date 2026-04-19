@@ -56,6 +56,38 @@ Deno.test('isAuthorizedByServiceRole accepts service role bearer or shared secre
   }
 });
 
+Deno.test('isAuthorizedByServiceRole rejects arbitrary bearer tokens', () => {
+  const request = new Request('https://example.com', {
+    headers: { Authorization: 'Bearer definitely-not-service-role' },
+  });
+
+  const authorized = isAuthorizedByServiceRole({
+    req: request,
+    serviceRoleKey: 'service-role-key',
+    sharedSecretHeader: 'x-cron-secret',
+    sharedSecret: 'cron-secret',
+  });
+
+  if (authorized) {
+    throw new Error('Expected arbitrary bearer token to be rejected');
+  }
+});
+
+Deno.test('isAuthorizedByServiceRole rejects missing auth when no shared secret is configured', () => {
+  const request = new Request('https://example.com');
+
+  const authorized = isAuthorizedByServiceRole({
+    req: request,
+    serviceRoleKey: 'service-role-key',
+    sharedSecretHeader: 'x-cron-secret',
+    sharedSecret: '',
+  });
+
+  if (authorized) {
+    throw new Error('Expected request without auth to be rejected');
+  }
+});
+
 Deno.test('getErrorMessage normalizes unknown errors', () => {
   if (getErrorMessage({ unexpected: true }) !== 'Unknown error') {
     throw new Error('Expected unknown values to normalize');

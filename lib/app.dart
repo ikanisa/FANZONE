@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
+import 'core/errors/app_error_boundary.dart';
 import 'theme/app_theme.dart';
 import 'theme/colors.dart';
 import 'app_router.dart';
@@ -40,7 +41,9 @@ class FanzoneApp extends ConsumerWidget {
       locale: const Locale('en'), // Default until user can pick
 
       builder: (context, child) {
-        return _SessionExpiryGuard(child: child ?? const SizedBox.shrink());
+        return AppErrorBoundary(
+          child: _SessionExpiryGuard(child: child ?? const SizedBox.shrink()),
+        );
       },
     );
   }

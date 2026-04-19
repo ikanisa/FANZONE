@@ -1,7 +1,11 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart' show supabaseInitialized;
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../core/di/injection.dart';
+import '../core/errors/app_exception.dart';
+import '../core/errors/failures.dart';
+import '../core/logging/app_logger.dart';
+import '../features/predict/data/predict_gateway.dart';
 import '../models/pool.dart';
 import '../providers/auth_provider.dart';
 
@@ -12,142 +16,94 @@ class PoolService extends _$PoolService {
   @override
   FutureOr<List<ScorePool>> build() async {
     ref.watch(authStateProvider);
-
-    if (!supabaseInitialized) return const [];
-
-    final client = Supabase.instance.client;
-    // Let errors propagate — don't mask as empty
-    final data = await client
-        .from('challenge_feed')
-        .select()
-        .order('lock_at', ascending: true);
-
-    return (data as List).map((row) {
-      return ScorePool(
-        id: row['id']?.toString() ?? '',
-        matchId: row['match_id']?.toString() ?? '',
-        matchName:
-            row['match_name']?.toString() ??
-            '${row['home_team'] ?? 'Home'} vs ${row['away_team'] ?? 'Away'}',
-        creatorId: row['creator_user_id']?.toString() ?? '',
-        creatorName: row['creator_name']?.toString() ?? 'Fan',
-        creatorPrediction: row['creator_prediction']?.toString() ?? '',
-        stake: (row['stake_fet'] as num?)?.toInt() ?? 0,
-        totalPool: (row['total_pool_fet'] as num?)?.toInt() ?? 0,
-        participantsCount: (row['total_participants'] as num?)?.toInt() ?? 0,
-        status: row['status']?.toString() ?? 'open',
-        lockAt: row['lock_at'] != null
-            ? DateTime.tryParse(row['lock_at'].toString()) ?? DateTime.now()
-            : DateTime.now(),
-      );
-    }).toList();
+    return getIt<PredictGateway>().getPools();
   }
 
-  /// Create a new score pool via atomic RPC.
-  /// Backend also enforces the 5 pools/hour rate limit per user.
-  ///
-  /// Sets [state] to loading to prevent double-submission from rapid taps.
   Future<void> createPool({
     required String matchId,
     required int homeScore,
     required int awayScore,
     required int stake,
   }) async {
-    // Guard: if already loading, reject duplicate calls.
     if (state is AsyncLoading) return;
 
-    if (!supabaseInitialized) {
-      throw StateError('Supabase not initialized');
-    }
-
-    final client = Supabase.instance.client;
-    final userId = client.auth.currentUser?.id;
-    if (userId == null) {
-      throw StateError('Not authenticated');
+    if (ref.read(authServiceProvider).currentUser == null) {
+      throw const AuthFailure();
     }
 
     if (stake < 10) {
-      throw ArgumentError('Minimum stake is 10 FET');
+      throw const ValidationFailure(
+        message: 'Minimum stake is 10 FET',
+        code: 'min_stake',
+      );
     }
 
     if (homeScore < 0 || awayScore < 0) {
-      throw ArgumentError('Scores must be zero or greater');
+      throw const ValidationFailure(
+        message: 'Scores must be zero or greater',
+        code: 'invalid_score',
+      );
     }
 
-    // Set loading state so the UI disables the submit button.
     final previous = state;
     state = const AsyncLoading();
 
     try {
-      // Atomic server-side operation: validates, debits wallet,
-      // creates pool + entry in a single transaction.
-      await client.rpc(
-        'create_pool',
-        params: {
-          'p_match_id': matchId,
-          'p_home_score': homeScore,
-          'p_away_score': awayScore,
-          'p_stake': stake,
-        },
+      await getIt<PredictGateway>().createPool(
+        PoolCreateRequestDto(
+          matchId: matchId,
+          homeScore: homeScore,
+          awayScore: awayScore,
+          stake: stake,
+        ),
       );
-
       ref.invalidateSelf();
       ref.invalidate(myEntriesProvider);
-    } catch (e) {
-      // Restore previous state so the user can retry.
+    } catch (error, stack) {
+      final failure = mapExceptionToFailure(error, stack);
+      AppLogger.w('createPool failed: ${failure.message}');
       state = previous;
-      rethrow;
+      throw failure;
     }
   }
 
-  /// Join an existing pool via atomic RPC.
-  ///
-  /// Sets [state] to loading to prevent double-submission from rapid taps.
   Future<void> joinPool({
     required String poolId,
     required int homeScore,
     required int awayScore,
     required int stake,
   }) async {
-    // Guard: if already loading, reject duplicate calls.
     if (state is AsyncLoading) return;
 
-    if (!supabaseInitialized) {
-      throw StateError('Supabase not initialized');
-    }
-
-    final client = Supabase.instance.client;
-    final userId = client.auth.currentUser?.id;
-    if (userId == null) {
-      throw StateError('Not authenticated');
+    if (ref.read(authServiceProvider).currentUser == null) {
+      throw const AuthFailure();
     }
 
     if (homeScore < 0 || awayScore < 0) {
-      throw ArgumentError('Scores must be zero or greater');
+      throw const ValidationFailure(
+        message: 'Scores must be zero or greater',
+        code: 'invalid_score',
+      );
     }
 
-    // Set loading state so the UI disables the submit button.
     final previous = state;
     state = const AsyncLoading();
 
     try {
-      // Atomic server-side operation: validates pool state, checks duplicates,
-      // debits wallet, creates entry, updates totals in a single transaction.
-      await client.rpc(
-        'join_pool',
-        params: {
-          'p_pool_id': poolId,
-          'p_home_score': homeScore,
-          'p_away_score': awayScore,
-        },
+      await getIt<PredictGateway>().joinPool(
+        PoolJoinRequestDto(
+          poolId: poolId,
+          homeScore: homeScore,
+          awayScore: awayScore,
+        ),
       );
-
       ref.invalidateSelf();
       ref.invalidate(myEntriesProvider);
-    } catch (e) {
-      // Restore previous state so the user can retry.
+    } catch (error, stack) {
+      final failure = mapExceptionToFailure(error, stack);
+      AppLogger.w('joinPool failed: ${failure.message}');
       state = previous;
-      rethrow;
+      throw failure;
     }
   }
 }
@@ -158,64 +114,14 @@ class MyEntries extends _$MyEntries {
   FutureOr<List<PoolEntry>> build() async {
     ref.watch(authStateProvider);
 
-    if (!supabaseInitialized) return const [];
-
-    final client = Supabase.instance.client;
-    final userId = client.auth.currentUser?.id;
+    final userId = ref.read(authServiceProvider).currentUser?.id;
     if (userId == null) return const [];
 
-    // Let errors propagate — don't mask as empty
-    final data = await client
-        .from('prediction_challenge_entries')
-        .select()
-        .eq('user_id', userId)
-        .order('joined_at', ascending: false);
-
-    return (data as List).map((row) {
-      return PoolEntry(
-        id: row['id']?.toString() ?? '',
-        poolId: row['challenge_id']?.toString() ?? '',
-        userId: row['user_id']?.toString() ?? '',
-        userName: 'You',
-        predictedHomeScore: (row['predicted_home_score'] as num?)?.toInt() ?? 0,
-        predictedAwayScore: (row['predicted_away_score'] as num?)?.toInt() ?? 0,
-        stake: (row['stake_fet'] as num?)?.toInt() ?? 0,
-        status: row['status']?.toString() ?? 'active',
-        payout: (row['payout_fet'] as num?)?.toInt() ?? 0,
-      );
-    }).toList();
+    return getIt<PredictGateway>().getMyEntries(userId);
   }
 }
 
-/// Provider for a single pool by ID — used by PoolDetailScreen.
 @riverpod
 FutureOr<ScorePool?> poolDetail(Ref ref, String id) async {
-  if (!supabaseInitialized) return null;
-
-  final client = Supabase.instance.client;
-  final row = await client
-      .from('challenge_feed')
-      .select()
-      .eq('id', id)
-      .maybeSingle();
-
-  if (row == null) return null;
-
-  return ScorePool(
-    id: row['id']?.toString() ?? '',
-    matchId: row['match_id']?.toString() ?? '',
-    matchName:
-        row['match_name']?.toString() ??
-        '${row['home_team'] ?? 'Home'} vs ${row['away_team'] ?? 'Away'}',
-    creatorId: row['creator_user_id']?.toString() ?? '',
-    creatorName: row['creator_name']?.toString() ?? 'Fan',
-    creatorPrediction: row['creator_prediction']?.toString() ?? '',
-    stake: (row['stake_fet'] as num?)?.toInt() ?? 0,
-    totalPool: (row['total_pool_fet'] as num?)?.toInt() ?? 0,
-    participantsCount: (row['total_participants'] as num?)?.toInt() ?? 0,
-    status: row['status']?.toString() ?? 'open',
-    lockAt: row['lock_at'] != null
-        ? DateTime.tryParse(row['lock_at'].toString()) ?? DateTime.now()
-        : DateTime.now(),
-  );
+  return getIt<PredictGateway>().getPoolDetail(id);
 }

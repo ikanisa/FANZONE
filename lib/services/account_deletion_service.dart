@@ -1,44 +1,24 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../main.dart' show supabaseInitialized;
+import '../core/di/injection.dart';
+import '../features/settings/data/preferences_gateway.dart';
 import '../models/account_deletion_request_model.dart';
+import 'auth_service.dart';
 
 class AccountDeletionService {
   const AccountDeletionService._();
 
   static Future<AccountDeletionRequestModel?> getLatestRequest() async {
-    if (!supabaseInitialized) return null;
-
-    final client = Supabase.instance.client;
-    final userId = client.auth.currentUser?.id;
+    final userId = getIt<AuthService>().currentUser?.id;
     if (userId == null) return null;
-
-    final data = await client
-        .from('account_deletion_requests')
-        .select(
-          'id, status, reason, contact_email, requested_at, processed_at, resolution_notes',
-        )
-        .eq('user_id', userId)
-        .order('requested_at', ascending: false)
-        .limit(1)
-        .maybeSingle();
-
-    if (data == null) return null;
-    return AccountDeletionRequestModel.fromJson(data);
+    return getIt<PreferencesGateway>().getAccountDeletionRequest(userId);
   }
 
   static Future<AccountDeletionRequestModel> createRequest({
     required String reason,
     String? contactEmail,
   }) async {
-    if (!supabaseInitialized) {
-      throw const AuthException(
-        'Server not available. Please try again later.',
-      );
-    }
-
-    final client = Supabase.instance.client;
-    final userId = client.auth.currentUser?.id;
+    final userId = getIt<AuthService>().currentUser?.id;
     if (userId == null) {
       throw const AuthException('Sign in to request account deletion.');
     }
@@ -50,52 +30,28 @@ class AccountDeletionService {
       );
     }
 
-    final response = await client
-        .from('account_deletion_requests')
-        .insert({
-          'user_id': userId,
-          'reason': trimmedReason,
-          'contact_email': contactEmail?.trim().isEmpty ?? true
-              ? null
-              : contactEmail!.trim(),
-        })
-        .select(
-          'id, status, reason, contact_email, requested_at, processed_at, resolution_notes',
-        )
-        .single();
-
-    return AccountDeletionRequestModel.fromJson(response);
+    return getIt<PreferencesGateway>().submitAccountDeletionRequest(
+      userId: userId,
+      reason: trimmedReason,
+      feedback: contactEmail,
+    );
   }
 
   static Future<AccountDeletionRequestModel> cancelRequest(
     String requestId,
   ) async {
-    if (!supabaseInitialized) {
-      throw const AuthException(
-        'Server not available. Please try again later.',
-      );
-    }
-
-    final client = Supabase.instance.client;
-    final userId = client.auth.currentUser?.id;
+    final userId = getIt<AuthService>().currentUser?.id;
     if (userId == null) {
       throw const AuthException('Sign in to manage deletion requests.');
     }
 
-    final response = await client
-        .from('account_deletion_requests')
-        .update({
-          'status': 'cancelled',
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        })
-        .eq('id', requestId)
-        .eq('user_id', userId)
-        .eq('status', 'pending')
-        .select(
-          'id, status, reason, contact_email, requested_at, processed_at, resolution_notes',
-        )
-        .single();
-
-    return AccountDeletionRequestModel.fromJson(response);
+    await getIt<PreferencesGateway>().cancelAccountDeletionRequest(userId);
+    final latest = await getIt<PreferencesGateway>().getAccountDeletionRequest(
+      userId,
+    );
+    if (latest == null) {
+      throw const AuthException('Deletion request could not be loaded.');
+    }
+    return latest;
   }
 }

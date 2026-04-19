@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../../core/di/injection.dart';
+import '../../../features/home/data/matches_gateway.dart';
 import '../../../models/competition_model.dart';
 import '../../../models/match_model.dart';
 import '../../../models/team_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/favourites_provider.dart';
 import '../../../providers/teams_provider.dart';
-import '../../../core/network/supabase_provider.dart';
 import '../../../services/team_community_service.dart';
 import '../../../config/app_config.dart';
 import '../../../theme/colors.dart';
@@ -508,24 +509,7 @@ class _FollowableRow extends StatelessWidget {
 final _followedMatchesProvider = StreamProvider.autoDispose<List<MatchModel>>((
   ref,
 ) {
-  final client = ref.watch(supabaseClientProvider);
-  if (client == null) return Stream.value(const []);
-
-  final start = DateTime.now();
-  final dateStr =
-      '${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}';
-
-  return client
-      .from('matches')
-      .stream(primaryKey: ['id'])
-      .gte('date', dateStr)
-      .order('date', ascending: true)
-      .limit(160)
-      .map(
-        (rows) => rows
-            .map((row) => MatchModel.fromJson(Map<String, dynamic>.from(row)))
-            .toList(),
-      );
+  return getIt<MatchesGateway>().watchUpcomingMatches();
 });
 
 class _FollowedMatchesTab extends ConsumerWidget {

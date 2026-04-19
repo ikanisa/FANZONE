@@ -1,0 +1,432 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../core/utils/currency_utils.dart';
+import '../../../providers/currency_provider.dart';
+import '../../../services/wallet_service.dart';
+import '../../../theme/colors.dart';
+import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_card.dart';
+
+typedef WalletTransferSubmit = Future<void> Function(String fanId, int amount);
+
+class TransferFetSheet extends ConsumerStatefulWidget {
+  const TransferFetSheet({super.key, this.onSubmitTransfer});
+
+  final WalletTransferSubmit? onSubmitTransfer;
+
+  @override
+  ConsumerState<TransferFetSheet> createState() => _TransferFetSheetState();
+}
+
+class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
+  final _recipientController = TextEditingController();
+  final _amountController = TextEditingController();
+  bool _submitting = false;
+  bool _success = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _recipientController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  bool get _isValidFanId {
+    final text = _recipientController.text.trim();
+    return RegExp(r'^\d{6}$').hasMatch(text);
+  }
+
+  Future<void> _submit() async {
+    final fanId = _recipientController.text.trim();
+    final amount = int.tryParse(_amountController.text.trim()) ?? 0;
+
+    if (!_isValidFanId) {
+      setState(() => _error = 'Enter a valid 6-digit Fan ID.');
+      return;
+    }
+
+    if (amount <= 0) {
+      setState(() => _error = 'Enter a valid FET amount.');
+      return;
+    }
+
+    final myFanId = ref.read(userFanIdProvider).valueOrNull;
+    if (myFanId != null && myFanId == fanId) {
+      setState(() => _error = 'You cannot transfer tokens to yourself.');
+      return;
+    }
+
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+
+    try {
+      final submitTransfer =
+          widget.onSubmitTransfer ??
+          (fanId, amount) => ref
+              .read(walletServiceProvider.notifier)
+              .transferByFanId(fanId, amount);
+
+      await submitTransfer(fanId, amount);
+
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _success = true;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _error = error.toString().replaceFirst('Bad state: ', '');
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final balance = ref.watch(walletServiceProvider).valueOrNull ?? 0;
+    final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+
+    return Container(
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      decoration: BoxDecoration(
+        color: isDark ? FzColors.darkSurface : FzColors.lightSurface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: muted.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              if (_success) ...[
+                const SizedBox(height: 24),
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: FzColors.accent.withValues(alpha: 0.16),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          LucideIcons.send,
+                          size: 34,
+                          color: FzColors.accent,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Sent Successfully!',
+                        style: FzTypography.display(
+                          size: 28,
+                          color: textColor,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'You sent ${_amountController.text.trim()} FET to Fan #${_recipientController.text.trim()}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: muted,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Done'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                Text(
+                  'Transfer FET',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Send tokens using the recipient\'s 6-digit Fan ID.',
+                  style: TextStyle(fontSize: 12, color: muted),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _recipientController,
+                  maxLength: 6,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(6),
+                  ],
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: 'Recipient Fan ID',
+                    hintText: '123456',
+                    counterText: '',
+                    prefixIcon: Icon(LucideIcons.hash, size: 18, color: muted),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _amountController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: 'Amount (FET)',
+                    hintText: '0',
+                    helperText: 'Balance: ${formatFET(balance, currency)}',
+                    prefixIcon: Icon(
+                      LucideIcons.wallet,
+                      size: 18,
+                      color: muted,
+                    ),
+                    suffixIcon: TextButton(
+                      onPressed: balance <= 0
+                          ? null
+                          : () {
+                              _amountController.text = '$balance';
+                              setState(() {});
+                            },
+                      child: const Text('MAX'),
+                    ),
+                  ),
+                ),
+                if ((_error ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: FzColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          LucideIcons.alertCircle,
+                          size: 16,
+                          color: FzColors.error,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _error!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: FzColors.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: (_submitting || !_isValidFanId) ? null : _submit,
+                    icon: _submitting
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.send, size: 16),
+                    label: Text(
+                      _submitting ? 'Sending...' : 'Confirm Transfer',
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ReceiveFetSheet extends ConsumerWidget {
+  const ReceiveFetSheet({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fanId = ref.watch(userFanIdProvider).valueOrNull;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final shareText = fanId != null
+        ? 'Send FET to Fan #$fanId on FANZONE.'
+        : 'Find me on FANZONE and send FET using my Fan ID.';
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+
+    return Container(
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      decoration: BoxDecoration(
+        color: isDark ? FzColors.darkSurface : FzColors.lightSurface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: muted.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'Receive FET',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Share your Fan ID so other fans can send you tokens.',
+                style: TextStyle(fontSize: 12, color: muted),
+              ),
+              const SizedBox(height: 18),
+              FzCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Text(
+                      fanId != null ? 'Fan #$fanId' : 'FANZONE Member',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Your Fan ID',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: muted,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: FzColors.accent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: FzColors.accent.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        fanId != null ? '#$fanId' : 'Loading...',
+                        style: FzTypography.score(
+                          size: 28,
+                          weight: FontWeight.w700,
+                          color: FzColors.accent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Others can send FET to you using this 6-digit Fan ID.',
+                style: TextStyle(fontSize: 12, color: muted),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: fanId == null
+                          ? null
+                          : () async {
+                              await Clipboard.setData(
+                                ClipboardData(text: fanId),
+                              );
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Fan ID copied.')),
+                              );
+                            },
+                      icon: const Icon(Icons.copy_rounded, size: 18),
+                      label: const Text('Copy'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        await SharePlus.instance.share(
+                          ShareParams(text: shareText),
+                        );
+                      },
+                      icon: const Icon(Icons.share_rounded, size: 18),
+                      label: const Text('Share'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -31,16 +31,18 @@ export function useAuditLog() {
       }
 
       try {
-        await supabase.from('admin_audit_logs').insert({
-          admin_user_id: admin.id,
-          action: opts.action,
-          module: opts.module,
-          target_type: opts.targetType || null,
-          target_id: opts.targetId || null,
-          before_state: opts.beforeState || null,
-          after_state: opts.afterState || null,
-          metadata: opts.metadata || {},
+        const { error } = await supabase.rpc('admin_log_action', {
+          p_action: opts.action,
+          p_module: opts.module,
+          p_target_type: opts.targetType || null,
+          p_target_id: opts.targetId || null,
+          p_before_state: opts.beforeState || null,
+          p_after_state: opts.afterState || null,
+          p_metadata: opts.metadata || {},
         });
+        if (error) {
+          throw error;
+        }
       } catch (err) {
         console.error('[AuditLog] Failed to write audit log:', err);
       }

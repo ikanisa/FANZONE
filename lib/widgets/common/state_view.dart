@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async' show TimeoutException;
 import 'dart:io' show SocketException;
+
 import '../../theme/colors.dart';
 
 /// Unified view for empty, error, and loading states.
@@ -72,45 +73,56 @@ class StateView extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: (isDark
-                    ? FzColors.darkSurface2
-                    : FzColors.lightSurface2),
-                shape: BoxShape.circle,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final minHeight = constraints.hasBoundedHeight
+            ? (constraints.maxHeight - 64).clamp(0.0, double.infinity)
+            : 0.0;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(32),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? FzColors.darkSurface2
+                          : FzColors.lightSurface2,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, size: 24, color: muted),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    title,
+                    style: theme.textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (action != null) ...[
+                    const SizedBox(height: 20),
+                    FilledButton.tonal(
+                      onPressed: action,
+                      child: Text(actionLabel ?? 'Try again'),
+                    ),
+                  ],
+                ],
               ),
-              child: Icon(icon, size: 24, color: muted),
             ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodySmall?.copyWith(color: muted),
-              textAlign: TextAlign.center,
-            ),
-            if (action != null) ...[
-              const SizedBox(height: 20),
-              FilledButton.tonal(
-                onPressed: action,
-                child: Text(actionLabel ?? 'Try again'),
-              ),
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

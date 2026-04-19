@@ -1,7 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../core/media/cdn_url_resolver.dart';
+import '../../../core/media/fz_image_cache_manager.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../../models/marketplace_model.dart';
 import '../../../providers/auth_provider.dart';
@@ -317,10 +320,14 @@ class _OfferCard extends StatelessWidget {
                         offer.partnerLogoUrl!.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          offer.partnerLogoUrl!,
+                        child: CachedNetworkImage(
+                          imageUrl: CdnUrlResolver.resolveImageUrl(
+                            offer.partnerLogoUrl!,
+                            width: 88,
+                          ),
+                          cacheManager: FzImageCacheManager.instance,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorWidget: (_, _, _) => const Icon(
                             LucideIcons.store,
                             color: FzColors.accent,
                           ),

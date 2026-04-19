@@ -1,0 +1,114 @@
+{
+  "teams": [
+    {
+      "id": "liverpool",
+      "name": "Liverpool",
+      "country": "England",
+      "league": "Premier League",
+      "aliases": ["LFC", "Reds"],
+      "region": "global",
+      "is_popular": true,
+      "short_name": "LIV",
+      "country_code": "GB"
+    },
+    {
+      "id": "arsenal",
+      "name": "Arsenal",
+      "country": "England",
+      "league": "Premier League",
+      "aliases": ["Gunners"],
+      "region": "global",
+      "is_popular": true,
+      "short_name": "ARS",
+      "country_code": "GB"
+    },
+    {
+      "id": "barcelona",
+      "name": "Barcelona",
+      "country": "Spain",
+      "league": "La Liga",
+      "aliases": ["Barca"],
+      "region": "global",
+      "is_popular": true,
+      "short_name": "BAR",
+      "country_code": "ES"
+    },
+    {
+      "id": "real-madrid",
+      "name": "Real Madrid",
+      "country": "Spain",
+      "league": "La Liga",
+      "aliases": ["Madrid"],
+      "region": "global",
+      "is_popular": true,
+      "short_name": "RMA",
+      "country_code": "ES"
+    },
+    {
+      "id": "man-city",
+      "name": "Manchester City",
+      "country": "England",
+      "league": "Premier League",
+      "aliases": ["Man City", "City"],
+      "region": "global",
+      "is_popular": true,
+      "short_name": "MCI",
+      "country_code": "GB"
+    },
+    {
+      "id": "man-united",
+      "name": "Manchester United",
+      "country": "England",
+      "league": "Premier League",
+      "aliases": ["Man United", "United"],
+      "region": "global",
+      "is_popular": true,
+      "short_name": "MUN",
+      "country_code": "GB"
+    },
+    {
+      "id": "england",
+      "name": "England",
+      "country": "England",
+      "league": "International",
+      "aliases": ["Three Lions"],
+      "region": "global",
+      "is_popular": true,
+      "short_name": "ENG",
+      "country_code": "GB"
+    },
+    {
+      "id": "bayern",
+      "name": "Bayern Munich",
+      "country": "Germany",
+      "league": "Bundesliga",
+      "aliases": ["Bayern"],
+      "region": "global",
+      "is_popular": true,
+      "short_name": "FCB",
+      "country_code": "DE"
+    },
+    {
+      "id": "apr",
+      "name": "APR FC",
+      "country": "Rwanda",
+      "league": "Rwanda Premier League",
+      "aliases": ["APR"],
+      "region": "africa",
+      "is_popular": true,
+      "short_name": "APR",
+      "country_code": "RW"
+    },
+    {
+      "id": "valletta",
+      "name": "Valletta",
+      "country": "Malta",
+      "league": "Maltese Premier League",
+      "aliases": ["Valletta FC"],
+      "region": "malta",
+      "is_popular": true,
+      "short_name": "VAL",
+      "country_code": "MT"
+    }
+  ]
+}

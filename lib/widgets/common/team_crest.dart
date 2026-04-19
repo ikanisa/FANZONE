@@ -2,6 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../core/media/cdn_url_resolver.dart';
+import '../../core/media/fz_image_cache_manager.dart';
+
 class TeamCrest extends StatelessWidget {
   const TeamCrest({
     super.key,
@@ -50,18 +53,24 @@ class TeamCrest extends StatelessWidget {
   Widget _buildContent(Color fg) {
     final url = crestUrl?.trim();
     if (url != null && url.isNotEmpty) {
+      final resolvedUrl = CdnUrlResolver.resolveImageUrl(
+        url,
+        width: size.round() * 2,
+      );
+
       if (url.toLowerCase().endsWith('.svg')) {
         return SvgPicture.network(
-          url,
+          resolvedUrl,
           fit: BoxFit.contain,
           placeholderBuilder: (_) => _fallback(fg),
         );
       }
 
       return CachedNetworkImage(
-        imageUrl: url,
+        imageUrl: resolvedUrl,
+        cacheManager: FzImageCacheManager.instance,
         fit: BoxFit.contain,
-        errorWidget: (_, __, ___) => _fallback(fg),
+        errorWidget: (_, _, _) => _fallback(fg),
       );
     }
 

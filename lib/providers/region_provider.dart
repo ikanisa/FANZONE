@@ -22,11 +22,9 @@ final userRegionProvider = FutureProvider<UserRegion>((ref) async {
   if (cached.isEmpty) return UserRegion.global;
 
   // Priority: local team > first team with a country code
-  final localTeam = cached.where((row) => row['source'] == 'local').firstOrNull;
+  final localTeam = cached.where((row) => row.source == 'local').firstOrNull;
   final primaryTeam = localTeam ?? cached.firstOrNull;
-  final countryCode = primaryTeam?['team_country_code']
-      ?.toString()
-      .toUpperCase();
+  final countryCode = primaryTeam?.teamCountryCode?.toUpperCase();
 
   if (countryCode == null || countryCode.isEmpty) return UserRegion.global;
 

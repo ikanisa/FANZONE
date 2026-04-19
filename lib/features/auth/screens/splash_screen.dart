@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../main.dart'
-    show supabaseInitialized, supabaseInitCompleter;
+
+import '../../../core/cache/cache_service.dart';
+import '../../../core/di/injection.dart';
+import '../../../main.dart' show markAppInteractive, supabaseInitCompleter;
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_brand_logo.dart';
 
 /// Splash screen — logo animation → wait for init → route guest-first.
 ///
@@ -29,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 900),
       vsync: this,
     );
     _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
@@ -58,32 +59,12 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToNextScreen() async {
-    final prefs = await SharedPreferences.getInstance();
-    var onboardingDone = prefs.getBool('onboarding_complete') ?? false;
-
-    if (supabaseInitialized) {
-      final session = Supabase.instance.client.auth.currentSession;
-      if (session != null) {
-        try {
-          final profile = await Supabase.instance.client
-              .from('profiles')
-              .select('onboarding_completed')
-              .eq('id', session.user.id)
-              .maybeSingle();
-
-          final remoteCompleted = profile?['onboarding_completed'] == true;
-          if (remoteCompleted && !onboardingDone) {
-            await prefs.setBool('onboarding_complete', true);
-            onboardingDone = true;
-          }
-        } catch (_) {
-          // Keep local onboarding state if the profile lookup fails.
-        }
-      }
-    }
+    final cache = getIt<CacheService>();
+    final onboardingDone = await cache.getBool('onboarding_complete') ?? false;
 
     if (!mounted) return;
     context.go(onboardingDone ? '/' : '/onboarding');
+    markAppInteractive();
   }
 
   @override
@@ -108,11 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Logo mark
-                Image.asset(
-                  'assets/images/logo.png',
-                  width: 96,
-                  height: 96,
-                ),
+                const FzBrandLogo(width: 96, height: 96),
                 const SizedBox(height: 20),
                 Text(
                   'FANZONE',

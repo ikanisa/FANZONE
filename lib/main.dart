@@ -1,19 +1,26 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'app.dart';
 import 'config/app_config.dart';
+import 'core/di/injection.dart';
 import 'core/logging/app_logger.dart';
+import 'core/performance/app_startup.dart';
+import 'core/storage/structured_cache_store.dart';
 import 'firebase_options.dart';
+import 'features/auth/data/auth_gateway.dart';
 import 'services/app_telemetry.dart';
+import 'services/product_analytics_service.dart';
 
 /// Whether Supabase was successfully initialized.
 /// Checked by services to avoid accessing an uninitialized client.
 bool supabaseInitialized = false;
+bool firebaseInitialized = false;
 
 /// Human-readable initialization error, if any.
 String? supabaseInitError;
@@ -24,32 +31,65 @@ final ValueNotifier<int> authStateVersion = ValueNotifier<int>(0);
 /// Completes when Supabase init finishes (success or failure).
 /// Splash screen awaits this instead of a fixed timer.
 Completer<void> supabaseInitCompleter = Completer<void>();
+Completer<void> firebaseInitCompleter = Completer<void>();
 StreamSubscription<AuthState>? _authStateSubscription;
+final appStartupProfiler = AppStartupProfiler();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  appStartupProfiler.mark('bindings_ready');
+  appStartupProfiler.attachFrameHooks(WidgetsBinding.instance);
 
-  // Lock portrait mode for mobile-first UX
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  appStartupProfiler.mark('orientation_locked');
 
-  await AppTelemetry.init(
-    bootstrap: _initializeServices,
-    runApp: () => runApp(const ProviderScope(child: FanzoneApp())),
+  final startup = AppStartupCoordinator(
+    profiler: appStartupProfiler,
+    beforeRunApp: () async {
+      await Future.wait<void>([
+        StructuredCacheStore.init(),
+        configureDependencies(),
+      ]);
+      appStartupProfiler.mark('structured_cache_ready');
+      appStartupProfiler.mark('dependencies_ready');
+    },
+    critical: _initializeCriticalServices,
+    deferred: _initializeDeferredServices,
   );
+
+  await startup.prepare();
+  runApp(const ProviderScope(child: FanzoneApp()));
+  startup.start();
 }
 
-Future<void> _initializeServices() async {
-  supabaseInitError = null;
+Future<void> _initializeCriticalServices() async {
+  await _initializeSupabase();
+}
 
-  // Initialize Firebase (FCM, Analytics) — always, regardless of Supabase config.
+Future<void> _initializeDeferredServices() async {
+  await Future.wait<void>([_initializeFirebase(), AppTelemetry.start()]);
+  if (supabaseInitialized) {
+    ProductAnalytics.initialize();
+  }
+}
+
+Future<void> _initializeFirebase() async {
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    firebaseInitialized = true;
+    appStartupProfiler.mark('firebase_ready');
     AppLogger.d('Firebase initialized');
   } catch (e) {
     AppLogger.d('Firebase init failed: $e');
+  } finally {
+    _completeFirebaseInit();
   }
+}
+
+Future<void> _initializeSupabase() async {
+  supabaseInitError = null;
 
   if (!AppConfig.hasSupabaseConfig) {
     supabaseInitError =
@@ -65,10 +105,12 @@ Future<void> _initializeServices() async {
       anonKey: AppConfig.supabaseAnonKey,
     );
     supabaseInitialized = true;
+    appStartupProfiler.mark('supabase_ready');
     authStateVersion.value++;
     await _authStateSubscription?.cancel();
-    _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange
-        .listen((_) => authStateVersion.value++);
+    _authStateSubscription = getIt<AuthGateway>().onAuthStateChange.listen(
+      (_) => authStateVersion.value++,
+    );
   } catch (error, stackTrace) {
     supabaseInitError = 'Could not connect to server.';
     await AppTelemetry.captureException(
@@ -77,7 +119,6 @@ Future<void> _initializeServices() async {
       reason: 'supabase_initialize_failed',
     );
   } finally {
-    // Always complete — splash screen is waiting
     _completeSupabaseInit();
   }
 }
@@ -87,11 +128,22 @@ Future<void> retrySupabaseInitialization() async {
   if (supabaseInitCompleter.isCompleted) {
     supabaseInitCompleter = Completer<void>();
   }
-  await _initializeServices();
+  await _initializeSupabase();
 }
 
 void _completeSupabaseInit() {
   if (!supabaseInitCompleter.isCompleted) {
     supabaseInitCompleter.complete();
   }
+}
+
+void _completeFirebaseInit() {
+  if (!firebaseInitCompleter.isCompleted) {
+    firebaseInitCompleter.complete();
+  }
+}
+
+void markAppInteractive() {
+  appStartupProfiler.mark('app_interactive');
+  AppLogger.d('Startup summary: ${appStartupProfiler.summary()}');
 }

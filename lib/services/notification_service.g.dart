@@ -6,11 +6,9 @@ part of 'notification_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$notificationLogHash() => r'5a4092ae762a1c269bbb7e13f77832156b88efff';
+String _$notificationLogHash() => r'd6072792165de7623f283a1c54e06e27a6360ade';
 
-/// Provider for notification log (recent notifications).
-///
-/// Copied from [notificationLog].
+/// See also [notificationLog].
 @ProviderFor(notificationLog)
 final notificationLogProvider =
     AutoDisposeFutureProvider<List<NotificationItem>>.internal(
@@ -28,11 +26,9 @@ final notificationLogProvider =
 typedef NotificationLogRef =
     AutoDisposeFutureProviderRef<List<NotificationItem>>;
 String _$unreadNotificationCountHash() =>
-    r'da142c6408456d4f23e3815166d35b7bbb0de516';
+    r'f4ae9dcbab813bc168a6fc07895a9f337c5abae9';
 
-/// Provider for unread notification count.
-///
-/// Copied from [unreadNotificationCount].
+/// See also [unreadNotificationCount].
 @ProviderFor(unreadNotificationCount)
 final unreadNotificationCountProvider = AutoDisposeFutureProvider<int>.internal(
   unreadNotificationCount,
@@ -47,11 +43,9 @@ final unreadNotificationCountProvider = AutoDisposeFutureProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UnreadNotificationCountRef = AutoDisposeFutureProviderRef<int>;
-String _$userStatsHash() => r'984a3c01d13a6bc73d8d50f5ea7c79b0cd442f23';
+String _$userStatsHash() => r'fa13281e7bb14c915834d1f165e17813b28ac265';
 
-/// Provider for user stats (prediction streaks, etc.).
-///
-/// Copied from [userStats].
+/// See also [userStats].
 @ProviderFor(userStats)
 final userStatsProvider = AutoDisposeFutureProvider<UserStats>.internal(
   userStats,
@@ -67,11 +61,9 @@ final userStatsProvider = AutoDisposeFutureProvider<UserStats>.internal(
 // ignore: unused_element
 typedef UserStatsRef = AutoDisposeFutureProviderRef<UserStats>;
 String _$notificationServiceHash() =>
-    r'f1d9077941de1703f4fa77906f55957abf1b4d85';
+    r'0215b5f3a35d56bf5486d10771afe039d4e7a103';
 
-/// Service for managing device tokens, notification preferences, and notification log.
-///
-/// Copied from [NotificationService].
+/// See also [NotificationService].
 @ProviderFor(NotificationService)
 final notificationServiceProvider =
     AutoDisposeAsyncNotifierProvider<

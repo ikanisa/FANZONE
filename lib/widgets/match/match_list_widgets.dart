@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+
+import '../../core/media/cdn_url_resolver.dart';
+import '../../core/media/fz_image_cache_manager.dart';
 import '../../models/match_model.dart';
 import '../../theme/colors.dart';
 import '../../theme/typography.dart';
@@ -48,13 +51,19 @@ class TeamAvatar extends StatelessWidget {
     );
 
     if (logoUrl != null && logoUrl!.isNotEmpty) {
+      final resolvedUrl = CdnUrlResolver.resolveImageUrl(
+        logoUrl!,
+        width: size.round() * 2,
+      );
+
       return Container(
         width: size,
         height: size,
         decoration: const BoxDecoration(shape: BoxShape.circle),
         child: ClipOval(
           child: CachedNetworkImage(
-            imageUrl: logoUrl!,
+            imageUrl: resolvedUrl,
+            cacheManager: FzImageCacheManager.instance,
             fit: BoxFit.contain,
             placeholder: (context, url) => fallback,
             errorWidget: (context, url, Object error) => fallback,
@@ -135,13 +144,26 @@ class CompetitionSectionHeader extends StatelessWidget {
             ),
           ),
           if (onToggleFavourite != null)
-            IconButton(
-              onPressed: onToggleFavourite,
-              visualDensity: VisualDensity.compact,
-              icon: Icon(
-                isFavourite ? Icons.star_rounded : Icons.star_border_rounded,
-                size: 18,
-                color: isFavourite ? FzColors.coral : muted,
+            Semantics(
+              button: true,
+              label: isFavourite
+                  ? 'Remove $title from favourites'
+                  : 'Add $title to favourites',
+              child: ExcludeSemantics(
+                child: IconButton(
+                  onPressed: onToggleFavourite,
+                  tooltip: isFavourite
+                      ? 'Remove $title from favourites'
+                      : 'Add $title to favourites',
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(
+                    isFavourite
+                        ? Icons.star_rounded
+                        : Icons.star_border_rounded,
+                    size: 18,
+                    color: isFavourite ? FzColors.coral : muted,
+                  ),
+                ),
               ),
             ),
         ],
@@ -542,10 +564,16 @@ class CountryFlag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (code.length != 2) return const SizedBox.shrink();
+    final resolvedUrl = CdnUrlResolver.resolveImageUrl(
+      'https://flagcdn.com/w40/${code.toLowerCase()}.png',
+      width: 40,
+    );
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(2),
       child: CachedNetworkImage(
-        imageUrl: 'https://flagcdn.com/w40/${code.toLowerCase()}.png',
+        imageUrl: resolvedUrl,
+        cacheManager: FzImageCacheManager.instance,
         width: 16,
         height: 12,
         fit: BoxFit.cover,

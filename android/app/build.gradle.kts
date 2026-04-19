@@ -29,9 +29,61 @@ val appEnvironment = dartDefines["APP_ENV"] ?: "development"
 val requiresReleaseSigning = appEnvironment == "production"
 val hardenReleaseBuild = appEnvironment == "production"
 
+fun firstNonBlank(vararg values: String?): String? =
+    values.firstOrNull { !it.isNullOrBlank() }?.trim()
+
+fun isPlaceholderCredential(value: String?): Boolean {
+    val normalized = value?.trim()?.lowercase() ?: return true
+    if (normalized.isEmpty()) return true
+    return normalized == "replace-me" ||
+        normalized == "change-me" ||
+        normalized == "replace_with_value" ||
+        normalized.startsWith("your-") ||
+        normalized.contains("placeholder")
+}
+
 if (hasReleaseKeystore) {
     FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
 }
+
+val releaseStoreFile =
+    firstNonBlank(
+        providers.gradleProperty("FANZONE_UPLOAD_STORE_FILE").orNull,
+        System.getenv("FANZONE_UPLOAD_STORE_FILE"),
+        keystoreProperties.getProperty("storeFile"),
+    )
+val releaseStorePassword =
+    firstNonBlank(
+        providers.gradleProperty("FANZONE_UPLOAD_STORE_PASSWORD").orNull,
+        System.getenv("FANZONE_UPLOAD_STORE_PASSWORD"),
+        keystoreProperties.getProperty("storePassword"),
+    )
+val releaseKeyAlias =
+    firstNonBlank(
+        providers.gradleProperty("FANZONE_UPLOAD_KEY_ALIAS").orNull,
+        System.getenv("FANZONE_UPLOAD_KEY_ALIAS"),
+        keystoreProperties.getProperty("keyAlias"),
+    )
+val releaseKeyPassword =
+    firstNonBlank(
+        providers.gradleProperty("FANZONE_UPLOAD_KEY_PASSWORD").orNull,
+        System.getenv("FANZONE_UPLOAD_KEY_PASSWORD"),
+        keystoreProperties.getProperty("keyPassword"),
+    )
+val hasReleaseSigningConfig =
+    listOf(
+        releaseStoreFile,
+        releaseStorePassword,
+        releaseKeyAlias,
+        releaseKeyPassword,
+    ).all { !it.isNullOrBlank() }
+val hasValidReleaseKeystoreConfig =
+    hasReleaseSigningConfig &&
+        listOf(
+            releaseStorePassword,
+            releaseKeyAlias,
+            releaseKeyPassword,
+        ).none(::isPlaceholderCredential)
 
 android {
     namespace = "com.fanzone.fanzone"
@@ -60,11 +112,11 @@ android {
 
     signingConfigs {
         create("release") {
-            if (hasReleaseKeystore) {
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
-                storeFile = file(keystoreProperties.getProperty("storeFile"))
-                storePassword = keystoreProperties.getProperty("storePassword")
+            if (hasReleaseSigningConfig) {
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+                storeFile = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
             }
         }
     }
@@ -79,11 +131,14 @@ android {
                     "proguard-rules.pro",
                 )
             }
-            if (hasReleaseKeystore) {
+            if (hasValidReleaseKeystoreConfig) {
                 signingConfig = signingConfigs.getByName("release")
             } else if (requiresReleaseSigning) {
                 throw GradleException(
-                    "Production Android builds require android/key.properties and a valid upload keystore.",
+                    "Production Android builds require a valid upload keystore. " +
+                        "Provide android/key.properties with real credentials " +
+                        "or export FANZONE_UPLOAD_STORE_FILE, FANZONE_UPLOAD_STORE_PASSWORD, " +
+                        "FANZONE_UPLOAD_KEY_ALIAS, and FANZONE_UPLOAD_KEY_PASSWORD.",
                 )
             }
         }

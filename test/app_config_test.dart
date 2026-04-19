@@ -14,16 +14,15 @@ void main() {
       expect(AppConfig.hasSupabaseConfig, false);
     });
 
-    test('feature flags have safe defaults', () {
-      // Wallet and predictions are OFF by default — require explicit opt-in
-      expect(AppConfig.enableWallet, false);
-      expect(AppConfig.enablePredictions, false);
-      // Leaderboard is on by default (no backend dependency)
+    test('feature flags default to the launch product center', () {
+      expect(AppConfig.enableWallet, true);
+      expect(AppConfig.enablePredictions, true);
       expect(AppConfig.enableLeaderboard, true);
-      // Rewards/membership/notifications are off by default
-      expect(AppConfig.enableRewards, false);
+      expect(AppConfig.enableRewards, true);
       expect(AppConfig.enableMembership, false);
       expect(AppConfig.enableNotifications, false);
+      expect(AppConfig.enableFanIdentity, true);
+      expect(AppConfig.enableMarketplace, true);
     });
   });
 }

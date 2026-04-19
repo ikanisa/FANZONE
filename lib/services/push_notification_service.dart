@@ -4,52 +4,39 @@ import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../app_router.dart' show router;
 import '../config/app_config.dart';
+import '../core/di/injection.dart';
 import '../core/logging/app_logger.dart';
-import '../main.dart' show supabaseInitialized;
+import '../features/auth/data/auth_gateway.dart';
+import '../features/settings/data/preferences_gateway.dart';
+import '../main.dart'
+    show firebaseInitCompleter, firebaseInitialized, supabaseInitialized;
 import '../providers/auth_provider.dart';
 import '../theme/colors.dart';
 
-/// Top-level handler for background/terminated FCM messages.
-/// Must be a top-level function (not a class method).
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   AppLogger.d('Background message: ${message.messageId}');
 }
 
-/// Push notification service — manages FCM/APNs token registration,
-/// foreground message handling, and notification preferences sync.
-///
-/// **Firebase Setup:**
-/// ✅ google-services.json placed in android/app/
-/// ✅ GoogleService-Info.plist placed in ios/Runner/
-/// ✅ firebase_options.dart generated via `flutterfire configure`
-///
-/// The service registers device tokens with the Supabase `device_tokens` table
-/// and syncs notification preferences for per-user targeting.
 class PushNotificationService {
-  PushNotificationService(this._client);
+  PushNotificationService(this._authGateway, this._preferencesGateway);
 
-  final SupabaseClient? _client;
+  final AuthGateway _authGateway;
+  final PreferencesGateway _preferencesGateway;
   bool _initialized = false;
   String? _currentToken;
 
-  /// Initialize push notifications.
-  /// Call this after Firebase + Supabase are initialized and user is authenticated.
   Future<void> initialize() async {
-    if (_initialized || !supabaseInitialized || _client == null) return;
-    if (_client.auth.currentUser == null) return;
+    if (_initialized || !supabaseInitialized) return;
+    if (!_authGateway.isAuthenticated) return;
 
     try {
       final messaging = FirebaseMessaging.instance;
-
-      // Register background handler
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-      // Request permissions (iOS and Android 13+).
       final settings = await messaging.requestPermission(
         alert: true,
         badge: true,
@@ -62,26 +49,20 @@ class PushNotificationService {
         return;
       }
 
-      // Get FCM token
       final token = await messaging.getToken();
       if (token != null) {
         _currentToken = token;
         await registerToken(token);
       }
 
-      // Listen for token refresh
       messaging.onTokenRefresh.listen((newToken) {
         _currentToken = newToken;
-        registerToken(newToken);
+        unawaited(registerToken(newToken));
       });
 
-      // Foreground messages — show local notification or handle silently
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-
-      // Background/terminated message taps — navigate to relevant screen
       FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageTap);
 
-      // Check for initial message (app opened from terminated via notification)
       final initialMessage = await messaging.getInitialMessage();
       if (initialMessage != null) {
         _handleMessageTap(initialMessage);
@@ -89,14 +70,11 @@ class PushNotificationService {
 
       _initialized = true;
       AppLogger.d('Push notification service initialized');
-    } catch (e) {
-      AppLogger.d('Push notification init failed: $e');
+    } catch (error) {
+      AppLogger.d('Push notification init failed: $error');
     }
   }
 
-  /// Handle foreground FCM message — show an in-app banner via the root
-  /// navigator's overlay so the user knows something arrived without
-  /// leaving their current screen.
   void _handleForegroundMessage(RemoteMessage message) {
     AppLogger.d(
       '[FANZONE] Foreground message: ${message.notification?.title ?? message.messageId}',
@@ -106,7 +84,6 @@ class PushNotificationService {
     final body = message.notification?.body;
     if (title == null && body == null) return;
 
-    // Use the root navigator's context for the SnackBar.
     final context = router.routerDelegate.navigatorKey.currentContext;
     if (context == null) return;
 
@@ -151,41 +128,26 @@ class PushNotificationService {
     );
   }
 
-  /// Handle notification tap (app was in background or terminated).
-  /// Parses `message.data` and navigates to the relevant screen.
   void _handleMessageTap(RemoteMessage message) {
     AppLogger.d('Message tap: ${message.data}');
     _navigateFromData(message.data);
   }
 
-  /// Routes to the correct screen based on the push notification payload.
-  ///
-  /// The `auto-settle` edge function sends:
-  ///   `{ screen: "/predict", match_id: "...", type: "pool_settled" }`
-  ///
-  /// Supported data keys:
-  ///   - `pool_id` — shorthand to navigate to `/predict/pool/<pool_id>`
-  ///   - `match_id` — shorthand to navigate to `/match/<match_id>`
-  ///   - `screen` — a GoRouter path to navigate to directly
-  ///   - Falls back to home `/` if no recognised keys are present.
   void _navigateFromData(Map<String, dynamic> data) {
     if (data.isEmpty) return;
 
-    // Pool deep link
     final poolId = data['pool_id']?.toString();
     if (poolId != null && poolId.isNotEmpty) {
       router.go('/predict/pool/$poolId');
       return;
     }
 
-    // Match deep link
     final matchId = data['match_id']?.toString();
     if (matchId != null && matchId.isNotEmpty) {
       router.go('/match/$matchId');
       return;
     }
 
-    // Direct screen path (most flexible)
     final screen = data['screen']?.toString();
     final normalizedScreen = _normalizeRoute(screen);
     if (normalizedScreen != null) {
@@ -193,7 +155,6 @@ class PushNotificationService {
       return;
     }
 
-    // Notification types with known destinations
     final type = data['type']?.toString();
     switch (type) {
       case 'pool_settled':
@@ -208,7 +169,6 @@ class PushNotificationService {
         router.go('/profile/daily-challenge');
         return;
       default:
-        // Fallback — open notifications list
         router.go('/profile/notifications');
         return;
     }
@@ -228,117 +188,74 @@ class PushNotificationService {
     return normalized;
   }
 
-  /// Register device token with Supabase.
   Future<void> registerToken(String token) async {
-    if (!supabaseInitialized || _client == null) return;
-
-    final userId = _client.auth.currentUser?.id;
+    final userId = _authGateway.currentUser?.id;
     if (userId == null) return;
 
     final platform = Platform.isIOS ? 'ios' : 'android';
-
     try {
-      await _client.from('device_tokens').upsert({
-        'user_id': userId,
-        'token': token,
-        'platform': platform,
-        'is_active': true,
-        'updated_at': DateTime.now().toIso8601String(),
-      }, onConflict: 'user_id,token');
+      await _preferencesGateway.registerDeviceToken(
+        userId: userId,
+        token: token,
+        platform: platform,
+      );
       AppLogger.d('Device token registered ($platform)');
-    } catch (e) {
-      AppLogger.d('Failed to register device token: $e');
+    } catch (error) {
+      AppLogger.d('Failed to register device token: $error');
     }
   }
 
-  /// Remove device token on logout.
   Future<void> unregisterCurrentToken() async {
-    if (!supabaseInitialized || _client == null || _currentToken == null) {
-      return;
-    }
-
-    final userId = _client.auth.currentUser?.id;
+    final token = _currentToken;
+    if (token == null) return;
 
     try {
-      final query = _client
-          .from('device_tokens')
-          .update({'is_active': false})
-          .eq('token', _currentToken!);
-
-      // Scope to current user to avoid deactivating another user's token
-      if (userId != null) {
-        await query.eq('user_id', userId);
-      } else {
-        await query;
-      }
+      await _preferencesGateway.deactivateDeviceToken(
+        userId: _authGateway.currentUser?.id,
+        token: token,
+      );
       AppLogger.d('Device token deactivated');
-    } catch (e) {
-      AppLogger.d('Failed to deactivate token: $e');
+    } catch (error) {
+      AppLogger.d('Failed to deactivate token: $error');
     }
   }
 
-  /// Ensure default notification preferences exist for new users.
   Future<void> ensureDefaultPreferences() async {
-    if (!supabaseInitialized || _client == null) return;
-
-    final userId = _client.auth.currentUser?.id;
+    final userId = _authGateway.currentUser?.id;
     if (userId == null) return;
 
     try {
-      await _client
-          .from('notification_preferences')
-          .upsert(
-            {
-              'user_id': userId,
-              'goal_alerts': true,
-              'pool_updates': true,
-              'daily_challenge': true,
-              'wallet_activity': true,
-              'community_news': true,
-              'marketing': false,
-            },
-            onConflict: 'user_id',
-            ignoreDuplicates: true,
-          );
-    } catch (e) {
-      AppLogger.d('Failed to ensure notification prefs: $e');
+      await _preferencesGateway.ensureDefaultNotificationPreferences(userId);
+    } catch (error) {
+      AppLogger.d('Failed to ensure notification prefs: $error');
     }
   }
 
-  /// Get the current notification badge count (unread notifications).
   Future<int> getUnreadCount() async {
-    if (!supabaseInitialized || _client == null) return 0;
-
-    final userId = _client.auth.currentUser?.id;
+    final userId = _authGateway.currentUser?.id;
     if (userId == null) return 0;
 
     try {
-      final data = await _client
-          .from('notification_log')
-          .select('id')
-          .eq('user_id', userId)
-          .isFilter('read_at', null);
-
-      return (data as List).length;
-    } catch (e) {
-      AppLogger.d('Failed to get unread count: $e');
+      return _preferencesGateway.getUnreadNotificationCount(userId);
+    } catch (error) {
+      AppLogger.d('Failed to get unread count: $error');
       return 0;
     }
   }
 }
 
-// ── Riverpod Providers ──
-
-final pushNotificationServiceProvider = Provider<PushNotificationService>((
-  ref,
-) {
-  final client = supabaseInitialized ? Supabase.instance.client : null;
-  return PushNotificationService(client);
+final pushNotificationServiceProvider = Provider<PushNotificationService>((ref) {
+  return PushNotificationService(
+    getIt<AuthGateway>(),
+    getIt<PreferencesGateway>(),
+  );
 });
 
-/// Initialize push notifications when user is authenticated.
 final pushNotificationInitProvider = FutureProvider<void>((ref) async {
   if (!AppConfig.enableNotifications || !supabaseInitialized) return;
+
+  await firebaseInitCompleter.future;
+  if (!firebaseInitialized) return;
 
   final currentUser = ref.watch(currentUserProvider);
   final service = ref.read(pushNotificationServiceProvider);
@@ -351,7 +268,3 @@ final pushNotificationInitProvider = FutureProvider<void>((ref) async {
   await service.initialize();
   await service.ensureDefaultPreferences();
 });
-
-// NOTE: Unread notification count is provided by
-// `unreadNotificationCountProvider` in notification_service.dart.
-// Removed duplicate provider that was here previously (QA: H-11).

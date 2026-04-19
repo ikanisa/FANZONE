@@ -29,6 +29,7 @@ This document defines the backend accounting rules for FANZONE's internal FET le
 - Admin-issued credits must include a human-readable reason in both the RPC input and the resulting transaction title.
 - Refund flows must restore balances from recorded stake values and never mint extra FET.
 - Integer division dust from pool settlement must be fully distributed to winners; no silent remainder burn is allowed.
+- `settle_pool(...)` must distribute any integer remainder deterministically by awarding `+1 FET` to the earliest winning entries until the remainder is exhausted.
 
 ## Operational Checks
 
@@ -36,9 +37,13 @@ This document defines the backend accounting rules for FANZONE's internal FET le
 - Confirm `remaining_mintable >= expected_mint_amount` before running any manual or scheduled minting flow.
 - Record the expected post-mint total supply in the release or incident ticket before running `admin_credit_fet` at scale.
 - Treat any mismatch between wallet balances and transaction history as a launch-blocking issue.
+- Use `public.get_pool_settlement_reconciliation(...)` for pool-by-pool settlement checks before and after settlement incidents.
+- Use `public.get_pool_settlement_integrity_summary(...)` for dashboard-grade monitoring of recent settlement integrity.
 
 ## Current Enforcement
 
 - `public.fet_supply_cap()` is the database constant for the current hard cap.
 - `public.assert_fet_mint_within_cap(...)` serializes minting transactions and rejects any mint that would push total issued FET above the cap.
 - The enforced minting paths are `ensure_user_foundation`, `admin_credit_fet`, `settle_prediction_slips_for_match`, and `settle_daily_challenge`.
+- `public.settle_pool(...)` redistributes the full pool with deterministic remainder handling in `20260418121500_p0_hardening_fixups.sql`.
+- `public.get_pool_settlement_reconciliation(...)` and `public.get_pool_settlement_integrity_summary(...)` expose admin-safe reconciliation reports in `20260419150000_pool_settlement_reconciliation.sql`.

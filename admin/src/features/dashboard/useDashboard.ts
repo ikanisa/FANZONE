@@ -22,6 +22,17 @@ export interface SystemAlert {
   module: string;
 }
 
+interface PoolSettlementIntegritySummary {
+  checked_pool_count: number;
+  reconciled_pool_count: number;
+  unreconciled_pool_count: number;
+  total_expected_credit_fet: number;
+  total_entry_payout_fet: number;
+  total_wallet_credit_fet: number;
+  sample_unreconciled_pool_ids: string[];
+  since: string | null;
+}
+
 /* ── Demo Data ── */
 const DEMO_KPIS: DashboardKpis = {
   activeUsers: 3847,
@@ -129,6 +140,27 @@ export function useSystemAlerts() {
           message: `${dueCampaigns} scheduled campaign${dueCampaigns > 1 ? 's are' : ' is'} ready to dispatch`,
           module: 'Notifications',
         });
+      }
+
+      const { data: settlementIntegrity, error: settlementIntegrityError } =
+        await supabase.rpc('get_pool_settlement_integrity_summary', {
+          p_since: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+
+      if (!settlementIntegrityError) {
+        const summary = settlementIntegrity as PoolSettlementIntegritySummary | null;
+        const unreconciledCount = summary?.unreconciled_pool_count ?? 0;
+        if (unreconciledCount > 0) {
+          const samplePool = summary?.sample_unreconciled_pool_ids?.[0];
+          alerts.push({
+            id: 'sa-settlement-integrity',
+            severity: 'critical',
+            message: unreconciledCount === 1
+              ? `1 pool settlement failed reconciliation${samplePool ? ` (${samplePool})` : ''}`
+              : `${unreconciledCount} pool settlements failed reconciliation`,
+            module: 'Settlement',
+          });
+        }
       }
 
       return alerts;

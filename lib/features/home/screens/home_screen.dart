@@ -122,7 +122,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'MATCHDAY',
+                              'MATCHES',
                               style: FzTypography.display(
                                 size: 32,
                                 color: isDark
@@ -132,15 +132,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Predict matches, challenge friends, earn FET.',
+                              'Live scores, fixtures, and following in one fast match hub.',
                               style: TextStyle(fontSize: 12, color: muted),
                             ),
                           ],
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => context.push('/search'),
-                        icon: const Icon(Icons.search_rounded),
+                      Semantics(
+                        button: true,
+                        label: 'Search matches',
+                        onTap: () => context.push('/search'),
+                        child: Tooltip(
+                          message: 'Search matches',
+                          child: ExcludeSemantics(
+                            child: IconButton(
+                              onPressed: () => context.push('/search'),
+                              tooltip: 'Search matches',
+                              icon: const Icon(Icons.search_rounded),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -166,6 +177,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         isSelected: isSelected,
                         isToday: isToday,
                         isDark: isDark,
+                        semanticLabel:
+                            'Open matches for ${_dayLabel(date)} ${_dayNumber(date)}',
                         onTap: () {
                           HapticFeedback.selectionClick();
                           setState(() => _selectedDate = date);
@@ -186,6 +199,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     children: [
                       _FilterChip(
                         label: 'All',
+                        tooltip: 'Filter all matches',
+                        semanticLabel: 'Filter all matches',
                         selected: _statusFilter == _StatusFilter.all,
                         onTap: () =>
                             setState(() => _statusFilter = _StatusFilter.all),
@@ -193,6 +208,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       // P0-N2: LIVE count badge
                       _FilterChip(
                         label: _liveLabelWithCount(matchesAsync),
+                        tooltip: 'Filter live matches',
+                        semanticLabel: 'Filter live matches',
                         selected: _statusFilter == _StatusFilter.live,
                         onTap: () =>
                             setState(() => _statusFilter = _StatusFilter.live),
@@ -200,6 +217,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       _FilterChip(
                         label: 'Results',
+                        tooltip: 'Filter finished matches',
+                        semanticLabel: 'Filter finished matches',
                         selected: _statusFilter == _StatusFilter.results,
                         onTap: () => setState(
                           () => _statusFilter = _StatusFilter.results,
@@ -207,6 +226,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       _FilterChip(
                         label: 'Following',
+                        tooltip: 'Filter followed matches',
+                        semanticLabel: 'Filter followed matches',
                         selected: _statusFilter == _StatusFilter.following,
                         onTap: () => setState(
                           () => _statusFilter = _StatusFilter.following,
@@ -399,6 +420,7 @@ class _DateChip extends StatelessWidget {
     required this.isSelected,
     required this.isToday,
     required this.isDark,
+    required this.semanticLabel,
     required this.onTap,
   });
 
@@ -407,6 +429,7 @@ class _DateChip extends StatelessWidget {
   final bool isSelected;
   final bool isToday;
   final bool isDark;
+  final String semanticLabel;
   final VoidCallback onTap;
 
   @override
@@ -421,46 +444,56 @@ class _DateChip extends StatelessWidget {
         ? Colors.white70
         : (isToday ? FzColors.accent : textColor);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        width: 50,
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected
-                ? FzColors.accent
-                : (isToday
-                      ? FzColors.accent.withValues(alpha: 0.4)
-                      : (isDark ? FzColors.darkBorder : FzColors.lightBorder)),
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: semanticLabel,
+      child: Tooltip(
+        message: semanticLabel,
+        child: GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            width: 50,
+            margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isSelected
+                    ? FzColors.accent
+                    : (isToday
+                          ? FzColors.accent.withValues(alpha: 0.4)
+                          : (isDark
+                                ? FzColors.darkBorder
+                                : FzColors.lightBorder)),
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  dayLabel,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: labelColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  dayNumber,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              dayLabel,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                color: labelColor,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              dayNumber,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: textColor,
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -474,12 +507,16 @@ class _FilterChip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    required this.tooltip,
+    required this.semanticLabel,
     this.isLive = false,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final String tooltip;
+  final String semanticLabel;
   final bool isLive;
 
   @override
@@ -488,47 +525,55 @@ class _FilterChip extends StatelessWidget {
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: selected
-                ? FzColors.accent
-                : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? FzColors.accent
-                  : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isLive && !selected) ...[
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: FzColors.live,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: selected ? Colors.white : muted,
-                  letterSpacing: 0.3,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: semanticLabel,
+        child: Tooltip(
+          message: tooltip,
+          child: GestureDetector(
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: selected
+                    ? FzColors.accent
+                    : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: selected
+                      ? FzColors.accent
+                      : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
                 ),
               ),
-            ],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isLive && !selected) ...[
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: FzColors.live,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: selected ? Colors.white : muted,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

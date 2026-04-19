@@ -1,55 +1,119 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../core/network/supabase_provider.dart';
+
+import '../core/constants/league_constants.dart';
+import '../core/di/injection.dart';
+import '../features/home/data/catalog_gateway.dart';
 import '../models/competition_model.dart';
 
-/// Provider for all competitions.
-/// Returns CompetitionModel DTOs for backward compatibility.
 final competitionsProvider = FutureProvider.autoDispose<List<CompetitionModel>>(
   (ref) async {
     ref.keepAlive();
-    final client = ref.watch(supabaseClientProvider);
-    if (client == null) return const [];
-
-    final data = await client
-        .from('competitions')
-        .select()
-        .order('name')
-        .timeout(supabaseTimeout);
-
-    return (data as List).map((row) => CompetitionModel.fromJson(row)).toList();
+    return getIt<CatalogGateway>().getCompetitions();
   },
 );
 
-/// Provider for tier-1 competitions only.
 final topCompetitionsProvider =
     FutureProvider.autoDispose<List<CompetitionModel>>((ref) async {
       ref.keepAlive();
-      final client = ref.watch(supabaseClientProvider);
-      if (client == null) return const [];
-
-      final data = await client
-          .from('competitions')
-          .select()
-          .eq('tier', 1)
-          .order('name')
-          .timeout(supabaseTimeout);
-
-      return (data as List).map((row) => CompetitionModel.fromJson(row)).toList();
+      return getIt<CatalogGateway>().getCompetitions(tier: 1);
     });
 
-/// Provider for a single competition by ID.
 final competitionProvider = FutureProvider.family
     .autoDispose<CompetitionModel?, String>((ref, competitionId) async {
-      final client = ref.watch(supabaseClientProvider);
-      if (client == null) return null;
-
-      final data = await client
-          .from('competitions')
-          .select()
-          .eq('id', competitionId)
-          .maybeSingle()
-          .timeout(supabaseTimeout);
-
-      if (data == null) return null;
-      return CompetitionModel.fromJson(data);
+      return getIt<CatalogGateway>().getCompetition(competitionId);
     });
+
+final top5EuropeanLeaguesProvider =
+    FutureProvider.autoDispose<List<CompetitionModel>>((ref) async {
+      ref.keepAlive();
+      final all = await ref.watch(competitionsProvider.future);
+      final result = <CompetitionModel>[];
+      for (final country in kTop5EuropeanCountries) {
+        final match = all
+            .where((c) => c.country == country && c.tier == 1)
+            .firstOrNull;
+        if (match != null) result.add(match);
+      }
+      return result;
+    });
+
+final otherLeaguesProvider = FutureProvider.autoDispose<List<CompetitionModel>>(
+  (ref) async {
+    ref.keepAlive();
+    final all = await ref.watch(competitionsProvider.future);
+    return all.where((c) => c.tier == 1 && !isTop5Country(c.country)).toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+  },
+);
+
+final localLeaguesProvider = FutureProvider.family
+    .autoDispose<List<CompetitionModel>, String>((ref, regionKey) async {
+      final all = await ref.watch(competitionsProvider.future);
+      final localCountries = _countriesForRegion(regionKey);
+      if (localCountries.isEmpty) return const [];
+
+      return all
+          .where(
+            (c) =>
+                c.tier == 1 &&
+                !isTop5Country(c.country) &&
+                localCountries.contains(c.country),
+          )
+          .toList()
+        ..sort((a, b) => a.name.compareTo(b.name));
+    });
+
+List<String> _countriesForRegion(String regionKey) {
+  switch (regionKey) {
+    case 'africa':
+      return const [
+        'Rwanda',
+        'Nigeria',
+        'Egypt',
+        'South Africa',
+        'Tanzania',
+        'Kenya',
+        'Uganda',
+        'Ghana',
+        'Tunisia',
+        'Morocco',
+        'DR Congo',
+        'Senegal',
+        'Cameroon',
+        'Algeria',
+        'Ethiopia',
+      ];
+    case 'europe':
+      return const [
+        'Malta',
+        'Netherlands',
+        'Portugal',
+        'Belgium',
+        'Turkey',
+        'Scotland',
+        'Switzerland',
+        'Sweden',
+        'Norway',
+        'Denmark',
+        'Poland',
+        'Austria',
+        'Greece',
+        'Czech Republic',
+        'Romania',
+      ];
+    case 'north_america':
+    case 'americas':
+      return const [
+        'United States',
+        'Canada',
+        'Mexico',
+        'Brazil',
+        'Argentina',
+        'Colombia',
+        'Chile',
+        'Peru',
+      ];
+    default:
+      return const [];
+  }
+}

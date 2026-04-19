@@ -1,4 +1,5 @@
 // FANZONE Admin — Redemptions Data Hooks
+import { useMemo } from 'react';
 import { useSupabasePaginated, useSupabaseMutation } from '../../hooks/useSupabaseQuery';
 import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
 import type { Redemption } from '../../types';
@@ -9,6 +10,11 @@ export interface RedemptionRow extends Redemption {
   user_name?: string;
   reward_title?: string;
   partner_name?: string;
+}
+
+interface RedemptionQueryRow extends RedemptionRow {
+  rewards?: { title?: string | null } | null;
+  partners?: { name?: string | null } | null;
 }
 
 /* ── Demo Data ── */
@@ -23,7 +29,7 @@ const DEMO: RedemptionRow[] = [
 
 /* ── Hooks ── */
 export function useRedemptions(pagination: PaginationOpts, filters?: { status?: string; search?: string }) {
-  return useSupabasePaginated<RedemptionRow>(['redemptions', filters], 'redemptions', {
+  const query = useSupabasePaginated<RedemptionQueryRow>(['redemptions', filters], 'redemptions', {
     pagination,
     select: '*, rewards(title), partners(name)',
     order: { column: 'created_at', ascending: false },
@@ -36,6 +42,26 @@ export function useRedemptions(pagination: PaginationOpts, filters?: { status?: 
       return true;
     }),
   });
+
+  const data = useMemo(() => {
+    if (!query.data) {
+      return query.data;
+    }
+
+    return {
+      ...query.data,
+      data: query.data.data.map((row) => ({
+        ...row,
+        reward_title: row.reward_title ?? row.rewards?.title ?? undefined,
+        partner_name: row.partner_name ?? row.partners?.name ?? undefined,
+      })),
+    };
+  }, [query.data]);
+
+  return {
+    ...query,
+    data,
+  };
 }
 
 export function useApproveRedemption() {
@@ -43,11 +69,10 @@ export function useApproveRedemption() {
     mutationFn: async ({ redemptionId, code }) => {
       if (isDemoMode) return { approved: true };
       if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase.from('redemptions').update({
-        status: 'approved',
-        redemption_code: code || `FZ-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
-        updated_at: new Date().toISOString(),
-      }).eq('id', redemptionId);
+      const { error } = await supabase.rpc('admin_approve_redemption', {
+        p_redemption_id: redemptionId,
+        p_redemption_code: code || null,
+      });
       if (error) throw new Error(error.message);
       return { approved: true };
     },
@@ -61,11 +86,10 @@ export function useRejectRedemption() {
     mutationFn: async ({ redemptionId, reason }) => {
       if (isDemoMode) return { rejected: true };
       if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase.from('redemptions').update({
-        status: 'rejected',
-        admin_notes: reason,
-        updated_at: new Date().toISOString(),
-      }).eq('id', redemptionId);
+      const { error } = await supabase.rpc('admin_reject_redemption', {
+        p_redemption_id: redemptionId,
+        p_reason: reason,
+      });
       if (error) throw new Error(error.message);
       return { rejected: true };
     },
@@ -79,10 +103,9 @@ export function useFulfillRedemption() {
     mutationFn: async ({ redemptionId }) => {
       if (isDemoMode) return { fulfilled: true };
       if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase.from('redemptions').update({
-        status: 'fulfilled',
-        updated_at: new Date().toISOString(),
-      }).eq('id', redemptionId);
+      const { error } = await supabase.rpc('admin_fulfill_redemption', {
+        p_redemption_id: redemptionId,
+      });
       if (error) throw new Error(error.message);
       return { fulfilled: true };
     },

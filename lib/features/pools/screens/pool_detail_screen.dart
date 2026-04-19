@@ -49,9 +49,11 @@ class PoolDetailScreen extends ConsumerWidget {
               tooltip: 'Share Pool',
               onPressed: () {
                 final url = 'https://fanzone.mt/pool/$poolId';
-                Share.share(
-                  'Join my prediction pool on FANZONE! 🏆⚽\n$url',
-                  subject: 'FANZONE Pool Invite',
+                SharePlus.instance.share(
+                  ShareParams(
+                    text: 'Join my prediction pool on FANZONE! 🏆⚽\n$url',
+                    subject: 'FANZONE Pool Invite',
+                  ),
                 );
               },
             ),
@@ -104,7 +106,7 @@ class _PoolContent extends ConsumerWidget {
       case 'locked':
         return FzColors.amber;
       case 'settled':
-        return Colors.green;
+        return FzColors.success;
       case 'void':
         return FzColors.maltaRed;
       default:
@@ -122,212 +124,231 @@ class _PoolContent extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         // ── Status Hero ──
-        FzCard(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              // Status badge + lock time
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  FzBadge(
-                    label: pool.status.toUpperCase(),
-                    color: statusColor,
-                    pulse: pool.status == 'open',
+        RepaintBoundary(
+          child: FzCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Status badge + lock time
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    FzBadge(
+                      label: pool.status.toUpperCase(),
+                      color: statusColor,
+                      pulse: pool.status == 'open',
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'LOCK TIME',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: muted,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(LucideIcons.clock, size: 12, color: muted),
+                            const SizedBox(width: 4),
+                            Text(
+                              lockTimeFormatted,
+                              style: FzTypography.scoreCompact(
+                                color: textColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Match name
+                Text(
+                  pool.matchName,
+                  style: FzTypography.display(size: 28, color: textColor),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 12),
+
+                // Stake pill
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? FzColors.darkSurface3
+                        : FzColors.lightSurface2,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? FzColors.darkBorder
+                          : FzColors.lightBorder,
+                    ),
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    alignment: WrapAlignment.center,
                     children: [
                       Text(
-                        'LOCK TIME',
+                        'STAKE',
                         style: TextStyle(
-                          fontSize: 9,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: muted,
                           letterSpacing: 1,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(LucideIcons.clock, size: 12, color: muted),
-                          const SizedBox(width: 4),
-                          Text(
-                            lockTimeFormatted,
-                            style: FzTypography.scoreCompact(color: textColor),
-                          ),
-                        ],
+                      Text(
+                        formatFET(pool.stake, currency),
+                        style: FzTypography.score(
+                          size: 18,
+                          weight: FontWeight.w700,
+                          color: FzColors.amber,
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Match name
-              Text(
-                pool.matchName,
-                style: FzTypography.display(size: 28, color: textColor),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 12),
-
-              // Stake pill
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
                 ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? FzColors.darkSurface3
-                      : FzColors.lightSurface2,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+
+                const SizedBox(height: 20),
+
+                // Pool + Participants grid
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'STAKE',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: muted,
-                        letterSpacing: 1,
+                    Expanded(
+                      child: _StatCard(
+                        icon: LucideIcons.zap,
+                        iconColor: FzColors.accent,
+                        label: 'TOTAL POOL',
+                        value: formatFET(pool.totalPool, currency),
+                        isDark: isDark,
+                        muted: muted,
+                        textColor: textColor,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      formatFET(pool.stake, currency),
-                      style: FzTypography.score(
-                        size: 18,
-                        weight: FontWeight.w700,
-                        color: FzColors.amber,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StatCard(
+                        icon: LucideIcons.users,
+                        iconColor: FzColors.violet,
+                        label: 'PARTICIPANTS',
+                        value: '${pool.participantsCount}',
+                        isDark: isDark,
+                        muted: muted,
+                        textColor: textColor,
                       ),
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Pool + Participants grid
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      icon: LucideIcons.zap,
-                      iconColor: FzColors.accent,
-                      label: 'TOTAL POOL',
-                      value: formatFET(pool.totalPool, currency),
-                      isDark: isDark,
-                      muted: muted,
-                      textColor: textColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _StatCard(
-                      icon: LucideIcons.users,
-                      iconColor: FzColors.violet,
-                      label: 'PARTICIPANTS',
-                      value: '${pool.participantsCount}',
-                      isDark: isDark,
-                      muted: muted,
-                      textColor: textColor,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
 
         const SizedBox(height: 16),
 
         // ── Creator Info ──
-        FzCard(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(LucideIcons.swords, size: 14, color: muted),
-                  const SizedBox(width: 6),
-                  Text(
-                    'CREATED BY',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: muted,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: isDark
-                        ? FzColors.darkSurface3
-                        : FzColors.lightSurface3,
-                    child: Text(
-                      pool.creatorName.isNotEmpty
-                          ? pool.creatorName[0].toUpperCase()
-                          : '?',
+        RepaintBoundary(
+          child: FzCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(LucideIcons.swords, size: 14, color: muted),
+                    const SizedBox(width: 6),
+                    Text(
+                      'CREATED BY',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 9,
                         fontWeight: FontWeight.w700,
-                        color: textColor,
+                        color: muted,
+                        letterSpacing: 1,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      pool.creatorName,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: textColor,
-                      ),
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'PREDICTION',
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: isDark
+                          ? FzColors.darkSurface3
+                          : FzColors.lightSurface3,
+                      child: Text(
+                        pool.creatorName.isNotEmpty
+                            ? pool.creatorName[0].toUpperCase()
+                            : '?',
                         style: TextStyle(
-                          fontSize: 9,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: muted,
-                          letterSpacing: 1,
+                          color: textColor,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        pool.creatorPrediction,
-                        style: FzTypography.score(
-                          size: 16,
-                          weight: FontWeight.w700,
-                          color: FzColors.accent,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        pool.creatorName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: textColor,
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'PREDICTION',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: muted,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            pool.creatorPrediction,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.right,
+                            style: FzTypography.score(
+                              size: 16,
+                              weight: FontWeight.w700,
+                              color: FzColors.accent,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
 
@@ -351,13 +372,16 @@ class _PoolContent extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Join for ${formatFET(pool.stake, currency)}'),
-                  const SizedBox(width: 8),
-                  const Icon(LucideIcons.arrowRight, size: 20),
-                ],
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Join for ${formatFET(pool.stake, currency)}'),
+                    const SizedBox(width: 8),
+                    const Icon(LucideIcons.arrowRight, size: 20),
+                  ],
+                ),
               ),
             ),
           ),
@@ -390,11 +414,13 @@ class _PoolContent extends ConsumerWidget {
           const SizedBox(height: 10),
           SizedBox(
             height: 300,
-            child: FzCard(
-              padding: EdgeInsets.zero,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: FeedChat(channelType: 'pool', channelId: pool.id),
+            child: RepaintBoundary(
+              child: FzCard(
+                padding: EdgeInsets.zero,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: FeedChat(channelType: 'pool', channelId: pool.id),
+                ),
               ),
             ),
           ),
@@ -656,23 +682,32 @@ class _JoinSheetState extends ConsumerState<_JoinSheet> {
                 ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'REQUIRED STAKE',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: widget.muted,
-                      letterSpacing: 1,
+                  Expanded(
+                    child: Text(
+                      'REQUIRED STAKE',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: widget.muted,
+                        letterSpacing: 1,
+                      ),
                     ),
                   ),
-                  Text(
-                    formatFET(c.stake, currency),
-                    style: FzTypography.score(
-                      size: 14,
-                      weight: FontWeight.w700,
-                      color: FzColors.accent,
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        formatFET(c.stake, currency),
+                        style: FzTypography.score(
+                          size: 14,
+                          weight: FontWeight.w700,
+                          color: FzColors.accent,
+                        ),
+                      ),
                     ),
                   ),
                 ],

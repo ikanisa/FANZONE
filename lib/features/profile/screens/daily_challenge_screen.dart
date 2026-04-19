@@ -12,6 +12,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
+import '../../../services/product_analytics_service.dart';
 
 class DailyChallengeScreen extends ConsumerStatefulWidget {
   const DailyChallengeScreen({super.key});
@@ -340,6 +341,7 @@ class _DailyChallengeScreenState extends ConsumerState<DailyChallengeScreen> {
             awayScore: away,
           );
       if (!context.mounted) return;
+      ProductAnalytics.dailyChallengeEntered(challengeId: challenge.id);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Daily challenge prediction submitted.')),
       );

@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../main.dart'
-    show retrySupabaseInitialization, supabaseInitError;
+import '../../../main.dart' show retrySupabaseInitialization, supabaseInitError;
 import '../../../providers/auth_provider.dart';
 import '../../../providers/market_preferences_provider.dart';
 import '../../../theme/colors.dart';
+import '../../../widgets/common/fz_brand_logo.dart';
 
 /// Accent used on the phone verification screen.
 const _verificationAccent = FzColors.teal;
@@ -194,7 +194,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                 const SizedBox(height: 40),
 
                 // ── Logo ──
-                Image.asset('assets/images/logo.png', width: 72, height: 72),
+                const FzBrandLogo(width: 72, height: 72, preferCdn: true),
                 const SizedBox(height: 24),
                 Text(
                   'FANZONE',
@@ -386,67 +386,74 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         const SizedBox(height: 24),
 
         // 6-digit OTP fields
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(6, (i) {
-            return Container(
-              width: 46,
-              height: 56,
-              margin: EdgeInsets.only(
-                left: i == 0 ? 0 : 6,
-                right: i == 5 ? 0 : 6,
-              ),
-              child: TextField(
-                controller: _otpControllers[i],
-                focusNode: _otpFocusNodes[i],
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                maxLength: 1,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0,
-                ),
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  counterText: '',
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: isDark
-                          ? FzColors.darkBorder
-                          : FzColors.lightBorder,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const boxCount = 6;
+            const gap = 6.0;
+            final fieldWidth =
+                ((constraints.maxWidth - (gap * (boxCount - 1))) / boxCount)
+                    .clamp(40.0, 46.0);
+
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(boxCount, (i) {
+                return Container(
+                  width: fieldWidth,
+                  height: 56,
+                  margin: EdgeInsets.only(right: i == boxCount - 1 ? 0 : gap),
+                  child: TextField(
+                    controller: _otpControllers[i],
+                    focusNode: _otpFocusNodes[i],
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    maxLength: 1,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0,
                     ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: _verificationAccent,
-                      width: 2,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      counterText: '',
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark
+                              ? FzColors.darkBorder
+                              : FzColors.lightBorder,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: _verificationAccent,
+                          width: 2,
+                        ),
+                      ),
                     ),
+                    onChanged: (value) {
+                      if (value.isNotEmpty && i < 5) {
+                        _otpFocusNodes[i + 1].requestFocus();
+                      }
+                      // H-6 fix: If the field was cleared (backspace) and this
+                      // isn't the first field, move focus to the previous field.
+                      if (value.isEmpty && i > 0) {
+                        _otpFocusNodes[i - 1].requestFocus();
+                      }
+                      // Auto-submit when all 6 digits entered
+                      if (i == 5 && value.isNotEmpty) {
+                        final otp = _otpControllers.map((c) => c.text).join();
+                        if (otp.length == 6) {
+                          _verifyOtp();
+                        }
+                      }
+                    },
                   ),
-                ),
-                onChanged: (value) {
-                  if (value.isNotEmpty && i < 5) {
-                    _otpFocusNodes[i + 1].requestFocus();
-                  }
-                  // H-6 fix: If the field was cleared (backspace) and this
-                  // isn't the first field, move focus to the previous field.
-                  if (value.isEmpty && i > 0) {
-                    _otpFocusNodes[i - 1].requestFocus();
-                  }
-                  // Auto-submit when all 6 digits entered
-                  if (i == 5 && value.isNotEmpty) {
-                    final otp = _otpControllers.map((c) => c.text).join();
-                    if (otp.length == 6) {
-                      _verifyOtp();
-                    }
-                  }
-                },
-              ),
+                );
+              }),
             );
-          }),
+          },
         ),
 
         const SizedBox(height: 24),

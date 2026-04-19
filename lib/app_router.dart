@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/app_config.dart';
-import 'main.dart' show authStateVersion, supabaseInitialized;
+import 'core/accessibility/motion.dart';
+import 'core/di/injection.dart';
+import 'core/navigation/analytics_route_observer.dart';
+import 'features/auth/data/auth_gateway.dart';
+import 'main.dart' show authStateVersion;
 import 'widgets/navigation/app_shell.dart';
 
-// ── Feature screens ──
 import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/whatsapp_login_screen.dart';
 import 'features/community/screens/clubs_hub_screen.dart';
 import 'features/community/screens/community_contests_screen.dart';
 import 'features/community/screens/membership_hub_screen.dart';
 import 'features/fixtures/screens/fixtures_screen.dart';
+import 'features/home/screens/all_leagues_screen.dart';
+import 'features/home/screens/event_hub_screen.dart';
 import 'features/home/screens/following_screen.dart';
+import 'features/home/screens/home_feed_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/home/screens/league_hub_screen.dart';
+import 'features/home/screens/leagues_discovery_screen.dart';
 import 'features/home/screens/match_detail_screen.dart';
-import 'features/home/screens/matchday_hub_screen.dart';
 import 'features/identity/screens/fan_id_screen.dart';
 import 'features/leaderboard/screens/leaderboard_screen.dart';
 import 'features/leaderboard/screens/seasonal_leaderboard_screen.dart';
@@ -31,8 +36,8 @@ import 'features/profile/screens/prediction_history_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/rewards/screens/rewards_screen.dart';
 import 'features/search/screens/search_screen.dart';
-import 'features/settings/screens/favorite_teams_screen.dart';
 import 'features/settings/screens/account_deletion_screen.dart';
+import 'features/settings/screens/favorite_teams_screen.dart';
 import 'features/settings/screens/feature_unavailable_screen.dart';
 import 'features/settings/screens/market_preferences_screen.dart';
 import 'features/settings/screens/privacy_settings_screen.dart';
@@ -43,18 +48,13 @@ import 'features/teams/screens/team_profile_screen.dart';
 import 'features/teams/screens/teams_discovery_screen.dart';
 import 'features/wallet/screens/fet_exchange_screen.dart';
 import 'features/wallet/screens/wallet_screen.dart';
-import 'features/home/screens/event_hub_screen.dart';
 
-/// Returns true if the user is currently authenticated.
-bool _isAuthenticated() {
-  if (!supabaseInitialized) return false;
-  return Supabase.instance.client.auth.currentSession != null;
-}
+bool _isAuthenticated() => getIt<AuthGateway>().isAuthenticated;
 
-/// FANZONE navigation router with auth guards.
 final router = GoRouter(
   initialLocation: '/splash',
   refreshListenable: authStateVersion,
+  observers: [AnalyticsRouteObserver()],
   redirect: (context, state) {
     final path = state.uri.path;
     final requestedLocation = state.uri.toString();
@@ -109,9 +109,30 @@ final router = GoRouter(
       pageBuilder: (context, state) =>
           _fadeTransition(state, const OnboardingScreen()),
     ),
-
-    // Compatibility redirects for the legacy scores-first IA.
     GoRoute(path: '/teams', redirect: (context, state) => '/clubs/teams'),
+    GoRoute(path: '/matches', redirect: (context, state) => '/fixtures'),
+    GoRoute(path: '/pools', redirect: (context, state) => '/predict'),
+    GoRoute(path: '/jackpot', redirect: (context, state) => '/predict/jackpot'),
+    GoRoute(
+      path: '/leaderboard',
+      redirect: (context, state) => '/profile/leaderboard',
+    ),
+    GoRoute(
+      path: '/notifications',
+      redirect: (context, state) => '/profile/notifications',
+    ),
+    GoRoute(
+      path: '/settings',
+      redirect: (context, state) => '/profile/settings',
+    ),
+    GoRoute(path: '/social', redirect: (context, state) => '/clubs/social'),
+    GoRoute(
+      path: '/memberships',
+      redirect: (context, state) => '/clubs/membership',
+    ),
+    GoRoute(path: '/registry', redirect: (context, state) => '/clubs/fan-id'),
+    GoRoute(path: '/fan-id', redirect: (context, state) => '/clubs/fan-id'),
+    GoRoute(path: '/rewards', redirect: (context, state) => '/wallet/rewards'),
     GoRoute(
       path: '/team/:teamId/news/:newsId',
       redirect: (context, state) =>
@@ -131,41 +152,33 @@ final router = GoRouter(
       path: '/profile/rewards',
       redirect: (context, state) => '/wallet/rewards',
     ),
-
-    if (AppConfig.enableDeepLinking)
-      GoRoute(
-        path: '/pool/:poolId',
-        redirect: (context, state) =>
-            '/predict/pool/${state.pathParameters['poolId']}',
-      ),
-
-    // ── Featured Event Hub (Global Launch) ──
+    GoRoute(
+      path: '/pool/:poolId',
+      redirect: (context, state) =>
+          '/predict/pool/${state.pathParameters['poolId']}',
+    ),
     if (AppConfig.enableFeaturedEvents)
       GoRoute(
         path: '/event/:eventTag',
         builder: (context, state) =>
             EventHubScreen(eventTag: state.pathParameters['eventTag']!),
       ),
-
     StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) =>
-          AppShell(navigationShell: navigationShell),
+      builder: (context, state, navigationShell) => AppShell(
+        navigationShell: navigationShell,
+        currentLocation: state.uri.path,
+      ),
       branches: [
         StatefulShellBranch(
           routes: [
             GoRoute(
               path: '/',
-              builder: (context, state) => const MatchdayHubScreen(),
+              builder: (context, state) => const HomeFeedScreen(),
               routes: [
                 GoRoute(
                   path: 'scores',
                   pageBuilder: (context, state) =>
                       _fadeSlideTransition(state, const HomeScreen()),
-                ),
-                GoRoute(
-                  path: 'fixtures',
-                  pageBuilder: (context, state) =>
-                      _fadeSlideTransition(state, const FixturesScreen()),
                 ),
                 GoRoute(
                   path: 'following',
@@ -191,9 +204,28 @@ final router = GoRouter(
                   ),
                 ),
                 GoRoute(
+                  path: 'leagues',
+                  pageBuilder: (context, state) => _fadeSlideTransition(
+                    state,
+                    const LeaguesDiscoveryScreen(),
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: 'all',
+                      pageBuilder: (context, state) =>
+                          _fadeSlideTransition(state, const AllLeaguesScreen()),
+                    ),
+                  ],
+                ),
+                GoRoute(
                   path: 'search',
                   pageBuilder: (context, state) =>
                       _fadeSlideTransition(state, const SearchScreen()),
+                ),
+                GoRoute(
+                  path: 'fixtures',
+                  pageBuilder: (context, state) =>
+                      _fadeSlideTransition(state, const FixturesScreen()),
                 ),
               ],
             ),
@@ -425,6 +457,9 @@ CustomTransitionPage<void> _fadeSlideTransition(
     transitionDuration: const Duration(milliseconds: 280),
     reverseTransitionDuration: const Duration(milliseconds: 220),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      if (prefersReducedMotion(context)) {
+        return child;
+      }
       final curved = CurvedAnimation(
         parent: animation,
         curve: Curves.easeOutCubic,
@@ -451,6 +486,9 @@ CustomTransitionPage<void> _fadeTransition(GoRouterState state, Widget child) {
     transitionDuration: const Duration(milliseconds: 400),
     reverseTransitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      if (prefersReducedMotion(context)) {
+        return child;
+      }
       return FadeTransition(
         opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
         child: child,

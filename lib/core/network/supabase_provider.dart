@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../main.dart' show supabaseInitialized;
+import '../di/injection.dart';
+import '../supabase/supabase_connection.dart';
 
 /// Provides the Supabase client (or null if not yet initialised).
 final supabaseClientProvider = Provider<SupabaseClient?>((ref) {
-  if (!supabaseInitialized) return null;
-  return Supabase.instance.client;
+  return getIt<SupabaseConnection>().client;
 });
 
 /// Convenience getter for the current authenticated user ID.

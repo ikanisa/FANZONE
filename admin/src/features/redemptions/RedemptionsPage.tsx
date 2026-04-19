@@ -8,7 +8,6 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useRedemptions, useApproveRedemption, useRejectRedemption, useFulfillRedemption } from './useRedemptions';
 import type { RedemptionRow } from './useRedemptions';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatFET, formatDateTime } from '../../lib/formatters';
 import { Clock, CheckCircle, XCircle, AlertTriangle, Check, X as XIcon, Search, Package } from 'lucide-react';
 
@@ -25,7 +24,6 @@ export function RedemptionsPage() {
   const approveMutation = useApproveRedemption();
   const rejectMutation = useRejectRedemption();
   const fulfillMutation = useFulfillRedemption();
-  const { logAction } = useAuditLog();
 
   const redemptions = result?.data ?? [];
   const pendingCount = redemptions.filter(r => r.status === 'pending').length;
@@ -35,21 +33,18 @@ export function RedemptionsPage() {
 
   const handleApprove = async (r: RedemptionRow) => {
     await approveMutation.mutateAsync({ redemptionId: r.id });
-    await logAction({ action: 'approve_redemption', module: 'redemptions', targetType: 'redemption', targetId: r.id, beforeState: { status: r.status }, afterState: { status: 'approved' } });
     setSelected(null);
   };
 
   const handleReject = async () => {
     if (!rejectTarget) return;
     await rejectMutation.mutateAsync({ redemptionId: rejectTarget.id, reason: rejectReason });
-    await logAction({ action: 'reject_redemption', module: 'redemptions', targetType: 'redemption', targetId: rejectTarget.id, afterState: { status: 'rejected', reason: rejectReason } });
     setRejectTarget(null); setRejectReason(''); setSelected(null);
   };
 
   const handleFulfill = async () => {
     if (!fulfillTarget) return;
     await fulfillMutation.mutateAsync({ redemptionId: fulfillTarget.id });
-    await logAction({ action: 'fulfill_redemption', module: 'redemptions', targetType: 'redemption', targetId: fulfillTarget.id });
     setFulfillTarget(null); setSelected(null);
   };
 
