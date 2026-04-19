@@ -1,6 +1,5 @@
 part of '../../screens/match_detail_screen.dart';
 
-// ignore: unused_element
 class _InsightsTab extends ConsumerWidget {
   const _InsightsTab({required this.match});
 

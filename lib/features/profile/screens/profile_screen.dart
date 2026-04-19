@@ -11,6 +11,7 @@ import '../../../providers/currency_provider.dart';
 import '../../../providers/favorite_teams_provider.dart';
 import '../../../services/push_notification_service.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../services/wallet_service.dart';
 import '../widgets/profile_sections.dart';
@@ -62,7 +63,7 @@ class ProfileScreen extends ConsumerWidget {
                     message: 'Open settings',
                     child: InkWell(
                       onTap: () => context.go('/profile/settings'),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: FzRadii.fullRadius,
                       child: Container(
                         width: 40,
                         height: 40,

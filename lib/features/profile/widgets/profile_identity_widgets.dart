@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../data/team_search_database.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/radii.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fet_display.dart';
 import '../../../widgets/match/match_list_widgets.dart';
@@ -39,7 +40,7 @@ class ProfileHeaderCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return FzCard(
-      borderRadius: 28,
+      borderRadius: FzRadii.hero,
       color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -172,11 +173,11 @@ class ProfileHeaderCard extends ConsumerWidget {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                  ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-            ],
-          ),
               ),
             ],
           ),
@@ -197,7 +198,7 @@ class ProfileHeaderCard extends ConsumerWidget {
                     ),
                     decoration: BoxDecoration(
                       color: FzColors.accent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: FzRadii.compactRadius,
                     ),
                     child: const Text(
                       'Verify phone to unlock predictions and transfers',

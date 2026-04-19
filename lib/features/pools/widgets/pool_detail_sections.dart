@@ -48,7 +48,7 @@ class PoolStatusHeroCard extends ConsumerWidget {
               children: [
                 FzBadge(
                   label: pool.status.toUpperCase(),
-                  color: statusColor,
+                  variant: _statusBadgeVariant(pool.status),
                   pulse: pool.status == 'open',
                 ),
                 Column(
@@ -154,6 +154,20 @@ class PoolStatusHeroCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+FzBadgeVariant _statusBadgeVariant(String status) {
+  switch (status) {
+    case 'open':
+      return FzBadgeVariant.accent;
+    case 'settled':
+      return FzBadgeVariant.accent3;
+    case 'locked':
+    case 'void':
+      return FzBadgeVariant.ghost;
+    default:
+      return FzBadgeVariant.outline;
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../data/team_search_database.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 import '../providers/profile_identity_provider.dart';
@@ -33,7 +34,7 @@ Future<void> showProfileIdentityPicker(
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
           decoration: BoxDecoration(
             color: surface,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: FzRadii.heroRadius,
             border: Border.all(color: border),
           ),
           child: Column(

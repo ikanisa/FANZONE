@@ -86,6 +86,19 @@ class _SlipCard extends ConsumerWidget {
     }
   }
 
+  FzBadgeVariant _statusVariant() {
+    switch (slip.status) {
+      case 'settled_win':
+        return FzBadgeVariant.success;
+      case 'settled_loss':
+        return FzBadgeVariant.danger;
+      case 'voided':
+        return FzBadgeVariant.accent3;
+      default:
+        return FzBadgeVariant.accent;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
@@ -132,7 +145,7 @@ class _SlipCard extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    FzBadge(label: _statusLabel(), color: _statusColor()),
+                    FzBadge(label: _statusLabel(), variant: _statusVariant()),
                   ],
                 ),
                 const SizedBox(height: 4),

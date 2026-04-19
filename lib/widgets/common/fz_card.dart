@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/colors.dart';
+import '../../theme/radii.dart';
 
 /// Reusable card container matching FANZONE design system.
 class FzCard extends StatelessWidget {
@@ -10,7 +11,7 @@ class FzCard extends StatelessWidget {
     this.margin,
     this.color,
     this.borderColor,
-    this.borderRadius = 16,
+    this.borderRadius = FzRadii.card,
     this.onTap,
   });
 

@@ -8,6 +8,7 @@ import '../../../features/profile/providers/profile_identity_provider.dart';
 import '../../../providers/matches_provider.dart';
 import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_badge.dart';
 import '../../../widgets/common/fz_card.dart';
@@ -101,8 +102,7 @@ class HomeFeedScreen extends ConsumerWidget {
                         title: 'Live Action',
                         trailing: FzBadge(
                           label: '${liveMatches.length}',
-                          color: FzColors.danger,
-                          textColor: Colors.white,
+                          variant: FzBadgeVariant.danger,
                           pulse: liveMatches.isNotEmpty,
                         ),
                       ),
@@ -368,7 +368,7 @@ class _InsightCardShell extends StatelessWidget {
             isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: FzRadii.cardRadius,
         border: Border.all(color: FzColors.success.withValues(alpha: 0.18)),
         boxShadow: [
           BoxShadow(
@@ -403,7 +403,7 @@ class _InsightCardShell extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: FzColors.success.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: FzRadii.fullRadius,
                   border: Border.all(
                     color: FzColors.success.withValues(alpha: 0.2),
                   ),
@@ -541,7 +541,7 @@ class _RoundActionButton extends StatelessWidget {
       message: tooltip,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: FzRadii.fullRadius,
         child: Container(
           width: 40,
           height: 40,
@@ -549,7 +549,7 @@ class _RoundActionButton extends StatelessWidget {
             color:
                 backgroundColor ??
                 (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: FzRadii.fullRadius,
             border: Border.all(
               color: hasCustomBackground
                   ? Colors.transparent

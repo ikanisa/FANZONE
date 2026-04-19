@@ -286,8 +286,10 @@ class _PoolCard extends ConsumerWidget {
             children: [
               FzBadge(
                 label: pool.status.toUpperCase(),
-                color: pool.status == 'open' ? FzColors.success : muted,
-                textColor: Colors.white,
+                variant: pool.status == 'open'
+                    ? FzBadgeVariant.accent
+                    : FzBadgeVariant.ghost,
+                pulse: pool.status == 'open',
                 fontSize: 8,
               ),
               const Spacer(),
@@ -322,11 +324,7 @@ class _PoolCard extends ConsumerWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    LucideIcons.zap,
-                    size: 14,
-                    color: FzColors.accent,
-                  ),
+                  const Icon(LucideIcons.zap, size: 14, color: FzColors.accent),
                   const SizedBox(width: 6),
                   Text(
                     formatFET(pool.totalPool, currency),

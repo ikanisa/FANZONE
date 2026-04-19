@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../models/privacy_settings_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/privacy_settings_service.dart';
 import '../../../theme/colors.dart';
-import '../../../widgets/common/fz_card.dart';
 
-/// Privacy settings screen — backend-backed visibility controls and
-/// release-safe copy around what the app actually exposes.
 class PrivacySettingsScreen extends ConsumerStatefulWidget {
   const PrivacySettingsScreen({super.key});
 
@@ -105,136 +103,234 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
     final isVerified = ref.watch(isAuthenticatedProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
+      backgroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,
+      body: SafeArea(
+        child: Column(
           children: [
-            Text(
-              'SETTINGS',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: muted,
-                letterSpacing: 1.5,
-              ),
+            _SettingsHeader(
+              onBack: () => context.go('/profile'),
+              muted: muted,
+              textColor: textColor,
             ),
-            Text(
-              'Privacy',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: textColor,
-              ),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 640),
+                        child: ListView(
+                          padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
+                          children: [
+                            if ((_error ?? '').isNotEmpty) ...[
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: FzColors.error.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: FzColors.error.withValues(
+                                      alpha: 0.24,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  _error!,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: FzColors.error,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            Text(
+                              'Core Guarantees'.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: muted,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _SourceCard(
+                              child: Column(
+                                children: const [
+                                  _GuaranteeRow(
+                                    icon: LucideIcons.smartphone,
+                                    iconColor: Color(0xFF25D366),
+                                    title: 'Phone Number Hidden',
+                                    description:
+                                        'Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users, club admins, or in public leaderboards.',
+                                    showDivider: true,
+                                  ),
+                                  _GuaranteeRow(
+                                    icon: LucideIcons.shield,
+                                    iconColor: FzColors.accent,
+                                    title: 'Anonymous Contributions',
+                                    description:
+                                        'MoMo contributions to fan clubs are logged using your Fan ID and amount bracket only. Exact amounts and phone numbers are not recorded.',
+                                    showDivider: false,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            Text(
+                              'Visibility Controls'.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: muted,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            _SourceCard(
+                              padding: const EdgeInsets.all(8),
+                              child: Column(
+                                children: [
+                                  _VisibilityControlRow(
+                                    title: 'Display Name on Leaderboards',
+                                    description:
+                                        'Show your custom display name instead of your anonymous Fan ID on public leaderboards.',
+                                    value: _showNameOnLeaderboards,
+                                    enabled: isVerified && !_saving,
+                                    showDivider: true,
+                                    onChanged: (value) => _updateSettings(
+                                      showNameOnLeaderboards: value,
+                                    ),
+                                  ),
+                                  _VisibilityControlRow(
+                                    title: 'Allow Friends to Find Me',
+                                    description:
+                                        'Allow other users who have your phone number in their contacts to find your Fan ID.',
+                                    value: _allowFanDiscovery,
+                                    enabled: isVerified && !_saving,
+                                    showDivider: false,
+                                    onChanged: (value) => _updateSettings(
+                                      allowFanDiscovery: value,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!isVerified) ...[
+                              const SizedBox(height: 12),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 4),
+                                child: Text(
+                                  '* Verification required to change visibility settings.',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: FzColors.coral,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+    );
+  }
+}
+
+class _SettingsHeader extends StatelessWidget {
+  const _SettingsHeader({
+    required this.onBack,
+    required this.muted,
+    required this.textColor,
+  });
+
+  final VoidCallback onBack;
+  final Color muted;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      decoration: BoxDecoration(
+        color: (isDark ? FzColors.darkSurface : FzColors.lightSurface)
+            .withValues(alpha: 0.9),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: onBack,
+            icon: Icon(
+              LucideIcons.chevronLeft,
+              color: textColor,
+            ),
+          ),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if ((_error ?? '').isNotEmpty) ...[
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: FzColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: FzColors.error,
-                      ),
-                    ),
-                  ),
-                ],
                 Text(
-                  'CORE GUARANTEES',
+                  'Settings',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: muted,
-                    letterSpacing: 0.8,
+                    letterSpacing: 1.4,
                   ),
                 ),
-                const SizedBox(height: 10),
-                const FzCard(
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      _GuaranteeRow(
-                        icon: LucideIcons.smartphone,
-                        iconColor: FzColors.accent,
-                        title: 'Phone Number Hidden',
-                        description:
-                            'Your phone number is used for sign-in only. It is not shown in public leaderboards, supporter registries, or pool surfaces.',
-                        showDivider: true,
-                      ),
-                      _GuaranteeRow(
-                        icon: LucideIcons.shield,
-                        iconColor: FzColors.accent,
-                        title: 'Fan Identity Stays Private',
-                        description:
-                            'Public fan spaces use your FANZONE identity only. Personal account data stays inside secured backend records.',
-                        showDivider: false,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 2),
                 Text(
-                  'VISIBILITY CONTROLS',
+                  'Privacy',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: muted,
-                    letterSpacing: 0.8,
+                    color: textColor,
                   ),
                 ),
-                const SizedBox(height: 10),
-                FzCard(
-                  padding: const EdgeInsets.all(6),
-                  child: Column(
-                    children: [
-                      _VisibilityToggle(
-                        title: 'Display Name on Leaderboards',
-                        description:
-                            'Use your display name on public leaderboards instead of your Fan ID.',
-                        value: _showNameOnLeaderboards,
-                        enabled: isVerified && !_saving,
-                        onChanged: (value) =>
-                            _updateSettings(showNameOnLeaderboards: value),
-                        showDivider: true,
-                      ),
-                      _VisibilityToggle(
-                        title: 'Allow Future Fan Discovery',
-                        description:
-                            'Store your preference for privacy-safe fan discovery if this feature is enabled later. FANZONE does not access contacts today.',
-                        value: _allowFanDiscovery,
-                        enabled: isVerified && !_saving,
-                        onChanged: (value) =>
-                            _updateSettings(allowFanDiscovery: value),
-                        showDivider: false,
-                      ),
-                    ],
-                  ),
-                ),
-                if (!isVerified) ...[
-                  const SizedBox(height: 10),
-                  const Text(
-                    '* Sign in to manage profile visibility settings.',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: FzColors.maltaRed,
-                    ),
-                  ),
-                ],
               ],
             ),
+          ),
+          const SizedBox(width: 48),
+        ],
+      ),
+    );
+  }
+}
+
+class _SourceCard extends StatelessWidget {
+  const _SourceCard({
+    required this.child,
+    this.padding = EdgeInsets.zero,
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+        ),
+      ),
+      child: child,
     );
   }
 }
@@ -258,140 +354,195 @@ class _GuaranteeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: showDivider
+            ? Border(
+                bottom: BorderSide(
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
                 ),
-                child: Icon(icon, size: 20, color: iconColor),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: textColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: muted,
-                        height: 1.45,
-                      ),
-                    ),
-                  ],
+              )
+            : null,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: iconColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: muted,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        if (showDivider)
-          Divider(
-            height: 1,
-            indent: 70,
-            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-class _VisibilityToggle extends StatelessWidget {
-  const _VisibilityToggle({
+class _VisibilityControlRow extends StatelessWidget {
+  const _VisibilityControlRow({
     required this.title,
     required this.description,
     required this.value,
     required this.enabled,
-    required this.onChanged,
     required this.showDivider,
+    required this.onChanged,
   });
 
   final String title;
   final String description;
   final bool value;
   final bool enabled;
-  final ValueChanged<bool> onChanged;
   final bool showDivider;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: textColor,
-                            ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: showDivider
+            ? Border(
+                bottom: BorderSide(
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                ),
+              )
+            : null,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        if (!enabled)
-                          Icon(LucideIcons.lock, size: 12, color: muted),
+                      ),
+                      if (!enabled) ...[
+                        const SizedBox(width: 8),
+                        Icon(
+                          LucideIcons.lock,
+                          size: 12,
+                          color: muted,
+                        ),
                       ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: muted,
+                      height: 1.45,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: TextStyle(fontSize: 12, color: muted, height: 1.4),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Opacity(
-                opacity: enabled ? 1.0 : 0.5,
-                child: Switch.adaptive(
-                  value: value && enabled,
-                  onChanged: enabled ? onChanged : null,
-                  activeTrackColor: FzColors.accent.withValues(alpha: 0.35),
-                  activeThumbColor: FzColors.accent,
+            ),
+          ),
+          _SourceToggle(
+            value: value && enabled,
+            enabled: enabled,
+            onTap: enabled ? () => onChanged(!value) : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SourceToggle extends StatelessWidget {
+  const _SourceToggle({
+    required this.value,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final bool value;
+  final bool enabled;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final background = value ? FzColors.accent : _trackColor(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.5,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 48,
+          height: 24,
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Stack(
+            children: [
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                left: value ? 28 : 4,
+                top: 4,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        if (showDivider)
-          Divider(
-            height: 1,
-            indent: 14,
-            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-          ),
-      ],
+      ),
     );
+  }
+
+  Color _trackColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
   }
 }

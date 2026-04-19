@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../core/utils/currency_utils.dart';
@@ -64,23 +65,47 @@ class WalletSummaryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
+    final surface = isDark ? FzColors.darkSurface2 : FzColors.lightSurface;
     return FzCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      color: surface,
+      borderRadius: 20,
+      padding: const EdgeInsets.all(12),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(icon, size: 14, color: color),
-              const SizedBox(width: 6),
-              Text(label, style: TextStyle(fontSize: 11, color: muted)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: muted.withValues(alpha: 0.8),
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${positive ? '+' : '-'}${NumberFormat.compact().format(amount).toLowerCase()}',
+                  style: FzTypography.score(
+                    size: 16,
+                    weight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            formatFETSigned(amount, currency, positive: positive),
-            style: FzTypography.scoreCompact(color: color),
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withValues(alpha: 0.2)),
+            ),
+            child: Icon(icon, size: 14, color: color),
           ),
         ],
       ),
@@ -210,94 +235,62 @@ class WalletFetSplitRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-    final label = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (isActive)
-          Container(
-            width: 6,
-            height: 6,
-            margin: const EdgeInsets.only(right: 6),
-            decoration: const BoxDecoration(
-              color: FzColors.accent,
-              shape: BoxShape.circle,
-            ),
-          ),
-        Flexible(
-          child: Text(
+    final textColor = Theme.of(context).brightness == Brightness.dark
+        ? FzColors.darkText
+        : FzColors.lightText;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: isActive
+            ? FzColors.accent.withValues(alpha: 0.1)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isActive
+              ? FzColors.accent.withValues(alpha: 0.2)
+              : Colors.transparent,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
             tier,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-              color: isActive ? FzColors.accent : muted,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: isActive ? FzColors.accent : textColor,
+              letterSpacing: 0.8,
             ),
           ),
-        ),
-      ],
-    );
-    final splitBar = ClipRRect(
-      borderRadius: BorderRadius.circular(4),
-      child: SizedBox(
-        height: 8,
-        child: Row(
-          children: [
-            Expanded(
-              flex: walletPct,
-              child: Container(color: FzColors.accent),
-            ),
-            if (clubPct > 0)
-              Expanded(
-                flex: clubPct,
-                child: Container(color: FzColors.amber),
-              ),
-          ],
-        ),
-      ),
-    );
-    final ratio = Text(
-      '$walletPct / $clubPct',
-      style: TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      ),
-      textAlign: TextAlign.right,
-    );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 360) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Expanded(child: label),
-                  const SizedBox(width: 12),
-                  ratio,
-                ],
+              Text(
+                '$walletPct%',
+                style: FzTypography.score(
+                  size: 10,
+                  weight: FontWeight.w700,
+                  color: FzColors.teal,
+                ),
               ),
-              const SizedBox(height: 8),
-              splitBar,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text('|', style: TextStyle(fontSize: 10, color: muted)),
+              ),
+              Text(
+                '$clubPct%',
+                style: FzTypography.score(
+                  size: 10,
+                  weight: FontWeight.w700,
+                  color: FzColors.accent,
+                ),
+              ),
             ],
-          );
-        }
-
-        return Row(
-          children: [
-            SizedBox(width: 88, child: label),
-            const SizedBox(width: 8),
-            Expanded(child: splitBar),
-            const SizedBox(width: 8),
-            SizedBox(width: 48, child: ratio),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -314,88 +307,79 @@ class WalletFetSplitModelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final surface = isDark ? FzColors.darkSurface2 : FzColors.lightSurface;
+    final titleColor = isDark ? FzColors.darkText : FzColors.lightText;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'CLUB EARNINGS SPLIT',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: muted,
-            letterSpacing: 0.8,
-          ),
+        Row(
+          children: [
+            const Icon(LucideIcons.pieChart, size: 14, color: FzColors.teal),
+            const SizedBox(width: 8),
+            Text(
+              'Club Earnings Split',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: titleColor,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         FzCard(
-          padding: const EdgeInsets.all(16),
+          color: surface,
+          borderRadius: 20,
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Club earnings split stays visible here so wallet growth and club support never feel disconnected.',
-                style: TextStyle(fontSize: 12, color: muted, height: 1.4),
-              ),
-              const SizedBox(height: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Wrap(
-                    spacing: 12,
-                    runSpacing: 4,
-                    alignment: WrapAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '80% YOU',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: FzColors.teal,
-                          letterSpacing: 0.6,
-                        ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '80% YOU',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: FzColors.teal,
+                        letterSpacing: 1,
                       ),
-                      Text(
-                        '20% CLUB',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: FzColors.accent,
-                          letterSpacing: 0.6,
-                        ),
+                    ),
+                    Text(
+                      '20% CLUB',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: FzColors.accent,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: const SizedBox(
+                  height: 6,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 80,
+                        child: ColoredBox(color: FzColors.teal),
+                      ),
+                      Expanded(
+                        flex: 20,
+                        child: ColoredBox(color: FzColors.accent),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: SizedBox(
-                      height: 10,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 80,
-                            child: Container(color: FzColors.teal),
-                          ),
-                          Expanded(
-                            flex: 20,
-                            child: Container(color: FzColors.accent),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Ultra is the active launch tier reference.',
-                    style: TextStyle(fontSize: 11, color: muted),
-                  ),
-                ],
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               WalletFetSplitRow(
                 tier: 'Supporter',
                 walletPct: 100,
@@ -403,7 +387,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
                 isActive: false,
                 muted: muted,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               WalletFetSplitRow(
                 tier: 'Member',
                 walletPct: 90,
@@ -411,7 +395,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
                 isActive: false,
                 muted: muted,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               WalletFetSplitRow(
                 tier: 'Ultra',
                 walletPct: 80,
@@ -419,7 +403,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
                 isActive: true,
                 muted: muted,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               WalletFetSplitRow(
                 tier: 'Legend',
                 walletPct: 65,

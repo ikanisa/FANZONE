@@ -8,8 +8,10 @@ import '../../../core/utils/currency_utils.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_empty_state.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../../../services/wallet_service.dart';
@@ -200,7 +202,7 @@ class _WalletHero extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [FzColors.teal, FzColors.blue],
         ),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: FzRadii.heroRadius,
         boxShadow: [
           BoxShadow(
             color: FzColors.blue.withValues(alpha: 0.28),
@@ -274,26 +276,31 @@ class _WalletHero extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: _HeroActionButton(
-                      label: 'REDEEM',
-                      icon: LucideIcons.gift,
-                      filled: true,
-                      enabled: onRedeem != null,
-                      onTap: onRedeem ?? () {},
-                    ),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 300),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _HeroActionButton(
+                          label: 'REDEEM',
+                          icon: LucideIcons.gift,
+                          filled: true,
+                          enabled: onRedeem != null,
+                          onTap: onRedeem ?? () {},
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _HeroActionButton(
+                          label: 'SEND',
+                          icon: LucideIcons.send,
+                          onTap: onSend,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _HeroActionButton(
-                      label: 'SEND',
-                      icon: LucideIcons.send,
-                      onTap: onSend,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
@@ -323,16 +330,17 @@ class _HeroActionButton extends StatelessWidget {
     final background = filled
         ? Colors.white
         : Colors.white.withValues(alpha: enabled ? 0.1 : 0.05);
-    final foreground = filled ? FzColors.darkBg : Colors.white;
+    final labelColor = filled ? FzColors.darkBg : Colors.white;
+    final iconColor = filled ? FzColors.accent : Colors.white;
 
     return InkWell(
       onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        height: 52,
+        height: 48,
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: filled
                 ? Colors.transparent
@@ -342,15 +350,15 @@ class _HeroActionButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 14, color: foreground),
+            Icon(icon, size: 14, color: iconColor),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.8,
-                color: foreground.withValues(alpha: enabled ? 1 : 0.45),
+                color: labelColor.withValues(alpha: enabled ? 1 : 0.45),
               ),
             ),
           ],
@@ -429,18 +437,11 @@ class _HistoryEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const FzCard(
-      padding: EdgeInsets.all(18),
-      child: Text(
-        'No history available',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: FzColors.darkMuted,
-          letterSpacing: 0.8,
-        ),
-      ),
+    return const FzEmptyState(
+      title: 'No History Yet',
+      description:
+          'Completed transfers, conversions, and rewards activity will appear here.',
+      icon: Icon(LucideIcons.receipt, size: 24),
     );
   }
 }

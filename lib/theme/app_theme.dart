@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'colors.dart';
+import 'radii.dart';
 import 'typography.dart';
 
 /// FANZONE theme — dark-first, premium, football-native, non-gambling.
@@ -52,7 +53,7 @@ abstract final class FzTheme {
         color: FzColors.darkSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: FzRadii.cardRadius,
           side: const BorderSide(color: FzColors.darkBorder, width: 1),
         ),
         margin: EdgeInsets.zero,
@@ -82,7 +83,7 @@ abstract final class FzTheme {
         selectedColor: FzColors.accent,
         labelStyle: textTheme.labelSmall!,
         side: const BorderSide(color: FzColors.darkBorder),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: FzRadii.compactRadius),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
 
@@ -91,7 +92,9 @@ abstract final class FzTheme {
         backgroundColor: FzColors.darkSurface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(FzRadii.card),
+          ),
         ),
       ),
 
@@ -182,7 +185,7 @@ abstract final class FzTheme {
         color: FzColors.lightSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: FzRadii.cardRadius,
           side: const BorderSide(color: FzColors.lightBorder, width: 1),
         ),
         margin: EdgeInsets.zero,
@@ -209,7 +212,7 @@ abstract final class FzTheme {
         selectedColor: FzColors.accentDark,
         labelStyle: textTheme.labelSmall!,
         side: const BorderSide(color: FzColors.lightBorder),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: FzRadii.compactRadius),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
 
@@ -217,7 +220,9 @@ abstract final class FzTheme {
         backgroundColor: FzColors.lightSurface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(FzRadii.card),
+          ),
         ),
       ),
 

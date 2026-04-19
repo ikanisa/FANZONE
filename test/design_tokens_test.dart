@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fanzone/theme/colors.dart';
+import 'package:fanzone/theme/radii.dart';
 
 void main() {
   group('FzColors design tokens', () {
@@ -58,6 +59,15 @@ void main() {
     });
   });
 
+  group('FzRadii design tokens', () {
+    test('shared radii stay aligned with the reference contexts', () {
+      expect(FzRadii.compact, 20);
+      expect(FzRadii.card, 24);
+      expect(FzRadii.hero, 28);
+      expect(FzRadii.full, 999);
+    });
+  });
+
   group('FzColors ColorSchemes', () {
     test('dark color scheme has correct primary', () {
       expect(FzColors.darkColorScheme.primary, FzColors.accent);
@@ -98,14 +108,17 @@ void main() {
       final textLuminance = FzColors.darkText.computeLuminance();
       final bgLuminance = FzColors.darkBg.computeLuminance();
 
-      // WCAG contrast ratio formula  
+      // WCAG contrast ratio formula
       final lighter = textLuminance > bgLuminance ? textLuminance : bgLuminance;
       final darker = textLuminance > bgLuminance ? bgLuminance : textLuminance;
       final ratio = (lighter + 0.05) / (darker + 0.05);
 
       // WCAG AA requires 4.5:1 for normal text
-      expect(ratio, greaterThan(4.5),
-          reason: 'Dark text on dark bg should meet WCAG AA');
+      expect(
+        ratio,
+        greaterThan(4.5),
+        reason: 'Dark text on dark bg should meet WCAG AA',
+      );
     });
 
     test('light text on light bg has sufficient contrast', () {
@@ -116,8 +129,11 @@ void main() {
       final darker = textLuminance > bgLuminance ? bgLuminance : textLuminance;
       final ratio = (lighter + 0.05) / (darker + 0.05);
 
-      expect(ratio, greaterThan(4.5),
-          reason: 'Light text on light bg should meet WCAG AA');
+      expect(
+        ratio,
+        greaterThan(4.5),
+        reason: 'Light text on light bg should meet WCAG AA',
+      );
     });
   });
 }

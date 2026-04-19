@@ -68,12 +68,14 @@ class MatchDetailScreen extends ConsumerWidget {
             : competitionLabel;
         final tabs = <Tab>[
           if (AppConfig.enablePredictions) const Tab(text: 'Predict'),
+          const Tab(text: 'Insights'),
           const Tab(text: 'Stats'),
           const Tab(text: 'H2H'),
           const Tab(text: 'Lineups'),
         ];
         final views = <Widget>[
           if (AppConfig.enablePredictions) _PredictTab(match: match),
+          _InsightsTab(match: match),
           _StatsTab(match: match),
           _H2HTab(match: match),
           _LineupsTab(match: match),

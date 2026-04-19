@@ -130,9 +130,22 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(find.text('Earned'), findsOneWidget);
+      expect(find.text('Spent'), findsOneWidget);
+      expect(find.text('Club Earnings Split'), findsOneWidget);
+      expect(find.text('80% YOU'), findsOneWidget);
+      expect(find.text('20% CLUB'), findsOneWidget);
+      expect(find.text('Supporter'), findsOneWidget);
+      expect(find.text('Member'), findsOneWidget);
+      expect(find.text('Ultra'), findsOneWidget);
+      expect(find.text('Legend'), findsOneWidget);
+
       await tester.tap(find.text('SEND').first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Recipient Fan ID'), findsOneWidget);
+      expect(find.text('MAX'), findsOneWidget);
 
       final fields = find.byType(TextField);
       await tester.enterText(fields.at(0), '654321');

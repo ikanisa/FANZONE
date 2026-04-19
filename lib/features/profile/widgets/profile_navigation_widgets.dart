@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../config/app_config.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/radii.dart';
 import '../../../widgets/common/fz_card.dart';
 
 class ProfileQuickLinksCard extends StatelessWidget {
@@ -242,7 +243,7 @@ class ProfileSectionCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return FzCard(
-      borderRadius: 20,
+      borderRadius: FzRadii.compact,
       padding: EdgeInsets.zero,
       color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
       child: Column(children: children),

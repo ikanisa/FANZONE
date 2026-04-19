@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:fanzone/data/team_search_database.dart';
 import 'package:fanzone/features/fixtures/screens/fixtures_screen.dart';
 import 'package:fanzone/features/home/screens/home_feed_screen.dart';
 import 'package:fanzone/features/home/screens/home_screen.dart';
+import 'package:fanzone/features/leaderboard/screens/leaderboard_screen.dart';
 import 'package:fanzone/features/home/screens/match_detail_screen.dart';
 import 'package:fanzone/features/predict/screens/predict_screen.dart';
 import 'package:fanzone/features/profile/providers/profile_identity_provider.dart';
@@ -29,6 +31,7 @@ import 'package:fanzone/providers/market_preferences_provider.dart';
 import 'package:fanzone/providers/matches_provider.dart';
 import 'package:fanzone/providers/standings_provider.dart';
 import 'package:fanzone/providers/teams_provider.dart';
+import 'package:fanzone/services/leaderboard_service.dart';
 import 'package:fanzone/services/notification_service.dart';
 import 'package:fanzone/services/pool_service.dart';
 import 'package:fanzone/services/team_community_service.dart';
@@ -86,6 +89,49 @@ void main() {
         expect(find.text('Upcoming'), findsOneWidget);
         expect(find.byTooltip('Create pool'), findsOneWidget);
         expect(find.text('MATCHDAY HUB'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'leaderboard keeps the canonical 4-tab layout with podium and fan clubs view',
+      (tester) async {
+        final entries = <Map<String, dynamic>>[
+          {'rank': 1, 'name': 'SpartanKing', 'fet': 15200},
+          {'rank': 2, 'name': 'MaltaFan', 'fet': 12400},
+          {'rank': 3, 'name': 'PacevillePro', 'fet': 10100},
+          {'rank': 4, 'name': 'User_4', 'fet': 6500},
+          {'rank': 5, 'name': 'User_5', 'fet': 5500},
+        ];
+
+        await pumpAppScreen(
+          tester,
+          const LeaderboardScreen(),
+          overrides: [
+            globalLeaderboardProvider.overrideWith(
+              () => _StaticGlobalLeaderboard(entries),
+            ),
+            userRankProvider.overrideWith((ref) async => 42),
+            walletServiceProvider.overrideWith(() => FakeWalletService(2100)),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Global'), findsOneWidget);
+        expect(find.text('Weekly'), findsOneWidget);
+        expect(find.text('Friends'), findsOneWidget);
+        expect(find.text('Fan Clubs'), findsOneWidget);
+        expect(find.byIcon(LucideIcons.trophy), findsNWidgets(3));
+        expect(find.text('You'), findsOneWidget);
+        expect(find.text('Accuracy 68%'), findsOneWidget);
+        expect(find.text('SpartanKing'), findsOneWidget);
+
+        await tester.tap(find.text('Fan Clubs'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Hamrun S.'), findsOneWidget);
+        expect(find.text('Floriana'), findsOneWidget);
+        expect(find.byIcon(LucideIcons.trendingUp), findsWidgets);
+        expect(find.text('Accuracy 68%'), findsNothing);
       },
     );
 
@@ -419,4 +465,13 @@ class _StaticSupportedTeamsController extends SupportedTeamsService {
 
   @override
   FutureOr<Set<String>> build() async => _teamIds;
+}
+
+class _StaticGlobalLeaderboard extends GlobalLeaderboard {
+  _StaticGlobalLeaderboard(this._entries);
+
+  final List<Map<String, dynamic>> _entries;
+
+  @override
+  FutureOr<List<Map<String, dynamic>>> build() async => _entries;
 }

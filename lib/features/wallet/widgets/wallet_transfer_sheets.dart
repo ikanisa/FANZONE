@@ -30,9 +30,11 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
   bool _submitting = false;
   bool _success = false;
   String? _error;
+  Timer? _successTimer;
 
   @override
   void dispose() {
+    _successTimer?.cancel();
     _recipientController.dispose();
     _amountController.dispose();
     super.dispose();
@@ -82,6 +84,10 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
         _submitting = false;
         _success = true;
       });
+      _successTimer?.cancel();
+      _successTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted) Navigator.of(context).pop();
+      });
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -96,15 +102,25 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final fieldSurface = isDark
+        ? FzColors.darkSurface2
+        : FzColors.lightSurface2;
+    final fieldBorder = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final balance = ref.watch(walletServiceProvider).valueOrNull ?? 0;
     final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final amountValue = int.tryParse(_amountController.text.trim()) ?? 0;
+    final canSubmit =
+        _isValidFanId &&
+        amountValue > 0 &&
+        amountValue <= balance &&
+        !_submitting;
 
     return Container(
       padding: EdgeInsets.only(bottom: bottomPadding),
       decoration: BoxDecoration(
         color: isDark ? FzColors.darkSurface : FzColors.lightSurface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       child: SafeArea(
         child: Padding(
@@ -162,72 +178,205 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                           height: 1.4,
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Done'),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Transfer FET',
+                            style: FzTypography.display(
+                              size: 28,
+                              color: textColor,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Send tokens to other fans instantly.',
+                            style: TextStyle(fontSize: 14, color: muted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: fieldSurface,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: fieldBorder),
+                        ),
+                        child: Icon(LucideIcons.x, size: 18, color: muted),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Recipient Fan ID',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: muted,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: fieldSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: fieldBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        '#',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: muted,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _recipientController,
+                          maxLength: 6,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(6),
+                          ],
+                          onChanged: (_) => setState(() {}),
+                          style: FzTypography.score(
+                            size: 20,
+                            weight: FontWeight.w700,
+                            color: textColor,
+                          ),
+                          decoration: InputDecoration(
+                            counterText: '',
+                            hintText: '123456',
+                            hintStyle: TextStyle(
+                              color: muted.withValues(alpha: 0.5),
+                              fontSize: 20,
+                            ),
+                            border: InputBorder.none,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ] else ...[
-                Text(
-                  'Transfer FET',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Send tokens using the recipient\'s 6-digit Fan ID.',
-                  style: TextStyle(fontSize: 12, color: muted),
-                ),
                 const SizedBox(height: 16),
-                TextField(
-                  controller: _recipientController,
-                  maxLength: 6,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Amount to Send',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: muted,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    Text(
+                      'Balance: ${formatFET(balance, currency)}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: FzColors.blue,
+                      ),
+                    ),
                   ],
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    labelText: 'Recipient Fan ID',
-                    hintText: '123456',
-                    counterText: '',
-                    prefixIcon: Icon(LucideIcons.hash, size: 18, color: muted),
-                  ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    labelText: 'Amount (FET)',
-                    hintText: '0',
-                    helperText: 'Balance: ${formatFET(balance, currency)}',
-                    prefixIcon: Icon(
-                      LucideIcons.wallet,
-                      size: 18,
-                      color: muted,
-                    ),
-                    suffixIcon: TextButton(
-                      onPressed: balance <= 0
-                          ? null
-                          : () {
-                              _amountController.text = '$balance';
-                              setState(() {});
-                            },
-                      child: const Text('MAX'),
-                    ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: fieldSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: fieldBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'FET',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: muted,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          onChanged: (_) => setState(() {}),
+                          style: FzTypography.score(
+                            size: 20,
+                            weight: FontWeight.w700,
+                            color: textColor,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: '0',
+                            hintStyle: TextStyle(
+                              color: muted.withValues(alpha: 0.5),
+                              fontSize: 20,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: balance <= 0
+                            ? null
+                            : () {
+                                _amountController.text = '$balance';
+                                setState(() {});
+                              },
+                        style: TextButton.styleFrom(
+                          backgroundColor: FzColors.accent.withValues(
+                            alpha: 0.1,
+                          ),
+                          foregroundColor: FzColors.accent,
+                          minimumSize: const Size(0, 28),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'MAX',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 if ((_error ?? '').isNotEmpty) ...[
@@ -237,6 +386,9 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                     decoration: BoxDecoration(
                       color: FzColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: FzColors.error.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -263,7 +415,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
-                    onPressed: (_submitting || !_isValidFanId) ? null : _submit,
+                    onPressed: canSubmit ? _submit : null,
                     icon: _submitting
                         ? const SizedBox(
                             width: 14,
@@ -273,6 +425,22 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                         : const Icon(LucideIcons.send, size: 16),
                     label: Text(
                       _submitting ? 'Sending...' : 'Confirm Transfer',
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: textColor,
+                      foregroundColor: isDark
+                          ? FzColors.darkBg
+                          : FzColors.lightSurface,
+                      disabledBackgroundColor: isDark
+                          ? FzColors.darkSurface3
+                          : FzColors.lightSurface3,
+                      disabledForegroundColor: muted,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),

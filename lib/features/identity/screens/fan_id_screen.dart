@@ -1,212 +1,257 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../providers/currency_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
-import '../../../widgets/common/fz_card.dart';
 
-/// Fan ID specification screen — privacy-first anonymous identity.
-///
-/// Matches the original design reference (FanIdScreen.tsx):
-/// - Large mono Fan ID display with copy button
-/// - Privacy badges (Anonymous, No Real Name, Permanent)
-/// - 12-item identity rules list
 class FanIdScreen extends ConsumerWidget {
   const FanIdScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final fanId = ref.watch(userFanIdProvider).valueOrNull;
+    final fanId = ref.watch(userFanIdProvider).valueOrNull ?? '000000';
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        toolbarHeight: 68,
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
+      backgroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,
+      body: SafeArea(
+        child: Column(
           children: [
-            Text(
-              'IDENTITY',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: muted,
-                letterSpacing: 1.1,
-              ),
+            _IdentityHeader(
+              muted: muted,
+              textColor: textColor,
+              onBack: () => context.go('/profile'),
             ),
-            const SizedBox(height: 2),
-            Text(
-              'My Fan ID',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: textColor,
+            Expanded(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                            'FAN ID SPECIFICATION',
+                            textAlign: TextAlign.center,
+                            style: FzTypography.display(
+                              size: 32,
+                              color: textColor,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Your privacy-first anonymous identity.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, color: muted),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      _FanIdCard(fanId: fanId),
+                      const SizedBox(height: 28),
+                      _RulesCard(textColor: textColor, muted: muted),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+    );
+  }
+}
+
+class _IdentityHeader extends StatelessWidget {
+  const _IdentityHeader({
+    required this.muted,
+    required this.textColor,
+    required this.onBack,
+  });
+
+  final Color muted;
+  final Color textColor;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      decoration: BoxDecoration(
+        color: (isDark ? FzColors.darkSurface : FzColors.lightSurface)
+            .withValues(alpha: 0.9),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+          ),
+        ),
+      ),
+      child: Row(
         children: [
-          Text(
-            'FAN ID SPECIFICATION',
-            textAlign: TextAlign.center,
-            style: FzTypography.display(
-              size: 28,
-              color: textColor,
-              letterSpacing: 1.1,
+          IconButton(
+            onPressed: onBack,
+            icon: Icon(LucideIcons.chevronLeft, color: textColor),
+          ),
+          Expanded(
+            child: Column(
+              children: [
+                Text(
+                  'Identity',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: muted,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'My Fan ID',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Your privacy-first anonymous identity.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: muted),
-          ),
-          const SizedBox(height: 24),
-          // ── ID Display Card ──
-          FzCard(
-            padding: EdgeInsets.zero,
+          const SizedBox(width: 48),
+        ],
+      ),
+    );
+  }
+}
+
+class _FanIdCard extends StatelessWidget {
+  const _FanIdCard({required this.fanId});
+
+  final String fanId;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -40,
+            right: -28,
             child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    FzColors.accent.withValues(alpha: 0.08),
-                    FzColors.violet.withValues(alpha: 0.08),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
+                shape: BoxShape.circle,
+                color: FzColors.accent.withValues(alpha: 0.08),
               ),
-              child: Column(
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    'YOUR FAN ID',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: muted,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    fanId != null
-                        ? '#${fanId.substring(0, 3)} ${fanId.substring(3)}'
-                        : '# — — —',
-                    style: FzTypography.score(
-                      size: 40,
-                      weight: FontWeight.w700,
-                      color: FzColors.accent,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _ActionChip(
-                        icon: Icons.copy_rounded,
-                        label: 'Copy',
-                        onTap: fanId == null
-                            ? null
-                            : () async {
-                                await Clipboard.setData(
-                                  ClipboardData(text: fanId),
-                                );
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Fan ID copied'),
-                                  ),
-                                );
-                              },
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [FzColors.accent, FzColors.blue],
                       ),
-                      const SizedBox(width: 10),
-                      _ActionChip(
-                        icon: Icons.share_rounded,
-                        label: 'Share',
-                        onTap: () async {
-                          final text = fanId != null
-                              ? 'Send FET to Fan #$fanId on FANZONE.'
-                              : 'Find me on FANZONE!';
-                          await SharePlus.instance.share(
-                            ShareParams(text: text),
-                          );
-                        },
-                      ),
-                    ],
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text('⚽', style: TextStyle(fontSize: 30)),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                fanId,
+                                style: const TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'monospace',
+                                  letterSpacing: 3.5,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            _CopyButton(fanId: fanId),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Auto-assigned on first app open',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: muted,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // ── Privacy Badges ──
-          const Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _PrivacyBadge(
-                icon: LucideIcons.shield,
-                label: 'Anonymous',
-                color: FzColors.accent,
-              ),
-              _PrivacyBadge(
-                icon: LucideIcons.eyeOff,
-                label: 'No Real Name',
-                color: FzColors.violet,
-              ),
-              _PrivacyBadge(
-                icon: LucideIcons.lock,
-                label: 'Permanent',
-                color: FzColors.amber,
+              const SizedBox(height: 20),
+              const Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _IdentityBadge(
+                    icon: LucideIcons.shieldCheck,
+                    label: 'Anonymous',
+                    background: Color(0x1422D3EE),
+                    border: Color(0x3322D3EE),
+                    color: FzColors.accent,
+                  ),
+                  _IdentityBadge(
+                    icon: LucideIcons.eyeOff,
+                    label: 'No Real Name',
+                    background: Color(0x1422232A),
+                    border: Color(0x33272831),
+                    color: FzColors.darkMuted,
+                  ),
+                  _IdentityBadge(
+                    icon: LucideIcons.checkCircle2,
+                    label: 'Permanent',
+                    background: Color(0x1422232A),
+                    border: Color(0x33272831),
+                    color: FzColors.darkMuted,
+                  ),
+                ],
               ),
             ],
-          ),
-
-          const SizedBox(height: 28),
-
-          // ── Identity Rules ──
-          Text(
-            'IDENTITY RULES',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: muted,
-              letterSpacing: 0.8,
-            ),
-          ),
-          const SizedBox(height: 12),
-          FzCard(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: _rules
-                  .asMap()
-                  .entries
-                  .map(
-                    (entry) => _RuleRow(
-                      index: entry.key + 1,
-                      text: entry.value,
-                      muted: muted,
-                      textColor: textColor,
-                      isLast: entry.key == _rules.length - 1,
-                    ),
-                  )
-                  .toList(),
-            ),
           ),
         ],
       ),
@@ -214,77 +259,80 @@ class FanIdScreen extends ConsumerWidget {
   }
 }
 
-const _rules = [
-  '6-digit numeric ID unique per supporter account.',
-  'Stored securely as your primary FANZONE identifier.',
-  'Displayed as #XXX XXX format throughout the app.',
-  'No real name displayed anywhere in public UI.',
-  'No phone number visible to other users ever.',
-  'Club registries show Fan ID only, never personal details.',
-  'Leaderboards show Fan ID plus avatar only.',
-  'Membership surfaces show Fan ID with supporter tier only.',
-  'FET transfers resolve by Fan ID, not phone numbers.',
-  'Support and contribution records stay anonymous by Fan ID.',
-  'Fan ID persists after authentication and device changes.',
-  'Optional display nicknames can layer on top later.',
-];
+class _CopyButton extends StatelessWidget {
+  const _CopyButton({required this.fanId});
 
-class _ActionChip extends StatelessWidget {
-  const _ActionChip({required this.icon, required this.label, this.onTap});
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
+  final String fanId;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: isDark ? FzColors.darkText : FzColors.lightText,
-        side: BorderSide(
-          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+    return InkWell(
+      onTap: () async {
+        await Clipboard.setData(ClipboardData(text: fanId));
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Fan ID copied')),
+        );
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: isDark ? FzColors.darkSurface3 : FzColors.lightSurface3,
+          shape: BoxShape.circle,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        child: Icon(
+          LucideIcons.copy,
+          size: 16,
+          color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
+        ),
       ),
     );
   }
 }
 
-class _PrivacyBadge extends StatelessWidget {
-  const _PrivacyBadge({
+class _IdentityBadge extends StatelessWidget {
+  const _IdentityBadge({
     required this.icon,
     required this.label,
+    required this.background,
+    required this.border,
     required this.color,
   });
 
   final IconData icon;
   final String label;
+  final Color background;
+  final Color border;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        color: label == 'Anonymous'
+            ? background
+            : (isDark ? FzColors.darkSurface3 : FzColors.lightSurface3),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: label == 'Anonymous'
+              ? border
+              : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
+          Icon(icon, size: 12, color: color),
           const SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
               color: color,
             ),
@@ -295,60 +343,166 @@ class _PrivacyBadge extends StatelessWidget {
   }
 }
 
-class _RuleRow extends StatelessWidget {
-  const _RuleRow({
-    required this.index,
-    required this.text,
-    required this.muted,
-    required this.textColor,
-    required this.isLast,
-  });
+class _RulesCard extends StatelessWidget {
+  const _RulesCard({required this.textColor, required this.muted});
 
-  final int index;
-  final String text;
-  final Color muted;
   final Color textColor;
-  final bool isLast;
+  final Color muted;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: FzColors.accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? FzColors.darkSurface3.withValues(alpha: 0.6)
+                  : FzColors.lightSurface3.withValues(alpha: 0.5),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
                 ),
-                child: Center(
-                  child: Text(
-                    '$index',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: FzColors.accent,
+              ),
+            ),
+            child: Text(
+              'IDENTITY RULES',
+              style: FzTypography.display(
+                size: 22,
+                color: textColor,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final useTwoColumns = constraints.maxWidth >= 540;
+                final items = _fanIdRules
+                    .map(
+                      (rule) => _RuleItem(
+                        text: rule,
+                      ),
+                    )
+                    .toList();
+
+                if (!useTwoColumns) {
+                  return Column(
+                    children: [
+                      for (int index = 0; index < items.length; index++) ...[
+                        items[index],
+                        if (index < items.length - 1)
+                          const SizedBox(height: 14),
+                      ],
+                    ],
+                  );
+                }
+
+                final left = <Widget>[];
+                final right = <Widget>[];
+                for (int index = 0; index < items.length; index++) {
+                  (index.isEven ? left : right).add(items[index]);
+                }
+
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          for (int index = 0; index < left.length; index++) ...[
+                            left[index],
+                            if (index < left.length - 1)
+                              const SizedBox(height: 14),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  text,
-                  style: TextStyle(fontSize: 12, color: textColor, height: 1.4),
-                ),
-              ),
-            ],
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          for (int index = 0; index < right.length; index++) ...[
+                            right[index],
+                            if (index < right.length - 1)
+                              const SizedBox(height: 14),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RuleItem extends StatelessWidget {
+  const _RuleItem({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 2),
+          child: Icon(
+            LucideIcons.fingerprint,
+            size: 14,
+            color: FzColors.accent,
           ),
         ),
-        if (!isLast) Divider(height: 1, color: muted.withValues(alpha: 0.15)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? FzColors.darkText
+                  : FzColors.lightText,
+              height: 1.45,
+            ),
+          ),
+        ),
       ],
     );
   }
 }
+
+const _fanIdRules = [
+  '6-digit numeric ID — unique per device/session',
+  'Stored securely as your primary identifier',
+  "Displayed as '#XXX XXX' format throughout app",
+  'Auto-generated avatar assigned to your ID',
+  'No real name displayed anywhere in public UI',
+  'No phone number visible to other users ever',
+  'No WhatsApp number exposed — server-side only',
+  'Leaderboards show Fan ID + avatar only',
+  'Membership shows Fan ID + tier badge only',
+  'MoMo contributions anonymous by Fan ID only',
+  'Fan ID persists post-WA auth — same ID retained',
+  'User can set a custom display nickname (post-auth)',
+];
