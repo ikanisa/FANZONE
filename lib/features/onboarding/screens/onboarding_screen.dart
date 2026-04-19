@@ -19,6 +19,15 @@ import '../widgets/onboarding_phone_verification_steps.dart';
 import '../widgets/onboarding_team_selection_steps.dart';
 import '../widgets/onboarding_welcome_step.dart';
 
+/// Production onboarding flow — matches the reference Onboarding.tsx exactly:
+///
+/// Step 1: Welcome — FANZONE branding + GET STARTED
+/// Step 2: Enter Phone — phone input + SEND OTP (+ "Continue as Guest" link)
+/// Step 3: Verify OTP — 6-digit code + VERIFY
+/// Step 4: Favorite Team — search local team + CONTINUE / SKIP
+/// Step 5: Popular Teams — top 20 grid + search + COMPLETE SETUP / SKIP
+///
+/// Guest path skips steps 2–3 (phone/OTP) and goes straight to step 4.
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -27,11 +36,12 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  static const _welcomeStep = 0;
-  static const _phoneStep = 1;
-  static const _otpStep = 2;
-  static const _favoriteTeamStep = 3;
-  static const _popularTeamsStep = 4;
+  // Reference-aligned step indices (matches Onboarding.tsx steps 1–5)
+  static const _welcomeStep = 0;       // Step 1
+  static const _phoneStep = 1;          // Step 2
+  static const _otpStep = 2;            // Step 3
+  static const _favoriteTeamStep = 3;   // Step 4
+  static const _popularTeamsStep = 4;   // Step 5
 
   final _phoneController = TextEditingController();
   final _favoriteSearchController = TextEditingController();
@@ -41,7 +51,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   int _currentStep = _welcomeStep;
   bool _loading = false;
-  bool _otpSent = false;
+  bool _guestLoading = false;
+  bool _isGuestPath = false;
   String? _error;
 
   @override
@@ -72,7 +83,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool get _canUseOtp {
     final authService = ref.read(authServiceProvider);
     return authService.isAvailable &&
-        !authService.isAuthenticated &&
         appRuntime.supabaseInitError == null;
   }
 
@@ -105,12 +115,52 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
   }
 
+  // ── Step handlers ──
+
   void _handleWelcomeContinue() {
     if (_isAlreadyAuthenticated) {
+      // Already authenticated — skip to team selection (step 4)
       _setStep(_favoriteTeamStep);
       return;
     }
+    // Go to phone input (step 2) — matches reference Step1 → Step2
     _setStep(_phoneStep);
+  }
+
+  Future<void> _handleGuestContinue() async {
+    if (!_canUseOtp) {
+      setState(() {
+        _error =
+            'Guest mode is temporarily unavailable. Please try again later.';
+      });
+      return;
+    }
+
+    setState(() {
+      _guestLoading = true;
+      _error = null;
+    });
+
+    try {
+      await ref.read(authServiceProvider).signInAnonymously();
+      if (!mounted) return;
+
+      _isGuestPath = true;
+      // Guest skips phone + OTP → goes straight to team selection (step 4)
+      _setStep(_favoriteTeamStep);
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      setState(() => _error = error.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Could not start guest session. Please try again.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _guestLoading = false);
+      }
+    }
   }
 
   Future<void> _handlePhoneContinue() async {
@@ -118,7 +168,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       setState(() {
         _error = appRuntime.supabaseInitError == null
             ? 'Phone verification is required before continuing.'
-            : 'Phone verification is temporarily unavailable. Retry when the auth service reconnects.';
+            : 'Phone verification is temporarily unavailable.';
       });
       return;
     }
@@ -142,7 +192,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       if (!mounted) return;
 
       if (sent) {
-        _otpSent = true;
         _setStep(_otpStep);
         _otpFocusNodes.first.requestFocus();
       } else {
@@ -228,15 +277,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _goBackFromFavoriteTeam() {
-    if (_otpSent) {
-      _setStep(_otpStep);
-      return;
-    }
-    if (_isAlreadyAuthenticated) {
+    if (_isGuestPath || _isAlreadyAuthenticated) {
+      // Guest or already-authenticated path: go back to welcome
       _setStep(_welcomeStep);
       return;
     }
-    _setStep(_phoneStep);
+    // Verified path: go back to OTP step
+    _setStep(_otpStep);
   }
 
   Future<void> _completeOnboarding() async {
@@ -293,6 +340,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       backgroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,
       body: Stack(
         children: [
+          // Background glow — matches reference
           Positioned(
             top: -120,
             left: -80,
@@ -361,18 +409,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                       ),
                     ),
-                    if (_currentStep == _phoneStep && !_canUseOtp)
-                      _OnboardingInfoBanner(
-                        message:
-                            'Phone verification is required to complete onboarding. The current session cannot reach the auth service, so this flow stays locked until verification is available.',
-                        color: FzColors.accent,
-                        textColor: textColor,
-                      ),
                     if (_error != null)
                       _OnboardingInfoBanner(
                         message: _error!,
                         color: FzColors.error,
                         textColor: textColor,
+                      ),
+                    if (_loading)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: const LinearProgressIndicator(
+                            minHeight: 2,
+                            color: FzColors.accent,
+                            backgroundColor: FzColors.darkBorder,
+                          ),
+                        ),
                       ),
                     const SizedBox(height: 12),
                   ],
@@ -392,6 +448,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     required List<OnboardingTeam> popularTeams,
   }) {
     switch (_currentStep) {
+      // Step 1: Welcome (ref: Step1)
       case _welcomeStep:
         return OnboardingWelcomeStep(
           textColor: textColor,
@@ -399,6 +456,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           isDark: isDark,
           onNext: _handleWelcomeContinue,
         );
+      // Step 2: Phone Input (ref: Step2) — "Continue as Guest" link below button
       case _phoneStep:
         return OnboardingPhoneStep(
           textColor: textColor,
@@ -419,14 +477,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         _phonePreset.minDigits),
           onBack: () => _setStep(_welcomeStep),
           onNext: _handlePhoneContinue,
+          onGuest: _handleGuestContinue,
+          guestLoading: _guestLoading,
           countryCode: _dialCode,
           phoneHint: _phoneHint,
           buttonLabel: _loading
               ? 'SENDING...'
-              : (_canUseOtp
-                    ? 'SEND CODE VIA WHATSAPP'
-                    : 'VERIFICATION REQUIRED'),
+              : (_canUseOtp ? 'SEND OTP' : 'VERIFICATION REQUIRED'),
         );
+      // Step 3: OTP Verify (ref: Step3)
       case _otpStep:
         return OnboardingOtpStep(
           textColor: textColor,
@@ -450,6 +509,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           onNext: _handleOtpContinue,
           buttonLabel: _loading ? 'VERIFYING...' : 'VERIFY',
         );
+      // Step 4: Favorite Team (ref: Step4)
       case _favoriteTeamStep:
         return OnboardingFavoriteTeamStep(
           textColor: textColor,
@@ -464,6 +524,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           onBack: _goBackFromFavoriteTeam,
           onNext: () => _setStep(_popularTeamsStep),
         );
+      // Step 5: Popular Teams (ref: Step5)
       case _popularTeamsStep:
         return OnboardingPopularTeamsStep(
           textColor: textColor,

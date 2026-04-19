@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../app_router.dart' show router;
@@ -13,7 +12,7 @@ import '../core/runtime/app_runtime_state.dart';
 import '../features/auth/data/auth_gateway.dart';
 import '../features/settings/data/preferences_gateway.dart';
 import '../providers/auth_provider.dart';
-import '../theme/colors.dart';
+import '../widgets/common/fz_notification_toast.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -86,45 +85,25 @@ class PushNotificationService {
     final context = router.routerDelegate.navigatorKey.currentContext;
     if (context == null) return;
 
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) return;
-
-    messenger.showSnackBar(
-      SnackBar(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (title != null)
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                  color: Colors.white,
-                ),
-              ),
-            if (body != null)
-              Text(
-                body,
-                style: const TextStyle(fontSize: 12, color: Colors.white70),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-          ],
-        ),
-        backgroundColor: FzColors.teal,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'VIEW',
-          textColor: Colors.white,
-          onPressed: () => _navigateFromData(message.data),
-        ),
-        margin: const EdgeInsets.only(bottom: 80, left: 16, right: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    FzNotificationToast.show(
+      context,
+      title: title ?? 'FANZONE',
+      message: body ?? '',
+      type: _mapToastType(message.data['type']?.toString()),
+      onTap: () => _navigateFromData(message.data),
     );
+  }
+
+  FzToastType _mapToastType(String? type) {
+    switch (type) {
+      case 'pool_joined':
+      case 'pool_received':
+        return FzToastType.poolReceived;
+      case 'pool_settled':
+        return FzToastType.poolSettled;
+      default:
+        return FzToastType.system;
+    }
   }
 
   void _handleMessageTap(RemoteMessage message) {

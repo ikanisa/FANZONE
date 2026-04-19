@@ -1,11 +1,11 @@
 -- ============================================================
 -- 20260420000000_guest_auth_and_onboarding_v2.sql
--- Guest/anonymous auth support + onboarding v2 schema changes
+-- Guest/anonymous auth support + WhatsApp Cloud API OTP pipeline
 --
--- Adds is_anonymous and auth_method tracking to profiles,
--- enables anonymous user → authenticated user data merging,
--- and ensures RLS policies allow anonymous users appropriate
--- read/write access during onboarding.
+-- 1. Adds is_anonymous and auth_method tracking to profiles
+-- 2. Creates otp_verifications table for custom WhatsApp OTP
+-- 3. Creates find_auth_user_by_phone RPC for Edge Function user lookup
+-- 4. Creates merge_anonymous_to_authenticated RPC for guest upgrade
 -- ============================================================
 
 BEGIN;
@@ -23,13 +23,66 @@ ALTER TABLE public.profiles
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS upgraded_from_anonymous_id uuid;
 
--- Index for finding anonymous profiles for cleanup jobs
 CREATE INDEX IF NOT EXISTS idx_profiles_is_anonymous
   ON public.profiles (is_anonymous)
   WHERE is_anonymous = true;
 
 -- -----------------------------------------------------------------
--- 2. Merge RPC: transfer anonymous user data to authenticated user
+-- 2. OTP verifications table for WhatsApp Cloud API pipeline
+-- -----------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS public.otp_verifications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone text NOT NULL,
+  otp_hash text NOT NULL,
+  expires_at timestamptz NOT NULL,
+  verified boolean NOT NULL DEFAULT false,
+  attempts integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_otp_verifications_phone_active
+  ON public.otp_verifications (phone, expires_at DESC)
+  WHERE verified = false;
+
+-- Cleanup support for verified or expired OTP records.
+CREATE INDEX IF NOT EXISTS idx_otp_verifications_cleanup
+  ON public.otp_verifications (verified, expires_at, created_at);
+
+ALTER TABLE public.otp_verifications ENABLE ROW LEVEL SECURITY;
+
+-- Only service_role can access OTP verifications (Edge Functions)
+-- No RLS policy for authenticated/anon — this table is admin-only.
+
+-- -----------------------------------------------------------------
+-- 3. Find auth user by phone (SECURITY DEFINER for Edge Function)
+-- -----------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS public.find_auth_user_by_phone(text);
+
+CREATE FUNCTION public.find_auth_user_by_phone(p_phone text)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = auth, public
+AS $$
+DECLARE
+  v_id uuid;
+BEGIN
+  SELECT id INTO v_id
+  FROM auth.users
+  WHERE phone = p_phone
+  LIMIT 1;
+
+  RETURN v_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.find_auth_user_by_phone(text) FROM PUBLIC;
+-- Only service role should call this (Edge Functions use service role)
+
+-- -----------------------------------------------------------------
+-- 4. Merge anonymous user data to authenticated user
 -- -----------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.merge_anonymous_to_authenticated(
@@ -42,7 +95,6 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  -- Validate inputs
   IF p_anon_id IS NULL OR p_auth_id IS NULL THEN
     RAISE EXCEPTION 'Both anonymous and authenticated user IDs are required';
   END IF;
@@ -51,7 +103,7 @@ BEGIN
     RAISE EXCEPTION 'Anonymous and authenticated user IDs must be different';
   END IF;
 
-  -- Transfer favorite teams that don't already exist for authenticated user
+  -- Transfer favorite teams
   INSERT INTO public.user_favorite_teams (user_id, team_id, team_name, team_short_name,
     team_country, team_country_code, team_league, team_crest_url, source, sort_order,
     created_at, updated_at)
@@ -62,74 +114,52 @@ BEGIN
   WHERE uft.user_id = p_anon_id
     AND NOT EXISTS (
       SELECT 1 FROM public.user_favorite_teams existing
-      WHERE existing.user_id = p_auth_id
-        AND existing.team_id = uft.team_id
+      WHERE existing.user_id = p_auth_id AND existing.team_id = uft.team_id
     );
 
-  -- Transfer followed teams that don't already exist
+  -- Transfer followed teams
   INSERT INTO public.user_followed_teams (user_id, team_id, created_at)
   SELECT p_auth_id, uft.team_id, uft.created_at
   FROM public.user_followed_teams uft
   WHERE uft.user_id = p_anon_id
     AND NOT EXISTS (
       SELECT 1 FROM public.user_followed_teams existing
-      WHERE existing.user_id = p_auth_id
-        AND existing.team_id = uft.team_id
+      WHERE existing.user_id = p_auth_id AND existing.team_id = uft.team_id
     );
 
-  -- Transfer followed competitions that don't already exist
+  -- Transfer followed competitions
   INSERT INTO public.user_followed_competitions (user_id, competition_id, created_at)
   SELECT p_auth_id, ufc.competition_id, ufc.created_at
   FROM public.user_followed_competitions ufc
   WHERE ufc.user_id = p_anon_id
     AND NOT EXISTS (
       SELECT 1 FROM public.user_followed_competitions existing
-      WHERE existing.user_id = p_auth_id
-        AND existing.competition_id = ufc.competition_id
+      WHERE existing.user_id = p_auth_id AND existing.competition_id = ufc.competition_id
     );
 
-  -- Copy onboarding fields from anonymous profile to authenticated profile
-  -- only if authenticated profile doesn't already have them set
+  -- Copy onboarding fields
   UPDATE public.profiles auth_p
   SET
     favorite_team_id = COALESCE(auth_p.favorite_team_id, anon_p.favorite_team_id),
     favorite_team_name = COALESCE(auth_p.favorite_team_name, anon_p.favorite_team_name),
     active_country = COALESCE(auth_p.active_country, anon_p.active_country),
     country_code = COALESCE(auth_p.country_code, anon_p.country_code),
-    region = COALESCE(auth_p.region, anon_p.region),
     onboarding_completed = true,
     upgraded_from_anonymous_id = p_anon_id,
     updated_at = now()
   FROM public.profiles anon_p
-  WHERE auth_p.id = p_auth_id
-    AND anon_p.id = p_anon_id;
+  WHERE auth_p.user_id = p_auth_id
+    AND anon_p.user_id = p_anon_id;
 
   -- Clean up anonymous user data
   DELETE FROM public.user_favorite_teams WHERE user_id = p_anon_id;
   DELETE FROM public.user_followed_teams WHERE user_id = p_anon_id;
   DELETE FROM public.user_followed_competitions WHERE user_id = p_anon_id;
-  DELETE FROM public.profiles WHERE id = p_anon_id;
+  DELETE FROM public.profiles WHERE user_id = p_anon_id;
 END;
 $$;
 
 REVOKE ALL ON FUNCTION public.merge_anonymous_to_authenticated(uuid, uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.merge_anonymous_to_authenticated(uuid, uuid) TO authenticated;
-
--- -----------------------------------------------------------------
--- 3. Ensure anonymous users can manage their own profiles
---    The existing RLS policies use `TO authenticated` which also
---    covers anonymous users (they are authenticated with anon token).
---    Supabase anonymous users still receive the `authenticated` role,
---    so existing policies already apply. No new policies needed.
--- -----------------------------------------------------------------
-
--- -----------------------------------------------------------------
--- 4. Ensure public-read tables are accessible to anon role
---    (matches, competitions, teams, standings are already public-read
---    via existing policies with `USING (true)`)
--- -----------------------------------------------------------------
-
--- Grant anon role SELECT on profiles for public leaderboard view
--- (profiles are already granted to authenticated, which includes anonymous)
 
 COMMIT;

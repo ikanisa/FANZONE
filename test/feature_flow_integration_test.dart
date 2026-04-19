@@ -325,6 +325,22 @@ class _FakeAuthGateway implements AuthGateway {
 
   @override
   Future<bool> isOnboardingCompletedForCurrentUser() async => false;
+
+  @override
+  bool get isAnonymousUser => false;
+
+  @override
+  Future<AuthResponse> signInAnonymously() async {
+    _currentUser = _testUser(id: 'anon_user');
+    _authStates.add(const AuthState(AuthChangeEvent.signedIn, null));
+    return AuthResponse(session: null, user: _currentUser);
+  }
+
+  @override
+  Future<void> mergeAnonymousToAuthenticated(
+    String anonId,
+    String authId,
+  ) async {}
 }
 
 class _RecordingPredictGateway implements PredictGateway {

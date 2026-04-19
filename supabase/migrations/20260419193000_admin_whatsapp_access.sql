@@ -13,7 +13,9 @@ WHERE au.user_id = u.id
 DROP INDEX IF EXISTS public.idx_admin_users_email;
 CREATE INDEX IF NOT EXISTS idx_admin_users_phone ON public.admin_users(phone);
 
-CREATE OR REPLACE VIEW public.admin_audit_logs_enriched AS
+DROP VIEW IF EXISTS public.admin_audit_logs_enriched;
+
+CREATE VIEW public.admin_audit_logs_enriched AS
 SELECT
   al.*,
   au.display_name AS admin_name,
@@ -23,7 +25,11 @@ LEFT JOIN public.admin_users au
   ON au.id = al.admin_user_id
 WHERE public.is_active_admin_operator(auth.uid());
 
-CREATE OR REPLACE FUNCTION public.admin_grant_access(
+GRANT SELECT ON public.admin_audit_logs_enriched TO authenticated;
+
+DROP FUNCTION IF EXISTS public.admin_grant_access(text, text);
+
+CREATE FUNCTION public.admin_grant_access(
   p_phone text,
   p_role text
 )
@@ -143,5 +149,8 @@ BEGIN
   RETURN v_result;
 END;
 $$;
+
+REVOKE ALL ON FUNCTION public.admin_grant_access(text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.admin_grant_access(text, text) TO authenticated;
 
 COMMIT;

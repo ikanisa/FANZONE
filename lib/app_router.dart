@@ -8,6 +8,7 @@ import 'core/runtime/app_runtime_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'widgets/navigation/app_shell.dart';
 
+import 'features/auth/screens/guest_upgrade_screen.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/whatsapp_login_screen.dart';
 import 'features/community/screens/membership_hub_screen.dart';
@@ -43,7 +44,14 @@ import 'features/teams/screens/teams_discovery_screen.dart';
 import 'features/wallet/screens/fet_exchange_screen.dart';
 import 'features/wallet/screens/wallet_screen.dart';
 
+/// True when any session exists (anonymous or phone-verified).
 bool _isAuthenticated() => Supabase.instance.client.auth.currentSession != null;
+
+/// True only when the user is fully authenticated (non-anonymous).
+bool _isFullyAuthenticated() {
+  final user = Supabase.instance.client.auth.currentUser;
+  return user != null && !user.isAnonymous;
+}
 
 final router = GoRouter(
   initialLocation: '/splash',
@@ -64,7 +72,14 @@ final router = GoRouter(
       return '/';
     }
 
-    if (_requiresAuthPath(path) && !_isAuthenticated()) {
+    // Routes that require full authentication (not guest)
+    if (_requiresFullAuthPath(path) && !_isFullyAuthenticated()) {
+      if (_isAuthenticated()) {
+        // Guest user → redirect to upgrade screen
+        final redirectTo = Uri.encodeComponent(requestedLocation);
+        return '/upgrade?from=$redirectTo';
+      }
+      // Not authenticated at all → login
       final redirectTo = Uri.encodeComponent(requestedLocation);
       return '/login?from=$redirectTo';
     }
@@ -86,6 +101,17 @@ final router = GoRouter(
       path: '/onboarding',
       pageBuilder: (context, state) =>
           _fadeTransition(state, const OnboardingScreen()),
+    ),
+    GoRoute(
+      path: '/upgrade',
+      pageBuilder: (context, state) => _fadeSlideTransition(
+        state,
+        GuestUpgradeScreen(
+          returnTo: state.uri.queryParameters['from'] != null
+              ? Uri.decodeComponent(state.uri.queryParameters['from']!)
+              : null,
+        ),
+      ),
     ),
     GoRoute(path: '/matches', redirect: (context, state) => '/fixtures'),
     GoRoute(path: '/predict', redirect: (context, state) => '/pools'),
@@ -425,22 +451,27 @@ final router = GoRouter(
   ],
 );
 
-bool _requiresAuthPath(String path) {
+/// Paths that require full (non-anonymous) authentication.
+/// Guest users browsing public content are allowed through.
+bool _requiresFullAuthPath(String path) {
   const exactPaths = {
-    '/leaderboard',
-    '/notifications',
-    '/notification-settings',
-    '/privacy',
+    // Wallet & exchange
+    '/wallet/exchange',
+    '/wallet/rewards',
+    // Identity & memberships
     '/fan-id',
     '/memberships',
     '/social',
     '/rewards',
-    '/wallet/exchange',
+    // Notifications (settings require full auth)
+    '/notifications',
+    '/notification-settings',
+    '/privacy',
+    // Legacy redirects
     '/profile/leaderboard',
     '/profile/notifications',
     '/profile/notification-settings',
     '/profile/fan-id',
-    '/wallet/rewards',
     '/clubs/membership',
     '/clubs/social',
     '/clubs/fan-id',

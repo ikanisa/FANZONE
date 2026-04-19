@@ -445,18 +445,6 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
           textColor: const Color(0xFF061514),
         ),
         const SizedBox(height: 12),
-        Center(
-          child: TextButton(
-            onPressed: _loading ? null : () => context.go('/'),
-            child: Text(
-              'Continue as Guest',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: mutedColor,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }

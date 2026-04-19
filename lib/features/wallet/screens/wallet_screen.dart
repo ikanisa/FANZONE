@@ -10,6 +10,7 @@ import '../../../providers/currency_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_animated_counter.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_empty_state.dart';
 import '../../../widgets/common/state_view.dart';
@@ -237,15 +238,15 @@ class _WalletHero extends StatelessWidget {
               balanceAsync.when(
                 data: (balance) => Column(
                   children: [
-                    Text(
-                      formatFETCompact(balance),
+                    FzAnimatedCounter(
                       key: const ValueKey('wallet-total-balance-value'),
+                      value: balance.toDouble(),
                       style: FzTypography.score(
                         size: 42,
                         weight: FontWeight.w700,
                         color: Colors.white,
                       ),
-                      textAlign: TextAlign.center,
+                      formatter: (v) => formatFETCompact(v.round()),
                     ),
                     const SizedBox(height: 6),
                     Text(

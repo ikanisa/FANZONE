@@ -15,6 +15,8 @@ class OnboardingPhoneStep extends StatelessWidget {
     required this.canContinue,
     required this.onBack,
     required this.onNext,
+    this.onGuest,
+    this.guestLoading = false,
     this.countryCode = '+356',
     this.phoneHint = '79XX XXXX',
     this.buttonLabel = 'SEND CODE VIA WHATSAPP',
@@ -28,6 +30,8 @@ class OnboardingPhoneStep extends StatelessWidget {
   final bool canContinue;
   final VoidCallback onBack;
   final VoidCallback onNext;
+  final VoidCallback? onGuest;
+  final bool guestLoading;
   final String countryCode;
   final String phoneHint;
   final String buttonLabel;
@@ -125,6 +129,22 @@ class OnboardingPhoneStep extends StatelessWidget {
               label: buttonLabel,
               onTap: canContinue ? onNext : null,
             ),
+            if (onGuest != null) ...[
+              const SizedBox(height: 12),
+              Center(
+                child: TextButton(
+                  onPressed: guestLoading ? null : onGuest,
+                  child: Text(
+                    guestLoading ? 'Loading...' : 'Continue as Guest',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: muted,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

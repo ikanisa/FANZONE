@@ -587,19 +587,59 @@ Current GitHub Actions jobs encode part of the production operating model:
 
 ### Mobile auth
 
-- Supabase Auth is the source of truth
-- the user-facing login flow is WhatsApp OTP sent to the user phone number
-- guest browsing is possible for some surfaces
-- protected routes redirect to `/login`
-- onboarding writes profile, team, and market preference data after auth or guest progression
+FANZONE uses two authentication paths, both managed through Supabase Auth:
 
-### Admin auth
+**1. WhatsApp OTP (full authentication)**
 
-- the admin console uses the same WhatsApp OTP flow as the mobile app
-- access also requires an active `admin_users` row
-- routes are role-gated in the frontend and should also be protected by backend policy/RPC checks
+- OTP is generated and delivered via WhatsApp Cloud API using the `gikundiro` authentication template
+- The `whatsapp-otp` Edge Function handles OTP generation, storage, WhatsApp delivery, and session creation
+- On successful verification, the Edge Function creates/finds the Supabase Auth user and returns a session JWT
+- No Twilio or Supabase-native SMS provider is used
 
-### Config assumptions
+**2. Guest mode (anonymous authentication)**
+
+- Uses Supabase anonymous auth (`enable_anonymous_sign_ins = true`)
+- Guest users can browse matches, fixtures, teams, leagues, standings, pools (read-only), and leaderboard
+- Guest users **cannot**: make predictions, join/create pools, access wallet, access fan identity, modify settings, or perform any write-action
+- When a guest attempts a protected action, the app shows a sign-in prompt and redirects to the upgrade flow
+
+**Onboarding flow (5+ steps)**
+
+```
+Splash → Welcome → Auth Choice → [WhatsApp OTP path OR Guest path] → Favorite Team → Popular Teams → Home
+```
+
+- Auth Choice screen: "Continue with WhatsApp" or "Continue as Guest"
+- WhatsApp path: Phone Input → OTP Verification → Team Selection → Home (full access)
+- Guest path: Anonymous sign-in → Team Selection → Home (view-only)
+
+**Guest-to-authenticated upgrade**
+
+- Guest users can upgrade at any time via `/upgrade` route
+- The upgrade screen reuses the WhatsApp OTP verification flow
+- On successful upgrade, the `merge_anonymous_to_authenticated` RPC migrates the guest's data (favorite teams, followed teams/competitions, onboarding state) to the new authenticated profile
+- The anonymous profile is deleted after merge
+
+**Required Supabase secrets for WhatsApp Cloud API**
+
+```bash
+supabase secrets set WABA_ACCESS_TOKEN=<your-token>
+supabase secrets set WABA_PHONE_NUMBER_ID=<your-phone-number-id>
+# Optional: WABA_OTP_TEMPLATE_NAME (default: gikundiro)
+# Optional: OTP_EXPIRY_SECONDS (default: 600)
+```
+
+**Required Supabase dashboard setting**
+
+- Authentication → Settings → Enable Anonymous Sign-ins: **ON**
+
+**Protected routes** (require full auth, not guest):
+
+- `/wallet/exchange`, `/fan-id`, `/memberships`, `/social`, `/rewards`
+- `/notifications`, `/notification-settings`, `/privacy`
+- `/settings/*`, `/profile/settings/*`
+
+**Config assumptions**
 
 - mobile feature access is primarily compile-time via `AppConfig`
 - admin feature control exists in the backend schema, but the mobile app does not currently read remote admin feature flags

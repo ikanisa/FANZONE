@@ -86,7 +86,7 @@ Future<void> showSignInRequiredSheet(
                     child: FilledButton(
                       onPressed: () {
                         Navigator.of(sheetContext).pop();
-                        context.go('/login?from=${Uri.encodeComponent(from)}');
+                        context.go('/upgrade?from=${Uri.encodeComponent(from)}');
                       },
                       child: const Text('Sign in'),
                     ),
