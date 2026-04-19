@@ -55,6 +55,7 @@ jobs:
           bash -n tool/supabase_release_probe.sh \
             tool/supabase_bootstrap_smoke.sh \
             tool/supabase_edge_job_smoke.sh \
+            tool/supabase_whatsapp_auth_smoke.sh \
             tool/supabase_rls_audit.sh \
             tool/supabase_fet_supply_smoke.sh \
             tool/resolve_dart_define_file.sh \
@@ -80,6 +81,13 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: ./tool/supabase_release_probe.sh
 
+      - name: Run Supabase WhatsApp auth smoke
+        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: ./tool/supabase_whatsapp_auth_smoke.sh
+
       - name: Run Supabase SQL audits
         if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
         env:
@@ -91,6 +99,7 @@ jobs:
       - name: Check Edge Function formatting
         run: |
           deno fmt --check \
+            supabase/functions/whatsapp-otp/index.ts \
             supabase/functions/auto-settle/index.ts \
             supabase/functions/push-notify/index.ts \
             supabase/functions/gemini-team-news/index.ts \
@@ -99,6 +108,7 @@ jobs:
       - name: Type-check Edge Functions
         run: |
           deno check \
+            supabase/functions/whatsapp-otp/index.ts \
             supabase/functions/auto-settle/index.ts \
             supabase/functions/push-notify/index.ts \
             supabase/functions/gemini-team-news/index.ts \

@@ -25,10 +25,7 @@ import {
   createClient,
   type SupabaseClient,
 } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import {
-  buildCorsHeaders,
-  getErrorMessage,
-} from "../_shared/http.ts";
+import { buildCorsHeaders, getErrorMessage } from "../_shared/http.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -36,7 +33,8 @@ const SUPABASE_JWT_SECRET = Deno.env.get("SUPABASE_JWT_SECRET")?.trim() || "";
 
 const WABA_ACCESS_TOKEN = Deno.env.get("WABA_ACCESS_TOKEN")?.trim() || "";
 const WABA_PHONE_NUMBER_ID = Deno.env.get("WABA_PHONE_NUMBER_ID")?.trim() || "";
-const WABA_TEMPLATE_NAME = Deno.env.get("WABA_OTP_TEMPLATE_NAME")?.trim() || "gikundiro";
+const WABA_TEMPLATE_NAME = Deno.env.get("WABA_OTP_TEMPLATE_NAME")?.trim() ||
+  "gikundiro";
 const OTP_EXPIRY_SECONDS = parseInt(
   Deno.env.get("OTP_EXPIRY_SECONDS") || "600",
   10,
@@ -249,7 +247,10 @@ async function createSessionForPhone(
     .getUserById(userId);
 
   if (userError) {
-    console.error("Failed to load user after WhatsApp verification:", userError);
+    console.error(
+      "Failed to load user after WhatsApp verification:",
+      userError,
+    );
     return Response.json(
       { error: "Failed to load authenticated user." },
       { status: 500, headers: CORS_HEADERS },
@@ -305,7 +306,8 @@ async function handleSend(
   // Generate and store OTP
   const otp = generateOtp();
   const otpHash = await hashOtp(otp);
-  const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000)
+    .toISOString();
 
   // Invalidate previous unverified OTPs for this phone
   await supabase
@@ -436,8 +438,8 @@ async function handleVerify(
     });
   } else {
     // Create new user
-    const { data: newUser, error: createError } =
-      await supabase.auth.admin.createUser({
+    const { data: newUser, error: createError } = await supabase.auth.admin
+      .createUser({
         phone: normalized,
         phone_confirm: true,
         user_metadata: { phone_verified: true },

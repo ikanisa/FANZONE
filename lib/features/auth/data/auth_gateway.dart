@@ -1,4 +1,3 @@
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/logging/app_logger.dart';
@@ -74,10 +73,7 @@ class SupabaseAuthGateway implements AuthGateway {
     final client = _requireClient();
 
     final response = await client.functions
-        .invoke(
-          'whatsapp-otp',
-          body: {'action': 'send', 'phone': phone},
-        )
+        .invoke('whatsapp-otp', body: {'action': 'send', 'phone': phone})
         .timeout(_timeout);
 
     final data = response.data as Map<String, dynamic>? ?? {};
@@ -120,10 +116,9 @@ class SupabaseAuthGateway implements AuthGateway {
     }
 
     try {
-      final sessionSeed =
-          refreshToken != null && refreshToken.isNotEmpty
-              ? refreshToken
-              : accessToken;
+      final sessionSeed = refreshToken != null && refreshToken.isNotEmpty
+          ? refreshToken
+          : accessToken;
 
       // The custom WhatsApp auth flow issues an access token directly. The
       // Supabase Flutter client still expects a non-empty refresh token when
@@ -131,7 +126,9 @@ class SupabaseAuthGateway implements AuthGateway {
       // compatibility seed until the short-lived session expires.
       await client.auth.setSession(sessionSeed, accessToken: accessToken);
     } catch (error) {
-      AppLogger.d('Failed to recover session from WhatsApp OTP response: $error');
+      AppLogger.d(
+        'Failed to recover session from WhatsApp OTP response: $error',
+      );
       throw const AuthException(
         'Server returned an invalid session. Please try again.',
       );
@@ -141,8 +138,7 @@ class SupabaseAuthGateway implements AuthGateway {
   @override
   Future<AuthResponse> signInAnonymously() async {
     final client = _requireClient();
-    final response =
-        await client.auth.signInAnonymously().timeout(_timeout);
+    final response = await client.auth.signInAnonymously().timeout(_timeout);
 
     if (response.session == null) {
       throw const AuthException(
@@ -188,10 +184,10 @@ class SupabaseAuthGateway implements AuthGateway {
   ) async {
     final client = _requireClient();
     await client
-        .rpc('merge_anonymous_to_authenticated', params: {
-          'p_anon_id': anonId,
-          'p_auth_id': authId,
-        })
+        .rpc(
+          'merge_anonymous_to_authenticated',
+          params: {'p_anon_id': anonId, 'p_auth_id': authId},
+        )
         .timeout(const Duration(seconds: 30));
   }
 

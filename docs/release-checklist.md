@@ -23,6 +23,7 @@
 - Verify the resulting APK or AAB is signed with the upload keystore.
 - Upload the signing keystore to secure secrets storage and CI.
 - Run `./tool/supabase_release_probe.sh` against production credentials before enabling live rollout.
+- Run `./tool/supabase_whatsapp_auth_smoke.sh` against production credentials before enabling live rollout.
 
 ## iOS release
 
@@ -37,11 +38,13 @@
 - Verify production credentials point to the correct Supabase project.
 - Confirm feature flags match the live backend, especially notifications, deep linking, and jackpot/global challenge rollout.
 - Validate `fet_wallets`, `fet_wallet_transactions`, and `public_leaderboard` exist and are covered by policy.
+- Confirm built-in Supabase email and phone OTP providers are disabled for the production project.
 - Run `./tool/supabase_rls_audit.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
 - Run `./tool/supabase_fet_supply_smoke.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
 - Review `docs/fet-supply-governance.md` before any manual minting or promotional credit.
 - Check `public.fet_supply_overview.remaining_mintable` before any manual grant, promo credit, or reward backfill.
-- Validate WhatsApp OTP delivery, expiry, and rate-limit behaviour in the production auth project.
+- Validate WhatsApp OTP delivery, expiry, and rate-limit behaviour in the production `whatsapp-otp` function.
+- Confirm `WABA_ACCESS_TOKEN`, `WABA_PHONE_NUMBER_ID`, and `SUPABASE_JWT_SECRET` are present in the deployed Edge Function secrets.
 
 ## Operational readiness
 

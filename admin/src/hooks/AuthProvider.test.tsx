@@ -135,7 +135,7 @@ describe('AuthProvider', () => {
     });
   });
 
-  it('verifies the WhatsApp OTP and establishes a Supabase browser session', async () => {
+  it('verifies the WhatsApp OTP and establishes a browser session from the custom token response', async () => {
     const signedInSession = {
       user: {
         id: 'user-1',
@@ -146,7 +146,7 @@ describe('AuthProvider', () => {
       data: {
         success: true,
         access_token: 'access-token',
-        refresh_token: 'refresh-token',
+        refresh_token: null,
       },
       error: null,
     });
@@ -177,7 +177,7 @@ describe('AuthProvider', () => {
     expect(result).toBe(true);
     expect(setSessionMock).toHaveBeenCalledWith({
       access_token: 'access-token',
-      refresh_token: 'refresh-token',
+      refresh_token: 'access-token',
     });
 
     await waitFor(() => {

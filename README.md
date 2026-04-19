@@ -266,12 +266,14 @@ Minimum values used by different scripts:
 
 | Variable | Used by |
 | --- | --- |
-| `SUPABASE_URL` | `tool/supabase_release_probe.sh`, `tool/supabase_edge_job_smoke.sh` |
-| `SUPABASE_ANON_KEY` | `tool/supabase_release_probe.sh` |
+| `SUPABASE_URL` | `tool/supabase_release_probe.sh`, `tool/supabase_edge_job_smoke.sh`, `tool/supabase_whatsapp_auth_smoke.sh` |
+| `SUPABASE_ANON_KEY` | `tool/supabase_release_probe.sh`, `tool/supabase_whatsapp_auth_smoke.sh` |
 | `SUPABASE_SERVICE_ROLE_KEY` | `tool/supabase_edge_job_smoke.sh` |
 | `CRON_SECRET` | `tool/supabase_edge_job_smoke.sh` and scheduled settle flows |
 | `SUPABASE_DB_URL` or `SUPABASE_BOOTSTRAP_DB_URL` | `tool/supabase_bootstrap_smoke.sh` |
 | `SUPABASE_DB_URL`, `SUPABASE_RLS_DB_URL`, or `SUPABASE_FET_DB_URL` | `tool/supabase_rls_audit.sh`, `tool/supabase_fet_supply_smoke.sh` |
+| `WHATSAPP_AUTH_TEST_PHONE` | optional live send coverage in `tool/supabase_whatsapp_auth_smoke.sh` |
+| `WHATSAPP_AUTH_TEST_OTP` | optional live verify coverage in `tool/supabase_whatsapp_auth_smoke.sh` |
 | `SUPABASE_DB_PASSWORD` | fallback only when the repo is linked locally and `supabase/.temp/pooler-url` exists |
 
 ### 3. Admin environment
@@ -295,7 +297,7 @@ cp admin/.env.example admin/.env
 
 Admin auth assumptions:
 
-- login is WhatsApp OTP through Supabase phone auth
+- login is WhatsApp OTP through the `whatsapp-otp` Edge Function
 - the authenticated user must also have an active row in `public.admin_users`
 - role enforcement is `viewer < moderator < admin < super_admin`
 
@@ -326,6 +328,9 @@ Edge Functions use environment variables provided in the deployed Supabase proje
 | `SUPABASE_SERVICE_ROLE_KEY` | all deployed functions |
 | `CRON_SECRET` | `auto-settle` |
 | `PUSH_NOTIFY_SECRET` | `push-notify`, internal `auto-settle` calls |
+| `WABA_ACCESS_TOKEN` | `whatsapp-otp` |
+| `WABA_PHONE_NUMBER_ID` | `whatsapp-otp` |
+| `SUPABASE_JWT_SECRET` | `whatsapp-otp` |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | `push-notify` |
 | `TEAM_NEWS_SYNC_SECRET` | `gemini-team-news` |
 | `CURRENCY_SYNC_SECRET` | `gemini-currency-rates` |
@@ -510,6 +515,7 @@ These are the operational checks already used by CI and release workflows:
 ```bash
 ./tool/supabase_bootstrap_smoke.sh
 ./tool/supabase_edge_job_smoke.sh
+./tool/supabase_whatsapp_auth_smoke.sh
 ./tool/supabase_release_probe.sh
 ./tool/supabase_rls_audit.sh
 ./tool/supabase_fet_supply_smoke.sh
@@ -519,6 +525,7 @@ Prerequisites vary by script:
 
 - `tool/supabase_bootstrap_smoke.sh` requires `psql` and `SUPABASE_BOOTSTRAP_DB_URL` or `SUPABASE_DB_URL`
 - `tool/supabase_edge_job_smoke.sh` requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
+- `tool/supabase_whatsapp_auth_smoke.sh` requires `SUPABASE_URL` and `SUPABASE_ANON_KEY`, and supports optional `WHATSAPP_AUTH_TEST_PHONE` / `WHATSAPP_AUTH_TEST_OTP`
 - `tool/supabase_release_probe.sh` requires `SUPABASE_URL` and `SUPABASE_ANON_KEY`
 - `tool/supabase_rls_audit.sh` and `tool/supabase_fet_supply_smoke.sh` accept `SUPABASE_DB_URL` directly, or fall back to `SUPABASE_DB_PASSWORD` plus `supabase/.temp/pooler-url`
 
@@ -534,6 +541,7 @@ Prerequisites vary by script:
 | `./tool/flutter_analyze_release.sh` | Analyzer gate that fails on warnings/errors |
 | `./tool/supabase_release_probe.sh` | Public API/RLS release probe |
 | `./tool/supabase_edge_job_smoke.sh` | Edge Function auth-layer smoke checks |
+| `./tool/supabase_whatsapp_auth_smoke.sh` | WhatsApp-only auth smoke checks |
 | `./tool/supabase_rls_audit.sh` | SQL audit for RLS hardening |
 | `./tool/supabase_fet_supply_smoke.sh` | FET supply cap smoke test |
 | `cd admin && npm run dev` | Run admin locally |
@@ -625,6 +633,7 @@ Splash → Welcome → Auth Choice → [WhatsApp OTP path OR Guest path] → Fav
 ```bash
 supabase secrets set WABA_ACCESS_TOKEN=<your-token>
 supabase secrets set WABA_PHONE_NUMBER_ID=<your-phone-number-id>
+supabase secrets set SUPABASE_JWT_SECRET=<your-jwt-signing-secret>
 # Optional: WABA_OTP_TEMPLATE_NAME (default: gikundiro)
 # Optional: OTP_EXPIRY_SECONDS (default: 600)
 ```
@@ -632,6 +641,8 @@ supabase secrets set WABA_PHONE_NUMBER_ID=<your-phone-number-id>
 **Required Supabase dashboard setting**
 
 - Authentication → Settings → Enable Anonymous Sign-ins: **ON**
+- Authentication → Providers → Email: **OFF**
+- Authentication → Providers → Phone: **OFF**
 
 **Protected routes** (require full auth, not guest):
 
@@ -706,6 +717,7 @@ Check:
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY` are present in the active `env/*.json`
 - you ran with `--dart-define-from-file=...`
 - the JSON file contains real values, not example placeholders
+- `SUPABASE_JWT_SECRET`, `WABA_ACCESS_TOKEN`, and `WABA_PHONE_NUMBER_ID` are set for the deployed `whatsapp-otp` Edge Function
 
 ### Flutter build fails because `firebase_options.dart` is missing
 
@@ -903,5 +915,6 @@ npm run dev
 deno test supabase/functions
 
 # Release probes
+./tool/supabase_whatsapp_auth_smoke.sh
 ./tool/supabase_release_probe.sh
 ```
