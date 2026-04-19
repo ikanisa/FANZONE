@@ -194,14 +194,15 @@ final router = GoRouter(
     GoRoute(path: '/profile/wallet', redirect: (context, state) => '/wallet'),
     GoRoute(path: '/wallet/rewards', redirect: (context, state) => '/rewards'),
     GoRoute(path: '/registry', redirect: (context, state) => '/fan-id'),
-    if (AppConfig.enableFeaturedEvents)
-      GoRoute(
-        path: '/event/:eventTag',
-        pageBuilder: (context, state) => _fadeSlideTransition(
-          state,
-          EventHubScreen(eventTag: state.pathParameters['eventTag']!),
-        ),
+    GoRoute(
+      path: '/event/:eventTag',
+      pageBuilder: (context, state) => _fadeSlideTransition(
+        state,
+        AppConfig.enableFeaturedEvents
+            ? EventHubScreen(eventTag: state.pathParameters['eventTag']!)
+            : const FeatureUnavailableScreen(featureName: 'Featured Events'),
       ),
+    ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => AppShell(
         navigationShell: navigationShell,

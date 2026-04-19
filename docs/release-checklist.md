@@ -38,7 +38,7 @@
 - Verify production credentials point to the correct Supabase project.
 - Confirm feature flags match the live backend, especially notifications, deep linking, and jackpot/global challenge rollout.
 - Validate `fet_wallets`, `fet_wallet_transactions`, and `public_leaderboard` exist and are covered by policy.
-- Confirm built-in Supabase email and phone OTP providers are disabled for the production project.
+- Confirm built-in Supabase email, phone OTP, magic link/OAuth, and third-party auth providers are disabled for the production project. Anonymous sign-in may remain enabled only for the mobile guest flow.
 - Run `./tool/supabase_rls_audit.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
 - Run `./tool/supabase_fet_supply_smoke.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
 - Review `docs/fet-supply-governance.md` before any manual minting or promotional credit.

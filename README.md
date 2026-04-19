@@ -298,6 +298,7 @@ cp admin/.env.example admin/.env
 Admin auth assumptions:
 
 - login is WhatsApp OTP through the `whatsapp-otp` Edge Function
+- no email/password, magic link, OAuth, or third-party auth provider is supported for admin access
 - the authenticated user must also have an active row in `public.admin_users`
 - role enforcement is `viewer < moderator < admin < super_admin`
 
@@ -643,6 +644,7 @@ supabase secrets set SUPABASE_JWT_SECRET=<your-jwt-signing-secret>
 - Authentication → Settings → Enable Anonymous Sign-ins: **ON**
 - Authentication → Providers → Email: **OFF**
 - Authentication → Providers → Phone: **OFF**
+- Authentication → Providers / External Auth: **all OFF**
 
 **Protected routes** (require full auth, not guest):
 

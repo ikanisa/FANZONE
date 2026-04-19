@@ -1,8 +1,12 @@
 /// League constants for the curated Top 5 European leagues showcase.
 ///
-/// These define the five premier European domestic leagues that are always
-/// displayed prominently in the Leagues Discovery screen.
+/// Flag emojis are now backed by the `country_region_map` Supabase table
+/// via [BootstrapConfig].  The hardcoded [_defaultCountryFlags] map is
+/// kept only as an offline fallback for first cold start.
 library;
+
+import '../config/bootstrap_config.dart';
+import '../config/runtime_bootstrap.dart';
 
 /// The Big 5 European domestic league countries — always shown first.
 const kTop5EuropeanCountries = [
@@ -31,8 +35,9 @@ const kTop5Flags = <String, String>{
   'France': '🇫🇷',
 };
 
-/// Country flag emojis for common non-Top-5 countries.
-const kCountryFlags = <String, String>{
+/// Offline fallback country flag emojis for common countries.
+/// New code should use [flagForCountryDynamic] with [BootstrapConfig].
+const _defaultCountryFlags = <String, String>{
   'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
   'Spain': '🇪🇸',
   'Italy': '🇮🇹',
@@ -65,10 +70,26 @@ const kCountryFlags = <String, String>{
   'Uganda': '🇺🇬',
 };
 
+/// Returns a flag emoji using DB-driven bootstrap config (by country name).
+/// Falls back to the hardcoded map if bootstrap config isn't loaded.
+String flagForCountryDynamic(String? country, BootstrapConfig config) {
+  if (country == null || country.isEmpty) return '🌍';
+  // Try DB-driven config first (matches by country name)
+  final dbFlag = config.flagEmojiForCountryName(country);
+  if (dbFlag != '🌍') return dbFlag;
+  // Fallback to hardcoded map
+  return _defaultCountryFlags[country] ?? '🌍';
+}
+
 /// Returns a flag emoji for a given country name, or a generic globe.
+/// Uses the hardcoded offline fallback only.
 String flagForCountry(String? country) {
   if (country == null || country.isEmpty) return '🌍';
-  return kCountryFlags[country] ?? '🌍';
+  final runtimeFlag = runtimeBootstrapStore.config.flagEmojiForCountryName(
+    country,
+  );
+  if (runtimeFlag != '🌍') return runtimeFlag;
+  return _defaultCountryFlags[country] ?? '🌍';
 }
 
 /// Whether the given country is one of the Top 5 European leagues.

@@ -8,6 +8,7 @@ import 'theme/app_theme.dart';
 import 'theme/colors.dart';
 import 'app_router.dart';
 import 'config/app_config.dart';
+import 'core/config/feature_flags.dart';
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
 import 'services/push_notification_service.dart';
@@ -19,7 +20,7 @@ class FanzoneApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    if (AppConfig.enableNotifications) {
+    if (ref.watch(featureFlagsProvider).notifications) {
       ref.watch(pushNotificationInitProvider);
     }
 

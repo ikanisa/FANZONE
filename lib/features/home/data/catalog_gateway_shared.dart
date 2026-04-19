@@ -1,8 +1,13 @@
+import '../../../config/app_config.dart';
 import '../../../models/competition_model.dart';
 import '../../../models/featured_event_model.dart';
 import '../../../models/global_challenge_model.dart';
 import '../../../models/standing_row_model.dart';
 import '../../../models/team_model.dart';
+
+/// Fallback seed data is only served in development builds.
+/// In production, empty lists trigger proper empty-state UIs.
+bool get _allowCatalogFallback => AppConfig.isDevelopment;
 
 List<CompetitionModel> filterCompetitions(
   List<CompetitionModel> competitions, {
@@ -109,6 +114,7 @@ List<GlobalChallengeModel> filterChallenges(
 }
 
 List<StandingRowModel> fallbackStandings(String competitionId) {
+  if (!_allowCatalogFallback) return const [];
   switch (competitionId) {
     case 'epl':
       return const [
@@ -182,6 +188,7 @@ List<StandingRowModel> fallbackStandings(String competitionId) {
 }
 
 List<FeaturedEventModel> fallbackEvents() {
+  if (!_allowCatalogFallback) return const [];
   final now = DateTime.now();
   return [
     FeaturedEventModel(
@@ -231,6 +238,7 @@ List<FeaturedEventModel> fallbackEvents() {
 }
 
 List<GlobalChallengeModel> fallbackChallenges() {
+  if (!_allowCatalogFallback) return const [];
   final now = DateTime.now();
   return [
     GlobalChallengeModel(
@@ -250,7 +258,11 @@ List<GlobalChallengeModel> fallbackChallenges() {
   ];
 }
 
-const List<CompetitionModel> fallbackCompetitions = <CompetitionModel>[
+/// Fallback competitions — dev-only. Returns empty in production.
+List<CompetitionModel> get fallbackCompetitions =>
+    _allowCatalogFallback ? _devFallbackCompetitions : const [];
+
+const List<CompetitionModel> _devFallbackCompetitions = <CompetitionModel>[
   CompetitionModel(
     id: 'epl',
     name: 'Premier League',
@@ -287,7 +299,11 @@ const List<CompetitionModel> fallbackCompetitions = <CompetitionModel>[
   ),
 ];
 
-const List<TeamModel> fallbackTeams = <TeamModel>[
+/// Fallback teams — dev-only. Returns empty in production.
+List<TeamModel> get fallbackTeams =>
+    _allowCatalogFallback ? _devFallbackTeams : const [];
+
+const List<TeamModel> _devFallbackTeams = <TeamModel>[
   TeamModel(
     id: 'liverpool',
     name: 'Liverpool',

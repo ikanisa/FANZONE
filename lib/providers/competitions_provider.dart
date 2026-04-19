@@ -48,71 +48,18 @@ final otherLeaguesProvider = FutureProvider.autoDispose<List<CompetitionModel>>(
 final localLeaguesProvider = FutureProvider.family
     .autoDispose<List<CompetitionModel>, String>((ref, regionKey) async {
       final all = await ref.watch(competitionsProvider.future);
-      final localCountries = _countriesForRegion(regionKey);
-      if (localCountries.isEmpty) return const [];
+      // Use DB-driven bootstrap config for country-to-region mapping
+      final bootstrapConfig = ref.read(bootstrapConfigProvider);
+      final localCountryNames = bootstrapConfig.countryNamesForRegion(regionKey);
+      if (localCountryNames.isEmpty) return const [];
 
       return all
           .where(
             (c) =>
                 c.tier == 1 &&
                 !isTop5Country(c.country) &&
-                localCountries.contains(c.country),
+                localCountryNames.contains(c.country),
           )
           .toList()
         ..sort((a, b) => a.name.compareTo(b.name));
     });
-
-List<String> _countriesForRegion(String regionKey) {
-  switch (regionKey) {
-    case 'africa':
-      return const [
-        'Rwanda',
-        'Nigeria',
-        'Egypt',
-        'South Africa',
-        'Tanzania',
-        'Kenya',
-        'Uganda',
-        'Ghana',
-        'Tunisia',
-        'Morocco',
-        'DR Congo',
-        'Senegal',
-        'Cameroon',
-        'Algeria',
-        'Ethiopia',
-      ];
-    case 'europe':
-      return const [
-        'Malta',
-        'Netherlands',
-        'Portugal',
-        'Belgium',
-        'Turkey',
-        'Scotland',
-        'Switzerland',
-        'Sweden',
-        'Norway',
-        'Denmark',
-        'Poland',
-        'Austria',
-        'Greece',
-        'Czech Republic',
-        'Romania',
-      ];
-    case 'north_america':
-    case 'americas':
-      return const [
-        'United States',
-        'Canada',
-        'Mexico',
-        'Brazil',
-        'Argentina',
-        'Colombia',
-        'Chile',
-        'Peru',
-      ];
-    default:
-      return const [];
-  }
-}

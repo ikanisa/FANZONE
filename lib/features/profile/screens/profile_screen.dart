@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../config/app_config.dart';
+import '../../../core/config/feature_flags.dart';
 import '../../../features/profile/providers/profile_identity_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/currency_provider.dart';
@@ -30,12 +31,13 @@ class ProfileScreen extends ConsumerWidget {
     final fanId = ref.watch(userFanIdProvider).valueOrNull;
     final favoriteTeamsAsync = ref.watch(favoriteTeamRecordsProvider);
     final profileIdentity = ref.watch(profileIdentityProvider).valueOrNull;
-    final showWallet = isAuthenticated && AppConfig.enableWallet;
-    final showPredictions = isAuthenticated && AppConfig.enablePredictions;
+    final flags = ref.watch(featureFlagsProvider);
+    final showWallet = isAuthenticated && flags.wallet;
+    final showPredictions = isAuthenticated && flags.predictions;
     const showClubs = true;
     final showRewards =
         isAuthenticated &&
-        (AppConfig.enableRewards || AppConfig.enableMarketplace);
+        (flags.rewards || flags.marketplace);
 
     return Scaffold(
       body: SafeArea(

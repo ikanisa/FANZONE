@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../config/app_config.dart';
+import '../../../core/config/feature_flags.dart';
 import '../../../models/match_ai_analysis_model.dart';
 import '../../../models/match_model.dart';
 import '../../../models/match_player_stats_model.dart';
@@ -69,15 +69,16 @@ class MatchDetailScreen extends ConsumerWidget {
         final headerEyebrow = roundLabel != null && roundLabel.isNotEmpty
             ? '$competitionLabel · $roundLabel'
             : competitionLabel;
+        final flags = ref.watch(featureFlagsProvider);
         final tabs = <Tab>[
-          if (AppConfig.enablePredictions) const Tab(text: 'Predict'),
+          if (flags.predictions) const Tab(text: 'Predict'),
           const Tab(text: 'Insights'),
           const Tab(text: 'Stats'),
           const Tab(text: 'H2H'),
           const Tab(text: 'Lineups'),
         ];
         final views = <Widget>[
-          if (AppConfig.enablePredictions) _PredictTab(match: match),
+          if (flags.predictions) _PredictTab(match: match),
           _InsightsTab(match: match),
           _StatsTab(match: match),
           _H2HTab(match: match),

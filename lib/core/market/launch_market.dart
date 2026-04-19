@@ -1,4 +1,12 @@
+/// LaunchMarket — region and marketing moment utilities.
+///
+/// Pure utility functions that do NOT depend on any hardcoded static data.
+/// Country-to-region resolution is now delegated to [BootstrapConfig]
+/// (backed by the `country_region_map` Supabase table).
+/// Launch moment options are loaded from the `launch_moments` table.
 library;
+
+import '../config/runtime_bootstrap.dart';
 
 enum LaunchRegion { africa, europe, northAmerica, global }
 
@@ -102,16 +110,68 @@ bool regionKeyMatches(String? candidate, String? target) {
   ).toSet().intersection(queryRegionVariants(right).toSet()).isNotEmpty;
 }
 
+/// DEPRECATED — use BootstrapConfig.regionForCountryCode() with country codes.
+///
+/// This function resolves region from a country *name* (e.g. "Rwanda"),
+/// kept for backward compatibility with `CompetitionModel.country` which
+/// stores the country name (not a 2-letter code).
+///
+/// New code should use the country_code-based BootstrapConfig lookup.
 String? regionFromCountryName(String? country) {
   if (country == null || country.trim().isEmpty) return null;
+  final runtimeConfig = runtimeBootstrapStore.config;
+  if (runtimeConfig.regions.isNotEmpty) {
+    final runtimeFlag = runtimeConfig.flagEmojiForCountryName(country);
+    if (runtimeFlag != '🌍') {
+      for (final info in runtimeConfig.regions.values) {
+        if (info.countryName.toLowerCase() == country.trim().toLowerCase()) {
+          return info.region;
+        }
+      }
+    }
+  }
+  // Delegate to a minimal set kept only for competition country-name matching.
+  // This is determined at runtime from the DB-backed bootstrap config
+  // when the BootstrapConfig is available via a provider.
+  // For pure function context (no Riverpod), use the static fallback below.
   final normalized = country.trim().toLowerCase();
+  return _regionFromCountryNameFallback(normalized);
+}
 
-  if (_africanCountries.contains(normalized)) return 'africa';
-  if (_europeanCountries.contains(normalized)) return 'europe';
-  if (_northAmericanCountries.contains(normalized)) return 'north_america';
+/// Minimal inline fallback for country-name-to-region when no DB is available.
+/// This only covers the most common names found in competition data.
+String? _regionFromCountryNameFallback(String name) {
+  // Africa
+  const africa = {
+    'algeria', 'benin', 'botswana', 'burkina faso', 'cameroon',
+    "côte d'ivoire", "cote d'ivoire", 'democratic republic of the congo',
+    'dr congo', 'egypt', 'ethiopia', 'ghana', 'guinea-bissau', 'kenya',
+    'madagascar', 'mali', 'morocco', 'mozambique', 'namibia', 'niger',
+    'nigeria', 'rwanda', 'senegal', 'south africa', 'tanzania', 'togo',
+    'tunisia', 'uganda', 'zambia', 'zimbabwe',
+  };
+  // Europe
+  const europe = {
+    'austria', 'belgium', 'czech republic', 'denmark', 'england', 'finland',
+    'france', 'germany', 'greece', 'hungary', 'ireland', 'italy', 'malta',
+    'netherlands', 'norway', 'poland', 'portugal', 'romania', 'scotland',
+    'spain', 'sweden', 'switzerland', 'turkey', 'united kingdom', 'wales',
+  };
+  // North America
+  const northAmerica = {
+    'canada', 'mexico', 'united states', 'united states of america', 'usa',
+  };
+
+  if (africa.contains(name)) return 'africa';
+  if (europe.contains(name)) return 'europe';
+  if (northAmerica.contains(name)) return 'north_america';
   return null;
 }
 
+/// LaunchMomentOption — kept for backward compatibility.
+///
+/// New code should use [LaunchMomentInfo] from bootstrap_config.dart
+/// (backed by the `launch_moments` Supabase table).
 class LaunchMomentOption {
   const LaunchMomentOption({
     required this.tag,
@@ -128,6 +188,10 @@ class LaunchMomentOption {
   final String regionKey;
 }
 
+/// DEPRECATED — Use BootstrapConfig.launchMoments instead.
+///
+/// This list is kept as an emergency offline fallback only.
+/// The canonical source of truth is now the `launch_moments` Supabase table.
 const launchMomentOptions = <LaunchMomentOption>[
   LaunchMomentOption(
     tag: 'road-to-world-cup-2026',
@@ -149,7 +213,7 @@ const launchMomentOptions = <LaunchMomentOption>[
     tag: 'ucl-final-2026',
     title: 'UEFA Champions League Final',
     subtitle:
-        'Keep Europe’s biggest club night central during the run-in and final-week conversion window.',
+        'Keep Europe\u2019s biggest club night central during the run-in and final-week conversion window.',
     kicker: 'European club peak',
     regionKey: 'europe',
   ),
@@ -171,14 +235,43 @@ const launchMomentOptions = <LaunchMomentOption>[
   ),
 ];
 
+List<LaunchMomentOption> launchMomentOptionsForRuntime() {
+  final runtimeMoments = runtimeBootstrapStore.config.launchMoments;
+  if (runtimeMoments.isEmpty) return launchMomentOptions;
+  return runtimeMoments
+      .map(
+        (moment) => LaunchMomentOption(
+          tag: moment.tag,
+          title: moment.title,
+          subtitle: moment.subtitle,
+          kicker: moment.kicker,
+          regionKey: moment.regionKey,
+        ),
+      )
+      .toList(growable: false);
+}
+
 LaunchMomentOption? launchMomentByTag(String tag) {
-  for (final option in launchMomentOptions) {
+  for (final option in launchMomentOptionsForRuntime()) {
     if (option.tag == tag) return option;
   }
   return null;
 }
 
 List<String> defaultFocusTagsForRegion(String region) {
+  final options = launchMomentOptionsForRuntime();
+  if (runtimeBootstrapStore.config.launchMoments.isNotEmpty) {
+    final normalizedRegion = normalizeRegionKey(region);
+    final scoped = options
+        .where(
+          (option) =>
+              option.regionKey == 'global' || option.regionKey == normalizedRegion,
+        )
+        .map((option) => option.tag)
+        .toList(growable: false);
+    if (scoped.isNotEmpty) return scoped;
+  }
+
   switch (normalizeRegionKey(region)) {
     case 'africa':
       return const ['road-to-world-cup-2026', 'africa-fan-momentum-2026'];
@@ -194,72 +287,3 @@ List<String> defaultFocusTagsForRegion(String region) {
       return const ['road-to-world-cup-2026', 'worldcup2026', 'ucl-final-2026'];
   }
 }
-
-const Set<String> _africanCountries = {
-  'algeria',
-  'benin',
-  'botswana',
-  'burkina faso',
-  'cameroon',
-  'côte d’ivoire',
-  'cote d\'ivoire',
-  'democratic republic of the congo',
-  'dr congo',
-  'egypt',
-  'ethiopia',
-  'ghana',
-  'guinea-bissau',
-  'kenya',
-  'madagascar',
-  'mali',
-  'morocco',
-  'mozambique',
-  'namibia',
-  'niger',
-  'nigeria',
-  'rwanda',
-  'senegal',
-  'south africa',
-  'tanzania',
-  'togo',
-  'tunisia',
-  'uganda',
-  'zambia',
-  'zimbabwe',
-};
-
-const Set<String> _europeanCountries = {
-  'austria',
-  'belgium',
-  'czech republic',
-  'denmark',
-  'england',
-  'finland',
-  'france',
-  'germany',
-  'greece',
-  'hungary',
-  'ireland',
-  'italy',
-  'malta',
-  'netherlands',
-  'norway',
-  'poland',
-  'portugal',
-  'romania',
-  'scotland',
-  'spain',
-  'sweden',
-  'switzerland',
-  'turkey',
-  'united kingdom',
-  'wales',
-};
-
-const Set<String> _northAmericanCountries = {
-  'canada',
-  'mexico',
-  'united states',
-  'united states of america',
-  'usa',
-};

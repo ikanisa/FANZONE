@@ -103,8 +103,8 @@ port = 54324
 # Uncomment to expose additional ports for testing user applications that send emails.
 # smtp_port = 54325
 # pop3_port = 54326
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# sender_address = "unused-local-sender@example.com"
+# sender_name = "Unused Local Sender"
 
 [storage]
 enabled = true
@@ -165,7 +165,10 @@ enable_refresh_token_rotation = true
 # Allows refresh tokens to be reused after expiry, up to the specified interval in seconds.
 # Requires enable_refresh_token_rotation = true.
 refresh_token_reuse_interval = 10
-# Allow/disallow new user signups to your project.
+# Allow/disallow new user signups to your project. FANZONE keeps this enabled
+# because the mobile app supports anonymous guest sessions and the custom
+# `whatsapp-otp` function creates phone users through admin APIs. Interactive
+# built-in auth providers remain disabled below.
 enable_signup = true
 # Allow/disallow anonymous sign-ins to your project.
 enable_anonymous_sign_ins = true
@@ -229,15 +232,15 @@ otp_length = 6
 # Unused because email OTP is not enabled in FANZONE.
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
+# Use a production-ready SMTP server. FANZONE does not use this for auth.
 # [auth.email.smtp]
 # enabled = true
 # host = "smtp.sendgrid.net"
 # port = 587
 # user = "apikey"
 # pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# sender_address = "unused-auth-sender@example.com"
+# sender_name = "Unused Auth Sender"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
@@ -308,7 +311,10 @@ max_frequency = "5s"
 # enroll_enabled = true
 # verify_enabled = true
 
-# Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
+# Use an external OAuth provider. FANZONE keeps every provider in this section
+# disabled because the only interactive sign-in path is WhatsApp Cloud API OTP
+# through the `whatsapp-otp` Edge Function.
+# The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
 [auth.external.apple]

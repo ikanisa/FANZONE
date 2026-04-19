@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../config/app_config.dart';
+import '../../../core/config/feature_flags.dart';
 import '../../../core/di/gateway_providers.dart';
 import '../../../models/match_model.dart';
 import '../../../providers/competitions_provider.dart';
@@ -113,7 +113,7 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen>
                   teamsAsync: teamsAsync,
                   muted: muted,
                 ),
-                if (AppConfig.enableTeamCommunities) ...[
+                if (ref.watch(featureFlagsProvider).teamCommunities) ...[
                   const SizedBox(height: 12),
                   SupportedTeamsSection(teamsAsync: teamsAsync, muted: muted),
                   const SizedBox(height: 16),

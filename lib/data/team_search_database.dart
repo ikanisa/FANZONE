@@ -9,6 +9,9 @@ export '../features/onboarding/data/team_search_catalog.dart'
 TeamSearchCatalog? _catalog = TeamSearchCatalog.defaults();
 OnboardingGateway? _gateway;
 
+TeamSearchCatalog get activeTeamSearchCatalog =>
+    _catalog ?? TeamSearchCatalog.defaults();
+
 /// Called during app startup (from gateway_providers.dart resolveAsyncOverrides).
 void initTeamSearchDatabase({
   required TeamSearchCatalog catalog,
@@ -22,19 +25,19 @@ List<OnboardingTeam> get allTeams {
   if (_gateway != null) {
     try { return _gateway!.allTeams; } catch (_) {}
   }
-  return _catalog?.allTeams ?? const <OnboardingTeam>[];
+  return activeTeamSearchCatalog.allTeams;
 }
 
 List<OnboardingTeam> searchTeams(String query, {int limit = 10}) {
   if (_gateway != null) {
     try { return _gateway!.searchTeams(query, limit: limit); } catch (_) {}
   }
-  return _catalog?.search(query, limit: limit) ?? const <OnboardingTeam>[];
+  return activeTeamSearchCatalog.search(query, limit: limit);
 }
 
 List<OnboardingTeam> popularTeamsForRegion(String region) {
   if (_gateway != null) {
     try { return _gateway!.popularTeamsForRegion(region); } catch (_) {}
   }
-  return _catalog?.popularForRegion(region) ?? const <OnboardingTeam>[];
+  return activeTeamSearchCatalog.popularForRegion(region);
 }

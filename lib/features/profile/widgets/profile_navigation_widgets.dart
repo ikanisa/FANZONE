@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../config/app_config.dart';
+
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../widgets/common/fz_card.dart';
@@ -45,9 +45,9 @@ class ProfileQuickLinksCard extends StatelessWidget {
                 label: 'Wallet',
                 onTap: () => context.go('/wallet'),
               ),
-            if ((showPredictions || showWallet) && AppConfig.enableRewards)
+            if ((showPredictions || showWallet) && showRewards)
               const Divider(height: 0.5, indent: 56),
-            if (AppConfig.enableRewards)
+            if (showRewards)
               ProfileLinkRow(
                 icon: LucideIcons.award,
                 label: 'Rewards',

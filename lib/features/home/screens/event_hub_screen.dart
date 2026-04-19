@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../config/app_config.dart';
+import '../../../core/config/feature_flags.dart';
 import '../../../core/market/launch_market.dart';
 import '../../../models/featured_event_model.dart';
 import '../../../models/global_challenge_model.dart';
@@ -48,6 +48,7 @@ class EventHubScreen extends ConsumerWidget {
               challengesAsync: challengesAsync,
               muted: muted,
               isDark: isDark,
+              showGlobalChallenges: ref.watch(featureFlagsProvider).globalChallenges,
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -67,12 +68,14 @@ class _EventContent extends StatelessWidget {
     required this.challengesAsync,
     required this.muted,
     required this.isDark,
+    required this.showGlobalChallenges,
   });
 
   final FeaturedEventModel event;
   final AsyncValue<List<GlobalChallengeModel>> challengesAsync;
   final Color muted;
   final bool isDark;
+  final bool showGlobalChallenges;
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +188,7 @@ class _EventContent extends StatelessWidget {
         const SizedBox(height: 24),
 
         // Event Challenges section
-        if (AppConfig.enableGlobalChallenges) ...[
+        if (showGlobalChallenges) ...[
           _SectionHeader(title: 'EVENT CHALLENGES', isDark: isDark),
           const SizedBox(height: 10),
           challengesAsync.when(

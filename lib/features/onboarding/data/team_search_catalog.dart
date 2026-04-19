@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../../../config/app_config.dart';
+
 class OnboardingTeam {
   const OnboardingTeam({
     required this.id,
@@ -182,7 +184,10 @@ class TeamSearchCatalog {
     : _byId = {for (final team in allTeams) team.id: team};
 
   factory TeamSearchCatalog.defaults() {
-    return TeamSearchCatalog(_defaultTeams);
+    // In production, return empty catalog to avoid fictional data.
+    // The JSON asset from the DB sync pipeline is the real source.
+    if (!AppConfig.isDevelopment) return TeamSearchCatalog(const []);
+    return TeamSearchCatalog(_devDefaultTeams);
   }
 
   factory TeamSearchCatalog.fromRawJson(String raw) {
@@ -242,7 +247,7 @@ class TeamSearchCatalog {
   }
 }
 
-const List<OnboardingTeam> _defaultTeams = <OnboardingTeam>[
+const List<OnboardingTeam> _devDefaultTeams = <OnboardingTeam>[
   OnboardingTeam(
     id: 'liverpool',
     name: 'Liverpool',

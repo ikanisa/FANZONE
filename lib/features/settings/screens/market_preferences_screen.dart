@@ -172,7 +172,7 @@ class _MarketPreferencesScreenState
           ),
         ),
         const SizedBox(height: 10),
-        for (final option in launchMomentOptions) ...[
+        for (final option in launchMomentOptionsForRuntime()) ...[
           FzCard(
             onTap: () => setState(() {
               if (_focusTags.contains(option.tag)) {

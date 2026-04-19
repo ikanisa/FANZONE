@@ -2,10 +2,14 @@
 ///
 /// Base peg: 100 FET = 1 EUR (hardcoded, never changes).
 /// Numeric exchange rates are sourced from the backend `currency_rates` table.
-/// The app only keeps symbol/format metadata locally.
+/// Currency display metadata (symbol, decimals, space-separated) is now
+/// loaded from the `currency_display_metadata` Supabase table via
+/// [BootstrapConfig].  The hardcoded fallback is used only on first cold start.
 library;
 
 import 'package:intl/intl.dart';
+
+import '../config/bootstrap_config.dart';
 
 class CurrencyInfo {
   final String code;
@@ -21,7 +25,8 @@ class CurrencyInfo {
   });
 }
 
-const Map<String, CurrencyInfo> currencyMetadata = {
+/// Offline fallback — used only when bootstrap config is empty.
+const Map<String, CurrencyInfo> _defaultCurrencyMetadata = {
   'EUR': CurrencyInfo(code: 'EUR', symbol: '€'),
   'GBP': CurrencyInfo(code: 'GBP', symbol: '£'),
   'USD': CurrencyInfo(code: 'USD', symbol: '\$'),
@@ -33,72 +38,22 @@ const Map<String, CurrencyInfo> currencyMetadata = {
   'PLN': CurrencyInfo(code: 'PLN', symbol: 'zł', spaceSeparated: true),
   'TRY': CurrencyInfo(code: 'TRY', symbol: '₺'),
   'BRL': CurrencyInfo(code: 'BRL', symbol: 'R\$'),
-  'MXN': CurrencyInfo(
-    code: 'MXN',
-    symbol: 'MX\$',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
-  'ARS': CurrencyInfo(
-    code: 'ARS',
-    symbol: 'ARS',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
-  'RWF': CurrencyInfo(
-    code: 'RWF',
-    symbol: 'FRW',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
+  'MXN': CurrencyInfo(code: 'MXN', symbol: 'MX\$', decimals: 0, spaceSeparated: true),
+  'ARS': CurrencyInfo(code: 'ARS', symbol: 'ARS', decimals: 0, spaceSeparated: true),
+  'RWF': CurrencyInfo(code: 'RWF', symbol: 'FRW', decimals: 0, spaceSeparated: true),
   'NGN': CurrencyInfo(code: 'NGN', symbol: '₦', decimals: 0),
-  'KES': CurrencyInfo(
-    code: 'KES',
-    symbol: 'KSh',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
+  'KES': CurrencyInfo(code: 'KES', symbol: 'KSh', decimals: 0, spaceSeparated: true),
   'ZAR': CurrencyInfo(code: 'ZAR', symbol: 'R'),
   'EGP': CurrencyInfo(code: 'EGP', symbol: 'E£', decimals: 0),
-  'TZS': CurrencyInfo(
-    code: 'TZS',
-    symbol: 'TSh',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
-  'UGX': CurrencyInfo(
-    code: 'UGX',
-    symbol: 'USh',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
+  'TZS': CurrencyInfo(code: 'TZS', symbol: 'TSh', decimals: 0, spaceSeparated: true),
+  'UGX': CurrencyInfo(code: 'UGX', symbol: 'USh', decimals: 0, spaceSeparated: true),
   'GHS': CurrencyInfo(code: 'GHS', symbol: 'GH₵'),
-  'XOF': CurrencyInfo(
-    code: 'XOF',
-    symbol: 'CFA',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
+  'XOF': CurrencyInfo(code: 'XOF', symbol: 'CFA', decimals: 0, spaceSeparated: true),
   'TND': CurrencyInfo(code: 'TND', symbol: 'DT', spaceSeparated: true),
-  'DZD': CurrencyInfo(
-    code: 'DZD',
-    symbol: 'DA',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
+  'DZD': CurrencyInfo(code: 'DZD', symbol: 'DA', decimals: 0, spaceSeparated: true),
   'MAD': CurrencyInfo(code: 'MAD', symbol: 'MAD', spaceSeparated: true),
-  'CDF': CurrencyInfo(
-    code: 'CDF',
-    symbol: 'FC',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
-  'ETB': CurrencyInfo(
-    code: 'ETB',
-    symbol: 'Br',
-    decimals: 0,
-    spaceSeparated: true,
-  ),
+  'CDF': CurrencyInfo(code: 'CDF', symbol: 'FC', decimals: 0, spaceSeparated: true),
+  'ETB': CurrencyInfo(code: 'ETB', symbol: 'Br', decimals: 0, spaceSeparated: true),
   'INR': CurrencyInfo(code: 'INR', symbol: '₹', decimals: 0),
   'JPY': CurrencyInfo(code: 'JPY', symbol: '¥', decimals: 0),
   'CNY': CurrencyInfo(code: 'CNY', symbol: '¥'),
@@ -107,6 +62,33 @@ const Map<String, CurrencyInfo> currencyMetadata = {
   'AUD': CurrencyInfo(code: 'AUD', symbol: 'A\$'),
   'NZD': CurrencyInfo(code: 'NZD', symbol: 'NZ\$'),
 };
+
+/// Live currency display metadata — hydrated from [BootstrapConfig].
+Map<String, CurrencyInfo> _liveCurrencyMetadata = {};
+
+/// Hydrate currency display metadata from BootstrapConfig (DB-driven).
+///
+/// Call this once after BootstrapConfig loads at startup.
+void hydrateCurrencyDisplay(Map<String, CurrencyDisplayInfo> dbData) {
+  if (dbData.isEmpty) return;
+  final next = <String, CurrencyInfo>{};
+  for (final entry in dbData.entries) {
+    next[entry.key] = CurrencyInfo(
+      code: entry.key,
+      symbol: entry.value.symbol,
+      decimals: entry.value.decimals,
+      spaceSeparated: entry.value.spaceSeparated,
+    );
+  }
+  _liveCurrencyMetadata = next;
+}
+
+/// Returns currency metadata: DB-driven if available, else hardcoded fallback.
+Map<String, CurrencyInfo> get currencies =>
+    _liveCurrencyMetadata.isNotEmpty ? _liveCurrencyMetadata : _defaultCurrencyMetadata;
+
+/// DEPRECATED — use [currencies] getter instead.
+Map<String, CurrencyInfo> get currencyMetadata => currencies;
 
 Map<String, double> _liveRates = {'EUR': 1.0};
 
@@ -122,8 +104,6 @@ void updateLiveRates(List<Map<String, dynamic>> rows) {
 
   _liveRates = next;
 }
-
-Map<String, CurrencyInfo> get currencies => currencyMetadata;
 
 bool get hasLiveRates => _liveRates.length > 1;
 

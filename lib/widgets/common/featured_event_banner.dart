@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../config/app_config.dart';
+import '../../core/config/feature_flags.dart';
 import '../../core/market/launch_market.dart';
 import '../../models/featured_event_model.dart';
 import '../../providers/market_preferences_provider.dart';
@@ -18,7 +18,7 @@ class FeaturedEventBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!AppConfig.enableFeaturedEvents) return const SizedBox.shrink();
+    if (!ref.watch(featureFlagsProvider).featuredEvents) return const SizedBox.shrink();
 
     final eventsAsync = ref.watch(homeLaunchEventsProvider);
     return eventsAsync.when(

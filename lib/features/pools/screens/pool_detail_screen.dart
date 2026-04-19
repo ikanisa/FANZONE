@@ -7,7 +7,7 @@ import '../../../services/pool_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/state_view.dart';
-import '../../../config/app_config.dart';
+import '../../../core/config/feature_flags.dart';
 import '../widgets/pool_detail_sections.dart';
 
 /// Pool detail screen — full dedicated page matching the original design.
@@ -34,7 +34,7 @@ class PoolDetailScreen extends ConsumerWidget {
         ),
         centerTitle: true,
         actions: [
-          if (AppConfig.enableDeepLinking)
+          if (ref.watch(featureFlagsProvider).deepLinking)
             IconButton(
               icon: Icon(LucideIcons.share2, color: textColor, size: 20),
               tooltip: 'Share Pool',
@@ -139,7 +139,7 @@ class _PoolContent extends ConsumerWidget {
           muted: muted,
         ),
 
-        if (AppConfig.enableSocialFeed) ...[
+        if (ref.watch(featureFlagsProvider).socialFeed) ...[
           const SizedBox(height: 20),
           PoolChatSection(poolId: pool.id),
         ],

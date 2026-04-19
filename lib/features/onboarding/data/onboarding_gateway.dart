@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../data/team_search_database.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -40,17 +41,23 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
   final CacheService _cache;
   final SupabaseConnection _connection;
 
+  TeamSearchCatalog get _resolvedCatalog {
+    final liveCatalog = activeTeamSearchCatalog;
+    if (liveCatalog.allTeams.isNotEmpty) return liveCatalog;
+    return _catalog;
+  }
+
   @override
-  List<OnboardingTeam> get allTeams => _catalog.allTeams;
+  List<OnboardingTeam> get allTeams => _resolvedCatalog.allTeams;
 
   @override
   List<OnboardingTeam> searchTeams(String query, {int limit = 10}) {
-    return _catalog.search(query, limit: limit);
+    return _resolvedCatalog.search(query, limit: limit);
   }
 
   @override
   List<OnboardingTeam> popularTeamsForRegion(String region) {
-    return _catalog.popularForRegion(region);
+    return _resolvedCatalog.popularForRegion(region);
   }
 
   @override
@@ -66,7 +73,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
 
     var sortOrder = 0;
     for (final teamId in popularTeamIds) {
-      final team = _catalog.byId(teamId);
+      final team = _resolvedCatalog.byId(teamId);
       if (team == null) continue;
       rows.add(_teamToRecord(team, source: 'popular', sortOrder: sortOrder));
       sortOrder += 1;
@@ -313,7 +320,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     if (nextCountryCode != null && nextCountryCode.isNotEmpty) {
       profilePatch['active_country'] = nextCountryCode;
       profilePatch['country_code'] = nextCountryCode;
-      profilePatch['region'] = _inferRegion(nextCountryCode);
+      profilePatch['region'] = await _inferRegion(client, nextCountryCode);
     }
 
     if (onboardingCompleted != null) {
@@ -329,31 +336,20 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     }
   }
 
-  String _inferRegion(String countryCode) {
+  Future<String> _inferRegion(SupabaseClient client, String countryCode) async {
+    try {
+      final result = await client
+          .rpc('get_country_region', params: {'p_country_code': countryCode})
+          .timeout(const Duration(seconds: 5));
+      if (result is String && result.isNotEmpty) return result;
+    } catch (_) {
+      // Fallback: use simple inline check
+    }
     final code = countryCode.toUpperCase();
     const african = {
-      'RW',
-      'NG',
-      'KE',
-      'ZA',
-      'EG',
-      'TZ',
-      'UG',
-      'GH',
-      'TN',
-      'DZ',
-      'MA',
-      'CD',
-      'SN',
-      'CI',
-      'ML',
-      'BF',
-      'NE',
-      'TG',
-      'BJ',
-      'GW',
-      'ET',
-      'CM',
+      'RW', 'NG', 'KE', 'ZA', 'EG', 'TZ', 'UG', 'GH',
+      'TN', 'DZ', 'MA', 'CD', 'SN', 'CI', 'ML', 'BF',
+      'NE', 'TG', 'BJ', 'GW', 'ET', 'CM',
     };
     const northAmerican = {'US', 'CA', 'MX'};
 

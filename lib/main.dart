@@ -100,6 +100,7 @@ Future<void> _initializeSupabase() async {
       anonKey: AppConfig.supabaseAnonKey,
     );
     appRuntime.supabaseInitialized = true;
+    await refreshRuntimeBootstrapData();
     appStartupProfiler.mark('supabase_ready');
     appRuntime.notifyAuthStateChanged();
     await _authStateSubscription?.cancel();

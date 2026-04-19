@@ -5,7 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../app_router.dart' show router;
-import '../config/app_config.dart';
+import '../core/config/feature_flags.dart';
 import '../core/di/gateway_providers.dart';
 import '../core/logging/app_logger.dart';
 import '../core/runtime/app_runtime_state.dart';
@@ -250,7 +250,7 @@ final pushNotificationServiceProvider = Provider<PushNotificationService>((
 });
 
 final pushNotificationInitProvider = FutureProvider<void>((ref) async {
-  if (!AppConfig.enableNotifications || !appRuntime.supabaseInitialized) return;
+  if (!ref.watch(featureFlagsProvider).notifications || !appRuntime.supabaseInitialized) return;
 
   await appRuntime.firebaseReady;
   if (!appRuntime.firebaseInitialized) return;

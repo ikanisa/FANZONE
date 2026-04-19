@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../config/app_config.dart';
+import '../../../core/config/feature_flags.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/currency_provider.dart';
@@ -56,7 +56,7 @@ class WalletScreen extends ConsumerWidget {
           _WalletHero(
             balanceAsync: balanceAsync,
             currency: currency,
-            onRedeem: AppConfig.enableRewards || AppConfig.enableMarketplace
+            onRedeem: ref.watch(featureFlagsProvider).rewards || ref.watch(featureFlagsProvider).marketplace
                 ? () => context.push('/rewards')
                 : null,
             onSend: () {
