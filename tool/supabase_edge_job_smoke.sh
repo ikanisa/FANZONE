@@ -12,18 +12,30 @@ if [[ -z "${SUPABASE_URL:-}" || -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
   exit 1
 fi
 
+if [[ -z "${CRON_SECRET:-}" || -z "${PUSH_NOTIFY_SECRET:-}" ]]; then
+  echo "CRON_SECRET and PUSH_NOTIFY_SECRET must be set for edge auth smoke coverage."
+  exit 1
+fi
+
 call_edge() {
   local function_name="$1"
   local bearer="$2"
   local payload="$3"
   shift 3
 
-  curl -sS -o /tmp/"${function_name}".body -w '%{http_code}' \
-    -X POST "${SUPABASE_URL}/functions/v1/${function_name}" \
-    -H "Authorization: Bearer ${bearer}" \
-    -H "Content-Type: application/json" \
-    "$@" \
-    -d "${payload}"
+  local -a curl_args=(
+    -sS
+    -o /tmp/"${function_name}".body
+    -w '%{http_code}'
+    -X POST "${SUPABASE_URL}/functions/v1/${function_name}"
+    -H "Content-Type: application/json"
+  )
+
+  if [[ -n "${bearer}" ]]; then
+    curl_args+=(-H "Authorization: Bearer ${bearer}")
+  fi
+
+  curl "${curl_args[@]}" "$@" -d "${payload}"
 }
 
 expect_status() {
@@ -50,28 +62,29 @@ expect_non_auth_error() {
 }
 
 echo "Verifying unauthorized access is rejected..."
-auto_settle_unauth="$(call_edge "auto-settle" "invalid-token" '{}')"
+auto_settle_unauth="$(call_edge "auto-settle" "" '{}')"
 expect_status "auto-settle unauthorized" "${auto_settle_unauth}" "401"
 
-push_notify_unauth="$(call_edge "push-notify" "invalid-token" '{}')"
+push_notify_unauth="$(call_edge "push-notify" "" '{}')"
 expect_status "push-notify unauthorized" "${push_notify_unauth}" "401"
 
-team_news_unauth="$(call_edge "gemini-team-news" "invalid-token" '{}')"
+team_news_unauth="$(call_edge "gemini-team-news" "" '{}')"
 expect_status "gemini-team-news unauthorized" "${team_news_unauth}" "401"
 
-currency_unauth="$(call_edge "gemini-currency-rates" "invalid-token" '{}')"
+currency_unauth="$(call_edge "gemini-currency-rates" "" '{}')"
 expect_status "gemini-currency-rates unauthorized" "${currency_unauth}" "401"
 
 echo "Verifying authorized requests pass the auth layer..."
-auto_settle_auth="$(call_edge "auto-settle" "${SUPABASE_SERVICE_ROLE_KEY}" '{}' \
-  -H "x-cron-secret: ${CRON_SECRET:-}")"
+auto_settle_auth="$(call_edge "auto-settle" "" '{}' \
+  -H "x-cron-secret: ${CRON_SECRET}")"
 if [[ "${auto_settle_auth}" != "200" && "${auto_settle_auth}" != "207" ]]; then
   echo "auto-settle authorized expected HTTP 200 or 207 but got ${auto_settle_auth}"
   cat /tmp/auto-settle.body 2>/dev/null || true
   exit 1
 fi
 
-push_notify_auth="$(call_edge "push-notify" "${SUPABASE_SERVICE_ROLE_KEY}" '{}')"
+push_notify_auth="$(call_edge "push-notify" "" '{}' \
+  -H "x-push-notify-secret: ${PUSH_NOTIFY_SECRET}")"
 if [[ "${push_notify_auth}" != "400" ]]; then
   expect_non_auth_error "push-notify authorized" "${push_notify_auth}"
   echo "push-notify authorized expected validation HTTP 400 but got ${push_notify_auth}"

@@ -1,10 +1,9 @@
 // FANZONE Admin — Moderation Data Hooks
 import {
   useSupabasePaginated,
-  useSupabaseMutation,
+  useRpcMutation,
   type AdminListQuery,
 } from '../../hooks/useSupabaseQuery';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
 import type { ModerationReport } from '../../types';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
@@ -40,17 +39,14 @@ export function useReports(pagination: PaginationOpts, filters?: { status?: stri
 }
 
 export function useUpdateReportStatus() {
-  return useSupabaseMutation<{ reportId: string; status: string; resolutionNotes?: string }>({
-    mutationFn: async ({ reportId, status, resolutionNotes }) => {
-      if (isDemoMode) return { updated: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const updates: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
-      if (resolutionNotes) updates.resolution_notes = resolutionNotes;
-      const { error } = await supabase.from('moderation_reports').update(updates).eq('id', reportId);
-      if (error) throw new Error(error.message);
-      return { updated: true };
-    },
+  return useRpcMutation<{
+    p_report_id: string;
+    p_status: string;
+    p_resolution_notes?: string | null;
+  }>({
+    fnName: 'admin_update_moderation_report_status',
     invalidateKeys: [['reports'], ['dashboard-kpis'], ['dashboard-alerts']],
     successMessage: 'Report status updated.',
+    demoFn: async () => ({ updated: true }),
   });
 }

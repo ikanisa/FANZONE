@@ -1,6 +1,5 @@
 // FANZONE Admin — Content (Banners) Data Hooks
-import { useSupabasePaginated, useSupabaseMutation } from '../../hooks/useSupabaseQuery';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { useRpcMutation, useSupabasePaginated } from '../../hooks/useSupabaseQuery';
 import type { ContentBanner } from '../../types';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
@@ -29,29 +28,19 @@ export function useBanners(pagination: PaginationOpts, filters?: { search?: stri
 }
 
 export function useToggleBannerActive() {
-  return useSupabaseMutation<{ bannerId: string; active: boolean }>({
-    mutationFn: async ({ bannerId, active }) => {
-      if (isDemoMode) return { toggled: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase.from('content_banners').update({ is_active: active, updated_at: new Date().toISOString() }).eq('id', bannerId);
-      if (error) throw new Error(error.message);
-      return { toggled: true };
-    },
+  return useRpcMutation<{ p_banner_id: string; p_is_active: boolean }>({
+    fnName: 'admin_set_banner_active',
     invalidateKeys: [['banners']],
     successMessage: 'Banner status updated.',
+    demoFn: async () => ({ toggled: true }),
   });
 }
 
 export function useDeleteBanner() {
-  return useSupabaseMutation<{ bannerId: string }>({
-    mutationFn: async ({ bannerId }) => {
-      if (isDemoMode) return { deleted: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase.from('content_banners').delete().eq('id', bannerId);
-      if (error) throw new Error(error.message);
-      return { deleted: true };
-    },
+  return useRpcMutation<{ p_banner_id: string }>({
+    fnName: 'admin_delete_banner',
     invalidateKeys: [['banners']],
     successMessage: 'Banner deleted.',
+    demoFn: async () => ({ deleted: true }),
   });
 }

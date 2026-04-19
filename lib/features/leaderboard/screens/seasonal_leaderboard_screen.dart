@@ -39,7 +39,8 @@ class SeasonalLeaderboardScreen extends ConsumerWidget {
           if (seasons.isEmpty) {
             return StateView.empty(
               title: 'No active seasons',
-              subtitle: 'Seasonal competitions will appear here when they begin.',
+              subtitle:
+                  'Seasonal competitions will appear here when they begin.',
               icon: LucideIcons.trophy,
             );
           }
@@ -94,7 +95,8 @@ class _SeasonCard extends ConsumerWidget {
                 ],
               ),
               borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12)),
+                top: Radius.circular(12),
+              ),
             ),
             child: Row(
               children: [
@@ -104,8 +106,7 @@ class _SeasonCard extends ConsumerWidget {
                     color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(LucideIcons.trophy, size: 18,
-                      color: statusColor),
+                  child: Icon(LucideIcons.trophy, size: 18, color: statusColor),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -139,7 +140,9 @@ class _SeasonCard extends ConsumerWidget {
                 // Status badge
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
@@ -165,8 +168,11 @@ class _SeasonCard extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.coins, size: 14,
-                      color: FzColors.amber),
+                  const Icon(
+                    LucideIcons.coins,
+                    size: 14,
+                    color: FzColors.amber,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     '${season.prizePoolFet} FET Prize Pool',
@@ -202,7 +208,8 @@ class _SeasonCard extends ConsumerWidget {
                           child: Text(
                             entry.rank != null ? '#${entry.rank}' : '—',
                             style: FzTypography.scoreCompact(
-                                color: FzColors.accent),
+                              color: FzColors.accent,
+                            ),
                           ),
                         ),
                       ),
@@ -220,8 +227,7 @@ class _SeasonCard extends ConsumerWidget {
                             ),
                             Text(
                               '${entry.points} pts · ${entry.accuracy.toStringAsFixed(0)}% accuracy',
-                              style: TextStyle(
-                                  fontSize: 11, color: muted),
+                              style: TextStyle(fontSize: 11, color: muted),
                             ),
                           ],
                         ),
@@ -231,8 +237,17 @@ class _SeasonCard extends ConsumerWidget {
                 ),
               );
             },
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
+            loading: () => const Padding(
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (_, _) => Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Text(
+                'Your ranking is unavailable right now.',
+                style: TextStyle(fontSize: 12, color: muted),
+              ),
+            ),
           ),
 
           // Top 5 rankings
@@ -280,9 +295,7 @@ class _SeasonCard extends ConsumerWidget {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: isTop3
-                                      ? FzColors.amber
-                                      : muted,
+                                  color: isTop3 ? FzColors.amber : muted,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -300,9 +313,7 @@ class _SeasonCard extends ConsumerWidget {
                               ),
                               child: Center(
                                 child: Text(
-                                  entry.name.isNotEmpty
-                                      ? entry.name[0]
-                                      : '?',
+                                  entry.name.isNotEmpty ? entry.name[0] : '?',
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -326,26 +337,24 @@ class _SeasonCard extends ConsumerWidget {
                             if (entry.currentLevel != null &&
                                 entry.currentLevel! > 1)
                               Padding(
-                                padding:
-                                    const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.only(right: 8),
                                 child: FanLevelBadge(
                                   level: entry.currentLevel!,
                                   title: '',
-                                  colorValue: _levelColor(
-                                      entry.currentLevel!),
+                                  colorValue: _levelColor(entry.currentLevel!),
                                   compact: true,
                                 ),
                               ),
                             Text(
                               '${entry.points}',
                               style: FzTypography.scoreCompact(
-                                  color: FzColors.accent),
+                                color: FzColors.accent,
+                              ),
                             ),
                             const SizedBox(width: 2),
                             Text(
                               'pts',
-                              style: TextStyle(
-                                  fontSize: 9, color: muted),
+                              style: TextStyle(fontSize: 9, color: muted),
                             ),
                           ],
                         ),
@@ -359,7 +368,13 @@ class _SeasonCard extends ConsumerWidget {
               padding: EdgeInsets.all(16),
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (_, _) => const SizedBox.shrink(),
+            error: (_, _) => Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Season rankings could not be loaded.',
+                style: TextStyle(fontSize: 12, color: muted),
+              ),
+            ),
           ),
         ],
       ),
@@ -368,13 +383,13 @@ class _SeasonCard extends ConsumerWidget {
 
   static int _levelColor(int level) {
     const colors = {
-      1: 0xFFA8A29E,   // Stone muted
-      2: 0xFF98FF98,   // Mint Green
-      3: 0xFF22D3EE,   // Cyan
-      4: 0xFF2563EB,   // Blue
-      5: 0xFFFF7F50,   // Coral
-      6: 0xFFEF4444,   // Red
-      7: 0xFFFFD700,   // Gold
+      1: 0xFFA8A29E, // Stone muted
+      2: 0xFF98FF98, // Mint Green
+      3: 0xFF22D3EE, // Cyan
+      4: 0xFF2563EB, // Blue
+      5: 0xFFFF7F50, // Coral
+      6: 0xFFEF4444, // Red
+      7: 0xFFFFD700, // Gold
     };
     return colors[level] ?? 0xFFA8A29E;
   }

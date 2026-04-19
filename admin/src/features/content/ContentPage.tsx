@@ -7,7 +7,6 @@ import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/De
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useBanners, useToggleBannerActive, useDeleteBanner } from './useContent';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatDate } from '../../lib/formatters';
 import { Plus, Search, Image, Globe, ToggleLeft, ToggleRight, Trash2, Eye } from 'lucide-react';
 import type { ContentBanner } from '../../types';
@@ -22,21 +21,18 @@ export function ContentPage() {
   const { data: result, isLoading, error, refetch } = useBanners({ page }, { search, placement: placementFilter });
   const toggleActiveMutation = useToggleBannerActive();
   const deleteMutation = useDeleteBanner();
-  const { logAction } = useAuditLog();
 
   const banners = result?.data ?? [];
   const activeCount = banners.filter(b => b.is_active).length;
 
   const handleToggleActive = async (banner: ContentBanner) => {
     const newActive = !banner.is_active;
-    await toggleActiveMutation.mutateAsync({ bannerId: banner.id, active: newActive });
-    await logAction({ action: newActive ? 'activate_banner' : 'deactivate_banner', module: 'content', targetType: 'banner', targetId: banner.id });
+    await toggleActiveMutation.mutateAsync({ p_banner_id: banner.id, p_is_active: newActive });
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    await deleteMutation.mutateAsync({ bannerId: deleteTarget.id });
-    await logAction({ action: 'delete_banner', module: 'content', targetType: 'banner', targetId: deleteTarget.id });
+    await deleteMutation.mutateAsync({ p_banner_id: deleteTarget.id });
     setDeleteTarget(null); setSelected(null);
   };
 

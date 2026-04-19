@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/app_telemetry.dart';
 import '../../theme/colors.dart';
 import '../../widgets/common/fz_brand_logo.dart';
 
@@ -24,6 +25,11 @@ class _AppErrorBoundaryState extends State<AppErrorBoundary> {
     _previousErrorBuilder = ErrorWidget.builder;
 
     FlutterError.onError = (details) {
+      AppTelemetry.captureException(
+        details.exception,
+        details.stack ?? StackTrace.current,
+        reason: 'flutter_framework_error',
+      );
       _previousOnError?.call(details);
     };
 

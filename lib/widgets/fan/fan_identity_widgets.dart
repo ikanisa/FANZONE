@@ -172,10 +172,7 @@ class XpProgressBar extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [
-                          levelColor,
-                          levelColor.withValues(alpha: 0.7),
-                        ],
+                        colors: [levelColor, levelColor.withValues(alpha: 0.7)],
                       ),
                     ),
                   ),
@@ -345,8 +342,7 @@ class FanIdentityCard extends ConsumerWidget {
         if (profile == null) return const SizedBox.shrink();
 
         final levels = levelsAsync.valueOrNull ?? [];
-        final levelColor = Color(
-            profile.level?.colorValue ?? 0xFFA8A29E);
+        final levelColor = Color(profile.level?.colorValue ?? 0xFFA8A29E);
         final progress = profile.xpProgress(levels);
         final xpToNext = profile.xpToNextLevel(levels);
 
@@ -370,10 +366,13 @@ class FanIdentityCard extends ConsumerWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(LucideIcons.flame, size: 14,
-                            color: profile.streakDays >= 7
-                                ? FzColors.amber
-                                : muted),
+                        Icon(
+                          LucideIcons.flame,
+                          size: 14,
+                          color: profile.streakDays >= 7
+                              ? FzColors.amber
+                              : muted,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${profile.streakDays}d streak',
@@ -424,14 +423,26 @@ class FanIdentityCard extends ConsumerWidget {
                   );
                 },
                 loading: () => const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
+                error: (_, _) => Padding(
+                  padding: const EdgeInsets.only(top: 14),
+                  child: Text(
+                    'Badges unavailable right now.',
+                    style: TextStyle(fontSize: 11, color: muted),
+                  ),
+                ),
               ),
             ],
           ),
         );
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+      error: (_, _) => FzCard(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          'Fan identity is unavailable right now.',
+          style: TextStyle(fontSize: 12, color: muted),
+        ),
+      ),
     );
   }
 }

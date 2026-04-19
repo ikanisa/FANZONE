@@ -23,7 +23,7 @@ Reference screenshots were captured locally for direct inspection:
 Internal FANZONE evidence used:
 
 - Flutter app routing and shells: [`lib/app_router.dart`](</Volumes/PRO-G40/FANZONE/lib/app_router.dart:73>), [`lib/widgets/navigation/app_shell.dart`](</Volumes/PRO-G40/FANZONE/lib/widgets/navigation/app_shell.dart:17>)
-- Current home: [`lib/features/home/screens/matchday_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart:67>)
+- Current home: [`lib/features/home/screens/home_feed_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/home_feed_screen.dart:17>)
 - Match detail: [`lib/features/home/screens/match_detail_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/match_detail_screen.dart:69>)
 - Wallet: [`lib/features/wallet/screens/wallet_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/wallet/screens/wallet_screen.dart:41>)
 - Clubs/social/membership: [`clubs_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/community/screens/clubs_hub_screen.dart:107>), [`social_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/social/screens/social_hub_screen.dart:83>), [`membership_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/community/screens/membership_hub_screen.dart:495>)
@@ -75,7 +75,7 @@ The biggest product problem is not missing features. It is hierarchy and coheren
 - a fan identity and club-support app
 - a wallet and rewards app
 
-World-class products do not merely contain strong surfaces. They make the product center obvious within seconds. FANZONE’s reference prototype does that better than the shipping app. The current Flutter home still over-indexes on strategy framing, launch framing, and supporting cards before the user gets to the live football and prediction core ([reference home](</Users/jeanbosco/Downloads/FANZONE/src/components/HomeFeed.tsx:78>) versus [`MatchdayHubScreen`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart:70>)).
+World-class products do not merely contain strong surfaces. They make the product center obvious within seconds. FANZONE’s reference prototype does that better than the shipping app. The active Flutter home now follows that same product center, and the remaining risk was stale legacy hub code lingering in the repo rather than the live shell itself ([reference home](</Users/jeanbosco/Downloads/FANZONE/src/components/HomeFeed.tsx:78>) versus [`HomeFeedScreen`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/home_feed_screen.dart:17>)).
 
 The biggest engineering problem is release maturity. The app is not green. Compile/test issues remain in the community/membership surface, feature-flag defaults and tests are out of sync, and the mobile codebase still mixes feature modules with broad direct `Supabase.instance.client` access rather than the layered repository/service model Flutter’s own architecture guide recommends.
 
@@ -138,11 +138,11 @@ The biggest admin problem is control depth. FANZONE’s admin has good breadth a
 
 | Dimension | Best reference(s) | What best-in-class does | FANZONE current state | Benchmark verdict |
 | --- | --- | --- | --- | --- |
-| Product positioning | Superbru, Sleeper, reference prototype | Makes the product center legible in one screenful | The prototype makes “Predictions + pools + wallet + fan identity” clear. The shipping app is more mixed: it says “MATCHDAY HUB” and inserts launch strategy layers before core football actions ([prototype](</Users/jeanbosco/Downloads/FANZONE/src/components/HomeFeed.tsx:78>), [`MatchdayHubScreen`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart:76>)) | Directionally strong, execution still mixed |
+| Product positioning | Superbru, Sleeper, reference prototype | Makes the product center legible in one screenful | The prototype makes “Predictions + pools + wallet + fan identity” clear. The active app home now leads with that same product center via `Predictions`, direct actions, `Live Action`, and `Upcoming` ([prototype](</Users/jeanbosco/Downloads/FANZONE/src/components/HomeFeed.tsx:78>), [`HomeFeedScreen`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/home_feed_screen.dart:57>)) | Directionally aligned |
 | Onboarding | LiveScore, FotMob, Google Pay | Immediate value first, deeper identity later | FANZONE rightly uses phone verification for higher-trust flows, but the product still needs a stronger anonymous first-use path anchored in football utility and social proof | Behind |
 | Navigation | Reference prototype, Sleeper | Few primary tabs, each with distinct jobs | Current shell is better than a score-first sports shell: Home, Predict, Clubs, Wallet, Profile ([`app_shell.dart`](</Volumes/PRO-G40/FANZONE/lib/widgets/navigation/app_shell.dart:17>)). That is a good move. The route tree still contains compatibility redirects for the old IA ([`app_router.dart`](</Volumes/PRO-G40/FANZONE/lib/app_router.dart:113>)) | Better than before, not yet fully clean |
 | Information architecture | FotMob, Stripe Dashboard | Strong top-level hierarchy, low ambiguity | FANZONE still has overlapping concepts: scores, fixtures, predictions, pools, featured events, clubs, wallet, profile. The app contains the right pieces but still asks the user to mentally compose the system | Behind |
-| Match discovery | FotMob, Flashscore, 365Scores | Live-first, personalized, compact, fast, few dead ends | Current home places identity and strategy modules above live match cards ([`matchday_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart:100>)) | Behind |
+| Match discovery | FotMob, Flashscore, 365Scores | Live-first, personalized, compact, fast, few dead ends | The active home now puts live and upcoming football ahead of legacy platform-orientation cards, but deeper discovery density still trails the leaders ([`home_feed_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/home_feed_screen.dart:101>)) | Improved, still behind leaders |
 | Competition browsing | Flashscore, OneFootball | Dense league indexes, form, standings, schedules | Present, but not yet category-leading in density or browse speed | Behind |
 | Live match experience | Flashscore, SofaScore, LiveScore | Live state feels instant and trustworthy | Match detail is structurally good and alert-enabled, but no evidence of benchmark-grade live data reliability or event sourcing. That is a systems problem, not just UI ([`match_detail_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/match_detail_screen.dart:128>), [`gemini-sports-data`](</Volumes/PRO-G40/FANZONE/supabase/functions/gemini-sports-data/gemini.ts:24>)) | Behind |
 | Match detail depth | SofaScore, Flashscore, FotMob | Deep stats, lineups, tables, ratings, commentary, context | FANZONE now exposes Predict, Overview, Lineups, Stats, H2H, Table, optional Chat ([`match_detail_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/match_detail_screen.dart:69>)) | Good foundation, still shallower than leaders |
@@ -196,15 +196,7 @@ FANZONE’s mobile product is no longer a generic score app. That is good. The p
 
 #### Score-checking speed
 
-The reference prototype gets to the point fast. The hero simply says `Predictions`, surfaces two direct actions, then shows `Live Action` and `Upcoming` immediately ([`HomeFeed.tsx`](</Users/jeanbosco/Downloads/FANZONE/src/components/HomeFeed.tsx:78>)). The current Flutter home uses:
-
-- a large `MATCHDAY HUB` hero
-- a Fan Identity card
-- a Featured Event banner
-- a launch strategy card
-- an action grid
-
-before the user reaches `Live Now` ([`matchday_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart:76>), [`matchday_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart:100>)). That is too much preamble for a product that must win on matchday utility.
+The reference prototype gets to the point fast. The hero simply says `Predictions`, surfaces two direct actions, then shows `Live Action` and `Upcoming` immediately ([`HomeFeed.tsx`](</Users/jeanbosco/Downloads/FANZONE/src/components/HomeFeed.tsx:78>)). The active Flutter home now follows that same structure through [`home_feed_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/home_feed_screen.dart:57>) and the legacy matchday hub path has been removed from the runtime tree. The remaining gap is density and speed versus the best live-score products, not hierarchy drift.
 
 #### Data density
 

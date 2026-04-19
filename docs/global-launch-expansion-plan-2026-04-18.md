@@ -89,7 +89,7 @@ Files:
 - Wallet now frames FET as cross-market infrastructure for prediction, club support, Fan ID transfers, and region-aware redemption utility.
 
 Files:
-- [matchday_hub_screen.dart](/Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart)
+- [home_feed_screen.dart](/Volumes/PRO-G40/FANZONE/lib/features/home/screens/home_feed_screen.dart)
 - [predict_screen.dart](/Volumes/PRO-G40/FANZONE/lib/features/predict/screens/predict_screen.dart)
 - [clubs_hub_screen.dart](/Volumes/PRO-G40/FANZONE/lib/features/community/screens/clubs_hub_screen.dart)
 - [teams_discovery_screen.dart](/Volumes/PRO-G40/FANZONE/lib/features/teams/screens/teams_discovery_screen.dart)

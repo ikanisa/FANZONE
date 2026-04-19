@@ -2,25 +2,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/league_constants.dart';
 import '../core/di/injection.dart';
-import '../features/home/data/catalog_gateway.dart';
+import '../features/home/data/competition_catalog_gateway.dart';
 import '../models/competition_model.dart';
 
 final competitionsProvider = FutureProvider.autoDispose<List<CompetitionModel>>(
   (ref) async {
     ref.keepAlive();
-    return getIt<CatalogGateway>().getCompetitions();
+    return getIt<CompetitionCatalogGateway>().getCompetitions();
   },
 );
 
 final topCompetitionsProvider =
     FutureProvider.autoDispose<List<CompetitionModel>>((ref) async {
       ref.keepAlive();
-      return getIt<CatalogGateway>().getCompetitions(tier: 1);
+      return getIt<CompetitionCatalogGateway>().getCompetitions(tier: 1);
     });
 
 final competitionProvider = FutureProvider.family
     .autoDispose<CompetitionModel?, String>((ref, competitionId) async {
-      return getIt<CatalogGateway>().getCompetition(competitionId);
+      return getIt<CompetitionCatalogGateway>().getCompetition(competitionId);
     });
 
 final top5EuropeanLeaguesProvider =

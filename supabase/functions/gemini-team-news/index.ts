@@ -5,6 +5,7 @@ import {
   SchemaType,
   type Tool,
 } from "npm:@google/generative-ai";
+import { isAuthorizedEdgeRequest } from "../_shared/http.ts";
 
 const FUNCTION_NAME = "gemini-team-news";
 const DEFAULT_GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") ??
@@ -112,23 +113,21 @@ function requireEnv(name: string): string {
   return value;
 }
 
-function readBearerToken(req: Request): string | null {
-  const authHeader = req.headers.get("authorization")?.trim();
-  if (!authHeader) return null;
-
-  const match = authHeader.match(/^Bearer\s+(.+)$/i);
-  return match?.[1]?.trim() || null;
-}
-
 function assertAuthorized(req: Request) {
   const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
-  const bearerToken = readBearerToken(req);
-  if (bearerToken === serviceRoleKey) return;
-
   const syncSecret = Deno.env.get("TEAM_NEWS_SYNC_SECRET")?.trim();
-  if (syncSecret) {
-    const provided = req.headers.get("x-team-news-sync-secret")?.trim();
-    if (provided === syncSecret) return;
+  if (
+    isAuthorizedEdgeRequest({
+      req,
+      serviceRoleKey,
+      allowServiceRoleBearer: true,
+      sharedSecrets: [{
+        header: "x-team-news-sync-secret",
+        value: syncSecret,
+      }],
+    })
+  ) {
+    return;
   }
 
   throw new Error("Unauthorized");

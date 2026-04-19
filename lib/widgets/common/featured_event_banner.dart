@@ -7,6 +7,7 @@ import '../../core/market/launch_market.dart';
 import '../../models/featured_event_model.dart';
 import '../../providers/market_preferences_provider.dart';
 import '../../theme/colors.dart';
+import '../common/fz_card.dart';
 
 /// Animated banner for displaying active featured events.
 ///
@@ -27,7 +28,10 @@ class FeaturedEventBanner extends ConsumerWidget {
         return _FeaturedBannerCard(event: event);
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+      error: (_, _) => const FzCard(
+        padding: EdgeInsets.all(14),
+        child: Text('Featured event unavailable right now.'),
+      ),
     );
   }
 }

@@ -2,8 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/di/injection.dart';
 import '../core/logging/app_logger.dart';
+import '../data/team_search_database.dart';
+import '../features/onboarding/data/onboarding_gateway.dart';
 import '../features/settings/data/preferences_gateway.dart';
 import 'auth_provider.dart';
+import 'favorite_teams_provider.dart';
 
 /// Persistent favourites state — teams and competitions.
 class FavouritesState {
@@ -33,62 +36,65 @@ class FavouritesState {
 }
 
 class FavouritesNotifier extends AsyncNotifier<FavouritesState> {
-  PreferencesGateway get _gateway => getIt<PreferencesGateway>();
+  CompetitionPreferencesGateway get _gateway =>
+      getIt<CompetitionPreferencesGateway>();
+  OnboardingGateway get _onboardingGateway => getIt<OnboardingGateway>();
 
   @override
   Future<FavouritesState> build() async {
     ref.watch(authStateProvider);
 
     final userId = ref.read(authServiceProvider).currentUser?.id;
-    final scope = _storageScope(userId);
-    final local = await _gateway.readCachedFavourites(scope: scope);
+    final competitionScope = _competitionStorageScope(userId);
+    final localCompetitionSelections = await _gateway
+        .readCachedCompetitionFavourites(scope: competitionScope);
+    final favoriteTeams = await ref.watch(favoriteTeamRecordsProvider.future);
 
     var nextState = FavouritesState(
-      teamIds: local.teamIds,
-      competitionIds: local.competitionIds,
+      teamIds: favoriteTeams.map((team) => team.teamId).toSet(),
+      competitionIds: localCompetitionSelections.competitionIds,
     );
 
     if (userId != null) {
-      final guest = await _gateway.readCachedFavourites(
-        scope: _storageScope(null),
-      );
+      final guestCompetitionSelections = await _gateway
+          .readCachedCompetitionFavourites(
+            scope: _competitionStorageScope(null),
+          );
       nextState = nextState.copyWith(
-        teamIds: {...nextState.teamIds, ...guest.teamIds},
         competitionIds: {
           ...nextState.competitionIds,
-          ...guest.competitionIds,
+          ...guestCompetitionSelections.competitionIds,
         },
       );
 
       try {
-        final remote = await _gateway.readRemoteFavourites(userId);
+        final remoteCompetitionSelections = await _gateway
+            .readRemoteCompetitionFavourites(userId);
         nextState = nextState.copyWith(
-          teamIds: {...nextState.teamIds, ...remote.teamIds},
           competitionIds: {
             ...nextState.competitionIds,
-            ...remote.competitionIds,
+            ...remoteCompetitionSelections.competitionIds,
           },
         );
       } catch (error) {
-        AppLogger.d('Failed to sync remote favourites: $error');
+        AppLogger.d('Failed to sync remote competition favourites: $error');
       }
     }
 
-    await _persistState(nextState, scope: scope);
+    await _persistCompetitionState(nextState, scope: competitionScope);
     return nextState;
   }
 
-  String _storageScope(String? userId) =>
+  String _competitionStorageScope(String? userId) =>
       userId == null ? 'guest' : 'user_$userId';
 
-  Future<void> _persistState(
+  Future<void> _persistCompetitionState(
     FavouritesState favourites, {
     required String scope,
   }) async {
-    await _gateway.writeCachedFavourites(
+    await _gateway.writeCachedCompetitionFavourites(
       scope: scope,
-      selections: FavouriteSelectionsDto(
-        teamIds: favourites.teamIds,
+      selections: CompetitionSelectionsDto(
         competitionIds: favourites.competitionIds,
       ),
     );
@@ -97,8 +103,6 @@ class FavouritesNotifier extends AsyncNotifier<FavouritesState> {
   Future<void> toggleTeam(String teamId) async {
     final current = state.valueOrNull ?? const FavouritesState();
     final teamIds = Set<String>.from(current.teamIds);
-    final userId = ref.read(authServiceProvider).currentUser?.id;
-    final scope = _storageScope(userId);
     final isFollowing = teamIds.contains(teamId);
 
     if (isFollowing) {
@@ -109,20 +113,23 @@ class FavouritesNotifier extends AsyncNotifier<FavouritesState> {
 
     final next = current.copyWith(teamIds: teamIds);
     state = AsyncValue.data(next);
-    await _persistState(next, scope: scope);
-
-    if (userId == null) return;
 
     try {
-      await _gateway.setRemoteTeamFavourite(
-        userId: userId,
-        teamId: teamId,
-        enabled: !isFollowing,
-      );
+      if (isFollowing) {
+        await _onboardingGateway.deleteFavoriteTeam(teamId);
+      } else {
+        final team = allTeams
+            .where((candidate) => candidate.id == teamId)
+            .firstOrNull;
+        if (team == null) {
+          throw StateError('Unknown team id: $teamId');
+        }
+        await _onboardingGateway.addFavoriteTeam(team);
+      }
+      ref.invalidate(favoriteTeamRecordsProvider);
     } catch (error) {
-      AppLogger.d('Failed to toggle team follow: $error');
+      AppLogger.d('Failed to toggle favorite team: $error');
       state = AsyncValue.data(current);
-      await _persistState(current, scope: scope);
     }
   }
 
@@ -130,7 +137,7 @@ class FavouritesNotifier extends AsyncNotifier<FavouritesState> {
     final current = state.valueOrNull ?? const FavouritesState();
     final competitionIds = Set<String>.from(current.competitionIds);
     final userId = ref.read(authServiceProvider).currentUser?.id;
-    final scope = _storageScope(userId);
+    final scope = _competitionStorageScope(userId);
     final isFollowing = competitionIds.contains(competitionId);
 
     if (isFollowing) {
@@ -141,7 +148,7 @@ class FavouritesNotifier extends AsyncNotifier<FavouritesState> {
 
     final next = current.copyWith(competitionIds: competitionIds);
     state = AsyncValue.data(next);
-    await _persistState(next, scope: scope);
+    await _persistCompetitionState(next, scope: scope);
 
     if (userId == null) return;
 
@@ -154,15 +161,17 @@ class FavouritesNotifier extends AsyncNotifier<FavouritesState> {
     } catch (error) {
       AppLogger.d('Failed to toggle competition follow: $error');
       state = AsyncValue.data(current);
-      await _persistState(current, scope: scope);
+      await _persistCompetitionState(current, scope: scope);
     }
   }
 
   Future<void> clearAll() async {
-    final scope = _storageScope(ref.read(authServiceProvider).currentUser?.id);
+    final scope = _competitionStorageScope(
+      ref.read(authServiceProvider).currentUser?.id,
+    );
     const empty = FavouritesState();
     state = const AsyncValue.data(empty);
-    await _persistState(empty, scope: scope);
+    await _persistCompetitionState(empty, scope: scope);
   }
 }
 

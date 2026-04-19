@@ -46,7 +46,7 @@ class OnboardingWelcomeStep extends StatelessWidget {
                 letterSpacing: 3,
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 44),
             OnboardingFeatureRow(
               icon: LucideIcons.zap,
               title: 'Live Predictions',
@@ -55,7 +55,7 @@ class OnboardingWelcomeStep extends StatelessWidget {
               muted: muted,
               isDark: isDark,
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 22),
             OnboardingFeatureRow(
               icon: LucideIcons.trophy,
               title: 'Earn FET Tokens',
@@ -64,7 +64,7 @@ class OnboardingWelcomeStep extends StatelessWidget {
               muted: muted,
               isDark: isDark,
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 22),
             OnboardingFeatureRow(
               icon: LucideIcons.shieldCheck,
               title: '100% Free to Play',
@@ -74,7 +74,11 @@ class OnboardingWelcomeStep extends StatelessWidget {
               isDark: isDark,
             ),
             const Spacer(),
-            OnboardingPrimaryButton(label: 'GET STARTED', onTap: onNext),
+            OnboardingPrimaryButton(
+              label: 'GET STARTED',
+              onTap: onNext,
+              showChevron: true,
+            ),
           ],
         ),
       ),

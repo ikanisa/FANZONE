@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 
+import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/marketplace_model.dart';
@@ -96,14 +97,12 @@ class SupabaseWalletGateway implements WalletGateway {
       <String, List<WalletTransaction>>{};
   final Map<String, List<MarketplaceRedemption>> _localRedemptions =
       <String, List<MarketplaceRedemption>>{};
-  String _activeUserId = 'local-user';
 
   @override
   Future<int> getAvailableBalance(String userId) async {
-    _activeUserId = userId;
     final client = _connection.client;
     if (client == null) {
-      return _localBalances.putIfAbsent(userId, () => 420);
+      return _cachedBalance(userId);
     }
 
     try {
@@ -121,47 +120,32 @@ class SupabaseWalletGateway implements WalletGateway {
       AppLogger.d('Failed to load wallet balance: $error');
     }
 
-    return _localBalances.putIfAbsent(userId, () => 420);
+    return _cachedBalance(userId);
   }
 
   @override
   Future<void> transferByFanId(WalletTransferByFanIdDto request) async {
-    final userId = _activeUserId;
     final client = _connection.client;
-    if (client != null) {
-      try {
-        await client.rpc(
-          'transfer_fet_by_fan_id',
-          params: {
-            'p_recipient_fan_id': request.fanId,
-            'p_amount_fet': request.amount,
-          },
-        );
-        return;
-      } catch (error) {
-        AppLogger.d('Failed to transfer by fan id remotely: $error');
-      }
+    if (client == null) {
+      _throwUnavailable('FET transfer');
     }
 
-    final current = await getAvailableBalance(userId);
-    final balanceAfter = (current - request.amount).clamp(0, 100000);
-    _localBalances[userId] = balanceAfter;
-    _localTransactions[userId] = [
-      WalletTransaction(
-        id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Transfer to ${request.fanId}',
-        amount: request.amount,
-        type: 'transfer_sent',
-        date: DateTime.now(),
-        dateStr: 'now',
-      ),
-      ...(_localTransactions[userId] ?? const <WalletTransaction>[]),
-    ];
+    try {
+      await client.rpc(
+        'transfer_fet_by_fan_id',
+        params: {
+          'p_recipient_fan_id': request.fanId,
+          'p_amount_fet': request.amount,
+        },
+      );
+    } catch (error) {
+      AppLogger.d('Failed to transfer by fan id remotely: $error');
+      rethrow;
+    }
   }
 
   @override
   Future<List<WalletTransaction>> getTransactions(String userId) async {
-    _activeUserId = userId;
     final client = _connection.client;
     if (client != null) {
       try {
@@ -198,27 +182,7 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
-    return [
-      ...(_localTransactions[userId] ??
-          <WalletTransaction>[
-            WalletTransaction(
-              id: 'tx_1',
-              title: 'Challenge payout',
-              amount: 120,
-              type: 'earn',
-              date: DateTime.now().subtract(const Duration(hours: 5)),
-              dateStr: '5h ago',
-            ),
-            WalletTransaction(
-              id: 'tx_2',
-              title: 'Club contribution',
-              amount: 40,
-              type: 'spend',
-              date: DateTime.now().subtract(const Duration(days: 1)),
-              dateStr: '1d ago',
-            ),
-          ]),
-    ];
+    return _cachedTransactions(userId);
   }
 
   @override
@@ -260,7 +224,9 @@ class SupabaseWalletGateway implements WalletGateway {
             .order('target_currency');
         final rates = (rows as List)
             .whereType<Map>()
-            .map((row) => CurrencyRateDto.fromJson(Map<String, dynamic>.from(row)))
+            .map(
+              (row) => CurrencyRateDto.fromJson(Map<String, dynamic>.from(row)),
+            )
             .toList(growable: false);
         if (rates.isNotEmpty) return rates;
       } catch (error) {
@@ -268,7 +234,9 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
-    if (normalizedBase != 'EUR') return const [];
+    if (!_allowSeedFallback || normalizedBase != 'EUR') {
+      return const <CurrencyRateDto>[];
+    }
 
     final now = DateTime.now();
     return [
@@ -320,6 +288,7 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
+    if (!_allowSeedFallback) return null;
     if (userId.toLowerCase().contains('rw')) return 'RWF';
     if (userId.toLowerCase().contains('uk')) return 'GBP';
     return 'EUR';
@@ -342,6 +311,7 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
+    if (!_allowSeedFallback) return null;
     final digits = userId.replaceAll(RegExp(r'[^0-9]'), '');
     return digits.padLeft(6, '0').substring(0, 6);
   }
@@ -367,6 +337,8 @@ class SupabaseWalletGateway implements WalletGateway {
         AppLogger.d('Failed to load marketplace offers: $error');
       }
     }
+
+    if (!_allowSeedFallback) return const <MarketplaceOffer>[];
 
     return const [
       MarketplaceOffer(
@@ -400,13 +372,14 @@ class SupabaseWalletGateway implements WalletGateway {
   Future<List<MarketplaceRedemption>> getMarketplaceRedemptions(
     String userId,
   ) async {
-    _activeUserId = userId;
     final client = _connection.client;
     if (client != null) {
       try {
         final rows = await client
             .from('marketplace_redemptions')
-            .select('*, offer:marketplace_offers(*, partner:marketplace_partners(*))')
+            .select(
+              '*, offer:marketplace_offers(*, partner:marketplace_partners(*))',
+            )
             .eq('user_id', userId)
             .order('redeemed_at', ascending: false);
         final redemptions = (rows as List)
@@ -431,81 +404,80 @@ class SupabaseWalletGateway implements WalletGateway {
   @override
   Future<MarketplaceRedeemResult> redeemOffer(String offerId) async {
     final client = _connection.client;
-    if (client != null) {
-      try {
-        final response = await client.rpc(
-          'redeem_offer',
-          params: {'p_offer_id': offerId},
-        );
-        if (response is Map<String, dynamic>) {
-          return MarketplaceRedeemResult.fromJson(response);
-        }
-        if (response is Map) {
-          return MarketplaceRedeemResult.fromJson(
-            Map<String, dynamic>.from(response),
-          );
-        }
-      } catch (error) {
-        AppLogger.d('Failed to redeem offer remotely: $error');
-      }
+    if (client == null) {
+      _throwUnavailable('Reward redemption');
     }
 
-    final userId = _activeUserId;
-    final offers = await getMarketplaceOffers();
-    MarketplaceOffer? selected;
-    for (final offer in offers) {
-      if (offer.id == offerId) {
-        selected = offer;
-        break;
-      }
-    }
-    if (selected == null) {
-      return const MarketplaceRedeemResult(
-        status: 'pending',
-        redemptionId: '',
-        deliveryType: 'voucher',
-        balanceAfter: 0,
+    try {
+      final response = await client.rpc(
+        'redeem_offer',
+        params: {'p_offer_id': offerId},
       );
+      if (response is Map<String, dynamic>) {
+        return MarketplaceRedeemResult.fromJson(response);
+      }
+      if (response is Map) {
+        return MarketplaceRedeemResult.fromJson(
+          Map<String, dynamic>.from(response),
+        );
+      }
+    } catch (error) {
+      AppLogger.d('Failed to redeem offer remotely: $error');
+      rethrow;
     }
 
-    final currentBalance = await getAvailableBalance(userId);
-    final balanceAfter = (currentBalance - selected.costFet).clamp(0, 100000);
-    _localBalances[userId] = balanceAfter;
-
-    final redemption = MarketplaceRedemption(
-      id: 'redemption_${DateTime.now().millisecondsSinceEpoch}',
-      offerId: selected.id,
-      title: selected.title,
-      partnerName: selected.partnerName,
-      costFet: selected.costFet,
-      deliveryType: selected.deliveryType,
-      status: 'ready',
-      redeemedAt: DateTime.now(),
-      deliveryValue: 'FZ-${DateTime.now().millisecondsSinceEpoch}',
-      imageUrl: selected.imageUrl,
-    );
-
-    _localRedemptions[userId] = [
-      redemption,
-      ...(_localRedemptions[userId] ?? const <MarketplaceRedemption>[]),
-    ];
-
-    return MarketplaceRedeemResult(
-      status: 'ready',
-      redemptionId: redemption.id,
-      deliveryType: redemption.deliveryType,
-      balanceAfter: balanceAfter,
-      deliveryValue: redemption.deliveryValue,
-    );
+    throw StateError('Reward redemption did not return a redemption result.');
   }
 
   @override
   Future<List<FetExchangeRateDto>> getFetExchangeRates() async {
+    if (!_allowSeedFallback) return const <FetExchangeRateDto>[];
+
     return const [
       FetExchangeRateDto(currency: 'EUR', symbol: '€', rate: 0.01),
       FetExchangeRateDto(currency: 'USD', symbol: '\$', rate: 0.011),
       FetExchangeRateDto(currency: 'RWF', symbol: 'FRw', rate: 14.5),
     ];
+  }
+
+  bool get _allowSeedFallback => !AppConfig.isProduction;
+
+  int _cachedBalance(String userId) {
+    final cached = _localBalances[userId];
+    if (cached != null) return cached;
+    if (_allowSeedFallback) {
+      final seeded = _localBalances.putIfAbsent(userId, () => 420);
+      return seeded;
+    }
+    return 0;
+  }
+
+  List<WalletTransaction> _cachedTransactions(String userId) {
+    final cached = _localTransactions[userId];
+    if (cached != null) return [...cached];
+    if (!_allowSeedFallback) return const <WalletTransaction>[];
+    return <WalletTransaction>[
+      WalletTransaction(
+        id: 'tx_1',
+        title: 'Challenge payout',
+        amount: 120,
+        type: 'earn',
+        date: DateTime.now().subtract(const Duration(hours: 5)),
+        dateStr: '5h ago',
+      ),
+      WalletTransaction(
+        id: 'tx_2',
+        title: 'Club contribution',
+        amount: 40,
+        type: 'spend',
+        date: DateTime.now().subtract(const Duration(days: 1)),
+        dateStr: '1d ago',
+      ),
+    ];
+  }
+
+  Never _throwUnavailable(String action) {
+    throw StateError('$action is unavailable right now. Please try again.');
   }
 
   String _transactionTypeFromRow(Map<String, dynamic> row) {

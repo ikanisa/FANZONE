@@ -5,8 +5,8 @@ import 'config/app_config.dart';
 import 'core/accessibility/motion.dart';
 import 'core/di/injection.dart';
 import 'core/navigation/analytics_route_observer.dart';
+import 'core/runtime/app_runtime_state.dart';
 import 'features/auth/data/auth_gateway.dart';
-import 'main.dart' show authStateVersion;
 import 'widgets/navigation/app_shell.dart';
 
 import 'features/auth/screens/splash_screen.dart';
@@ -53,7 +53,7 @@ bool _isAuthenticated() => getIt<AuthGateway>().isAuthenticated;
 
 final router = GoRouter(
   initialLocation: '/splash',
-  refreshListenable: authStateVersion,
+  refreshListenable: appRuntime.authStateVersion,
   observers: [AnalyticsRouteObserver()],
   redirect: (context, state) {
     final path = state.uri.path;
@@ -111,6 +111,10 @@ final router = GoRouter(
     ),
     GoRoute(path: '/teams', redirect: (context, state) => '/clubs/teams'),
     GoRoute(path: '/matches', redirect: (context, state) => '/fixtures'),
+    GoRoute(
+      path: '/pools/create',
+      redirect: (context, state) => '/predict/create',
+    ),
     GoRoute(path: '/pools', redirect: (context, state) => '/predict'),
     GoRoute(path: '/jackpot', redirect: (context, state) => '/predict/jackpot'),
     GoRoute(
@@ -239,6 +243,13 @@ final router = GoRouter(
                   ? const PredictScreen()
                   : const FeatureUnavailableScreen(featureName: 'Predict'),
               routes: [
+                GoRoute(
+                  path: 'create',
+                  pageBuilder: (context, state) => _fadeSlideTransition(
+                    state,
+                    const PredictScreen(openCreateSheet: true),
+                  ),
+                ),
                 GoRoute(
                   path: 'pool/:poolId',
                   pageBuilder: (context, state) => _fadeSlideTransition(

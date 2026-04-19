@@ -7,7 +7,6 @@ import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/De
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useFeaturedEvents, useToggleEventActive } from './useEvents';
 import type { FeaturedEventRow } from './useEvents';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatDate } from '../../lib/formatters';
 import {
   Calendar, Globe, Star, StarOff, Zap, MapPin,
@@ -28,7 +27,6 @@ export function EventsPage() {
 
   const { data: result, isLoading, error, refetch } = useFeaturedEvents({ page }, { region });
   const toggleActiveMutation = useToggleEventActive();
-  const { logAction } = useAuditLog();
 
   const events = result?.data ?? [];
   const activeCount = events.filter(e => e.is_active).length;
@@ -38,13 +36,9 @@ export function EventsPage() {
 
   const handleToggleActive = async (event: FeaturedEventRow) => {
     const newActive = !event.is_active;
-    await toggleActiveMutation.mutateAsync({ eventId: event.id, active: newActive });
-    await logAction({
-      action: newActive ? 'activate_event' : 'deactivate_event',
-      module: 'events',
-      targetType: 'featured_event',
-      targetId: event.id,
-      afterState: { is_active: newActive },
+    await toggleActiveMutation.mutateAsync({
+      p_event_id: event.id,
+      p_is_active: newActive,
     });
   };
 

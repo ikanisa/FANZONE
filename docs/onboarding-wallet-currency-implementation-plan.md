@@ -239,7 +239,7 @@ Columns:
 - `onboarding`
 - `settings`
 - `profile`
-- `team_hub`
+- `team_profile`
 
 ### B2. New table: `user_currency_profiles`
 

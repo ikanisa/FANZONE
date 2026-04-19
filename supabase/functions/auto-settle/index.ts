@@ -6,15 +6,15 @@
 //   - GitHub Actions cron fallback
 //   - Manual admin invocation
 //
-// Auth: CRON_SECRET header or service role key.
-// Internal push dispatch also supports a dedicated shared secret when configured.
+// Auth: x-cron-secret.
+// Internal push dispatch uses x-push-notify-secret.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 import {
   buildCorsHeaders,
   getErrorMessage,
-  isAuthorizedByServiceRole,
+  isAuthorizedEdgeRequest,
 } from "../_shared/http.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -65,10 +65,7 @@ interface DailyChallengeRow {
 }
 
 function buildInternalHeaders(secretHeaderName?: string, secretValue?: string) {
-  const headers = new Headers({
-    Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-    "Content-Type": "application/json",
-  });
+  const headers = new Headers({ "Content-Type": "application/json" });
 
   if (secretHeaderName && secretValue && secretValue.length > 0) {
     headers.set(secretHeaderName, secretValue);
@@ -98,11 +95,9 @@ Deno.serve(async (req: Request) => {
   }
 
   if (
-    !isAuthorizedByServiceRole({
+    !isAuthorizedEdgeRequest({
       req,
-      serviceRoleKey: SUPABASE_SERVICE_KEY,
-      sharedSecretHeader: "x-cron-secret",
-      sharedSecret: CRON_SECRET,
+      sharedSecrets: [{ header: "x-cron-secret", value: CRON_SECRET }],
     })
   ) {
     return new Response("Unauthorized", { status: 401 });
@@ -224,7 +219,9 @@ Deno.serve(async (req: Request) => {
 
             if (winners?.length) {
               const winnerIds = [
-                ...new Set((winners as WinnerRow[]).map((winner) => winner.user_id)),
+                ...new Set(
+                  (winners as WinnerRow[]).map((winner) => winner.user_id),
+                ),
               ];
 
               const pushResponse = await fetch(PUSH_NOTIFY_URL, {
@@ -245,10 +242,13 @@ Deno.serve(async (req: Request) => {
 
               if (!pushResponse.ok) {
                 errors.push(
-                  `Notify for ${matchId}: push-notify returned ${pushResponse.status} ${await pushResponse.text()}`,
+                  `Notify for ${matchId}: push-notify returned ${pushResponse.status} ${await pushResponse
+                    .text()}`,
                 );
               } else {
-                const pushSummary = await pushResponse.json().catch(() => null) as
+                const pushSummary = await pushResponse.json().catch(() =>
+                  null
+                ) as
                   | { sent?: number }
                   | null;
                 notifsSent = pushSummary?.sent ?? winnerIds.length;

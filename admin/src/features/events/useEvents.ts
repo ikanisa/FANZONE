@@ -1,6 +1,5 @@
 // FANZONE Admin — Featured Events Data Hooks
-import { useSupabasePaginated, useSupabaseMutation } from '../../hooks/useSupabaseQuery';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { useSupabasePaginated, useRpcMutation } from '../../hooks/useSupabaseQuery';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
 /* ── Types ── */
@@ -72,18 +71,10 @@ export function useFeaturedEvents(pagination: PaginationOpts, filters?: { region
 }
 
 export function useToggleEventActive() {
-  return useSupabaseMutation<{ eventId: string; active: boolean }>({
-    mutationFn: async ({ eventId, active }) => {
-      if (isDemoMode) return { toggled: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase
-        .from('featured_events')
-        .update({ is_active: active, updated_at: new Date().toISOString() })
-        .eq('id', eventId);
-      if (error) throw new Error(error.message);
-      return { toggled: true };
-    },
+  return useRpcMutation<{ p_event_id: string; p_is_active: boolean }>({
+    fnName: 'admin_set_featured_event_active',
     invalidateKeys: [['featured_events']],
     successMessage: 'Event active status updated.',
+    demoFn: async () => ({ toggled: true }),
   });
 }

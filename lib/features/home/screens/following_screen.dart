@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+
+import '../../../config/app_config.dart';
 import '../../../core/di/injection.dart';
-import '../../../features/home/data/matches_gateway.dart';
+import '../../../features/home/data/match_listing_gateway.dart';
 import '../../../models/competition_model.dart';
 import '../../../models/match_model.dart';
 import '../../../models/team_model.dart';
@@ -11,7 +13,6 @@ import '../../../providers/competitions_provider.dart';
 import '../../../providers/favourites_provider.dart';
 import '../../../providers/teams_provider.dart';
 import '../../../services/team_community_service.dart';
-import '../../../config/app_config.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
@@ -509,7 +510,7 @@ class _FollowableRow extends StatelessWidget {
 final _followedMatchesProvider = StreamProvider.autoDispose<List<MatchModel>>((
   ref,
 ) {
-  return getIt<MatchesGateway>().watchUpcomingMatches();
+  return getIt<MatchListingGateway>().watchUpcomingMatches();
 });
 
 class _FollowedMatchesTab extends ConsumerWidget {
@@ -633,8 +634,20 @@ class _SupportedTeamsSection extends ConsumerWidget {
         ),
         const SizedBox(height: 10),
         teamsAsync.when(
-          loading: () => const SizedBox.shrink(),
-          error: (_, _) => const SizedBox.shrink(),
+          loading: () => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(
+              'Loading supported teams...',
+              style: TextStyle(fontSize: 12, color: muted),
+            ),
+          ),
+          error: (_, _) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(
+              'Supported teams are unavailable right now.',
+              style: TextStyle(fontSize: 12, color: muted),
+            ),
+          ),
           data: (allTeams) {
             final supported =
                 allTeams

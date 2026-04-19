@@ -1,11 +1,9 @@
 // FANZONE Admin — Notifications / Campaigns Data Hooks
 import {
   useSupabasePaginated,
-  useSupabaseMutation,
   useRpcMutation,
   type AdminListQuery,
 } from '../../hooks/useSupabaseQuery';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
 import type { Campaign } from '../../types';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
@@ -45,50 +43,26 @@ export function useCampaigns(pagination: PaginationOpts, filters?: { status?: st
 }
 
 export function useCreateCampaign() {
-  return useSupabaseMutation<{
-    title: string;
-    message: string;
-    type: string;
-    segment: Record<string, unknown>;
-    scheduledAt: string | null;
+  return useRpcMutation<{
+    p_title: string;
+    p_message: string;
+    p_type: string;
+    p_segment: Record<string, unknown>;
+    p_scheduled_at: string | null;
   }>({
-    mutationFn: async ({ title, message, type, segment, scheduledAt }) => {
-      if (isDemoMode) return { created: true, id: `cmp-new-${Date.now()}` };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { data, error } = await supabase
-        .from('campaigns')
-        .insert({
-          title,
-          message,
-          type,
-          segment,
-          status: scheduledAt ? 'scheduled' : 'draft',
-          scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null,
-          country: 'MT',
-        })
-        .select('id')
-        .single();
-      if (error) throw new Error(error.message);
-      return data;
-    },
+    fnName: 'admin_create_campaign',
     invalidateKeys: [['campaigns']],
     successMessage: 'Campaign created.',
+    demoFn: async () => ({ created: true, id: `cmp-new-${Date.now()}` }),
   });
 }
 
 export function useUpdateCampaignStatus() {
-  return useSupabaseMutation<{ campaignId: string; status: string }>({
-    mutationFn: async ({ campaignId, status }) => {
-      if (isDemoMode) return { updated: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const updates: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
-      if (status === 'sent') updates.sent_at = new Date().toISOString();
-      const { error } = await supabase.from('campaigns').update(updates).eq('id', campaignId);
-      if (error) throw new Error(error.message);
-      return { updated: true };
-    },
+  return useRpcMutation<{ p_campaign_id: string; p_status: string }>({
+    fnName: 'admin_update_campaign_status',
     invalidateKeys: [['campaigns']],
     successMessage: 'Campaign status updated.',
+    demoFn: async () => ({ updated: true }),
   });
 }
 
@@ -103,15 +77,10 @@ export function useSendCampaign() {
 }
 
 export function useDeleteCampaign() {
-  return useSupabaseMutation<{ campaignId: string }>({
-    mutationFn: async ({ campaignId }) => {
-      if (isDemoMode) return { deleted: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase.from('campaigns').delete().eq('id', campaignId);
-      if (error) throw new Error(error.message);
-      return { deleted: true };
-    },
+  return useRpcMutation<{ p_campaign_id: string }>({
+    fnName: 'admin_delete_campaign',
     invalidateKeys: [['campaigns']],
     successMessage: 'Campaign deleted.',
+    demoFn: async () => ({ deleted: true }),
   });
 }

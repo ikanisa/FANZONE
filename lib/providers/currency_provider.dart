@@ -4,7 +4,7 @@ import '../core/cache/cache_service.dart';
 import '../core/di/injection.dart';
 import '../core/logging/app_logger.dart';
 import '../core/utils/currency_utils.dart';
-import '../features/onboarding/providers/onboarding_service.dart';
+import '../features/onboarding/data/onboarding_gateway.dart';
 import '../features/wallet/data/wallet_gateway.dart';
 import 'auth_provider.dart';
 
@@ -13,9 +13,7 @@ final liveRatesProvider = FutureProvider<void>((ref) async {
     final rates = await getIt<WalletGateway>().getCurrencyRates();
     if (rates.isEmpty) return;
 
-    updateLiveRates(
-      rates.map((rate) => rate.toJson()).toList(growable: false),
-    );
+    updateLiveRates(rates.map((rate) => rate.toJson()).toList(growable: false));
     AppLogger.d('Loaded ${rates.length} live exchange rates');
   } catch (error) {
     AppLogger.d('Failed to load live rates: $error');
@@ -37,7 +35,7 @@ final userCurrencyProvider = FutureProvider<String>((ref) async {
   }
 
   try {
-    await OnboardingService.syncCachedTeamsIfAuthenticated();
+    await getIt<OnboardingGateway>().syncCachedTeamsIfAuthenticated();
 
     final currencyCode = await getIt<WalletGateway>().guessUserCurrency(userId);
     if (currencyCode != null && currencyCode.isNotEmpty) {
@@ -83,7 +81,7 @@ final userFanIdProvider = FutureProvider<String?>((ref) async {
 });
 
 Future<String> _guessGuestCurrency(String? cached) async {
-  final cachedTeams = await OnboardingService.getCachedFavoriteTeams();
+  final cachedTeams = await getIt<OnboardingGateway>().getCachedFavoriteTeams();
   if (cachedTeams.isEmpty) return cached ?? 'EUR';
 
   final entries = cachedTeams

@@ -7,7 +7,6 @@ import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/De
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useCampaigns, useCreateCampaign, useDeleteCampaign, useSendCampaign } from './useNotifications';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatDateTime, formatNumber } from '../../lib/formatters';
 import { Plus, Search, Send, Trash2, Eye, Bell, Calendar, Users, Megaphone, Edit } from 'lucide-react';
 import type { Campaign } from '../../types';
@@ -34,7 +33,6 @@ export function NotificationsPage() {
   const createMutation = useCreateCampaign();
   const sendCampaignMutation = useSendCampaign();
   const deleteMutation = useDeleteCampaign();
-  const { logAction } = useAuditLog();
 
   const campaigns = result?.data ?? [];
   const draftCount = campaigns.filter(c => c.status === 'draft').length;
@@ -45,13 +43,12 @@ export function NotificationsPage() {
   const handleCreate = async () => {
     if (!newTitle.trim() || !newMessage.trim()) return;
     await createMutation.mutateAsync({
-      title: newTitle.trim(),
-      message: newMessage.trim(),
-      type: newType,
-      segment: { all_users: true },
-      scheduledAt: newSchedule || null,
+      p_title: newTitle.trim(),
+      p_message: newMessage.trim(),
+      p_type: newType,
+      p_segment: { all_users: true },
+      p_scheduled_at: newSchedule || null,
     });
-    await logAction({ action: 'create_campaign', module: 'notifications', afterState: { title: newTitle, type: newType } });
     setShowCreate(false);
     setNewTitle('');
     setNewMessage('');
@@ -62,15 +59,13 @@ export function NotificationsPage() {
   const handleSend = async () => {
     if (!sendTarget) return;
     await sendCampaignMutation.mutateAsync({ p_campaign_id: sendTarget.id });
-    await logAction({ action: 'send_campaign', module: 'notifications', targetType: 'campaign', targetId: sendTarget.id });
     setSendTarget(null);
     setSelectedCampaign(null);
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    await deleteMutation.mutateAsync({ campaignId: deleteTarget.id });
-    await logAction({ action: 'delete_campaign', module: 'notifications', targetType: 'campaign', targetId: deleteTarget.id });
+    await deleteMutation.mutateAsync({ p_campaign_id: deleteTarget.id });
     setDeleteTarget(null);
     setSelectedCampaign(null);
   };

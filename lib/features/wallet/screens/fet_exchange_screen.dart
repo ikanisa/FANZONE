@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -10,6 +9,7 @@ import '../../../services/wallet_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/state_view.dart';
 
 /// FET Exchange screen — global multi-currency payout visualization.
 ///
@@ -168,7 +168,8 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
               }).toList(),
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, _) => Text('Rate data unavailable', style: TextStyle(color: muted)),
+            error: (_, _) =>
+                Text('Rate data unavailable', style: TextStyle(color: muted)),
           ),
 
           const SizedBox(height: 24),
@@ -202,7 +203,9 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
                 const SizedBox(height: 16),
                 ratesAsync.when(
                   data: (rates) => Row(
-                    children: rates.take(2).toList().asMap().entries.map((entry) {
+                    children: rates.take(2).toList().asMap().entries.map((
+                      entry,
+                    ) {
                       final i = entry.key;
                       final r = entry.value;
                       return Expanded(
@@ -219,8 +222,17 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
                       );
                     }).toList(),
                   ),
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (_, _) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: StateView.error(
+                      title: 'Conversion unavailable',
+                      subtitle: 'Live exchange rates could not be loaded.',
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -321,10 +333,7 @@ class _RateCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '1 FET =',
-            style: TextStyle(fontSize: 11, color: muted),
-          ),
+          Text('1 FET =', style: TextStyle(fontSize: 11, color: muted)),
           const SizedBox(height: 6),
           Text(
             '$symbol${rate.toStringAsFixed(3)}',
@@ -373,9 +382,7 @@ class _ConversionResult extends StatelessWidget {
       decoration: BoxDecoration(
         color: FzColors.accent.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: FzColors.accent.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: FzColors.accent.withValues(alpha: 0.15)),
       ),
       child: Column(
         children: [

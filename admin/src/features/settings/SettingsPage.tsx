@@ -4,8 +4,6 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { KpiCard } from '../../components/ui/KpiCard';
 import { LoadingState, ErrorState } from '../../components/ui/StateViews';
 import { useFeatureFlags, useToggleFeatureFlag } from './useSettings';
-import { useAuth } from '../../hooks/useAuth';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatDateTime } from '../../lib/formatters';
 import { Globe, ToggleLeft, ToggleRight, Plus, Shield, Zap } from 'lucide-react';
 import type { FeatureFlag } from '../../types';
@@ -14,8 +12,6 @@ export function SettingsPage() {
   const [page] = useState(0);
   const { data: result, isLoading, error, refetch } = useFeatureFlags({ page });
   const toggleMutation = useToggleFeatureFlag();
-  const { admin } = useAuth();
-  const { logAction } = useAuditLog();
 
   const flags = result?.data ?? [];
   const enabledCount = flags.filter(f => f.is_enabled).length;
@@ -23,15 +19,7 @@ export function SettingsPage() {
 
   const handleToggle = async (flag: FeatureFlag) => {
     const newEnabled = !flag.is_enabled;
-    await toggleMutation.mutateAsync({ flagId: flag.id, enabled: newEnabled, adminId: admin?.id ?? '' });
-    await logAction({
-      action: newEnabled ? 'enable_feature_flag' : 'disable_feature_flag',
-      module: 'settings',
-      targetType: 'feature_flag',
-      targetId: flag.id,
-      beforeState: { key: flag.key, is_enabled: flag.is_enabled },
-      afterState: { key: flag.key, is_enabled: newEnabled },
-    });
+    await toggleMutation.mutateAsync({ p_flag_id: flag.id, p_is_enabled: newEnabled });
   };
 
   return (

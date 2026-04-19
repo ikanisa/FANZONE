@@ -1,7 +1,8 @@
 // FANZONE Admin — Predictions Data Hooks
 import { useSupabasePaginated } from '../../hooks/useSupabaseQuery';
 import { useQuery } from '@tanstack/react-query';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { countAdminRows } from '../../lib/adminData';
+import { isDemoMode } from '../../lib/supabase';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
 /* ── Types ── */
@@ -56,82 +57,52 @@ export function usePredictionKpis() {
     queryKey: ['prediction-kpis'],
     queryFn: async () => {
       if (isDemoMode) return DEMO_KPIS;
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
 
       const now = new Date();
       const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
       const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
       const [
-        activeMarketsRes,
-        slips24hRes,
-        poolEntries24hRes,
-        dailyEntries24hRes,
-        pendingPoolsRes,
-        pendingSlipsRes,
-        settledPoolsTodayRes,
-        settledSlipsTodayRes,
+        activeMarkets,
+        slips24h,
+        poolEntries24h,
+        dailyEntries24h,
+        pendingPools,
+        pendingSlips,
+        settledPoolsToday,
+        settledSlipsToday,
       ] = await Promise.all([
-        supabase
-          .from('matches')
-          .select('id', { count: 'exact', head: true })
-          .gte('date', now.toISOString())
-          .neq('status', 'finished'),
-        supabase
-          .from('prediction_slips')
-          .select('id', { count: 'exact', head: true })
-          .gte('submitted_at', last24h),
-        supabase
-          .from('prediction_challenge_entries')
-          .select('id', { count: 'exact', head: true })
-          .gte('joined_at', last24h),
-        supabase
-          .from('daily_challenge_entries')
-          .select('id', { count: 'exact', head: true })
-          .gte('submitted_at', last24h),
-        supabase
-          .from('prediction_challenges')
-          .select('id', { count: 'exact', head: true })
-          .in('status', ['open', 'locked']),
-        supabase
-          .from('prediction_slips')
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'submitted'),
-        supabase
-          .from('prediction_challenges')
-          .select('id', { count: 'exact', head: true })
-          .gte('settled_at', startOfDay),
-        supabase
-          .from('prediction_slips')
-          .select('id', { count: 'exact', head: true })
-          .gte('settled_at', startOfDay),
+        countAdminRows('matches', (query) =>
+          query.gte('date', now.toISOString()).neq('status', 'finished'),
+        ),
+        countAdminRows('prediction_slips', (query) =>
+          query.gte('submitted_at', last24h),
+        ),
+        countAdminRows('prediction_challenge_entries', (query) =>
+          query.gte('joined_at', last24h),
+        ),
+        countAdminRows('daily_challenge_entries', (query) =>
+          query.gte('submitted_at', last24h),
+        ),
+        countAdminRows('prediction_challenges', (query) =>
+          query.in('status', ['open', 'locked']),
+        ),
+        countAdminRows('prediction_slips', (query) =>
+          query.eq('status', 'submitted'),
+        ),
+        countAdminRows('prediction_challenges', (query) =>
+          query.gte('settled_at', startOfDay),
+        ),
+        countAdminRows('prediction_slips', (query) =>
+          query.gte('settled_at', startOfDay),
+        ),
       ]);
 
-      const responses = [
-        activeMarketsRes,
-        slips24hRes,
-        poolEntries24hRes,
-        dailyEntries24hRes,
-        pendingPoolsRes,
-        pendingSlipsRes,
-        settledPoolsTodayRes,
-        settledSlipsTodayRes,
-      ];
-      const failed = responses.find((response) => response.error);
-      if (failed?.error) throw new Error(failed.error.message);
-
       return {
-        activeMarkets: activeMarketsRes.count ?? 0,
-        totalPredictions24h:
-          (slips24hRes.count ?? 0) +
-          (poolEntries24hRes.count ?? 0) +
-          (dailyEntries24hRes.count ?? 0),
-        pendingSettlement:
-          (pendingPoolsRes.count ?? 0) +
-          (pendingSlipsRes.count ?? 0),
-        settledToday:
-          (settledPoolsTodayRes.count ?? 0) +
-          (settledSlipsTodayRes.count ?? 0),
+        activeMarkets,
+        totalPredictions24h: slips24h + poolEntries24h + dailyEntries24h,
+        pendingSettlement: pendingPools + pendingSlips,
+        settledToday: settledPoolsToday + settledSlipsToday,
       };
     },
     refetchInterval: 120_000,

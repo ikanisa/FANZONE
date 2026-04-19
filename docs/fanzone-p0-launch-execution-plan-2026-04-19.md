@@ -62,11 +62,11 @@ This is for local activation, not architecture repair.
 Problem:
 
 - The reference home gets to `Predictions`, `Live Action`, and `Upcoming` almost immediately ([`HomeFeed.tsx`](</Users/jeanbosco/Downloads/FANZONE/src/components/HomeFeed.tsx:78>)).
-- The current Flutter home makes the user pass through Fan Identity, featured event, launch strategy, and action-grid layers before live football ([`matchday_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart:100>)).
+- The active Flutter home must keep live football and prediction-first actions above any supporting explainer modules, matching the canonical reference ([`home_feed_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/home_feed_screen.dart:57>), [`HomeFeed.tsx`](</Users/jeanbosco/Downloads/FANZONE/src/components/HomeFeed.tsx:78>)).
 
 Files:
 
-- [`lib/features/home/screens/matchday_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart:67>)
+- [`lib/features/home/screens/home_feed_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/home_feed_screen.dart:17>)
 - [`lib/widgets/fan/fan_identity_widgets.dart`](</Volumes/PRO-G40/FANZONE/lib/widgets/fan/fan_identity_widgets.dart:332>)
 - [`lib/widgets/common/featured_event_banner.dart`](</Volumes/PRO-G40/FANZONE/lib/widgets/common/featured_event_banner.dart:15>)
 
@@ -75,7 +75,7 @@ Required changes:
 - Move live football and prediction-ready matches above most strategy and explainer modules.
 - Change the top impression from “platform orientation” to “football action plus prediction.”
 - Keep Fan Identity and featured events, but demote them below the first live/upcoming block unless there is a hard launch-specific reason not to.
-- Replace the current `MATCHDAY HUB` framing with copy closer to the reference product center.
+- Preserve the current prediction-first framing and block any regression back to the removed `MATCHDAY HUB` structure.
 
 Acceptance criteria:
 
@@ -461,7 +461,7 @@ Acceptance criteria:
 | --- | --- | --- | --- |
 | P0 | Fix `TeamAvatar` compile issue in membership hub | [`membership_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/community/screens/membership_hub_screen.dart:542>), [`match_list_widgets.dart`](</Volumes/PRO-G40/FANZONE/lib/widgets/match/match_list_widgets.dart:14>) | analyze and tests green |
 | P0 | Reconcile feature-flag defaults and tests | [`app_config.dart`](</Volumes/PRO-G40/FANZONE/lib/config/app_config.dart:21>), [`app_config_test.dart`](</Volumes/PRO-G40/FANZONE/test/app_config_test.dart:17>) | test suite green and config contract documented |
-| P0 | Reorder home to match the reference product center | [`matchday_hub_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/matchday_hub_screen.dart:67>) | live/upcoming prediction value appears above non-core explainer cards |
+| P0 | Keep home locked to the reference product center | [`home_feed_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/home/screens/home_feed_screen.dart:17>) | live/upcoming prediction value stays above non-core explainer cards |
 | P0 | Elevate club split model in wallet | [`wallet_screen.dart`](</Volumes/PRO-G40/FANZONE/lib/features/wallet/screens/wallet_screen.dart:41>) | split visible without scrolling |
 | P0 | Remove client-side redemption mutations | [`useRedemptions.ts`](</Volumes/PRO-G40/FANZONE/admin/src/features/redemptions/useRedemptions.ts:41>) plus new server-side command surface | browser cannot directly update redemption status |
 | P0 | Remove client-authored sensitive audit logging | [`useAuditLog.ts`](</Volumes/PRO-G40/FANZONE/admin/src/hooks/useAuditLog.ts:7>) plus server mutation paths | sensitive audit events are server-authored |

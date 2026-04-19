@@ -11,7 +11,7 @@ class PrivacySettingsService {
   static Future<PrivacySettingsModel> getSettings() async {
     final userId = getIt<AuthService>().currentUser?.id;
     if (userId == null) return PrivacySettingsModel.defaults;
-    return getIt<PreferencesGateway>().getPrivacySettings(userId);
+    return getIt<AccountSettingsGateway>().getPrivacySettings(userId);
   }
 
   static Future<void> saveSettings(PrivacySettingsModel settings) async {
@@ -20,6 +20,6 @@ class PrivacySettingsService {
       throw const AuthException('Sign in to update privacy settings.');
     }
 
-    await getIt<PreferencesGateway>().savePrivacySettings(userId, settings);
+    await getIt<AccountSettingsGateway>().savePrivacySettings(userId, settings);
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,32 +12,25 @@ import 'config/app_config.dart';
 import 'core/di/injection.dart';
 import 'core/logging/app_logger.dart';
 import 'core/performance/app_startup.dart';
+import 'core/runtime/app_runtime_state.dart';
 import 'core/storage/structured_cache_store.dart';
 import 'firebase_options.dart';
 import 'features/auth/data/auth_gateway.dart';
 import 'services/app_telemetry.dart';
 import 'services/product_analytics_service.dart';
 
-/// Whether Supabase was successfully initialized.
-/// Checked by services to avoid accessing an uninitialized client.
-bool supabaseInitialized = false;
-bool firebaseInitialized = false;
-
-/// Human-readable initialization error, if any.
-String? supabaseInitError;
-
-/// Router refresh token that reacts to login, logout, and token refresh events.
-final ValueNotifier<int> authStateVersion = ValueNotifier<int>(0);
-
-/// Completes when Supabase init finishes (success or failure).
-/// Splash screen awaits this instead of a fixed timer.
-Completer<void> supabaseInitCompleter = Completer<void>();
-Completer<void> firebaseInitCompleter = Completer<void>();
 StreamSubscription<AuthState>? _authStateSubscription;
-final appStartupProfiler = AppStartupProfiler();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  PlatformDispatcher.instance.onError = (error, stackTrace) {
+    AppTelemetry.captureException(
+      error,
+      stackTrace,
+      reason: 'platform_dispatcher_error',
+    );
+    return false;
+  };
   appStartupProfiler.mark('bindings_ready');
   appStartupProfiler.attachFrameHooks(WidgetsBinding.instance);
 
@@ -50,6 +44,7 @@ Future<void> main() async {
         StructuredCacheStore.init(),
         configureDependencies(),
       ]);
+      appRuntime.retrySupabaseInitialization = retrySupabaseInitialization;
       appStartupProfiler.mark('structured_cache_ready');
       appStartupProfiler.mark('dependencies_ready');
     },
@@ -68,7 +63,7 @@ Future<void> _initializeCriticalServices() async {
 
 Future<void> _initializeDeferredServices() async {
   await Future.wait<void>([_initializeFirebase(), AppTelemetry.start()]);
-  if (supabaseInitialized) {
+  if (appRuntime.supabaseInitialized) {
     ProductAnalytics.initialize();
   }
 }
@@ -78,24 +73,24 @@ Future<void> _initializeFirebase() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    firebaseInitialized = true;
+    appRuntime.firebaseInitialized = true;
     appStartupProfiler.mark('firebase_ready');
     AppLogger.d('Firebase initialized');
   } catch (e) {
     AppLogger.d('Firebase init failed: $e');
   } finally {
-    _completeFirebaseInit();
+    appRuntime.completeFirebaseReady();
   }
 }
 
 Future<void> _initializeSupabase() async {
-  supabaseInitError = null;
+  appRuntime.supabaseInitError = null;
 
   if (!AppConfig.hasSupabaseConfig) {
-    supabaseInitError =
+    appRuntime.supabaseInitError =
         'Supabase credentials are missing. Pass SUPABASE_URL and SUPABASE_ANON_KEY with --dart-define or --dart-define-from-file.';
     AppLogger.d('Missing build-time Supabase configuration');
-    _completeSupabaseInit();
+    appRuntime.completeSupabaseReady();
     return;
   }
 
@@ -104,46 +99,29 @@ Future<void> _initializeSupabase() async {
       url: AppConfig.supabaseUrl,
       anonKey: AppConfig.supabaseAnonKey,
     );
-    supabaseInitialized = true;
+    appRuntime.supabaseInitialized = true;
     appStartupProfiler.mark('supabase_ready');
-    authStateVersion.value++;
+    appRuntime.notifyAuthStateChanged();
     await _authStateSubscription?.cancel();
-    _authStateSubscription = getIt<AuthGateway>().onAuthStateChange.listen(
-      (_) => authStateVersion.value++,
-    );
+    _authStateSubscription = getIt<AuthGateway>().onAuthStateChange.listen((_) {
+      appRuntime.notifyAuthStateChanged();
+      unawaited(ProductAnalytics.flush());
+      unawaited(AppTelemetry.flush());
+    });
   } catch (error, stackTrace) {
-    supabaseInitError = 'Could not connect to server.';
+    appRuntime.supabaseInitError = 'Could not connect to server.';
     await AppTelemetry.captureException(
       error,
       stackTrace,
       reason: 'supabase_initialize_failed',
     );
   } finally {
-    _completeSupabaseInit();
+    appRuntime.completeSupabaseReady();
   }
 }
 
 Future<void> retrySupabaseInitialization() async {
-  if (supabaseInitialized) return;
-  if (supabaseInitCompleter.isCompleted) {
-    supabaseInitCompleter = Completer<void>();
-  }
+  if (appRuntime.supabaseInitialized) return;
+  appRuntime.resetSupabaseReady();
   await _initializeSupabase();
-}
-
-void _completeSupabaseInit() {
-  if (!supabaseInitCompleter.isCompleted) {
-    supabaseInitCompleter.complete();
-  }
-}
-
-void _completeFirebaseInit() {
-  if (!firebaseInitCompleter.isCompleted) {
-    firebaseInitCompleter.complete();
-  }
-}
-
-void markAppInteractive() {
-  appStartupProfiler.mark('app_interactive');
-  AppLogger.d('Startup summary: ${appStartupProfiler.summary()}');
 }

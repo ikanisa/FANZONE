@@ -1,5 +1,6 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { GoogleGenerativeAI, type Tool } from "npm:@google/generative-ai";
+import { isAuthorizedEdgeRequest } from "../_shared/http.ts";
 
 /**
  * Gemini Currency Rate Refresh Edge Function
@@ -54,23 +55,21 @@ function requireSupabaseServiceRoleKey(): string {
   );
 }
 
-function readBearerToken(req: Request): string | null {
-  const authHeader = req.headers.get("authorization")?.trim();
-  if (!authHeader) return null;
-
-  const match = authHeader.match(/^Bearer\s+(.+)$/i);
-  return match?.[1]?.trim() || null;
-}
-
 function assertAuthorized(req: Request) {
   const serviceRoleKey = requireSupabaseServiceRoleKey();
-  const bearerToken = readBearerToken(req);
-  if (bearerToken === serviceRoleKey) return;
-
   const syncSecret = Deno.env.get("CURRENCY_SYNC_SECRET")?.trim();
-  if (syncSecret) {
-    const provided = req.headers.get("x-currency-sync-secret")?.trim();
-    if (provided === syncSecret) return;
+  if (
+    isAuthorizedEdgeRequest({
+      req,
+      serviceRoleKey,
+      allowServiceRoleBearer: true,
+      sharedSecrets: [{
+        header: "x-currency-sync-secret",
+        value: syncSecret,
+      }],
+    })
+  ) {
+    return;
   }
 
   throw new Error("Unauthorized");

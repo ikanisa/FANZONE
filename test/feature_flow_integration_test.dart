@@ -56,6 +56,11 @@ void main() {
 
       expect(gateway.verifiedCodes, [('+35699112233', '123456')]);
       expect(find.text('Wallet destination'), findsOneWidget);
+
+      // Dispose the login widget tree so the resend cooldown timer is cleaned
+      // up before the test completes.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
     });
 
     testWidgets('prediction submission locks slip and clears selections', (
@@ -142,10 +147,7 @@ void main() {
       expect(walletService.transferRequests.single.fanId, '654321');
       expect(walletService.transferRequests.single.amount, 150);
       expect(find.text('Sent Successfully!'), findsOneWidget);
-      expect(
-        find.text('You sent 150 FET to Fan #654321'),
-        findsOneWidget,
-      );
+      expect(find.text('You sent 150 FET to Fan #654321'), findsOneWidget);
     });
 
     testWidgets('pool join flow submits score prediction and shows success', (

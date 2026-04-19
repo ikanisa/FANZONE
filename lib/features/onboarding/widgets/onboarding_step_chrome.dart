@@ -44,8 +44,8 @@ class OnboardingFeatureRow extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 46,
-          height: 46,
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
@@ -55,7 +55,7 @@ class OnboardingFeatureRow extends StatelessWidget {
           ),
           child: Icon(icon, size: 20, color: FzColors.accent),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +71,7 @@ class OnboardingFeatureRow extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 description,
-                style: TextStyle(fontSize: 12, color: muted, height: 1.4),
+                style: TextStyle(fontSize: 12, color: muted, height: 1.35),
               ),
             ],
           ),
@@ -86,24 +86,49 @@ class OnboardingPrimaryButton extends StatelessWidget {
     super.key,
     required this.label,
     required this.onTap,
+    this.tone = OnboardingButtonTone.primary,
+    this.showChevron = false,
   });
 
   final String label;
   final VoidCallback? onTap;
+  final OnboardingButtonTone tone;
+  final bool showChevron;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isPrimary = tone == OnboardingButtonTone.primary;
+
     return SizedBox(
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: FzColors.accent,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: FzColors.accent.withValues(alpha: 0.45),
+          elevation: isPrimary ? 0 : 0,
+          shadowColor: Colors.transparent,
+          backgroundColor: isPrimary
+              ? FzColors.accent
+              : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
+          foregroundColor: isPrimary
+              ? FzColors.darkBg
+              : (isDark ? FzColors.darkText : FzColors.lightText),
+          disabledBackgroundColor: isPrimary
+              ? FzColors.accent.withValues(alpha: 0.45)
+              : ((isDark ? FzColors.darkSurface2 : FzColors.lightSurface2)
+                    .withValues(alpha: 0.72)),
+          disabledForegroundColor: isPrimary
+              ? FzColors.darkBg.withValues(alpha: 0.7)
+              : ((isDark ? FzColors.darkText : FzColors.lightText)
+                    .withValues(alpha: 0.65)),
+          side: isPrimary
+              ? null
+              : BorderSide(
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
           ),
           textStyle: const TextStyle(
             fontSize: 15,
@@ -115,14 +140,18 @@ class OnboardingPrimaryButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(label),
-            const SizedBox(width: 8),
-            const Icon(LucideIcons.chevronRight, size: 18),
+            if (showChevron) ...[
+              const SizedBox(width: 8),
+              const Icon(LucideIcons.chevronRight, size: 18),
+            ],
           ],
         ),
       ),
     );
   }
 }
+
+enum OnboardingButtonTone { primary, secondary }
 
 class OnboardingSectionTitle extends StatelessWidget {
   const OnboardingSectionTitle({

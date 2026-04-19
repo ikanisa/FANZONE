@@ -37,6 +37,6 @@
 ## Operational readiness
 
 - `ci.yml` is the canonical mobile/backend pipeline. Keep its build flags aligned with `env/production.example.json`.
-- Validate the current error-reporting path for the release build. The mobile app currently logs locally unless an external crash-reporting client is added explicitly.
+- Validate the current error-reporting path for the release build. The mobile app now queues runtime errors locally and flushes them to the Supabase-backed telemetry RPC `log_app_runtime_errors_batch`; confirm the migration is applied and operators know where to inspect `app_runtime_errors`.
 - Validate notification tokens are registering and `push-notify` can dispatch from production credentials.
 - Confirm release notes, privacy disclosures, and support contact details are ready.

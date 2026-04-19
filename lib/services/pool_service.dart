@@ -5,7 +5,8 @@ import '../core/di/injection.dart';
 import '../core/errors/app_exception.dart';
 import '../core/errors/failures.dart';
 import '../core/logging/app_logger.dart';
-import '../features/predict/data/predict_gateway.dart';
+import '../features/predict/data/predict_gateway_models.dart';
+import '../features/predict/data/prediction_pool_gateway.dart';
 import '../models/pool.dart';
 import '../providers/auth_provider.dart';
 
@@ -16,7 +17,7 @@ class PoolService extends _$PoolService {
   @override
   FutureOr<List<ScorePool>> build() async {
     ref.watch(authStateProvider);
-    return getIt<PredictGateway>().getPools();
+    return getIt<PredictionPoolGateway>().getPools();
   }
 
   Future<void> createPool({
@@ -49,7 +50,7 @@ class PoolService extends _$PoolService {
     state = const AsyncLoading();
 
     try {
-      await getIt<PredictGateway>().createPool(
+      await getIt<PredictionPoolGateway>().createPool(
         PoolCreateRequestDto(
           matchId: matchId,
           homeScore: homeScore,
@@ -90,7 +91,7 @@ class PoolService extends _$PoolService {
     state = const AsyncLoading();
 
     try {
-      await getIt<PredictGateway>().joinPool(
+      await getIt<PredictionPoolGateway>().joinPool(
         PoolJoinRequestDto(
           poolId: poolId,
           homeScore: homeScore,
@@ -117,11 +118,11 @@ class MyEntries extends _$MyEntries {
     final userId = ref.read(authServiceProvider).currentUser?.id;
     if (userId == null) return const [];
 
-    return getIt<PredictGateway>().getMyEntries(userId);
+    return getIt<PredictionPoolGateway>().getMyEntries(userId);
   }
 }
 
 @riverpod
 FutureOr<ScorePool?> poolDetail(Ref ref, String id) async {
-  return getIt<PredictGateway>().getPoolDetail(id);
+  return getIt<PredictionPoolGateway>().getPoolDetail(id);
 }

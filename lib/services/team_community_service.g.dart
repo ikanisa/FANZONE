@@ -7,7 +7,7 @@ part of 'team_community_service.dart';
 // **************************************************************************
 
 String _$teamCommunityStatsHash() =>
-    r'c5fcad94329dfbfab25a7eb9761d885ddf7ab6a7';
+    r'a1d2ca8d04b7a005549e7a89d2c1c2f51263f175';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -151,7 +151,7 @@ class _TeamCommunityStatsProviderElement
   String get teamId => (origin as TeamCommunityStatsProvider).teamId;
 }
 
-String _$teamAnonymousFansHash() => r'6061e2e04d933b13e4b7930c9b55e9d9a8705c80';
+String _$teamAnonymousFansHash() => r'b88f7b9e61e866b3f7b7feabb7d4f4c9bdab67d4';
 
 /// See also [teamAnonymousFans].
 @ProviderFor(teamAnonymousFans)
@@ -292,7 +292,7 @@ class _TeamAnonymousFansProviderElement
 }
 
 String _$teamContributionHistoryHash() =>
-    r'caac637927e34997baf003742fdf8e6013ce1b9c';
+    r'2d427c852465e0f00b44e9d4d8902c290323f525';
 
 /// See also [teamContributionHistory].
 @ProviderFor(teamContributionHistory)
@@ -420,7 +420,7 @@ class _TeamContributionHistoryProviderElement
   String get teamId => (origin as TeamContributionHistoryProvider).teamId;
 }
 
-String _$teamNewsHash() => r'24a4e860bab479beff53aeda993e477eeb1d32a6';
+String _$teamNewsHash() => r'b7fbb780905d31e78b574abf0c95d20d5bc232ce';
 
 /// See also [teamNews].
 @ProviderFor(teamNews)
@@ -569,7 +569,7 @@ class _TeamNewsProviderElement
   int get limit => (origin as TeamNewsProvider).limit;
 }
 
-String _$teamNewsDetailHash() => r'affb266d106223f37a82396de1736aa4233435f9';
+String _$teamNewsDetailHash() => r'0c14884781e35c5ffb09efabe6f90d2101148ecc';
 
 /// See also [teamNewsDetail].
 @ProviderFor(teamNewsDetail)
@@ -689,7 +689,7 @@ class _TeamNewsDetailProviderElement
   String get newsId => (origin as TeamNewsDetailProvider).newsId;
 }
 
-String _$featuredTeamsRawHash() => r'ed7d0ece505f996857b95a20f6325055d01a9174';
+String _$featuredTeamsRawHash() => r'727c78618ddb1317116b06c01b3e0f51377271da';
 
 /// See also [featuredTeamsRaw].
 @ProviderFor(featuredTeamsRaw)
@@ -709,7 +709,7 @@ final featuredTeamsRawProvider =
 typedef FeaturedTeamsRawRef =
     AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
 String _$supportedTeamsServiceHash() =>
-    r'ba93619b0f765718300b8ecfeff5197a620183e7';
+    r'893827aeda261a09dac56e732406e382075a7bf3';
 
 /// See also [SupportedTeamsService].
 @ProviderFor(SupportedTeamsService)
@@ -729,7 +729,7 @@ final supportedTeamsServiceProvider =
 
 typedef _$SupportedTeamsService = AutoDisposeAsyncNotifier<Set<String>>;
 String _$teamContributionServiceHash() =>
-    r'9b3b1475c79ff57cb546bd8376edd8bc067f8a40';
+    r'd9edd53576c186fb277f996b5dbf70087b078a32';
 
 /// See also [TeamContributionService].
 @ProviderFor(TeamContributionService)

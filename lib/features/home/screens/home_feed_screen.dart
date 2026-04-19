@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../core/market/launch_market.dart';
 import '../../../data/team_search_database.dart';
-import '../../../providers/market_preferences_provider.dart';
+import '../../../features/profile/providers/profile_identity_provider.dart';
 import '../../../providers/matches_provider.dart';
 import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
@@ -30,10 +29,15 @@ class HomeFeedScreen extends ConsumerWidget {
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     final matchesAsync = ref.watch(matchesByDateProvider(_today));
-    final primaryRegion = ref.watch(primaryMarketRegionProvider);
     final supportedIds =
         ref.watch(supportedTeamsServiceProvider).valueOrNull ??
         const <String>{};
+    final profileIdentity = ref.watch(profileIdentityProvider).valueOrNull;
+    final fallbackInsightTeam = _resolveInsightTeam(supportedIds);
+    final insightTeamId =
+        profileIdentity?.teamId ?? fallbackInsightTeam?.id ?? 'liverpool';
+    final insightTeamName =
+        profileIdentity?.teamName ?? fallbackInsightTeam?.name ?? 'Liverpool';
 
     return Scaffold(
       body: SafeArea(
@@ -59,17 +63,17 @@ class HomeFeedScreen extends ConsumerWidget {
                     ),
                   ),
                   _RoundActionButton(
-                    tooltip: 'Open pools',
+                    tooltip: 'Create pool',
                     backgroundColor: FzColors.coral,
                     foregroundColor: FzColors.darkBg,
                     icon: LucideIcons.plusCircle,
-                    onTap: () => context.go('/predict'),
+                    onTap: () => context.go('/predict/create'),
                   ),
                   const SizedBox(width: 8),
                   _RoundActionButton(
-                    tooltip: 'Open Fan ID',
+                    tooltip: 'Open registry',
                     icon: LucideIcons.shield,
-                    onTap: () => context.go('/clubs/fan-id'),
+                    onTap: () => context.go('/registry'),
                   ),
                 ],
               ),
@@ -82,17 +86,13 @@ class HomeFeedScreen extends ConsumerWidget {
                   final upcomingMatches =
                       matches.where((match) => match.isUpcoming).toList()
                         ..sort((a, b) => a.date.compareTo(b.date));
-                  final insightTeam = _resolveInsightTeam(supportedIds);
-
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _DailyInsightCard(
                         muted: muted,
-                        teamName: insightTeam?.name,
-                        primaryRegion: primaryRegion,
-                        liveCount: liveMatches.length,
-                        upcomingCount: upcomingMatches.length,
+                        teamId: insightTeamId,
+                        teamName: insightTeamName,
                       ),
                       const SizedBox(height: 24),
                       _HomeSectionHeader(
@@ -127,8 +127,8 @@ class HomeFeedScreen extends ConsumerWidget {
                         iconColor: muted,
                         title: 'Upcoming',
                         trailing: IconButton(
-                          onPressed: () => context.go('/scores'),
-                          tooltip: 'Open score centre',
+                          onPressed: () => context.go('/fixtures'),
+                          tooltip: 'Open fixtures',
                           visualDensity: VisualDensity.compact,
                           icon: Icon(
                             LucideIcons.chevronRight,
@@ -184,50 +184,219 @@ class HomeFeedScreen extends ConsumerWidget {
   }
 }
 
-class _DailyInsightCard extends StatelessWidget {
+class _DailyInsightCard extends ConsumerWidget {
   const _DailyInsightCard({
     required this.muted,
+    required this.teamId,
     required this.teamName,
-    required this.primaryRegion,
-    required this.liveCount,
-    required this.upcomingCount,
   });
 
   final Color muted;
+  final String teamId;
   final String? teamName;
-  final String primaryRegion;
-  final int liveCount;
-  final int upcomingCount;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-    final marketLabel = launchRegionLabel(primaryRegion).toLowerCase();
-    final insight = teamName != null
-        ? '$teamName is in focus today. $liveCount live match window${liveCount == 1 ? '' : 's'} and $upcomingCount upcoming prediction slot${upcomingCount == 1 ? '' : 's'} are active across $marketLabel.'
-        : '$liveCount live match window${liveCount == 1 ? '' : 's'} and $upcomingCount upcoming prediction slot${upcomingCount == 1 ? '' : 's'} are active across $marketLabel. Stay close to the next kickoff and lock slips early.';
+    final teamNewsAsync = ref.watch(teamNewsProvider(teamId, limit: 1));
 
-    return FzCard(
+    return teamNewsAsync.when(
+      data: (articles) {
+        final article = articles.firstOrNull;
+        final insight = _resolveInsightText(article);
+        if (insight == null || insight.isEmpty) {
+          return _InsightCardShell(
+            muted: muted,
+            child: _InsightMessage(
+              title: 'Insights syncing',
+              message:
+                  'Club insights will appear here once the latest update lands.',
+              muted: muted,
+            ),
+          );
+        }
+
+        return _InsightCardShell(
+          muted: muted,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                insight,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _sourceLabel(
+                  teamName: teamName,
+                  sourceName: article?.sourceName,
+                ),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: muted,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => _InsightCardShell(
+        muted: muted,
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: FzColors.success,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Syncing Insights...',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: muted,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      error: (_, _) => _InsightCardShell(
+        muted: muted,
+        child: _InsightMessage(
+          title: 'Insights unavailable',
+          message: 'We could not load the latest club signal right now.',
+          muted: muted,
+        ),
+      ),
+    );
+  }
+
+  String? _resolveInsightText(dynamic article) {
+    if (article == null) return null;
+    final summary = article.summary?.toString().trim();
+    if (summary != null && summary.isNotEmpty) return summary;
+    final content = article.content?.toString().trim();
+    if (content != null && content.isNotEmpty) return content;
+    final title = article.title?.toString().trim();
+    if (title != null && title.isNotEmpty) return title;
+    return null;
+  }
+
+  String _sourceLabel({String? teamName, String? sourceName}) {
+    final club = teamName?.trim();
+    final source = sourceName?.trim();
+    if (club != null &&
+        club.isNotEmpty &&
+        source != null &&
+        source.isNotEmpty) {
+      return '$club · $source';
+    }
+    if (club != null && club.isNotEmpty) return club;
+    return source ?? 'AI-curated club update';
+  }
+}
+
+class _InsightMessage extends StatelessWidget {
+  const _InsightMessage({
+    required this.title,
+    required this.message,
+    required this.muted,
+  });
+
+  final String title;
+  final String message;
+  final Color muted;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: muted,
+            letterSpacing: 0.8,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          message,
+          style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
+        ),
+      ],
+    );
+  }
+}
+
+class _InsightCardShell extends StatelessWidget {
+  const _InsightCardShell({required this.muted, required this.child});
+
+  final Color muted;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
       padding: const EdgeInsets.all(16),
-      borderColor: FzColors.success.withValues(alpha: 0.18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            isDark ? FzColors.darkSurface : FzColors.lightSurface,
+            isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: FzColors.success.withValues(alpha: 0.18)),
+        boxShadow: [
+          BoxShadow(
+            color: FzColors.success.withValues(alpha: isDark ? 0.12 : 0.06),
+            blurRadius: 30,
+            spreadRadius: -12,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: Stack(
         children: [
           Positioned(
-            top: -22,
+            top: -28,
             right: -18,
-            child: Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: FzColors.success.withValues(alpha: 0.08),
+            child: IgnorePointer(
+              child: Container(
+                width: 128,
+                height: 128,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: FzColors.success.withValues(alpha: 0.08),
+                ),
               ),
             ),
           ),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 40,
@@ -246,31 +415,7 @@ class _DailyInsightCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Daily Insight',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: muted,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      insight,
-                      style: TextStyle(
-                        fontSize: 12,
-                        height: 1.45,
-                        color: textColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              Expanded(child: child),
             ],
           ),
         ],
@@ -391,6 +536,7 @@ class _RoundActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final hasCustomBackground = backgroundColor != null;
     return Tooltip(
       message: tooltip,
       child: InkWell(
@@ -405,8 +551,19 @@ class _RoundActionButton extends StatelessWidget {
                 (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+              color: hasCustomBackground
+                  ? Colors.transparent
+                  : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
             ),
+            boxShadow: hasCustomBackground
+                ? [
+                    BoxShadow(
+                      color: backgroundColor!.withValues(alpha: 0.28),
+                      blurRadius: 18,
+                      spreadRadius: -8,
+                    ),
+                  ]
+                : null,
           ),
           child: Icon(
             icon,

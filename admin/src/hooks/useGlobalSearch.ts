@@ -1,15 +1,8 @@
 // FANZONE Admin — Global Search Hook
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { isDemoMode, isSupabaseConfigured, supabase } from '../lib/supabase';
-
-/* ── Types ── */
-export interface SearchResult {
-  id: string;
-  type: 'user' | 'fixture' | 'pool' | 'partner' | 'reward' | 'campaign';
-  title: string;
-  subtitle: string;
-  route: string;
-}
+import { searchEntities } from '../features/search/searchClient';
+import { TYPE_ICONS, type SearchResult } from '../features/search/searchTypes';
 
 /* ── Demo Data ── */
 const DEMO_RESULTS: SearchResult[] = [
@@ -28,30 +21,6 @@ const DEMO_RESULTS: SearchResult[] = [
   { id: 'r-1', type: 'reward', title: 'Free coffee at Bar Castello', subtitle: '500 FET', route: '/rewards?q=coffee' },
   { id: 'cmp-1', type: 'campaign', title: 'Weekend Pool Bonanza', subtitle: 'In-App — Sent', route: '/notifications?q=bonanza' },
 ];
-
-const TYPE_ICONS: Record<SearchResult['type'], string> = {
-  user: '👤',
-  fixture: '⚽',
-  pool: '🎯',
-  partner: '🤝',
-  reward: '🎁',
-  campaign: '📢',
-};
-
-interface FixtureSearchRow {
-  id: string;
-  home_team: string;
-  away_team: string;
-  status: string;
-  date: string;
-}
-
-interface PartnerSearchRow {
-  id: string;
-  name: string;
-  category: string;
-  status: string;
-}
 
 /* ── Hook ── */
 export function useGlobalSearch() {
@@ -88,34 +57,9 @@ export function useGlobalSearch() {
       return;
     }
 
-    // Live: parallel search across tables
     try {
-      const term = `%${q}%`;
-      const [fixtures, partners] = await Promise.all([
-        supabase.from('matches').select('id, home_team, away_team, status, date').or(`home_team.ilike.${term},away_team.ilike.${term}`).limit(3),
-        supabase.from('partners').select('id, name, category, status').ilike('name', term).limit(3),
-      ]);
-      const fixtureRows = (fixtures.data ?? []) as FixtureSearchRow[];
-      const partnerRows = (partners.data ?? []) as PartnerSearchRow[];
-
-      const mapped: SearchResult[] = [
-        ...fixtureRows.map((fixture) => ({
-          id: fixture.id,
-          type: 'fixture' as const,
-          title: `${fixture.home_team} vs ${fixture.away_team}`,
-          subtitle: `${fixture.status} — ${new Date(fixture.date).toLocaleDateString()}`,
-          route: `/fixtures?q=${q}`,
-        })),
-        ...partnerRows.map((partner) => ({
-          id: partner.id,
-          type: 'partner' as const,
-          title: partner.name,
-          subtitle: `${partner.category} — ${partner.status}`,
-          route: `/partners?q=${q}`,
-        })),
-      ];
-
-      setResults(mapped.slice(0, 8));
+      const mapped = await searchEntities(supabase, q);
+      setResults(mapped);
       setSelectedIndex(0);
     } catch (err) {
       console.error('[GlobalSearch] failed:', err);
@@ -151,6 +95,7 @@ export function useGlobalSearch() {
 
   const moveSelection = (dir: 'up' | 'down') => {
     setSelectedIndex(i => {
+      if (results.length === 0) return 0;
       if (dir === 'up') return Math.max(0, i - 1);
       return Math.min(results.length - 1, i + 1);
     });
@@ -158,7 +103,6 @@ export function useGlobalSearch() {
 
   const getSelectedResult = () => results[selectedIndex] ?? null;
 
-  // Group results by type
   const groupedResults = results.reduce<Record<string, SearchResult[]>>((acc, r) => {
     if (!acc[r.type]) acc[r.type] = [];
     acc[r.type].push(r);
@@ -171,3 +115,5 @@ export function useGlobalSearch() {
     getSelectedResult, TYPE_ICONS,
   };
 }
+
+export type GlobalSearchController = ReturnType<typeof useGlobalSearch>;

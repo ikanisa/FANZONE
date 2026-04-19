@@ -12,14 +12,14 @@ class OnboardingSelectedTeamCard extends StatelessWidget {
     required this.textColor,
     required this.muted,
     required this.isDark,
-    required this.onRemove,
+    required this.helperText,
   });
 
   final OnboardingTeam team;
   final Color textColor;
   final Color muted;
   final bool isDark;
-  final VoidCallback onRemove;
+  final String helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -33,13 +33,13 @@ class OnboardingSelectedTeamCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'YOUR SELECTION',
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: muted,
-              letterSpacing: 1,
+              color: FzColors.accent,
+              letterSpacing: 1.2,
             ),
           ),
           const SizedBox(height: 14),
@@ -49,12 +49,15 @@ class OnboardingSelectedTeamCard extends StatelessWidget {
             muted: muted,
             isDark: isDark,
             selected: true,
-            onTap: onRemove,
+            onTap: null,
           ),
           const SizedBox(height: 12),
-          TextButton(
-            onPressed: onRemove,
-            child: const Text('Choose another team'),
+          Center(
+            child: Text(
+              helperText,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: muted),
+            ),
           ),
         ],
       ),
@@ -78,7 +81,7 @@ class OnboardingTeamTile extends StatelessWidget {
   final Color muted;
   final bool isDark;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -91,55 +94,71 @@ class OnboardingTeamTile extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: selected
-                ? FzColors.accent.withValues(alpha: 0.12)
+                ? textColor
                 : (isDark ? FzColors.darkSurface : FzColors.lightSurface),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: selected
-                  ? FzColors.accent.withValues(alpha: 0.28)
+                  ? textColor.withValues(alpha: 0.2)
                   : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
             ),
           ),
           child: Row(
             children: [
-              TeamCrest(
-                label: team.name,
-                size: 36,
-                backgroundColor: isDark
-                    ? FzColors.darkSurface2
-                    : FzColors.lightSurface2,
-                borderColor: isDark
-                    ? FzColors.darkBorder
-                    : FzColors.lightBorder,
-              ),
+              selected
+                  ? Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: (isDark ? FzColors.darkBg : FzColors.lightBg)
+                            .withValues(alpha: 0.12),
+                        border: Border.all(
+                          color: (isDark ? FzColors.darkBg : FzColors.lightBg)
+                              .withValues(alpha: 0.2),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        team.shortName.substring(
+                          0,
+                          team.shortName.length >= 2 ? 2 : 1,
+                        ).toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? FzColors.darkBg : FzColors.lightBg,
+                        ),
+                      ),
+                    )
+                  : TeamCrest(
+                      label: team.name,
+                      size: 36,
+                      backgroundColor: isDark
+                          ? FzColors.darkSurface2
+                          : FzColors.lightSurface2,
+                      borderColor: isDark
+                          ? FzColors.darkBorder
+                          : FzColors.lightBorder,
+                    ),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      team.name,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: textColor,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${team.country}${team.league == null ? '' : ' · ${team.league}'}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 11, color: muted),
-                    ),
-                  ],
+                child: Text(
+                  team.name,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: selected
+                        ? (isDark ? FzColors.darkBg : FzColors.lightBg)
+                        : textColor,
+                  ),
                 ),
               ),
               if (selected)
-                const Icon(
+                Icon(
                   LucideIcons.shieldCheck,
                   size: 18,
-                  color: FzColors.accent,
+                  color: isDark ? FzColors.darkBg : FzColors.lightBg,
                 ),
             ],
           ),
@@ -175,50 +194,31 @@ class OnboardingPopularTeamCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: Container(
-          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: selected
-                ? FzColors.accent.withValues(alpha: 0.12)
+                ? FzColors.accent.withValues(alpha: 0.08)
                 : (isDark ? FzColors.darkSurface : FzColors.lightSurface),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: selected
-                  ? FzColors.accent.withValues(alpha: 0.28)
+                  ? FzColors.accent
                   : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TeamCrest(
-                label: team.name,
-                size: 38,
-                backgroundColor: isDark
-                    ? FzColors.darkSurface2
-                    : FzColors.lightSurface2,
-                borderColor: isDark
-                    ? FzColors.darkBorder
-                    : FzColors.lightBorder,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                team.shortName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                team.country,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11, color: muted),
-              ),
-            ],
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(10),
+          child: Tooltip(
+            message: team.name,
+            child: TeamCrest(
+              label: team.name,
+              size: 32,
+              backgroundColor: isDark
+                  ? FzColors.darkSurface2
+                  : FzColors.lightSurface2,
+              borderColor: isDark
+                  ? FzColors.darkBorder
+                  : FzColors.lightBorder,
+            ),
           ),
         ),
       ),

@@ -729,7 +729,7 @@ Check:
 
 ### `SENTRY_DSN` is set but no remote crash reports appear
 
-That is expected with the current code. [`lib/services/app_telemetry.dart`](lib/services/app_telemetry.dart) is currently a local logging no-op; there is no active Sentry SDK integration in this repository at the moment.
+That is expected with the current code. `SENTRY_DSN` is not consumed by the mobile app today. Runtime failures are captured through the Supabase-backed telemetry path in [`lib/services/app_telemetry.dart`](lib/services/app_telemetry.dart) and `public.log_app_runtime_errors_batch`, not through a Sentry SDK.
 
 ## Common Issues And Gotchas
 

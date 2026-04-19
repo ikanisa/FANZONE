@@ -193,7 +193,13 @@ class ClubsHubScreen extends ConsumerWidget {
           featuredAsync.when(
             data: (teams) {
               if (teams.isEmpty) {
-                return const SizedBox.shrink();
+                return FzCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Featured clubs will appear here once they are available.',
+                    style: TextStyle(fontSize: 12, color: muted),
+                  ),
+                );
               }
               return Column(
                 children: [
@@ -209,7 +215,13 @@ class ClubsHubScreen extends ConsumerWidget {
               );
             },
             loading: () => const SizedBox.shrink(),
-            error: (error, stackTrace) => const SizedBox.shrink(),
+            error: (error, stackTrace) => FzCard(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Featured clubs are unavailable right now.',
+                style: TextStyle(fontSize: 12, color: muted),
+              ),
+            ),
           ),
         ],
       ),

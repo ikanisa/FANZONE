@@ -4,14 +4,14 @@
 // Payload: { user_id, type, title, body, data? }
 // Or batch: { user_ids: string[], type, title, body, data? }
 //
-// Auth: Service role key or pg_net internal call.
+// Auth: x-push-notify-secret only.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 import {
   buildCorsHeaders,
   getErrorMessage,
-  isAuthorizedByServiceRole,
+  isAuthorizedEdgeRequest,
 } from "../_shared/http.ts";
 import { parsePushPayload } from "./payload.ts";
 
@@ -43,7 +43,10 @@ interface NotificationPreferenceRow {
   marketing?: boolean | null;
 }
 
-type NotificationPreferenceKey = Exclude<keyof NotificationPreferenceRow, "user_id">;
+type NotificationPreferenceKey = Exclude<
+  keyof NotificationPreferenceRow,
+  "user_id"
+>;
 
 interface FirebaseMessage {
   token: string;
@@ -201,11 +204,12 @@ Deno.serve(async (req: Request) => {
   }
 
   if (
-    !isAuthorizedByServiceRole({
+    !isAuthorizedEdgeRequest({
       req,
-      serviceRoleKey: SUPABASE_SERVICE_KEY,
-      sharedSecretHeader: "x-push-notify-secret",
-      sharedSecret: PUSH_NOTIFY_SECRET,
+      sharedSecrets: [{
+        header: "x-push-notify-secret",
+        value: PUSH_NOTIFY_SECRET,
+      }],
     })
   ) {
     return new Response("Unauthorized", { status: 401 });

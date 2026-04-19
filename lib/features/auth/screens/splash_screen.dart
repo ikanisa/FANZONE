@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/cache/cache_service.dart';
 import '../../../core/di/injection.dart';
-import '../../../main.dart' show markAppInteractive, supabaseInitCompleter;
+import '../../../core/runtime/app_runtime_state.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_brand_logo.dart';
@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _waitForInitAndNavigate() async {
     // Wait for Supabase init to actually finish
-    await supabaseInitCompleter.future;
+    await appRuntime.supabaseReady;
 
     // Ensure animation has had at minimum 1.2s to play
     if (_controller.isAnimating) {

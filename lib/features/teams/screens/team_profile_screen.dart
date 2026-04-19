@@ -219,7 +219,9 @@ class _OverviewTab extends ConsumerWidget {
                   );
                 },
                 loading: () => const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
+                error: (_, _) => const _InlineStatusCard(
+                  message: 'Table position is unavailable right now.',
+                ),
               ),
             ],
 
@@ -345,7 +347,9 @@ class _CommunityTab extends ConsumerWidget {
             return CommunityStatsCard(stats: stats);
           },
           loading: () => const SizedBox.shrink(),
-          error: (_, _) => const SizedBox.shrink(),
+          error: (_, _) => const _InlineStatusCard(
+            message: 'Community stats are temporarily unavailable.',
+          ),
         ),
 
         const SizedBox(height: 16),
@@ -461,11 +465,34 @@ class _ContributionsTab extends ConsumerWidget {
             return TeamContributionSummaryCard(contributions: contributions);
           },
           loading: () => const SizedBox.shrink(),
-          error: (_, _) => const SizedBox.shrink(),
+          error: (_, _) => const _InlineStatusCard(
+            message: 'Contribution history could not be loaded.',
+          ),
         ),
 
         const SizedBox(height: 32),
       ],
+    );
+  }
+}
+
+class _InlineStatusCard extends StatelessWidget {
+  const _InlineStatusCard({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = Theme.of(context).brightness == Brightness.dark
+        ? FzColors.darkMuted
+        : FzColors.lightMuted;
+
+    return FzCard(
+      padding: const EdgeInsets.all(14),
+      child: Text(
+        message,
+        style: TextStyle(fontSize: 12, color: muted, height: 1.4),
+      ),
     );
   }
 }

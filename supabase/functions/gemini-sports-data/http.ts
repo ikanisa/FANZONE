@@ -4,7 +4,11 @@ import {
 } from "npm:@google/generative-ai";
 
 import { ALLOWED_HEADERS, FUNCTION_NAME } from "./constants.ts";
-import { getErrorMessage } from "../_shared/http.ts";
+import {
+  buildCorsHeaders,
+  getErrorMessage,
+  isAuthorizedEdgeRequest,
+} from "../_shared/http.ts";
 
 export class HttpError extends Error {
   status: number;
@@ -17,19 +21,7 @@ export class HttpError extends Error {
   }
 }
 
-function getAllowedOrigin() {
-  try {
-    return Deno.env.get("ALLOWED_ORIGIN")?.trim() || "*";
-  } catch {
-    return "*";
-  }
-}
-
-export const corsHeaders = {
-  "Access-Control-Allow-Origin": getAllowedOrigin(),
-  "Access-Control-Allow-Headers": ALLOWED_HEADERS,
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+export const corsHeaders = buildCorsHeaders(ALLOWED_HEADERS);
 
 export function jsonResponse(status: number, body: Record<string, unknown>) {
   return new Response(JSON.stringify(body), {
@@ -49,8 +41,12 @@ export function requireEnv(name: string): string {
   return value;
 }
 
-export function assertAuthorized(req: Request) {
-  const matchSyncSecret = Deno.env.get("MATCH_SYNC_SECRET")?.trim();
+export function assertAuthorized(
+  req: Request,
+  options: { matchSyncSecret?: string } = {},
+) {
+  const matchSyncSecret = options.matchSyncSecret?.trim() ||
+    Deno.env.get("MATCH_SYNC_SECRET")?.trim();
   if (!matchSyncSecret) {
     throw new HttpError(
       500,
@@ -58,8 +54,14 @@ export function assertAuthorized(req: Request) {
     );
   }
 
-  const providedSecret = req.headers.get("x-match-sync-secret")?.trim();
-  if (providedSecret !== matchSyncSecret) {
+  if (
+    !isAuthorizedEdgeRequest({
+      req,
+      sharedSecrets: [
+        { header: "x-match-sync-secret", value: matchSyncSecret },
+      ],
+    })
+  ) {
     throw new HttpError(401, "Unauthorized request.");
   }
 }

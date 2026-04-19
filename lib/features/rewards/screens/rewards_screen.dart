@@ -162,8 +162,15 @@ class RewardsScreen extends ConsumerWidget {
                         .toList(),
                   );
                 },
-                loading: () => const SizedBox.shrink(),
-                error: (_, _) => const SizedBox.shrink(),
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (_, _) => StateView.error(
+                  title: 'Could not load redemption history',
+                  subtitle: 'Pull to refresh and try again.',
+                  onRetry: () => ref.invalidate(marketplaceRedemptionsProvider),
+                ),
               ),
             ],
             const SizedBox(height: 100),

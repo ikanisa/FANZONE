@@ -7,8 +7,6 @@ import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/De
 
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { usePartners, useApprovePartner, useRejectPartner, useToggleFeatured } from './usePartners';
-import { useAuth } from '../../hooks/useAuth';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatDateTime } from '../../lib/formatters';
 import { Plus, Search, Star, StarOff, Check, X as XIcon, Eye, Handshake, Clock, ThumbsUp, ThumbsDown } from 'lucide-react';
 import type { Partner } from '../../types';
@@ -28,8 +26,6 @@ export function PartnersPage() {
   const approveMutation = useApprovePartner();
   const rejectMutation = useRejectPartner();
   const toggleFeaturedMutation = useToggleFeatured();
-  const { admin } = useAuth();
-  const { logAction } = useAuditLog();
 
   const partners = result?.data ?? [];
   const pendingCount = partners.filter(p => p.status === 'pending').length;
@@ -37,28 +33,15 @@ export function PartnersPage() {
   const featuredCount = partners.filter(p => p.is_featured).length;
 
   const handleApprove = async (partner: Partner) => {
-    await approveMutation.mutateAsync({ partnerId: partner.id, adminId: admin?.id ?? '' });
-    await logAction({
-      action: 'approve_partner',
-      module: 'partners',
-      targetType: 'partner',
-      targetId: partner.id,
-      beforeState: { status: partner.status },
-      afterState: { status: 'approved' },
-    });
+    await approveMutation.mutateAsync({ p_partner_id: partner.id });
     setSelectedPartner(null);
   };
 
   const handleReject = async () => {
     if (!rejectTarget) return;
-    await rejectMutation.mutateAsync({ partnerId: rejectTarget.id, reason: rejectReason });
-    await logAction({
-      action: 'reject_partner',
-      module: 'partners',
-      targetType: 'partner',
-      targetId: rejectTarget.id,
-      beforeState: { status: rejectTarget.status },
-      afterState: { status: 'rejected', reason: rejectReason },
+    await rejectMutation.mutateAsync({
+      p_partner_id: rejectTarget.id,
+      p_reason: rejectReason,
     });
     setRejectTarget(null);
     setRejectReason('');
@@ -67,13 +50,9 @@ export function PartnersPage() {
 
   const handleToggleFeatured = async (partner: Partner) => {
     const newFeatured = !partner.is_featured;
-    await toggleFeaturedMutation.mutateAsync({ partnerId: partner.id, featured: newFeatured });
-    await logAction({
-      action: newFeatured ? 'feature_partner' : 'unfeature_partner',
-      module: 'partners',
-      targetType: 'partner',
-      targetId: partner.id,
-      afterState: { is_featured: newFeatured },
+    await toggleFeaturedMutation.mutateAsync({
+      p_partner_id: partner.id,
+      p_is_featured: newFeatured,
     });
   };
 

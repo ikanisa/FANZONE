@@ -7,7 +7,6 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useUsers, useBanUser, useUnbanUser } from './useUsers';
 import { getUserDisplayName, getUserStatus } from './userHelpers';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatDateTime, formatFET, formatRelativeTime } from '../../lib/formatters';
 import { Search, Download, Eye, Ban, ShieldOff, MessageSquare } from 'lucide-react';
 import type { PlatformUser } from '../../types';
@@ -27,7 +26,6 @@ export function UsersPage() {
   const { data: result, isLoading, error, refetch } = useUsers({ page }, { search, status: statusFilter });
   const banMutation = useBanUser();
   const unbanMutation = useUnbanUser();
-  const { logAction } = useAuditLog();
 
   const users = result?.data ?? [];
 
@@ -38,13 +36,6 @@ export function UsersPage() {
       p_reason: banReason,
       p_banned_until: null, // Permanent unless specified
     });
-    await logAction({
-      action: 'ban_user',
-      module: 'users',
-      targetType: 'user',
-      targetId: banTarget.id,
-      afterState: { reason: banReason },
-    });
     setBanTarget(null);
     setBanReason('');
     setSelectedUser(null);
@@ -53,12 +44,6 @@ export function UsersPage() {
   const handleUnban = async () => {
     if (!unbanTarget) return;
     await unbanMutation.mutateAsync({ p_target_user_id: unbanTarget.id });
-    await logAction({
-      action: 'unban_user',
-      module: 'users',
-      targetType: 'user',
-      targetId: unbanTarget.id,
-    });
     setUnbanTarget(null);
     setSelectedUser(null);
   };

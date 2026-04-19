@@ -52,13 +52,13 @@ class OnboardingPhoneStep extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 84,
+                  width: 80,
                   height: 56,
                   decoration: BoxDecoration(
                     color: isDark
                         ? FzColors.darkSurface2
                         : FzColors.lightSurface2,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isDark
                           ? FzColors.darkBorder
@@ -79,11 +79,16 @@ class OnboardingPhoneStep extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: phoneController,
+                    autofocus: true,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
                     ],
                     onChanged: onChanged,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                     decoration: InputDecoration(
                       hintText: phoneHint,
                       filled: true,
@@ -91,7 +96,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                           ? FzColors.darkSurface2
                           : FzColors.lightSurface2,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide(
                           color: isDark
                               ? FzColors.darkBorder
@@ -99,7 +104,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide(
                           color: isDark
                               ? FzColors.darkBorder
@@ -107,7 +112,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         borderSide: const BorderSide(color: FzColors.accent),
                       ),
                     ),
@@ -175,12 +180,16 @@ class OnboardingOtpStep extends StatelessWidget {
               children: List.generate(
                 6,
                 (index) => SizedBox(
-                  width: 46,
+                  width: 48,
                   child: TextField(
                     controller: otpControllers[index],
                     focusNode: otpFocusNodes[index],
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(1),
@@ -199,6 +208,7 @@ class OnboardingOtpStep extends StatelessWidget {
                       fillColor: isDark
                           ? FzColors.darkSurface2
                           : FzColors.lightSurface2,
+                      contentPadding: EdgeInsets.zero,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide(

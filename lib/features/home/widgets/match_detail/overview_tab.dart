@@ -1,5 +1,6 @@
 part of '../../screens/match_detail_screen.dart';
 
+// ignore: unused_element
 class _OverviewTab extends ConsumerWidget {
   const _OverviewTab({
     required this.match,
@@ -28,7 +29,8 @@ class _OverviewTab extends ConsumerWidget {
     final liveEventsAsync = ref.watch(liveMatchEventsStreamProvider(match.id));
     final liveEvents = liveEventsAsync.valueOrNull ?? [];
 
-    // Build event timeline from realtime stream or fallback to basic score data
+    // Build event timeline from realtime stream only. When live events are not
+    // available, fall back to score milestones instead of inventing event times.
     final events = <_MatchEvent>[];
 
     if (liveEvents.isNotEmpty) {
@@ -57,32 +59,11 @@ class _OverviewTab extends ConsumerWidget {
       }
     } else {
       if (match.htHome != null && match.htAway != null) {
-        for (var i = 0; i < match.htHome!; i++) {
-          events.add(
-            _MatchEvent(
-              minute: '${15 + (i * 10)}\'',
-              description: 'Goal',
-              icon: Icons.sports_soccer_rounded,
-              isHome: true,
-              color: FzColors.accent,
-            ),
-          );
-        }
-        for (var i = 0; i < match.htAway!; i++) {
-          events.add(
-            _MatchEvent(
-              minute: '${20 + (i * 10)}\'',
-              description: 'Goal',
-              icon: Icons.sports_soccer_rounded,
-              isHome: false,
-              color: FzColors.accent,
-            ),
-          );
-        }
         events.add(
           _MatchEvent(
             minute: 'HT',
-            description: '${match.htHome} - ${match.htAway}',
+            description: 'Half-time score',
+            detail: '${match.htHome} - ${match.htAway}',
             icon: Icons.access_time_rounded,
             isHome: true,
             color: muted,
@@ -90,34 +71,11 @@ class _OverviewTab extends ConsumerWidget {
         );
       }
       if (match.ftHome != null && match.ftAway != null) {
-        final secondHalfHome = match.ftHome! - (match.htHome ?? 0);
-        final secondHalfAway = match.ftAway! - (match.htAway ?? 0);
-        for (var i = 0; i < secondHalfHome; i++) {
-          events.add(
-            _MatchEvent(
-              minute: '${55 + (i * 10)}\'',
-              description: 'Goal',
-              icon: Icons.sports_soccer_rounded,
-              isHome: true,
-              color: FzColors.accent,
-            ),
-          );
-        }
-        for (var i = 0; i < secondHalfAway; i++) {
-          events.add(
-            _MatchEvent(
-              minute: '${60 + (i * 10)}\'',
-              description: 'Goal',
-              icon: Icons.sports_soccer_rounded,
-              isHome: false,
-              color: FzColors.accent,
-            ),
-          );
-        }
         events.add(
           _MatchEvent(
             minute: 'FT',
-            description: '${match.ftHome} - ${match.ftAway}',
+            description: 'Full-time score',
+            detail: '${match.ftHome} - ${match.ftAway}',
             icon: Icons.flag_rounded,
             isHome: true,
             color: muted,
@@ -126,28 +84,9 @@ class _OverviewTab extends ConsumerWidget {
       }
     }
 
-    // AI Analysis — show before kickoff
-    final aiAnalysisAsync = ref.watch(matchAiAnalysisProvider(match.id));
-
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // ── AI Pre-Match Analysis Card ──
-        if (match.isUpcoming || match.isLive)
-          aiAnalysisAsync.when(
-            data: (analysis) {
-              if (analysis == null || !analysis.isValid) {
-                return const SizedBox.shrink();
-              }
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 18),
-                child: _AiAnalysisCard(analysis: analysis, match: match),
-              );
-            },
-            loading: () => const SizedBox.shrink(),
-            error: (error, stackTrace) => const SizedBox.shrink(),
-          ),
-
         // Event timeline (M1)
         if (events.isNotEmpty) ...[
           Text(
@@ -222,7 +161,16 @@ class _OverviewTab extends ConsumerWidget {
               child: Center(child: CircularProgressIndicator()),
             ),
           ),
-          error: (error, stackTrace) => const SizedBox.shrink(),
+          error: (error, stackTrace) => FzCard(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Related fixtures are unavailable right now.',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -232,6 +180,7 @@ class _OverviewTab extends ConsumerWidget {
 class _MatchEvent {
   final String minute;
   final String description;
+  final String? detail;
   final IconData icon;
   final bool isHome;
   final Color color;
@@ -239,6 +188,7 @@ class _MatchEvent {
   const _MatchEvent({
     required this.minute,
     required this.description,
+    this.detail,
     required this.icon,
     required this.isHome,
     required this.color,
@@ -317,6 +267,14 @@ class _EventTimelineRow extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       event.isHome ? homeTeam : awayTeam,
+                      style: TextStyle(fontSize: 11, color: muted),
+                    ),
+                  )
+                else if (event.detail != null && event.detail!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      event.detail!,
                       style: TextStyle(fontSize: 11, color: muted),
                     ),
                   ),

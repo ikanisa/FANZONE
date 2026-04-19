@@ -1,6 +1,5 @@
 // FANZONE Admin — Rewards Data Hooks
-import { useSupabasePaginated, useSupabaseMutation } from '../../hooks/useSupabaseQuery';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { useRpcMutation, useSupabasePaginated } from '../../hooks/useSupabaseQuery';
 import type { Reward } from '../../types';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
@@ -31,29 +30,19 @@ export function useRewards(pagination: PaginationOpts, filters?: { search?: stri
 }
 
 export function useToggleRewardActive() {
-  return useSupabaseMutation<{ rewardId: string; active: boolean }>({
-    mutationFn: async ({ rewardId, active }) => {
-      if (isDemoMode) return { toggled: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase.from('rewards').update({ is_active: active, updated_at: new Date().toISOString() }).eq('id', rewardId);
-      if (error) throw new Error(error.message);
-      return { toggled: true };
-    },
+  return useRpcMutation<{ p_reward_id: string; p_is_active: boolean }>({
+    fnName: 'admin_set_reward_active',
     invalidateKeys: [['rewards']],
     successMessage: 'Reward status updated.',
+    demoFn: async () => ({ toggled: true }),
   });
 }
 
 export function useToggleRewardFeatured() {
-  return useSupabaseMutation<{ rewardId: string; featured: boolean }>({
-    mutationFn: async ({ rewardId, featured }) => {
-      if (isDemoMode) return { toggled: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase.from('rewards').update({ is_featured: featured, updated_at: new Date().toISOString() }).eq('id', rewardId);
-      if (error) throw new Error(error.message);
-      return { toggled: true };
-    },
+  return useRpcMutation<{ p_reward_id: string; p_is_featured: boolean }>({
+    fnName: 'admin_set_reward_featured',
     invalidateKeys: [['rewards']],
     successMessage: 'Reward featured status updated.',
+    demoFn: async () => ({ toggled: true }),
   });
 }

@@ -8,7 +8,6 @@ import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/De
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { SettlePoolModal } from './SettlePoolModal';
 import { useChallenges, useChallengeEntries, useSettlePool, useVoidPool } from './useChallenges';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatFET, formatDateTime } from '../../lib/formatters';
 import { Swords, Users, Coins, AlertTriangle, Search, Flag, Gavel, XCircle, Eye } from 'lucide-react';
 import type { Challenge } from '../../types';
@@ -29,7 +28,6 @@ export function ChallengesPage() {
   const { data: entries } = useChallengeEntries(selected?.id ?? null);
   const settleMutation = useSettlePool();
   const voidMutation = useVoidPool();
-  const { logAction } = useAuditLog();
 
   const pools = result?.data ?? [];
 
@@ -40,13 +38,6 @@ export function ChallengesPage() {
       p_official_home_score: homeScore,
       p_official_away_score: awayScore,
     });
-    await logAction({
-      action: 'settle_pool',
-      module: 'challenges',
-      targetType: 'challenge',
-      targetId: settleTarget.id,
-      afterState: { home_score: homeScore, away_score: awayScore },
-    });
     setSettleTarget(null);
     setSelected(null);
   };
@@ -56,13 +47,6 @@ export function ChallengesPage() {
     await voidMutation.mutateAsync({
       p_pool_id: voidTarget.id,
       p_reason: voidReason,
-    });
-    await logAction({
-      action: 'void_pool',
-      module: 'challenges',
-      targetType: 'challenge',
-      targetId: voidTarget.id,
-      afterState: { reason: voidReason },
     });
     setVoidTarget(null);
     setVoidReason('');

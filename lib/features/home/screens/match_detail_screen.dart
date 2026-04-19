@@ -12,29 +12,24 @@ import '../../../models/match_ai_analysis_model.dart';
 import '../../../models/match_model.dart';
 import '../../../models/match_player_stats_model.dart';
 import '../../../providers/competitions_provider.dart';
-import '../../../providers/favourites_provider.dart';
 import '../../../providers/match_detail_providers.dart';
 import '../../../providers/matches_provider.dart';
-import '../../../providers/standings_provider.dart';
 import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
-import '../../../widgets/common/fz_badge.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
-import '../../../widgets/match/standings_table.dart';
 import '../../../widgets/predict/accordion_market.dart';
-import '../../../widgets/social/feed_chat.dart';
 
 part '../widgets/match_detail/ai_analysis_card.dart';
 part '../widgets/match_detail/h2h_table_predict_tabs.dart';
+part '../widgets/match_detail/insights_tab.dart';
 part '../widgets/match_detail/lineups_tab.dart';
 part '../widgets/match_detail/match_hero.dart';
 part '../widgets/match_detail/overview_tab.dart';
 part '../widgets/match_detail/stats_support.dart';
 part '../widgets/match_detail/stats_tab.dart';
-part '../widgets/match_detail/table_tab.dart';
 
 class MatchDetailScreen extends ConsumerWidget {
   const MatchDetailScreen({super.key, required this.matchId});
@@ -61,51 +56,27 @@ class MatchDetailScreen extends ConsumerWidget {
         final competitionAsync = ref.watch(
           competitionProvider(match.competitionId),
         );
-        final standingsAsync = ref.watch(
-          competitionStandingsProvider(
-            CompetitionStandingsFilter(
-              competitionId: match.competitionId,
-              season: match.season,
-            ),
-          ),
-        );
-        final relatedMatchesAsync = ref.watch(
-          competitionMatchesProvider(match.competitionId),
-        );
         final matchAlertsAsync = ref.watch(matchAlertEnabledProvider(match.id));
-        final favourites =
-            ref.watch(favouritesProvider).valueOrNull ??
-            const FavouritesState();
         final matchAlertsEnabled = matchAlertsAsync.valueOrNull ?? false;
+        final competitionLabel =
+            competitionAsync.valueOrNull?.shortName ??
+            competitionAsync.valueOrNull?.name ??
+            match.competitionId;
+        final roundLabel = match.round?.trim();
+        final headerEyebrow = roundLabel != null && roundLabel.isNotEmpty
+            ? '$competitionLabel · $roundLabel'
+            : competitionLabel;
         final tabs = <Tab>[
           if (AppConfig.enablePredictions) const Tab(text: 'Predict'),
-          const Tab(text: 'Overview'),
-          const Tab(text: 'Lineups'),
           const Tab(text: 'Stats'),
           const Tab(text: 'H2H'),
-          const Tab(text: 'Table'),
-          if (AppConfig.enableSocialFeed) const Tab(text: 'Chat'),
+          const Tab(text: 'Lineups'),
         ];
         final views = <Widget>[
           if (AppConfig.enablePredictions) _PredictTab(match: match),
-          _OverviewTab(
-            match: match,
-            relatedMatchesAsync: relatedMatchesAsync,
-            competitionName:
-                competitionAsync.valueOrNull?.name ?? match.competitionId,
-          ),
-          _LineupsTab(match: match),
           _StatsTab(match: match),
           _H2HTab(match: match),
-          _TableTab(
-            standingsAsync: standingsAsync,
-            highlightTeamIds: {
-              if (match.homeTeamId != null) match.homeTeamId!,
-              if (match.awayTeamId != null) match.awayTeamId!,
-            },
-          ),
-          if (AppConfig.enableSocialFeed)
-            FeedChat(channelType: 'match', channelId: match.id),
+          _LineupsTab(match: match),
         ];
 
         return DefaultTabController(
@@ -115,30 +86,47 @@ class MatchDetailScreen extends ConsumerWidget {
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
                 SliverAppBar(
                   pinned: true,
-                  title: Text(
-                    competitionAsync.valueOrNull?.shortName ?? 'Match',
+                  centerTitle: true,
+                  backgroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                      ? FzColors.darkSurface.withValues(alpha: 0.92)
+                      : FzColors.lightSurface.withValues(alpha: 0.92),
+                  surfaceTintColor: Colors.transparent,
+                  scrolledUnderElevation: 0,
+                  leading: IconButton(
+                    tooltip: 'Back',
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                  ),
+                  title: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        headerEyebrow.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? FzColors.darkMuted
+                              : FzColors.lightMuted,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${match.homeTeam} vs ${match.awayTeam}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? FzColors.darkText
+                              : FzColors.lightText,
+                        ),
+                      ),
+                    ],
                   ),
                   actions: [
-                    IconButton(
-                      tooltip:
-                          favourites.isCompetitionFavourite(match.competitionId)
-                          ? 'Unfollow competition'
-                          : 'Follow competition',
-                      onPressed: () => ref
-                          .read(favouritesProvider.notifier)
-                          .toggleCompetition(match.competitionId),
-                      icon: Icon(
-                        favourites.isCompetitionFavourite(match.competitionId)
-                            ? Icons.star_rounded
-                            : Icons.star_border_rounded,
-                        color:
-                            favourites.isCompetitionFavourite(
-                              match.competitionId,
-                            )
-                            ? FzColors.coral
-                            : null,
-                      ),
-                    ),
                     IconButton(
                       tooltip: matchAlertsEnabled
                           ? 'Disable match alerts'
@@ -192,9 +180,6 @@ class MatchDetailScreen extends ConsumerWidget {
                 SliverToBoxAdapter(
                   child: _MatchHero(
                     match: match,
-                    competitionLabel:
-                        competitionAsync.valueOrNull?.name ??
-                        match.competitionId,
                   ),
                 ),
                 SliverPersistentHeader(
@@ -225,4 +210,31 @@ class MatchDetailScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  _TabBarDelegate(this.tabBar);
+
+  final TabBar tabBar;
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) => false;
 }

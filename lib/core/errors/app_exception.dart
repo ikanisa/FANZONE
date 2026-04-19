@@ -16,7 +16,11 @@ Failure mapExceptionToFailure(Object error, [StackTrace? stack]) {
 
   // Supabase RPC business-rule exceptions (RAISE EXCEPTION in plpgsql)
   if (message.contains('Insufficient FET') ||
+      message.contains('Insufficient balance') ||
       message.contains('Minimum stake') ||
+      message.contains('Amount must be greater than zero') ||
+      message.contains('exactly 6 digits') ||
+      message.contains('Fan ID not found') ||
       message.contains('not enabled') ||
       message.contains('not found or inactive') ||
       message.contains('no longer open') ||
@@ -28,7 +32,9 @@ Failure mapExceptionToFailure(Object error, [StackTrace? stack]) {
   // Network / timeout
   if (message.contains('TimeoutException') ||
       message.contains('SocketException') ||
-      message.contains('Connection refused')) {
+      message.contains('Connection refused') ||
+      message.contains('Failed host lookup') ||
+      message.contains('unavailable right now')) {
     return const ServerFailure(
       message: 'Network error. Check your connection and try again.',
       code: 'network_error',

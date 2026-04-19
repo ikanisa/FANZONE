@@ -1,6 +1,7 @@
 // FANZONE Admin — Analytics Data Hooks
 import { useQuery } from '@tanstack/react-query';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { runAdminRpc } from '../../lib/adminData';
+import { isDemoMode } from '../../lib/supabase';
 
 /* ── Types ── */
 export interface EngagementDay {
@@ -72,10 +73,7 @@ export function useEngagementKpis() {
     queryKey: ['analytics-kpis'],
     queryFn: async () => {
       if (isDemoMode) return DEMO_KPIS;
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { data, error } = await supabase.rpc('admin_engagement_kpis');
-      if (error) throw new Error(error.message);
-      return data as EngagementKpis;
+      return runAdminRpc<EngagementKpis>('admin_engagement_kpis');
     },
     refetchInterval: 300_000,
   });
@@ -86,10 +84,11 @@ export function useEngagementChart() {
     queryKey: ['analytics-engagement'],
     queryFn: async () => {
       if (isDemoMode) return DEMO_ENGAGEMENT;
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { data, error } = await supabase.rpc('admin_engagement_daily', { p_days: 7 });
-      if (error) throw new Error(error.message);
-      return (data as EngagementDay[]) ?? DEMO_ENGAGEMENT;
+      return (
+        await runAdminRpc<EngagementDay[]>('admin_engagement_daily', {
+          p_days: 7,
+        })
+      ) ?? DEMO_ENGAGEMENT;
     },
   });
 }
@@ -99,10 +98,11 @@ export function useFetFlowChart() {
     queryKey: ['analytics-fet-flow'],
     queryFn: async () => {
       if (isDemoMode) return DEMO_FET_FLOW;
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { data, error } = await supabase.rpc('admin_fet_flow_weekly', { p_weeks: 4 });
-      if (error) throw new Error(error.message);
-      return (data as FetFlowWeek[]) ?? DEMO_FET_FLOW;
+      return (
+        await runAdminRpc<FetFlowWeek[]>('admin_fet_flow_weekly', {
+          p_weeks: 4,
+        })
+      ) ?? DEMO_FET_FLOW;
     },
   });
 }
@@ -112,10 +112,11 @@ export function useCompetitionDistribution() {
     queryKey: ['analytics-competition'],
     queryFn: async () => {
       if (isDemoMode) return DEMO_COMPETITION_PIE;
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { data, error } = await supabase.rpc('admin_competition_distribution', { p_days: 30 });
-      if (error) throw new Error(error.message);
-      return (data as CompetitionShare[])?.length ? (data as CompetitionShare[]) : DEMO_COMPETITION_PIE;
+      const data = await runAdminRpc<CompetitionShare[]>(
+        'admin_competition_distribution',
+        { p_days: 30 },
+      );
+      return data?.length ? data : DEMO_COMPETITION_PIE;
     },
   });
 }

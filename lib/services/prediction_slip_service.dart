@@ -4,7 +4,8 @@ import '../core/di/injection.dart';
 import '../core/errors/app_exception.dart';
 import '../core/errors/failures.dart';
 import '../core/logging/app_logger.dart';
-import '../features/predict/data/predict_gateway.dart';
+import '../features/predict/data/predict_gateway_models.dart';
+import '../features/predict/data/prediction_slip_gateway.dart';
 import '../models/prediction_slip_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/prediction_slip_provider.dart';
@@ -13,7 +14,7 @@ import 'product_analytics_service.dart';
 class PredictionSlipService {
   const PredictionSlipService(this._gateway);
 
-  final PredictGateway _gateway;
+  final PredictionSlipGateway _gateway;
 
   Future<String> submitSlip({
     required List<PredictionSelection> selections,
@@ -51,7 +52,7 @@ class PredictionSlipService {
 }
 
 final predictionSlipServiceProvider = Provider<PredictionSlipService>((ref) {
-  return PredictionSlipService(getIt<PredictGateway>());
+  return PredictionSlipService(getIt<PredictionSlipGateway>());
 });
 
 final myPredictionSlipsProvider =
@@ -62,7 +63,9 @@ final myPredictionSlipsProvider =
       if (userId == null) return const [];
 
       try {
-        return ref.watch(predictionSlipServiceProvider).getMySlips(userId: userId);
+        return ref
+            .watch(predictionSlipServiceProvider)
+            .getMySlips(userId: userId);
       } catch (error, stack) {
         final failure = mapExceptionToFailure(error, stack);
         AppLogger.w('Failed to load prediction slips: ${failure.message}');

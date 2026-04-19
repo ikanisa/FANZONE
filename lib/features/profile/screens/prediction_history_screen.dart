@@ -99,8 +99,14 @@ class PredictionHistoryScreen extends ConsumerWidget {
                     .toList(),
               );
             },
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (_, _) => StateView.error(
+              title: 'Could not load daily challenge history',
+              onRetry: () => ref.invalidate(dailyChallengeHistoryProvider),
+            ),
           ),
           const SizedBox(height: 100),
         ],

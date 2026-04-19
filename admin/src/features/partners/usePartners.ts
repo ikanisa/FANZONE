@@ -1,10 +1,9 @@
 // FANZONE Admin — Partners Data Hooks
 import {
   useSupabasePaginated,
-  useSupabaseMutation,
+  useRpcMutation,
   type AdminListQuery,
 } from '../../hooks/useSupabaseQuery';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
 import type { Partner } from '../../types';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
@@ -43,56 +42,28 @@ export function usePartners(pagination: PaginationOpts, filters?: { search?: str
 }
 
 export function useApprovePartner() {
-  return useSupabaseMutation<{ partnerId: string; adminId: string }>({
-    mutationFn: async ({ partnerId, adminId }) => {
-      if (isDemoMode) return { approved: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase
-        .from('partners')
-        .update({ status: 'approved', approved_by: adminId, updated_at: new Date().toISOString() })
-        .eq('id', partnerId);
-      if (error) throw new Error(error.message);
-      return { approved: true };
-    },
+  return useRpcMutation<{ p_partner_id: string }>({
+    fnName: 'admin_approve_partner',
     invalidateKeys: [['partners'], ['dashboard-kpis']],
     successMessage: 'Partner approved successfully.',
+    demoFn: async () => ({ approved: true }),
   });
 }
 
 export function useRejectPartner() {
-  return useSupabaseMutation<{ partnerId: string; reason: string }>({
-    mutationFn: async ({ partnerId, reason }) => {
-      if (isDemoMode) return { rejected: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase
-        .from('partners')
-        .update({
-          status: 'rejected',
-          metadata: { rejection_reason: reason },
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', partnerId);
-      if (error) throw new Error(error.message);
-      return { rejected: true };
-    },
+  return useRpcMutation<{ p_partner_id: string; p_reason: string }>({
+    fnName: 'admin_reject_partner',
     invalidateKeys: [['partners']],
     successMessage: 'Partner rejected.',
+    demoFn: async () => ({ rejected: true }),
   });
 }
 
 export function useToggleFeatured() {
-  return useSupabaseMutation<{ partnerId: string; featured: boolean }>({
-    mutationFn: async ({ partnerId, featured }) => {
-      if (isDemoMode) return { toggled: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase
-        .from('partners')
-        .update({ is_featured: featured, updated_at: new Date().toISOString() })
-        .eq('id', partnerId);
-      if (error) throw new Error(error.message);
-      return { toggled: true };
-    },
+  return useRpcMutation<{ p_partner_id: string; p_is_featured: boolean }>({
+    fnName: 'admin_set_partner_featured',
     invalidateKeys: [['partners']],
     successMessage: 'Partner featured status updated.',
+    demoFn: async () => ({ toggled: true }),
   });
 }

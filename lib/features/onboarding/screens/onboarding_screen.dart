@@ -7,16 +7,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/market/launch_market.dart';
+import '../../../core/runtime/app_runtime_state.dart';
 import '../../../data/team_search_database.dart';
-import '../../../main.dart' show supabaseInitError;
+import '../../../features/onboarding/data/onboarding_gateway.dart';
+import '../../../features/settings/data/preferences_gateway.dart';
 import '../../../models/user_market_preferences_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/market_preferences_provider.dart';
 import '../../../providers/region_provider.dart';
-import '../../../services/market_preferences_service.dart';
 import '../../../theme/colors.dart';
 import '../providers/onboarding_provider.dart';
-import '../providers/onboarding_service.dart';
 import '../widgets/onboarding_phone_verification_steps.dart';
 import '../widgets/onboarding_team_selection_steps.dart';
 import '../widgets/onboarding_welcome_step.dart';
@@ -54,7 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     ref.read(localTeamSearchQueryProvider.notifier).state = '';
     ref.read(popularTeamSearchQueryProvider.notifier).state = '';
     ref.read(selectedLocalTeamProvider.notifier).state = null;
-    ref.read(selectedPopularTeamsProvider.notifier).clear();
+    ref.read(selectedPopularTeamProvider.notifier).state = null;
   }
 
   @override
@@ -75,14 +75,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final authService = ref.read(authServiceProvider);
     return authService.isAvailable &&
         !authService.isAuthenticated &&
-        supabaseInitError == null;
+        appRuntime.supabaseInitError == null;
   }
 
   bool get _isAlreadyAuthenticated {
     return ref.read(authServiceProvider).isAuthenticated;
   }
 
-  String get _dialCode => '+356';
+  _PhoneRegionPreset get _phonePreset => _resolvePhonePreset();
+
+  String get _dialCode => _phonePreset.dialCode;
+
+  String get _phoneHint => _phonePreset.hint;
 
   String get _fullPhone {
     final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
@@ -113,12 +117,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _handlePhoneContinue() async {
     if (!_canUseOtp) {
-      _setStep(_favoriteTeamStep);
+      setState(() {
+        _error = appRuntime.supabaseInitError == null
+            ? 'Phone verification is required before continuing.'
+            : 'Phone verification is temporarily unavailable. Retry when the auth service reconnects.';
+      });
       return;
     }
 
     final phone = _fullPhone;
-    if (phone.length < 8) {
+    if (_phoneController.text.replaceAll(RegExp(r'\D'), '').length <
+        _phonePreset.minDigits) {
       setState(() {
         _error = 'Enter your mobile number before continuing.';
       });
@@ -205,12 +214,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void _handleFavoriteTeamSelected(OnboardingTeam team) {
     HapticFeedback.selectionClick();
     ref.read(selectedLocalTeamProvider.notifier).state = team;
-    _favoriteSearchController.text = team.name;
-    ref.read(localTeamSearchQueryProvider.notifier).state = team.name;
-  }
-
-  void _clearFavoriteTeam() {
-    ref.read(selectedLocalTeamProvider.notifier).state = null;
     _favoriteSearchController.clear();
     ref.read(localTeamSearchQueryProvider.notifier).state = '';
   }
@@ -219,8 +222,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     ref.read(popularTeamSearchQueryProvider.notifier).state = value;
   }
 
-  void _togglePopularTeam(String teamId) {
-    ref.read(selectedPopularTeamsProvider.notifier).toggle(teamId);
+  void _handlePopularTeamSelected(OnboardingTeam team) {
+    HapticFeedback.selectionClick();
+    ref.read(selectedPopularTeamProvider.notifier).state = team;
+    _popularSearchController.clear();
+    ref.read(popularTeamSearchQueryProvider.notifier).state = '';
   }
 
   void _goBackFromFavoriteTeam() {
@@ -237,7 +243,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _completeOnboarding() async {
     final localTeam = ref.read(selectedLocalTeamProvider);
-    final popularTeamIds = {...ref.read(selectedPopularTeamsProvider)};
+    final popularTeam = ref.read(selectedPopularTeamProvider);
+    final popularTeamIds = <String>{
+      if (popularTeam != null) popularTeam.id,
+    };
     if (localTeam != null) {
       popularTeamIds.remove(localTeam.id);
     }
@@ -248,11 +257,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ? defaultFocusTagsForRegion(launchRegion)
         : selectedTags.toList();
 
-    await OnboardingService.saveOnboardingTeams(
+    await getIt<OnboardingGateway>().saveOnboardingTeams(
       localTeam: localTeam,
       popularTeamIds: popularTeamIds,
     );
-    await MarketPreferencesService.saveUserPreferences(
+    await getIt<MarketPreferencesGateway>().saveUserMarketPreferences(
       UserMarketPreferences(
         primaryRegion: launchRegion,
         selectedRegions: {'global', launchRegion}.toList(),
@@ -359,7 +368,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     if (_currentStep == _phoneStep && !_canUseOtp)
                       _OnboardingInfoBanner(
                         message:
-                            'Phone verification is unavailable right now. Continue as a guest and verify later when you want to transfer FET or join protected actions.',
+                            'Phone verification is required to complete onboarding. The current session cannot reach the auth service, so this flow stays locked until verification is available.',
                         color: FzColors.accent,
                         textColor: textColor,
                       ),
@@ -407,19 +416,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           },
           canContinue: _loading
               ? false
-              : (_canUseOtp
-                    ? _phoneController.text
-                              .replaceAll(RegExp(r'\D'), '')
-                              .length >=
-                          6
-                    : true),
+              : (_canUseOtp &&
+                    _phoneController.text
+                            .replaceAll(RegExp(r'\D'), '')
+                            .length >=
+                        _phonePreset.minDigits),
           onBack: () => _setStep(_welcomeStep),
           onNext: _handlePhoneContinue,
           countryCode: _dialCode,
-          phoneHint: '79XX XXXX',
+          phoneHint: _phoneHint,
           buttonLabel: _loading
               ? 'SENDING...'
-              : (_canUseOtp ? 'SEND OTP' : 'CONTINUE'),
+              : (_canUseOtp ? 'SEND OTP' : 'VERIFICATION REQUIRED'),
         );
       case _otpStep:
         return OnboardingOtpStep(
@@ -455,7 +463,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           query: ref.watch(localTeamSearchQueryProvider),
           onSearchChanged: _handleFavoriteSearchChanged,
           onTeamSelected: _handleFavoriteTeamSelected,
-          onTeamRemoved: _clearFavoriteTeam,
           onBack: _goBackFromFavoriteTeam,
           onNext: () => _setStep(_popularTeamsStep),
         );
@@ -468,9 +475,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           query: ref.watch(popularTeamSearchQueryProvider),
           searchResults: ref.watch(popularTeamSearchResultsProvider),
           popularTeams: popularTeams,
-          selectedIds: ref.watch(selectedPopularTeamsProvider),
+          selectedTeam: ref.watch(selectedPopularTeamProvider),
           onSearchChanged: _handlePopularSearchChanged,
-          onToggleTeam: _togglePopularTeam,
+          onSelectTeam: _handlePopularTeamSelected,
           onBack: () => _setStep(_favoriteTeamStep),
           onFinish: _completeOnboarding,
         );
@@ -478,6 +485,151 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         return const SizedBox.shrink();
     }
   }
+
+  _PhoneRegionPreset _resolvePhonePreset() {
+    final localeCountry = WidgetsBinding
+        .instance
+        .platformDispatcher
+        .locale
+        .countryCode
+        ?.toUpperCase();
+    final localePreset = _presetForCountryCode(localeCountry);
+    if (localePreset != null) return localePreset;
+
+    final selectedRegion = normalizeRegionKey(
+      ref.read(selectedLaunchRegionProvider),
+    );
+    switch (selectedRegion) {
+      case 'africa':
+        return const _PhoneRegionPreset(
+          dialCode: '+250',
+          hint: '7XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'europe':
+        return const _PhoneRegionPreset(
+          dialCode: '+44',
+          hint: '7XXX XXX XXX',
+          minDigits: 9,
+        );
+      case 'north_america':
+        return const _PhoneRegionPreset(
+          dialCode: '+1',
+          hint: '555 123 4567',
+          minDigits: 10,
+        );
+      default:
+        return const _PhoneRegionPreset(
+          dialCode: '+1',
+          hint: '555 123 4567',
+          minDigits: 10,
+        );
+    }
+  }
+
+  _PhoneRegionPreset? _presetForCountryCode(String? code) {
+    switch (code) {
+      case 'MT':
+        return const _PhoneRegionPreset(
+          dialCode: '+356',
+          hint: '79XX XXXX',
+          minDigits: 8,
+        );
+      case 'RW':
+        return const _PhoneRegionPreset(
+          dialCode: '+250',
+          hint: '7XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'NG':
+        return const _PhoneRegionPreset(
+          dialCode: '+234',
+          hint: '80X XXX XXXX',
+          minDigits: 10,
+        );
+      case 'KE':
+        return const _PhoneRegionPreset(
+          dialCode: '+254',
+          hint: '7XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'UG':
+        return const _PhoneRegionPreset(
+          dialCode: '+256',
+          hint: '7XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'GB':
+        return const _PhoneRegionPreset(
+          dialCode: '+44',
+          hint: '7XXX XXX XXX',
+          minDigits: 10,
+        );
+      case 'ES':
+        return const _PhoneRegionPreset(
+          dialCode: '+34',
+          hint: '6XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'DE':
+        return const _PhoneRegionPreset(
+          dialCode: '+49',
+          hint: '15XX XXX XXX',
+          minDigits: 10,
+        );
+      case 'FR':
+        return const _PhoneRegionPreset(
+          dialCode: '+33',
+          hint: '6 XX XX XX XX',
+          minDigits: 9,
+        );
+      case 'IT':
+        return const _PhoneRegionPreset(
+          dialCode: '+39',
+          hint: '3XX XXX XXXX',
+          minDigits: 10,
+        );
+      case 'PT':
+        return const _PhoneRegionPreset(
+          dialCode: '+351',
+          hint: '9XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'NL':
+        return const _PhoneRegionPreset(
+          dialCode: '+31',
+          hint: '6 XX XX XX XX',
+          minDigits: 9,
+        );
+      case 'US':
+      case 'CA':
+        return const _PhoneRegionPreset(
+          dialCode: '+1',
+          hint: '555 123 4567',
+          minDigits: 10,
+        );
+      case 'MX':
+        return const _PhoneRegionPreset(
+          dialCode: '+52',
+          hint: '55 1234 5678',
+          minDigits: 10,
+        );
+      default:
+        return null;
+    }
+  }
+}
+
+class _PhoneRegionPreset {
+  const _PhoneRegionPreset({
+    required this.dialCode,
+    required this.hint,
+    required this.minDigits,
+  });
+
+  final String dialCode;
+  final String hint;
+  final int minDigits;
 }
 
 class _OnboardingInfoBanner extends StatelessWidget {

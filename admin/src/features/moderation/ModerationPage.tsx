@@ -6,7 +6,6 @@ import { KpiCard } from '../../components/ui/KpiCard';
 import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/DetailDrawer';
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useReports, useUpdateReportStatus } from './useModeration';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatRelativeTime, formatDateTime } from '../../lib/formatters';
 import { Shield, AlertTriangle, Eye, Clock, Search, CheckCircle, XCircle, ArrowUp } from 'lucide-react';
 import type { ModerationReport } from '../../types';
@@ -21,22 +20,17 @@ export function ModerationPage() {
   // Data
   const { data: result, isLoading, error, refetch } = useReports({ page }, { status: statusFilter, search });
   const updateStatus = useUpdateReportStatus();
-  const { logAction } = useAuditLog();
 
   const reports = result?.data ?? [];
 
   const handleStatusUpdate = async (reportId: string, newStatus: string) => {
     await updateStatus.mutateAsync({
-      reportId,
-      status: newStatus,
-      resolutionNotes: newStatus === 'resolved' || newStatus === 'dismissed' ? resolutionNotes : undefined,
-    });
-    await logAction({
-      action: `${newStatus}_report`,
-      module: 'moderation',
-      targetType: 'report',
-      targetId: reportId,
-      afterState: { status: newStatus, resolution_notes: resolutionNotes || undefined },
+      p_report_id: reportId,
+      p_status: newStatus,
+      p_resolution_notes:
+        newStatus === 'resolved' || newStatus === 'dismissed'
+          ? resolutionNotes
+          : undefined,
     });
     setSelectedReport(null);
     setResolutionNotes('');

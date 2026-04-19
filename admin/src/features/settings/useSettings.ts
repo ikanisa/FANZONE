@@ -1,6 +1,5 @@
 // FANZONE Admin — Settings (Feature Flags) Data Hooks
-import { useSupabasePaginated, useSupabaseMutation } from '../../hooks/useSupabaseQuery';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { useRpcMutation, useSupabasePaginated } from '../../hooks/useSupabaseQuery';
 import type { FeatureFlag } from '../../types';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
@@ -26,19 +25,10 @@ export function useFeatureFlags(pagination: PaginationOpts) {
 }
 
 export function useToggleFeatureFlag() {
-  return useSupabaseMutation<{ flagId: string; enabled: boolean; adminId: string }>({
-    mutationFn: async ({ flagId, enabled, adminId }) => {
-      if (isDemoMode) return { toggled: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase.from('admin_feature_flags').update({
-        is_enabled: enabled,
-        updated_by: adminId,
-        updated_at: new Date().toISOString(),
-      }).eq('id', flagId);
-      if (error) throw new Error(error.message);
-      return { toggled: true };
-    },
+  return useRpcMutation<{ p_flag_id: string; p_is_enabled: boolean }>({
+    fnName: 'admin_set_feature_flag',
     invalidateKeys: [['feature-flags']],
     successMessage: 'Feature flag updated.',
+    demoFn: async () => ({ toggled: true }),
   });
 }

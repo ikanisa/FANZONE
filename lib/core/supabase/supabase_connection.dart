@@ -1,7 +1,7 @@
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../main.dart' show supabaseInitialized;
+import '../runtime/app_runtime_state.dart';
 
 abstract class SupabaseConnection {
   bool get isInitialized;
@@ -20,11 +20,11 @@ abstract class SupabaseConnection {
 @LazySingleton(as: SupabaseConnection)
 class SupabaseConnectionImpl implements SupabaseConnection {
   @override
-  bool get isInitialized => supabaseInitialized;
+  bool get isInitialized => appRuntime.supabaseInitialized;
 
   @override
   SupabaseClient? get client =>
-      supabaseInitialized ? Supabase.instance.client : null;
+      appRuntime.supabaseInitialized ? Supabase.instance.client : null;
 
   @override
   User? get currentUser => client?.auth.currentUser;

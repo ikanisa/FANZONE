@@ -11,7 +11,7 @@ class AccountDeletionService {
   static Future<AccountDeletionRequestModel?> getLatestRequest() async {
     final userId = getIt<AuthService>().currentUser?.id;
     if (userId == null) return null;
-    return getIt<PreferencesGateway>().getAccountDeletionRequest(userId);
+    return getIt<AccountSettingsGateway>().getAccountDeletionRequest(userId);
   }
 
   static Future<AccountDeletionRequestModel> createRequest({
@@ -30,7 +30,7 @@ class AccountDeletionService {
       );
     }
 
-    return getIt<PreferencesGateway>().submitAccountDeletionRequest(
+    return getIt<AccountSettingsGateway>().submitAccountDeletionRequest(
       userId: userId,
       reason: trimmedReason,
       feedback: contactEmail,
@@ -45,10 +45,9 @@ class AccountDeletionService {
       throw const AuthException('Sign in to manage deletion requests.');
     }
 
-    await getIt<PreferencesGateway>().cancelAccountDeletionRequest(userId);
-    final latest = await getIt<PreferencesGateway>().getAccountDeletionRequest(
-      userId,
-    );
+    await getIt<AccountSettingsGateway>().cancelAccountDeletionRequest(userId);
+    final latest = await getIt<AccountSettingsGateway>()
+        .getAccountDeletionRequest(userId);
     if (latest == null) {
       throw const AuthException('Deletion request could not be loaded.');
     }

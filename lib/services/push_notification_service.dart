@@ -9,10 +9,9 @@ import '../app_router.dart' show router;
 import '../config/app_config.dart';
 import '../core/di/injection.dart';
 import '../core/logging/app_logger.dart';
+import '../core/runtime/app_runtime_state.dart';
 import '../features/auth/data/auth_gateway.dart';
 import '../features/settings/data/preferences_gateway.dart';
-import '../main.dart'
-    show firebaseInitCompleter, firebaseInitialized, supabaseInitialized;
 import '../providers/auth_provider.dart';
 import '../theme/colors.dart';
 
@@ -25,12 +24,12 @@ class PushNotificationService {
   PushNotificationService(this._authGateway, this._preferencesGateway);
 
   final AuthGateway _authGateway;
-  final PreferencesGateway _preferencesGateway;
+  final NotificationSettingsGateway _preferencesGateway;
   bool _initialized = false;
   String? _currentToken;
 
   Future<void> initialize() async {
-    if (_initialized || !supabaseInitialized) return;
+    if (_initialized || !appRuntime.supabaseInitialized) return;
     if (!_authGateway.isAuthenticated) return;
 
     try {
@@ -244,18 +243,20 @@ class PushNotificationService {
   }
 }
 
-final pushNotificationServiceProvider = Provider<PushNotificationService>((ref) {
+final pushNotificationServiceProvider = Provider<PushNotificationService>((
+  ref,
+) {
   return PushNotificationService(
     getIt<AuthGateway>(),
-    getIt<PreferencesGateway>(),
+    getIt<NotificationSettingsGateway>(),
   );
 });
 
 final pushNotificationInitProvider = FutureProvider<void>((ref) async {
-  if (!AppConfig.enableNotifications || !supabaseInitialized) return;
+  if (!AppConfig.enableNotifications || !appRuntime.supabaseInitialized) return;
 
-  await firebaseInitCompleter.future;
-  if (!firebaseInitialized) return;
+  await appRuntime.firebaseReady;
+  if (!appRuntime.firebaseInitialized) return;
 
   final currentUser = ref.watch(currentUserProvider);
   final service = ref.read(pushNotificationServiceProvider);

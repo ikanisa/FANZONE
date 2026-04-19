@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+
+import '../../../core/di/injection.dart';
 import '../../../data/team_search_database.dart';
-import '../../onboarding/providers/onboarding_service.dart';
+import '../../../features/onboarding/data/onboarding_gateway.dart';
+import '../../../features/profile/providers/profile_identity_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/team_crest.dart';
+import '../../../providers/favorite_teams_provider.dart';
 
 /// Settings > Favorite Teams management screen.
 ///
@@ -23,14 +27,6 @@ class FavoriteTeamsScreen extends ConsumerStatefulWidget {
 class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
   final _searchController = TextEditingController();
   String _query = '';
-  List<FavoriteTeamRecordDto> _savedTeams = [];
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTeams();
-  }
 
   @override
   void dispose() {
@@ -38,20 +34,10 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
     super.dispose();
   }
 
-  Future<void> _loadTeams() async {
-    final teams = await OnboardingService.getUserFavoriteTeams();
-    if (mounted) {
-      setState(() {
-        _savedTeams = teams;
-        _loading = false;
-      });
-    }
-  }
-
   Future<void> _addTeam(OnboardingTeam team) async {
     HapticFeedback.selectionClick();
-    await OnboardingService.addFavoriteTeam(team);
-    await _loadTeams();
+    await getIt<OnboardingGateway>().addFavoriteTeam(team);
+    await ref.read(profileIdentityProvider.notifier).refresh();
     if (mounted) {
       _searchController.clear();
       setState(() => _query = '');
@@ -60,8 +46,8 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
 
   Future<void> _removeTeam(String teamId) async {
     HapticFeedback.lightImpact();
-    await OnboardingService.deleteFavoriteTeam(teamId);
-    await _loadTeams();
+    await getIt<OnboardingGateway>().deleteFavoriteTeam(teamId);
+    await ref.read(profileIdentityProvider.notifier).refresh();
   }
 
   @override
@@ -69,6 +55,9 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final savedTeamsAsync = ref.watch(favoriteTeamRecordsProvider);
+    final savedTeams =
+        savedTeamsAsync.valueOrNull ?? const <FavoriteTeamRecordDto>[];
     final searchResults = searchTeams(_query, limit: 10);
 
     return Scaffold(
@@ -78,7 +67,7 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
           style: FzTypography.display(size: 24, color: textColor),
         ),
       ),
-      body: _loading
+      body: savedTeamsAsync.isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16),
@@ -128,7 +117,7 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
                 if (_query.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   ...searchResults.map((team) {
-                    final alreadyAdded = _savedTeams.any(
+                    final alreadyAdded = savedTeams.any(
                       (saved) => saved.teamId == team.id,
                     );
                     return ListTile(
@@ -187,7 +176,7 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                if (_savedTeams.isEmpty)
+                if (savedTeams.isEmpty)
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.all(32),
@@ -216,7 +205,7 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
                     ),
                   ),
 
-                ..._savedTeams.map((saved) {
+                ...savedTeams.map((saved) {
                   final name = saved.teamName;
                   final countryCode = saved.teamCountryCode ?? '';
                   final source = saved.source;
@@ -244,7 +233,8 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
                     child: ListTile(
                       leading: TeamCrest(
                         label: dbTeam?.shortName ?? name,
-                        crestUrl: saved.teamCrestUrl ?? dbTeam?.resolvedCrestUrl,
+                        crestUrl:
+                            saved.teamCrestUrl ?? dbTeam?.resolvedCrestUrl,
                         fallbackEmoji: dbTeam?.logoEmoji ?? '⚽',
                         size: 40,
                         backgroundColor: isDark

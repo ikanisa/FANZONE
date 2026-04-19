@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../main.dart' show retrySupabaseInitialization, supabaseInitError;
+import '../../../core/market/launch_market.dart';
+import '../../../core/runtime/app_runtime_state.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/market_preferences_provider.dart';
 import '../../../theme/colors.dart';
@@ -55,24 +56,16 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   // Actions
   // ──────────────────────────────────────────────
 
-  /// Region-to-country-code mapping for supported markets.
-  static const _regionDialExamples = <String, String>{
-    'africa': '+250',
-    'europe': '+356',
-    'north_america': '+1',
-    'global': '+356',
-  };
+  _PhoneLoginPreset get _phonePreset => _resolvePhonePreset();
 
-  String get _phoneHint {
-    final region = ref.read(primaryMarketRegionProvider).toLowerCase();
-    return _regionDialExamples[region] ?? '+356';
-  }
+  String get _phoneHint => _phonePreset.example;
 
   String get _fullPhone => _phoneController.text.trim();
 
   Future<void> _sendOtp() async {
     final phone = _fullPhone;
-    if (!phone.startsWith('+') || phone.length < 8) {
+    final digitCount = phone.replaceAll(RegExp(r'\D'), '').length;
+    if (!phone.startsWith('+') || digitCount < _phonePreset.minDigits) {
       setState(
         () => _error = 'Enter your full phone number with country code.',
       );
@@ -169,6 +162,111 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
     return '/';
   }
 
+  _PhoneLoginPreset _resolvePhonePreset() {
+    final localeCountry = WidgetsBinding
+        .instance
+        .platformDispatcher
+        .locale
+        .countryCode
+        ?.toUpperCase();
+    final localePreset = _presetForCountryCode(localeCountry);
+    if (localePreset != null) return localePreset;
+
+    switch (normalizeRegionKey(ref.read(primaryMarketRegionProvider))) {
+      case 'africa':
+        return const _PhoneLoginPreset(
+          example: '+250 7XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'europe':
+        return const _PhoneLoginPreset(
+          example: '+44 7XXX XXX XXX',
+          minDigits: 10,
+        );
+      case 'north_america':
+        return const _PhoneLoginPreset(
+          example: '+1 555 123 4567',
+          minDigits: 10,
+        );
+      default:
+        return const _PhoneLoginPreset(
+          example: '+1 555 123 4567',
+          minDigits: 10,
+        );
+    }
+  }
+
+  _PhoneLoginPreset? _presetForCountryCode(String? code) {
+    switch (code) {
+      case 'MT':
+        return const _PhoneLoginPreset(example: '+356 79XX XXXX', minDigits: 8);
+      case 'RW':
+        return const _PhoneLoginPreset(
+          example: '+250 7XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'NG':
+        return const _PhoneLoginPreset(
+          example: '+234 80X XXX XXXX',
+          minDigits: 10,
+        );
+      case 'KE':
+      case 'UG':
+        return const _PhoneLoginPreset(
+          example: '+254 7XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'GB':
+        return const _PhoneLoginPreset(
+          example: '+44 7XXX XXX XXX',
+          minDigits: 10,
+        );
+      case 'DE':
+        return const _PhoneLoginPreset(
+          example: '+49 15XX XXX XXX',
+          minDigits: 10,
+        );
+      case 'FR':
+        return const _PhoneLoginPreset(
+          example: '+33 6 XX XX XX XX',
+          minDigits: 9,
+        );
+      case 'IT':
+        return const _PhoneLoginPreset(
+          example: '+39 3XX XXX XXXX',
+          minDigits: 10,
+        );
+      case 'ES':
+        return const _PhoneLoginPreset(
+          example: '+34 6XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'PT':
+        return const _PhoneLoginPreset(
+          example: '+351 9XX XXX XXX',
+          minDigits: 9,
+        );
+      case 'NL':
+        return const _PhoneLoginPreset(
+          example: '+31 6 XX XX XX XX',
+          minDigits: 9,
+        );
+      case 'US':
+      case 'CA':
+        return const _PhoneLoginPreset(
+          example: '+1 555 123 4567',
+          minDigits: 10,
+        );
+      case 'MX':
+        return const _PhoneLoginPreset(
+          example: '+52 55 1234 5678',
+          minDigits: 10,
+        );
+      default:
+        return null;
+    }
+  }
+
   // ──────────────────────────────────────────────
   // Build
   // ──────────────────────────────────────────────
@@ -179,7 +277,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     // ── Connection error state ──
-    if (supabaseInitError != null) {
+    if (appRuntime.supabaseInitError != null) {
       return _buildConnectionError(theme, isDark);
     }
 
@@ -294,7 +392,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
           ],
           decoration: InputDecoration(
             labelText: 'Mobile number',
-            hintText: '$_phoneHint 9999 9999',
+            hintText: _phoneHint,
             helperText: 'Use international format, for example $_phoneHint.',
             prefixIcon: Icon(
               Icons.phone_rounded,
@@ -538,7 +636,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
               Text('Connection Error', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
-                supabaseInitError!,
+                appRuntime.supabaseInitError!,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
                 ),
@@ -551,9 +649,13 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                     : () async {
                         final router = GoRouter.of(context);
                         setState(() => _retryingInit = true);
-                        await retrySupabaseInitialization();
+                        final retry = appRuntime.retrySupabaseInitialization;
+                        if (retry != null) {
+                          await retry();
+                        }
                         if (!mounted) return;
-                        final shouldNavigate = supabaseInitError == null;
+                        final shouldNavigate =
+                            appRuntime.supabaseInitError == null;
                         setState(() => _retryingInit = false);
                         if (shouldNavigate) {
                           router.go('/splash');
@@ -574,4 +676,11 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
       ),
     );
   }
+}
+
+class _PhoneLoginPreset {
+  const _PhoneLoginPreset({required this.example, required this.minDigits});
+
+  final String example;
+  final int minDigits;
 }

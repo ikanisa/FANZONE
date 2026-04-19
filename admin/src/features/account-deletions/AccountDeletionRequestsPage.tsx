@@ -5,10 +5,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { DetailDrawer, DrawerField, DrawerSection } from '../../components/ui/DetailDrawer';
 import { EmptyState, ErrorState, LoadingState } from '../../components/ui/StateViews';
 import { StatusBadge } from '../../components/ui/StatusBadge';
-import { useSupabaseMutation, useSupabasePaginated } from '../../hooks/useSupabaseQuery';
-import { useAuditLog } from '../../hooks/useAuditLog';
-import { useAuth } from '../../hooks/useAuth';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { useRpcMutation, useSupabasePaginated } from '../../hooks/useSupabaseQuery';
 import { formatDateTime } from '../../lib/formatters';
 
 type RequestStatus = 'pending' | 'in_review' | 'completed' | 'rejected' | 'cancelled';
@@ -35,9 +32,6 @@ const STATUS_OPTIONS: Array<{ label: string; value: RequestStatus | 'all' }> = [
 ];
 
 export function AccountDeletionRequestsPage() {
-  const { admin } = useAuth();
-  const { logAction } = useAuditLog();
-
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<RequestStatus | 'all'>('all');
@@ -78,45 +72,15 @@ export function AccountDeletionRequestsPage() {
     },
   );
 
-  const updateMutation = useSupabaseMutation<{
-    requestId: string;
-    nextStatus: RequestStatus;
-    resolutionNotes: string;
+  const updateMutation = useRpcMutation<{
+    p_request_id: string;
+    p_status: RequestStatus;
+    p_resolution_notes?: string | null;
   }>({
-    mutationFn: async ({ requestId, nextStatus, resolutionNotes }) => {
-      if (isDemoMode) {
-        return { id: requestId, status: nextStatus };
-      }
-      if (!isSupabaseConfigured) {
-        throw new Error(adminEnvError);
-      }
-
-      const now = new Date().toISOString();
-      const { data, error } = await supabase
-        .from('account_deletion_requests')
-        .update({
-          status: nextStatus,
-          resolution_notes: resolutionNotes.trim() || null,
-          processed_at:
-            nextStatus === 'pending' ? null : now,
-          processed_by:
-            nextStatus === 'pending' ? null : (admin?.user_id ?? null),
-          updated_at: now,
-        })
-        .eq('id', requestId)
-        .select(
-          'id, user_id, status, reason, contact_email, resolution_notes, requested_at, processed_at, updated_at',
-        )
-        .single();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      return data;
-    },
+    fnName: 'admin_update_account_deletion_request',
     invalidateKeys: [['account-deletion-requests']],
     successMessage: 'Deletion request updated.',
+    demoFn: async () => ({ updated: true }),
   });
 
   function openRequest(request: AccountDeletionRequestRecord) {
@@ -132,17 +96,9 @@ export function AccountDeletionRequestsPage() {
     if (!selectedRequest) return;
 
     await updateMutation.mutateAsync({
-      requestId: selectedRequest.id,
-      nextStatus,
-      resolutionNotes,
-    });
-    await logAction({
-      action: 'account_deletion_request_status_changed',
-      module: 'account_deletions',
-      targetType: 'account_deletion_request',
-      targetId: selectedRequest.id,
-      beforeState: { status: selectedRequest.status },
-      afterState: { status: nextStatus, resolutionNotes },
+      p_request_id: selectedRequest.id,
+      p_status: nextStatus,
+      p_resolution_notes: resolutionNotes,
     });
     setSelectedRequest((current) =>
       current

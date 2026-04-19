@@ -1,6 +1,7 @@
 // FANZONE Admin — Dashboard Data Hooks
 import { useQuery } from '@tanstack/react-query';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { countAdminRows, fetchAdminRows, runAdminRpc } from '../../lib/adminData';
+import { isDemoMode } from '../../lib/supabase';
 import type { AuditLog } from '../../types';
 
 /* ── KPI Types ── */
@@ -68,10 +69,7 @@ export function useDashboardKpis() {
     queryKey: ['dashboard-kpis'],
     queryFn: async () => {
       if (isDemoMode) return DEMO_KPIS;
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { data, error } = await supabase.rpc('admin_dashboard_kpis');
-      if (error) throw new Error(error.message);
-      return data as DashboardKpis;
+      return runAdminRpc<DashboardKpis>('admin_dashboard_kpis');
     },
     refetchInterval: 60_000, // Refresh every minute
   });
@@ -82,16 +80,9 @@ export function useRecentActivity() {
     queryKey: ['dashboard-activity'],
     queryFn: async () => {
       if (isDemoMode) return DEMO_ACTIVITY;
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-
-      const { data, error } = await supabase
-        .from('admin_audit_logs_enriched')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw new Error(error.message);
-      return (data ?? []) as AuditLog[];
+      return fetchAdminRows<AuditLog>('admin_audit_logs_enriched', (query) =>
+        query.order('created_at', { ascending: false }).limit(10),
+      );
     },
     refetchInterval: 30_000,
   });
@@ -102,38 +93,32 @@ export function useSystemAlerts() {
     queryKey: ['dashboard-alerts'],
     queryFn: async () => {
       if (isDemoMode) return DEMO_ALERTS;
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
 
       const alerts: SystemAlert[] = [];
 
-      // Check for flagged transactions
-      const { count: flaggedTx } = await supabase
-        .from('moderation_reports')
-        .select('id', { count: 'exact' })
-        .eq('status', 'open')
-        .eq('severity', 'critical');
+      const flaggedTx = await countAdminRows('moderation_reports', (query) =>
+        query.eq('status', 'open').eq('severity', 'critical'),
+      );
 
-      if (flaggedTx && flaggedTx > 0) {
+      if (flaggedTx > 0) {
         alerts.push({ id: 'sa-crit', severity: 'critical', message: `${flaggedTx} critical reports need immediate attention`, module: 'Moderation' });
       }
 
-      // Check for pending redemptions
-      const { count: pendingRd } = await supabase
-        .from('redemptions')
-        .select('id', { count: 'exact' })
-        .eq('status', 'disputed');
+      const pendingRd = await countAdminRows('redemptions', (query) =>
+        query.eq('status', 'disputed'),
+      );
 
-      if (pendingRd && pendingRd > 0) {
+      if (pendingRd > 0) {
         alerts.push({ id: 'sa-disp', severity: 'warning', message: `${pendingRd} redemption disputes need resolution`, module: 'Redemptions' });
       }
 
-      const { count: dueCampaigns } = await supabase
-        .from('campaigns')
-        .select('id', { count: 'exact' })
-        .eq('status', 'scheduled')
-        .lte('scheduled_at', new Date().toISOString());
+      const dueCampaigns = await countAdminRows('campaigns', (query) =>
+        query
+          .eq('status', 'scheduled')
+          .lte('scheduled_at', new Date().toISOString()),
+      );
 
-      if (dueCampaigns && dueCampaigns > 0) {
+      if (dueCampaigns > 0) {
         alerts.push({
           id: 'sa-campaigns',
           severity: 'info',
@@ -142,25 +127,25 @@ export function useSystemAlerts() {
         });
       }
 
-      const { data: settlementIntegrity, error: settlementIntegrityError } =
-        await supabase.rpc('get_pool_settlement_integrity_summary', {
+      const settlementIntegrity =
+        await runAdminRpc<PoolSettlementIntegritySummary | null>(
+          'get_pool_settlement_integrity_summary',
+          {
           p_since: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        });
+          },
+        );
 
-      if (!settlementIntegrityError) {
-        const summary = settlementIntegrity as PoolSettlementIntegritySummary | null;
-        const unreconciledCount = summary?.unreconciled_pool_count ?? 0;
-        if (unreconciledCount > 0) {
-          const samplePool = summary?.sample_unreconciled_pool_ids?.[0];
-          alerts.push({
-            id: 'sa-settlement-integrity',
-            severity: 'critical',
-            message: unreconciledCount === 1
-              ? `1 pool settlement failed reconciliation${samplePool ? ` (${samplePool})` : ''}`
-              : `${unreconciledCount} pool settlements failed reconciliation`,
-            module: 'Settlement',
-          });
-        }
+      const unreconciledCount = settlementIntegrity?.unreconciled_pool_count ?? 0;
+      if (unreconciledCount > 0) {
+        const samplePool = settlementIntegrity?.sample_unreconciled_pool_ids?.[0];
+        alerts.push({
+          id: 'sa-settlement-integrity',
+          severity: 'critical',
+          message: unreconciledCount === 1
+            ? `1 pool settlement failed reconciliation${samplePool ? ` (${samplePool})` : ''}`
+            : `${unreconciledCount} pool settlements failed reconciliation`,
+          module: 'Settlement',
+        });
       }
 
       return alerts;

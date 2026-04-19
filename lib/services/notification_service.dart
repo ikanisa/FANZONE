@@ -10,7 +10,8 @@ part 'notification_service.g.dart';
 
 @riverpod
 class NotificationService extends _$NotificationService {
-  PreferencesGateway get _gateway => getIt<PreferencesGateway>();
+  NotificationSettingsGateway get _gateway =>
+      getIt<NotificationSettingsGateway>();
 
   @override
   FutureOr<NotificationPreferences> build() async {
@@ -86,7 +87,7 @@ FutureOr<List<NotificationItem>> notificationLog(Ref ref) async {
   final userId = ref.read(authServiceProvider).currentUser?.id;
   if (userId == null) return const [];
 
-  return getIt<PreferencesGateway>().getNotificationLog(userId);
+  return getIt<NotificationSettingsGateway>().getNotificationLog(userId);
 }
 
 @riverpod
@@ -98,7 +99,7 @@ FutureOr<int> unreadNotificationCount(Ref ref) async {
 final matchAlertEnabledProvider = FutureProvider.autoDispose
     .family<bool, String>((ref, matchId) async {
       ref.watch(authStateProvider);
-      return getIt<PreferencesGateway>().isMatchAlertEnabled(
+      return getIt<NotificationSettingsGateway>().isMatchAlertEnabled(
         userId: ref.read(authServiceProvider).currentUser?.id,
         matchId: matchId,
       );
@@ -111,5 +112,5 @@ FutureOr<UserStats> userStats(Ref ref) async {
   final userId = ref.read(authServiceProvider).currentUser?.id;
   if (userId == null) return const UserStats();
 
-  return getIt<PreferencesGateway>().getUserStats(userId);
+  return getIt<NotificationSettingsGateway>().getUserStats(userId);
 }

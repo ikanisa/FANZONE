@@ -2,10 +2,8 @@
 import {
   useSupabasePaginated,
   useRpcMutation,
-  useSupabaseMutation,
   type AdminListQuery,
 } from '../../hooks/useSupabaseQuery';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
 import type { Match } from '../../types';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
@@ -44,25 +42,17 @@ export function useFixtures(pagination: PaginationOpts, filters?: { status?: str
 }
 
 export function useUpdateFixtureResult() {
-  return useSupabaseMutation<{ matchId: string; ftHome: number; ftAway: number }>({
-    mutationFn: async ({ matchId, ftHome, ftAway }) => {
-      if (isDemoMode) return { updated: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase
-        .from('matches')
-        .update({ ft_home: ftHome, ft_away: ftAway, status: 'finished', updated_at: new Date().toISOString() })
-        .eq('id', matchId);
-      if (error) throw new Error(error.message);
-      return { updated: true };
-    },
+  return useRpcMutation<{ p_match_id: string; p_ft_home: number; p_ft_away: number }>({
+    fnName: 'admin_update_match_result',
     invalidateKeys: [['fixtures']],
     successMessage: 'Match result recorded.',
+    demoFn: async () => ({ updated: true }),
   });
 }
 
 export function useAutoSettlePools() {
   return useRpcMutation<{ p_match_id: string; p_home_score: number; p_away_score: number }>({
-    fnName: 'auto_settle_pools',
+    fnName: 'admin_auto_settle_match',
     invalidateKeys: [['fixtures'], ['challenges'], ['wallets'], ['dashboard-kpis']],
     successMessage: 'All pools for this match have been settled.',
     errorMessage: 'Failed to auto-settle pools.',

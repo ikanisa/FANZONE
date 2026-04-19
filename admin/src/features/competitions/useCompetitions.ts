@@ -1,6 +1,5 @@
 // FANZONE Admin — Competitions Data Hooks
-import { useSupabasePaginated, useSupabaseMutation } from '../../hooks/useSupabaseQuery';
-import { adminEnvError, isDemoMode, isSupabaseConfigured, supabase } from '../../lib/supabase';
+import { useSupabasePaginated, useRpcMutation } from '../../hooks/useSupabaseQuery';
 import type { Competition } from '../../types';
 import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 
@@ -39,18 +38,10 @@ export function useCompetitions(pagination: PaginationOpts, filters?: { search?:
 }
 
 export function useToggleCompetitionFeatured() {
-  return useSupabaseMutation<{ competitionId: string; featured: boolean }>({
-    mutationFn: async ({ competitionId, featured }) => {
-      if (isDemoMode) return { toggled: true };
-      if (!isSupabaseConfigured) throw new Error(adminEnvError);
-      const { error } = await supabase
-        .from('competitions')
-        .update({ is_featured: featured })
-        .eq('id', competitionId);
-      if (error) throw new Error(error.message);
-      return { toggled: true };
-    },
+  return useRpcMutation<{ p_competition_id: string; p_is_featured: boolean }>({
+    fnName: 'admin_set_competition_featured',
     invalidateKeys: [['competitions']],
     successMessage: 'Competition featured status updated.',
+    demoFn: async () => ({ toggled: true }),
   });
 }

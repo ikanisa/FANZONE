@@ -49,12 +49,21 @@ BEGIN
   INTO missing_rpcs
   FROM (
     VALUES
+      ('public.admin_approve_partner(uuid)'),
+      ('public.admin_auto_settle_match(text,integer,integer)'),
       ('public.admin_change_admin_role(uuid,text)'),
+      ('public.admin_global_search(text,integer)'),
       ('public.admin_grant_access(text,text)'),
       ('public.admin_publish_team_news(uuid)'),
+      ('public.admin_reject_partner(uuid,text)'),
       ('public.admin_revoke_access(uuid)'),
+      ('public.admin_set_competition_featured(text,boolean)'),
+      ('public.admin_set_featured_event_active(uuid,boolean)'),
+      ('public.admin_set_partner_featured(uuid,boolean)'),
       ('public.admin_trigger_currency_rate_refresh()'),
-      ('public.admin_trigger_team_news_ingestion(text,text,text[],integer)')
+      ('public.admin_trigger_team_news_ingestion(text,text,text[],integer)'),
+      ('public.admin_update_account_deletion_request(uuid,text,text)'),
+      ('public.admin_update_match_result(text,integer,integer)')
   ) AS expected(required_signature)
   WHERE to_regprocedure(expected.required_signature) IS NULL;
 

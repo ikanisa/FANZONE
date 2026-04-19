@@ -6,7 +6,6 @@ import { StatusBadge } from '../../components/ui/StatusBadge';
 import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/DetailDrawer';
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useRewards, useToggleRewardActive, useToggleRewardFeatured } from './useRewards';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatFET, formatDate } from '../../lib/formatters';
 import { Gift, Search, Star, StarOff, Plus, ToggleLeft, ToggleRight, AlertTriangle } from 'lucide-react';
 import type { Reward } from '../../types';
@@ -20,7 +19,6 @@ export function RewardsPage() {
   const { data: result, isLoading, error, refetch } = useRewards({ page }, { search, status: statusFilter });
   const toggleActiveMutation = useToggleRewardActive();
   const toggleFeaturedMutation = useToggleRewardFeatured();
-  const { logAction } = useAuditLog();
 
   const rewards = result?.data ?? [];
   const activeCount = rewards.filter(r => r.is_active).length;
@@ -29,14 +27,12 @@ export function RewardsPage() {
 
   const handleToggleActive = async (reward: Reward) => {
     const newActive = !reward.is_active;
-    await toggleActiveMutation.mutateAsync({ rewardId: reward.id, active: newActive });
-    await logAction({ action: newActive ? 'activate_reward' : 'deactivate_reward', module: 'rewards', targetType: 'reward', targetId: reward.id, afterState: { is_active: newActive } });
+    await toggleActiveMutation.mutateAsync({ p_reward_id: reward.id, p_is_active: newActive });
   };
 
   const handleToggleFeatured = async (reward: Reward) => {
     const newFeatured = !reward.is_featured;
-    await toggleFeaturedMutation.mutateAsync({ rewardId: reward.id, featured: newFeatured });
-    await logAction({ action: newFeatured ? 'feature_reward' : 'unfeature_reward', module: 'rewards', targetType: 'reward', targetId: reward.id, afterState: { is_featured: newFeatured } });
+    await toggleFeaturedMutation.mutateAsync({ p_reward_id: reward.id, p_is_featured: newFeatured });
   };
 
   return (

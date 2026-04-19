@@ -129,44 +129,6 @@ class WalletScreen extends ConsumerWidget {
             isDark: true,
             muted: FzColors.darkMuted,
           ),
-          const SizedBox(height: 20),
-          FzCard(
-            padding: const EdgeInsets.all(16),
-            child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () {
-                    if (!isAuthenticated) {
-                      showSignInRequiredSheet(
-                        context,
-                        title: 'Sign in to receive FET',
-                        message:
-                            'Phone verification is only required when you want to share your Fan ID and receive tokens.',
-                        from: '/wallet',
-                      );
-                      return;
-                    }
-
-                    showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (_) => const ReceiveFetSheet(),
-                    );
-                  },
-                  icon: const Icon(LucideIcons.arrowDownLeft, size: 16),
-                  label: const Text('Receive'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => context.push('/wallet/exchange'),
-                  icon: const Icon(LucideIcons.arrowUpRight, size: 16),
-                  label: const Text('Exchange'),
-                ),
-              ],
-            ),
-          ),
           const SizedBox(height: 24),
           const _HistoryHeader(),
           const SizedBox(height: 10),

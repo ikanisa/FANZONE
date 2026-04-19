@@ -59,24 +59,7 @@ final popularTeamSearchResultsProvider = Provider<List<OnboardingTeam>>((ref) {
   return searchTeams(query, limit: 10);
 });
 
-/// Set of selected popular teams (multi-select).
-final selectedPopularTeamsProvider =
-    StateNotifierProvider<_SelectedTeamsNotifier, Set<String>>(
-      (ref) => _SelectedTeamsNotifier(),
-    );
-
-class _SelectedTeamsNotifier extends StateNotifier<Set<String>> {
-  _SelectedTeamsNotifier() : super({});
-
-  void toggle(String teamId) {
-    if (state.contains(teamId)) {
-      state = {...state}..remove(teamId);
-    } else {
-      state = {...state, teamId};
-    }
-  }
-
-  bool isSelected(String teamId) => state.contains(teamId);
-
-  void clear() => state = {};
-}
+/// The single selected popular team (nullable).
+final selectedPopularTeamProvider = StateProvider<OnboardingTeam?>(
+  (ref) => null,
+);

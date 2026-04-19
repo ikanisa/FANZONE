@@ -13,7 +13,6 @@ import {
   useCreditFet, useDebitFet,
   type WalletRow,
 } from './useWallets';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatFET, formatDateTime } from '../../lib/formatters';
 import {
   Wallet, AlertTriangle, Search, TrendingUp,
@@ -41,35 +40,30 @@ export function WalletOversightPage() {
   const unfreezeMutation = useUnfreezeWallet();
   const creditMutation = useCreditFet();
   const debitMutation = useDebitFet();
-  const { logAction } = useAuditLog();
 
   const wallets = result?.data ?? [];
 
   const handleFreeze = async () => {
     if (!freezeTarget) return;
     await freezeMutation.mutateAsync({ p_target_user_id: freezeTarget.user_id, p_reason: freezeReason });
-    await logAction({ action: 'freeze_wallet', module: 'wallets', targetType: 'wallet', targetId: freezeTarget.user_id, afterState: { reason: freezeReason } });
     setFreezeTarget(null); setFreezeReason(''); setSelectedWallet(null);
   };
 
   const handleUnfreeze = async () => {
     if (!unfreezeTarget) return;
     await unfreezeMutation.mutateAsync({ p_target_user_id: unfreezeTarget.user_id });
-    await logAction({ action: 'unfreeze_wallet', module: 'wallets', targetType: 'wallet', targetId: unfreezeTarget.user_id });
     setUnfreezeTarget(null); setSelectedWallet(null);
   };
 
   const handleCredit = async (amount: number, reason: string) => {
     if (!creditTarget) return;
     await creditMutation.mutateAsync({ p_target_user_id: creditTarget.user_id, p_amount: amount, p_reason: reason });
-    await logAction({ action: 'credit_fet', module: 'wallets', targetType: 'wallet', targetId: creditTarget.user_id, afterState: { amount, reason } });
     setCreditTarget(null);
   };
 
   const handleDebit = async (amount: number, reason: string) => {
     if (!debitTarget) return;
     await debitMutation.mutateAsync({ p_target_user_id: debitTarget.user_id, p_amount: amount, p_reason: reason });
-    await logAction({ action: 'debit_fet', module: 'wallets', targetType: 'wallet', targetId: debitTarget.user_id, afterState: { amount, reason } });
     setDebitTarget(null);
   };
 

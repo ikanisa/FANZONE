@@ -6,7 +6,6 @@ import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateV
 import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/DetailDrawer';
 import { EnterResultModal } from './EnterResultModal';
 import { useFixtures, useUpdateFixtureResult, useAutoSettlePools } from './useFixtures';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatDate, formatDateTime } from '../../lib/formatters';
 import { Search, Upload, Plus, Calendar, Star, Target, Gavel, Eye } from 'lucide-react';
 import type { Match } from '../../types';
@@ -25,7 +24,6 @@ export function FixturesPage() {
   const { data: result, isLoading, error, refetch } = useFixtures({ page }, { status: statusFilter, search });
   const updateResult = useUpdateFixtureResult();
   const autoSettle = useAutoSettlePools();
-  const { logAction } = useAuditLog();
 
   const fixtures = result?.data ?? [];
 
@@ -33,25 +31,18 @@ export function FixturesPage() {
     if (!resultTarget) return;
 
     // Update the fixture score
-    await updateResult.mutateAsync({ matchId: resultTarget.id, ftHome: homeScore, ftAway: awayScore });
-    await logAction({
-      action: 'update_fixture_result',
-      module: 'fixtures',
-      targetType: 'match',
-      targetId: resultTarget.id,
-      beforeState: { ft_home: resultTarget.ft_home, ft_away: resultTarget.ft_away, status: resultTarget.status },
-      afterState: { ft_home: homeScore, ft_away: awayScore, status: 'finished' },
+    await updateResult.mutateAsync({
+      p_match_id: resultTarget.id,
+      p_ft_home: homeScore,
+      p_ft_away: awayScore,
     });
 
     // Optionally settle all pools
     if (settleAndResult) {
-      await autoSettle.mutateAsync({ p_match_id: resultTarget.id, p_home_score: homeScore, p_away_score: awayScore });
-      await logAction({
-        action: 'auto_settle_pools',
-        module: 'fixtures',
-        targetType: 'match',
-        targetId: resultTarget.id,
-        afterState: { home_score: homeScore, away_score: awayScore },
+      await autoSettle.mutateAsync({
+        p_match_id: resultTarget.id,
+        p_home_score: homeScore,
+        p_away_score: awayScore,
       });
     }
 
@@ -134,7 +125,6 @@ export function FixturesPage() {
                           onClick={e => {
                             e.stopPropagation();
                             autoSettle.mutateAsync({ p_match_id: f.id, p_home_score: f.ft_home!, p_away_score: f.ft_away! });
-                            logAction({ action: 'auto_settle_pools', module: 'fixtures', targetType: 'match', targetId: f.id });
                           }}
                           title="Settle All Pools"
                         >

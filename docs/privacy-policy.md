@@ -15,7 +15,7 @@ FANZONE ("we", "us", or "our") is operated by IKANISA. This Privacy Policy expla
 - **Device Information**: Device type, operating system version, and unique device identifiers.
 - **Push Notification Tokens**: Firebase Cloud Messaging (FCM) tokens for delivering notifications.
 - **Usage Data**: Core product events needed to operate predictions, wallets, leaderboards, and support workflows.
-- **Crash Reports**: No dedicated third-party crash-reporting service is active in the current release build. If that changes in a future release, this policy will be updated before rollout.
+- **Crash Reports**: Runtime errors may be recorded in our Supabase-operated backend for stability, incident response, and release quality monitoring. We do not use a dedicated third-party crash-reporting SDK in the current release build.
 
 ### 1.3 Information We Do NOT Collect
 - **Location Data**: We do not collect, request, or process your geographic location.

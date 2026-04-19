@@ -7,7 +7,6 @@ import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/De
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useCompetitions, useToggleCompetitionFeatured } from './useCompetitions';
 import type { CompetitionRow } from './useCompetitions';
-import { useAuditLog } from '../../hooks/useAuditLog';
 import { formatDate } from '../../lib/formatters';
 import { Trophy, Search, Star, StarOff, Globe, Calendar, Layers } from 'lucide-react';
 
@@ -19,7 +18,6 @@ export function CompetitionsPage() {
 
   const { data: result, isLoading, error, refetch } = useCompetitions({ page }, { search });
   const toggleFeaturedMutation = useToggleCompetitionFeatured();
-  const { logAction } = useAuditLog();
 
   const competitions = result?.data ?? [];
   const activeCount = competitions.filter(c => c.status === 'active').length;
@@ -28,13 +26,9 @@ export function CompetitionsPage() {
 
   const handleToggleFeatured = async (comp: CompetitionRow) => {
     const newFeatured = !comp.is_featured;
-    await toggleFeaturedMutation.mutateAsync({ competitionId: comp.id, featured: newFeatured });
-    await logAction({
-      action: newFeatured ? 'feature_competition' : 'unfeature_competition',
-      module: 'competitions',
-      targetType: 'competition',
-      targetId: comp.id,
-      afterState: { is_featured: newFeatured },
+    await toggleFeaturedMutation.mutateAsync({
+      p_competition_id: comp.id,
+      p_is_featured: newFeatured,
     });
   };
 
