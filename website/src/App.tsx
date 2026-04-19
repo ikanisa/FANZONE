@@ -1,7 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
-
-// Pages placeholders that we will create
 import Home from './pages/Home';
 import Overview from './pages/Overview';
 import Coverage from './pages/Coverage';
@@ -12,6 +10,8 @@ import FAQ from './pages/FAQ';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Contact from './pages/Contact';
+import NotFound from './pages/NotFound';
+import './App.css';
 
 function App() {
   return (
@@ -27,6 +27,7 @@ function App() {
         <Route path="privacy" element={<Privacy />} />
         <Route path="terms" element={<Terms />} />
         <Route path="contact" element={<Contact />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );
