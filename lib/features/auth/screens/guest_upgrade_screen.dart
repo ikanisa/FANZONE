@@ -360,7 +360,7 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: const BorderSide(
-                              color: FzColors.accent,
+                              color: FzColors.primary,
                               width: 2,
                             ),
                           ),

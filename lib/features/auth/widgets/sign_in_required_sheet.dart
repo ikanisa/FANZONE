@@ -46,13 +46,13 @@ Future<void> showSignInRequiredSheet(
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: FzColors.accent.withValues(alpha: 0.1),
+                      color: FzColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
                       LucideIcons.badgeCheck,
                       size: 18,
-                      color: FzColors.accent,
+                      color: FzColors.primary,
                     ),
                   ),
                   const SizedBox(width: 12),

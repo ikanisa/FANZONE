@@ -123,11 +123,11 @@ class LeaderboardTabChip extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: active ? FzColors.accent : inactiveColor,
+            color: active ? FzColors.primary : inactiveColor,
             borderRadius: BorderRadius.circular(999),
             border: active ? null : Border.all(color: inactiveBorder, width: 1),
             boxShadow: active
-                ? [BoxShadow(color: FzColors.accent.withValues(alpha: 0.28), blurRadius: 14, spreadRadius: 0)]
+                ? [BoxShadow(color: FzColors.primary.withValues(alpha: 0.28), blurRadius: 14, spreadRadius: 0)]
                 : null,
           ),
           child: Text(
@@ -258,7 +258,7 @@ class LeaderboardRow extends StatelessWidget {
             width: 32, height: 32,
             decoration: BoxDecoration(color: surface3Color, shape: BoxShape.circle, border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder)),
             alignment: Alignment.center,
-            child: const Icon(LucideIcons.userPlus, size: 14, color: FzColors.accent),
+            child: const Icon(LucideIcons.userPlus, size: 14, color: FzColors.primary),
           ),
         ],
       ),
@@ -298,18 +298,18 @@ class PinnedUserCard extends StatelessWidget {
         ignoring: true,
         child: Container(
           decoration: BoxDecoration(
-            color: FzColors.accent.withValues(alpha: 0.1),
+            color: FzColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: FzColors.accent.withValues(alpha: 0.22)),
+            border: Border.all(color: FzColors.primary.withValues(alpha: 0.22)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              Text(rankLabel, style: FzTypography.scoreCompact(color: FzColors.accent)),
+              Text(rankLabel, style: FzTypography.scoreCompact(color: FzColors.primary)),
               const SizedBox(width: 12),
               Container(
                 width: 32, height: 32,
-                decoration: BoxDecoration(color: surface3Color, shape: BoxShape.circle, border: Border.all(color: FzColors.accent.withValues(alpha: 0.3))),
+                decoration: BoxDecoration(color: surface3Color, shape: BoxShape.circle, border: Border.all(color: FzColors.primary.withValues(alpha: 0.3))),
                 alignment: Alignment.center,
                 child: Text('👤', style: TextStyle(color: textColor, fontSize: 12)),
               ),
@@ -443,7 +443,7 @@ class ClubPodiumItem extends StatelessWidget {
           const SizedBox(height: 10),
           Text(entry.name, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textColor, height: 1.15)),
           const SizedBox(height: 2),
-          Text('${entry.fetLabel} FET', style: FzTypography.scoreCompact(color: FzColors.accent)),
+          Text('${entry.fetLabel} FET', style: FzTypography.scoreCompact(color: FzColors.primary)),
         ],
       ),
     );
@@ -477,7 +477,7 @@ class ClubLeaderboardRow extends StatelessWidget {
                 Icon(
                   switch (entry.trend) { Trend.up => LucideIcons.trendingUp, Trend.down => LucideIcons.trendingDown, Trend.same => LucideIcons.minus },
                   size: 10,
-                  color: switch (entry.trend) { Trend.up => FzColors.accent, Trend.down => FzColors.coral, Trend.same => muted },
+                  color: switch (entry.trend) { Trend.up => FzColors.primary, Trend.down => FzColors.coral, Trend.same => muted },
                 ),
               ],
             ),
@@ -494,7 +494,7 @@ class ClubLeaderboardRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(entry.fetLabel, style: FzTypography.scoreCompact(color: FzColors.accent)),
+              Text(entry.fetLabel, style: FzTypography.scoreCompact(color: FzColors.primary)),
               const SizedBox(height: 2),
               Text('POOL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: muted, letterSpacing: 0.9)),
             ],

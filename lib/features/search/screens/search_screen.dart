@@ -184,9 +184,9 @@ class _SearchLeading extends StatelessWidget {
       case SearchResultType.team:
         return TeamAvatar(name: title);
       case SearchResultType.competition:
-        return const Icon(Icons.emoji_events_outlined, color: FzColors.accent);
+        return const Icon(Icons.emoji_events_outlined, color: FzColors.primary);
       case SearchResultType.match:
-        return const Icon(Icons.sports_soccer_rounded, color: FzColors.accent);
+        return const Icon(Icons.sports_soccer_rounded, color: FzColors.primary);
     }
   }
 }

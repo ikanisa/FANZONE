@@ -391,7 +391,7 @@ class _StatusPill extends StatelessWidget {
         color = FzColors.teal;
         break;
       default:
-        color = FzColors.accent;
+        color = FzColors.primary;
     }
 
     return Container(

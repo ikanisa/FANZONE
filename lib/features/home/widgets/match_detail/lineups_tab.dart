@@ -221,7 +221,7 @@ class _PlayerRow extends StatelessWidget {
                   const Icon(
                     Icons.sports_soccer_rounded,
                     size: 12,
-                    color: FzColors.accent,
+                    color: FzColors.primary,
                   ),
                   if (player.goals > 1)
                     Text(

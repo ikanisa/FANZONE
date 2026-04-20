@@ -36,7 +36,7 @@ class AllLeaguesScreen extends ConsumerWidget {
         ),
       ),
       body: RefreshIndicator(
-        color: FzColors.accent,
+        color: FzColors.primary,
         onRefresh: () async {
           unawaited(HapticFeedback.mediumImpact());
           ref.invalidate(otherLeaguesProvider);
@@ -84,7 +84,7 @@ class AllLeaguesScreen extends ConsumerWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: FzColors.accent.withValues(alpha: 0.08),
+                        color: FzColors.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -93,7 +93,7 @@ class AllLeaguesScreen extends ConsumerWidget {
                           Icon(
                             _regionIcon(regionKey),
                             size: 14,
-                            color: FzColors.accent,
+                            color: FzColors.primary,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -101,7 +101,7 @@ class AllLeaguesScreen extends ConsumerWidget {
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: FzColors.accent,
+                              color: FzColors.primary,
                               letterSpacing: 0.8,
                             ),
                           ),

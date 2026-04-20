@@ -5,9 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/di/gateway_providers.dart';
-import '../../../core/constants/phone_presets.dart';
 import '../../../core/market/launch_market.dart';
 import '../../../core/runtime/app_runtime_state.dart';
+import '../widgets/country_code_picker.dart';
 import '../../../data/team_search_database.dart';
 import '../../../models/user_market_preferences_model.dart';
 import '../../../providers/auth_provider.dart';
@@ -37,11 +37,11 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // Reference-aligned step indices (matches Onboarding.tsx steps 1–5)
-  static const _welcomeStep = 0;       // Step 1
-  static const _phoneStep = 1;          // Step 2
-  static const _otpStep = 2;            // Step 3
-  static const _favoriteTeamStep = 3;   // Step 4
-  static const _popularTeamsStep = 4;   // Step 5
+  static const _welcomeStep = 0; // Step 1
+  static const _phoneStep = 1; // Step 2
+  static const _otpStep = 2; // Step 3
+  static const _favoriteTeamStep = 3; // Step 4
+  static const _popularTeamsStep = 4; // Step 5
 
   final _phoneController = TextEditingController();
   final _favoriteSearchController = TextEditingController();
@@ -54,10 +54,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _guestLoading = false;
   bool _isGuestPath = false;
   String? _error;
+  late CountryEntry _selectedCountry;
 
   @override
   void initState() {
     super.initState();
+    // Default to Malta — primary market
+    _selectedCountry = findCountryByCode('MT');
     ref.read(selectedLaunchRegionProvider.notifier).state = 'europe';
     ref.read(selectedLaunchFocusTagsProvider.notifier).replaceAll({});
     ref.read(localTeamSearchQueryProvider.notifier).state = '';
@@ -82,24 +85,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   bool get _canUseOtp {
     final authService = ref.read(authServiceProvider);
-    return authService.isAvailable &&
-        appRuntime.supabaseInitError == null;
+    return authService.isAvailable && appRuntime.supabaseInitError == null;
   }
 
   bool get _isAlreadyAuthenticated {
     return ref.read(authServiceProvider).isAuthenticated;
   }
 
-  PhonePreset get _phonePreset => _resolvePhonePreset();
-
-  String get _dialCode => _phonePreset.dialCode;
-
-  String get _phoneHint => _phonePreset.hint;
-
   String get _fullPhone {
     final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
     if (digits.isEmpty) return '';
-    return '$_dialCode$digits';
+    return '${_selectedCountry.dialCode}$digits';
   }
 
   int get _otpLength => _otpControllers.fold<int>(
@@ -107,12 +103,76 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     (count, controller) => count + controller.text.trim().length,
   );
 
+  String get _localPhoneDigits =>
+      _phoneController.text.replaceAll(RegExp(r'\D'), '');
+
+  bool get _isPhoneNumberValid =>
+      _localPhoneDigits.length >= _selectedCountry.minDigits;
+
   void _setStep(int step) {
     HapticFeedback.lightImpact();
     setState(() {
       _currentStep = step;
       _error = null;
     });
+  }
+
+  void _handleCountryChanged(CountryEntry country) {
+    setState(() {
+      _selectedCountry = country;
+      _error = null;
+    });
+    _reformatPhoneInput();
+  }
+
+  void _handlePhoneChanged(String value) {
+    final adoptedCountry = resolveCountryFromPhoneInput(
+      value,
+      fallback: _selectedCountry,
+    );
+    var digits = value.replaceAll(RegExp(r'\D'), '');
+
+    if (value.trimLeft().startsWith('+') &&
+        digits.startsWith(adoptedCountry.dialDigits)) {
+      digits = digits.substring(adoptedCountry.dialDigits.length);
+    }
+
+    final maxDigits = maxPhoneDigitsForHint(
+      adoptedCountry.hint,
+      minDigits: adoptedCountry.minDigits,
+    );
+    if (digits.length > maxDigits) {
+      digits = digits.substring(0, maxDigits);
+    }
+
+    final formatted = formatPhoneDigits(digits, adoptedCountry.hint);
+    if (_phoneController.text != formatted) {
+      _phoneController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+    }
+
+    setState(() {
+      _selectedCountry = adoptedCountry;
+      _error = null;
+    });
+  }
+
+  void _reformatPhoneInput() {
+    final digits = _localPhoneDigits;
+    final maxDigits = maxPhoneDigitsForHint(
+      _selectedCountry.hint,
+      minDigits: _selectedCountry.minDigits,
+    );
+    final clipped = digits.length > maxDigits
+        ? digits.substring(0, maxDigits)
+        : digits;
+    final formatted = formatPhoneDigits(clipped, _selectedCountry.hint);
+    _phoneController.value = TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
   }
 
   // ── Step handlers ──
@@ -174,8 +234,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     final phone = _fullPhone;
-    if (_phoneController.text.replaceAll(RegExp(r'\D'), '').length <
-        _phonePreset.minDigits) {
+    if (!_isPhoneNumberValid) {
       setState(() {
         _error = 'Enter your mobile number before continuing.';
       });
@@ -300,22 +359,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ? defaultFocusTagsForRegion(launchRegion)
         : selectedTags.toList();
 
-    await ref.read(onboardingGatewayProvider).saveOnboardingTeams(
-      localTeam: localTeam,
-      popularTeamIds: popularTeamIds,
-    );
-    await ref.read(marketPreferencesGatewayProvider).saveUserMarketPreferences(
-      UserMarketPreferences(
-        primaryRegion: launchRegion,
-        selectedRegions: {'global', launchRegion}.toList(),
-        focusEventTags: focusTags,
-        followWorldCup: focusTags.any(
-          (tag) => tag.contains('world-cup') || tag == 'worldcup2026',
-        ),
-        followChampionsLeague: focusTags.contains('ucl-final-2026'),
-        updatedAt: DateTime.now(),
-      ),
-    );
+    await ref
+        .read(onboardingGatewayProvider)
+        .saveOnboardingTeams(
+          localTeam: localTeam,
+          popularTeamIds: popularTeamIds,
+        );
+    await ref
+        .read(marketPreferencesGatewayProvider)
+        .saveUserMarketPreferences(
+          UserMarketPreferences(
+            primaryRegion: launchRegion,
+            selectedRegions: {'global', launchRegion}.toList(),
+            focusEventTags: focusTags,
+            followWorldCup: focusTags.any(
+              (tag) => tag.contains('world-cup') || tag == 'worldcup2026',
+            ),
+            followChampionsLeague: focusTags.contains('ucl-final-2026'),
+            updatedAt: DateTime.now(),
+          ),
+        );
 
     ref.invalidate(userMarketPreferencesProvider);
     ref.invalidate(userRegionProvider);
@@ -351,7 +414,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    FzColors.accent.withValues(alpha: 0.18),
+                    FzColors.primary.withValues(alpha: 0.18),
                     Colors.transparent,
                   ],
                 ),
@@ -425,7 +488,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           borderRadius: BorderRadius.circular(8),
                           child: const LinearProgressIndicator(
                             minHeight: 2,
-                            color: FzColors.accent,
+                            color: FzColors.primary,
                             backgroundColor: FzColors.darkBorder,
                           ),
                         ),
@@ -463,27 +526,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           muted: muted,
           isDark: isDark,
           phoneController: _phoneController,
-          onChanged: (_) {
-            if (_error != null) {
-              setState(() => _error = null);
-            }
-          },
-          canContinue: _loading
-              ? false
-              : (_canUseOtp &&
-                    _phoneController.text
-                            .replaceAll(RegExp(r'\D'), '')
-                            .length >=
-                        _phonePreset.minDigits),
+          selectedCountry: _selectedCountry,
+          onCountryChanged: _handleCountryChanged,
+          onChanged: _handlePhoneChanged,
+          canContinue: _loading ? false : (_canUseOtp && _isPhoneNumberValid),
           onBack: () => _setStep(_welcomeStep),
           onNext: _handlePhoneContinue,
           onGuest: _handleGuestContinue,
           guestLoading: _guestLoading,
-          countryCode: _dialCode,
-          phoneHint: _phoneHint,
           buttonLabel: _loading
               ? 'SENDING...'
-              : (_canUseOtp ? 'SEND OTP' : 'VERIFICATION REQUIRED'),
+              : (_canUseOtp
+                    ? 'SEND CODE VIA WHATSAPP'
+                    : 'VERIFICATION REQUIRED'),
         );
       // Step 3: OTP Verify (ref: Step3)
       case _otpStep:
@@ -543,22 +598,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       default:
         return const SizedBox.shrink();
     }
-  }
-
-  PhonePreset _resolvePhonePreset() {
-    final localeCountry = WidgetsBinding
-        .instance
-        .platformDispatcher
-        .locale
-        .countryCode
-        ?.toUpperCase();
-    final localePreset = phonePresetForCountry(localeCountry);
-    if (localePreset != null) return localePreset;
-
-    final selectedRegion = normalizeRegionKey(
-      ref.read(selectedLaunchRegionProvider),
-    );
-    return phonePresetForRegion(selectedRegion);
   }
 }
 

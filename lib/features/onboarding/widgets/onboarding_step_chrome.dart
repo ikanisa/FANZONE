@@ -53,7 +53,7 @@ class OnboardingFeatureRow extends StatelessWidget {
               color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
             ),
           ),
-          child: Icon(icon, size: 20, color: FzColors.accent),
+          child: Icon(icon, size: 20, color: FzColors.primary),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -109,13 +109,13 @@ class OnboardingPrimaryButton extends StatelessWidget {
           elevation: isPrimary ? 0 : 0,
           shadowColor: Colors.transparent,
           backgroundColor: isPrimary
-              ? FzColors.accent
+              ? FzColors.primary
               : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
           foregroundColor: isPrimary
               ? FzColors.darkBg
               : (isDark ? FzColors.darkText : FzColors.lightText),
           disabledBackgroundColor: isPrimary
-              ? FzColors.accent.withValues(alpha: 0.45)
+              ? FzColors.primary.withValues(alpha: 0.45)
               : ((isDark ? FzColors.darkSurface2 : FzColors.lightSurface2)
                     .withValues(alpha: 0.72)),
           disabledForegroundColor: isPrimary

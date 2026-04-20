@@ -66,7 +66,7 @@ class BootstrapConfig {
 
   String regionForCountryCode(String? code) {
     if (code == null || code.isEmpty) return 'global';
-    return regions[code.toUpperCase()]?.region ?? 'global';
+    return _normalizeRegion(regions[code.toUpperCase()]?.region);
   }
 
   String flagEmojiForCountryCode(String? code) {
@@ -90,17 +90,17 @@ class BootstrapConfig {
   }
 
   List<String> countryCodesForRegion(String region) {
-    final normalized = region.toLowerCase().trim();
+    final normalized = _normalizeRegion(region);
     return regions.entries
-        .where((entry) => entry.value.region == normalized)
+        .where((entry) => _normalizeRegion(entry.value.region) == normalized)
         .map((entry) => entry.key)
         .toList(growable: false);
   }
 
   List<String> countryNamesForRegion(String region) {
-    final normalized = region.toLowerCase().trim();
+    final normalized = _normalizeRegion(region);
     return regions.entries
-        .where((entry) => entry.value.region == normalized)
+        .where((entry) => _normalizeRegion(entry.value.region) == normalized)
         .map((entry) => entry.value.countryName)
         .toList(growable: false)
       ..sort();
@@ -114,7 +114,7 @@ class BootstrapConfig {
   }
 
   PhonePresetInfo phonePresetForRegion(String region) {
-    final normalized = region.toLowerCase().trim();
+    final normalized = _normalizeRegion(region);
     switch (normalized) {
       case 'africa':
         return phonePresets['RW'] ??
@@ -130,6 +130,7 @@ class BootstrapConfig {
               hint: '7XXX XXX XXX',
               minDigits: 10,
             );
+      case 'north_america':
       default:
         return phonePresets['US'] ??
             const PhonePresetInfo(
@@ -189,6 +190,21 @@ class BootstrapConfig {
       }
     }
     return result;
+  }
+
+  static String _normalizeRegion(String? region) {
+    switch ((region ?? '').trim().toLowerCase()) {
+      case 'africa':
+        return 'africa';
+      case 'europe':
+        return 'europe';
+      case 'americas':
+      case 'north_america':
+      case 'northamerica':
+        return 'north_america';
+      default:
+        return 'global';
+    }
   }
 
   static Map<String, PhonePresetInfo> _parsePhonePresets(dynamic data) {
@@ -363,7 +379,7 @@ class LaunchMomentInfo {
 class BootstrapConfigService extends ChangeNotifier {
   BootstrapConfigService(this._cache, this._connection);
 
-  static const _cacheKey = 'bootstrap_config_v1';
+  static const _cacheKey = 'bootstrap_config_v2';
 
   final CacheService _cache;
   final SupabaseConnection _connection;

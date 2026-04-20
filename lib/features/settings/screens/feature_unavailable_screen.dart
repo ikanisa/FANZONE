@@ -32,12 +32,12 @@ class FeatureUnavailableScreen extends StatelessWidget {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: FzColors.accent.withValues(alpha: 0.12),
+                    color: FzColors.primary.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.lock_clock_outlined,
-                    color: FzColors.accent,
+                    color: FzColors.primary,
                     size: 28,
                   ),
                 ),

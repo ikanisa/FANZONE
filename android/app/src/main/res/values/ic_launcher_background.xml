@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Background color for adaptive icon — matches Logo.FANZONE>BACK.png background -->
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Background color for adaptive icon — sampled from the backed square icon master -->
+    <color name="ic_launcher_background">#3A393B</color>
 </resources>

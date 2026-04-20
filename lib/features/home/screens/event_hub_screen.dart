@@ -49,7 +49,9 @@ class EventHubScreen extends ConsumerWidget {
               challengesAsync: challengesAsync,
               muted: muted,
               isDark: isDark,
-              showGlobalChallenges: ref.watch(featureFlagsProvider).globalChallenges,
+              showGlobalChallenges: ref
+                  .watch(featureFlagsProvider)
+                  .globalChallenges,
             );
           },
           loading: () => const ScoresPageSkeleton(),
@@ -202,7 +204,7 @@ class _EventContent extends StatelessWidget {
                       const Icon(
                         LucideIcons.swords,
                         size: 18,
-                        color: FzColors.accent,
+                        color: FzColors.primary,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -233,7 +235,7 @@ class _EventContent extends StatelessWidget {
             },
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: const ScoresPageSkeleton(),
+              child: ScoresPageSkeleton(),
             ),
             error: (_, _) =>
                 StateView.error(title: 'Could not load challenges'),
@@ -252,7 +254,7 @@ class _EventContent extends StatelessWidget {
                   const Icon(
                     LucideIcons.info,
                     size: 18,
-                    color: FzColors.accent,
+                    color: FzColors.primary,
                   ),
                   const SizedBox(width: 10),
                   Text(
@@ -299,12 +301,12 @@ class _EventContent extends StatelessWidget {
   }
 
   Color _parseBannerColor(String? hex) {
-    if (hex == null || hex.isEmpty) return FzColors.accent;
+    if (hex == null || hex.isEmpty) return FzColors.primary;
     try {
       final cleaned = hex.replaceAll('#', '');
       return Color(int.parse('FF$cleaned', radix: 16));
     } catch (_) {
-      return FzColors.accent;
+      return FzColors.primary;
     }
   }
 }
@@ -317,12 +319,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: FzTypography.sectionLabel(
-        isDark ? Brightness.dark : Brightness.light,
-      ),
-    );
+    return Text(title, style: FzTypography.sectionLabel(Brightness.dark));
   }
 }
 
@@ -337,19 +334,19 @@ class _ChallengeCard extends StatelessWidget {
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     return FzCard(
       padding: const EdgeInsets.all(16),
-      borderColor: FzColors.accent.withValues(alpha: 0.2),
+      borderColor: FzColors.primary.withValues(alpha: 0.2),
       child: Row(
         children: [
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: FzColors.accent.withValues(alpha: 0.1),
+              color: FzColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               LucideIcons.swords,
-              color: FzColors.accent,
+              color: FzColors.primary,
               size: 20,
             ),
           ),

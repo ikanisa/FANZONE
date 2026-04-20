@@ -86,7 +86,7 @@ class TeamNewsCard extends StatelessWidget {
                     news.sourceName!,
                     style: const TextStyle(
                       fontSize: 11,
-                      color: FzColors.accent,
+                      color: FzColors.primary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -127,11 +127,11 @@ class TeamNewsCategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: selected
-              ? FzColors.accent.withValues(alpha: 0.15)
+              ? FzColors.primary.withValues(alpha: 0.15)
               : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: selected ? FzColors.accent : Colors.transparent,
+            color: selected ? FzColors.primary : Colors.transparent,
           ),
         ),
         child: Text(
@@ -140,7 +140,7 @@ class TeamNewsCategoryChip extends StatelessWidget {
             fontSize: 11,
             fontWeight: FontWeight.w600,
             color: selected
-                ? FzColors.accent
+                ? FzColors.primary
                 : (isDark ? FzColors.darkMuted : FzColors.lightMuted),
           ),
         ),

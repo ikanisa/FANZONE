@@ -13,6 +13,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 
 typedef WalletTransferSubmit = Future<void> Function(String fanId, int amount);
 
@@ -151,13 +152,13 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: FzColors.accent.withValues(alpha: 0.16),
+                          color: FzColors.primary.withValues(alpha: 0.16),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           LucideIcons.send,
                           size: 34,
-                          color: FzColors.accent,
+                          color: FzColors.primary,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -355,10 +356,10 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                                 setState(() {});
                               },
                         style: TextButton.styleFrom(
-                          backgroundColor: FzColors.accent.withValues(
+                          backgroundColor: FzColors.primary.withValues(
                             alpha: 0.1,
                           ),
-                          foregroundColor: FzColors.accent,
+                          foregroundColor: FzColors.primary,
                           minimumSize: const Size(0, 28),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -421,7 +422,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                         ? const SizedBox(
                             width: 14,
                             height: 14,
-                            child: const FzGlassLoader(useBackdrop: false),
+                            child: FzGlassLoader(useBackdrop: false),
                           )
                         : const Icon(LucideIcons.send, size: 16),
                     label: Text(
@@ -510,14 +511,27 @@ class ReceiveFetSheet extends ConsumerWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    Text(
-                      fanId != null ? 'Fan #$fanId' : 'FANZONE Member',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: textColor,
-                      ),
-                    ),
+                    fanId != null
+                        ? Text(
+                            'Fan #$fanId',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: textColor,
+                            ),
+                          )
+                        : Text.rich(
+                            TextSpan(
+                              children: FzWordmark.spansForText(
+                                'FANZONE Member',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor,
+                                ),
+                              ),
+                            ),
+                          ),
                     const SizedBox(height: 6),
                     Text(
                       'Your Fan ID',
@@ -535,10 +549,10 @@ class ReceiveFetSheet extends ConsumerWidget {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: FzColors.accent.withValues(alpha: 0.1),
+                        color: FzColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: FzColors.accent.withValues(alpha: 0.3),
+                          color: FzColors.primary.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
@@ -546,7 +560,7 @@ class ReceiveFetSheet extends ConsumerWidget {
                         style: FzTypography.score(
                           size: 28,
                           weight: FontWeight.w700,
-                          color: FzColors.accent,
+                          color: FzColors.primary,
                         ),
                       ),
                     ),

@@ -481,7 +481,7 @@ class _LeagueMetricCard extends StatelessWidget {
               style: FzTypography.sectionLabel(Theme.of(context).brightness),
             ),
             const SizedBox(height: 8),
-            Text(value, style: FzTypography.scoreLarge(color: FzColors.accent)),
+            Text(value, style: FzTypography.scoreLarge(color: FzColors.primary)),
           ],
         ),
       ),
@@ -509,7 +509,7 @@ class _LeagueInsightRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: FzColors.accent),
+        Icon(icon, size: 16, color: FzColors.primary),
         const SizedBox(width: 10),
         Expanded(
           child: Column(

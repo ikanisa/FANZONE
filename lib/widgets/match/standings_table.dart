@@ -108,7 +108,7 @@ class _StandingRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        color: highlight ? FzColors.accent.withValues(alpha: 0.08) : null,
+        color: highlight ? FzColors.primary.withValues(alpha: 0.08) : null,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
@@ -165,7 +165,7 @@ class _StandingRow extends StatelessWidget {
               child: Text(
                 '${row.points}',
                 textAlign: TextAlign.center,
-                style: FzTypography.scoreCompact(color: FzColors.accent),
+                style: FzTypography.scoreCompact(color: FzColors.primary),
               ),
             ),
           ],

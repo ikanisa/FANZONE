@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 import 'onboarding_step_chrome.dart';
 
 class OnboardingWelcomeStep extends StatelessWidget {
@@ -28,21 +29,14 @@ class OnboardingWelcomeStep extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Spacer(),
-            Text(
-              'FANZONE',
-              style: FzTypography.display(
-                size: 64,
-                color: textColor,
-                letterSpacing: 4,
-              ),
-            ),
+            FzWordmark(style: FzTypography.display(size: 64, letterSpacing: 4)),
             const SizedBox(height: 4),
             const Text(
               'PREDICT. EARN. REPEAT.',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: FzColors.accent,
+                color: FzColors.primary,
                 letterSpacing: 3,
               ),
             ),

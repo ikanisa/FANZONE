@@ -10,6 +10,8 @@ abstract class OnboardingGateway {
 
   List<OnboardingTeam> searchTeams(String query, {int limit = 10});
 
+  List<OnboardingTeam> searchPopularTeams(String query, {int limit = 10});
+
   List<OnboardingTeam> popularTeamsForRegion(String region);
 
   Future<void> saveOnboardingTeams({
@@ -51,7 +53,12 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
 
   @override
   List<OnboardingTeam> searchTeams(String query, {int limit = 10}) {
-    return _resolvedCatalog.search(query, limit: limit);
+    return _resolvedCatalog.searchLocal(query, limit: limit);
+  }
+
+  @override
+  List<OnboardingTeam> searchPopularTeams(String query, {int limit = 10}) {
+    return _resolvedCatalog.searchPopular(query, limit: limit);
   }
 
   @override
@@ -70,7 +77,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
       rows.add(_teamToRecord(localTeam, source: 'local', sortOrder: 0));
     }
 
-    var sortOrder = 0;
+    var sortOrder = rows.length;
     for (final teamId in popularTeamIds) {
       final team = _resolvedCatalog.byId(teamId);
       if (team == null) continue;

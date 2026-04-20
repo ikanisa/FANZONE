@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fanzone/theme/app_theme.dart';
 import 'package:fanzone/theme/colors.dart';
 import 'package:fanzone/theme/radii.dart';
 
@@ -16,15 +17,14 @@ void main() {
       expect(FzColors.darkMuted, isA<Color>());
     });
 
-    // Light theme tokens
-    test('light theme background colors are valid', () {
-      expect(FzColors.lightBg, isA<Color>());
-      expect(FzColors.lightSurface, isA<Color>());
-      expect(FzColors.lightSurface2, isA<Color>());
-      expect(FzColors.lightSurface3, isA<Color>());
-      expect(FzColors.lightBorder, isA<Color>());
-      expect(FzColors.lightText, isA<Color>());
-      expect(FzColors.lightMuted, isA<Color>());
+    test('legacy light token names resolve to the dark palette', () {
+      expect(FzColors.lightBg, FzColors.darkBg);
+      expect(FzColors.lightSurface, FzColors.darkSurface);
+      expect(FzColors.lightSurface2, FzColors.darkSurface2);
+      expect(FzColors.lightSurface3, FzColors.darkSurface3);
+      expect(FzColors.lightBorder, FzColors.darkBorder);
+      expect(FzColors.lightText, FzColors.darkText);
+      expect(FzColors.lightMuted, FzColors.darkMuted);
     });
 
     // Content palette
@@ -77,18 +77,16 @@ void main() {
       expect(FzColors.darkColorScheme.onSurface, FzColors.darkText);
     });
 
-    test('light color scheme has correct primary', () {
-      expect(FzColors.lightColorScheme.primary, FzColors.accentDark);
-      expect(FzColors.lightColorScheme.secondary, FzColors.teal);
-      expect(FzColors.lightColorScheme.error, FzColors.error);
-      expect(FzColors.lightColorScheme.surface, FzColors.lightSurface);
-      expect(FzColors.lightColorScheme.onSurface, FzColors.lightText);
+    test('legacy light color scheme resolves to the supported dark scheme', () {
+      expect(FzColors.lightColorScheme, same(FzColors.darkColorScheme));
+      expect(FzColors.lightColorScheme.surface, FzColors.darkSurface);
+      expect(FzColors.lightColorScheme.onSurface, FzColors.darkText);
     });
 
-    test('dark and light schemes have distinct surfaces', () {
+    test('dark and legacy light schemes share the same surface', () {
       expect(
+        FzColors.lightColorScheme.surface,
         FzColors.darkColorScheme.surface,
-        isNot(FzColors.lightColorScheme.surface),
       );
     });
 
@@ -96,8 +94,16 @@ void main() {
       expect(FzColors.darkColorScheme.brightness, Brightness.dark);
     });
 
-    test('light scheme brightness is light', () {
-      expect(FzColors.lightColorScheme.brightness, Brightness.light);
+    test('legacy light scheme brightness is dark', () {
+      expect(FzColors.lightColorScheme.brightness, Brightness.dark);
+    });
+  });
+
+  group('Dark-only theme enforcement', () {
+    test('legacy light theme builder resolves to dark ThemeData', () {
+      final theme = FzTheme.light();
+      expect(theme.brightness, Brightness.dark);
+      expect(theme.colorScheme, same(FzColors.darkColorScheme));
     });
   });
 
@@ -121,7 +127,7 @@ void main() {
       );
     });
 
-    test('light text on light bg has sufficient contrast', () {
+    test('legacy light text aliases still preserve dark-mode contrast', () {
       final textLuminance = FzColors.lightText.computeLuminance();
       final bgLuminance = FzColors.lightBg.computeLuminance();
 
@@ -132,7 +138,7 @@ void main() {
       expect(
         ratio,
         greaterThan(4.5),
-        reason: 'Light text on light bg should meet WCAG AA',
+        reason: 'Dark-only aliases should meet WCAG AA',
       );
     });
   });

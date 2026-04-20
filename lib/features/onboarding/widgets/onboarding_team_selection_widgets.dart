@@ -26,9 +26,9 @@ class OnboardingSelectedTeamCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: FzColors.accent.withValues(alpha: 0.08),
+        color: FzColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: FzColors.accent.withValues(alpha: 0.25)),
+        border: Border.all(color: FzColors.primary.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,7 +38,7 @@ class OnboardingSelectedTeamCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: FzColors.accent,
+              color: FzColors.primary,
               letterSpacing: 1.2,
             ),
           ),
@@ -120,10 +120,9 @@ class OnboardingTeamTile extends StatelessWidget {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        team.shortName.substring(
-                          0,
-                          team.shortName.length >= 2 ? 2 : 1,
-                        ).toUpperCase(),
+                        team.shortName
+                            .substring(0, team.shortName.length >= 2 ? 2 : 1)
+                            .toUpperCase(),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -133,6 +132,8 @@ class OnboardingTeamTile extends StatelessWidget {
                     )
                   : TeamCrest(
                       label: team.name,
+                      crestUrl: team.resolvedCrestUrl,
+                      fallbackEmoji: team.logoEmoji,
                       size: 36,
                       backgroundColor: isDark
                           ? FzColors.darkSurface2
@@ -196,12 +197,12 @@ class OnboardingPopularTeamCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: selected
-                ? FzColors.accent.withValues(alpha: 0.08)
+                ? FzColors.primary.withValues(alpha: 0.08)
                 : (isDark ? FzColors.darkSurface : FzColors.lightSurface),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: selected
-                  ? FzColors.accent
+                  ? FzColors.primary
                   : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
             ),
           ),
@@ -211,13 +212,13 @@ class OnboardingPopularTeamCard extends StatelessWidget {
             message: team.name,
             child: TeamCrest(
               label: team.name,
+              crestUrl: team.resolvedCrestUrl,
+              fallbackEmoji: team.logoEmoji,
               size: 32,
               backgroundColor: isDark
                   ? FzColors.darkSurface2
                   : FzColors.lightSurface2,
-              borderColor: isDark
-                  ? FzColors.darkBorder
-                  : FzColors.lightBorder,
+              borderColor: isDark ? FzColors.darkBorder : FzColors.lightBorder,
             ),
           ),
         ),

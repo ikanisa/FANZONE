@@ -94,7 +94,7 @@ class _PoolContent extends ConsumerWidget {
   Color _statusColor(String status) {
     switch (status) {
       case 'open':
-        return FzColors.accent;
+        return FzColors.primary;
       case 'locked':
         return FzColors.amber;
       case 'settled':

@@ -15,6 +15,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../services/wallet_service.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 import '../widgets/profile_sections.dart';
 
 /// User profile screen with real auth data, FET balance, quick links, and logout.
@@ -150,15 +151,19 @@ class ProfileScreen extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  Text(
-                    '${AppConfig.appName} v${AppConfig.appVersion}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10,
-                      letterSpacing: 1.6,
-                      fontWeight: FontWeight.w700,
-                      color: muted,
+                  Text.rich(
+                    TextSpan(
+                      children: FzWordmark.spansForText(
+                        '${AppConfig.appName} v${AppConfig.appVersion}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          letterSpacing: 1.6,
+                          fontWeight: FontWeight.w700,
+                          color: muted,
+                        ),
+                      ),
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),

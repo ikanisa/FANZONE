@@ -7,6 +7,8 @@ import '../../../core/cache/shared_preferences_cache_service.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_brand_logo.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 
 /// Splash screen — logo animation → wait for init → route guest-first.
 ///
@@ -84,10 +86,10 @@ class _SplashScreenState extends State<SplashScreen>
               height: MediaQuery.sizeOf(context).width * 1.2,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: FzColors.accent.withValues(alpha: 0.1),
+                color: FzColors.primary.withValues(alpha: 0.1),
                 boxShadow: [
                   BoxShadow(
-                    color: FzColors.accent.withValues(alpha: 0.08),
+                    color: FzColors.primary.withValues(alpha: 0.08),
                     blurRadius: 120,
                     spreadRadius: 40,
                   ),
@@ -101,22 +103,15 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    RichText(
-                      text: TextSpan(
-                        style: FzTypography.display(
-                          size: 60,
-                          color: isDark
-                              ? FzColors.darkText
-                              : FzColors.lightText,
-                          letterSpacing: 12,
-                        ),
-                        children: const [
-                          TextSpan(text: 'FAN'),
-                          TextSpan(
-                            text: 'ZONE',
-                            style: TextStyle(color: FzColors.accent),
-                          ),
-                        ],
+                    const FzBrandLogo(width: 124, height: 124),
+                    const SizedBox(height: 20),
+                    FzWordmark(
+                      style: FzTypography.display(
+                        size: 52,
+                        color: isDark
+                            ? FzColors.darkText
+                            : FzColors.lightText,
+                        letterSpacing: 6,
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -137,7 +132,7 @@ class _SplashScreenState extends State<SplashScreen>
                             width: 8,
                             height: 8,
                             decoration: const BoxDecoration(
-                              color: FzColors.accent,
+                              color: FzColors.primary,
                               shape: BoxShape.circle,
                             ),
                           ),

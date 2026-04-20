@@ -68,7 +68,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    FzColors.accent.withValues(alpha: 0.12),
+                    FzColors.primary.withValues(alpha: 0.12),
                     FzColors.teal.withValues(alpha: 0.12),
                   ],
                 ),
@@ -78,7 +78,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
                 children: [
                   const Icon(
                     LucideIcons.trophy,
-                    color: FzColors.accent,
+                    color: FzColors.primary,
                     size: 32,
                   ),
                   const SizedBox(height: 12),
@@ -97,7 +97,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
                     style: FzTypography.score(
                       size: 36,
                       weight: FontWeight.w700,
-                      color: FzColors.accent,
+                      color: FzColors.primary,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -149,7 +149,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
                 child: _TierCard(
                   correct: '10/10',
                   reward: 'JACKPOT',
-                  color: FzColors.accent,
+                  color: FzColors.primary,
                   textColor: textColor,
                   muted: muted,
                 ),
@@ -271,7 +271,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
               icon: const Icon(LucideIcons.zap, size: 16),
               label: const Text('Weekly Jackpot Opens Soon'),
               style: FilledButton.styleFrom(
-                backgroundColor: FzColors.accent,
+                backgroundColor: FzColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -373,8 +373,8 @@ class _MatchPredictionCardState extends State<_MatchPredictionCard> {
             height: 24,
             decoration: BoxDecoration(
               color: _selected != null
-                  ? FzColors.accent.withValues(alpha: 0.15)
-                  : FzColors.accent.withValues(alpha: 0.06),
+                  ? FzColors.primary.withValues(alpha: 0.15)
+                  : FzColors.primary.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
@@ -383,7 +383,7 @@ class _MatchPredictionCardState extends State<_MatchPredictionCard> {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: _selected != null ? FzColors.accent : widget.muted,
+                  color: _selected != null ? FzColors.primary : widget.muted,
                 ),
               ),
             ),
@@ -447,8 +447,8 @@ class _OutcomeChip extends StatelessWidget {
         height: 32,
         decoration: BoxDecoration(
           color: selected
-              ? FzColors.accent
-              : FzColors.accent.withValues(alpha: 0.06),
+              ? FzColors.primary
+              : FzColors.primary.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Center(
@@ -457,7 +457,7 @@ class _OutcomeChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: selected ? Colors.white : FzColors.accent,
+              color: selected ? Colors.white : FzColors.primary,
             ),
           ),
         ),
@@ -478,7 +478,7 @@ class _RuleItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(LucideIcons.checkCircle, size: 14, color: FzColors.accent),
+          const Icon(LucideIcons.checkCircle, size: 14, color: FzColors.primary),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

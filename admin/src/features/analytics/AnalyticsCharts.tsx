@@ -55,7 +55,7 @@ export function AnalyticsCharts({
                 />
                 <YAxis tick={CHART_STYLE} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Bar dataKey="dau" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="dau" fill="#98FF98" radius={[4, 4, 0, 0]} />
                 <Bar
                   dataKey="predictions"
                   fill="#6366F1"
@@ -95,7 +95,7 @@ export function AnalyticsCharts({
                 <Line
                   type="monotone"
                   dataKey="transferred"
-                  stroke="#0EA5E9"
+                  stroke="#98FF98"
                   strokeWidth={2}
                   dot={false}
                 />

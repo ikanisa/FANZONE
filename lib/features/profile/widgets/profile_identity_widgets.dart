@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../data/team_search_database.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fet_display.dart';
 import '../../../widgets/match/match_list_widgets.dart';
@@ -110,22 +111,40 @@ class ProfileHeaderCard extends ConsumerWidget {
                         const Icon(
                           LucideIcons.fingerprint,
                           size: 14,
-                          color: FzColors.accent,
+                          color: FzColors.primary,
                         ),
                         const SizedBox(width: 6),
                         Expanded(
-                          child: Text(
-                            fanId != null && fanId!.isNotEmpty
-                                ? 'Fan ID $fanId'
-                                : (isAuthenticated
-                                      ? 'FANZONE Member'
-                                      : 'Guest'),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
+                          child: fanId != null && fanId!.isNotEmpty
+                              ? Text(
+                                  'Fan ID $fanId',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'monospace',
+                                  ),
+                                )
+                              : isAuthenticated
+                              ? Text.rich(
+                                  TextSpan(
+                                    children: FzWordmark.spansForText(
+                                      'FANZONE Member',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: 'monospace',
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : const Text(
+                                  'Guest',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
                         ),
                       ],
                     ),
@@ -198,7 +217,7 @@ class ProfileHeaderCard extends ConsumerWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: FzColors.accent.withValues(alpha: 0.1),
+                      color: FzColors.primary.withValues(alpha: 0.1),
                       borderRadius: FzRadii.compactRadius,
                     ),
                     child: const Text(
@@ -206,7 +225,7 @@ class ProfileHeaderCard extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: FzColors.accent,
+                        color: FzColors.primary,
                       ),
                     ),
                   ),
@@ -254,7 +273,7 @@ class ProfileHeaderCard extends ConsumerWidget {
                           shape: BoxShape.circle,
                           border: Border.all(
                             color: profileIdentity?.teamId == team.teamId
-                                ? FzColors.accent
+                                ? FzColors.primary
                                 : (isDark
                                       ? FzColors.darkBorder
                                       : FzColors.lightBorder),
@@ -278,7 +297,7 @@ class ProfileHeaderCard extends ConsumerWidget {
               loading: () => const SizedBox(
                 width: 20,
                 height: 20,
-                child: const FzGlassLoader(useBackdrop: false),
+                child: FzGlassLoader(useBackdrop: false),
               ),
               error: (_, _) => Text(
                 'SUPPORTED TEAMS UNAVAILABLE',

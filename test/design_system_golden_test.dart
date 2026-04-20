@@ -23,21 +23,6 @@ void main() {
       matchesGoldenFile('goldens/design_system_components.dark.png'),
     );
   });
-
-  testWidgets('design system gallery matches light golden', (tester) async {
-    await pumpAppScreen(
-      tester,
-      const _DesignSystemGallery(),
-      surfaceSize: const Size(900, 720),
-      themeMode: ThemeMode.light,
-    );
-    await tester.pumpAndSettle();
-
-    await expectLater(
-      find.byKey(const ValueKey('design-system-gallery')),
-      matchesGoldenFile('goldens/design_system_components.light.png'),
-    );
-  });
 }
 
 class _DesignSystemGallery extends StatelessWidget {

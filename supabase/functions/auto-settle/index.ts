@@ -129,6 +129,7 @@ Deno.serve(async (req: Request) => {
         )
       `)
       .in("status", ["open", "locked"])
+      .eq("matches.status", "finished")
       .not("matches.ft_home", "is", null)
       .not("matches.ft_away", "is", null);
 
@@ -295,7 +296,11 @@ Deno.serve(async (req: Request) => {
           .eq("id", challenge.match_id)
           .single();
 
-        if (match?.ft_home != null && match?.ft_away != null) {
+        if (
+          match?.status === "finished" &&
+          match.ft_home != null &&
+          match.ft_away != null
+        ) {
           const { data: settleResult, error: settleErr } = await supabase.rpc(
             "settle_daily_challenge",
             {

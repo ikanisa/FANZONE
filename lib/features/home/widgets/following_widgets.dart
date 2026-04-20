@@ -64,7 +64,7 @@ class FollowableRow extends StatelessWidget {
             onPressed: onTrailingTap ?? onTap,
             icon: Icon(
               selected ? Icons.star_rounded : Icons.add_rounded,
-              color: selected ? FzColors.amber : FzColors.accent,
+              color: selected ? FzColors.amber : FzColors.primary,
             ),
           ),
         ],
@@ -151,7 +151,7 @@ class QuickAddSection extends ConsumerWidget {
             child: FollowableRow(
               title: competition.name,
               subtitle: competition.country,
-              leading: const Icon(LucideIcons.trophy, size: 18, color: FzColors.accent),
+              leading: const Icon(LucideIcons.trophy, size: 18, color: FzColors.primary),
               selected: favourites.isCompetitionFavourite(competition.id),
               onTap: () => ref.read(favouritesProvider.notifier).toggleCompetition(competition.id),
             ),
@@ -249,7 +249,7 @@ class FollowedCompetitionsSection extends ConsumerWidget {
                   child: FollowableRow(
                     title: competition.name,
                     subtitle: competition.country,
-                    leading: const Icon(LucideIcons.trophy, size: 18, color: FzColors.accent),
+                    leading: const Icon(LucideIcons.trophy, size: 18, color: FzColors.primary),
                     selected: true,
                     onTap: () => context.push('/league/${competition.id}'),
                     onTrailingTap: () => ref.read(favouritesProvider.notifier).toggleCompetition(competition.id),

@@ -88,7 +88,7 @@ class PoolStatusHeroCard extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: PoolStatCard(icon: LucideIcons.zap, iconColor: FzColors.accent, label: 'TOTAL POOL', value: formatFET(pool.totalPool, currency), isDark: isDark, muted: muted, textColor: textColor)),
+                Expanded(child: PoolStatCard(icon: LucideIcons.zap, iconColor: FzColors.primary, label: 'TOTAL POOL', value: formatFET(pool.totalPool, currency), isDark: isDark, muted: muted, textColor: textColor)),
                 const SizedBox(width: 12),
                 Expanded(child: PoolStatCard(icon: LucideIcons.users, iconColor: FzColors.violet, label: 'PARTICIPANTS', value: '${pool.participantsCount}', isDark: isDark, muted: muted, textColor: textColor)),
               ],
@@ -156,7 +156,7 @@ class PoolCreatorCard extends StatelessWidget {
                     children: [
                       Text('PREDICTION', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1)),
                       const SizedBox(height: 2),
-                      Text(pool.creatorPrediction, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: FzTypography.score(size: 16, weight: FontWeight.w700, color: FzColors.accent)),
+                      Text(pool.creatorPrediction, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: FzTypography.score(size: 16, weight: FontWeight.w700, color: FzColors.primary)),
                     ],
                   ),
                 ),
@@ -195,7 +195,7 @@ class PoolJoinSection extends ConsumerWidget {
         child: ElevatedButton(
           onPressed: () => showPoolJoinSheet(context, pool: pool, isDark: isDark, textColor: textColor, muted: muted),
           style: ElevatedButton.styleFrom(
-            backgroundColor: FzColors.accent,
+            backgroundColor: FzColors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
             textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),

@@ -160,7 +160,7 @@ class _PredictScreenState extends ConsumerState<PredictScreen>
                     controller: _tabController,
                     isScrollable: false,
                     indicator: BoxDecoration(
-                      color: FzColors.accent,
+                      color: FzColors.primary,
                       borderRadius: BorderRadius.circular(9),
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,

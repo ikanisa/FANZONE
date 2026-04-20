@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════
    FANZONE Admin — Component Styles
    Reusable component CSS classes.
+   Platform colors: Soft Mint + Warm Coral.
    ═══════════════════════════════════════════════════════════ */
 
 /* ── Buttons ── */
@@ -22,10 +23,10 @@
 .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 .btn-primary {
-  background: var(--fz-accent);
+  background: var(--fz-secondary);
   color: #fff;
 }
-.btn-primary:hover:not(:disabled) { background: var(--fz-accent-hover); }
+.btn-primary:hover:not(:disabled) { background: var(--fz-secondary-hover); }
 
 .btn-danger {
   background: var(--fz-error);
@@ -140,7 +141,7 @@
 .input:focus {
   outline: none;
   border-color: var(--fz-accent);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+  box-shadow: 0 0 0 3px rgba(152, 255, 152, 0.15);
 }
 .input::placeholder {
   color: var(--fz-muted-2);
@@ -222,7 +223,7 @@
   background: var(--fz-surface-2);
 }
 .data-table tr.selected td {
-  background: rgba(14, 165, 233, 0.06);
+  background: rgba(152, 255, 152, 0.06);
 }
 
 .data-table .cell-actions {
@@ -613,7 +614,7 @@
 }
 
 .sidebar-link.active {
-  background: rgba(14, 165, 233, 0.1);
+  background: rgba(152, 255, 152, 0.1);
   color: var(--fz-accent);
 }
 
@@ -819,7 +820,7 @@
   justify-content: center;
 }
 .pagination-btn:hover:not(:disabled) { background: var(--fz-surface-2); color: var(--fz-text); }
-.pagination-btn.active { background: var(--fz-accent); color: #fff; }
+.pagination-btn.active { background: var(--fz-secondary); color: #fff; }
 .pagination-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* ── Filter Bar ── */

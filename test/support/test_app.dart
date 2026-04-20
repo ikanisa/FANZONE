@@ -10,7 +10,6 @@ Future<void> pumpAppScreen(
   WidgetTester tester,
   Widget child, {
   List<Override> overrides = const [],
-  ThemeMode themeMode = ThemeMode.dark,
   Size surfaceSize = const Size(390, 844),
   bool reduceMotion = true,
 }) async {
@@ -40,9 +39,9 @@ Future<void> pumpAppScreen(
         ),
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: FzTheme.light(),
+          theme: FzTheme.dark(),
           darkTheme: FzTheme.dark(),
-          themeMode: themeMode,
+          themeMode: ThemeMode.dark,
           home: child,
         ),
       ),

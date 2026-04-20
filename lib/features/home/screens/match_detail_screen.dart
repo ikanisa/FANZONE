@@ -166,7 +166,7 @@ class MatchDetailScreen extends ConsumerWidget {
                             ? Icons.notifications_active_rounded
                             : Icons.notifications_none_rounded,
                         size: 22,
-                        color: matchAlertsEnabled ? FzColors.accent : null,
+                        color: matchAlertsEnabled ? FzColors.primary : null,
                       ),
                     ),
                     IconButton(

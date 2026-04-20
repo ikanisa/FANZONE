@@ -224,7 +224,7 @@ class TeamInfoSection extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: FzColors.accent,
+                    color: FzColors.primary,
                     letterSpacing: 2.0,
                     fontFamily: 'monospace',
                   ),
@@ -243,12 +243,12 @@ class TeamInfoSection extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onMembershipTap,
               style: ElevatedButton.styleFrom(
-                backgroundColor: FzColors.accent.withValues(alpha: 0.14),
-                foregroundColor: FzColors.accent,
+                backgroundColor: FzColors.primary.withValues(alpha: 0.14),
+                foregroundColor: FzColors.primary,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 side: BorderSide(
-                  color: FzColors.accent.withValues(alpha: 0.3),
+                  color: FzColors.primary.withValues(alpha: 0.3),
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

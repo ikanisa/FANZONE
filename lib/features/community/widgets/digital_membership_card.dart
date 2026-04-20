@@ -4,6 +4,7 @@ import '../../../models/team_model.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 
 /// The gradient digital membership card shown at the top of the membership hub.
@@ -38,7 +39,7 @@ class DigitalMembershipCard extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [FzColors.accent, FzColors.violet],
+            colors: [FzColors.primary, FzColors.violet],
           ),
           borderRadius: BorderRadius.circular(16),
         ),
@@ -67,10 +68,22 @@ class DigitalMembershipCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 18),
-            Text(
-              activeClub?.name ?? 'FANZONE Supporter',
-              style: FzTypography.display(size: 28, color: Colors.white),
-            ),
+            activeClub != null
+                ? Text(
+                    activeClub!.name,
+                    style: FzTypography.display(size: 28, color: Colors.white),
+                  )
+                : Text.rich(
+                    TextSpan(
+                      children: FzWordmark.spansForText(
+                        'FANZONE Supporter',
+                        style: FzTypography.display(
+                          size: 28,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
             const SizedBox(height: 4),
             Text(
               activeClub == null

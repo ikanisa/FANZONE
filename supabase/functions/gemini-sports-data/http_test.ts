@@ -1,8 +1,4 @@
-import {
-  assertAuthorized,
-  corsHeaders,
-  HttpError,
-} from "./http.ts";
+import { assertAuthorized, corsHeaders, HttpError } from "./http.ts";
 
 Deno.test("corsHeaders are built through the shared helper", () => {
   if (corsHeaders["Access-Control-Allow-Headers"] == null) {

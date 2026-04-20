@@ -1,39 +1,44 @@
 // FANZONE Admin — Login Page
-import { useMemo, useRef, useState } from 'react';
-import { Loader, MessageCircle } from 'lucide-react';
+import { useMemo, useRef, useState } from "react";
+import { Loader, MessageCircle } from "lucide-react";
 
-import logoImg from '../../assets/logo-128.png';
-import { useAuth } from '../../hooks/useAuth';
+import {
+  FanzoneWordmark,
+  renderFanzoneText,
+} from "../../components/FanzoneWordmark";
+import { useAuth } from "../../hooks/useAuth";
 
-type LoginStep = 'phone' | 'otp';
+const logoImg = "/brand/logo-mark-128.png";
+
+type LoginStep = "phone" | "otp";
 
 const OTP_LENGTH = 6;
 
 function normalizePhone(rawPhone: string) {
   const trimmed = rawPhone.trim();
-  if (!trimmed) return '';
+  if (!trimmed) return "";
 
-  const digits = trimmed.replace(/\D/g, '');
-  return trimmed.startsWith('+') ? `+${digits}` : digits;
+  const digits = trimmed.replace(/\D/g, "");
+  return trimmed.startsWith("+") ? `+${digits}` : digits;
 }
 
 function isValidPhone(rawPhone: string) {
   const normalized = normalizePhone(rawPhone);
-  const digits = normalized.replace(/\D/g, '');
-  return normalized.startsWith('+') && digits.length >= 8;
+  const digits = normalized.replace(/\D/g, "");
+  return normalized.startsWith("+") && digits.length >= 8;
 }
 
 export function LoginPage() {
   const { requestOtp, verifyOtp, isLoading, error } = useAuth();
-  const [step, setStep] = useState<LoginStep>('phone');
-  const [phone, setPhone] = useState('');
-  const [sentPhone, setSentPhone] = useState('');
-  const [otp, setOtp] = useState<string[]>(() => Array(OTP_LENGTH).fill(''));
+  const [step, setStep] = useState<LoginStep>("phone");
+  const [phone, setPhone] = useState("");
+  const [sentPhone, setSentPhone] = useState("");
+  const [otp, setOtp] = useState<string[]>(() => Array(OTP_LENGTH).fill(""));
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const normalizedPhone = useMemo(() => normalizePhone(phone), [phone]);
   const canRequestOtp = isValidPhone(phone) && !isLoading;
-  const canVerifyOtp = otp.join('').length === OTP_LENGTH && !isLoading;
+  const canVerifyOtp = otp.join("").length === OTP_LENGTH && !isLoading;
 
   const handleRequestOtp = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -42,18 +47,18 @@ export function LoginPage() {
     const sent = await requestOtp(normalizedPhone);
     if (!sent) return;
     setSentPhone(normalizedPhone);
-    setOtp(Array(OTP_LENGTH).fill(''));
-    setStep('otp');
+    setOtp(Array(OTP_LENGTH).fill(""));
+    setStep("otp");
   };
 
   const handleVerifyOtp = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!canVerifyOtp || !sentPhone) return;
-    await verifyOtp(sentPhone, otp.join(''));
+    await verifyOtp(sentPhone, otp.join(""));
   };
 
   const handleOtpChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1);
+    const digit = value.replace(/\D/g, "").slice(-1);
     setOtp((current) => {
       const next = [...current];
       next[index] = digit;
@@ -65,15 +70,18 @@ export function LoginPage() {
     }
   };
 
-  const handleOtpKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Backspace' && !otp[index] && index > 0) {
+  const handleOtpKeyDown = (
+    index: number,
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (event.key === "Backspace" && !otp[index] && index > 0) {
       otpRefs.current[index - 1]?.focus();
     }
   };
 
   const goBackToPhone = () => {
-    setStep('phone');
-    setOtp(Array(OTP_LENGTH).fill(''));
+    setStep("phone");
+    setOtp(Array(OTP_LENGTH).fill(""));
   };
 
   return (
@@ -81,14 +89,21 @@ export function LoginPage() {
       <div className="login-card">
         <div className="login-brand">
           <img src={logoImg} alt="FANZONE" className="login-logo" />
-          <h1 className="login-title">FANZONE</h1>
+          <h1 className="login-title">
+            <FanzoneWordmark />
+          </h1>
           <p className="login-subtitle">Admin Console</p>
         </div>
 
-        <form className="login-form" onSubmit={step === 'phone' ? handleRequestOtp : handleVerifyOtp}>
-          {error && <div className="login-error">{error}</div>}
+        <form
+          className="login-form"
+          onSubmit={step === "phone" ? handleRequestOtp : handleVerifyOtp}
+        >
+          {error && (
+            <div className="login-error">{renderFanzoneText(error)}</div>
+          )}
 
-          {step === 'phone' ? (
+          {step === "phone" ? (
             <>
               <div className="login-step-header">
                 <MessageCircle size={22} />
@@ -96,18 +111,22 @@ export function LoginPage() {
               </div>
 
               <p className="login-step-copy">
-                Use your provisioned WhatsApp number to access the FANZONE admin console.
+                {renderFanzoneText(
+                  "Use your provisioned WhatsApp number to access the FANZONE admin console.",
+                )}
               </p>
 
               <div className="field-group">
-                <label className="label" htmlFor="login-phone">WhatsApp Number</label>
+                <label className="label" htmlFor="login-phone">
+                  WhatsApp Number
+                </label>
                 <input
                   id="login-phone"
                   type="tel"
                   className="input"
                   placeholder="+356 99 123 456"
                   value={phone}
-                  onChange={event => setPhone(event.target.value)}
+                  onChange={(event) => setPhone(event.target.value)}
                   autoComplete="tel"
                   autoFocus
                   required
@@ -119,7 +138,11 @@ export function LoginPage() {
                 className="btn btn-primary w-full btn-lg"
                 disabled={!canRequestOtp}
               >
-                {isLoading ? <Loader size={18} className="spin" /> : 'Send Code Via WhatsApp'}
+                {isLoading ? (
+                  <Loader size={18} className="spin" />
+                ) : (
+                  "Send Code Via WhatsApp"
+                )}
               </button>
             </>
           ) : (
@@ -130,24 +153,27 @@ export function LoginPage() {
               </div>
 
               <p className="login-step-copy">
-                Enter the 6-digit code sent to <strong>{sentPhone}</strong> on WhatsApp.
+                Enter the 6-digit code sent to <strong>{sentPhone}</strong> on
+                WhatsApp.
               </p>
 
               <div className="otp-grid" aria-label="WhatsApp verification code">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
-                    ref={node => {
+                    ref={(node) => {
                       otpRefs.current[index] = node;
                     }}
                     className="otp-input"
                     type="text"
                     inputMode="numeric"
-                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                    autoComplete={index === 0 ? "one-time-code" : "off"}
                     maxLength={1}
                     value={digit}
-                    onChange={event => handleOtpChange(index, event.target.value)}
-                    onKeyDown={event => handleOtpKeyDown(index, event)}
+                    onChange={(event) =>
+                      handleOtpChange(index, event.target.value)
+                    }
+                    onKeyDown={(event) => handleOtpKeyDown(index, event)}
                     aria-label={`OTP digit ${index + 1}`}
                     autoFocus={index === 0}
                   />
@@ -159,7 +185,11 @@ export function LoginPage() {
                 className="btn btn-primary w-full btn-lg"
                 disabled={!canVerifyOtp}
               >
-                {isLoading ? <Loader size={18} className="spin" /> : 'Verify Code'}
+                {isLoading ? (
+                  <Loader size={18} className="spin" />
+                ) : (
+                  "Verify Code"
+                )}
               </button>
 
               <button
@@ -174,7 +204,9 @@ export function LoginPage() {
           )}
         </form>
 
-        <p className="login-footer">FANZONE Malta — Internal Use Only</p>
+        <p className="login-footer">
+          {renderFanzoneText("FANZONE Malta — Internal Use Only")}
+        </p>
       </div>
 
       <style>{`
@@ -249,12 +281,12 @@ export function LoginPage() {
           border: 1px solid rgba(239,68,68,0.2);
         }
         .login-info {
-          background: rgba(34, 211, 238, 0.12);
+          background: rgba(152, 255, 152, 0.12);
           color: var(--fz-text);
           padding: var(--fz-sp-3) var(--fz-sp-4);
           border-radius: var(--fz-radius);
           font-size: var(--fz-text-sm);
-          border: 1px solid rgba(34, 211, 238, 0.2);
+          border: 1px solid rgba(152, 255, 152, 0.2);
         }
         .otp-grid {
           display: grid;

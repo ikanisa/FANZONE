@@ -216,7 +216,7 @@ const List<FanLevel> _fanLevels = <FanLevel>[
     title: 'First Whistle',
     minXp: 0,
     iconName: 'sparkles',
-    colorHex: '#22D3EE',
+    colorHex: '#98FF98',
   ),
   FanLevel(
     level: 2,

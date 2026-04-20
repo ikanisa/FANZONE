@@ -110,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _onRefresh,
-          color: FzColors.accent,
+          color: FzColors.primary,
           child: CustomScrollView(
             slivers: [
               // ── Title ──
@@ -437,14 +437,14 @@ class _DateChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = isSelected
-        ? FzColors.accent
+        ? FzColors.primary
         : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2);
     final textColor = isSelected
         ? Colors.white
         : (isDark ? FzColors.darkMuted : FzColors.lightMuted);
     final labelColor = isSelected
         ? Colors.white70
-        : (isToday ? FzColors.accent : textColor);
+        : (isToday ? FzColors.primary : textColor);
 
     return Semantics(
       button: true,
@@ -464,9 +464,9 @@ class _DateChip extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isSelected
-                    ? FzColors.accent
+                    ? FzColors.primary
                     : (isToday
-                          ? FzColors.accent.withValues(alpha: 0.4)
+                          ? FzColors.primary.withValues(alpha: 0.4)
                           : (isDark
                                 ? FzColors.darkBorder
                                 : FzColors.lightBorder)),
@@ -541,12 +541,12 @@ class _FilterChip extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
                 color: selected
-                    ? FzColors.accent
+                    ? FzColors.primary
                     : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: selected
-                      ? FzColors.accent
+                      ? FzColors.primary
                       : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
                 ),
               ),

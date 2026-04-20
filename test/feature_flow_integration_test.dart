@@ -26,6 +26,7 @@ import 'package:fanzone/services/prediction_slip_service.dart';
 import 'package:fanzone/services/team_community_service.dart';
 import 'package:fanzone/services/wallet_service.dart';
 import 'package:fanzone/theme/app_theme.dart';
+import 'package:fanzone/theme/colors.dart';
 import 'package:fanzone/widgets/predict/prediction_slip_dock.dart';
 
 import 'support/test_app.dart';
@@ -180,9 +181,9 @@ void main() {
                   context: context,
                   builder: (_) => PoolJoinSheet(
                     pool: pool,
-                    isDark: false,
-                    textColor: Colors.black,
-                    muted: Colors.grey,
+                    isDark: true,
+                    textColor: FzColors.darkText,
+                    muted: FzColors.darkMuted,
                   ),
                 ),
                 child: const Text('Open pool join'),
@@ -260,7 +261,7 @@ Future<void> _pumpLoginFlow(
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
-        theme: FzTheme.light(),
+        theme: FzTheme.dark(),
         darkTheme: FzTheme.dark(),
         themeMode: ThemeMode.dark,
         routerConfig: router,

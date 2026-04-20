@@ -1,4 +1,4 @@
-import { EVENT_TYPES, MATCH_STATES } from "./constants.ts";
+import { EVENT_TYPES, MATCH_PHASES, MATCH_STATES } from "./constants.ts";
 import { HttpError } from "./http.ts";
 import { dedupeEvents } from "./match.ts";
 import type {
@@ -7,6 +7,7 @@ import type {
   MatchEvent,
   MatchEventsPayload,
   MatchOdds,
+  MatchPhase,
   MatchState,
 } from "./types.ts";
 
@@ -29,6 +30,14 @@ function readRequiredString(
   }
 
   return trimmed;
+}
+
+function readOptionalString(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed || null;
 }
 
 function toFiniteNumber(value: unknown, fieldName: string): number {
@@ -65,6 +74,7 @@ function parseEvent(output: unknown): MatchEvent {
     event_type: eventType as EventType,
     team: readRequiredString(output.team, "team"),
     player: readRequiredString(output.player, "player"),
+    assist_player: readOptionalString(output.assist_player),
     details: readRequiredString(output.details, "details", {
       allowEmpty: true,
     }),
@@ -77,6 +87,17 @@ function parseEventsOutput(output: unknown): MatchEvent[] {
   }
 
   return dedupeEvents(output.map(parseEvent));
+}
+
+function parseUncertaintyNotes(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((item) => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 export function parseRequestPayload(input: unknown): MatchDataRequest {
@@ -96,7 +117,15 @@ export function parseRequestPayload(input: unknown): MatchDataRequest {
     );
   }
 
-  return { teamA, teamB, matchId, fetchType };
+  return {
+    teamA,
+    teamB,
+    matchId,
+    fetchType,
+    competitionName: readOptionalString(input.competitionName),
+    sourceUrl: readOptionalString(input.sourceUrl),
+    kickoffAt: readOptionalString(input.kickoffAt),
+  };
 }
 
 export function parseMatchEventsPayload(output: unknown): MatchEventsPayload {
@@ -115,6 +144,11 @@ export function parseMatchEventsPayload(output: unknown): MatchEventsPayload {
     );
   }
 
+  const phase = readRequiredString(output.phase, "phase");
+  if (!MATCH_PHASES.includes(phase as MatchPhase)) {
+    throw new HttpError(502, `Unsupported phase received: ${phase}`);
+  }
+
   const homeScore = toFiniteNumber(output.home_score, "home_score");
   const awayScore = toFiniteNumber(output.away_score, "away_score");
 
@@ -125,11 +159,24 @@ export function parseMatchEventsPayload(output: unknown): MatchEventsPayload {
     throw new HttpError(502, "Gemini returned an invalid score snapshot.");
   }
 
+  let minute: number | null = null;
+  if (output.minute != null && output.minute !== "") {
+    const numericMinute = toFiniteNumber(output.minute, "minute");
+    if (!Number.isInteger(numericMinute) || numericMinute < 0) {
+      throw new HttpError(502, "Gemini returned an invalid current minute.");
+    }
+    minute = numericMinute;
+  }
+
   return {
     match_status: matchStatus as MatchState,
+    phase: phase as MatchPhase,
+    minute,
     home_score: homeScore,
     away_score: awayScore,
     events: parseEventsOutput(output.events),
+    summary: readOptionalString(output.summary),
+    uncertainty_notes: parseUncertaintyNotes(output.uncertainty_notes),
   };
 }
 
@@ -208,15 +255,20 @@ export function parseMatchEventsJson(text: string): unknown {
     const matchStatus = normalized.match(
       /"match_status"\s*:\s*"([^"]+)"/,
     )?.[1];
+    const phase = normalized.match(/"phase"\s*:\s*"([^"]+)"/)?.[1];
     const homeScore = normalized.match(/"home_score"\s*:\s*(\d+)/)?.[1];
     const awayScore = normalized.match(/"away_score"\s*:\s*(\d+)/)?.[1];
+    const minute = normalized.match(/"minute"\s*:\s*(\d+)/)?.[1];
 
-    if (matchStatus && homeScore && awayScore) {
+    if (matchStatus && phase && homeScore && awayScore) {
       return {
         match_status: matchStatus,
+        phase,
+        minute: minute ? Number(minute) : null,
         home_score: Number(homeScore),
         away_score: Number(awayScore),
         events: [],
+        uncertainty_notes: [],
       };
     }
 

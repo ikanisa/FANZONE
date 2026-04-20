@@ -88,7 +88,7 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
                   end: Alignment.bottomRight,
                   colors: [
                     FzColors.teal.withValues(alpha: 0.12),
-                    FzColors.accent.withValues(alpha: 0.12),
+                    FzColors.primary.withValues(alpha: 0.12),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
@@ -111,7 +111,7 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
                       style: FzTypography.score(
                         size: 36,
                         weight: FontWeight.w700,
-                        color: FzColors.accent,
+                        color: FzColors.primary,
                       ),
                     ),
                     loading: () => Text(
@@ -351,7 +351,7 @@ class _RateCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: FzColors.accent,
+              color: FzColors.primary,
               letterSpacing: 0.5,
             ),
           ),
@@ -381,9 +381,9 @@ class _ConversionResult extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: FzColors.accent.withValues(alpha: 0.06),
+        color: FzColors.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: FzColors.accent.withValues(alpha: 0.15)),
+        border: Border.all(color: FzColors.primary.withValues(alpha: 0.15)),
       ),
       child: Column(
         children: [

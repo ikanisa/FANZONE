@@ -170,12 +170,12 @@ class _FeaturedBannerCard extends StatelessWidget {
   }
 
   Color _parseBannerColor(String? hex) {
-    if (hex == null || hex.isEmpty) return FzColors.accent;
+    if (hex == null || hex.isEmpty) return FzColors.primary;
     try {
       final cleaned = hex.replaceAll('#', '');
       return Color(int.parse('FF$cleaned', radix: 16));
     } catch (_) {
-      return FzColors.accent;
+      return FzColors.primary;
     }
   }
 

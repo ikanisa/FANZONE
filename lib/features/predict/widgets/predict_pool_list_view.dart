@@ -223,12 +223,12 @@ class _SortChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: selected
-              ? FzColors.accent.withValues(alpha: 0.15)
+              ? FzColors.primary.withValues(alpha: 0.15)
               : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected
-                ? FzColors.accent.withValues(alpha: 0.4)
+                ? FzColors.primary.withValues(alpha: 0.4)
                 : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
           ),
         ),
@@ -237,7 +237,7 @@ class _SortChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: selected ? FzColors.accent : muted,
+            color: selected ? FzColors.primary : muted,
           ),
         ),
       ),
@@ -324,7 +324,7 @@ class _PoolCard extends ConsumerWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(LucideIcons.zap, size: 14, color: FzColors.accent),
+                  const Icon(LucideIcons.zap, size: 14, color: FzColors.primary),
                   const SizedBox(width: 6),
                   Text(
                     formatFET(pool.totalPool, currency),

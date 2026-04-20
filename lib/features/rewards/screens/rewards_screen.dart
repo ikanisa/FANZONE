@@ -234,7 +234,7 @@ class RewardsScreen extends ConsumerWidget {
                 const SizedBox(height: 6),
                 SelectableText(
                   result.deliveryValue!,
-                  style: FzTypography.scoreMedium(color: FzColors.accent),
+                  style: FzTypography.scoreMedium(color: FzColors.primary),
                 ),
               ],
               const SizedBox(height: 12),
@@ -320,7 +320,7 @@ class _OfferCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: FzColors.accent.withValues(alpha: 0.1),
+                  color: FzColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child:
@@ -337,11 +337,11 @@ class _OfferCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorWidget: (_, _, _) => const Icon(
                             LucideIcons.store,
-                            color: FzColors.accent,
+                            color: FzColors.primary,
                           ),
                         ),
                       )
-                    : const Icon(LucideIcons.store, color: FzColors.accent),
+                    : const Icon(LucideIcons.store, color: FzColors.primary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -418,7 +418,7 @@ class _RedemptionCard extends StatelessWidget {
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     final statusColor = switch (item.status) {
       'fulfilled' => FzColors.success,
-      'used' => FzColors.accent,
+      'used' => FzColors.primary,
       'expired' => FzColors.error,
       _ => FzColors.amber,
     };
@@ -478,7 +478,7 @@ class _RedemptionCard extends StatelessWidget {
             const SizedBox(height: 8),
             SelectableText(
               item.deliveryValue!,
-              style: FzTypography.scoreCompact(color: FzColors.accent),
+              style: FzTypography.scoreCompact(color: FzColors.primary),
             ),
           ],
         ],

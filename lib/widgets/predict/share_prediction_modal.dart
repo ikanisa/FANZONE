@@ -76,7 +76,7 @@ class _SharePredictionSheet extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      FzColors.accent.withValues(alpha: 0.15),
+                      FzColors.primary.withValues(alpha: 0.15),
                       FzColors.violet.withValues(alpha: 0.15),
                     ],
                   ),
@@ -84,7 +84,7 @@ class _SharePredictionSheet extends StatelessWidget {
                 ),
                 child: const Icon(
                   LucideIcons.sparkles,
-                  color: FzColors.accent,
+                  color: FzColors.primary,
                   size: 24,
                 ),
               ),
@@ -130,7 +130,7 @@ class _SharePredictionSheet extends StatelessWidget {
                               const Icon(
                                 LucideIcons.chevronRight,
                                 size: 14,
-                                color: FzColors.accent,
+                                color: FzColors.primary,
                               ),
                               const SizedBox(width: 6),
                               Expanded(
@@ -177,7 +177,7 @@ class _SharePredictionSheet extends StatelessWidget {
                       icon: const Icon(Icons.share_rounded, size: 16),
                       label: const Text('Share'),
                       style: FilledButton.styleFrom(
-                        backgroundColor: FzColors.accent,
+                        backgroundColor: FzColors.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

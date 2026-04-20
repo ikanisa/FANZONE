@@ -74,7 +74,7 @@ As FANZONE is operated from Malta (EU), you have the following rights under the 
 - **Objection**: Object to processing of your data for specific purposes
 - **Restriction**: Request restriction of processing in certain circumstances
 
-To exercise these rights, contact us at: **privacy@ikanisa.com** or use
+To exercise these rights, contact us at: **info@ikanisa.com** or use
 Settings → Request Account Deletion in the app.
 
 ## 8. Children's Privacy
@@ -100,6 +100,6 @@ We may update this Privacy Policy from time to time. We will notify you of any c
 
 If you have questions about this Privacy Policy or our data practices:
 
-- **Email**: privacy@ikanisa.com
+- **Email**: info@ikanisa.com
 - **General**: info@ikanisa.com
 - **Address**: IKANISA, Malta

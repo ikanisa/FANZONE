@@ -10,9 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 abstract final class FzTypography {
   /// Base text theme using Outfit for the entire app.
   static TextTheme textTheme(Brightness brightness) {
-    final color = brightness == Brightness.dark
-        ? const Color(0xFFFDFCF0)  // Cream — vibrant readability
-        : const Color(0xFF1C1917);
+    const color = Color(0xFFFDFCF0);
 
     final baseTheme = TextTheme(
       // Display
@@ -183,12 +181,10 @@ abstract final class FzTypography {
   }
 
   /// Section label style — uppercase, spaced, theme-aware muted color.
-  static TextStyle sectionLabel(Brightness brightness) => TextStyle(
+  static TextStyle sectionLabel(Brightness brightness) => const TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w700,
-    color: brightness == Brightness.dark
-        ? const Color(0xFFA8A29E)  // FzColors.darkMuted (Stone 400)
-        : const Color(0xFF57534E), // FzColors.lightMuted (Stone 600)
+    color: Color(0xFFA8A29E),
     letterSpacing: 0.8,
   );
 

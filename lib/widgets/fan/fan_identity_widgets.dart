@@ -217,7 +217,7 @@ class BadgeGrid extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: FzColors.accent.withValues(alpha: 0.1),
+                color: FzColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -225,7 +225,7 @@ class BadgeGrid extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: FzColors.accent,
+                  color: FzColors.primary,
                 ),
               ),
             ),

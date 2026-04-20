@@ -1,4 +1,3 @@
-
 import '../../../core/cache/stale_while_revalidate.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -36,7 +35,8 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     if (client == null) return fallbackMatchesForFilter(filter);
 
     // Build a cache key for date-filtered queries
-    final useSWR = filter.dateFrom != null &&
+    final useSWR =
+        filter.dateFrom != null &&
         filter.dateTo != null &&
         filter.competitionId == null &&
         filter.teamId == null &&
@@ -50,9 +50,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
           ttl: _matchCacheTtl,
           fetch: () => _fetchMatchRows(filter),
         );
-        return cachedRows
-            .map(MatchModel.fromJson)
-            .toList(growable: false);
+        return cachedRows.map(MatchModel.fromJson).toList(growable: false);
       } catch (_) {
         // Fall through to direct fetch
       }
@@ -60,9 +58,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
     try {
       final rows = await _fetchMatchRows(filter);
-      return rows
-          .map(MatchModel.fromJson)
-          .toList(growable: false);
+      return rows.map(MatchModel.fromJson).toList(growable: false);
     } catch (error) {
       AppLogger.d('Failed to load matches: $error');
       return fallbackMatchesForFilter(filter);
@@ -75,7 +71,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
   ) async {
     final client = _connection.client!;
 
-    var query = client.from('matches').select();
+    var query = client.from('matches_live_view').select();
     if (filter.competitionId != null && filter.competitionId!.isNotEmpty) {
       query = query.eq('competition_id', filter.competitionId!);
     }
@@ -149,8 +145,14 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
     final adjacentKeys = [yesterday, tomorrow].map((d) {
       final start = DateTime(d.year, d.month, d.day).toIso8601String();
-      final end =
-          DateTime(d.year, d.month, d.day, 23, 59, 59).toIso8601String();
+      final end = DateTime(
+        d.year,
+        d.month,
+        d.day,
+        23,
+        59,
+        59,
+      ).toIso8601String();
       return _dateCacheKey(start, end);
     }).toList();
 
@@ -209,4 +211,3 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     );
   }
 }
-

@@ -8,6 +8,7 @@ import 'dart:ui' show PlatformDispatcher;
 
 import '../config/bootstrap_config.dart';
 import '../config/runtime_bootstrap.dart';
+import '../../config/app_config.dart';
 import '../utils/currency_utils.dart' as currency_utils;
 
 import 'package:flutter/foundation.dart'
@@ -15,6 +16,7 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/team_search_database.dart' as team_db;
 // ── Core layer ─────────────────────────────────────────────
@@ -62,6 +64,15 @@ final teamSearchCatalogProvider = Provider<TeamSearchCatalog>((ref) {
 BootstrapConfigService? _bootstrapRuntimeService;
 SupabaseConnection? _bootstrapRuntimeConnection;
 
+const _teamCatalogSelectColumns =
+    'id, name, short_name, country, country_code, league_name, region, '
+    'logo_url, crest_url, aliases, search_terms, is_popular_pick, '
+    'is_featured, is_active, popular_pick_rank';
+const _teamCatalogLegacySelectColumns =
+    'id, name, short_name, country, country_code, league_name, region, '
+    'crest_url, search_terms, is_popular_pick, is_featured, is_active, '
+    'popular_pick_rank';
+
 String _bootstrapMarketKey() {
   final countryCode = PlatformDispatcher.instance.locale.countryCode;
   final normalized = countryCode?.trim().toLowerCase();
@@ -82,6 +93,11 @@ String _bootstrapPlatformKey() {
 }
 
 String _regionForTeamRow(Map<String, dynamic> row, BootstrapConfig config) {
+  final explicitRegion = row['region']?.toString().trim().toLowerCase();
+  if (explicitRegion != null && explicitRegion.isNotEmpty) {
+    return explicitRegion;
+  }
+
   final countryCode = row['country_code']?.toString();
   final regionFromCode = config.regionForCountryCode(countryCode);
   if (regionFromCode != 'global') return regionFromCode;
@@ -98,53 +114,221 @@ String _regionForTeamRow(Map<String, dynamic> row, BootstrapConfig config) {
   return 'global';
 }
 
+List<String> _stringList(dynamic value) {
+  if (value is List) {
+    return value
+        .map((item) => item.toString().trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  if (value is String) {
+    return value
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  return const <String>[];
+}
+
+String? _firstString(Map<String, dynamic> row, List<String> keys) {
+  for (final key in keys) {
+    final value = row[key]?.toString().trim();
+    if (value != null && value.isNotEmpty) return value;
+  }
+  return null;
+}
+
+int? _firstInt(Map<String, dynamic> row, List<String> keys) {
+  for (final key in keys) {
+    final value = row[key];
+    if (value is num) return value.toInt();
+    final parsed = int.tryParse(value?.toString() ?? '');
+    if (parsed != null) return parsed;
+  }
+  return null;
+}
+
+OnboardingTeam? _mapTeamRow(Map<String, dynamic> row, BootstrapConfig config) {
+  final id = _firstString(row, const ['team_id', 'id']);
+  final name = _firstString(row, const ['team_name', 'name']);
+  if (id == null || name == null) return null;
+
+  final countryCode = _firstString(row, const [
+    'team_country_code',
+    'country_code',
+  ]);
+  final country =
+      _firstString(row, const ['team_country', 'country']) ??
+      config.countryNameForCode(countryCode) ??
+      '';
+  final league = _firstString(row, const [
+    'team_league',
+    'league_name',
+    'league',
+  ]);
+  final aliases = <String>{
+    ..._stringList(row['aliases']),
+    ..._stringList(row['search_terms']),
+  }.toList(growable: false);
+
+  return OnboardingTeam.fromJson({
+    'id': id,
+    'name': name,
+    'country': country,
+    'league': league,
+    'aliases': aliases,
+    'region':
+        _firstString(row, const ['region']) ?? _regionForTeamRow(row, config),
+    'is_popular':
+        row['is_popular'] == true ||
+        row['is_popular_pick'] == true ||
+        row['is_featured'] == true,
+    'short_name': _firstString(row, const ['team_short_name', 'short_name']),
+    'crest_url': _firstString(row, const [
+      'team_crest_url',
+      'crest_url',
+      'logo_url',
+    ]),
+    'country_code': countryCode,
+    'popular_rank': _firstInt(row, const [
+      'popular_pick_rank',
+      'sort_order',
+      'display_order',
+      'rank',
+    ]),
+  });
+}
+
+Future<List<Map<String, dynamic>>> _fetchAllActiveTeamRows(
+  SupabaseClient client,
+) async {
+  Future<List<Map<String, dynamic>>> fetchPageSet(String selectColumns) async {
+    const pageSize = 1000;
+    final rows = <Map<String, dynamic>>[];
+    var start = 0;
+
+    while (true) {
+      final page = await client
+          .from('teams')
+          .select(selectColumns)
+          .eq('is_active', true)
+          .order('name')
+          .range(start, start + pageSize - 1);
+
+      final normalized = (page as List)
+          .whereType<Map>()
+          .map(Map<String, dynamic>.from)
+          .toList(growable: false);
+      if (normalized.isEmpty) break;
+
+      rows.addAll(normalized);
+      if (normalized.length < pageSize) break;
+      start += pageSize;
+    }
+
+    return rows;
+  }
+
+  try {
+    return await fetchPageSet(_teamCatalogSelectColumns);
+  } catch (error) {
+    AppLogger.d(
+      'Startup: primary team catalog select failed, retrying legacy columns: $error',
+    );
+  }
+
+  return fetchPageSet(_teamCatalogLegacySelectColumns);
+}
+
+List<String> _popularTableCandidates() {
+  final configured = AppConfig.onboardingPopularTeamsTable.trim();
+  final candidates = <String>[
+    if (configured.isNotEmpty) configured,
+    'onboarding_popular_teams',
+    'popular_teams',
+    'popular_team_picks',
+  ];
+  return candidates.toSet().toList(growable: false);
+}
+
+Future<List<OnboardingTeam>> _loadDedicatedPopularTeams(
+  SupabaseClient client,
+  BootstrapConfig config,
+) async {
+  for (final table in _popularTableCandidates()) {
+    try {
+      final rows = await client.from(table).select('*');
+      final teams = (rows as List)
+          .whereType<Map>()
+          .map(Map<String, dynamic>.from)
+          .where((row) => row['is_active'] != false)
+          .map((row) => _mapTeamRow(row, config))
+          .whereType<OnboardingTeam>()
+          .toList(growable: false);
+      if (teams.isNotEmpty) {
+        return teams;
+      }
+    } catch (error) {
+      AppLogger.d(
+        'Startup: popular teams table "$table" unavailable, falling back: $error',
+      );
+    }
+  }
+
+  return const <OnboardingTeam>[];
+}
+
+Future<TeamSearchCatalog?> _buildRemoteTeamSearchCatalog(
+  SupabaseClient client,
+  BootstrapConfig config,
+) async {
+  final rows = await _fetchAllActiveTeamRows(client);
+  final teams = rows
+      .map((row) => _mapTeamRow(row, config))
+      .whereType<OnboardingTeam>()
+      .toList(growable: false);
+
+  if (teams.isEmpty) return null;
+
+  final popularTeams = await _loadDedicatedPopularTeams(client, config);
+  return TeamSearchCatalog(teams, popularTeams: popularTeams);
+}
+
 Future<TeamSearchCatalog?> _loadRemoteTeamSearchCatalog(
   SupabaseConnection connection,
   BootstrapConfig config,
 ) async {
   final client = connection.client;
   if (client == null) return null;
+  return _buildRemoteTeamSearchCatalog(client, config);
+}
 
-  final rows = await client
-      .from('teams')
-      .select(
-        'id, name, short_name, country, country_code, league_name, crest_url, '
-        'search_terms, is_popular_pick, is_featured, is_active, '
-        'popular_pick_rank',
-      )
-      .eq('is_active', true)
-      .order('is_popular_pick', ascending: false)
-      .order('popular_pick_rank', ascending: true)
-      .order('name');
+Future<TeamSearchCatalog?> _preloadRemoteTeamSearchCatalog(
+  BootstrapConfig config,
+) async {
+  if (!AppConfig.hasSupabaseConfig) return null;
+  final client = SupabaseClient(
+    AppConfig.supabaseUrl,
+    AppConfig.supabaseAnonKey,
+  );
+  return _buildRemoteTeamSearchCatalog(client, config);
+}
 
-  final teams = (rows as List)
-      .whereType<Map>()
-      .map(Map<String, dynamic>.from)
-      .map((row) {
-        final searchTerms = (row['search_terms'] as List<dynamic>? ?? const [])
-            .map((value) => value.toString())
-            .where((value) => value.trim().isNotEmpty)
-            .toSet()
-            .toList(growable: false);
+TeamSearchCatalog _mergeCatalogWithFallbackPopularTeams(
+  TeamSearchCatalog catalog,
+  TeamSearchCatalog fallbackCatalog,
+) {
+  if (catalog.popularTeams.isNotEmpty || fallbackCatalog.popularTeams.isEmpty) {
+    return catalog;
+  }
 
-        return OnboardingTeam.fromJson({
-          'id': row['id'],
-          'name': row['name'],
-          'country': row['country'],
-          'league': row['league_name'],
-          'aliases': searchTerms,
-          'region': _regionForTeamRow(row, config),
-          'is_popular':
-              row['is_popular_pick'] == true || row['is_featured'] == true,
-          'short_name': row['short_name'],
-          'crest_url': row['crest_url'],
-          'country_code': row['country_code'],
-        });
-      })
-      .toList(growable: false);
-
-  if (teams.isEmpty) return null;
-  return TeamSearchCatalog(teams);
+  return TeamSearchCatalog(
+    catalog.allTeams,
+    popularTeams: fallbackCatalog.popularTeams,
+  );
 }
 
 void _applyRuntimeBootstrap(BootstrapConfig config) {
@@ -174,7 +358,12 @@ Future<void> refreshRuntimeBootstrapData({
       config,
     );
     if (remoteCatalog != null) {
-      team_db.initTeamSearchDatabase(catalog: remoteCatalog);
+      team_db.initTeamSearchDatabase(
+        catalog: _mergeCatalogWithFallbackPopularTeams(
+          remoteCatalog,
+          team_db.activeTeamSearchCatalog,
+        ),
+      );
     }
   } catch (_) {
     // Keep the asset-backed catalog when the live data plane is unavailable.
@@ -426,23 +615,27 @@ Future<List<Override>> resolveAsyncOverrides() async {
 
   _applyRuntimeBootstrap(config);
 
+  final fallbackCatalog = TeamSearchCatalog.fromRawJson(
+    await rootBundle.loadString('assets/data/team_search_database.json'),
+  );
+
   // ── Team Catalog: DB-first, JSON-fallback ──
   // Try the teams table directly (the single source of truth).
   // Fall back to the bundled JSON asset only when the DB is unreachable
   // or the teams table is empty (e.g., first deploy before data sync).
   TeamSearchCatalog? catalog;
   try {
-    catalog = await _loadRemoteTeamSearchCatalog(connection, config);
+    catalog = await _preloadRemoteTeamSearchCatalog(config);
+    if (catalog != null) {
+      catalog = _mergeCatalogWithFallbackPopularTeams(catalog, fallbackCatalog);
+    }
   } catch (e) {
     AppLogger.d(
       'Startup: DB team catalog load failed, falling back to JSON: $e',
     );
   }
   if (catalog == null || catalog.allTeams.isEmpty) {
-    final raw = await rootBundle.loadString(
-      'assets/data/team_search_database.json',
-    );
-    catalog = TeamSearchCatalog.fromRawJson(raw);
+    catalog = fallbackCatalog;
   }
   team_db.initTeamSearchDatabase(catalog: catalog);
 

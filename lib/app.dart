@@ -1,3 +1,4 @@
+import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -10,7 +11,6 @@ import 'app_router.dart';
 import 'config/app_config.dart';
 import 'core/config/feature_flags.dart';
 import 'providers/auth_provider.dart';
-import 'providers/theme_provider.dart';
 import 'services/push_notification_service.dart';
 
 /// Root FANZONE application widget.
@@ -19,7 +19,6 @@ class FanzoneApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
     if (ref.watch(featureFlagsProvider).notifications) {
       ref.watch(pushNotificationInitProvider);
     }
@@ -29,12 +28,13 @@ class FanzoneApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: FzTheme.dark(),
       darkTheme: FzTheme.dark(),
-      themeMode: themeMode,
+      themeMode: ThemeMode.dark,
       routerConfig: router,
 
       // ── i18n ──
       localizationsDelegates: const [
         S.delegate,
+        CountryLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -99,7 +99,7 @@ class _SessionExpiryGuardState extends ConsumerState<_SessionExpiryGuard> {
             child: const Text(
               'Sign in',
               style: TextStyle(
-                color: FzColors.accent,
+                color: FzColors.primary,
                 fontWeight: FontWeight.w700,
               ),
             ),

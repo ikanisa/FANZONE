@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 import 'onboarding_step_chrome.dart';
 
 class OnboardingAuthChoiceStep extends StatelessWidget {
@@ -32,13 +33,21 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
             const Spacer(),
 
             // Title
-            Text(
-              'JOIN\nFANZONE',
-              style: FzTypography.display(
-                size: 48,
-                color: textColor,
-                letterSpacing: 2,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'JOIN',
+                  style: FzTypography.display(
+                    size: 48,
+                    color: textColor,
+                    letterSpacing: 2,
+                  ),
+                ),
+                FzWordmark(
+                  style: FzTypography.display(size: 48, letterSpacing: 2),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(

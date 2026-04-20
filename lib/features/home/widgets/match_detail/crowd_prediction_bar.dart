@@ -121,7 +121,7 @@ class _CrowdPredictionBar extends ConsumerWidget {
                   children: [
                     Expanded(
                       flex: homePercent.clamp(1, 98),
-                      child: Container(color: FzColors.accent),
+                      child: Container(color: FzColors.primary),
                     ),
                     const SizedBox(width: 2),
                     Expanded(
@@ -143,7 +143,7 @@ class _CrowdPredictionBar extends ConsumerWidget {
             Row(
               children: [
                 _CrowdLabel(
-                  color: FzColors.accent,
+                  color: FzColors.primary,
                   label: 'HOME',
                   percent: homePercent,
                   textColor: textColor,

@@ -284,7 +284,7 @@ class _MatchListRowState extends State<MatchListRow> {
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: FzColors.accent,
+                            color: FzColors.primary,
                           ),
                         ),
                       ],

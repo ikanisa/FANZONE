@@ -92,13 +92,13 @@ class TeamNewsDetailScreen extends ConsumerWidget {
               Row(
                 children: [
                   if (article.sourceName != null) ...[
-                    const Icon(LucideIcons.globe, size: 13, color: FzColors.accent),
+                    const Icon(LucideIcons.globe, size: 13, color: FzColors.primary),
                     const SizedBox(width: 6),
                     Text(
                       article.sourceName!,
                       style: const TextStyle(
                         fontSize: 12,
-                        color: FzColors.accent,
+                        color: FzColors.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -121,10 +121,10 @@ class TeamNewsDetailScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: FzColors.accent.withValues(alpha: isDark ? 0.06 : 0.04),
+                    color: FzColors.primary.withValues(alpha: isDark ? 0.06 : 0.04),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: FzColors.accent.withValues(alpha: 0.15),
+                      color: FzColors.primary.withValues(alpha: 0.15),
                     ),
                   ),
                   child: Text(

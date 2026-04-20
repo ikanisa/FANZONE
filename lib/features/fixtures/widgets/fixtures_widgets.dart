@@ -118,7 +118,7 @@ class PrimaryViewToggle extends StatelessWidget {
             icon: Icons.calendar_today_rounded,
             tooltip: 'Matches',
             selected: activeView == FixturesPrimaryView.matches,
-            activeColor: FzColors.accent,
+            activeColor: FzColors.primary,
             mutedColor: muted,
             onTap: () => onSelected(FixturesPrimaryView.matches),
           ),
@@ -263,7 +263,7 @@ class FixtureListItem extends StatelessWidget {
             children: [
               FixtureActionButton(tooltip: 'Open match', icon: Icons.gps_fixed_rounded, color: FzColors.coral, onTap: onOpenMatch),
               const SizedBox(width: 8),
-              FixtureActionButton(tooltip: 'Open pools', icon: Icons.sports_martial_arts_rounded, color: FzColors.accent, onTap: onOpenPools),
+              FixtureActionButton(tooltip: 'Open pools', icon: Icons.sports_martial_arts_rounded, color: FzColors.primary, onTap: onOpenPools),
             ],
           ),
         ],

@@ -69,7 +69,7 @@ class _SlipCard extends ConsumerWidget {
       case 'voided':
         return FzColors.amber;
       default:
-        return FzColors.accent;
+        return FzColors.primary;
     }
   }
 

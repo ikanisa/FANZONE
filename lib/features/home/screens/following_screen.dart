@@ -125,8 +125,8 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen>
                       icon: const Icon(LucideIcons.compass, size: 16),
                       label: const Text('Explore All Teams'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: FzColors.accent,
-                        side: BorderSide(color: FzColors.accent.withValues(alpha: 0.3)),
+                        foregroundColor: FzColors.primary,
+                        side: BorderSide(color: FzColors.primary.withValues(alpha: 0.3)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),

@@ -17,7 +17,7 @@ class FzGlassLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accentColor = FzColors.accent;
+    final accentColor = FzColors.primary;
 
     Widget loaderContent = Column(
       mainAxisSize: MainAxisSize.min,

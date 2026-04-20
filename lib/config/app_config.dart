@@ -18,6 +18,9 @@ class AppConfig {
 
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  static const _onboardingPopularTeamsTableDefault = String.fromEnvironment(
+    'ONBOARDING_POPULAR_TEAMS_TABLE',
+  );
 
   static const _imageCdnBaseUrlDefault = String.fromEnvironment(
     'IMAGE_CDN_BASE_URL',
@@ -193,6 +196,13 @@ class AppConfig {
   static bool get isProduction => environment == AppEnvironment.production;
   static bool get hasSupabaseConfig =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
+  static String get onboardingPopularTeamsTable =>
+      (_remoteConfigValue<String>(
+            'onboarding_popular_teams_table',
+          )?.trim().isNotEmpty ??
+          false)
+      ? _remoteConfigValue<String>('onboarding_popular_teams_table')!.trim()
+      : _onboardingPopularTeamsTableDefault;
   static bool get hasImageCdn => imageCdnBaseUrl.trim().startsWith('http');
   static bool get hasStaticCdn => staticCdnBaseUrl.trim().startsWith('http');
 }

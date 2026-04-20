@@ -137,7 +137,7 @@ class _AppBuildFailureView extends StatelessWidget {
                       child: FilledButton(
                         onPressed: onRetry,
                         style: FilledButton.styleFrom(
-                          backgroundColor: FzColors.accent,
+                          backgroundColor: FzColors.primary,
                           foregroundColor: Colors.white,
                         ),
                         child: const Text('Retry screen'),

@@ -17,6 +17,7 @@ import 'core/storage/structured_cache_store.dart';
 import 'firebase_options.dart';
 import 'services/app_telemetry.dart';
 import 'services/product_analytics_service.dart';
+import 'theme/colors.dart';
 
 StreamSubscription<AuthState>? _authStateSubscription;
 List<Override> _providerOverrides = const [];
@@ -35,6 +36,16 @@ Future<void> main() async {
   appStartupProfiler.attachFrameHooks(WidgetsBinding.instance);
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: FzColors.darkBg,
+      systemNavigationBarDividerColor: FzColors.darkBg,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
   appStartupProfiler.mark('orientation_locked');
 
   final startup = AppStartupCoordinator(

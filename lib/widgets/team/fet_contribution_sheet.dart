@@ -244,11 +244,11 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? FzColors.accent.withValues(alpha: 0.15)
+                      ? FzColors.primary.withValues(alpha: 0.15)
                       : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? FzColors.accent : Colors.transparent,
+                    color: isSelected ? FzColors.primary : Colors.transparent,
                   ),
                 ),
                 child: Text(
@@ -257,7 +257,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: isSelected
-                        ? FzColors.accent
+                        ? FzColors.primary
                         : (isDark ? FzColors.darkText : FzColors.lightText),
                   ),
                 ),
@@ -299,7 +299,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
           child: FilledButton(
             onPressed: isLoading ? null : _submit,
             style: FilledButton.styleFrom(
-              backgroundColor: FzColors.accent,
+              backgroundColor: FzColors.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
             child: isLoading
@@ -366,7 +366,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
           child: FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: FzColors.accent,
+              backgroundColor: FzColors.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
             child: const Text(

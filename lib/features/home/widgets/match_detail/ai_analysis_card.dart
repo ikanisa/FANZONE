@@ -24,8 +24,8 @@ class _AiAnalysisCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  FzColors.accent.withValues(alpha: 0.15),
-                  FzColors.accent.withValues(alpha: 0.05),
+                  FzColors.primary.withValues(alpha: 0.15),
+                  FzColors.primary.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: const BorderRadius.vertical(
@@ -37,13 +37,13 @@ class _AiAnalysisCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: FzColors.accent.withValues(alpha: 0.15),
+                    color: FzColors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.auto_awesome_rounded,
                     size: 18,
-                    color: FzColors.accent,
+                    color: FzColors.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -73,7 +73,7 @@ class _AiAnalysisCard extends StatelessWidget {
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: FzColors.accent,
+                      color: FzColors.primary,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(

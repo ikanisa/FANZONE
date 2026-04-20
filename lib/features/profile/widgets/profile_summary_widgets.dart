@@ -22,7 +22,7 @@ class ProfileStatsRow extends StatelessWidget {
           child: ProfileStatCard(
             label: 'Streak',
             value: '${stats.predictionStreak}',
-            accent: FzColors.accent,
+            accent: FzColors.primary,
           ),
         ),
         const SizedBox(width: 10),

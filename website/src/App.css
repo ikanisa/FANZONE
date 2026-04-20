@@ -16,8 +16,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34, 211, 238, 0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(152, 255, 152, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(255, 127, 80, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse 50% 40% at 20% 80%, rgba(239, 68, 68, 0.06) 0%, transparent 50%);
   z-index: 0;
 }
@@ -52,7 +52,7 @@
 }
 
 .hero-title .highlight {
-  background: linear-gradient(135deg, var(--fz-accent), var(--fz-blue));
+  background: linear-gradient(135deg, var(--fz-primary), var(--fz-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -195,8 +195,8 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 30% 50%, rgba(34, 211, 238, 0.06), transparent 40%),
-              radial-gradient(circle at 70% 50%, rgba(37, 99, 235, 0.04), transparent 40%);
+  background: radial-gradient(circle at 30% 50%, rgba(152, 255, 152, 0.06), transparent 40%),
+              radial-gradient(circle at 70% 50%, rgba(255, 127, 80, 0.04), transparent 40%);
   pointer-events: none;
 }
 
@@ -352,7 +352,7 @@
 
 /* ── Glow Effects ── */
 .glow-cyan {
-  box-shadow: 0 0 30px rgba(34, 211, 238, 0.1);
+  box-shadow: 0 0 30px rgba(152, 255, 152, 0.1);
 }
 
 .glow-ring {
@@ -364,7 +364,7 @@
   position: absolute;
   inset: -1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), transparent 50%, rgba(37, 99, 235, 0.1));
+  background: linear-gradient(135deg, rgba(152, 255, 152, 0.2), transparent 50%, rgba(255, 127, 80, 0.1));
   z-index: -1;
   opacity: 0;
   transition: opacity var(--fz-transition-slow);

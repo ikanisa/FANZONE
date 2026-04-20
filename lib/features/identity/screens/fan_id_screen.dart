@@ -161,7 +161,7 @@ class _FanIdCard extends StatelessWidget {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: FzColors.accent.withValues(alpha: 0.08),
+                color: FzColors.primary.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -179,7 +179,7 @@ class _FanIdCard extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [FzColors.accent, FzColors.blue],
+                        colors: [FzColors.primary, FzColors.blue],
                       ),
                     ),
                     alignment: Alignment.center,
@@ -231,9 +231,9 @@ class _FanIdCard extends StatelessWidget {
                   _IdentityBadge(
                     icon: LucideIcons.shieldCheck,
                     label: 'Anonymous',
-                    background: Color(0x1422D3EE),
-                    border: Color(0x3322D3EE),
-                    color: FzColors.accent,
+                    background: Color(0x1498FF98),
+                    border: Color(0x3398FF98),
+                    color: FzColors.primary,
                   ),
                   _IdentityBadge(
                     icon: LucideIcons.eyeOff,
@@ -471,7 +471,7 @@ class _RuleItem extends StatelessWidget {
           child: Icon(
             LucideIcons.fingerprint,
             size: 14,
-            color: FzColors.accent,
+            color: FzColors.primary,
           ),
         ),
         const SizedBox(width: 10),

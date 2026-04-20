@@ -12,6 +12,7 @@ import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/team/team_widgets.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 
 /// Teams discovery screen — browse, search, and support teams.
 class TeamsDiscoveryScreen extends ConsumerStatefulWidget {
@@ -97,7 +98,7 @@ class _TeamsDiscoveryScreenState extends ConsumerState<TeamsDiscoveryScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: FzCard(
                     padding: const EdgeInsets.all(16),
-                    borderColor: FzColors.accent.withValues(alpha: 0.22),
+                    borderColor: FzColors.primary.withValues(alpha: 0.22),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -106,17 +107,21 @@ class _TeamsDiscoveryScreenState extends ConsumerState<TeamsDiscoveryScreen> {
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: FzColors.accent,
+                            color: FzColors.primary,
                             letterSpacing: 0.8,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          'FANZONE now launches globally. Browse clubs with ${launchRegionLabel(activeRegion).toLowerCase()} weighted first while keeping the wider football map available.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: muted,
-                            height: 1.4,
+                        Text.rich(
+                          TextSpan(
+                            children: FzWordmark.spansForText(
+                              'FANZONE now launches globally. Browse clubs with ${launchRegionLabel(activeRegion).toLowerCase()} weighted first while keeping the wider football map available.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: muted,
+                                height: 1.4,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -202,8 +207,7 @@ class _TeamsDiscoveryScreenState extends ConsumerState<TeamsDiscoveryScreen> {
                     itemBuilder: (context, index) => TeamCard(
                       team: supported[index],
                       index: index,
-                      onTap: () =>
-                          context.push('/team/${supported[index].id}'),
+                      onTap: () => context.push('/team/${supported[index].id}'),
                     ),
                   ),
                 ),
@@ -233,8 +237,7 @@ class _TeamsDiscoveryScreenState extends ConsumerState<TeamsDiscoveryScreen> {
                     itemBuilder: (context, index) => TeamCard(
                       team: featured[index],
                       index: index,
-                      onTap: () =>
-                          context.push('/team/${featured[index].id}'),
+                      onTap: () => context.push('/team/${featured[index].id}'),
                     ),
                   ),
                 ),
@@ -277,8 +280,7 @@ class _TeamsDiscoveryScreenState extends ConsumerState<TeamsDiscoveryScreen> {
                     itemBuilder: (context, index) => TeamCard(
                       team: remaining[index],
                       index: index,
-                      onTap: () =>
-                          context.push('/team/${remaining[index].id}'),
+                      onTap: () => context.push('/team/${remaining[index].id}'),
                     ),
                   ),
                 ),

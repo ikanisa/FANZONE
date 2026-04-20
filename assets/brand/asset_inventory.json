@@ -1,0 +1,695 @@
+{
+  "sources": {
+    "light_source": "assets/images/logo.png",
+    "dark_source": "assets/images/logo_bg.png"
+  },
+  "derived_masters": {
+    "transparent_mark": "assets/images/brand/logo-mark.png",
+    "square_dark": "assets/images/brand/logo-square-dark.png",
+    "square_light": "assets/images/brand/logo-square-light.png"
+  },
+  "android_adaptive_background_hex": "#3A393B",
+  "assets": [
+    {
+      "group": "flutter_shared",
+      "path": "assets/images/brand/logo-mark.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "primary transparent brand mark"
+    },
+    {
+      "group": "flutter_shared",
+      "path": "assets/images/brand/logo-mark-512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "retina transparent brand mark"
+    },
+    {
+      "group": "flutter_shared",
+      "path": "assets/images/brand/logo-mark-256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "compact transparent brand mark"
+    },
+    {
+      "group": "flutter_shared",
+      "path": "assets/images/brand/logo-mark-128.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "small transparent brand mark"
+    },
+    {
+      "group": "flutter_shared",
+      "path": "assets/images/brand/logo-square-dark.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "source_variant": "dark_source_rgb",
+      "usage": "opaque square icon master"
+    },
+    {
+      "group": "flutter_shared",
+      "path": "assets/images/brand/logo-square-light.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "source_variant": "light_source_rgb",
+      "usage": "opaque light square reference"
+    },
+    {
+      "group": "flutter_shared",
+      "path": "assets/images/brand/splash-logo.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "native splash mark"
+    },
+    {
+      "group": "flutter_shared_legacy",
+      "path": "assets/images/logo_128.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "legacy transparent logo alias"
+    },
+    {
+      "group": "flutter_shared_legacy",
+      "path": "assets/images/logo_256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "legacy transparent logo alias"
+    },
+    {
+      "group": "android_launcher",
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "format": "png",
+      "width": 48,
+      "height": 48,
+      "source_variant": "dark_source_rgb",
+      "usage": "android legacy launcher icon (mdpi)"
+    },
+    {
+      "group": "android_launcher",
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "format": "png",
+      "width": 72,
+      "height": 72,
+      "source_variant": "dark_source_rgb",
+      "usage": "android legacy launcher icon (hdpi)"
+    },
+    {
+      "group": "android_launcher",
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 96,
+      "height": 96,
+      "source_variant": "dark_source_rgb",
+      "usage": "android legacy launcher icon (xhdpi)"
+    },
+    {
+      "group": "android_launcher",
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 144,
+      "height": 144,
+      "source_variant": "dark_source_rgb",
+      "usage": "android legacy launcher icon (xxhdpi)"
+    },
+    {
+      "group": "android_launcher",
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "source_variant": "dark_source_rgb",
+      "usage": "android legacy launcher icon (xxxhdpi)"
+    },
+    {
+      "group": "android_adaptive",
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
+      "format": "png",
+      "width": 108,
+      "height": 108,
+      "source_variant": "dark_source_rgb",
+      "usage": "android adaptive icon foreground (mdpi)"
+    },
+    {
+      "group": "android_adaptive",
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
+      "format": "png",
+      "width": 162,
+      "height": 162,
+      "source_variant": "dark_source_rgb",
+      "usage": "android adaptive icon foreground (hdpi)"
+    },
+    {
+      "group": "android_adaptive",
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
+      "format": "png",
+      "width": 216,
+      "height": 216,
+      "source_variant": "dark_source_rgb",
+      "usage": "android adaptive icon foreground (xhdpi)"
+    },
+    {
+      "group": "android_adaptive",
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
+      "format": "png",
+      "width": 324,
+      "height": 324,
+      "source_variant": "dark_source_rgb",
+      "usage": "android adaptive icon foreground (xxhdpi)"
+    },
+    {
+      "group": "android_adaptive",
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+      "format": "png",
+      "width": 432,
+      "height": 432,
+      "source_variant": "dark_source_rgb",
+      "usage": "android adaptive icon foreground (xxxhdpi)"
+    },
+    {
+      "group": "android_splash",
+      "path": "android/app/src/main/res/mipmap-mdpi/launch_image.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "android native splash mark (mdpi)"
+    },
+    {
+      "group": "android_splash",
+      "path": "android/app/src/main/res/mipmap-hdpi/launch_image.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "android native splash mark (hdpi)"
+    },
+    {
+      "group": "android_splash",
+      "path": "android/app/src/main/res/mipmap-xhdpi/launch_image.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "android native splash mark (xhdpi)"
+    },
+    {
+      "group": "android_splash",
+      "path": "android/app/src/main/res/mipmap-xxhdpi/launch_image.png",
+      "format": "png",
+      "width": 384,
+      "height": 384,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "android native splash mark (xxhdpi)"
+    },
+    {
+      "group": "android_splash",
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/launch_image.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "android native splash mark (xxxhdpi)"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@1x.png",
+      "format": "png",
+      "width": 20,
+      "height": 20,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-20x20@1x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@2x.png",
+      "format": "png",
+      "width": 40,
+      "height": 40,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-20x20@2x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@3x.png",
+      "format": "png",
+      "width": 60,
+      "height": 60,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-20x20@3x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@1x.png",
+      "format": "png",
+      "width": 29,
+      "height": 29,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-29x29@1x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@2x.png",
+      "format": "png",
+      "width": 58,
+      "height": 58,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-29x29@2x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@3x.png",
+      "format": "png",
+      "width": 87,
+      "height": 87,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-29x29@3x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@1x.png",
+      "format": "png",
+      "width": 40,
+      "height": 40,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-40x40@1x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@2x.png",
+      "format": "png",
+      "width": 80,
+      "height": 80,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-40x40@2x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@3x.png",
+      "format": "png",
+      "width": 120,
+      "height": 120,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-40x40@3x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@2x.png",
+      "format": "png",
+      "width": 120,
+      "height": 120,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-60x60@2x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png",
+      "format": "png",
+      "width": 180,
+      "height": 180,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-60x60@3x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@1x.png",
+      "format": "png",
+      "width": 76,
+      "height": 76,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-76x76@1x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@2x.png",
+      "format": "png",
+      "width": 152,
+      "height": 152,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-76x76@2x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-83.5x83.5@2x.png",
+      "format": "png",
+      "width": 167,
+      "height": 167,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-83.5x83.5@2x.png"
+    },
+    {
+      "group": "ios_app_icon",
+      "path": "ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "source_variant": "dark_source_rgb",
+      "usage": "ios app icon slot Icon-App-1024x1024@1x.png"
+    },
+    {
+      "group": "ios_splash",
+      "path": "ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "ios launch image LaunchImage.png"
+    },
+    {
+      "group": "ios_splash",
+      "path": "ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png",
+      "format": "png",
+      "width": 384,
+      "height": 384,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "ios launch image LaunchImage@2x.png"
+    },
+    {
+      "group": "ios_splash",
+      "path": "ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png",
+      "format": "png",
+      "width": 576,
+      "height": 576,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "ios launch image LaunchImage@3x.png"
+    },
+    {
+      "group": "website_icon",
+      "path": "website/public/favicon.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "source_variant": "dark_source_rgb",
+      "usage": "legacy favicon png"
+    },
+    {
+      "group": "website_icon_legacy",
+      "path": "website/public/favicon-16.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "source_variant": "dark_source_rgb",
+      "usage": "legacy favicon 16"
+    },
+    {
+      "group": "website_icon",
+      "path": "website/public/favicon-16x16.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "source_variant": "dark_source_rgb",
+      "usage": "favicon 16x16"
+    },
+    {
+      "group": "website_icon",
+      "path": "website/public/favicon-32x32.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "source_variant": "dark_source_rgb",
+      "usage": "favicon 32x32"
+    },
+    {
+      "group": "website_icon",
+      "path": "website/public/apple-touch-icon.png",
+      "format": "png",
+      "width": 180,
+      "height": 180,
+      "source_variant": "dark_source_rgb",
+      "usage": "apple touch icon"
+    },
+    {
+      "group": "website_icon",
+      "path": "website/public/icon-192.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "source_variant": "dark_source_rgb",
+      "usage": "web app icon 192"
+    },
+    {
+      "group": "website_icon",
+      "path": "website/public/icon-512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "dark_source_rgb",
+      "usage": "web app icon 512"
+    },
+    {
+      "group": "website_brand_legacy",
+      "path": "website/public/logo-128.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "legacy website logo alias"
+    },
+    {
+      "group": "website_brand_legacy",
+      "path": "website/public/logo-192.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "source_variant": "dark_source_rgb",
+      "usage": "legacy website icon alias"
+    },
+    {
+      "group": "website_brand_legacy",
+      "path": "website/public/logo-512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "dark_source_rgb",
+      "usage": "legacy website icon alias"
+    },
+    {
+      "group": "website_brand_legacy",
+      "path": "website/public/logo.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "legacy website logo alias"
+    },
+    {
+      "group": "website_social_legacy",
+      "path": "website/public/og-image.png",
+      "format": "png",
+      "width": 1200,
+      "height": 630,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "legacy social preview alias"
+    },
+    {
+      "group": "website_brand",
+      "path": "website/public/brand/logo-mark-128.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "small transparent website mark"
+    },
+    {
+      "group": "website_brand",
+      "path": "website/public/brand/logo-mark-256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "retina transparent website mark"
+    },
+    {
+      "group": "website_brand",
+      "path": "website/public/brand/logo-mark-512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "large transparent website mark"
+    },
+    {
+      "group": "website_social",
+      "path": "website/public/social-preview.png",
+      "format": "png",
+      "width": 1200,
+      "height": 630,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "social preview image"
+    },
+    {
+      "group": "website_icon",
+      "path": "website/public/favicon.ico",
+      "format": "ico",
+      "sizes": [
+        16,
+        32,
+        48
+      ],
+      "source_variant": "dark_source_rgb",
+      "usage": "multi-size favicon"
+    },
+    {
+      "group": "admin_icon",
+      "path": "admin/public/favicon.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "source_variant": "dark_source_rgb",
+      "usage": "legacy admin favicon png"
+    },
+    {
+      "group": "admin_icon",
+      "path": "admin/public/favicon-16x16.png",
+      "format": "png",
+      "width": 16,
+      "height": 16,
+      "source_variant": "dark_source_rgb",
+      "usage": "admin favicon 16x16"
+    },
+    {
+      "group": "admin_icon",
+      "path": "admin/public/favicon-32x32.png",
+      "format": "png",
+      "width": 32,
+      "height": 32,
+      "source_variant": "dark_source_rgb",
+      "usage": "admin favicon 32x32"
+    },
+    {
+      "group": "admin_icon",
+      "path": "admin/public/apple-touch-icon.png",
+      "format": "png",
+      "width": 180,
+      "height": 180,
+      "source_variant": "dark_source_rgb",
+      "usage": "admin apple touch icon"
+    },
+    {
+      "group": "admin_icon",
+      "path": "admin/public/icon-192.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "source_variant": "dark_source_rgb",
+      "usage": "admin web icon 192"
+    },
+    {
+      "group": "admin_icon",
+      "path": "admin/public/icon-512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "dark_source_rgb",
+      "usage": "admin web icon 512"
+    },
+    {
+      "group": "admin_icon_legacy",
+      "path": "admin/public/logo-192.png",
+      "format": "png",
+      "width": 192,
+      "height": 192,
+      "source_variant": "dark_source_rgb",
+      "usage": "legacy admin icon alias"
+    },
+    {
+      "group": "admin_icon_legacy",
+      "path": "admin/public/logo-512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "dark_source_rgb",
+      "usage": "legacy admin icon alias"
+    },
+    {
+      "group": "admin_brand",
+      "path": "admin/public/brand/logo-mark-64.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "sidebar transparent brand mark"
+    },
+    {
+      "group": "admin_brand",
+      "path": "admin/public/brand/logo-mark-128.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "login transparent brand mark"
+    },
+    {
+      "group": "admin_brand",
+      "path": "admin/public/brand/logo-mark-256.png",
+      "format": "png",
+      "width": 256,
+      "height": 256,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "retina admin brand mark"
+    },
+    {
+      "group": "admin_brand",
+      "path": "admin/public/brand/logo-mark-512.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "large admin brand mark"
+    },
+    {
+      "group": "admin_brand_legacy",
+      "path": "admin/src/assets/logo.png",
+      "format": "png",
+      "width": 512,
+      "height": 512,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "legacy admin import logo alias"
+    },
+    {
+      "group": "admin_brand_legacy",
+      "path": "admin/src/assets/logo-64.png",
+      "format": "png",
+      "width": 64,
+      "height": 64,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "legacy admin import logo alias"
+    },
+    {
+      "group": "admin_brand_legacy",
+      "path": "admin/src/assets/logo-128.png",
+      "format": "png",
+      "width": 128,
+      "height": 128,
+      "source_variant": "light_source_rgb + dark_source_alpha",
+      "usage": "legacy admin import logo alias"
+    },
+    {
+      "group": "admin_icon",
+      "path": "admin/public/favicon.ico",
+      "format": "ico",
+      "sizes": [
+        16,
+        32,
+        48
+      ],
+      "source_variant": "dark_source_rgb",
+      "usage": "multi-size admin favicon"
+    }
+  ]
+}

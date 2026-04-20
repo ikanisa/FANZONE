@@ -17,7 +17,7 @@ import { isAuthorizedEdgeRequest } from "../_shared/http.ts";
 
 const FUNCTION_NAME = "gemini-currency-rates";
 const DEFAULT_GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") ??
-  "gemini-3.1-pro-preview";
+  "gemini-2.0-flash";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("ALLOWED_ORIGIN")?.trim() || "*",
@@ -58,15 +58,16 @@ function requireSupabaseServiceRoleKey(): string {
 function assertAuthorized(req: Request) {
   const serviceRoleKey = requireSupabaseServiceRoleKey();
   const syncSecret = Deno.env.get("CURRENCY_SYNC_SECRET")?.trim();
+  const cronSecret = Deno.env.get("CRON_SECRET")?.trim();
   if (
     isAuthorizedEdgeRequest({
       req,
       serviceRoleKey,
       allowServiceRoleBearer: true,
-      sharedSecrets: [{
-        header: "x-currency-sync-secret",
-        value: syncSecret,
-      }],
+      sharedSecrets: [
+        { header: "x-currency-sync-secret", value: syncSecret },
+        { header: "x-cron-secret", value: cronSecret },
+      ].filter((s) => s.value != null),
     })
   ) {
     return;

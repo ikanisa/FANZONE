@@ -1,7 +1,4 @@
-import {
-  GoogleGenerativeAIFetchError,
-  GoogleGenerativeAIResponseError,
-} from "npm:@google/generative-ai";
+import { ApiError } from "npm:@google/genai";
 
 import { ALLOWED_HEADERS, FUNCTION_NAME } from "./constants.ts";
 import {
@@ -87,35 +84,20 @@ export function mapError(error: unknown, requestId: string) {
     };
   }
 
-  if (error instanceof GoogleGenerativeAIFetchError) {
+  if (error instanceof ApiError) {
     const status = error.status === 429 ? 429 : 502;
-    const message = error.status === 429
-      ? "Gemini API rate limit or quota exceeded."
-      : "Gemini API request failed.";
-
     return {
       status,
       body: {
         success: false,
         requestId,
-        error: message,
+        error: error.status === 429
+          ? "Gemini API rate limit or quota exceeded."
+          : "Gemini API request failed.",
         details: {
-          status: error.status ?? null,
-          statusText: error.statusText ?? null,
-          errorDetails: error.errorDetails ?? null,
+          status: error.status,
+          message: error.message,
         },
-      },
-    };
-  }
-
-  if (error instanceof GoogleGenerativeAIResponseError) {
-    return {
-      status: 502,
-      body: {
-        success: false,
-        requestId,
-        error: "Gemini returned a blocked or malformed response.",
-        details: error.message,
       },
     };
   }

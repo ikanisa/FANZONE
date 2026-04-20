@@ -217,7 +217,7 @@ class _CorrectScoreMarketState extends ConsumerState<CorrectScoreMarket> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: FzColors.accent,
+                        color: FzColors.primary,
                       ),
                     ),
                     _ScoreStepper(
@@ -341,7 +341,7 @@ class _MarketButton extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : FzColors.accent,
+                  color: isSelected ? Colors.white : FzColors.primary,
                 ),
               ),
             ],

@@ -58,7 +58,7 @@ class _StatsTab extends ConsumerWidget {
                               fontSize: 28,
                               fontWeight: FontWeight.w800,
                               color: stats.homeXg! > stats.awayXg!
-                                  ? FzColors.accent
+                                  ? FzColors.primary
                                   : (isDark
                                         ? FzColors.darkText
                                         : FzColors.lightText),
@@ -79,7 +79,7 @@ class _StatsTab extends ConsumerWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: FzColors.accent.withValues(alpha: 0.1),
+                        color: FzColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
@@ -87,7 +87,7 @@ class _StatsTab extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
-                          color: FzColors.accent,
+                          color: FzColors.primary,
                         ),
                       ),
                     ),
@@ -100,7 +100,7 @@ class _StatsTab extends ConsumerWidget {
                               fontSize: 28,
                               fontWeight: FontWeight.w800,
                               color: stats.awayXg! > stats.homeXg!
-                                  ? FzColors.accent
+                                  ? FzColors.primary
                                   : (isDark
                                         ? FzColors.darkText
                                         : FzColors.lightText),
@@ -138,7 +138,7 @@ class _StatsTab extends ConsumerWidget {
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
-                            color: FzColors.accent,
+                            color: FzColors.primary,
                           ),
                         ),
                         const SizedBox(height: 4),

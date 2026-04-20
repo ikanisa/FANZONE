@@ -113,20 +113,20 @@ Future<void> showProfileIdentityPicker(
                           height: 64,
                           decoration: BoxDecoration(
                             color: selectedTeamId == team.teamId
-                                ? FzColors.accent.withValues(alpha: 0.1)
+                                ? FzColors.primary.withValues(alpha: 0.1)
                                 : (isDark
                                       ? FzColors.darkSurface
                                       : FzColors.lightSurface),
                             borderRadius: BorderRadius.circular(18),
                             border: Border.all(
                               color: selectedTeamId == team.teamId
-                                  ? FzColors.accent
+                                  ? FzColors.primary
                                   : border,
                             ),
                             boxShadow: selectedTeamId == team.teamId
                                 ? [
                                     BoxShadow(
-                                      color: FzColors.accent.withValues(
+                                      color: FzColors.primary.withValues(
                                         alpha: 0.12,
                                       ),
                                       blurRadius: 10,

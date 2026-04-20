@@ -36,7 +36,30 @@ List<OnboardingTeam> searchTeams(String query, {int limit = 10}) {
       return _gateway!.searchTeams(query, limit: limit);
     } catch (_) {}
   }
-  return activeTeamSearchCatalog.search(query, limit: limit);
+  return activeTeamSearchCatalog.searchLocal(query, limit: limit);
+}
+
+List<OnboardingTeam> searchPopularTeams(String query, {int limit = 10}) {
+  if (_gateway != null) {
+    try {
+      return _gateway!.searchPopularTeams(query, limit: limit);
+    } catch (_) {}
+  }
+  return activeTeamSearchCatalog.searchPopular(query, limit: limit);
+}
+
+Future<List<OnboardingTeam>> searchTeamsAsync(
+  String query, {
+  int limit = 10,
+}) async {
+  return searchTeams(query, limit: limit);
+}
+
+Future<List<OnboardingTeam>> searchPopularTeamsAsync(
+  String query, {
+  int limit = 10,
+}) async {
+  return searchPopularTeams(query, limit: limit);
 }
 
 List<OnboardingTeam> popularTeamsForRegion(String region) {

@@ -15,7 +15,7 @@
 //   WABA_PHONE_NUMBER_ID    — WhatsApp Business phone number ID
 //   SUPABASE_URL            — Supabase project URL
 //   SUPABASE_SERVICE_ROLE_KEY — Service role key for admin operations
-//   SUPABASE_JWT_SECRET     — JWT signing secret for custom access tokens
+//   FANZONE_JWT_SECRET     — JWT signing secret for custom access tokens
 //
 // Optional:
 //   WABA_OTP_TEMPLATE_NAME  — Template name (default: "gikundiro")
@@ -29,7 +29,9 @@ import { buildCorsHeaders, getErrorMessage } from "../_shared/http.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const SUPABASE_JWT_SECRET = Deno.env.get("SUPABASE_JWT_SECRET")?.trim() || "";
+// Supabase reserves the SUPABASE_ prefix for system secrets, so the JWT
+// signing secret is stored as FANZONE_JWT_SECRET in Edge secrets.
+const SUPABASE_JWT_SECRET = Deno.env.get("FANZONE_JWT_SECRET")?.trim() || "";
 
 const WABA_ACCESS_TOKEN = Deno.env.get("WABA_ACCESS_TOKEN")?.trim() || "";
 const WABA_PHONE_NUMBER_ID = Deno.env.get("WABA_PHONE_NUMBER_ID")?.trim() || "";

@@ -47,12 +47,12 @@ class _MatchHero extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: match.isLive
-                            ? FzColors.accent.withValues(alpha: 0.12)
+                            ? FzColors.primary.withValues(alpha: 0.12)
                             : innerSurface,
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(
                           color: match.isLive
-                              ? FzColors.accent.withValues(alpha: 0.22)
+                              ? FzColors.primary.withValues(alpha: 0.22)
                               : border,
                         ),
                       ),
@@ -65,7 +65,7 @@ class _MatchHero extends StatelessWidget {
                               width: 8,
                               height: 8,
                               decoration: const BoxDecoration(
-                                color: FzColors.accent,
+                                color: FzColors.primary,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -77,7 +77,7 @@ class _MatchHero extends StatelessWidget {
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               color: match.isLive
-                                  ? FzColors.accent
+                                  ? FzColors.primary
                                   : (isDark
                                         ? FzColors.darkMuted
                                         : FzColors.lightMuted),

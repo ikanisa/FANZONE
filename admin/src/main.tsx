@@ -10,6 +10,11 @@ import './styles/index.css';
 import './styles/components.css';
 import './styles/utilities.css';
 
+document.documentElement.dataset.theme = 'dark';
+document.documentElement.style.colorScheme = 'dark';
+document.body.style.backgroundColor = '#0C0A09';
+document.body.style.color = '#FAFAF9';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

@@ -175,7 +175,7 @@ class TeamHeroHeader extends ConsumerWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  FzColors.accent.withValues(alpha: isDark ? 0.15 : 0.08),
+                  FzColors.primary.withValues(alpha: isDark ? 0.15 : 0.08),
                   FzColors.violet.withValues(alpha: isDark ? 0.1 : 0.05),
                 ],
               ),

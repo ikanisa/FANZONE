@@ -58,7 +58,7 @@ class LeaguesDiscoveryContent extends ConsumerWidget {
     final favoriteTeamsAsync = ref.watch(favoriteTeamRecordsProvider);
 
     return RefreshIndicator(
-      color: FzColors.accent,
+      color: FzColors.primary,
       onRefresh: () async {
         await HapticFeedback.mediumImpact();
         ref.invalidate(top5EuropeanLeaguesProvider);
@@ -110,7 +110,7 @@ class LeaguesDiscoveryContent extends ConsumerWidget {
           const _SectionLabel(
             label: 'Europe',
             icon: LucideIcons.globe2,
-            iconColor: FzColors.accent,
+            iconColor: FzColors.primary,
           ),
           const SizedBox(height: 12),
           top5Async.when(
@@ -403,7 +403,7 @@ class _MajorCompetitionsGrid extends StatelessWidget {
       children: events.map((event) {
         final color = event.bannerColor != null
             ? Color(int.parse(event.bannerColor!.replaceFirst('#', '0xFF')))
-            : FzColors.accent;
+            : FzColors.primary;
 
         final dateLabel = event.isCurrentlyActive
             ? 'LIVE NOW'
@@ -560,7 +560,7 @@ class _OthersLeaguesButton extends StatelessWidget {
             const Icon(
               LucideIcons.chevronDown,
               size: 14,
-              color: FzColors.accent,
+              color: FzColors.primary,
             ),
             const SizedBox(width: 8),
             Text(

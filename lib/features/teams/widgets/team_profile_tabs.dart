@@ -8,6 +8,7 @@ import '../../../models/team_model.dart';
 import '../../../models/team_supporter_model.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 import '../../../widgets/team/fet_contribution_sheet.dart';
 
@@ -34,11 +35,31 @@ class TeamProfileTabs extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            _TeamTabButton(label: 'Overview', selected: activeTab == TeamProfileTab.overview, onTap: () => onChanged(TeamProfileTab.overview)),
-            _TeamTabButton(label: 'Members', selected: activeTab == TeamProfileTab.members, onTap: () => onChanged(TeamProfileTab.members)),
-            _TeamTabButton(label: 'Fixtures', selected: activeTab == TeamProfileTab.fixtures, onTap: () => onChanged(TeamProfileTab.fixtures)),
-            _TeamTabButton(label: 'Contribute', selected: activeTab == TeamProfileTab.contribute, onTap: () => onChanged(TeamProfileTab.contribute)),
-            _TeamTabButton(label: 'About', selected: activeTab == TeamProfileTab.about, onTap: () => onChanged(TeamProfileTab.about)),
+            _TeamTabButton(
+              label: 'Overview',
+              selected: activeTab == TeamProfileTab.overview,
+              onTap: () => onChanged(TeamProfileTab.overview),
+            ),
+            _TeamTabButton(
+              label: 'Members',
+              selected: activeTab == TeamProfileTab.members,
+              onTap: () => onChanged(TeamProfileTab.members),
+            ),
+            _TeamTabButton(
+              label: 'Fixtures',
+              selected: activeTab == TeamProfileTab.fixtures,
+              onTap: () => onChanged(TeamProfileTab.fixtures),
+            ),
+            _TeamTabButton(
+              label: 'Contribute',
+              selected: activeTab == TeamProfileTab.contribute,
+              onTap: () => onChanged(TeamProfileTab.contribute),
+            ),
+            _TeamTabButton(
+              label: 'About',
+              selected: activeTab == TeamProfileTab.about,
+              onTap: () => onChanged(TeamProfileTab.about),
+            ),
           ],
         ),
       ),
@@ -70,7 +91,7 @@ class _TeamTabButton extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: selected ? FzColors.accent : Colors.transparent,
+              color: selected ? FzColors.primary : Colors.transparent,
               width: 2,
             ),
           ),
@@ -81,7 +102,7 @@ class _TeamTabButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: selected ? FzColors.accent : muted,
+            color: selected ? FzColors.primary : muted,
           ),
         ),
       ),
@@ -147,11 +168,18 @@ class TeamOverviewTab extends StatelessWidget {
       children: [
         Text(
           'LATEST MATCH',
-          style: FzTypography.display(size: 22, color: textColor, letterSpacing: 1.0),
+          style: FzTypography.display(
+            size: 22,
+            color: textColor,
+            letterSpacing: 1.0,
+          ),
         ),
         const SizedBox(height: 16),
         if (latestMatch == null)
-          Text('No match data available yet.', style: TextStyle(fontSize: 13, color: muted))
+          Text(
+            'No match data available yet.',
+            style: TextStyle(fontSize: 13, color: muted),
+          )
         else
           Container(
             padding: const EdgeInsets.all(16),
@@ -206,12 +234,17 @@ class _MatchSide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final short = label.length > 3 ? label.substring(0, 3).toUpperCase() : label.toUpperCase();
+    final short = label.length > 3
+        ? label.substring(0, 3).toUpperCase()
+        : label.toUpperCase();
     return Column(
       children: [
         const Text('⚽', style: TextStyle(fontSize: 24)),
         const SizedBox(height: 8),
-        Text(short, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        Text(
+          short,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+        ),
       ],
     );
   }
@@ -251,20 +284,44 @@ class TeamMembersTab extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           childAspectRatio: 1.35,
           children: [
-            _MemberStatCard(emoji: '👑', value: '${((stats?.fanCount ?? team.fanCount) * 0.01).ceil()}', label: 'Legends'),
-            _MemberStatCard(emoji: '🔥', value: '${((stats?.fanCount ?? team.fanCount) * 0.12).ceil()}', label: 'Ultras'),
-            _MemberStatCard(emoji: '🏅', value: '${((stats?.fanCount ?? team.fanCount) * 0.31).ceil()}', label: 'Members'),
-            _MemberStatCard(emoji: '⚽', value: '${stats?.fanCount ?? team.fanCount}', label: 'Supporters'),
+            _MemberStatCard(
+              emoji: '👑',
+              value: '${((stats?.fanCount ?? team.fanCount) * 0.01).ceil()}',
+              label: 'Legends',
+            ),
+            _MemberStatCard(
+              emoji: '🔥',
+              value: '${((stats?.fanCount ?? team.fanCount) * 0.12).ceil()}',
+              label: 'Ultras',
+            ),
+            _MemberStatCard(
+              emoji: '🏅',
+              value: '${((stats?.fanCount ?? team.fanCount) * 0.31).ceil()}',
+              label: 'Members',
+            ),
+            _MemberStatCard(
+              emoji: '⚽',
+              value: '${stats?.fanCount ?? team.fanCount}',
+              label: 'Supporters',
+            ),
           ],
         ),
         const SizedBox(height: 24),
         Text(
           'SUPPORTER REGISTRY',
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1.2),
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: muted,
+            letterSpacing: 1.2,
+          ),
         ),
         const SizedBox(height: 12),
         if (entries.isEmpty)
-          Text('No supporters have joined this registry yet.', style: TextStyle(fontSize: 13, color: muted))
+          Text(
+            'No supporters have joined this registry yet.',
+            style: TextStyle(fontSize: 13, color: muted),
+          )
         else
           Column(
             children: [
@@ -272,7 +329,11 @@ class TeamMembersTab extends StatelessWidget {
                 _SupporterRow(
                   rank: index + 1,
                   fanId: entries[index].anonymousFanId,
-                  tier: index == 0 ? 'Legend' : index < 3 ? 'Ultra' : 'Member',
+                  tier: index == 0
+                      ? 'Legend'
+                      : index < 3
+                      ? 'Ultra'
+                      : 'Member',
                 ),
                 if (index < entries.length - 1) const SizedBox(height: 8),
               ],
@@ -361,7 +422,10 @@ class _SupporterRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          SizedBox(width: 18, child: Text('$rank', style: TextStyle(fontSize: 12, color: muted))),
+          SizedBox(
+            width: 18,
+            child: Text('$rank', style: TextStyle(fontSize: 12, color: muted)),
+          ),
           const SizedBox(width: 12),
           Container(
             width: 32,
@@ -378,9 +442,18 @@ class _SupporterRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(fanId, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                Text(
+                  fanId,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(tier, style: const TextStyle(fontSize: 10, color: FzColors.accent)),
+                Text(
+                  tier,
+                  style: const TextStyle(fontSize: 10, color: FzColors.primary),
+                ),
               ],
             ),
           ),
@@ -411,7 +484,10 @@ class TeamFixturesTab extends StatelessWidget {
         : FzColors.lightMuted;
 
     if (upcoming.isEmpty) {
-      return Text('No upcoming matches yet.', style: TextStyle(fontSize: 13, color: muted));
+      return Text(
+        'No upcoming matches yet.',
+        style: TextStyle(fontSize: 13, color: muted),
+      );
     }
 
     return Column(
@@ -419,7 +495,11 @@ class TeamFixturesTab extends StatelessWidget {
       children: [
         Text(
           'UPCOMING MATCHES',
-          style: FzTypography.display(size: 22, color: textColor, letterSpacing: 1.0),
+          style: FzTypography.display(
+            size: 22,
+            color: textColor,
+            letterSpacing: 1.0,
+          ),
         ),
         const SizedBox(height: 16),
         MatchListCard(
@@ -453,7 +533,11 @@ class TeamContributeTab extends ConsumerWidget {
       children: [
         Text(
           'CONTRIBUTION FLOW',
-          style: FzTypography.display(size: 22, color: textColor, letterSpacing: 1.0),
+          style: FzTypography.display(
+            size: 22,
+            color: textColor,
+            letterSpacing: 1.0,
+          ),
         ),
         const SizedBox(height: 16),
         Container(
@@ -504,14 +588,19 @@ class TeamContributeTab extends ConsumerWidget {
                     final link = team.fiatContributionLink;
                     final uri = link == null ? null : Uri.tryParse(link);
                     if (uri != null) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
                     }
                   }
                 : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFFCC00),
               foregroundColor: const Color(0xFF1A1400),
-              disabledBackgroundColor: const Color(0xFFFFCC00).withValues(alpha: 0.35),
+              disabledBackgroundColor: const Color(
+                0xFFFFCC00,
+              ).withValues(alpha: 0.35),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -572,9 +661,26 @@ class _ContributionStep extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+              Text.rich(
+                TextSpan(
+                  children: FzWordmark.spansForText(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 4),
-              Text(subtitle, style: TextStyle(fontSize: 12, color: muted)),
+              Text.rich(
+                TextSpan(
+                  children: FzWordmark.spansForText(
+                    subtitle,
+                    style: TextStyle(fontSize: 12, color: muted),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -609,10 +715,21 @@ class TeamAboutTab extends StatelessWidget {
       children: [
         Text(
           'ABOUT ${team.shortName ?? team.name}',
-          style: FzTypography.display(size: 22, color: textColor, letterSpacing: 1.0),
+          style: FzTypography.display(
+            size: 22,
+            color: textColor,
+            letterSpacing: 1.0,
+          ),
         ),
         const SizedBox(height: 16),
-        Text(text, style: TextStyle(fontSize: 14, height: 1.6, color: muted)),
+        Text.rich(
+          TextSpan(
+            children: FzWordmark.spansForText(
+              text,
+              style: TextStyle(fontSize: 14, height: 1.6, color: muted),
+            ),
+          ),
+        ),
       ],
     );
   }

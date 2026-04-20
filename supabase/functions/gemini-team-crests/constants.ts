@@ -1,6 +1,6 @@
 export const FUNCTION_NAME = "gemini-team-crests";
 export const DEFAULT_GEMINI_MODEL = Deno.env.get("GEMINI_MODEL")?.trim() ||
-  "gemini-3.1-pro-preview";
+  "gemini-2.0-flash";
 export const DEFAULT_GEMINI_FALLBACK_MODEL =
   Deno.env.get("GEMINI_FALLBACK_MODEL")?.trim() || "gemini-2.5-pro";
 export const DEFAULT_GEMINI_SECOND_FALLBACK_MODEL =

@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../data/team_search_database.dart';
 import '../../../theme/colors.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 import 'onboarding_step_chrome.dart';
 import 'onboarding_team_selection_widgets.dart';
 
@@ -49,9 +50,13 @@ class OnboardingFavoriteTeamStep extends StatelessWidget {
               textColor: textColor,
             ),
             const SizedBox(height: 8),
-            Text(
-              'FANZONE is local, add your local favorite team',
-              style: TextStyle(fontSize: 14, color: muted, height: 1.45),
+            Text.rich(
+              TextSpan(
+                children: FzWordmark.spansForText(
+                  'FANZONE is local, add your local favorite team',
+                  style: TextStyle(fontSize: 14, color: muted, height: 1.45),
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             TextField(
@@ -222,7 +227,11 @@ class OnboardingPopularTeamsStep extends StatelessWidget {
                     onChanged: onSearchChanged,
                     decoration: InputDecoration(
                       hintText: 'Search European teams',
-                      prefixIcon: Icon(LucideIcons.search, size: 18, color: muted),
+                      prefixIcon: Icon(
+                        LucideIcons.search,
+                        size: 18,
+                        color: muted,
+                      ),
                     ),
                   ),
                   if (query.trim().isNotEmpty) ...[

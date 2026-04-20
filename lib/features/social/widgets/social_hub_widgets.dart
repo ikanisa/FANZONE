@@ -131,9 +131,9 @@ class _TabButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: selected ? FzColors.accent : Colors.transparent, width: 2)),
+            border: Border(bottom: BorderSide(color: selected ? FzColors.primary : Colors.transparent, width: 2)),
           ),
-          child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: selected ? FzColors.accent : muted)),
+          child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: selected ? FzColors.primary : muted)),
         ),
       ),
     );
@@ -173,11 +173,11 @@ class FriendsTabView extends StatelessWidget {
               child: Container(
                 width: 48, height: 48,
                 decoration: BoxDecoration(
-                  color: FzColors.accent.withValues(alpha: 0.1),
+                  color: FzColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: FzColors.accent.withValues(alpha: 0.2)),
+                  border: Border.all(color: FzColors.primary.withValues(alpha: 0.2)),
                 ),
-                child: const Icon(LucideIcons.userPlus, size: 20, color: FzColors.accent),
+                child: const Icon(LucideIcons.userPlus, size: 20, color: FzColors.primary),
               ),
             ),
           ],
@@ -250,7 +250,7 @@ class FriendRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final statusColor = friend.status == FriendStatus.online ? FzColors.accent : muted;
+    final statusColor = friend.status == FriendStatus.online ? FzColors.primary : muted;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -290,16 +290,16 @@ class FriendRow extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: FzColors.accent.withValues(alpha: 0.08),
+                color: FzColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(LucideIcons.swords, size: 14, color: FzColors.accent),
+                  Icon(LucideIcons.swords, size: 14, color: FzColors.primary),
                   SizedBox(width: 6),
-                  Text('Pool', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: FzColors.accent)),
+                  Text('Pool', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: FzColors.primary)),
                 ],
               ),
             ),
@@ -467,7 +467,7 @@ class _FanLeaderboardRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: row.isMe ? FzColors.accent.withValues(alpha: 0.06) : null,
+      color: row.isMe ? FzColors.primary.withValues(alpha: 0.06) : null,
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
@@ -493,7 +493,7 @@ class _FanLeaderboardRow extends StatelessWidget {
           Expanded(
             child: Text(
               row.isMe ? '${row.label} (You)' : row.label,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: row.isMe ? FzColors.accent : null),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: row.isMe ? FzColors.primary : null),
             ),
           ),
           Text(row.points, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: FzColors.coral)),

@@ -49,7 +49,7 @@ class SupportTeamButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: isSupported
               ? FzColors.maltaRed.withValues(alpha: 0.15)
-              : FzColors.accent,
+              : FzColors.primary,
           foregroundColor: isSupported ? FzColors.maltaRed : Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           shape: RoundedRectangleBorder(
@@ -80,7 +80,7 @@ class SupporterCounterChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: FzColors.accent.withValues(alpha: isDark ? 0.12 : 0.08),
+        color: FzColors.primary.withValues(alpha: isDark ? 0.12 : 0.08),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -89,7 +89,7 @@ class SupporterCounterChip extends StatelessWidget {
           const Icon(
             Icons.people_outline_rounded,
             size: 12,
-            color: FzColors.accent,
+            color: FzColors.primary,
           ),
           const SizedBox(width: 4),
           Text(
@@ -97,7 +97,7 @@ class SupporterCounterChip extends StatelessWidget {
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: FzColors.accent,
+              color: FzColors.primary,
             ),
           ),
         ],
@@ -133,11 +133,11 @@ class AnonymousFanBadge extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: FzColors.accent.withValues(alpha: 0.1),
+                color: FzColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Center(
-                child: Icon(LucideIcons.user, size: 16, color: FzColors.accent),
+                child: Icon(LucideIcons.user, size: 16, color: FzColors.primary),
               ),
             ),
             const SizedBox(width: 12),
@@ -242,7 +242,7 @@ class ContributionCTA extends StatelessWidget {
               icon: LucideIcons.creditCard,
               title: 'Fiat Contribution',
               subtitle: _fiatLabel(team.fiatContributionMode),
-              color: FzColors.accent,
+              color: FzColors.primary,
               onTap: onFiatTap,
             ),
         ],
@@ -343,7 +343,7 @@ class _StatTile extends StatelessWidget {
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     return Column(
       children: [
-        Icon(icon, size: 18, color: FzColors.accent),
+        Icon(icon, size: 18, color: FzColors.primary),
         const SizedBox(height: 8),
         Text(value, style: FzTypography.score(size: 16)),
         const SizedBox(height: 2),

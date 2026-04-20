@@ -159,7 +159,7 @@ class _PoolJoinSheetState extends ConsumerState<PoolJoinSheet> {
                 children: [
                   Expanded(child: Text('REQUIRED STAKE', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.muted, letterSpacing: 1))),
                   const SizedBox(width: 12),
-                  Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text(formatFET(widget.pool.stake, currency), style: FzTypography.score(size: 14, weight: FontWeight.w700, color: FzColors.accent)))),
+                  Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text(formatFET(widget.pool.stake, currency), style: FzTypography.score(size: 14, weight: FontWeight.w700, color: FzColors.primary)))),
                 ],
               ),
             ),

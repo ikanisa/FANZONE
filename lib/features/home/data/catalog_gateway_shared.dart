@@ -209,7 +209,7 @@ List<FeaturedEventModel> fallbackEvents() {
         now.day,
       ).add(const Duration(days: 21)),
       isActive: true,
-      bannerColor: '#22D3EE',
+      bannerColor: '#98FF98',
       description: 'Global matchday spotlight with featured predictions.',
     ),
     FeaturedEventModel(

@@ -9,7 +9,7 @@ import { isAuthorizedEdgeRequest } from "../_shared/http.ts";
 
 const FUNCTION_NAME = "gemini-team-news";
 const DEFAULT_GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") ??
-  "gemini-3.1-pro-preview";
+  "gemini-2.0-flash";
 
 // ── Types ──
 
@@ -116,15 +116,16 @@ function requireEnv(name: string): string {
 function assertAuthorized(req: Request) {
   const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
   const syncSecret = Deno.env.get("TEAM_NEWS_SYNC_SECRET")?.trim();
+  const cronSecret = Deno.env.get("CRON_SECRET")?.trim();
   if (
     isAuthorizedEdgeRequest({
       req,
       serviceRoleKey,
       allowServiceRoleBearer: true,
-      sharedSecrets: [{
-        header: "x-team-news-sync-secret",
-        value: syncSecret,
-      }],
+      sharedSecrets: [
+        { header: "x-team-news-sync-secret", value: syncSecret },
+        { header: "x-cron-secret", value: cronSecret },
+      ].filter((s) => s.value != null),
     })
   ) {
     return;
@@ -389,8 +390,6 @@ Deno.serve(async (req) => {
         },
       ],
       generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
         temperature: 0.15,
       },
     });

@@ -38,7 +38,7 @@ class WalletScreen extends ConsumerWidget {
         titleSpacing: 20,
         title: Row(
           children: [
-            const Icon(LucideIcons.wallet, size: 22, color: FzColors.accent),
+            const Icon(LucideIcons.wallet, size: 22, color: FzColors.primary),
             const SizedBox(width: 10),
             Text(
               'Wallet',
@@ -333,7 +333,7 @@ class _HeroActionButton extends StatelessWidget {
         ? Colors.white
         : Colors.white.withValues(alpha: enabled ? 0.1 : 0.05);
     final labelColor = filled ? FzColors.darkBg : Colors.white;
-    final iconColor = filled ? FzColors.accent : Colors.white;
+    final iconColor = filled ? FzColors.primary : Colors.white;
 
     return InkWell(
       onTap: enabled ? onTap : null,

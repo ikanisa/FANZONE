@@ -9,7 +9,7 @@ class FzBrandLogo extends StatelessWidget {
     super.key,
     required this.width,
     required this.height,
-    this.assetPath = 'assets/images/logo.png',
+    this.assetPath = 'assets/images/brand/logo-mark.png',
     this.preferCdn = false,
   });
 

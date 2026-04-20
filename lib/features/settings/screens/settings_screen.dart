@@ -6,10 +6,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../config/app_config.dart';
 import '../../../models/notification_model.dart';
-import '../../../providers/theme_provider.dart';
 import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
@@ -73,17 +73,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  _SettingsToggle(
+                  _SettingsInfo(
                     icon: LucideIcons.moon,
-                    label: 'Dark Mode',
-                    value: true,
+                    label: 'Appearance',
+                    value: 'Dark only',
                     muted: muted,
                     textColor: textColor,
-                    onChanged: (_) {
-                      ref.read(themeModeProvider.notifier).setMode(
-                            ThemeMode.dark,
-                          );
-                    },
                   ),
                   const _Divider(),
                   _SettingsSelect(
@@ -114,9 +109,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       value: prefs.goalAlerts,
                       muted: muted,
                       textColor: textColor,
-                      onChanged: (value) => _updatePrefs(
-                        prefs.copyWith(goalAlerts: value),
-                      ),
+                      onChanged: (value) =>
+                          _updatePrefs(prefs.copyWith(goalAlerts: value)),
                     ),
                     const _Divider(),
                     _SettingsToggle(
@@ -125,9 +119,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       value: prefs.poolUpdates,
                       muted: muted,
                       textColor: textColor,
-                      onChanged: (value) => _updatePrefs(
-                        prefs.copyWith(poolUpdates: value),
-                      ),
+                      onChanged: (value) =>
+                          _updatePrefs(prefs.copyWith(poolUpdates: value)),
                     ),
                     const _Divider(),
                     _SettingsToggle(
@@ -136,16 +129,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       value: prefs.communityNews,
                       muted: muted,
                       textColor: textColor,
-                      onChanged: (value) => _updatePrefs(
-                        prefs.copyWith(communityNews: value),
-                      ),
+                      onChanged: (value) =>
+                          _updatePrefs(prefs.copyWith(communityNews: value)),
                     ),
                   ],
                 ),
               ),
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                child: const FzGlassLoader(message: 'Syncing...'),
+                child: FzGlassLoader(message: 'Syncing...'),
               ),
               error: (_, _) => FzCard(
                 padding: const EdgeInsets.all(16),
@@ -215,20 +207,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     label: 'Terms of Service',
                     muted: muted,
                     textColor: textColor,
-                    onTap: () => _launchUrl(context, 'https://fanzone.mt/terms'),
+                    onTap: () =>
+                        _launchUrl(context, 'https://fanzone.mt/terms'),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 28),
             Center(
-              child: Text(
-                'FANZONE v${AppConfig.appVersion}',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: muted,
-                  letterSpacing: 1.2,
+              child: Text.rich(
+                TextSpan(
+                  children: FzWordmark.spansForText(
+                    'FANZONE v${AppConfig.appVersion}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: muted,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -238,13 +236,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _updatePrefs(NotificationPreferences prefs) async {
-    await ref.read(notificationServiceProvider.notifier).updatePreferences(prefs);
+    await ref
+        .read(notificationServiceProvider.notifier)
+        .updatePreferences(prefs);
   }
 
   void _showDeveloperStub(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   static Future<void> _launchUrl(BuildContext context, String url) async {
@@ -269,9 +269,9 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.w700,
-      ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
     );
   }
 }
@@ -308,8 +308,57 @@ class _SettingsToggle extends StatelessWidget {
       trailing: Switch.adaptive(
         value: value,
         onChanged: onChanged,
-        activeThumbColor: FzColors.accent,
-        activeTrackColor: FzColors.accent.withValues(alpha: 0.35),
+        activeThumbColor: FzColors.primary,
+        activeTrackColor: FzColors.primary.withValues(alpha: 0.35),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+    );
+  }
+}
+
+class _SettingsInfo extends StatelessWidget {
+  const _SettingsInfo({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.muted,
+    required this.textColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color muted;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: _LeadingIcon(icon: icon, color: muted),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: textColor,
+        ),
+      ),
+      subtitle: Text.rich(
+        TextSpan(
+          children: FzWordmark.spansForText(
+            'Locked to the supported FANZONE appearance.',
+            style: TextStyle(fontSize: 12, color: muted),
+          ),
+        ),
+      ),
+      trailing: Text(
+        value,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: FzColors.primary,
+          letterSpacing: 0.4,
+        ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
     );

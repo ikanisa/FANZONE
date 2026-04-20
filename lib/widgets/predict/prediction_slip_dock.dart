@@ -24,7 +24,7 @@ class PredictionSlipDock extends ConsumerWidget {
       left: 16,
       right: 16,
       child: Material(
-        color: FzColors.accent,
+        color: FzColors.primary,
         borderRadius: BorderRadius.circular(12),
         elevation: 8,
         shadowColor: Colors.black45,
@@ -215,7 +215,7 @@ class _PredictionSlipModalState extends ConsumerState<_PredictionSlipModal> {
                   const Icon(
                     LucideIcons.sparkles,
                     size: 18,
-                    color: FzColors.accent,
+                    color: FzColors.primary,
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -267,7 +267,7 @@ class _PredictionSlipModalState extends ConsumerState<_PredictionSlipModal> {
                               style: TextStyle(
                                 fontSize: 11,
                                 color: selection.multiplier != null
-                                    ? FzColors.accent
+                                    ? FzColors.primary
                                     : muted,
                                 fontWeight: FontWeight.w600,
                               ),

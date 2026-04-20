@@ -243,12 +243,12 @@ class WalletFetSplitRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: isActive
-            ? FzColors.accent.withValues(alpha: 0.1)
+            ? FzColors.primary.withValues(alpha: 0.1)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isActive
-              ? FzColors.accent.withValues(alpha: 0.2)
+              ? FzColors.primary.withValues(alpha: 0.2)
               : Colors.transparent,
         ),
       ),
@@ -260,7 +260,7 @@ class WalletFetSplitRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: isActive ? FzColors.accent : textColor,
+              color: isActive ? FzColors.primary : textColor,
               letterSpacing: 0.8,
             ),
           ),
@@ -284,7 +284,7 @@ class WalletFetSplitRow extends StatelessWidget {
                 style: FzTypography.score(
                   size: 10,
                   weight: FontWeight.w700,
-                  color: FzColors.accent,
+                  color: FzColors.primary,
                 ),
               ),
             ],
@@ -353,7 +353,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
-                        color: FzColors.accent,
+                        color: FzColors.primary,
                         letterSpacing: 1,
                       ),
                     ),
@@ -373,7 +373,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
                       ),
                       Expanded(
                         flex: 20,
-                        child: ColoredBox(color: FzColors.accent),
+                        child: ColoredBox(color: FzColors.primary),
                       ),
                     ],
                   ),

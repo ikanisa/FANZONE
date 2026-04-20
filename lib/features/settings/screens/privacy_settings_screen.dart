@@ -135,7 +135,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                                   ),
                                   GuaranteeRow(
                                     icon: LucideIcons.shield,
-                                    iconColor: FzColors.accent,
+                                    iconColor: FzColors.primary,
                                     title: 'Anonymous Contributions',
                                     description: 'MoMo contributions to fan clubs are logged using your Fan ID and amount bracket only. Exact amounts and phone numbers are not recorded.',
                                     showDivider: false,

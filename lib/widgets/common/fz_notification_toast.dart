@@ -135,7 +135,7 @@ class _FzNotificationToastState extends State<FzNotificationToast>
   Color _iconColor() {
     switch (widget.type) {
       case FzToastType.poolReceived:
-        return FzColors.accent;
+        return FzColors.primary;
       case FzToastType.poolSettled:
         return FzColors.coral;
       case FzToastType.system:
@@ -172,7 +172,7 @@ class _FzNotificationToastState extends State<FzNotificationToast>
                   color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: FzColors.accent.withValues(alpha: 0.3),
+                    color: FzColors.primary.withValues(alpha: 0.3),
                   ),
                   boxShadow: [
                     BoxShadow(

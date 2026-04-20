@@ -1,0 +1,12 @@
+FANZONE v1.1.0 — Global Launch
+
+• Now available for Africa, Europe, and North America
+• 7-step onboarding: choose your market, football moments, and clubs
+• FIFA World Cup 2026 & UEFA Champions League Final event hubs
+• Region-aware discovery — content priority adapts to your football market
+• 25 new teams: MLS, Liga MX, CPL clubs added
+• Global prediction challenges with FET prize pools
+• New languages: French, Spanish, Portuguese, Swahili
+• Soft Liquid Glass UI refresh with skeleton loaders
+• Brand color update: Soft Mint & Warm Coral palette
+• Performance and stability improvements

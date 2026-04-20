@@ -90,7 +90,7 @@ class _JoinPoolSheetState extends ConsumerState<_JoinPoolSheet> {
             const SizedBox(height: 6),
             Text(
               'Stake: ${formatFET(widget.pool.stake, currency)}',
-              style: const TextStyle(fontSize: 13, color: FzColors.accent),
+              style: const TextStyle(fontSize: 13, color: FzColors.primary),
             ),
             const SizedBox(height: 16),
             Row(

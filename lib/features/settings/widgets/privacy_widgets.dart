@@ -198,7 +198,7 @@ class PrivacyToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final background = value ? FzColors.accent : _trackColor(context);
+    final background = value ? FzColors.primary : _trackColor(context);
     return GestureDetector(
       onTap: onTap,
       child: Opacity(

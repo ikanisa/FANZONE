@@ -201,7 +201,7 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                       width: 36,
                       height: 36,
                       decoration: const BoxDecoration(
-                        color: FzColors.accent,
+                        color: FzColors.primary,
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -260,7 +260,7 @@ class _MessageBubble extends StatelessWidget {
     final timeFormat = DateFormat('HH:mm');
     final alignment = isOwn ? CrossAxisAlignment.end : CrossAxisAlignment.start;
     final bubbleColor = isOwn
-        ? FzColors.accent.withValues(alpha: 0.15)
+        ? FzColors.primary.withValues(alpha: 0.15)
         : (isDark ? FzColors.darkSurface3 : FzColors.lightSurface3);
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
 

@@ -104,7 +104,7 @@ class _PossessionRingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
     final homePaint = Paint()
-      ..color = FzColors.accent
+      ..color = FzColors.primary
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -162,7 +162,7 @@ class _DualStatBar extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: leftWins
-                    ? FzColors.accent
+                    ? FzColors.primary
                     : (isDark ? FzColors.darkText : FzColors.lightText),
               ),
             ),
@@ -180,7 +180,7 @@ class _DualStatBar extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: rightWins
-                    ? FzColors.accent
+                    ? FzColors.primary
                     : (isDark ? FzColors.darkText : FzColors.lightText),
               ),
             ),
@@ -195,7 +195,7 @@ class _DualStatBar extends StatelessWidget {
                 height: 6,
                 decoration: BoxDecoration(
                   color: leftWins
-                      ? FzColors.accent
+                      ? FzColors.primary
                       : muted.withValues(alpha: 0.3),
                   borderRadius: const BorderRadius.horizontal(
                     left: Radius.circular(3),
@@ -210,7 +210,7 @@ class _DualStatBar extends StatelessWidget {
                 height: 6,
                 decoration: BoxDecoration(
                   color: rightWins
-                      ? FzColors.accent
+                      ? FzColors.primary
                       : muted.withValues(alpha: 0.3),
                   borderRadius: const BorderRadius.horizontal(
                     right: Radius.circular(3),

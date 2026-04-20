@@ -151,13 +151,13 @@ class _FavoriteTeamsScreenState extends ConsumerState<FavoriteTeamsScreen> {
                           ? const Icon(
                               LucideIcons.check,
                               size: 18,
-                              color: FzColors.accent,
+                              color: FzColors.primary,
                             )
                           : IconButton(
                               icon: const Icon(
                                 LucideIcons.plus,
                                 size: 18,
-                                color: FzColors.accent,
+                                color: FzColors.primary,
                               ),
                               onPressed: () => _addTeam(team),
                             ),

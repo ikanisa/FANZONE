@@ -1,7 +1,10 @@
+import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../theme/colors.dart';
+import 'country_code_picker.dart';
 import 'onboarding_step_chrome.dart';
 
 class OnboardingPhoneStep extends StatelessWidget {
@@ -15,10 +18,10 @@ class OnboardingPhoneStep extends StatelessWidget {
     required this.canContinue,
     required this.onBack,
     required this.onNext,
+    required this.selectedCountry,
+    required this.onCountryChanged,
     this.onGuest,
     this.guestLoading = false,
-    this.countryCode = '+356',
-    this.phoneHint = '79XX XXXX',
     this.buttonLabel = 'SEND CODE VIA WHATSAPP',
   });
 
@@ -32,12 +35,28 @@ class OnboardingPhoneStep extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback? onGuest;
   final bool guestLoading;
-  final String countryCode;
-  final String phoneHint;
+  final CountryEntry selectedCountry;
+  final ValueChanged<CountryEntry> onCountryChanged;
   final String buttonLabel;
 
   @override
   Widget build(BuildContext context) {
+    final digits = phoneController.text.replaceAll(RegExp(r'\D'), '');
+    final remainingDigits = (selectedCountry.minDigits - digits.length).clamp(
+      0,
+      selectedCountry.minDigits,
+    );
+    final helperText = digits.isEmpty
+        ? '${selectedCountry.name} • ${selectedCountry.dialCode} • e.g. ${selectedCountry.hint}'
+        : canContinue
+        ? 'Ready to send your WhatsApp code to ${selectedCountry.name}.'
+        : 'Add $remainingDigits more digit${remainingDigits == 1 ? '' : 's'} for ${selectedCountry.name}.';
+    final helperColor = digits.isEmpty
+        ? muted.withValues(alpha: 0.7)
+        : canContinue
+        ? FzColors.primary
+        : muted.withValues(alpha: 0.75);
+
     return SizedBox.expand(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -46,47 +65,161 @@ class OnboardingPhoneStep extends StatelessWidget {
           children: [
             OnboardingBackButtonRow(onBack: onBack),
             const Spacer(),
-            OnboardingSectionTitle(title: 'ENTER PHONE', textColor: textColor),
-            const SizedBox(height: 8),
+            OnboardingSectionTitle(
+              title: 'ENTER\nWHATSAPP\nNUMBER',
+              textColor: textColor,
+              size: 36,
+            ),
+            const SizedBox(height: 10),
             Text(
               'We\'ll send you a 6-digit code on WhatsApp to verify your account.',
               style: TextStyle(fontSize: 14, color: muted, height: 1.45),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
+            // ── Country code picker + phone input ──
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 80,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? FzColors.darkSurface2
-                        : FzColors.lightSurface2,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isDark
-                          ? FzColors.darkBorder
-                          : FzColors.lightBorder,
+                // Country code button — opens bottom sheet picker
+                SizedBox(
+                  width: 122,
+                  child: CountryCodePicker(
+                    key: ValueKey(selectedCountry.code),
+                    initialSelection: selectedCountry.code,
+                    favorite: kPriorityCountryCodes,
+                    countryFilter: kAllCountries
+                        .map((country) => country.code)
+                        .toList(growable: false),
+                    pickerStyle: PickerStyle.bottomSheet,
+                    hideMainText: true,
+                    showFlagMain: false,
+                    alignLeft: true,
+                    backgroundColor: isDark
+                        ? FzColors.darkSurface
+                        : FzColors.lightBg,
+                    barrierColor: Colors.black.withValues(alpha: 0.35),
+                    searchDecoration: InputDecoration(
+                      hintText: 'Search country or dial code',
+                      hintStyle: TextStyle(fontSize: 14, color: muted),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.only(left: 14, right: 10),
+                        child: Icon(LucideIcons.search, size: 18, color: muted),
+                      ),
+                      prefixIconConstraints: const BoxConstraints(
+                        minWidth: 20,
+                        minHeight: 20,
+                      ),
+                      filled: true,
+                      fillColor: isDark
+                          ? FzColors.darkSurface2
+                          : FzColors.lightSurface2,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: isDark
+                              ? FzColors.darkBorder
+                              : FzColors.lightBorder,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: isDark
+                              ? FzColors.darkBorder
+                              : FzColors.lightBorder,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: FzColors.primary),
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      countryCode,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                    searchStyle: TextStyle(fontSize: 15, color: textColor),
+                    dialogBackgroundColor: isDark
+                        ? FzColors.darkSurface
+                        : FzColors.lightBg,
+                    dialogTextStyle: TextStyle(fontSize: 15, color: textColor),
+                    textStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                    ),
+                    headerText: 'Select country code',
+                    headerTextStyle: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: textColor,
+                      letterSpacing: -0.3,
+                    ),
+                    closeIcon: Icon(Icons.close_rounded, color: muted),
+                    showDropDownButton: false,
+                    hideCloseIcon: false,
+                    searchPadding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+                    topBarPadding: const EdgeInsets.fromLTRB(20, 18, 12, 6),
+                    dialogItemPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    onChanged: (selection) {
+                      HapticFeedback.selectionClick();
+                      final code = selection.code;
+                      if (code == null || code.isEmpty) return;
+                      onCountryChanged(findCountryByCode(code));
+                    },
+                    builder: (_) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      height: 56,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? FzColors.darkSurface2
+                            : FzColors.lightSurface2,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark
+                              ? FzColors.darkBorder
+                              : FzColors.lightBorder,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            selectedCountry.flag,
+                            style: const TextStyle(fontSize: 22),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              selectedCountry.dialCode,
+                              overflow: TextOverflow.fade,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(LucideIcons.chevronDown, size: 14, color: muted),
+                        ],
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
+                // Phone number input
                 Expanded(
                   child: TextField(
                     controller: phoneController,
                     autofocus: true,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s-]')),
                     ],
                     onChanged: onChanged,
                     style: const TextStyle(
@@ -94,7 +227,9 @@ class OnboardingPhoneStep extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                     decoration: InputDecoration(
-                      hintText: phoneHint,
+                      hintText: selectedCountry.hint.isNotEmpty
+                          ? selectedCountry.hint
+                          : 'Phone number',
                       filled: true,
                       fillColor: isDark
                           ? FzColors.darkSurface2
@@ -117,12 +252,46 @@ class OnboardingPhoneStep extends StatelessWidget {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: FzColors.accent),
+                        borderSide: const BorderSide(color: FzColors.primary),
                       ),
                     ),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 10),
+            // ── Subtle validation feedback ──
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: 1,
+              child: Row(
+                children: [
+                  Icon(
+                    digits.isEmpty
+                        ? LucideIcons.info
+                        : canContinue
+                        ? LucideIcons.checkCircle2
+                        : LucideIcons.info,
+                    size: 14,
+                    color: digits.isEmpty
+                        ? helperColor
+                        : canContinue
+                        ? FzColors.primary
+                        : helperColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      helperText,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: canContinue ? FzColors.primary : helperColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const Spacer(),
             OnboardingPrimaryButton(
@@ -247,7 +416,7 @@ class OnboardingOtpStep extends StatelessWidget {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: FzColors.accent),
+                        borderSide: const BorderSide(color: FzColors.primary),
                       ),
                     ),
                   ),

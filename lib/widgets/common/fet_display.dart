@@ -161,13 +161,13 @@ class FETBalancePill extends ConsumerWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              FzColors.accent.withValues(alpha: 0.15),
+              FzColors.primary.withValues(alpha: 0.15),
               FzColors.blue.withValues(alpha: 0.1),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: FzColors.accent.withValues(alpha: 0.3),
+            color: FzColors.primary.withValues(alpha: 0.3),
           ),
         ),
         child: Text(
@@ -175,7 +175,7 @@ class FETBalancePill extends ConsumerWidget {
           style: FzTypography.score(
             size: 14,
             weight: FontWeight.w700,
-            color: FzColors.accent,
+            color: FzColors.primary,
           ),
         ),
       ),

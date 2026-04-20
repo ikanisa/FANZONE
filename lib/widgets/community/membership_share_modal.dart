@@ -10,6 +10,7 @@ import '../../../providers/fan_identity_provider.dart';
 import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../common/fz_wordmark.dart';
 
 /// Digital Membership Card share modal — show and share fan identity card.
 ///
@@ -77,7 +78,7 @@ class _MembershipShareSheet extends ConsumerWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       tier.color.withValues(alpha: 0.12),
-                      FzColors.accent.withValues(alpha: 0.08),
+                      FzColors.primary.withValues(alpha: 0.08),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(20),
@@ -88,11 +89,9 @@ class _MembershipShareSheet extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'FANZONE',
+                        FzWordmark(
                           style: FzTypography.display(
                             size: 16,
-                            color: tier.color,
                             letterSpacing: 2,
                           ),
                         ),
@@ -258,7 +257,7 @@ class _MembershipShareSheet extends ConsumerWidget {
   }
 
   static _Tier _tierForLevel(int level) {
-    if (level >= 20) return const _Tier('Legend', FzColors.accent);
+    if (level >= 20) return const _Tier('Legend', FzColors.primary);
     if (level >= 10) return const _Tier('Ultra', FzColors.blue);
     if (level >= 5) return const _Tier('Member', FzColors.teal);
     return const _Tier('Supporter', FzColors.coral);

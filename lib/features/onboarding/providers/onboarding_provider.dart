@@ -56,7 +56,7 @@ final popularTeamSearchQueryProvider = StateProvider<String>((ref) => '');
 /// Filtered search results for popular team search (Step 6). Max 10.
 final popularTeamSearchResultsProvider = Provider<List<OnboardingTeam>>((ref) {
   final query = ref.watch(popularTeamSearchQueryProvider);
-  return searchTeams(query, limit: 10);
+  return searchPopularTeams(query, limit: 10);
 });
 
 /// The single selected popular team (nullable).

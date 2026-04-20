@@ -20,7 +20,7 @@ export default function NotFound() {
         marginBottom: '24px',
         opacity: 0.3,
       }}>
-        <img src="/logo-128.png" alt="FANZONE" width={72} height={72} style={{ display: 'block' }} />
+        <img src="/brand/logo-mark-256.png" alt="FANZONE" width={72} height={72} style={{ display: 'block' }} />
       </div>
 
       <h1 style={{

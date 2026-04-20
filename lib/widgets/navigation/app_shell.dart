@@ -12,6 +12,8 @@ import '../../services/notification_service.dart';
 import '../../services/wallet_service.dart';
 import '../../theme/colors.dart';
 import '../../theme/typography.dart';
+import '../common/fz_brand_logo.dart';
+import '../common/fz_wordmark.dart';
 import '../predict/prediction_slip_dock.dart';
 
 /// FANZONE shell aligned to the primary reference UI:
@@ -358,7 +360,7 @@ class _DesktopNavButton extends StatelessWidget {
                 Icon(
                   icon,
                   size: 20,
-                  color: isActive ? FzColors.accent : FzColors.darkMuted,
+                  color: isActive ? FzColors.primary : FzColors.darkMuted,
                 ),
                 if (badgeCount > 0)
                   const Positioned(
@@ -374,7 +376,7 @@ class _DesktopNavButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? FzColors.accent : FzColors.darkMuted,
+                color: isActive ? FzColors.primary : FzColors.darkMuted,
               ),
             ),
           ],
@@ -459,7 +461,7 @@ class _MobileBottomNav extends StatelessWidget {
                                 item.icon,
                                 size: 22,
                                 color: isActive
-                                    ? FzColors.accent
+                                    ? FzColors.primary
                                     : FzColors.darkMuted,
                               ),
                               if (item.keyName == 'profile' && unreadCount > 0)
@@ -479,7 +481,7 @@ class _MobileBottomNav extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
-                                color: FzColors.accent,
+                                color: FzColors.primary,
                               ),
                             ),
                           ],
@@ -510,36 +512,23 @@ class _BrandWordmark extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
+        SizedBox(
           width: boxSize,
           height: boxSize,
-          decoration: BoxDecoration(
-            color: FzColors.accent,
-            borderRadius: BorderRadius.circular(compact ? 8 : 10),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            'F',
-            style: TextStyle(
-              color: FzColors.darkBg,
-              fontSize: compact ? 12 : 16,
-              fontWeight: FontWeight.w900,
-            ),
+          child: FzBrandLogo(
+            width: boxSize,
+            height: boxSize,
           ),
         ),
         const SizedBox(width: 10),
-        RichText(
-          text: TextSpan(
-            style: FzTypography.display(
-              size: displaySize,
-              color: FzColors.darkText,
-              letterSpacing: 0.6,
-            ),
-            children: const [
-              TextSpan(text: 'FAN', style: TextStyle(color: FzColors.teal)),
-              TextSpan(text: 'ZONE'),
-            ],
+        FzWordmark(
+          style: FzTypography.display(
+            size: displaySize,
+            color: FzColors.darkText,
+            letterSpacing: 0.6,
           ),
+          fanColor: FzColors.teal,
+          zoneColor: FzColors.darkText,
         ),
       ],
     );

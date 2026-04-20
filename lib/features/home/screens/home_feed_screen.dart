@@ -54,7 +54,7 @@ class HomeFeedScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
-          color: FzColors.accent,
+          color: FzColors.primary,
           onRefresh: () async {
             ref.invalidate(matchesByDateProvider(_today));
             await ref.read(matchesByDateProvider(_today).future);
@@ -393,8 +393,8 @@ class _HomeMatchCard extends StatelessWidget {
                         label: 'POOL',
                         icon: LucideIcons.swords,
                         backgroundColor: surface2,
-                        foregroundColor: FzColors.accent,
-                        borderColor: FzColors.accent.withValues(alpha: 0.20),
+                        foregroundColor: FzColors.primary,
+                        borderColor: FzColors.primary.withValues(alpha: 0.20),
                         onTap: onPool,
                       ),
                     ),
@@ -801,10 +801,10 @@ class _CompactEmptyCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: FzColors.accent.withValues(alpha: 0.08),
+              color: FzColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, size: 18, color: FzColors.accent),
+            child: Icon(icon, size: 18, color: FzColors.primary),
           ),
           const SizedBox(width: 12),
           Expanded(

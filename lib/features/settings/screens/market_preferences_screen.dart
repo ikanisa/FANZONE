@@ -10,6 +10,7 @@ import '../../../providers/region_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_wordmark.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
@@ -77,7 +78,7 @@ class _MarketPreferencesScreenState
       children: [
         FzCard(
           padding: const EdgeInsets.all(18),
-          borderColor: FzColors.accent.withValues(alpha: 0.22),
+          borderColor: FzColors.primary.withValues(alpha: 0.22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -90,9 +91,13 @@ class _MarketPreferencesScreenState
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                'Choose the football markets and major moments you want FANZONE to prioritise first. This only changes ranking, home modules, and discovery emphasis.',
-                style: TextStyle(fontSize: 12, color: muted, height: 1.45),
+              Text.rich(
+                TextSpan(
+                  children: FzWordmark.spansForText(
+                    'Choose the football markets and major moments you want FANZONE to prioritise first. This only changes ranking, home modules, and discovery emphasis.',
+                    style: TextStyle(fontSize: 12, color: muted, height: 1.45),
+                  ),
+                ),
               ),
             ],
           ),
@@ -184,7 +189,7 @@ class _MarketPreferencesScreenState
             }),
             padding: const EdgeInsets.all(16),
             borderColor: _focusTags.contains(option.tag)
-                ? FzColors.accent.withValues(alpha: 0.45)
+                ? FzColors.primary.withValues(alpha: 0.45)
                 : null,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,7 +203,7 @@ class _MarketPreferencesScreenState
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: FzColors.accent,
+                          color: FzColors.primary,
                           letterSpacing: 0.8,
                         ),
                       ),
@@ -229,7 +234,7 @@ class _MarketPreferencesScreenState
                       ? Icons.check_circle_rounded
                       : Icons.radio_button_unchecked_rounded,
                   color: _focusTags.contains(option.tag)
-                      ? FzColors.accent
+                      ? FzColors.primary
                       : muted,
                 ),
               ],
@@ -266,9 +271,9 @@ class _MarketPreferencesScreenState
     );
 
     setState(() => _saving = true);
-    await ref.read(marketPreferencesGatewayProvider).saveUserMarketPreferences(
-      nextPreferences,
-    );
+    await ref
+        .read(marketPreferencesGatewayProvider)
+        .saveUserMarketPreferences(nextPreferences);
     ref.invalidate(userMarketPreferencesProvider);
     ref.invalidate(userRegionProvider);
     ref.invalidate(homeLaunchEventsProvider);
@@ -309,12 +314,12 @@ class _PreferenceChip extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: selected
-              ? FzColors.accent.withValues(alpha: 0.12)
+              ? FzColors.primary.withValues(alpha: 0.12)
               : (isDark ? FzColors.darkSurface : FzColors.lightSurface),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected
-                ? FzColors.accent
+                ? FzColors.primary
                 : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
           ),
         ),
@@ -327,7 +332,7 @@ class _PreferenceChip extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: selected
-                    ? FzColors.accent
+                    ? FzColors.primary
                     : (isDark ? FzColors.darkText : FzColors.lightText),
               ),
             ),

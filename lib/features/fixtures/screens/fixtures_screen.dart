@@ -132,7 +132,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
 
     return RefreshIndicator(
       onRefresh: _onRefresh,
-      color: FzColors.accent,
+      color: FzColors.primary,
       child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
@@ -159,7 +159,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.calendar_today_rounded, size: 14, color: FzColors.accent),
+                                const Icon(Icons.calendar_today_rounded, size: 14, color: FzColors.primary),
                                 const SizedBox(width: 6),
                                 Text(
                                   'This Week',
@@ -339,7 +339,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
             for (final filter in _FixtureStateFilter.values)
               ListTile(
                 title: Text(_stateFilterLabel(filter)),
-                trailing: filter == _selectedState ? const Icon(Icons.check_rounded, color: FzColors.accent) : null,
+                trailing: filter == _selectedState ? const Icon(Icons.check_rounded, color: FzColors.primary) : null,
                 onTap: () => Navigator.of(context).pop(filter),
               ),
           ],

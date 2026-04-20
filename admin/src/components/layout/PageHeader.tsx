@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
+
 // FANZONE Admin — Page Header
 interface PageHeaderProps {
   title: string;
-  subtitle?: string;
-  actions?: React.ReactNode;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
 }
 
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {

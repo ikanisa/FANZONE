@@ -62,9 +62,9 @@ class _TabButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
           decoration: BoxDecoration(
-            border: selected ? const Border(bottom: BorderSide(color: FzColors.accent, width: 2)) : null,
+            border: selected ? const Border(bottom: BorderSide(color: FzColors.primary, width: 2)) : null,
           ),
-          child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: selected ? FzColors.accent : muted)),
+          child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: selected ? FzColors.primary : muted)),
         ),
       ),
     );

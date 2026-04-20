@@ -207,7 +207,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                       left: 8,
                                     ),
                                     decoration: const BoxDecoration(
-                                      color: FzColors.accent,
+                                      color: FzColors.primary,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -265,7 +265,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         return FzColors.success;
       case 'pool_update':
       case 'pool_settled':
-        return FzColors.accent;
+        return FzColors.primary;
       case 'wallet_credit':
       case 'wallet_debit':
       case 'wallet':
@@ -273,11 +273,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case 'daily_challenge':
         return FzColors.amber;
       case 'community':
-        return FzColors.accentDark;
+        return FzColors.primaryDark;
       case 'marketing':
         return FzColors.amber;
       default:
-        return FzColors.accent;
+        return FzColors.primary;
     }
   }
 
@@ -462,7 +462,7 @@ class _PreferenceToggle extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: FzColors.accent),
+          Icon(icon, size: 20, color: FzColors.primary),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -483,8 +483,8 @@ class _PreferenceToggle extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: FzColors.accent,
-            activeTrackColor: FzColors.accent.withValues(alpha: 0.35),
+            activeThumbColor: FzColors.primary,
+            activeTrackColor: FzColors.primary.withValues(alpha: 0.35),
           ),
         ],
       ),

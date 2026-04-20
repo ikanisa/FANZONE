@@ -19,7 +19,7 @@ class _InsightsTab extends ConsumerWidget {
             children: [
               FzCard(
                 padding: const EdgeInsets.all(18),
-                borderColor: FzColors.accent.withValues(alpha: 0.18),
+                borderColor: FzColors.primary.withValues(alpha: 0.18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -28,13 +28,13 @@ class _InsightsTab extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: FzColors.accent.withValues(alpha: 0.1),
+                            color: FzColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
                             Icons.auto_awesome_rounded,
                             size: 18,
-                            color: FzColors.accent,
+                            color: FzColors.primary,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -78,7 +78,7 @@ class _InsightsTab extends ConsumerWidget {
                 height: 28,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: FzColors.accent,
+                  color: FzColors.primary,
                 ),
               ),
               const SizedBox(height: 14),
