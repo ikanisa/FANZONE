@@ -77,9 +77,9 @@ export default function Coverage() {
               <div className="icon-box" style={{ background: 'rgba(15, 123, 108, 0.15)' }}>
                 <Globe size={28} color="var(--fz-teal)" />
               </div>
-              <h3 className="text-xl font-bold">Malta-First, Global Scale</h3>
+              <h3 className="text-xl font-bold">Built for Global Scale</h3>
               <p className="text-secondary text-sm" style={{ lineHeight: 1.7 }}>
-                The current launch focuses on Malta with design-ready regional market preferences, featured events, and global launch tables already built into the schema. Coverage expands based on community demand.
+                FANZONE is designed for global reach with regional market preferences, featured events, and multi-market launch support built into the schema. Coverage expands based on community demand and regional interest.
               </p>
             </div>
           </div>

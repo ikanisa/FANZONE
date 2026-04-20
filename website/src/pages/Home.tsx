@@ -23,7 +23,7 @@ export default function Home() {
         <div className="hero-content fade-in-up">
           <div className="badge mb-6" style={{ margin: '0 auto 24px' }}>
             <span className="badge-dot" style={{ background: 'var(--fz-accent)' }} />
-            <span>Malta's Premier Football Platform</span>
+            <span>The Ultimate Football Platform</span>
           </div>
 
           <h1 className="hero-title">
@@ -69,8 +69,8 @@ export default function Home() {
               <div className="stat-label">Free Predictions</div>
             </div>
             <div className="stat-card">
-              <div className="stat-value text-blue">🇲🇹</div>
-              <div className="stat-label">Malta First</div>
+              <div className="stat-value text-blue">🌍</div>
+              <div className="stat-label">Global Reach</div>
             </div>
           </div>
         </div>
@@ -187,7 +187,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-3">Redeem</h3>
               <p className="text-secondary text-sm" style={{ lineHeight: 1.7 }}>
-                Browse our partner marketplace. Redeem FET tokens for exclusive deals, discounts, and merchandise at select partner locations across Malta and beyond.
+                Browse our partner marketplace. Redeem FET tokens for exclusive deals, discounts, and merchandise at select partner locations worldwide.
               </p>
             </div>
           </div>

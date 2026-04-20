@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Zap } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -16,14 +16,11 @@ export default function NotFound() {
         width: 72,
         height: 72,
         borderRadius: 20,
-        background: 'linear-gradient(135deg, var(--fz-accent), var(--fz-blue))',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        overflow: 'hidden',
         marginBottom: '24px',
         opacity: 0.3,
       }}>
-        <Zap size={36} color="#09090B" />
+        <img src="/logo-128.png" alt="FANZONE" width={72} height={72} style={{ display: 'block' }} />
       </div>
 
       <h1 style={{

@@ -33,7 +33,7 @@ const FAQS = [
   },
   {
     q: 'Where can I redeem FET tokens?',
-    a: 'FET can be redeemed at select partner locations for exclusive deals, discounts, merchandise, and digital vouchers. The partner catalog is accessible directly within the FANZONE app and is expanding across Malta and internationally.',
+    a: 'FET can be redeemed at select partner locations for exclusive deals, discounts, merchandise, and digital vouchers. The partner catalog is accessible directly within the FANZONE app and is expanding globally.',
   },
   {
     q: 'Which leagues and competitions are covered?',

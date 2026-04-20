@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MessageCircle, Zap } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 
 const WHATSAPP_URL = 'https://wa.me/35699711145';
 
@@ -27,15 +27,12 @@ export default function Footer() {
               style={{ fontWeight: 900, fontSize: '1.25rem', color: 'var(--fz-text)' }}
             >
               <div style={{
-                width: 24,
-                height: 24,
+                width: 28,
+                height: 28,
                 borderRadius: 6,
-                background: 'linear-gradient(135deg, var(--fz-accent), var(--fz-blue))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                overflow: 'hidden',
               }}>
-                <Zap size={13} color="#09090B" strokeWidth={3} />
+                <img src="/logo-128.png" alt="FANZONE" width={28} height={28} style={{ display: 'block' }} />
               </div>
               FANZONE
             </Link>

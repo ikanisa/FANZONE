@@ -40,7 +40,7 @@ export default function FetToken() {
             </div>
             <h3 className="text-lg font-bold">Redemption</h3>
             <p className="text-secondary text-sm" style={{ lineHeight: 1.7 }}>
-              Convert your FET balance into real-world value at select Maltese and global partner locations. Deals include exclusive discounts, merchandise, and in-store offers — accessible directly in the app.
+              Convert your FET balance into real-world value at select partner locations worldwide. Deals include exclusive discounts, merchandise, and in-store offers — accessible directly in the app.
             </p>
           </div>
         </div>

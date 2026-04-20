@@ -56,7 +56,7 @@ export default function Rewards() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {[
-              { title: 'Retail Discounts', desc: 'Exclusive percentage-off deals at select retail locations in Malta and partner regions.' },
+              { title: 'Retail Discounts', desc: 'Exclusive percentage-off deals at select retail and partner locations worldwide.' },
               { title: 'Merchandise', desc: 'Football-related merchandise and branded items available for FET redemption.' },
               { title: 'F&B Offers', desc: 'Restaurant and café partner deals for match-day dining and fan meetups.' },
               { title: 'Digital Products', desc: 'Digital vouchers, subscriptions, and premium content access from partner brands.' },

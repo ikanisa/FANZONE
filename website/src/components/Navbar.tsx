@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Download, Zap } from 'lucide-react';
+import { Menu, X, Download } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const NAV_LINKS = [
@@ -47,15 +47,12 @@ export default function Navbar() {
           style={{ fontWeight: 900, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--fz-text)' }}
         >
           <div style={{
-            width: 28,
-            height: 28,
+            width: 32,
+            height: 32,
             borderRadius: 8,
-            background: 'linear-gradient(135deg, var(--fz-accent), var(--fz-blue))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            overflow: 'hidden',
           }}>
-            <Zap size={16} color="#09090B" strokeWidth={3} />
+            <img src="/logo-128.png" alt="FANZONE" width={32} height={32} style={{ display: 'block' }} />
           </div>
           FANZONE
         </Link>
