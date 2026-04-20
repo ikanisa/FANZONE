@@ -1,9 +1,7 @@
-import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/featured_event_model.dart';
 import '../../../models/global_challenge_model.dart';
-import 'catalog_gateway_shared.dart';
 
 abstract interface class EventCatalogGateway {
   Future<List<FeaturedEventModel>> getFeaturedEvents({
@@ -33,13 +31,7 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
     int? limit,
   }) async {
     final client = _connection.client;
-    if (client == null) {
-      return _fallbackFeaturedEvents(
-        activeOnly: activeOnly,
-        upcomingOnly: upcomingOnly,
-        limit: limit,
-      );
-    }
+    if (client == null) return const <FeaturedEventModel>[];
 
     try {
       final rows = await client.from('featured_events').select();
@@ -50,20 +42,21 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
                 FeaturedEventModel.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      final filtered = filterEvents(
-        events,
-        activeOnly: activeOnly,
-        upcomingOnly: upcomingOnly,
-        limit: limit,
-      );
-      return filtered;
+      Iterable<FeaturedEventModel> result = events;
+      if (activeOnly) {
+        result = result.where((e) => e.isActive);
+      }
+      if (upcomingOnly) {
+        result = result.where((e) => e.startDate.isAfter(DateTime.now()));
+      }
+      final list = result.toList(growable: false);
+      if (limit != null && list.length > limit) {
+        return list.sublist(0, limit);
+      }
+      return list;
     } catch (error) {
       AppLogger.d('Failed to load featured events: $error');
-      return _fallbackFeaturedEvents(
-        activeOnly: activeOnly,
-        upcomingOnly: upcomingOnly,
-        limit: limit,
-      );
+      return const <FeaturedEventModel>[];
     }
   }
 
@@ -83,13 +76,7 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
     int? limit,
   }) async {
     final client = _connection.client;
-    if (client == null) {
-      return _fallbackGlobalChallenges(
-        eventTag: eventTag,
-        regionValues: regionValues,
-        limit: limit,
-      );
-    }
+    if (client == null) return const <GlobalChallengeModel>[];
 
     try {
       final rows = await client
@@ -102,48 +89,21 @@ class SupabaseEventCatalogGateway implements EventCatalogGateway {
                 GlobalChallengeModel.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      final filtered = filterChallenges(
-        challenges,
-        eventTag: eventTag,
-        regionValues: regionValues,
-        limit: limit,
-      );
-      return filtered;
+      Iterable<GlobalChallengeModel> result = challenges;
+      if (eventTag != null) {
+        result = result.where((c) => c.eventTag == eventTag);
+      }
+      if (regionValues != null && regionValues.isNotEmpty) {
+        result = result.where((c) => regionValues.contains(c.region));
+      }
+      final list = result.toList(growable: false);
+      if (limit != null && list.length > limit) {
+        return list.sublist(0, limit);
+      }
+      return list;
     } catch (error) {
       AppLogger.d('Failed to load global challenges: $error');
-      return _fallbackGlobalChallenges(
-        eventTag: eventTag,
-        regionValues: regionValues,
-        limit: limit,
-      );
+      return const <GlobalChallengeModel>[];
     }
-  }
-
-  List<FeaturedEventModel> _fallbackFeaturedEvents({
-    bool activeOnly = false,
-    bool upcomingOnly = false,
-    int? limit,
-  }) {
-    if (!AppConfig.isDevelopment) return const <FeaturedEventModel>[];
-    return filterEvents(
-      fallbackEvents(),
-      activeOnly: activeOnly,
-      upcomingOnly: upcomingOnly,
-      limit: limit,
-    );
-  }
-
-  List<GlobalChallengeModel> _fallbackGlobalChallenges({
-    String? eventTag,
-    List<String>? regionValues,
-    int? limit,
-  }) {
-    if (!AppConfig.isDevelopment) return const <GlobalChallengeModel>[];
-    return filterChallenges(
-      fallbackChallenges(),
-      eventTag: eventTag,
-      regionValues: regionValues,
-      limit: limit,
-    );
   }
 }

@@ -32,7 +32,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
   @override
   Future<List<MatchModel>> getMatches(MatchesFilter filter) async {
     final client = _connection.client;
-    if (client == null) return fallbackMatchesForFilter(filter);
+    if (client == null) return const <MatchModel>[];
 
     // Build a cache key for date-filtered queries
     final useSWR =
@@ -61,7 +61,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
       return rows.map(MatchModel.fromJson).toList(growable: false);
     } catch (error) {
       AppLogger.d('Failed to load matches: $error');
-      return fallbackMatchesForFilter(filter);
+      return const <MatchModel>[];
     }
   }
 

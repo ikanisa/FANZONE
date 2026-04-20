@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,11 +10,6 @@ abstract class InjectionModule {
     return SharedPreferences.getInstance();
   }
 
-  @preResolve
-  Future<TeamSearchCatalog> get teamSearchCatalog async {
-    final raw = await rootBundle.loadString(
-      'assets/data/team_search_database.json',
-    );
-    return TeamSearchCatalog.fromRawJson(raw);
-  }
+  /// Team search catalog — starts empty, populated from Supabase teams table.
+  TeamSearchCatalog get teamSearchCatalog => TeamSearchCatalog.defaults();
 }

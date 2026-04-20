@@ -56,7 +56,7 @@ class SupabaseMatchDetailGateway implements MatchDetailGateway {
   Stream<MatchOddsModel?> watchMatchOdds(String matchId) {
     return pollMatchStream<MatchOddsModel?>(() async {
       final client = _connection.client;
-      if (client == null) return fallbackOddsOrNull(matchId);
+      if (client == null) return null;
 
       try {
         final row = await client
@@ -64,11 +64,11 @@ class SupabaseMatchDetailGateway implements MatchDetailGateway {
             .select()
             .eq('match_id', matchId)
             .maybeSingle();
-        if (row == null) return fallbackOddsOrNull(matchId);
+        if (row == null) return null;
         return MatchOddsModel.fromJson(Map<String, dynamic>.from(row));
       } catch (error) {
         AppLogger.d('Failed to load match odds: $error');
-        return fallbackOddsOrNull(matchId);
+        return null;
       }
     });
   }

@@ -1,8 +1,6 @@
-import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/team_model.dart';
-import 'catalog_gateway_shared.dart';
 
 abstract interface class TeamCatalogGateway {
   Future<List<TeamModel>> getTeams({String? competitionId, bool featuredOnly});
@@ -21,12 +19,7 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
     bool featuredOnly = false,
   }) async {
     final client = _connection.client;
-    if (client == null) {
-      return _fallbackTeams(
-        competitionId: competitionId,
-        featuredOnly: featuredOnly,
-      );
-    }
+    if (client == null) return const <TeamModel>[];
 
     try {
       final rows = await client.from('team_catalog_entries').select();
@@ -34,18 +27,17 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
           .whereType<Map>()
           .map((row) => TeamModel.fromJson(Map<String, dynamic>.from(row)))
           .toList(growable: false);
-      final filtered = filterTeams(
-        teams,
-        competitionId: competitionId,
-        featuredOnly: featuredOnly,
-      );
-      return filtered;
+      Iterable<TeamModel> result = teams;
+      if (competitionId != null) {
+        result = result.where((t) => t.competitionIds.contains(competitionId));
+      }
+      if (featuredOnly) {
+        result = result.where((t) => t.isFeatured);
+      }
+      return result.toList(growable: false);
     } catch (error) {
       AppLogger.d('Failed to load teams: $error');
-      return _fallbackTeams(
-        competitionId: competitionId,
-        featuredOnly: featuredOnly,
-      );
+      return const <TeamModel>[];
     }
   }
 
@@ -56,17 +48,5 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
       if (team.id == teamId) return team;
     }
     return null;
-  }
-
-  List<TeamModel> _fallbackTeams({
-    String? competitionId,
-    bool featuredOnly = false,
-  }) {
-    if (!AppConfig.isDevelopment) return const <TeamModel>[];
-    return filterTeams(
-      fallbackTeams,
-      competitionId: competitionId,
-      featuredOnly: featuredOnly,
-    );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../auth/runtime_auth_session_manager.dart';
 import '../runtime/app_runtime_state.dart';
 
 abstract class SupabaseConnection {
@@ -21,14 +22,31 @@ class SupabaseConnectionImpl implements SupabaseConnection {
   bool get isInitialized => appRuntime.supabaseInitialized;
 
   @override
-  SupabaseClient? get client =>
-      appRuntime.supabaseInitialized ? Supabase.instance.client : null;
+  SupabaseClient? get client {
+    if (!appRuntime.supabaseInitialized) {
+      return null;
+    }
+
+    final manager = RuntimeAuthSessionManager.instance;
+    final customSession = manager.customSession;
+    if (customSession != null && customSession.isExpired) {
+      return null;
+    }
+
+    return manager.activeClient;
+  }
 
   @override
-  User? get currentUser => client?.auth.currentUser;
+  User? get currentUser {
+    final session = currentSession;
+    if (session == null || session.isExpired) {
+      return null;
+    }
+    return RuntimeAuthSessionManager.instance.currentUser;
+  }
 
   @override
-  Session? get currentSession => client?.auth.currentSession;
+  Session? get currentSession => RuntimeAuthSessionManager.instance.currentSession;
 
   @override
   bool get isAuthenticated {
@@ -38,5 +56,7 @@ class SupabaseConnectionImpl implements SupabaseConnection {
 
   @override
   Stream<AuthState> get authStateChanges =>
-      client?.auth.onAuthStateChange ?? const Stream<AuthState>.empty();
+      appRuntime.supabaseInitialized
+          ? RuntimeAuthSessionManager.instance.authStateChanges
+          : const Stream<AuthState>.empty();
 }

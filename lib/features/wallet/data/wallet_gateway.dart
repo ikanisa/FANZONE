@@ -1,4 +1,3 @@
-import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/marketplace_model.dart';
@@ -212,28 +211,7 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
-    if (!_allowSeedFallback) return const <FanClub>[];
-
-    return const [
-      FanClub(
-        id: 'liverpool',
-        name: 'Liverpool',
-        members: 24000,
-        totalPool: 125000,
-        crest: '',
-        league: 'Premier League',
-        rank: 1,
-      ),
-      FanClub(
-        id: 'arsenal',
-        name: 'Arsenal',
-        members: 22000,
-        totalPool: 118000,
-        crest: '',
-        league: 'Premier League',
-        rank: 2,
-      ),
-    ];
+    return const <FanClub>[];
   }
 
   @override
@@ -261,41 +239,7 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
-    if (!_allowSeedFallback || normalizedBase != 'EUR') {
-      return const <CurrencyRateDto>[];
-    }
-
-    final now = DateTime.now();
-    return [
-      CurrencyRateDto(
-        baseCurrency: 'EUR',
-        targetCurrency: 'EUR',
-        rate: 1,
-        source: 'local',
-        updatedAt: now,
-      ),
-      CurrencyRateDto(
-        baseCurrency: 'EUR',
-        targetCurrency: 'USD',
-        rate: 1.09,
-        source: 'local',
-        updatedAt: now,
-      ),
-      CurrencyRateDto(
-        baseCurrency: 'EUR',
-        targetCurrency: 'GBP',
-        rate: 0.86,
-        source: 'local',
-        updatedAt: now,
-      ),
-      CurrencyRateDto(
-        baseCurrency: 'EUR',
-        targetCurrency: 'RWF',
-        rate: 1450,
-        source: 'local',
-        updatedAt: now,
-      ),
-    ];
+    return const <CurrencyRateDto>[];
   }
 
   @override
@@ -315,10 +259,7 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
-    if (!_allowSeedFallback) return null;
-    if (userId.toLowerCase().contains('rw')) return 'RWF';
-    if (userId.toLowerCase().contains('uk')) return 'GBP';
-    return 'EUR';
+    return null;
   }
 
   @override
@@ -338,9 +279,7 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
-    if (!_allowSeedFallback) return null;
-    final digits = userId.replaceAll(RegExp(r'[^0-9]'), '');
-    return digits.padLeft(6, '0').substring(0, 6);
+    return null;
   }
 
   @override
@@ -365,34 +304,7 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
-    if (!_allowSeedFallback) return const <MarketplaceOffer>[];
-
-    return const [
-      MarketplaceOffer(
-        id: 'offer_1',
-        partnerId: 'partner_1',
-        partnerName: 'Matchday Merch',
-        title: 'Official scarf voucher',
-        description: 'Redeem a digital voucher for official club merchandise.',
-        category: 'merch',
-        costFet: 120,
-        deliveryType: 'voucher',
-        isActive: true,
-        originalValue: '€20',
-      ),
-      MarketplaceOffer(
-        id: 'offer_2',
-        partnerId: 'partner_2',
-        partnerName: 'Fan Lounge',
-        title: 'Premium watch party pass',
-        description: 'Unlock one premium live watch party entry.',
-        category: 'experience',
-        costFet: 180,
-        deliveryType: 'code',
-        isActive: true,
-        originalValue: '€30',
-      ),
-    ];
+    return const <MarketplaceOffer>[];
   }
 
   @override
@@ -491,13 +403,7 @@ class SupabaseWalletGateway implements WalletGateway {
       }
     }
 
-    if (!_allowSeedFallback) return const <FetExchangeRateDto>[];
-
-    return const [
-      FetExchangeRateDto(currency: 'EUR', symbol: '€', rate: 0.01),
-      FetExchangeRateDto(currency: 'USD', symbol: '\$', rate: 0.011),
-      FetExchangeRateDto(currency: 'RWF', symbol: 'FRw', rate: 14.5),
-    ];
+    return const <FetExchangeRateDto>[];
   }
 
   String _currencySymbol(String code) {
@@ -515,51 +421,24 @@ class SupabaseWalletGateway implements WalletGateway {
     }
   }
 
-  bool get _allowSeedFallback => AppConfig.isDevelopment;
 
   int _cachedBalance(String userId) {
-    final cached = _localBalances[userId];
-    if (cached != null) return cached;
-    if (_allowSeedFallback) {
-      final seeded = _localBalances.putIfAbsent(userId, () => 420);
-      return seeded;
-    }
-    return 0;
+    return _localBalances[userId] ?? 0;
   }
 
   int _cachedBalanceOrThrow(String userId) {
-    if (_localBalances.containsKey(userId) || _allowSeedFallback) {
+    if (_localBalances.containsKey(userId)) {
       return _cachedBalance(userId);
     }
     _throwUnavailable('Wallet');
   }
 
   List<WalletTransaction> _cachedTransactions(String userId) {
-    final cached = _localTransactions[userId];
-    if (cached != null) return [...cached];
-    if (!_allowSeedFallback) return const <WalletTransaction>[];
-    return <WalletTransaction>[
-      WalletTransaction(
-        id: 'tx_1',
-        title: 'Challenge payout',
-        amount: 120,
-        type: 'earn',
-        date: DateTime.now().subtract(const Duration(hours: 5)),
-        dateStr: '5h ago',
-      ),
-      WalletTransaction(
-        id: 'tx_2',
-        title: 'Club contribution',
-        amount: 40,
-        type: 'spend',
-        date: DateTime.now().subtract(const Duration(days: 1)),
-        dateStr: '1d ago',
-      ),
-    ];
+    return [...(_localTransactions[userId] ?? const <WalletTransaction>[])]; 
   }
 
   List<WalletTransaction> _cachedTransactionsOrThrow(String userId) {
-    if (_localTransactions.containsKey(userId) || _allowSeedFallback) {
+    if (_localTransactions.containsKey(userId)) {
       return _cachedTransactions(userId);
     }
     _throwUnavailable('Wallet history');

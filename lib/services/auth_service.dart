@@ -69,6 +69,17 @@ class AuthService {
     }
   }
 
+  Future<bool> refreshSession() async {
+    try {
+      return await _gateway.refreshSession();
+    } on AuthException {
+      rethrow;
+    } catch (error) {
+      AppLogger.d('refreshSession error: $error');
+      return false;
+    }
+  }
+
   /// Merge anonymous user data into authenticated user after OTP upgrade.
   Future<void> mergeAnonymousToAuthenticated(
     String anonId,

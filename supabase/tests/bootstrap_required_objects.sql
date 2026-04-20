@@ -26,6 +26,7 @@ BEGIN
       ('public.profiles'),
       ('public.public_leaderboard'),
       ('public.team_news_ingestion_runs'),
+      ('public.whatsapp_auth_sessions'),
       ('public.user_followed_competitions'),
       ('public.user_followed_teams')
   ) AS expected(required_name)

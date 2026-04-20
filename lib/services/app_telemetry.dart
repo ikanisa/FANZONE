@@ -8,6 +8,7 @@ import '../config/app_config.dart';
 import '../core/logging/app_logger.dart';
 import '../core/runtime/app_runtime_state.dart';
 import '../core/storage/structured_cache_store.dart';
+import '../core/supabase/supabase_connection.dart';
 
 /// Supabase-backed runtime error capture with offline queueing.
 ///
@@ -19,6 +20,7 @@ class AppTelemetry {
   static const String _queueCacheKey = 'app_runtime_error_queue_v1';
   static const int _maxQueueLength = 50;
   static final String _sessionId = const Uuid().v4();
+  static final SupabaseConnection _connection = SupabaseConnectionImpl();
 
   static final List<_TelemetryEvent> _queue = <_TelemetryEvent>[];
   static bool _started = false;
@@ -60,7 +62,13 @@ class AppTelemetry {
     _queue.clear();
 
     try {
-      final client = Supabase.instance.client;
+      final client = _connection.client;
+      if (client == null) {
+        _queue.insertAll(0, batch);
+        _trimQueue();
+        await _persistQueue();
+        return;
+      }
       final payload = batch
           .map((event) => event.toJson())
           .toList(growable: false);

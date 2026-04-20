@@ -1,7 +1,6 @@
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import 'predict_gateway_models.dart';
-import 'predict_gateway_shared.dart';
 
 abstract interface class LeaderboardGateway {
   Future<List<Map<String, dynamic>>> getGlobalLeaderboard();
@@ -17,9 +16,7 @@ class SupabaseLeaderboardGateway implements LeaderboardGateway {
   @override
   Future<List<Map<String, dynamic>>> getGlobalLeaderboard() async {
     final client = _connection.client;
-    if (client == null) {
-      return _seededLeaderboard();
-    }
+    if (client == null) return const <Map<String, dynamic>>[];
 
     try {
       final rows = await client
@@ -44,21 +41,14 @@ class SupabaseLeaderboardGateway implements LeaderboardGateway {
       return leaderboard.map((row) => row.toJson()).toList(growable: false);
     } catch (error) {
       AppLogger.d('Failed to load global leaderboard: $error');
-      return _seededLeaderboard();
+      return const <Map<String, dynamic>>[];
     }
   }
 
   @override
   Future<int?> getUserRank(String userId) async {
-    final leaderboard = await getGlobalLeaderboard();
-    for (final row in leaderboard) {
-      if (row['user_id']?.toString() == userId) {
-        return (row['rank'] as num?)?.toInt();
-      }
-    }
-
     final client = _connection.client;
-    if (client == null) return allowPredictSeedFallback ? 4 : null;
+    if (client == null) return null;
 
     try {
       final rows = await client
@@ -76,12 +66,5 @@ class SupabaseLeaderboardGateway implements LeaderboardGateway {
       AppLogger.d('Failed to resolve user rank: $error');
       return null;
     }
-  }
-
-  List<Map<String, dynamic>> _seededLeaderboard() {
-    if (!allowPredictSeedFallback) return const <Map<String, dynamic>>[];
-    return fallbackLeaderboard
-        .map((row) => row.toJson())
-        .toList(growable: false);
   }
 }

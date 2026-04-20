@@ -63,7 +63,19 @@ void _handleForegroundResume(WidgetRef ref) {
 
   final authService = ref.read(authServiceProvider);
   final currentSession = authService.currentSession;
-  if (currentSession == null || !currentSession.isExpired) {
+  if (currentSession == null) {
+    return;
+  }
+
+  final refreshToken = currentSession.refreshToken;
+  if (refreshToken != null &&
+      refreshToken.isNotEmpty &&
+      currentSession.isExpired) {
+    unawaited(authService.refreshSession());
+    return;
+  }
+
+  if (!currentSession.isExpired) {
     return;
   }
 

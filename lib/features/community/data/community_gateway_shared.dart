@@ -1,7 +1,7 @@
 import '../../../models/feed_message_model.dart';
 import '../../../models/team_contribution_model.dart';
-import '../../../models/team_news_model.dart';
 
+/// Serializes a [TeamContributionModel] for local cache storage.
 Map<String, dynamic> teamContributionToJson(
   TeamContributionModel contribution,
 ) {
@@ -18,6 +18,7 @@ Map<String, dynamic> teamContributionToJson(
   };
 }
 
+/// Serializes a [FeedMessage] for local cache storage.
 Map<String, dynamic> feedMessageToJson(FeedMessage message) {
   return {
     'id': message.id,
@@ -33,37 +34,7 @@ Map<String, dynamic> feedMessageToJson(FeedMessage message) {
   };
 }
 
-List<TeamNewsModel> seedTeamNews(String teamId) {
-  return [
-    TeamNewsModel(
-      id: 'news_${teamId}_1',
-      teamId: teamId,
-      title: '${communityTeamName(teamId)} build momentum for the run-in',
-      summary: 'Form, confidence, and supporter noise are all trending upward.',
-      content:
-          'The squad enters the next matchday with a strong recent record and positive momentum from the fan base.',
-      category: TeamNewsCategory.general,
-      status: 'published',
-      sourceName: 'FANZONE Wire',
-      publishedAt: DateTime.now().subtract(const Duration(hours: 6)),
-      createdAt: DateTime.now().subtract(const Duration(hours: 8)),
-    ),
-  ];
-}
-
-String communityTeamName(String teamId) {
-  switch (teamId) {
-    case 'arsenal':
-      return 'Arsenal';
-    case 'barcelona':
-      return 'Barcelona';
-    case 'real-madrid':
-      return 'Real Madrid';
-    default:
-      return 'Liverpool';
-  }
-}
-
+/// Generates a deterministic anonymous fan ID from a user ID.
 String fallbackAnonymousFanId(String userId) {
   final digits = userId.replaceAll(RegExp(r'[^0-9]'), '');
   final suffix = digits.isEmpty

@@ -118,8 +118,12 @@ if not isinstance(payload.get("access_token"), str) or not payload["access_token
     print("Live WhatsApp verify response is missing access_token.")
     sys.exit(1)
 
-if not isinstance(payload.get("session_string"), str) or not payload["session_string"]:
-    print("Live WhatsApp verify response is missing session_string.")
+if not isinstance(payload.get("refresh_token"), str) or not payload["refresh_token"]:
+    print("Live WhatsApp verify response is missing refresh_token.")
+    sys.exit(1)
+
+if not isinstance(payload.get("refresh_expires_at"), int) or payload["refresh_expires_at"] <= 0:
+    print("Live WhatsApp verify response is missing refresh_expires_at.")
     sys.exit(1)
 
 print("live_verify payload OK")

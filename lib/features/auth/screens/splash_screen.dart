@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/auth/runtime_auth_session_manager.dart';
 import '../../../core/cache/shared_preferences_cache_service.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../theme/colors.dart';
@@ -72,16 +72,22 @@ class _SplashScreenState extends State<SplashScreen>
       return cached;
     }
 
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session == null) {
+    final session = RuntimeAuthSessionManager.instance.currentSession;
+    final user = RuntimeAuthSessionManager.instance.currentUser;
+    if (session == null || user == null || session.isExpired) {
       return cached;
     }
 
     try {
-      final profile = await Supabase.instance.client
+      final client = RuntimeAuthSessionManager.instance.activeClient;
+      if (client == null) {
+        return cached;
+      }
+
+      final profile = await client
           .from('profiles')
           .select('onboarding_completed')
-          .eq('id', session.user.id)
+          .eq('id', user.id)
           .maybeSingle()
           .timeout(const Duration(seconds: 5));
       final remote = profile?['onboarding_completed'] == true;

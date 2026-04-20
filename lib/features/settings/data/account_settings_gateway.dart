@@ -1,9 +1,9 @@
+import 'preferences_gateway_shared.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/account_deletion_request_model.dart';
 import '../../../models/privacy_settings_model.dart';
-import 'preferences_gateway_shared.dart';
 
 abstract interface class AccountSettingsGateway {
   Future<AccountDeletionRequestModel?> getAccountDeletionRequest(String userId);
@@ -29,6 +29,9 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
 
   final CacheService _cache;
   final SupabaseConnection _connection;
+
+  static const _deletionPrefix = 'settings.deletion.';
+  static const _privacyPrefix = 'settings.privacy.';
 
   @override
   Future<AccountDeletionRequestModel?> getAccountDeletionRequest(
@@ -197,7 +200,7 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
     String userId,
   ) async {
     final row = await _cache.getJsonMap(
-      '$deletionRequestCachePrefix$userId',
+      '$_deletionPrefix$userId',
       debugLabel: 'account deletion',
     );
     return row == null ? null : AccountDeletionRequestModel.fromJson(row);
@@ -208,14 +211,14 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
     AccountDeletionRequestModel request,
   ) {
     return _cache.setJson(
-      '$deletionRequestCachePrefix$userId',
+      '$_deletionPrefix$userId',
       accountDeletionToJson(request),
     );
   }
 
   Future<PrivacySettingsModel?> _cachedPrivacySettings(String userId) async {
     final row = await _cache.getJsonMap(
-      '$privacySettingsCachePrefix$userId',
+      '$_privacyPrefix$userId',
       debugLabel: 'privacy settings',
     );
     if (row == null) return null;
@@ -230,7 +233,7 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
     String userId,
     PrivacySettingsModel settings,
   ) {
-    return _cache.setJson('$privacySettingsCachePrefix$userId', {
+    return _cache.setJson('$_privacyPrefix$userId', {
       'show_name_on_leaderboards': settings.showNameOnLeaderboards,
       'allow_fan_discovery': settings.allowFanDiscovery,
     });

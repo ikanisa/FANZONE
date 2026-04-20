@@ -2,7 +2,6 @@ import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/pool.dart';
 import 'predict_gateway_models.dart';
-import 'predict_gateway_shared.dart';
 
 abstract interface class PredictionPoolGateway {
   Future<List<ScorePool>> getPools();
@@ -20,32 +19,11 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
   SupabasePredictionPoolGateway(this._connection);
 
   final SupabaseConnection _connection;
-  final List<ScorePool> _localPools = <ScorePool>[
-    ScorePool(
-      id: 'pool_1',
-      matchId: 'match_live_1',
-      matchName: 'Liverpool vs Arsenal',
-      creatorId: 'user_1',
-      creatorName: 'FAN Malta',
-      creatorPrediction: '2-1',
-      stake: 25,
-      totalPool: 250,
-      participantsCount: 10,
-      status: 'open',
-      lockAt: DateTime.now().add(const Duration(hours: 4)),
-    ),
-  ];
-  final Map<String, List<PoolEntry>> _localEntriesByUser =
-      <String, List<PoolEntry>>{};
 
   @override
   Future<List<ScorePool>> getPools() async {
     final client = _connection.client;
-    if (client == null) {
-      final seeded = _seededPools();
-      if (seeded.isNotEmpty) return seeded;
-      throwPredictUnavailable('Pools');
-    }
+    if (client == null) return const <ScorePool>[];
 
     try {
       final rows = await client
@@ -53,16 +31,13 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
           .select()
           .order('created_at', ascending: false)
           .limit(50);
-      final pools = (rows as List)
+      return (rows as List)
           .whereType<Map>()
           .map((row) => _poolFromRow(Map<String, dynamic>.from(row)))
           .toList(growable: false);
-      return pools;
     } catch (error) {
       AppLogger.d('Failed to load pools: $error');
-      final seeded = _seededPools();
-      if (seeded.isNotEmpty) return seeded;
-      throwPredictUnavailable('Pools');
+      return const <ScorePool>[];
     }
   }
 
@@ -70,7 +45,7 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
   Future<void> createPool(PoolCreateRequestDto request) async {
     final client = _connection.client;
     if (client == null) {
-      throwPredictUnavailable('Pool creation');
+      throw StateError('Supabase not connected');
     }
 
     try {
@@ -84,7 +59,7 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
         },
       );
     } catch (error) {
-      AppLogger.d('Failed to create pool remotely: $error');
+      AppLogger.d('Failed to create pool: $error');
       rethrow;
     }
   }
@@ -93,7 +68,7 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
   Future<void> joinPool(PoolJoinRequestDto request) async {
     final client = _connection.client;
     if (client == null) {
-      throwPredictUnavailable('Joining a pool');
+      throw StateError('Supabase not connected');
     }
 
     try {
@@ -106,7 +81,7 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
         },
       );
     } catch (error) {
-      AppLogger.d('Failed to join pool remotely: $error');
+      AppLogger.d('Failed to join pool: $error');
       rethrow;
     }
   }
@@ -114,11 +89,7 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
   @override
   Future<List<PoolEntry>> getMyEntries(String userId) async {
     final client = _connection.client;
-    if (client == null) {
-      final cached = _cachedEntries(userId);
-      if (cached.isNotEmpty) return cached;
-      throwPredictUnavailable('Pool history');
-    }
+    if (client == null) return const <PoolEntry>[];
 
     try {
       final rows = await client
@@ -126,16 +97,13 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
           .select()
           .eq('user_id', userId)
           .order('joined_at', ascending: false);
-      final entries = (rows as List)
+      return (rows as List)
           .whereType<Map>()
           .map((row) => _poolEntryFromRow(Map<String, dynamic>.from(row)))
           .toList(growable: false);
-      return entries;
     } catch (error) {
       AppLogger.d('Failed to load pool entries: $error');
-      final cached = _cachedEntries(userId);
-      if (cached.isNotEmpty) return cached;
-      throwPredictUnavailable('Pool history');
+      return const <PoolEntry>[];
     }
   }
 
@@ -146,16 +114,6 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
       if (pool.id == id) return pool;
     }
     return null;
-  }
-
-  List<ScorePool> _seededPools() {
-    if (!allowPredictSeedFallback) return const <ScorePool>[];
-    return [..._localPools];
-  }
-
-  List<PoolEntry> _cachedEntries(String userId) {
-    if (!allowPredictSeedFallback) return const <PoolEntry>[];
-    return [...(_localEntriesByUser[userId] ?? const <PoolEntry>[])];
   }
 
   ScorePool _poolFromRow(Map<String, dynamic> row) {

@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/di/gateway_providers.dart';
+import '../core/supabase/supabase_connection.dart';
 import '../features/settings/data/preferences_gateway.dart';
 import '../models/notification_model.dart';
 import '../providers/auth_provider.dart' show authStateProvider;
@@ -13,7 +14,8 @@ part 'notification_service.g.dart';
 class NotificationService extends _$NotificationService {
   NotificationSettingsGateway get _gateway =>
       ref.read(notificationSettingsGatewayProvider);
-  String? get _currentUserId => Supabase.instance.client.auth.currentUser?.id;
+  SupabaseConnection get _connection => SupabaseConnectionImpl();
+  String? get _currentUserId => _connection.currentUser?.id;
 
   @override
   FutureOr<NotificationPreferences> build() async {
@@ -90,7 +92,7 @@ class NotificationService extends _$NotificationService {
 FutureOr<List<NotificationItem>> notificationLog(Ref ref) async {
   ref.watch(authStateProvider);
 
-  final userId = Supabase.instance.client.auth.currentUser?.id;
+  final userId = SupabaseConnectionImpl().currentUser?.id;
   if (userId == null) return const [];
 
   return ref
@@ -110,7 +112,7 @@ final matchAlertEnabledProvider = FutureProvider.autoDispose
       return ref
           .read(notificationSettingsGatewayProvider)
           .isMatchAlertEnabled(
-            userId: Supabase.instance.client.auth.currentUser?.id,
+            userId: SupabaseConnectionImpl().currentUser?.id,
             matchId: matchId,
           );
     });
@@ -119,7 +121,7 @@ final matchAlertEnabledProvider = FutureProvider.autoDispose
 FutureOr<UserStats> userStats(Ref ref) async {
   ref.watch(authStateProvider);
 
-  final userId = Supabase.instance.client.auth.currentUser?.id;
+  final userId = SupabaseConnectionImpl().currentUser?.id;
   if (userId == null) return const UserStats();
 
   return ref.read(notificationSettingsGatewayProvider).getUserStats(userId);

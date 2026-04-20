@@ -71,6 +71,5 @@ flutter:
   assets:
     - assets/fonts/
     - assets/images/
-    - assets/data/
 
   # Google Fonts families are vendored into assets/fonts for deterministic tests.

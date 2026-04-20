@@ -1,6 +1,6 @@
 import '../../../models/account_deletion_request_model.dart';
-import '../../../models/notification_model.dart';
 
+/// Cache key constants for settings gateways.
 const marketPreferencesCacheKey = 'preferences.market';
 const privacySettingsCachePrefix = 'preferences.privacy.';
 const deletionRequestCachePrefix = 'preferences.account_deletion.';
@@ -10,6 +10,7 @@ const matchAlertsCachePrefix = 'preferences.match_alerts.';
 const deviceTokensCachePrefix = 'preferences.device_tokens.';
 const competitionIdsCachePrefix = 'preferences.favourites.competitions.';
 
+/// Serializes an [AccountDeletionRequestModel] for local cache storage.
 Map<String, dynamic> accountDeletionToJson(
   AccountDeletionRequestModel request,
 ) {
@@ -23,13 +24,3 @@ Map<String, dynamic> accountDeletionToJson(
     'processed_at': request.processedAt?.toIso8601String(),
   };
 }
-
-const fallbackUserStats = UserStats(
-  predictionStreak: 3,
-  longestStreak: 7,
-  totalPredictions: 24,
-  totalPoolsEntered: 9,
-  totalPoolsWon: 2,
-  totalFetEarned: 420,
-  totalFetSpent: 180,
-);

@@ -7,14 +7,15 @@ import {
 
 import {
   clearStoredAdminSession,
+  isAdminRefreshExpired,
   isAdminSessionExpired,
   isSupabaseConfigured,
   persistAdminSession,
   readStoredAdminSession,
-  supabase,
   supabaseAuth,
   type AdminSessionSnapshot,
 } from '../lib/supabase';
+import { fetchAdminMe } from '../lib/adminData';
 import type { AdminUser } from '../types';
 import { AuthContext, UNCONFIGURED_ADMIN_ERROR } from './auth-context';
 
@@ -42,12 +43,16 @@ interface WhatsAppOtpSendResponse {
 
 interface WhatsAppOtpVerifyResponse extends WhatsAppOtpSendResponse {
   access_token?: string;
+  refresh_token?: string;
   expires_at?: number;
+  refresh_expires_at?: number;
   user?: {
     id?: string;
     phone?: string | null;
   } | null;
 }
+
+const ADMIN_SESSION_REFRESH_LEAD_MS = 45_000;
 
 function toAdminAuthErrorMessage(error: unknown, fallback: string) {
   if (!(error instanceof Error)) {
@@ -131,16 +136,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState<boolean>(initialSnapshot.isLoading);
   const [error, setError] = useState<string | null>(initialSnapshot.error);
 
-  const fetchAdminProfile = useCallback(async (userId: string): Promise<AdminProfileResult> => {
+  const fetchAdminProfile = useCallback(async (): Promise<AdminProfileResult> => {
     try {
-      const { data, error: fetchError } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .single();
-
-      if (fetchError || !data) {
+      const admin = await fetchAdminMe();
+      if (!admin) {
         return {
           admin: null,
           error: 'Access denied. You are not an admin.',
@@ -148,7 +147,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       return {
-        admin: data as AdminUser,
+        admin: admin as AdminUser,
         error: null,
       };
     } catch {
@@ -159,6 +158,83 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  const clearAuthState = useCallback((nextError: string | null = null) => {
+    clearStoredAdminSession();
+    setSession(null);
+    setAdmin(null);
+    setError(nextError);
+  }, []);
+
+  const buildSessionSnapshot = useCallback((
+    data: WhatsAppOtpVerifyResponse,
+    phone: string,
+  ): AdminSessionSnapshot => {
+    if (
+      !data.access_token ||
+      !data.refresh_token ||
+      !data.user?.id ||
+      !data.expires_at ||
+      !data.refresh_expires_at
+    ) {
+      throw new Error('Server did not return a valid session.');
+    }
+
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      userId: data.user.id,
+      expiresAt: data.expires_at,
+      refreshExpiresAt: data.refresh_expires_at,
+      phone: data.user.phone ?? phone,
+    };
+  }, []);
+
+  const refreshSession = useCallback(async (
+    currentSession: AdminSessionSnapshot,
+  ): Promise<AdminSessionSnapshot | null> => {
+    try {
+      const { data, error: invokeError } = await supabaseAuth.functions.invoke<WhatsAppOtpVerifyResponse>(
+        'whatsapp-otp',
+        {
+          body: {
+            action: 'refresh',
+            refresh_token: currentSession.refreshToken,
+          },
+        },
+      );
+
+      if (invokeError) {
+        throw new Error(
+          await getFunctionErrorMessage(
+            invokeError,
+            'Unable to refresh the admin session.',
+          ),
+        );
+      }
+
+      if (data?.success !== true) {
+        throw new Error(data?.error || 'Unable to refresh the admin session.');
+      }
+
+      const nextSession = buildSessionSnapshot(
+        data,
+        data.user?.phone ?? currentSession.phone ?? '',
+      );
+      persistAdminSession(nextSession);
+      setSession(nextSession);
+      setError(null);
+      return nextSession;
+    } catch (authError: unknown) {
+      clearAuthState(
+        toAdminAuthErrorMessage(
+          authError,
+          'Your admin session expired. Request a new WhatsApp code to continue.',
+        ),
+      );
+      return null;
+    }
+  }, [buildSessionSnapshot, clearAuthState]);
+
   useEffect(() => {
     if (!isSupabaseConfigured) {
       return;
@@ -168,12 +244,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const restore = async () => {
       const storedSession = readStoredAdminSession();
-      if (!storedSession || isAdminSessionExpired(storedSession)) {
-        clearStoredAdminSession();
+      if (!storedSession || isAdminRefreshExpired(storedSession)) {
         if (!isActive) return;
-        setSession(null);
-        setAdmin(null);
-        setError(
+        clearAuthState(
           storedSession
             ? 'Your admin session expired. Request a new WhatsApp code to continue.'
             : null,
@@ -182,11 +255,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
+      let activeSession = storedSession;
+      const refreshDeadlineMs = storedSession.expiresAt * 1000 - Date.now() - ADMIN_SESSION_REFRESH_LEAD_MS;
+      if (isAdminSessionExpired(storedSession) || refreshDeadlineMs <= 0) {
+        const refreshed = await refreshSession(storedSession);
+        if (!isActive) return;
+        if (!refreshed) {
+          setIsLoading(false);
+          return;
+        }
+        activeSession = refreshed;
+      }
+
       if (!isActive) return;
-      setSession(storedSession);
+      setSession(activeSession);
       setIsLoading(true);
 
-      const profile = await fetchAdminProfile(storedSession.userId);
+      const profile = await fetchAdminProfile();
       if (!isActive) return;
 
       setAdmin(profile.admin);
@@ -199,27 +284,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       isActive = false;
     };
-  }, [fetchAdminProfile]);
+  }, [clearAuthState, fetchAdminProfile, refreshSession]);
 
   useEffect(() => {
     if (!session) {
       return;
     }
 
-    const expiresInMs = Math.max(0, session.expiresAt * 1000 - Date.now());
-    const timeoutMs = Math.min(expiresInMs + 1_000, 2_147_483_647);
+    const refreshInMs = session.expiresAt * 1000 - Date.now() - ADMIN_SESSION_REFRESH_LEAD_MS;
+    if (refreshInMs <= 0) {
+      void refreshSession(session);
+      return;
+    }
+
+    const timeoutMs = Math.min(refreshInMs, 2_147_483_647);
 
     const timeout = window.setTimeout(() => {
-      clearStoredAdminSession();
-      setSession(null);
-      setAdmin(null);
-      setError('Your admin session expired. Request a new WhatsApp code to continue.');
+      void refreshSession(session);
     }, timeoutMs);
 
     return () => {
       window.clearTimeout(timeout);
     };
-  }, [session]);
+  }, [refreshSession, session]);
 
   const requestOtp = useCallback(async (phone: string) => {
     if (!isSupabaseConfigured) {
@@ -304,21 +391,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(data?.error || 'Unable to verify the WhatsApp code.');
       }
 
-      if (!data.access_token || !data.user?.id || !data.expires_at) {
-        throw new Error('Server did not return a valid session.');
-      }
-
-      const nextSession: AdminSessionSnapshot = {
-        accessToken: data.access_token,
-        userId: data.user.id,
-        expiresAt: data.expires_at,
-        phone: data.user.phone ?? phone,
-      };
+      const nextSession = buildSessionSnapshot(data, phone);
 
       persistAdminSession(nextSession);
       setSession(nextSession);
 
-      const profile = await fetchAdminProfile(nextSession.userId);
+      const profile = await fetchAdminProfile();
       setAdmin(profile.admin);
       setError(profile.error);
       setIsLoading(false);
@@ -336,14 +414,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(false);
       return false;
     }
-  }, [fetchAdminProfile]);
+  }, [buildSessionSnapshot, fetchAdminProfile]);
 
   const signOut = useCallback(async () => {
-    clearStoredAdminSession();
-    setSession(null);
-    setAdmin(null);
-    setError(null);
-  }, []);
+    if (session?.refreshToken) {
+      try {
+        await supabaseAuth.functions.invoke('whatsapp-otp', {
+          body: {
+            action: 'logout',
+            refresh_token: session.refreshToken,
+          },
+        });
+      } catch {
+        // Clear local state even if the revoke request fails.
+      }
+    }
+
+    clearAuthState();
+  }, [clearAuthState, session]);
 
   return (
     <AuthContext.Provider

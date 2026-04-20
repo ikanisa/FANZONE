@@ -8,25 +8,24 @@ import { AuthProvider } from './AuthProvider';
 
 const {
   invokeMock,
-  fromMock,
+  fetchAdminMeMock,
   readStoredAdminSessionMock,
   persistAdminSessionMock,
   clearStoredAdminSessionMock,
   isAdminSessionExpiredMock,
+  isAdminRefreshExpiredMock,
 } = vi.hoisted(() => ({
   invokeMock: vi.fn(),
-  fromMock: vi.fn(),
+  fetchAdminMeMock: vi.fn(),
   readStoredAdminSessionMock: vi.fn(),
   persistAdminSessionMock: vi.fn(),
   clearStoredAdminSessionMock: vi.fn(),
   isAdminSessionExpiredMock: vi.fn(),
+  isAdminRefreshExpiredMock: vi.fn(),
 }));
 
 vi.mock('../lib/supabase', () => ({
   isSupabaseConfigured: true,
-  supabase: {
-    from: fromMock,
-  },
   supabaseAuth: {
     functions: {
       invoke: invokeMock,
@@ -36,6 +35,11 @@ vi.mock('../lib/supabase', () => ({
   persistAdminSession: persistAdminSessionMock,
   clearStoredAdminSession: clearStoredAdminSessionMock,
   isAdminSessionExpired: isAdminSessionExpiredMock,
+  isAdminRefreshExpired: isAdminRefreshExpiredMock,
+}));
+
+vi.mock('../lib/adminData', () => ({
+  fetchAdminMe: fetchAdminMeMock,
 }));
 
 let latestAuthState: AuthState | null = null;
@@ -56,26 +60,16 @@ describe('AuthProvider', () => {
 
     readStoredAdminSessionMock.mockReturnValue(null);
     isAdminSessionExpiredMock.mockImplementation((session) => !session);
+    isAdminRefreshExpiredMock.mockImplementation((session) => !session);
 
-    fromMock.mockImplementation(() => ({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            single: async () => ({
-              data: {
-                id: 'admin-row-1',
-                user_id: 'user-1',
-                phone: '+35699123456',
-                display_name: 'Admin',
-                role: 'admin',
-                is_active: true,
-              },
-              error: null,
-            }),
-          }),
-        }),
-      }),
-    }));
+    fetchAdminMeMock.mockResolvedValue({
+      id: 'admin-row-1',
+      user_id: 'user-1',
+      phone: '+35699123456',
+      display_name: 'Admin',
+      role: 'admin',
+      is_active: true,
+    });
   });
 
   afterEach(() => {
@@ -117,7 +111,9 @@ describe('AuthProvider', () => {
       data: {
         success: true,
         access_token: 'access-token',
+        refresh_token: 'refresh-token',
         expires_at: 1_800_000_000,
+        refresh_expires_at: 1_900_000_000,
         user: {
           id: 'user-1',
           phone: '+35699123456',
@@ -144,8 +140,10 @@ describe('AuthProvider', () => {
     expect(result).toBe(true);
     expect(persistAdminSessionMock).toHaveBeenCalledWith({
       accessToken: 'access-token',
+      refreshToken: 'refresh-token',
       userId: 'user-1',
       expiresAt: 1_800_000_000,
+      refreshExpiresAt: 1_900_000_000,
       phone: '+35699123456',
     });
 

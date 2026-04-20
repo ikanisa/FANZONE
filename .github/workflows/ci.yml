@@ -177,6 +177,11 @@ jobs:
         working-directory: website
         run: npm run build
 
+      - name: Validate website release metadata
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: website
+        run: npm run validate:release-metadata
+
   flutter-lint:
     name: Flutter Lint Gate
     runs-on: ubuntu-latest

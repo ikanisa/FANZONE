@@ -1,7 +1,6 @@
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import 'preferences_gateway_shared.dart';
 
 class CompetitionSelectionsDto {
   const CompetitionSelectionsDto({this.competitionIds = const <String>{}});
@@ -36,6 +35,8 @@ class SupabaseCompetitionPreferencesGateway
 
   final CacheService _cache;
   final SupabaseConnection _connection;
+
+  static const competitionIdsCachePrefix = 'settings.competition_ids.';
 
   @override
   Future<CompetitionSelectionsDto> readCachedCompetitionFavourites({

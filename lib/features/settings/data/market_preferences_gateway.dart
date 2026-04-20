@@ -2,7 +2,6 @@ import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/user_market_preferences_model.dart';
-import 'preferences_gateway_shared.dart';
 
 abstract interface class MarketPreferencesGateway {
   Future<UserMarketPreferences> getCachedMarketPreferences();
@@ -19,6 +18,8 @@ class SupabaseMarketPreferencesGateway implements MarketPreferencesGateway {
 
   final CacheService _cache;
   final SupabaseConnection _connection;
+
+  static const marketPreferencesCacheKey = 'settings.market_preferences';
 
   @override
   Future<UserMarketPreferences> getCachedMarketPreferences() async {

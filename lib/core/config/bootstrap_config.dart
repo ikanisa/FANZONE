@@ -389,6 +389,14 @@ class BootstrapConfigService extends ChangeNotifier {
   /// The currently loaded config.  Never null after [load] completes.
   BootstrapConfig get config => _current ?? BootstrapConfig.empty();
 
+  /// Load only cached config (or empty) without touching the network.
+  ///
+  /// This is used on the startup critical path so the app can paint from
+  /// local state first and refresh from Supabase in the background.
+  Future<BootstrapConfig> loadCached() async {
+    return _loadCachedOrEmpty();
+  }
+
   /// Load config: try Supabase RPC → fall back to cache → fall back to empty.
   Future<BootstrapConfig> load({
     String market = 'global',
@@ -425,7 +433,19 @@ class BootstrapConfigService extends ChangeNotifier {
       AppLogger.d('Failed to load bootstrap config from Supabase: $error');
     }
 
-    // 2. Try cache
+    // 2. Try cache / empty fallback
+    return _loadCachedOrEmpty();
+  }
+
+  /// Force refresh from remote.
+  Future<BootstrapConfig> refresh({
+    String market = 'global',
+    String platform = 'all',
+  }) async {
+    return load(market: market, platform: platform);
+  }
+
+  Future<BootstrapConfig> _loadCachedOrEmpty() async {
     try {
       final cached = await _cache.getJsonMap(_cacheKey);
       if (cached != null && cached.isNotEmpty) {
@@ -443,17 +463,8 @@ class BootstrapConfigService extends ChangeNotifier {
       }
     }
 
-    // 3. Empty fallback
     _current = BootstrapConfig.empty();
     notifyListeners();
     return _current!;
-  }
-
-  /// Force refresh from remote.
-  Future<BootstrapConfig> refresh({
-    String market = 'global',
-    String platform = 'all',
-  }) async {
-    return load(market: market, platform: platform);
   }
 }

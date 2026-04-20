@@ -8,13 +8,15 @@ import '../models/privacy_settings_model.dart';
 /// Static privacy settings service.
 /// Uses Supabase directly for auth since it's called from non-Riverpod contexts.
 class PrivacySettingsService {
-  static String? get _userId => Supabase.instance.client.auth.currentUser?.id;
+  static final SupabaseConnection _connection = SupabaseConnectionImpl();
+
+  static String? get _userId => _connection.currentUser?.id;
 
   static AccountSettingsGateway? _gateway;
   static AccountSettingsGateway get _accountSettings =>
       _gateway ??= SupabaseAccountSettingsGateway(
         SharedPreferencesCacheService.global,
-        SupabaseConnectionImpl(),
+        _connection,
       );
 
   static Future<PrivacySettingsModel> getSettings() async {

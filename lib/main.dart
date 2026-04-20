@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'app_router.dart';
 import 'config/app_config.dart';
+import 'core/auth/runtime_auth_session_manager.dart';
 import 'core/di/gateway_providers.dart';
 import 'core/logging/app_logger.dart';
 import 'core/performance/app_startup.dart';
@@ -125,16 +126,17 @@ Future<void> _initializeSupabase() async {
       anonKey: AppConfig.supabaseAnonKey,
     );
     appRuntime.supabaseInitialized = true;
-    await refreshRuntimeBootstrapData();
+    await RuntimeAuthSessionManager.instance.initialize();
     appStartupProfiler.mark('supabase_ready');
     appRuntime.notifyAuthStateChanged();
     await _authStateSubscription?.cancel();
-    _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange
-        .listen((_) {
+    _authStateSubscription =
+        RuntimeAuthSessionManager.instance.authStateChanges.listen((_) {
           appRuntime.notifyAuthStateChanged();
           unawaited(ProductAnalytics.flush());
           unawaited(AppTelemetry.flush());
         });
+    unawaited(refreshRuntimeBootstrapData());
   } catch (error, stackTrace) {
     appRuntime.supabaseInitError = 'Could not connect to server.';
     await AppTelemetry.captureException(
@@ -164,17 +166,23 @@ Future<String> _resolveInitialRoute() async {
       return cachedDone ? '/' : '/onboarding';
     }
 
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session == null) {
+    final session = RuntimeAuthSessionManager.instance.currentSession;
+    final user = RuntimeAuthSessionManager.instance.currentUser;
+    if (session == null || user == null || session.isExpired) {
       return cachedDone ? '/' : '/onboarding';
     }
 
     // Try remote check with short timeout
     try {
-      final profile = await Supabase.instance.client
+      final client = RuntimeAuthSessionManager.instance.activeClient;
+      if (client == null) {
+        return cachedDone ? '/' : '/onboarding';
+      }
+
+      final profile = await client
           .from('profiles')
           .select('onboarding_completed')
-          .eq('id', session.user.id)
+          .eq('id', user.id)
           .maybeSingle()
           .timeout(const Duration(seconds: 3));
       final remote = profile?['onboarding_completed'] == true;

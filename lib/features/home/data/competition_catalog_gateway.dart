@@ -1,9 +1,7 @@
-import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/competition_model.dart';
 import '../../../models/standing_row_model.dart';
-import 'catalog_gateway_shared.dart';
 import 'home_dtos.dart';
 
 abstract interface class CompetitionCatalogGateway {
@@ -30,9 +28,7 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
     bool featuredOnly = false,
   }) async {
     final client = _connection.client;
-    if (client == null) {
-      return _fallbackCompetitions(tier: tier, featuredOnly: featuredOnly);
-    }
+    if (client == null) return const <CompetitionModel>[];
 
     try {
       final rows = await client.from('competitions').select();
@@ -43,15 +39,17 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
           )
           .toList(growable: false);
 
-      final filtered = filterCompetitions(
-        competitions,
-        tier: tier,
-        featuredOnly: featuredOnly,
-      );
-      return filtered;
+      Iterable<CompetitionModel> result = competitions;
+      if (tier != null) {
+        result = result.where((c) => c.tier == tier);
+      }
+      if (featuredOnly) {
+        result = result.where((c) => c.isFeatured);
+      }
+      return result.toList(growable: false);
     } catch (error) {
       AppLogger.d('Failed to load competitions: $error');
-      return _fallbackCompetitions(tier: tier, featuredOnly: featuredOnly);
+      return const <CompetitionModel>[];
     }
   }
 
@@ -69,7 +67,7 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
     CompetitionStandingsFilter filter,
   ) async {
     final client = _connection.client;
-    if (client == null) return _fallbackStandings(filter.competitionId);
+    if (client == null) return const <StandingRowModel>[];
 
     try {
       var query = client
@@ -89,24 +87,7 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
       return standings;
     } catch (error) {
       AppLogger.d('Failed to load standings: $error');
-      return _fallbackStandings(filter.competitionId);
+      return const <StandingRowModel>[];
     }
-  }
-
-  List<CompetitionModel> _fallbackCompetitions({
-    int? tier,
-    bool featuredOnly = false,
-  }) {
-    if (!AppConfig.isDevelopment) return const <CompetitionModel>[];
-    return filterCompetitions(
-      fallbackCompetitions,
-      tier: tier,
-      featuredOnly: featuredOnly,
-    );
-  }
-
-  List<StandingRowModel> _fallbackStandings(String competitionId) {
-    if (!AppConfig.isDevelopment) return const <StandingRowModel>[];
-    return fallbackStandings(competitionId);
   }
 }

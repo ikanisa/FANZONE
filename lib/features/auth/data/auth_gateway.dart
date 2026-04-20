@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/auth/runtime_auth_session_manager.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 
@@ -7,7 +8,7 @@ import '../../../core/supabase/supabase_connection.dart';
 ///
 /// OTP send/verify is handled by the `whatsapp-otp` Edge Function,
 /// which sends OTPs via the WhatsApp Business Cloud API (template: gikundiro)
-/// and creates Supabase Auth sessions on successful verification.
+/// and creates FANZONE-authenticated sessions on successful verification.
 abstract class AuthGateway {
   bool get isInitialized;
 
@@ -24,7 +25,7 @@ abstract class AuthGateway {
   /// Send a 6-digit OTP to [phone] via WhatsApp Cloud API.
   Future<bool> sendOtp(String phone);
 
-  /// Verify the OTP and create a Supabase session.
+  /// Verify the OTP and create a FANZONE-authenticated session.
   /// Returns the session data on success.
   Future<void> verifyOtp(String phone, String otp);
 
@@ -33,6 +34,8 @@ abstract class AuthGateway {
 
   /// Creates a short-lived claim proving control of the current anonymous user.
   Future<String?> issueAnonymousUpgradeClaim();
+
+  Future<bool> refreshSession();
 
   Future<void> signOut();
 
@@ -109,23 +112,22 @@ class SupabaseAuthGateway implements AuthGateway {
       throw AuthException(errorMsg);
     }
 
-    final sessionString = data['session_string'] as String?;
-
-    if (sessionString == null || sessionString.isEmpty) {
+    try {
+      await RuntimeAuthSessionManager.instance.applyVerifiedSession(data);
+    } catch (error) {
+      AppLogger.d('Failed to activate WhatsApp-authenticated session: $error');
       throw const AuthException(
-        'Server did not return a recoverable session. Please request a new code.',
+        'Server returned an invalid authenticated session. Please try again.',
       );
     }
 
-    try {
-      await client.auth.recoverSession(sessionString);
-    } catch (error) {
-      AppLogger.d(
-        'Failed to recover session from WhatsApp OTP response: $error',
-      );
-      throw const AuthException(
-        'Server returned an invalid session. Please try again.',
-      );
+    final guestSession = client.auth.currentSession;
+    if (guestSession != null) {
+      try {
+        await client.auth.signOut();
+      } catch (error) {
+        AppLogger.d('Guest session cleanup after WhatsApp login failed: $error');
+      }
     }
   }
 
@@ -154,10 +156,18 @@ class SupabaseAuthGateway implements AuthGateway {
   }
 
   @override
-  Future<void> signOut() async {
-    final client = _connection.client;
-    if (client == null) return;
+  Future<bool> refreshSession() {
+    return RuntimeAuthSessionManager.instance.refreshCustomSession();
+  }
 
+  @override
+  Future<void> signOut() async {
+    if (RuntimeAuthSessionManager.instance.hasCustomSession) {
+      await RuntimeAuthSessionManager.instance.logoutCustomSession();
+    }
+
+    final client = RuntimeAuthSessionManager.instance.guestClient;
+    if (client == null) return;
     try {
       await client.auth.signOut();
     } catch (error) {

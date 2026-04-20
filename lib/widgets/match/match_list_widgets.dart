@@ -70,7 +70,7 @@ class TeamAvatar extends StatelessWidget {
                 resolvedUrl,
                 fit: BoxFit.contain,
                 placeholderBuilder: (_) => fallback,
-                errorBuilder: (_, __, ___) => fallback,
+                errorBuilder: (_, error, stackTrace) => fallback,
               ),
             ),
           ),

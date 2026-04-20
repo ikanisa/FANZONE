@@ -11,6 +11,10 @@ BEGIN
     RAISE EXCEPTION 'Missing public.otp_verifications table';
   END IF;
 
+  IF to_regclass('public.whatsapp_auth_sessions') IS NULL THEN
+    RAISE EXCEPTION 'Missing public.whatsapp_auth_sessions table';
+  END IF;
+
   IF to_regprocedure('public.find_auth_user_by_phone(text)') IS NULL THEN
     RAISE EXCEPTION 'Missing public.find_auth_user_by_phone(text) RPC';
   END IF;

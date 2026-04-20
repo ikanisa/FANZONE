@@ -2,7 +2,6 @@ import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/prediction_slip_model.dart';
 import 'predict_gateway_models.dart';
-import 'predict_gateway_shared.dart';
 
 abstract interface class PredictionSlipGateway {
   Future<String> submitPredictionSlip(PredictionSlipSubmissionDto request);
@@ -17,8 +16,6 @@ class SupabasePredictionSlipGateway implements PredictionSlipGateway {
   SupabasePredictionSlipGateway(this._connection);
 
   final SupabaseConnection _connection;
-  final Map<String, List<PredictionSlipModel>> _localSlipsByUser =
-      <String, List<PredictionSlipModel>>{};
 
   @override
   Future<String> submitPredictionSlip(
@@ -26,7 +23,7 @@ class SupabasePredictionSlipGateway implements PredictionSlipGateway {
   ) async {
     final client = _connection.client;
     if (client == null) {
-      throwPredictUnavailable('Prediction slip submission');
+      throw StateError('Supabase not connected');
     }
 
     try {
@@ -55,7 +52,7 @@ class SupabasePredictionSlipGateway implements PredictionSlipGateway {
         return response['slip_id'].toString();
       }
     } catch (error) {
-      AppLogger.d('Failed to submit prediction slip remotely: $error');
+      AppLogger.d('Failed to submit prediction slip: $error');
       rethrow;
     }
 
@@ -68,29 +65,25 @@ class SupabasePredictionSlipGateway implements PredictionSlipGateway {
     int limit = 20,
   }) async {
     final client = _connection.client;
-    if (client != null) {
-      try {
-        final rows = await client
-            .from('prediction_slips')
-            .select()
-            .eq('user_id', userId)
-            .order('submitted_at', ascending: false)
-            .limit(limit);
-        final slips = (rows as List)
-            .whereType<Map>()
-            .map(
-              (row) =>
-                  PredictionSlipModel.fromJson(Map<String, dynamic>.from(row)),
-            )
-            .toList(growable: false);
-        return slips;
-      } catch (error) {
-        AppLogger.d('Failed to load prediction slips: $error');
-      }
-    }
+    if (client == null) return const <PredictionSlipModel>[];
 
-    if (!allowPredictSeedFallback) return const <PredictionSlipModel>[];
-    final slips = _localSlipsByUser[userId] ?? const <PredictionSlipModel>[];
-    return slips.take(limit).toList(growable: false);
+    try {
+      final rows = await client
+          .from('prediction_slips')
+          .select()
+          .eq('user_id', userId)
+          .order('submitted_at', ascending: false)
+          .limit(limit);
+      return (rows as List)
+          .whereType<Map>()
+          .map(
+            (row) =>
+                PredictionSlipModel.fromJson(Map<String, dynamic>.from(row)),
+          )
+          .toList(growable: false);
+    } catch (error) {
+      AppLogger.d('Failed to load prediction slips: $error');
+      return const <PredictionSlipModel>[];
+    }
   }
 }

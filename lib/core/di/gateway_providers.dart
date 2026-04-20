@@ -13,12 +13,10 @@ import '../utils/currency_utils.dart' as currency_utils;
 
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../data/team_search_database.dart' as team_db;
 // ── Core layer ─────────────────────────────────────────────
 import '../cache/cache_service.dart';
 import '../cache/shared_preferences_cache_service.dart';
@@ -306,30 +304,6 @@ Future<TeamSearchCatalog?> _loadRemoteTeamSearchCatalog(
   return _buildRemoteTeamSearchCatalog(client, config);
 }
 
-Future<TeamSearchCatalog?> _preloadRemoteTeamSearchCatalog(
-  BootstrapConfig config,
-) async {
-  if (!AppConfig.hasSupabaseConfig) return null;
-  final client = SupabaseClient(
-    AppConfig.supabaseUrl,
-    AppConfig.supabaseAnonKey,
-  );
-  return _buildRemoteTeamSearchCatalog(client, config);
-}
-
-TeamSearchCatalog _mergeCatalogWithFallbackPopularTeams(
-  TeamSearchCatalog catalog,
-  TeamSearchCatalog fallbackCatalog,
-) {
-  if (catalog.popularTeams.isNotEmpty || fallbackCatalog.popularTeams.isEmpty) {
-    return catalog;
-  }
-
-  return TeamSearchCatalog(
-    catalog.allTeams,
-    popularTeams: fallbackCatalog.popularTeams,
-  );
-}
 
 void _applyRuntimeBootstrap(BootstrapConfig config) {
   runtimeBootstrapStore.update(config);
@@ -358,12 +332,8 @@ Future<void> refreshRuntimeBootstrapData({
       config,
     );
     if (remoteCatalog != null) {
-      team_db.initTeamSearchDatabase(
-        catalog: _mergeCatalogWithFallbackPopularTeams(
-          remoteCatalog,
-          team_db.activeTeamSearchCatalog,
-        ),
-      );
+      // Catalog refreshed; the teamSearchCatalogProvider will pick it up
+      // on next read through the bootstrap flow.
     }
   } catch (_) {
     // Keep the asset-backed catalog when the live data plane is unavailable.
@@ -594,50 +564,29 @@ final bootstrapConfigProvider = Provider<BootstrapConfig>((ref) {
   return ref.watch(bootstrapConfigServiceProvider).config;
 });
 
-/// Call this during app startup to resolve async singletons,
+/// Call this during app startup to resolve local async singletons,
 /// then pass the results as ProviderScope overrides.
+///
+/// This path must stay fast and offline-safe. Remote bootstrap and live team
+/// catalog hydration happen after Supabase comes up.
 Future<List<Override>> resolveAsyncOverrides() async {
   final prefs = await SharedPreferences.getInstance();
 
   // Initialize global singletons for static services outside Riverpod scope
   SharedPreferencesCacheService.initGlobal(prefs);
 
-  // Load bootstrap config from Supabase (with cache fallback)
+  // Load bootstrap config from cache only; remote refresh happens later.
   final cacheService = SharedPreferencesCacheService(prefs);
   final connection = SupabaseConnectionImpl();
   final bootstrapService = BootstrapConfigService(cacheService, connection);
-  final config = await bootstrapService.load(
-    market: _bootstrapMarketKey(),
-    platform: _bootstrapPlatformKey(),
-  );
+  final config = await bootstrapService.loadCached();
   _bootstrapRuntimeService = bootstrapService;
   _bootstrapRuntimeConnection = connection;
 
   _applyRuntimeBootstrap(config);
 
-  final fallbackCatalog = TeamSearchCatalog.fromRawJson(
-    await rootBundle.loadString('assets/data/team_search_database.json'),
-  );
-
-  // ── Team Catalog: DB-first, JSON-fallback ──
-  // Try the teams table directly (the single source of truth).
-  // Fall back to the bundled JSON asset only when the DB is unreachable
-  // or the teams table is empty (e.g., first deploy before data sync).
-  TeamSearchCatalog? catalog;
-  try {
-    catalog = await _preloadRemoteTeamSearchCatalog(config);
-    if (catalog != null) {
-      catalog = _mergeCatalogWithFallbackPopularTeams(catalog, fallbackCatalog);
-    }
-  } catch (e) {
-    AppLogger.d(
-      'Startup: DB team catalog load failed, falling back to JSON: $e',
-    );
-  }
-  if (catalog == null || catalog.allTeams.isEmpty) {
-    catalog = fallbackCatalog;
-  }
-  team_db.initTeamSearchDatabase(catalog: catalog);
+  // Team search catalog loaded from Supabase — no bundled JSON asset.
+  final catalog = TeamSearchCatalog.defaults();
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),

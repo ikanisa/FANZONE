@@ -1,4 +1,5 @@
 import { adminEnvError, getSupabaseClient } from './supabase';
+import type { AdminUser } from '../types';
 
 interface AdminQueryErrorLike {
   message: string;
@@ -48,6 +49,10 @@ export async function runAdminRpc<T>(
   const { data, error } = await requireAdminClient().rpc(fnName, args);
   if (error) throw new Error(error.message);
   return data as T;
+}
+
+export async function fetchAdminMe(): Promise<AdminUser | null> {
+  return runAdminRpc<AdminUser | null>('get_admin_me');
 }
 
 export async function countAdminRows(

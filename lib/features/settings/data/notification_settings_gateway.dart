@@ -1,9 +1,7 @@
-import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/notification_model.dart';
-import 'preferences_gateway_shared.dart';
 
 abstract interface class NotificationSettingsGateway {
   Future<NotificationPreferences> getNotificationPreferences(String userId);
@@ -48,6 +46,11 @@ class SupabaseNotificationSettingsGateway
 
   final CacheService _cache;
   final SupabaseConnection _connection;
+
+  static const deviceTokensCachePrefix = 'settings.device_tokens.';
+  static const matchAlertsCachePrefix = 'settings.match_alerts.';
+  static const notificationPreferencesCachePrefix = 'settings.notification_prefs.';
+  static const notificationLogCachePrefix = 'settings.notification_log.';
 
   @override
   Future<NotificationPreferences> getNotificationPreferences(
@@ -340,7 +343,7 @@ class SupabaseNotificationSettingsGateway
   Future<UserStats> getUserStats(String userId) async {
     final client = _connection.client;
     if (client == null) {
-      return AppConfig.isDevelopment ? fallbackUserStats : const UserStats();
+      return const UserStats();
     }
 
     try {
@@ -352,12 +355,12 @@ class SupabaseNotificationSettingsGateway
           .eq('user_id', userId)
           .maybeSingle();
       if (row == null) {
-        return AppConfig.isDevelopment ? fallbackUserStats : const UserStats();
+        return const UserStats();
       }
       return UserStats.fromJson(Map<String, dynamic>.from(row));
     } catch (error) {
       AppLogger.d('Failed to load user stats: $error');
-      return AppConfig.isDevelopment ? fallbackUserStats : const UserStats();
+      return const UserStats();
     }
   }
 

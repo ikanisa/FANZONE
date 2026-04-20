@@ -1,25 +1,32 @@
 // FANZONE — WhatsApp Cloud API OTP Edge Function
 //
 // Custom OTP pipeline using WhatsApp Business Cloud API.
-// Template: "gikundiro" (Authentication template)
 //
 // Actions:
 //   POST { action: "send", phone: "+356..." }
-//     → Generate OTP, store hash, send via WhatsApp Cloud API
+//     -> Generate OTP, store hash, send via WhatsApp Cloud API
 //
 //   POST { action: "verify", phone: "+356...", otp: "123456" }
-//     → Verify OTP, create/find Supabase user, return session JWT
+//     -> Verify OTP, create/find Supabase user, create custom FANZONE session
+//
+//   POST { action: "refresh", refresh_token: "..." }
+//     -> Rotate the custom refresh token and issue a new access token
+//
+//   POST { action: "logout", refresh_token: "..." }
+//     -> Revoke the custom FANZONE session
 //
 // Required secrets:
-//   WABA_ACCESS_TOKEN       — WhatsApp Business API token
-//   WABA_PHONE_NUMBER_ID    — WhatsApp Business phone number ID
-//   SUPABASE_URL            — Supabase project URL
+//   WABA_ACCESS_TOKEN         — WhatsApp Business API token
+//   WABA_PHONE_NUMBER_ID      — WhatsApp Business phone number ID
+//   SUPABASE_URL              — Supabase project URL
 //   SUPABASE_SERVICE_ROLE_KEY — Service role key for admin operations
-//   FANZONE_JWT_SECRET     — JWT signing secret for custom access tokens
+//   FANZONE_JWT_SECRET        — JWT signing secret for custom access tokens
 //
 // Optional:
-//   WABA_OTP_TEMPLATE_NAME  — Template name (default: "gikundiro")
-//   OTP_EXPIRY_SECONDS      — OTP validity in seconds (default: 600)
+//   WABA_OTP_TEMPLATE_NAME                — Template name (default: "gikundiro")
+//   OTP_EXPIRY_SECONDS                    — OTP validity in seconds (default: 600)
+//   WHATSAPP_SESSION_ACCESS_EXPIRY_SECONDS  — Access token validity (default: 3600)
+//   WHATSAPP_SESSION_REFRESH_EXPIRY_SECONDS — Refresh token validity (default: 2592000)
 
 import {
   createClient,
@@ -29,8 +36,6 @@ import { buildCorsHeaders, getErrorMessage } from "../_shared/http.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-// Supabase reserves the SUPABASE_ prefix for system secrets, so the JWT
-// signing secret is stored as FANZONE_JWT_SECRET in Edge secrets.
 const SUPABASE_JWT_SECRET = Deno.env.get("FANZONE_JWT_SECRET")?.trim() || "";
 
 const WABA_ACCESS_TOKEN = Deno.env.get("WABA_ACCESS_TOKEN")?.trim() || "";
@@ -41,13 +46,51 @@ const OTP_EXPIRY_SECONDS = parseInt(
   Deno.env.get("OTP_EXPIRY_SECONDS") || "600",
   10,
 );
+const SESSION_ACCESS_EXPIRY_SECONDS = parseInt(
+  Deno.env.get("WHATSAPP_SESSION_ACCESS_EXPIRY_SECONDS") || "3600",
+  10,
+);
+const SESSION_REFRESH_EXPIRY_SECONDS = parseInt(
+  Deno.env.get("WHATSAPP_SESSION_REFRESH_EXPIRY_SECONDS") || "2592000",
+  10,
+);
 
 const MAX_OTP_ATTEMPTS = 5;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
-
 const CORS_HEADERS = buildCorsHeaders("authorization, content-type, apikey");
 
-// ── Helpers ──
+type UserSummary = {
+  id: string;
+  phone: string | null;
+  [key: string]: unknown;
+};
+
+type SessionRow = {
+  id: string;
+  user_id: string;
+  phone: string;
+  refresh_token_hash: string;
+  access_expires_at: string;
+  refresh_expires_at: string;
+  revoked_at: string | null;
+};
+
+type SessionResponsePayload = {
+  success: true;
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  expires_at: number;
+  refresh_expires_at: number;
+  token_type: "bearer";
+  user: UserSummary;
+};
+
+function createAdminClient(): SupabaseClient {
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
 
 function normalizePhone(phone: string): string {
   let cleaned = phone.replace(/[\s\-()]/g, "");
@@ -63,22 +106,30 @@ function generateOtp(): string {
   return String(array[0] % 1000000).padStart(6, "0");
 }
 
-async function hashOtp(otp: string): Promise<string> {
+function generateOpaqueToken(byteLength = 32): string {
+  const random = new Uint8Array(byteLength);
+  crypto.getRandomValues(random);
+  return base64UrlEncode(random);
+}
+
+async function hashValue(value: string): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(otp);
+  const data = encoder.encode(value);
   const hash = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(hash))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
 
-async function verifyOtpHash(otp: string, hash: string): Promise<boolean> {
-  const computed = await hashOtp(otp);
-  // Constant-time comparison
-  if (computed.length !== hash.length) return false;
+async function verifyHashedValue(
+  candidate: string,
+  expectedHash: string,
+): Promise<boolean> {
+  const computed = await hashValue(candidate);
+  if (computed.length !== expectedHash.length) return false;
   let result = 0;
   for (let i = 0; i < computed.length; i++) {
-    result |= computed.charCodeAt(i) ^ hash.charCodeAt(i);
+    result |= computed.charCodeAt(i) ^ expectedHash.charCodeAt(i);
   }
   return result === 0;
 }
@@ -119,47 +170,6 @@ async function signJwt(
   return `${signingInput}.${base64UrlEncode(new Uint8Array(signature))}`;
 }
 
-async function generateSessionTokens(
-  userId: string,
-  phone: string,
-  jwtSecret: string,
-): Promise<{ access_token: string; expires_in: number; expires_at: number }> {
-  const now = Math.floor(Date.now() / 1000);
-  const expiresIn = 3600;
-  const expiresAt = now + expiresIn;
-
-  const accessTokenPayload = {
-    aud: "authenticated",
-    exp: expiresAt,
-    iat: now,
-    iss: `${SUPABASE_URL}/auth/v1`,
-    sub: userId,
-    role: "authenticated",
-    aal: "aal1",
-    session_id: crypto.randomUUID(),
-    email: null,
-    phone,
-    is_anonymous: false,
-    app_metadata: {
-      provider: "phone",
-      providers: ["phone"],
-    },
-    user_metadata: {
-      phone,
-      phone_verified: true,
-    },
-    amr: [{ method: "otp", timestamp: now }],
-  };
-
-  return {
-    access_token: await signJwt(accessTokenPayload, jwtSecret),
-    expires_in: expiresIn,
-    expires_at: expiresAt,
-  };
-}
-
-// ── WhatsApp Cloud API ──
-
 async function sendWhatsAppOtp(
   phone: string,
   otp: string,
@@ -181,23 +191,13 @@ async function sendWhatsAppOtp(
       components: [
         {
           type: "body",
-          parameters: [
-            {
-              type: "text",
-              text: otp,
-            },
-          ],
+          parameters: [{ type: "text", text: otp }],
         },
         {
           type: "button",
           sub_type: "url",
           index: "0",
-          parameters: [
-            {
-              type: "text",
-              text: otp,
-            },
-          ],
+          parameters: [{ type: "text", text: otp }],
         },
       ],
     },
@@ -226,9 +226,89 @@ async function sendWhatsAppOtp(
   }
 }
 
-// ── Session creation ──
+async function loadUserSummary(
+  supabase: SupabaseClient,
+  userId: string,
+  fallbackPhone: string,
+): Promise<UserSummary> {
+  const { data, error } = await supabase.auth.admin.getUserById(userId);
+  if (error) {
+    throw new Error("Failed to load authenticated user.");
+  }
+  return (data.user as UserSummary | null) ??
+    { id: userId, phone: fallbackPhone };
+}
 
-async function createSessionForPhone(
+async function issueSessionTokens(
+  userId: string,
+  phone: string,
+  sessionId: string,
+): Promise<{ accessToken: string; expiresIn: number; expiresAt: number }> {
+  const now = Math.floor(Date.now() / 1000);
+  const expiresIn = SESSION_ACCESS_EXPIRY_SECONDS;
+  const expiresAt = now + expiresIn;
+
+  const accessTokenPayload = {
+    aud: "authenticated",
+    exp: expiresAt,
+    iat: now,
+    iss: `${SUPABASE_URL}/auth/v1`,
+    sub: userId,
+    role: "authenticated",
+    aal: "aal1",
+    session_id: sessionId,
+    email: null,
+    phone,
+    is_anonymous: false,
+    app_metadata: {
+      provider: "phone",
+      providers: ["phone"],
+    },
+    user_metadata: {
+      phone,
+      phone_verified: true,
+    },
+    amr: [{ method: "otp", timestamp: now }],
+  };
+
+  return {
+    accessToken: await signJwt(accessTokenPayload, SUPABASE_JWT_SECRET),
+    expiresIn,
+    expiresAt,
+  };
+}
+
+async function buildSessionResponse(
+  supabase: SupabaseClient,
+  sessionRow: Pick<SessionRow, "id" | "user_id" | "phone">,
+  refreshToken: string,
+): Promise<SessionResponsePayload> {
+  const issued = await issueSessionTokens(
+    sessionRow.user_id,
+    sessionRow.phone,
+    sessionRow.id,
+  );
+  const refreshExpiresAt = Math.floor(Date.now() / 1000) +
+    SESSION_REFRESH_EXPIRY_SECONDS;
+  const user = await loadUserSummary(
+    supabase,
+    sessionRow.user_id,
+    sessionRow.phone,
+  );
+
+  return {
+    success: true,
+    access_token: issued.accessToken,
+    refresh_token: refreshToken,
+    expires_in: issued.expiresIn,
+    expires_at: issued.expiresAt,
+    refresh_expires_at: refreshExpiresAt,
+    token_type: "bearer",
+    user,
+  };
+}
+
+async function createCustomSession(
   supabase: SupabaseClient,
   userId: string,
   phone: string,
@@ -240,50 +320,97 @@ async function createSessionForPhone(
     );
   }
 
-  const session = await generateSessionTokens(
-    userId,
-    phone,
-    SUPABASE_JWT_SECRET,
-  );
-  const { data: userData, error: userError } = await supabase.auth.admin
-    .getUserById(userId);
+  const sessionId = crypto.randomUUID();
+  const refreshToken = generateOpaqueToken();
+  const refreshTokenHash = await hashValue(refreshToken);
+  const now = Date.now();
+  const accessExpiresAt = new Date(now + SESSION_ACCESS_EXPIRY_SECONDS * 1000)
+    .toISOString();
+  const refreshExpiresAt = new Date(
+    now + SESSION_REFRESH_EXPIRY_SECONDS * 1000,
+  ).toISOString();
 
-  if (userError) {
-    console.error(
-      "Failed to load user after WhatsApp verification:",
-      userError,
-    );
+  const { error } = await supabase.from("whatsapp_auth_sessions").insert({
+    id: sessionId,
+    user_id: userId,
+    phone,
+    refresh_token_hash: refreshTokenHash,
+    access_expires_at: accessExpiresAt,
+    refresh_expires_at: refreshExpiresAt,
+  });
+
+  if (error) {
+    console.error("Failed to persist WhatsApp auth session:", error);
     return Response.json(
-      { error: "Failed to load authenticated user." },
+      { error: "Failed to create authenticated session." },
       { status: 500, headers: CORS_HEADERS },
     );
   }
 
-  const sessionPayload = {
-    access_token: session.access_token,
-    refresh_token: null,
-    expires_in: session.expires_in,
-    expires_at: session.expires_at,
-    token_type: "bearer",
-    user: userData?.user || { id: userId, phone },
-  };
+  const payload = await buildSessionResponse(
+    supabase,
+    { id: sessionId, user_id: userId, phone },
+    refreshToken,
+  );
 
-  return Response.json({
-    success: true,
-    access_token: session.access_token,
-    refresh_token: null,
-    expires_in: session.expires_in,
-    expires_at: session.expires_at,
-    session_string: JSON.stringify(sessionPayload),
-    user: sessionPayload.user,
-  }, { headers: CORS_HEADERS });
+  return Response.json(payload, { headers: CORS_HEADERS });
 }
 
-// ── Action: Send OTP ──
-
-async function handleSend(
-  phone: string,
+async function rotateSession(
+  supabase: SupabaseClient,
+  sessionRow: SessionRow,
 ): Promise<Response> {
+  const refreshToken = generateOpaqueToken();
+  const refreshTokenHash = await hashValue(refreshToken);
+  const now = Date.now();
+  const accessExpiresAt = new Date(now + SESSION_ACCESS_EXPIRY_SECONDS * 1000)
+    .toISOString();
+  const refreshExpiresAt = new Date(
+    now + SESSION_REFRESH_EXPIRY_SECONDS * 1000,
+  ).toISOString();
+
+  const { error } = await supabase
+    .from("whatsapp_auth_sessions")
+    .update({
+      refresh_token_hash: refreshTokenHash,
+      access_expires_at: accessExpiresAt,
+      refresh_expires_at: refreshExpiresAt,
+      refreshed_at: new Date(now).toISOString(),
+      updated_at: new Date(now).toISOString(),
+    })
+    .eq("id", sessionRow.id)
+    .is("revoked_at", null);
+
+  if (error) {
+    console.error("Failed to rotate WhatsApp auth session:", error);
+    return Response.json(
+      { error: "Failed to refresh authenticated session." },
+      { status: 500, headers: CORS_HEADERS },
+    );
+  }
+
+  const payload = await buildSessionResponse(
+    supabase,
+    sessionRow,
+    refreshToken,
+  );
+  return Response.json(payload, { headers: CORS_HEADERS });
+}
+
+async function resolveUserIdForPhone(
+  supabase: SupabaseClient,
+  phone: string,
+): Promise<string | null> {
+  const { data } = await supabase.rpc("find_auth_user_by_phone", {
+    p_phone: phone,
+  });
+  if (typeof data === "string" && data.length > 0) {
+    return data;
+  }
+  return null;
+}
+
+async function handleSend(phone: string): Promise<Response> {
   const normalized = normalizePhone(phone);
 
   if (!/^\+\d{7,15}$/.test(normalized)) {
@@ -293,11 +420,7 @@ async function handleSend(
     );
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-
-  // Rate limiting: check recent OTPs for this phone
+  const supabase = createAdminClient();
   const windowStart = new Date(
     Date.now() - RATE_LIMIT_WINDOW_SECONDS * 1000,
   ).toISOString();
@@ -315,13 +438,11 @@ async function handleSend(
     );
   }
 
-  // Generate and store OTP
   const otp = generateOtp();
-  const otpHash = await hashOtp(otp);
+  const otpHash = await hashValue(otp);
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000)
     .toISOString();
 
-  // Invalidate previous unverified OTPs for this phone
   await supabase
     .from("otp_verifications")
     .delete()
@@ -344,9 +465,7 @@ async function handleSend(
     );
   }
 
-  // Send via WhatsApp Cloud API
   const sendResult = await sendWhatsAppOtp(normalized, otp);
-
   if (!sendResult.success) {
     return Response.json(
       { error: sendResult.error || "Failed to send WhatsApp message" },
@@ -360,12 +479,7 @@ async function handleSend(
   );
 }
 
-// ── Action: Verify OTP ──
-
-async function handleVerify(
-  phone: string,
-  otp: string,
-): Promise<Response> {
+async function handleVerify(phone: string, otp: string): Promise<Response> {
   const normalized = normalizePhone(phone);
 
   if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
@@ -375,11 +489,8 @@ async function handleVerify(
     );
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  const supabase = createAdminClient();
 
-  // Find the most recent unexpired, unverified OTP for this phone
   const { data: otpRecord, error: fetchError } = await supabase
     .from("otp_verifications")
     .select("*")
@@ -397,9 +508,7 @@ async function handleVerify(
     );
   }
 
-  // Check attempt limit
   if (otpRecord.attempts >= MAX_OTP_ATTEMPTS) {
-    // Mark as expired
     await supabase
       .from("otp_verifications")
       .update({ verified: true })
@@ -411,15 +520,12 @@ async function handleVerify(
     );
   }
 
-  // Increment attempts
   await supabase
     .from("otp_verifications")
     .update({ attempts: otpRecord.attempts + 1 })
     .eq("id", otpRecord.id);
 
-  // Verify OTP hash
-  const isValid = await verifyOtpHash(otp, otpRecord.otp_hash);
-
+  const isValid = await verifyHashedValue(otp, otpRecord.otp_hash);
   if (!isValid) {
     const remaining = MAX_OTP_ATTEMPTS - otpRecord.attempts - 1;
     return Response.json(
@@ -428,28 +534,15 @@ async function handleVerify(
     );
   }
 
-  // Mark OTP as verified
   await supabase
     .from("otp_verifications")
     .update({ verified: true })
     .eq("id", otpRecord.id);
 
-  // Find or create user in Supabase Auth
-  let userId: string | null = null;
-
-  // Try to find existing user by phone
-  const { data: existingUserId } = await supabase
-    .rpc("find_auth_user_by_phone", { p_phone: normalized });
-
-  if (typeof existingUserId === "string" && existingUserId.length > 0) {
-    userId = existingUserId;
-
-    // Ensure phone is confirmed
-    await supabase.auth.admin.updateUserById(userId, {
-      phone_confirm: true,
-    });
+  let userId = await resolveUserIdForPhone(supabase, normalized);
+  if (userId != null) {
+    await supabase.auth.admin.updateUserById(userId, { phone_confirm: true });
   } else {
-    // Create new user
     const { data: newUser, error: createError } = await supabase.auth.admin
       .createUser({
         phone: normalized,
@@ -475,11 +568,91 @@ async function handleVerify(
     );
   }
 
-  const resolvedUserId = userId;
-  return await createSessionForPhone(supabase, resolvedUserId, normalized);
+  return await createCustomSession(supabase, userId, normalized);
 }
 
-// ── Main handler ──
+async function findSessionByRefreshToken(
+  supabase: SupabaseClient,
+  refreshToken: string,
+): Promise<SessionRow | null> {
+  const tokenHash = await hashValue(refreshToken);
+  const { data, error } = await supabase
+    .from("whatsapp_auth_sessions")
+    .select(
+      "id, user_id, phone, refresh_token_hash, access_expires_at, refresh_expires_at, revoked_at",
+    )
+    .eq("refresh_token_hash", tokenHash)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Session lookup error:", error);
+    throw new Error("Failed to load session.");
+  }
+
+  return data as SessionRow | null;
+}
+
+async function handleRefresh(refreshToken: string): Promise<Response> {
+  if (!refreshToken || refreshToken.trim().isEmpty) {
+    return Response.json(
+      { error: "Missing refresh token." },
+      { status: 400, headers: CORS_HEADERS },
+    );
+  }
+
+  const supabase = createAdminClient();
+  const sessionRow = await findSessionByRefreshToken(supabase, refreshToken);
+  if (!sessionRow || sessionRow.revoked_at != null) {
+    return Response.json(
+      { error: "Session is invalid. Please sign in again." },
+      { status: 401, headers: CORS_HEADERS },
+    );
+  }
+
+  if (new Date(sessionRow.refresh_expires_at).getTime() <= Date.now()) {
+    await supabase
+      .from("whatsapp_auth_sessions")
+      .update({
+        revoked_at: new Date().toISOString(),
+        revoke_reason: "refresh_expired",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", sessionRow.id)
+      .is("revoked_at", null);
+
+    return Response.json(
+      { error: "Session expired. Please sign in again." },
+      { status: 401, headers: CORS_HEADERS },
+    );
+  }
+
+  return await rotateSession(supabase, sessionRow);
+}
+
+async function handleLogout(refreshToken: string): Promise<Response> {
+  if (!refreshToken || refreshToken.trim().isEmpty) {
+    return Response.json(
+      { error: "Missing refresh token." },
+      { status: 400, headers: CORS_HEADERS },
+    );
+  }
+
+  const supabase = createAdminClient();
+  const sessionRow = await findSessionByRefreshToken(supabase, refreshToken);
+  if (sessionRow != null) {
+    await supabase
+      .from("whatsapp_auth_sessions")
+      .update({
+        revoked_at: new Date().toISOString(),
+        revoke_reason: "logout",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", sessionRow.id)
+      .is("revoked_at", null);
+  }
+
+  return Response.json({ success: true }, { headers: CORS_HEADERS });
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -495,28 +668,45 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { action, phone, otp } = body;
+    const action = body?.action?.toString();
+    const phone = body?.phone?.toString();
+    const otp = body?.otp?.toString();
+    const refreshToken = body?.refresh_token?.toString();
 
     if (!action) {
       return Response.json(
-        { error: "Missing 'action' field. Use 'send' or 'verify'." },
-        { status: 400, headers: CORS_HEADERS },
-      );
-    }
-
-    if (!phone) {
-      return Response.json(
-        { error: "Missing 'phone' field" },
+        {
+          error:
+            "Missing 'action' field. Use 'send', 'verify', 'refresh', or 'logout'.",
+        },
         { status: 400, headers: CORS_HEADERS },
       );
     }
 
     switch (action) {
       case "send":
+        if (!phone) {
+          return Response.json(
+            { error: "Missing 'phone' field" },
+            { status: 400, headers: CORS_HEADERS },
+          );
+        }
         return await handleSend(phone);
 
       case "verify":
-        return await handleVerify(phone, otp);
+        if (!phone) {
+          return Response.json(
+            { error: "Missing 'phone' field" },
+            { status: 400, headers: CORS_HEADERS },
+          );
+        }
+        return await handleVerify(phone, otp ?? "");
+
+      case "refresh":
+        return await handleRefresh(refreshToken ?? "");
+
+      case "logout":
+        return await handleLogout(refreshToken ?? "");
 
       default:
         return Response.json(

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'config/app_config.dart';
+import 'core/auth/runtime_auth_session_manager.dart';
 import 'core/accessibility/motion.dart';
 import 'core/navigation/analytics_route_observer.dart';
 import 'core/runtime/app_runtime_state.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'widgets/navigation/app_shell.dart';
 
 import 'features/auth/screens/guest_upgrade_screen.dart';
@@ -45,17 +45,17 @@ import 'features/wallet/screens/wallet_screen.dart';
 
 /// True when any session exists (anonymous or phone-verified).
 bool _isAuthenticated() {
-  final session = Supabase.instance.client.auth.currentSession;
+  final session = RuntimeAuthSessionManager.instance.currentSession;
   return session != null && !session.isExpired;
 }
 
 /// True only when the user is fully authenticated (non-anonymous).
 bool _isFullyAuthenticated() {
-  final session = Supabase.instance.client.auth.currentSession;
+  final session = RuntimeAuthSessionManager.instance.currentSession;
   if (session == null || session.isExpired) {
     return false;
   }
-  final user = Supabase.instance.client.auth.currentUser;
+  final user = RuntimeAuthSessionManager.instance.currentUser;
   return user != null && !user.isAnonymous;
 }
 

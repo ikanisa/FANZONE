@@ -54,6 +54,7 @@ BEGIN
       ('public.admin_change_admin_role(uuid,text)'),
       ('public.admin_global_search(text,integer)'),
       ('public.admin_grant_access(text,text)'),
+      ('public.get_admin_me()'),
       ('public.admin_publish_team_news(uuid)'),
       ('public.admin_reject_partner(uuid,text)'),
       ('public.admin_revoke_access(uuid)'),

@@ -1,10 +1,8 @@
-import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/team_contribution_model.dart';
 import '../../../models/team_supporter_model.dart';
-import 'community_gateway_shared.dart';
 
 abstract interface class TeamSupportGateway {
   Future<Set<String>> getSupportedTeamIds(String userId);
@@ -137,18 +135,7 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
       }
     }
 
-    if (!AppConfig.isDevelopment) return null;
-
-    final supporters = await getTeamAnonymousFans(teamId);
-    final totalFet = await _cachedContributionTotal(teamId);
-    return TeamCommunityStats(
-      teamId: teamId,
-      teamName: communityTeamName(teamId),
-      fanCount: supporters.length + 120,
-      totalFetContributed: totalFet,
-      contributionCount: supporters.isEmpty ? 0 : 4,
-      supportersLast30d: 18,
-    );
+    return null;
   }
 
   @override
@@ -158,11 +145,7 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
   }) async {
     final client = _connection.client;
     if (client == null) {
-      if (!AppConfig.isDevelopment) {
-        throw StateError(
-          'Club supporter activity is unavailable right now. Please try again.',
-        );
-      }
+      if (client == null) return const <AnonymousFanRecord>[];
     } else {
       try {
         final rows = await client
@@ -172,31 +155,20 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
             .eq('is_active', true)
             .order('joined_at', ascending: false)
             .limit(limit);
-        final supporters = (rows as List)
+        return (rows as List)
             .whereType<Map>()
             .map(
               (row) =>
                   AnonymousFanRecord.fromJson(Map<String, dynamic>.from(row)),
             )
             .toList(growable: false);
-        return supporters;
       } catch (error) {
         AppLogger.d('Failed to load anonymous fans: $error');
-        if (!AppConfig.isDevelopment) {
-          rethrow;
-        }
+        return const <AnonymousFanRecord>[];
       }
     }
 
-    final count = limit.clamp(0, 6);
-    return List<AnonymousFanRecord>.generate(
-      count,
-      (index) => AnonymousFanRecord(
-        anonymousFanId: 'FAN${1000 + index}',
-        joinedAt: DateTime.now().subtract(Duration(days: index + 1)),
-      ),
-      growable: false,
-    );
+    return const <AnonymousFanRecord>[];
   }
 
   @override
@@ -263,7 +235,7 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
           .toList(growable: false);
       await _cache.setJson(
         _contributionKey(userId, teamId),
-        contributions.map(teamContributionToJson).toList(growable: false),
+        contributions.map((c) => c.toJson()).toList(growable: false),
       );
       return contributions;
     } catch (error) {
@@ -293,24 +265,13 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
       }
     }
 
-    if (!AppConfig.isDevelopment) return const <Map<String, dynamic>>[];
-
-    return const [
-      {'id': 'liverpool', 'name': 'Liverpool', 'fan_count': 24000},
-      {'id': 'arsenal', 'name': 'Arsenal', 'fan_count': 22000},
-      {'id': 'barcelona', 'name': 'Barcelona', 'fan_count': 26000},
-    ];
+    return const <Map<String, dynamic>>[];
   }
 
   String _contributionKey(String userId, String teamId) =>
       '$_contributionPrefix$userId.$teamId';
 
-  Future<int> _cachedContributionTotal(String teamId) async {
-    final userId = _connection.currentUser?.id;
-    if (userId == null) return 0;
-    final history = await getTeamContributionHistory(userId, teamId);
-    return history.fold<int>(0, (sum, item) => sum + (item.amountFet ?? 0));
-  }
+
 
   String _requireUserId() {
     final userId = _connection.currentUser?.id;

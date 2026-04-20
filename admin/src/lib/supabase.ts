@@ -9,8 +9,10 @@ type AdminSupabaseClient = SupabaseClient;
 
 export interface AdminSessionSnapshot {
   accessToken: string;
+  refreshToken: string;
   userId: string;
   expiresAt: number;
+  refreshExpiresAt: number;
   phone?: string | null;
 }
 
@@ -34,15 +36,23 @@ function isAdminSessionSnapshot(value: unknown): value is AdminSessionSnapshot {
   return (
     typeof candidate.accessToken === 'string' &&
     candidate.accessToken.length > 0 &&
+    typeof candidate.refreshToken === 'string' &&
+    candidate.refreshToken.length > 0 &&
     typeof candidate.userId === 'string' &&
     candidate.userId.length > 0 &&
-    typeof candidate.expiresAt === 'number'
+    typeof candidate.expiresAt === 'number' &&
+    typeof candidate.refreshExpiresAt === 'number'
   );
 }
 
 export function isAdminSessionExpired(session: AdminSessionSnapshot | null) {
   if (!session) return true;
   return session.expiresAt <= Math.floor(Date.now() / 1000);
+}
+
+export function isAdminRefreshExpired(session: AdminSessionSnapshot | null) {
+  if (!session) return true;
+  return session.refreshExpiresAt <= Math.floor(Date.now() / 1000);
 }
 
 export function readStoredAdminSession(): AdminSessionSnapshot | null {
@@ -61,7 +71,7 @@ export function readStoredAdminSession(): AdminSessionSnapshot | null {
       clearStoredAdminSession();
       return null;
     }
-    if (isAdminSessionExpired(parsed)) {
+    if (isAdminRefreshExpired(parsed)) {
       clearStoredAdminSession();
       return null;
     }

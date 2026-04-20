@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../core/runtime/app_runtime_state.dart';
 import '../core/storage/structured_cache_store.dart';
 import '../core/logging/app_logger.dart';
+import '../core/supabase/supabase_connection.dart';
 
 /// Lightweight product analytics service backed by Supabase.
 ///
@@ -35,6 +36,7 @@ class ProductAnalytics {
   static Timer? _flushTimer;
   static bool _initialized = false;
   static bool _restored = false;
+  static final SupabaseConnection _connection = SupabaseConnectionImpl();
 
   // ── Lifecycle ──
 
@@ -145,10 +147,16 @@ class ProductAnalytics {
     _queue.clear();
 
     try {
-      final client = Supabase.instance.client;
+      final client = _connection.client;
+      if (client == null) {
+        _queue.insertAll(0, batch);
+        _trimQueue();
+        await _persistQueue();
+        return;
+      }
 
       // Only log if user is authenticated (anonymous events skip)
-      if (client.auth.currentUser == null) {
+      if (_connection.currentUser == null) {
         // Re-queue — user might authenticate soon
         _queue.insertAll(0, batch);
         _trimQueue();
@@ -200,8 +208,7 @@ class ProductAnalytics {
 
     _queue.insertAll(0, restored);
     _trimQueue();
-    if (appRuntime.supabaseInitialized &&
-        Supabase.instance.client.auth.currentUser != null) {
+    if (appRuntime.supabaseInitialized && _connection.currentUser != null) {
       unawaited(flush());
     }
   }
