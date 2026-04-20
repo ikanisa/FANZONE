@@ -1,5 +1,3 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../core/cache/shared_preferences_cache_service.dart';
 import '../core/supabase/supabase_connection.dart';
 import '../features/settings/data/account_settings_gateway.dart';

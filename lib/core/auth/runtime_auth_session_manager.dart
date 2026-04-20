@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:supabase/supabase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../config/app_config.dart';
@@ -20,7 +19,6 @@ class RuntimeAuthSessionManager {
   final StreamController<AuthState> _authStates =
       StreamController<AuthState>.broadcast();
 
-  StreamSubscription<AuthState>? _guestAuthSubscription;
   SupabaseClient? _customClient;
   Session? _customSession;
   Timer? _refreshTimer;
@@ -37,7 +35,8 @@ class RuntimeAuthSessionManager {
       accessToken: () async => _customSession?.accessToken,
     );
 
-    _guestAuthSubscription = guestClient?.auth.onAuthStateChange.listen((
+    // ignore: cancel_subscriptions
+    guestClient?.auth.onAuthStateChange.listen((
       state,
     ) {
       if (_customSession != null) return;

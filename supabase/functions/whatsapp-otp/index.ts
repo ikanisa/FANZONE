@@ -235,7 +235,7 @@ async function loadUserSummary(
   if (error) {
     throw new Error("Failed to load authenticated user.");
   }
-  return (data.user as UserSummary | null) ??
+  return (data.user as unknown as UserSummary | null) ??
     { id: userId, phone: fallbackPhone };
 }
 
@@ -593,7 +593,7 @@ async function findSessionByRefreshToken(
 }
 
 async function handleRefresh(refreshToken: string): Promise<Response> {
-  if (!refreshToken || refreshToken.trim().isEmpty) {
+  if (!refreshToken || refreshToken.trim().length === 0) {
     return Response.json(
       { error: "Missing refresh token." },
       { status: 400, headers: CORS_HEADERS },
@@ -630,7 +630,7 @@ async function handleRefresh(refreshToken: string): Promise<Response> {
 }
 
 async function handleLogout(refreshToken: string): Promise<Response> {
-  if (!refreshToken || refreshToken.trim().isEmpty) {
+  if (!refreshToken || refreshToken.trim().length === 0) {
     return Response.json(
       { error: "Missing refresh token." },
       { status: 400, headers: CORS_HEADERS },

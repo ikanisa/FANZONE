@@ -292,12 +292,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const refreshInMs = session.expiresAt * 1000 - Date.now() - ADMIN_SESSION_REFRESH_LEAD_MS;
-    if (refreshInMs <= 0) {
-      void refreshSession(session);
-      return;
-    }
-
-    const timeoutMs = Math.min(refreshInMs, 2_147_483_647);
+    const timeoutMs = Math.min(Math.max(refreshInMs, 0), 2_147_483_647);
 
     const timeout = window.setTimeout(() => {
       void refreshSession(session);
