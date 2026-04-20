@@ -185,7 +185,7 @@ class _AccountDeletionScreenState extends ConsumerState<AccountDeletionScreen> {
           else if (_loading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 32),
-              child: const FzGlassLoader(message: 'Syncing...'),
+              child: FzGlassLoader(message: 'Syncing...'),
             )
           else if (_error != null && _request == null)
             StateView.error(
@@ -227,7 +227,7 @@ class _AccountDeletionScreenState extends ConsumerState<AccountDeletionScreen> {
                           ? const SizedBox(
                               width: 14,
                               height: 14,
-                              child: const FzGlassLoader(useBackdrop: false),
+                              child: FzGlassLoader(useBackdrop: false),
                             )
                           : const Icon(LucideIcons.xCircle, size: 16),
                       label: Text(

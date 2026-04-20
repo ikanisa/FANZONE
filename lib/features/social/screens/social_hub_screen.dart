@@ -84,7 +84,7 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
                                   friends: _buildFriendHandles(pools, _friendQuery),
                                 ),
                                 loading: () => const Center(
-                                  child: const FzGlassLoader(),
+                                  child: FzGlassLoader(),
                                 ),
                                 error: (_, _) => StateView.error(
                                   title: 'Could not load friends',

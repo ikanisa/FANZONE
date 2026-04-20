@@ -123,7 +123,7 @@ class RewardsScreen extends ConsumerWidget {
               },
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 32),
-                child: const FzGlassLoader(message: 'Syncing...'),
+                child: FzGlassLoader(message: 'Syncing...'),
               ),
               error: (_, _) => StateView.error(
                 title: 'Could not load rewards',
@@ -165,7 +165,7 @@ class RewardsScreen extends ConsumerWidget {
                 },
                 loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  child: const FzGlassLoader(message: 'Syncing...'),
+                  child: FzGlassLoader(message: 'Syncing...'),
                 ),
                 error: (_, _) => StateView.error(
                   title: 'Could not load redemption history',

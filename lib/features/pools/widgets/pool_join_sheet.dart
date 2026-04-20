@@ -14,7 +14,6 @@ import '../../../services/pool_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
-import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Shows the pool join bottom sheet.
 Future<void> showPoolJoinSheet(
@@ -71,7 +70,8 @@ class _PoolJoinSheetState extends ConsumerState<PoolJoinSheet> {
       await showSignInRequiredSheet(
         context,
         title: 'Sign in to join this pool',
-        message: 'Phone verification is required before you can stake FET in a pool.',
+        message:
+            'Phone verification is required before you can stake FET in a pool.',
         from: '/pool/${widget.pool.id}',
       );
       return;
@@ -82,15 +82,20 @@ class _PoolJoinSheetState extends ConsumerState<PoolJoinSheet> {
       return;
     }
 
-    setState(() { _submitting = true; _error = null; });
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
 
     try {
-      await ref.read(poolServiceProvider.notifier).joinPool(
-        poolId: widget.pool.id,
-        homeScore: _homeScore,
-        awayScore: _awayScore,
-        stake: widget.pool.stake,
-      );
+      await ref
+          .read(poolServiceProvider.notifier)
+          .joinPool(
+            poolId: widget.pool.id,
+            homeScore: _homeScore,
+            awayScore: _awayScore,
+            stake: widget.pool.stake,
+          );
       ref.invalidate(poolDetailProvider(widget.pool.id));
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -128,62 +133,165 @@ class _PoolJoinSheetState extends ConsumerState<PoolJoinSheet> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 48, height: 4,
+              width: 48,
+              height: 4,
               decoration: BoxDecoration(
-                color: widget.isDark ? FzColors.darkSurface3 : FzColors.lightSurface3,
+                color: widget.isDark
+                    ? FzColors.darkSurface3
+                    : FzColors.lightSurface3,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: 20),
-            Text('JOIN POOL', style: FzTypography.display(size: 24, color: widget.textColor)),
+            Text(
+              'JOIN POOL',
+              style: FzTypography.display(size: 24, color: widget.textColor),
+            ),
             const SizedBox(height: 4),
-            Text(widget.pool.matchName, style: TextStyle(fontSize: 13, color: widget.muted)),
+            Text(
+              widget.pool.matchName,
+              style: TextStyle(fontSize: 13, color: widget.muted),
+            ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ScorePicker(label: homeTeam, score: _homeScore, isDark: widget.isDark, textColor: widget.textColor, muted: widget.muted, onIncrement: () => setState(() => _homeScore++), onDecrement: () => setState(() { if (_homeScore > 0) _homeScore--; })),
-                Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text(':', style: FzTypography.score(size: 28, color: widget.muted))),
-                ScorePicker(label: awayTeam, score: _awayScore, isDark: widget.isDark, textColor: widget.textColor, muted: widget.muted, onIncrement: () => setState(() => _awayScore++), onDecrement: () => setState(() { if (_awayScore > 0) _awayScore--; })),
+                ScorePicker(
+                  label: homeTeam,
+                  score: _homeScore,
+                  isDark: widget.isDark,
+                  textColor: widget.textColor,
+                  muted: widget.muted,
+                  onIncrement: () => setState(() => _homeScore++),
+                  onDecrement: () => setState(() {
+                    if (_homeScore > 0) _homeScore--;
+                  }),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    ':',
+                    style: FzTypography.score(size: 28, color: widget.muted),
+                  ),
+                ),
+                ScorePicker(
+                  label: awayTeam,
+                  score: _awayScore,
+                  isDark: widget.isDark,
+                  textColor: widget.textColor,
+                  muted: widget.muted,
+                  onIncrement: () => setState(() => _awayScore++),
+                  onDecrement: () => setState(() {
+                    if (_awayScore > 0) _awayScore--;
+                  }),
+                ),
               ],
             ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: widget.isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+                color: widget.isDark
+                    ? FzColors.darkSurface2
+                    : FzColors.lightSurface2,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: widget.isDark ? FzColors.darkBorder : FzColors.lightBorder),
+                border: Border.all(
+                  color: widget.isDark
+                      ? FzColors.darkBorder
+                      : FzColors.lightBorder,
+                ),
               ),
               child: Row(
                 children: [
-                  Expanded(child: Text('REQUIRED STAKE', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: widget.muted, letterSpacing: 1))),
+                  Expanded(
+                    child: Text(
+                      'REQUIRED STAKE',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: widget.muted,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  Flexible(child: FittedBox(fit: BoxFit.scaleDown, child: Text(formatFET(widget.pool.stake, currency), style: FzTypography.score(size: 14, weight: FontWeight.w700, color: FzColors.primary)))),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        formatFET(widget.pool.stake, currency),
+                        style: FzTypography.score(
+                          size: 14,
+                          weight: FontWeight.w700,
+                          color: FzColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
             if ((_error ?? '').isNotEmpty) ...[
               Container(
-                width: double.infinity, padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: FzColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: Text(_error!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: FzColors.error)),
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: FzColors.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: FzColors.error,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
             ],
             SizedBox(
-              width: double.infinity, height: 52,
+              width: double.infinity,
+              height: 52,
               child: ElevatedButton(
-                onPressed: _submitting ? null : () { HapticFeedback.mediumImpact(); _submitJoin(); },
+                onPressed: _submitting
+                    ? null
+                    : () {
+                        HapticFeedback.mediumImpact();
+                        _submitJoin();
+                      },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.isDark ? FzColors.darkText : FzColors.lightText,
-                  foregroundColor: widget.isDark ? FzColors.darkBg : FzColors.lightBg,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                  backgroundColor: widget.isDark
+                      ? FzColors.darkText
+                      : FzColors.lightText,
+                  foregroundColor: widget.isDark
+                      ? FzColors.darkBg
+                      : FzColors.lightBg,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(26),
+                  ),
                 ),
                 child: _submitting
-                    ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: widget.isDark ? FzColors.darkBg : FzColors.lightBg))
-                    : const Text('Confirm & Stake', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: widget.isDark
+                              ? FzColors.darkBg
+                              : FzColors.lightBg,
+                        ),
+                      )
+                    : const Text(
+                        'Confirm & Stake',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -217,18 +325,55 @@ class ScorePicker extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(label.length > 8 ? '${label.substring(0, 8)}...' : label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1)),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () { HapticFeedback.lightImpact(); onIncrement(); },
-          child: Container(width: 48, height: 40, decoration: BoxDecoration(color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2, borderRadius: BorderRadius.circular(12)), child: Icon(LucideIcons.plus, size: 18, color: textColor)),
+        Text(
+          label.length > 8 ? '${label.substring(0, 8)}...' : label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: muted,
+            letterSpacing: 1,
+          ),
         ),
         const SizedBox(height: 8),
-        Text('$score', style: FzTypography.score(size: 36, weight: FontWeight.w700, color: textColor)),
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onIncrement();
+          },
+          child: Container(
+            width: 48,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(LucideIcons.plus, size: 18, color: textColor),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '$score',
+          style: FzTypography.score(
+            size: 36,
+            weight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
         const SizedBox(height: 8),
         GestureDetector(
-          onTap: () { HapticFeedback.lightImpact(); onDecrement(); },
-          child: Container(width: 48, height: 40, decoration: BoxDecoration(color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2, borderRadius: BorderRadius.circular(12)), child: Icon(LucideIcons.minus, size: 18, color: textColor)),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onDecrement();
+          },
+          child: Container(
+            width: 48,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(LucideIcons.minus, size: 18, color: textColor),
+          ),
         ),
       ],
     );

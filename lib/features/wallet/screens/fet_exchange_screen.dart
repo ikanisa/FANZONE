@@ -225,7 +225,7 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
                   ),
                   loading: () => const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
-                    child: const FzGlassLoader(message: 'Syncing...'),
+                    child: FzGlassLoader(message: 'Syncing...'),
                   ),
                   error: (_, _) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),

@@ -96,7 +96,7 @@ class QuickAddSection extends ConsumerWidget {
     if (teamsAsync.isLoading && competitionsAsync.isLoading) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
-        child: const FzGlassLoader(message: 'Syncing...'),
+        child: FzGlassLoader(message: 'Syncing...'),
       );
     }
 
@@ -186,7 +186,7 @@ class FollowedTeamsSection extends ConsumerWidget {
         Text('TEAMS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: muted, letterSpacing: 0.8)),
         const SizedBox(height: 10),
         teamsAsync.when(
-          loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: const FzGlassLoader(message: 'Syncing...')),
+          loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: FzGlassLoader(message: 'Syncing...')),
           error: (err, st) => StateView.error(title: 'Could not load teams', onRetry: () => ref.invalidate(teamsProvider)),
           data: (allTeams) {
             final teams = allTeams.where((team) => favourites.isTeamFavourite(team.id)).toList()..sort((left, right) => left.name.compareTo(right.name));
@@ -237,7 +237,7 @@ class FollowedCompetitionsSection extends ConsumerWidget {
         Text('COMPETITIONS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: muted, letterSpacing: 0.8)),
         const SizedBox(height: 10),
         competitionsAsync.when(
-          loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: const FzGlassLoader(message: 'Syncing...')),
+          loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: FzGlassLoader(message: 'Syncing...')),
           error: (err, st) => StateView.error(title: 'Could not load competitions', onRetry: () => ref.invalidate(competitionsProvider)),
           data: (allComps) {
             final competitions = allComps.where((competition) => favourites.isCompetitionFavourite(competition.id)).toList()..sort((left, right) => left.name.compareTo(right.name));

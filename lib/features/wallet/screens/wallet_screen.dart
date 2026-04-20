@@ -168,7 +168,7 @@ class WalletScreen extends ConsumerWidget {
             },
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
-              child: const FzGlassLoader(message: 'Syncing...'),
+              child: FzGlassLoader(message: 'Syncing...'),
             ),
             error: (_, _) => StateView.error(
               title: 'Could not load wallet history',

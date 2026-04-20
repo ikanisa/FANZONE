@@ -116,7 +116,7 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
         );
       },
       loading: () => const Scaffold(
-        body: const FzGlassLoader(message: 'Syncing...'),
+        body: FzGlassLoader(message: 'Syncing...'),
       ),
       error: (error, _) => _buildStateScaffold(
         context,

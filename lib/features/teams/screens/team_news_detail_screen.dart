@@ -181,7 +181,7 @@ class TeamNewsDetailScreen extends ConsumerWidget {
         );
       },
       loading: () => const Scaffold(
-        body: const FzGlassLoader(message: 'Syncing...'),
+        body: FzGlassLoader(message: 'Syncing...'),
       ),
       error: (_, _) => Scaffold(
         appBar: AppBar(),

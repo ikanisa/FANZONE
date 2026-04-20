@@ -17,16 +17,16 @@ class FzGlassLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accentColor = FzColors.primary;
+    const accentColor = FzColors.primary;
 
-    Widget loaderContent = Column(
+    final Widget loaderContent = Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(
           width: size,
           height: size,
-          child: CircularProgressIndicator(
+          child: const CircularProgressIndicator(
             color: accentColor,
             strokeWidth: 2.5,
           ),

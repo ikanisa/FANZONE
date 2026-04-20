@@ -216,7 +216,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
                 },
                 loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  child: const FzGlassLoader(message: 'Syncing...'),
+                  child: FzGlassLoader(message: 'Syncing...'),
                 ),
                 error: (error, _) => StateView.fromError(
                   error,

@@ -209,7 +209,7 @@ class _CreatePoolSheetState extends ConsumerState<_CreatePoolSheet> {
                       const SizedBox(
                         width: 14,
                         height: 14,
-                        child: const FzGlassLoader(useBackdrop: false),
+                        child: FzGlassLoader(useBackdrop: false),
                       ),
                       const SizedBox(width: 12),
                       Text(
@@ -332,7 +332,7 @@ class _CreatePoolSheetState extends ConsumerState<_CreatePoolSheet> {
                       ? const SizedBox(
                           width: 14,
                           height: 14,
-                          child: const FzGlassLoader(useBackdrop: false),
+                          child: FzGlassLoader(useBackdrop: false),
                         )
                       : const Icon(LucideIcons.plus, size: 16),
                   label: Text(_submitting ? 'Creating...' : 'Create Pool'),

@@ -170,7 +170,7 @@ class HomeFeedScreen extends ConsumerWidget {
                 },
                 loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 80),
-                  child: const ScoresPageSkeleton(),
+                  child: ScoresPageSkeleton(),
                 ),
                 error: (error, stackTrace) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 60),

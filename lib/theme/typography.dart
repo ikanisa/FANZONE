@@ -12,7 +12,7 @@ abstract final class FzTypography {
   static TextTheme textTheme(Brightness brightness) {
     const color = Color(0xFFFDFCF0);
 
-    final baseTheme = TextTheme(
+    const baseTheme = TextTheme(
       // Display
       displayLarge: TextStyle(
         fontSize: 32,

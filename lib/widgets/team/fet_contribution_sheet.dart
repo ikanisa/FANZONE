@@ -8,7 +8,6 @@ import '../../services/wallet_service.dart';
 import '../../theme/colors.dart';
 import '../../theme/typography.dart';
 import '../match/match_list_widgets.dart';
-import '../../widgets/common/fz_glass_loader.dart';
 
 /// Bottom sheet for contributing FET to a team.
 ///
@@ -190,8 +189,10 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
                     color: isDark ? FzColors.darkText : FzColors.lightText,
                   ),
                 ),
-                loading: () => Text('...', style: TextStyle(fontSize: 13, color: muted)),
-                error: (_, _) => Text('—', style: TextStyle(fontSize: 13, color: muted)),
+                loading: () =>
+                    Text('...', style: TextStyle(fontSize: 13, color: muted)),
+                error: (_, _) =>
+                    Text('—', style: TextStyle(fontSize: 13, color: muted)),
               ),
             ],
           ),
@@ -211,7 +212,10 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
           ),
           decoration: InputDecoration(
             hintText: '0',
-            hintStyle: FzTypography.score(size: 32, color: muted.withValues(alpha: 0.4)),
+            hintStyle: FzTypography.score(
+              size: 32,
+              color: muted.withValues(alpha: 0.4),
+            ),
             suffixText: 'FET',
             suffixStyle: TextStyle(fontSize: 14, color: muted),
             border: OutlineInputBorder(
@@ -220,7 +224,10 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
                 color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
               ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
           ),
           onChanged: (value) {
             setState(() {
@@ -241,11 +248,16 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
               onTap: isLoading ? null : () => _setAmount(amount),
               borderRadius: BorderRadius.circular(20),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? FzColors.primary.withValues(alpha: 0.15)
-                      : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
+                      : (isDark
+                            ? FzColors.darkSurface2
+                            : FzColors.lightSurface2),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isSelected ? FzColors.primary : Colors.transparent,
@@ -277,7 +289,11 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.warning_amber_rounded, size: 16, color: FzColors.error),
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 16,
+                  color: FzColors.error,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -300,7 +316,9 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
             onPressed: isLoading ? null : _submit,
             style: FilledButton.styleFrom(
               backgroundColor: FzColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
             child: isLoading
                 ? const SizedBox(
@@ -367,7 +385,9 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
               backgroundColor: FzColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
             child: const Text(
               'Done',

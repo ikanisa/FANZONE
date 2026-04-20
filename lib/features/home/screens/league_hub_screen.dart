@@ -171,7 +171,7 @@ class _LeagueTableTab extends StatelessWidget {
           },
           loading: () => const FzCard(
             padding: EdgeInsets.all(20),
-            child: const ScoresPageSkeleton(),
+            child: ScoresPageSkeleton(),
           ),
           error: (error, stackTrace) => StateView.empty(
             title: 'No table',

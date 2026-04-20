@@ -121,7 +121,7 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                   RepaintBoundary(
                     child: contributionsAsync.when(
                       data: (contributions) => ContributionHistoryList(contributions: contributions, membershipTier: membershipTier),
-                      loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: const FzGlassLoader(message: 'Syncing...')),
+                      loading: () => const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: FzGlassLoader(message: 'Syncing...')),
                       error: (error, stackTrace) => StateView.error(
                         title: 'Could not load contribution history',
                         onRetry: () => ref.invalidate(teamContributionHistoryProvider(activeClub.id)),

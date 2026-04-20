@@ -11,7 +11,6 @@ import '../../../core/constants/phone_presets.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
-import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Screen for upgrading a guest/anonymous user to a fully authenticated user
 /// via WhatsApp OTP verification. Reuses the same WhatsApp Cloud API pipeline.

@@ -1,4 +1,5 @@
-import 'package:country_code_picker/country_code_picker.dart';
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -80,97 +81,21 @@ class OnboardingPhoneStep extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Country code button — opens bottom sheet picker
+                // Country code button — opens custom smart search picker
                 SizedBox(
                   width: 122,
-                  child: CountryCodePicker(
-                    key: ValueKey(selectedCountry.code),
-                    initialSelection: selectedCountry.code,
-                    favorite: kPriorityCountryCodes,
-                    countryFilter: kAllCountries
-                        .map((country) => country.code)
-                        .toList(growable: false),
-                    pickerStyle: PickerStyle.bottomSheet,
-                    hideMainText: true,
-                    showFlagMain: false,
-                    alignLeft: true,
-                    backgroundColor: isDark
-                        ? FzColors.darkSurface
-                        : FzColors.lightBg,
-                    barrierColor: Colors.black.withValues(alpha: 0.35),
-                    searchDecoration: InputDecoration(
-                      hintText: 'Search country or dial code',
-                      hintStyle: TextStyle(fontSize: 14, color: muted),
-                      prefixIcon: Padding(
-                        padding: const EdgeInsets.only(left: 14, right: 10),
-                        child: Icon(LucideIcons.search, size: 18, color: muted),
-                      ),
-                      prefixIconConstraints: const BoxConstraints(
-                        minWidth: 20,
-                        minHeight: 20,
-                      ),
-                      filled: true,
-                      fillColor: isDark
-                          ? FzColors.darkSurface2
-                          : FzColors.lightSurface2,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: isDark
-                              ? FzColors.darkBorder
-                              : FzColors.lightBorder,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: isDark
-                              ? FzColors.darkBorder
-                              : FzColors.lightBorder,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: FzColors.primary),
-                      ),
-                    ),
-                    searchStyle: TextStyle(fontSize: 15, color: textColor),
-                    dialogBackgroundColor: isDark
-                        ? FzColors.darkSurface
-                        : FzColors.lightBg,
-                    dialogTextStyle: TextStyle(fontSize: 15, color: textColor),
-                    textStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: textColor,
-                    ),
-                    headerText: 'Select country code',
-                    headerTextStyle: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: textColor,
-                      letterSpacing: -0.3,
-                    ),
-                    closeIcon: Icon(Icons.close_rounded, color: muted),
-                    showDropDownButton: false,
-                    hideCloseIcon: false,
-                    searchPadding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-                    topBarPadding: const EdgeInsets.fromLTRB(20, 18, 12, 6),
-                    dialogItemPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    onChanged: (selection) {
-                      HapticFeedback.selectionClick();
-                      final code = selection.code;
-                      if (code == null || code.isEmpty) return;
-                      onCountryChanged(findCountryByCode(code));
+                  child: GestureDetector(
+                    onTap: () async {
+                      unawaited(HapticFeedback.selectionClick());
+                      final picked = await showCountryCodePicker(
+                        context,
+                        selected: selectedCountry,
+                      );
+                      if (picked != null) {
+                        onCountryChanged(picked);
+                      }
                     },
-                    builder: (_) => AnimatedContainer(
+                    child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       height: 56,
                       padding: const EdgeInsets.symmetric(horizontal: 12),

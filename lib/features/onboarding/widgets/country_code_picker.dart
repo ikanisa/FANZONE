@@ -494,6 +494,140 @@ const List<CountryEntry> kAllCountries = [
   ),
 ];
 
+/// Aliases and common alternate names for smart/semantic search.
+const Map<String, List<String>> _kCountryAliases = {
+  'GB': ['uk', 'britain', 'england', 'scotland', 'wales', 'british'],
+  'US': ['usa', 'america', 'united states of america', 'american'],
+  'AE': ['uae', 'emirates', 'dubai', 'abu dhabi'],
+  'KR': ['korea', 'south korea', 'korean'],
+  'ZA': ['south africa', 'sa'],
+  'NZ': ['new zealand', 'kiwi'],
+  'DE': ['germany', 'deutschland', 'german'],
+  'FR': ['france', 'french'],
+  'IT': ['italy', 'italian', 'italia'],
+  'ES': ['spain', 'spanish', 'espana', 'españa'],
+  'PT': ['portugal', 'portuguese'],
+  'NL': ['holland', 'dutch', 'netherlands'],
+  'BE': ['belgium', 'belgian', 'belgique'],
+  'CH': ['swiss', 'switzerland', 'schweiz', 'suisse'],
+  'SE': ['sweden', 'swedish', 'sverige'],
+  'NO': ['norway', 'norwegian', 'norge'],
+  'DK': ['denmark', 'danish', 'danmark'],
+  'FI': ['finland', 'finnish', 'suomi'],
+  'PL': ['poland', 'polish', 'polska'],
+  'CZ': ['czech', 'czechia', 'bohemia'],
+  'GR': ['greece', 'greek', 'hellas'],
+  'HR': ['croatia', 'croatian', 'hrvatska'],
+  'RS': ['serbia', 'serbian', 'srbija'],
+  'RO': ['romania', 'romanian'],
+  'HU': ['hungary', 'hungarian', 'magyar'],
+  'TR': ['turkey', 'turkish', 'türkiye', 'turkiye'],
+  'IE': ['ireland', 'irish', 'eire'],
+  'IS': ['iceland', 'icelandic'],
+  'NG': ['nigeria', 'naija', 'nigerian'],
+  'KE': ['kenya', 'kenyan'],
+  'UG': ['uganda', 'ugandan'],
+  'TZ': ['tanzania', 'tanzanian'],
+  'GH': ['ghana', 'ghanaian'],
+  'EG': ['egypt', 'egyptian', 'masr', 'misr'],
+  'MA': ['morocco', 'moroccan', 'maroc'],
+  'DZ': ['algeria', 'algerian', 'algerie'],
+  'TN': ['tunisia', 'tunisian', 'tunis'],
+  'SN': ['senegal', 'senegalese'],
+  'CI': ['ivory coast', 'ivoire', 'cote', 'cdi'],
+  'CM': ['cameroon', 'cameroonian', 'cameroun'],
+  'CD': ['congo', 'drc', 'kinshasa', 'dr congo'],
+  'ET': ['ethiopia', 'ethiopian'],
+  'RW': ['rwanda', 'rwandan', 'kigali'],
+  'MT': ['malta', 'maltese', 'valletta'],
+  'CA': ['canada', 'canadian'],
+  'MX': ['mexico', 'mexican'],
+  'BR': ['brazil', 'brazilian', 'brasil'],
+  'AR': ['argentina', 'argentinian', 'argentine'],
+  'CO': ['colombia', 'colombian'],
+  'IN': ['india', 'indian', 'bharat'],
+  'SA': ['saudi', 'saudi arabia', 'ksa'],
+  'JP': ['japan', 'japanese', 'nippon'],
+  'AU': ['australia', 'australian', 'aussie', 'oz'],
+  'QA': ['qatar', 'qatari', 'doha'],
+};
+
+/// Compute a relevance score for a country matching a query.
+/// Higher score = better match. Returns 0 for no match.
+int _smartMatchScore(CountryEntry country, String query) {
+  final nameLower = country.name.toLowerCase();
+  final codeLower = country.code.toLowerCase();
+  final dialCode = country.dialCode;
+  final dialDigits = country.dialDigits;
+
+  // ── Exact matches (highest priority) ──
+  if (codeLower == query) return 100;
+  if (nameLower == query) return 95;
+  if (dialCode == '+$query' || dialCode == query) return 90;
+  if (dialDigits == query) return 90;
+
+  int score = 0;
+
+  // ── Name starts with query ──
+  if (nameLower.startsWith(query)) {
+    score = math.max(score, 80);
+  }
+
+  // ── ISO code starts with query ──
+  if (codeLower.startsWith(query)) {
+    score = math.max(score, 75);
+  }
+
+  // ── Dial code contains query ──
+  if (dialCode.contains(query) || dialDigits.startsWith(query)) {
+    score = math.max(score, 70);
+  }
+
+  // ── Alias exact match ──
+  final aliases = _kCountryAliases[country.code] ?? [];
+  for (final alias in aliases) {
+    if (alias == query) {
+      score = math.max(score, 90);
+      break;
+    }
+    if (alias.startsWith(query)) {
+      score = math.max(score, 78);
+    }
+    if (alias.contains(query)) {
+      score = math.max(score, 60);
+    }
+  }
+
+  // ── Name contains query (word boundary) ──
+  if (score == 0) {
+    final words = nameLower.split(RegExp(r'\s+'));
+    for (final word in words) {
+      if (word.startsWith(query)) {
+        score = math.max(score, 65);
+        break;
+      }
+    }
+  }
+
+  // ── Name contains query anywhere ──
+  if (score == 0 && nameLower.contains(query)) {
+    score = math.max(score, 50);
+  }
+
+  // ── Fuzzy: query chars appear in order in name ──
+  if (score == 0 && query.length >= 3) {
+    var qi = 0;
+    for (var ni = 0; ni < nameLower.length && qi < query.length; ni++) {
+      if (nameLower[ni] == query[qi]) qi++;
+    }
+    if (qi == query.length) {
+      score = math.max(score, 30);
+    }
+  }
+
+  return score;
+}
+
 /// Find a country by ISO code, defaulting to Malta.
 CountryEntry findCountryByCode(String code) {
   return kAllCountries.firstWhere(
@@ -603,11 +737,21 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
       if (query.isEmpty) {
         _filtered = kAllCountries;
       } else {
-        _filtered = kAllCountries.where((c) {
-          return c.name.toLowerCase().contains(query) ||
-              c.dialCode.contains(query) ||
-              c.code.toLowerCase().contains(query);
-        }).toList();
+        // Score every country and keep only matches
+        final scored = <MapEntry<CountryEntry, int>>[];
+        for (final c in kAllCountries) {
+          final score = _smartMatchScore(c, query);
+          if (score > 0) {
+            scored.add(MapEntry(c, score));
+          }
+        }
+        // Sort by score descending, then alphabetically for ties
+        scored.sort((a, b) {
+          final cmp = b.value.compareTo(a.value);
+          if (cmp != 0) return cmp;
+          return a.key.name.compareTo(b.key.name);
+        });
+        _filtered = scored.map((e) => e.key).toList();
       }
     });
   }

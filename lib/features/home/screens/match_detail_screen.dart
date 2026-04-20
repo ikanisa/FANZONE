@@ -24,7 +24,7 @@ import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 import '../../../widgets/predict/accordion_market.dart';
 import '../../../widgets/common/fz_shimmer.dart';
-import 'package:fanzone/widgets/common/fz_glass_loader.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
 
 part '../widgets/match_detail/ai_analysis_card.dart';
 part '../widgets/match_detail/crowd_prediction_bar.dart';
