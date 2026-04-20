@@ -478,7 +478,11 @@ class _RuleItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(LucideIcons.checkCircle, size: 14, color: FzColors.primary),
+          const Icon(
+            LucideIcons.checkCircle,
+            size: 14,
+            color: FzColors.primary,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

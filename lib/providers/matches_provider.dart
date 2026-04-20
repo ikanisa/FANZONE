@@ -25,9 +25,9 @@ final matchesByDateProvider = StreamProvider.family
 
 final competitionMatchesProvider = StreamProvider.family
     .autoDispose<List<MatchModel>, String>((ref, competitionId) {
-      return ref.read(matchListingGatewayProvider).watchCompetitionMatches(
-        competitionId,
-      );
+      return ref
+          .read(matchListingGatewayProvider)
+          .watchCompetitionMatches(competitionId);
     });
 
 final teamMatchesProvider = StreamProvider.family

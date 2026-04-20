@@ -324,7 +324,11 @@ class _PoolCard extends ConsumerWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(LucideIcons.zap, size: 14, color: FzColors.primary),
+                  const Icon(
+                    LucideIcons.zap,
+                    size: 14,
+                    color: FzColors.primary,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     formatFET(pool.totalPool, currency),

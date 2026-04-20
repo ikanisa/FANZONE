@@ -1,6 +1,6 @@
 // FANZONE Admin — Admin Access Page — Live Data
 import { useState } from "react";
-import { renderFanzoneText } from "../../components/FanzoneWordmark";
+import { renderFanzoneText } from "../../components/renderFanzoneText";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { KpiCard } from "../../components/ui/KpiCard";
 import { StatusBadge } from "../../components/ui/StatusBadge";

@@ -34,7 +34,10 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
   Future<void> _loadSettings() async {
     if (!ref.read(isAuthenticatedProvider)) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = null; });
+      setState(() {
+        _loading = false;
+        _error = null;
+      });
       return;
     }
 
@@ -49,11 +52,17 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() { _loading = false; _error = 'Could not load your privacy settings.'; });
+      setState(() {
+        _loading = false;
+        _error = 'Could not load your privacy settings.';
+      });
     }
   }
 
-  Future<void> _updateSettings({bool? showNameOnLeaderboards, bool? allowFanDiscovery}) async {
+  Future<void> _updateSettings({
+    bool? showNameOnLeaderboards,
+    bool? allowFanDiscovery,
+  }) async {
     if (!ref.read(isAuthenticatedProvider)) return;
 
     final previous = PrivacySettingsModel(
@@ -98,7 +107,11 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            PrivacySettingsHeader(onBack: () => context.go('/profile'), muted: muted, textColor: textColor),
+            PrivacySettingsHeader(
+              onBack: () => context.go('/profile'),
+              muted: muted,
+              textColor: textColor,
+            ),
             Expanded(
               child: _loading
                   ? const FzGlassLoader(message: 'Syncing...')
@@ -116,12 +129,31 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                                 decoration: BoxDecoration(
                                   color: FzColors.error.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: FzColors.error.withValues(alpha: 0.24)),
+                                  border: Border.all(
+                                    color: FzColors.error.withValues(
+                                      alpha: 0.24,
+                                    ),
+                                  ),
                                 ),
-                                child: Text(_error!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: FzColors.error)),
+                                child: Text(
+                                  _error!,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: FzColors.error,
+                                  ),
+                                ),
                               ),
                             ],
-                            Text('Core Guarantees'.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1.2)),
+                            Text(
+                              'Core Guarantees'.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: muted,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
                             const SizedBox(height: 12),
                             const PrivacySourceCard(
                               child: Column(
@@ -130,21 +162,31 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                                     icon: LucideIcons.smartphone,
                                     iconColor: Color(0xFF25D366),
                                     title: 'Phone Number Hidden',
-                                    description: 'Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users, club admins, or in public leaderboards.',
+                                    description:
+                                        'Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users, club admins, or in public leaderboards.',
                                     showDivider: true,
                                   ),
                                   GuaranteeRow(
                                     icon: LucideIcons.shield,
                                     iconColor: FzColors.primary,
                                     title: 'Anonymous Contributions',
-                                    description: 'MoMo contributions to fan clubs are logged using your Fan ID and amount bracket only. Exact amounts and phone numbers are not recorded.',
+                                    description:
+                                        'MoMo contributions to fan clubs are logged using your Fan ID and amount bracket only. Exact amounts and phone numbers are not recorded.',
                                     showDivider: false,
                                   ),
                                 ],
                               ),
                             ),
                             const SizedBox(height: 28),
-                            Text('Visibility Controls'.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1.2)),
+                            Text(
+                              'Visibility Controls'.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: muted,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
                             const SizedBox(height: 12),
                             PrivacySourceCard(
                               padding: const EdgeInsets.all(8),
@@ -152,19 +194,25 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                                 children: [
                                   VisibilityControlRow(
                                     title: 'Display Name on Leaderboards',
-                                    description: 'Show your custom display name instead of your anonymous Fan ID on public leaderboards.',
+                                    description:
+                                        'Show your custom display name instead of your anonymous Fan ID on public leaderboards.',
                                     value: _showNameOnLeaderboards,
                                     enabled: isVerified && !_saving,
                                     showDivider: true,
-                                    onChanged: (value) => _updateSettings(showNameOnLeaderboards: value),
+                                    onChanged: (value) => _updateSettings(
+                                      showNameOnLeaderboards: value,
+                                    ),
                                   ),
                                   VisibilityControlRow(
                                     title: 'Allow Friends to Find Me',
-                                    description: 'Allow other users who have your phone number in their contacts to find your Fan ID.',
+                                    description:
+                                        'Allow other users who have your phone number in their contacts to find your Fan ID.',
                                     value: _allowFanDiscovery,
                                     enabled: isVerified && !_saving,
                                     showDivider: false,
-                                    onChanged: (value) => _updateSettings(allowFanDiscovery: value),
+                                    onChanged: (value) => _updateSettings(
+                                      allowFanDiscovery: value,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -175,7 +223,11 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                                 padding: EdgeInsets.symmetric(horizontal: 4),
                                 child: Text(
                                   '* Verification required to change visibility settings.',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: FzColors.coral),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: FzColors.coral,
+                                  ),
                                 ),
                               ),
                             ],

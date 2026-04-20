@@ -41,7 +41,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final borderColor = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final surfaceColor = isDark ? FzColors.darkSurface : FzColors.lightSurface;
-    final surface2Color = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final surface2Color = isDark
+        ? FzColors.darkSurface2
+        : FzColors.lightSurface2;
     final width = MediaQuery.sizeOf(context).width;
     final pinnedBottomOffset = width >= 1024 ? 24.0 : 86.0;
 
@@ -57,7 +59,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         titleSpacing: 16,
         title: Text(
           'Leaderboard',
-          style: FzTypography.display(size: 34, color: textColor, letterSpacing: 0.4),
+          style: FzTypography.display(
+            size: 34,
+            color: textColor,
+            letterSpacing: 0.4,
+          ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(54),
@@ -73,7 +79,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                       active: _activeTab == tab,
                       onPressed: () => setState(() => _activeTab = tab),
                     ),
-                    if (tab != _LeaderboardTab.values.last) const SizedBox(width: 8),
+                    if (tab != _LeaderboardTab.values.last)
+                      const SizedBox(width: 8),
                   ],
                 ],
               ),
@@ -128,17 +135,36 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
                       decoration: BoxDecoration(
                         color: surface2Color,
-                        border: Border(bottom: BorderSide(color: borderColor, width: 1)),
+                        border: Border(
+                          bottom: BorderSide(color: borderColor, width: 1),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          if (podium.length > 1) PodiumItem(rank: podium[1].rank, name: podium[1].name, fet: podium[1].fetLabel, pedestalHeight: 112),
+                          if (podium.length > 1)
+                            PodiumItem(
+                              rank: podium[1].rank,
+                              name: podium[1].name,
+                              fet: podium[1].fetLabel,
+                              pedestalHeight: 112,
+                            ),
                           if (podium.length > 1) const SizedBox(width: 8),
-                          PodiumItem(rank: podium[0].rank, name: podium[0].name, fet: podium[0].fetLabel, pedestalHeight: 144),
+                          PodiumItem(
+                            rank: podium[0].rank,
+                            name: podium[0].name,
+                            fet: podium[0].fetLabel,
+                            pedestalHeight: 144,
+                          ),
                           if (podium.length > 2) const SizedBox(width: 8),
-                          if (podium.length > 2) PodiumItem(rank: podium[2].rank, name: podium[2].name, fet: podium[2].fetLabel, pedestalHeight: 96),
+                          if (podium.length > 2)
+                            PodiumItem(
+                              rank: podium[2].rank,
+                              name: podium[2].name,
+                              fet: podium[2].fetLabel,
+                              pedestalHeight: 96,
+                            ),
                         ],
                       ),
                     ),
@@ -172,11 +198,13 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
       case _LeaderboardTab.global:
         final resolved = <StandardLeaderboardEntry>[];
         for (final row in rankings) {
-          resolved.add(StandardLeaderboardEntry(
-            rank: (row['rank'] as num?)?.toInt() ?? resolved.length + 1,
-            name: row['name']?.toString() ?? 'Fan',
-            fetValue: _coerceInt(row['fet']),
-          ));
+          resolved.add(
+            StandardLeaderboardEntry(
+              rank: (row['rank'] as num?)?.toInt() ?? resolved.length + 1,
+              name: row['name']?.toString() ?? 'Fan',
+              fetValue: _coerceInt(row['fet']),
+            ),
+          );
         }
         return resolved.isEmpty ? weeklyEntries : resolved;
       case _LeaderboardTab.weekly:

@@ -61,7 +61,11 @@ class QuickStakeNumpad extends StatelessWidget {
               const SizedBox(width: 8),
               _QuickChip(label: '+500', onTap: () => _handleKey('+500')),
               const SizedBox(width: 8),
-              _QuickChip(label: 'MAX', onTap: () => _handleKey('MAX'), isMax: true),
+              _QuickChip(
+                label: 'MAX',
+                onTap: () => _handleKey('MAX'),
+                isMax: true,
+              ),
             ],
           ),
         ),
@@ -109,7 +113,11 @@ class QuickStakeNumpad extends StatelessWidget {
 }
 
 class _QuickChip extends StatelessWidget {
-  const _QuickChip({required this.label, required this.onTap, this.isMax = false});
+  const _QuickChip({
+    required this.label,
+    required this.onTap,
+    this.isMax = false,
+  });
 
   final String label;
   final VoidCallback onTap;
@@ -124,7 +132,7 @@ class _QuickChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isMax 
+          color: isMax
               ? (isDark ? FzColors.darkSurface3 : FzColors.lightSurface3)
               : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
           borderRadius: BorderRadius.circular(16),

@@ -1,6 +1,6 @@
 // FANZONE Admin — Dashboard Page — Live Data
 import { PageHeader } from "../../components/layout/PageHeader";
-import { renderFanzoneText } from "../../components/FanzoneWordmark";
+import { renderFanzoneText } from "../../components/renderFanzoneText";
 import { KpiCard } from "../../components/ui/KpiCard";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { LoadingState } from "../../components/ui/StateViews";

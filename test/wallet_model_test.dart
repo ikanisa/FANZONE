@@ -119,12 +119,22 @@ void main() {
 
     test('equality', () {
       const a = FanClub(
-        id: 'fc', name: 'X', members: 10,
-        totalPool: 100, crest: '⚽', league: 'L', rank: 1,
+        id: 'fc',
+        name: 'X',
+        members: 10,
+        totalPool: 100,
+        crest: '⚽',
+        league: 'L',
+        rank: 1,
       );
       const b = FanClub(
-        id: 'fc', name: 'X', members: 10,
-        totalPool: 100, crest: '⚽', league: 'L', rank: 1,
+        id: 'fc',
+        name: 'X',
+        members: 10,
+        totalPool: 100,
+        crest: '⚽',
+        league: 'L',
+        rank: 1,
       );
       expect(a, b);
     });

@@ -59,10 +59,10 @@ class TeamCrest extends StatelessWidget {
       );
 
       if (url.toLowerCase().endsWith('.svg')) {
-        return SvgPicture.network(
-          resolvedUrl,
-          fit: BoxFit.contain,
-          placeholderBuilder: (_) => _fallback(fg),
+        return _SafeSvgCrest(
+          url: resolvedUrl,
+          size: size,
+          fallback: _fallback(fg),
         );
       }
 
@@ -116,3 +116,50 @@ class TeamCrest extends StatelessWidget {
         .toUpperCase();
   }
 }
+
+/// Error-safe SVG crest renderer.
+///
+/// `SvgPicture.network` throws unhandled isolate exceptions when it receives
+/// invalid SVG data (HTML error pages, 404 bodies, malformed XML). This widget
+/// catches those errors and falls back to the initials display instead of
+/// flooding the console with "[ERROR] Unhandled Exception: Bad state: Invalid
+/// SVG data" messages.
+class _SafeSvgCrest extends StatefulWidget {
+  const _SafeSvgCrest({
+    required this.url,
+    required this.size,
+    required this.fallback,
+  });
+
+  final String url;
+  final double size;
+  final Widget fallback;
+
+  @override
+  State<_SafeSvgCrest> createState() => _SafeSvgCrestState();
+}
+
+class _SafeSvgCrestState extends State<_SafeSvgCrest> {
+  bool _hasError = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasError) return widget.fallback;
+
+    return SvgPicture.network(
+      widget.url,
+      fit: BoxFit.contain,
+      placeholderBuilder: (_) => widget.fallback,
+      errorBuilder: (_, __, ___) {
+        // Schedule the error state for after the current build frame.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_hasError) {
+            setState(() => _hasError = true);
+          }
+        });
+        return widget.fallback;
+      },
+    );
+  }
+}
+

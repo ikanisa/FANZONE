@@ -46,9 +46,11 @@ class WalletService extends _$WalletService {
     state = const AsyncValue.loading();
 
     try {
-      await ref.read(walletGatewayProvider).transferByFanId(
-        WalletTransferByFanIdDto(fanId: fanId, amount: amount),
-      );
+      await ref
+          .read(walletGatewayProvider)
+          .transferByFanId(
+            WalletTransferByFanIdDto(fanId: fanId, amount: amount),
+          );
 
       ref.invalidateSelf();
       ref.invalidate(transactionServiceProvider);

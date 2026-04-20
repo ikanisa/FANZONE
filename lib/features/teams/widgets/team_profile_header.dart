@@ -188,11 +188,23 @@ class TeamInfoSection extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: _StatBox(value: _formatCompact(members), label: 'Members')),
+              Expanded(
+                child: _StatBox(
+                  value: _formatCompact(members),
+                  label: 'Members',
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _StatBox(value: '$clubRank', label: 'Club Rank')),
+              Expanded(
+                child: _StatBox(value: '$clubRank', label: 'Club Rank'),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _StatBox(value: _formatCompact(totalFet), label: 'Club FET')),
+              Expanded(
+                child: _StatBox(
+                  value: _formatCompact(totalFet),
+                  label: 'Club FET',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -288,7 +300,8 @@ class TeamInfoSection extends StatelessWidget {
   }
 
   String _addonValue(TeamModel team) {
-    if (team.fiatContributionMode != null && team.fiatContributionMode!.isNotEmpty) {
+    if (team.fiatContributionMode != null &&
+        team.fiatContributionMode!.isNotEmpty) {
       return team.fiatContributionMode!.toUpperCase().replaceAll('_', ' ');
     }
     if (team.fetContributionsEnabled) return 'FET ENABLED';

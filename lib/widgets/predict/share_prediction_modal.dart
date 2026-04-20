@@ -201,8 +201,9 @@ class _SharePredictionSheet extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: textColor,
                       side: BorderSide(
-                        color:
-                            isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                        color: isDark
+                            ? FzColors.darkBorder
+                            : FzColors.lightBorder,
                       ),
                       padding: const EdgeInsets.symmetric(
                         vertical: 14,
@@ -239,7 +240,8 @@ class _SharePredictionSheet extends StatelessWidget {
   String _buildShareText() {
     final buffer = StringBuffer();
     buffer.writeln(
-        '🔮 Just locked $selectionCount prediction${selectionCount > 1 ? 's' : ''} on FANZONE!');
+      '🔮 Just locked $selectionCount prediction${selectionCount > 1 ? 's' : ''} on FANZONE!',
+    );
     if (matchNames.isNotEmpty) {
       buffer.writeln();
       for (final match in matchNames.take(3)) {
@@ -251,7 +253,9 @@ class _SharePredictionSheet extends StatelessWidget {
     }
     buffer.writeln();
     buffer.writeln('Think you can beat me? 🏆');
-    buffer.write('https://play.google.com/store/apps/details?id=app.fanzone.football');
+    buffer.write(
+      'https://play.google.com/store/apps/details?id=app.fanzone.football',
+    );
     return buffer.toString();
   }
 }

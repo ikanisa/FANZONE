@@ -12,6 +12,7 @@ class FeaturedEventModel with _$FeaturedEventModel {
     required String name,
     @JsonKey(name: 'short_name') required String shortName,
     @JsonKey(name: 'event_tag') required String eventTag,
+
     /// global, africa, europe, americas
     @Default('global') String region,
     @JsonKey(name: 'competition_id') String? competitionId,

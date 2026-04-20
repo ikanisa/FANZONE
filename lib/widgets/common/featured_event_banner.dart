@@ -18,7 +18,9 @@ class FeaturedEventBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(featureFlagsProvider).featuredEvents) return const SizedBox.shrink();
+    if (!ref.watch(featureFlagsProvider).featuredEvents) {
+      return const SizedBox.shrink();
+    }
 
     final eventsAsync = ref.watch(homeLaunchEventsProvider);
     return eventsAsync.when(

@@ -29,8 +29,15 @@ class NotificationService extends _$NotificationService {
     final userId = _currentUserId;
     if (userId == null) return;
 
-    await _gateway.saveNotificationPreferences(userId, prefs);
-    state = AsyncValue.data(prefs);
+    final previous = state;
+
+    try {
+      await _gateway.saveNotificationPreferences(userId, prefs);
+      state = AsyncValue.data(prefs);
+    } catch (error, stack) {
+      state = previous;
+      Error.throwWithStackTrace(error, stack);
+    }
   }
 
   Future<void> registerDeviceToken({
@@ -48,10 +55,7 @@ class NotificationService extends _$NotificationService {
   }
 
   Future<void> deactivateDeviceToken(String token) async {
-    await _gateway.deactivateDeviceToken(
-      userId: _currentUserId,
-      token: token,
-    );
+    await _gateway.deactivateDeviceToken(userId: _currentUserId, token: token);
   }
 
   Future<void> markAsRead(String notificationId) async {
@@ -89,7 +93,9 @@ FutureOr<List<NotificationItem>> notificationLog(Ref ref) async {
   final userId = Supabase.instance.client.auth.currentUser?.id;
   if (userId == null) return const [];
 
-  return ref.read(notificationSettingsGatewayProvider).getNotificationLog(userId);
+  return ref
+      .read(notificationSettingsGatewayProvider)
+      .getNotificationLog(userId);
 }
 
 @riverpod
@@ -101,10 +107,12 @@ FutureOr<int> unreadNotificationCount(Ref ref) async {
 final matchAlertEnabledProvider = FutureProvider.autoDispose
     .family<bool, String>((ref, matchId) async {
       ref.watch(authStateProvider);
-      return ref.read(notificationSettingsGatewayProvider).isMatchAlertEnabled(
-        userId: Supabase.instance.client.auth.currentUser?.id,
-        matchId: matchId,
-      );
+      return ref
+          .read(notificationSettingsGatewayProvider)
+          .isMatchAlertEnabled(
+            userId: Supabase.instance.client.auth.currentUser?.id,
+            matchId: matchId,
+          );
     });
 
 @riverpod

@@ -1,4 +1,3 @@
-
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import 'predict_gateway_models.dart';

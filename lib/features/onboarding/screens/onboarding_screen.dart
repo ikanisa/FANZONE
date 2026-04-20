@@ -549,9 +549,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           otpControllers: _otpControllers,
           otpFocusNodes: _otpFocusNodes,
           onOtpChanged: () {
-            if (_error != null) {
-              setState(() => _error = null);
-            }
+            setState(() {
+              _error = null;
+            });
           },
           canVerify: !_loading && _otpLength == 6,
           onBack: () {

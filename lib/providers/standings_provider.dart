@@ -11,5 +11,7 @@ final competitionStandingsProvider = FutureProvider.family
       ref,
       filter,
     ) async {
-      return ref.read(competitionCatalogGatewayProvider).getCompetitionStandings(filter);
+      return ref
+          .read(competitionCatalogGatewayProvider)
+          .getCompetitionStandings(filter);
     });

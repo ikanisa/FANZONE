@@ -34,6 +34,14 @@ jobs:
         run: npm ci
         working-directory: admin
 
+      - name: Lint
+        run: npm run lint
+        working-directory: admin
+
+      - name: Test
+        run: npm run test
+        working-directory: admin
+
       - name: Type check
         run: npx tsc --noEmit
         working-directory: admin

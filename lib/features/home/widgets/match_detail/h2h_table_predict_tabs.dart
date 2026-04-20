@@ -181,7 +181,6 @@ class _FormRow extends StatelessWidget {
   }
 }
 
-
 class _PredictTab extends StatelessWidget {
   const _PredictTab({required this.match});
 

@@ -20,11 +20,13 @@ class DailyChallengeService extends _$DailyChallengeService {
     required int homeScore,
     required int awayScore,
   }) async {
-    await ref.read(dailyChallengeGatewayProvider).submitDailyPrediction(
-      challengeId: challengeId,
-      homeScore: homeScore,
-      awayScore: awayScore,
-    );
+    await ref
+        .read(dailyChallengeGatewayProvider)
+        .submitDailyPrediction(
+          challengeId: challengeId,
+          homeScore: homeScore,
+          awayScore: awayScore,
+        );
 
     ref.invalidateSelf();
     ref.invalidate(myDailyEntryProvider);
@@ -42,10 +44,9 @@ FutureOr<DailyChallengeEntry?> myDailyEntry(Ref ref) async {
   final challenge = await ref.watch(dailyChallengeServiceProvider.future);
   if (challenge == null) return null;
 
-  return ref.read(dailyChallengeGatewayProvider).getMyDailyEntry(
-    challengeId: challenge.id,
-    userId: userId,
-  );
+  return ref
+      .read(dailyChallengeGatewayProvider)
+      .getMyDailyEntry(challengeId: challenge.id, userId: userId);
 }
 
 @riverpod
@@ -55,5 +56,7 @@ FutureOr<List<DailyChallengeEntry>> dailyChallengeHistory(Ref ref) async {
   final userId = ref.read(authServiceProvider).currentUser?.id;
   if (userId == null) return const [];
 
-  return ref.read(dailyChallengeGatewayProvider).getDailyChallengeHistory(userId);
+  return ref
+      .read(dailyChallengeGatewayProvider)
+      .getDailyChallengeHistory(userId);
 }

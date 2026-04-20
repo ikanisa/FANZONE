@@ -13,7 +13,9 @@ abstract class InjectionModule {
 
   @preResolve
   Future<TeamSearchCatalog> get teamSearchCatalog async {
-    final raw = await rootBundle.loadString('assets/data/team_search_database.json');
+    final raw = await rootBundle.loadString(
+      'assets/data/team_search_database.json',
+    );
     return TeamSearchCatalog.fromRawJson(raw);
   }
 }

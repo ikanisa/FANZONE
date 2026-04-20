@@ -137,7 +137,11 @@ class AnonymousFanBadge extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Center(
-                child: Icon(LucideIcons.user, size: 16, color: FzColors.primary),
+                child: Icon(
+                  LucideIcons.user,
+                  size: 16,
+                  color: FzColors.primary,
+                ),
               ),
             ),
             const SizedBox(width: 12),

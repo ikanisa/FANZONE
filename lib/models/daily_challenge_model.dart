@@ -33,7 +33,8 @@ class DailyChallengeEntry with _$DailyChallengeEntry {
     required String userId,
     required int predictedHomeScore,
     required int predictedAwayScore,
-    required String result, // 'pending' | 'correct_result' | 'exact_score' | 'wrong'
+    required String
+    result, // 'pending' | 'correct_result' | 'exact_score' | 'wrong'
     @Default(0) int payoutFet,
     DateTime? submittedAt,
   }) = _DailyChallengeEntry;

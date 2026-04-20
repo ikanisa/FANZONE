@@ -81,22 +81,24 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
                                   onQueryChanged: (value) =>
                                       setState(() => _friendQuery = value),
                                   onAddPressed: () => context.go('/pools'),
-                                  friends: _buildFriendHandles(pools, _friendQuery),
+                                  friends: _buildFriendHandles(
+                                    pools,
+                                    _friendQuery,
+                                  ),
                                 ),
-                                loading: () => const Center(
-                                  child: FzGlassLoader(),
-                                ),
+                                loading: () =>
+                                    const Center(child: FzGlassLoader()),
                                 error: (_, _) => StateView.error(
                                   title: 'Could not load friends',
-                                  onRetry: () => ref.invalidate(
-                                    poolServiceProvider,
-                                  ),
+                                  onRetry: () =>
+                                      ref.invalidate(poolServiceProvider),
                                 ),
                               )
                             : ClubFanZoneView(
                                 team: activeClub,
                                 fanId: fanId,
-                                fanLoadError: fanZoneFansAsync?.hasError ?? false,
+                                fanLoadError:
+                                    fanZoneFansAsync?.hasError ?? false,
                                 fanRows: fanZoneFansAsync?.valueOrNull == null
                                     ? const []
                                     : _buildFanBoard(
@@ -106,7 +108,9 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
                                 onRetry: activeClub == null
                                     ? null
                                     : () => ref.invalidate(
-                                        teamAnonymousFansProvider(activeClub.id),
+                                        teamAnonymousFansProvider(
+                                          activeClub.id,
+                                        ),
                                       ),
                               ),
                       ),
@@ -143,10 +147,8 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
       friends.add(
         FriendHandle(
           name: name,
-          accuracy: 54 + (name.codeUnits.fold<int>(0, (a, b) => a + b) % 28),
-          status: friends.length.isEven
-              ? FriendStatus.online
-              : FriendStatus.offline,
+          subtitle:
+              '${pool.participantsCount} joined • ${pool.stake} FET stake',
           poolId: pool.id,
         ),
       );
@@ -161,29 +163,29 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
   ) {
     if (fans.isEmpty) return const <FanBoardEntry>[];
 
+    final sortedFans = [...fans]
+      ..sort((a, b) => b.joinedAt.compareTo(a.joinedAt));
     final topRows = <FanBoardEntry>[];
-    for (int index = 0; index < fans.length && index < 3; index++) {
+    for (int index = 0; index < sortedFans.length && index < 3; index++) {
       topRows.add(
         FanBoardEntry(
           rank: index + 1,
-          label: fans[index].anonymousFanId,
-          points: _formatPoints(14200 - (index * 350)),
-          isMe: fans[index].anonymousFanId == currentFanId,
+          label: sortedFans[index].anonymousFanId,
+          meta: _formatJoinedAt(sortedFans[index].joinedAt),
+          isMe: sortedFans[index].anonymousFanId == currentFanId,
         ),
       );
     }
 
     final currentRank = currentFanId == null
         ? -1
-        : fans.indexWhere((fan) => fan.anonymousFanId == currentFanId);
+        : sortedFans.indexWhere((fan) => fan.anonymousFanId == currentFanId);
     if (currentRank >= 3) {
       topRows.add(
         FanBoardEntry(
           rank: currentRank + 1,
           label: currentFanId!,
-          points: _formatPoints(
-            (14200 - (currentRank * 250)).clamp(900, 14200),
-          ),
+          meta: _formatJoinedAt(sortedFans[currentRank].joinedAt),
           isMe: true,
         ),
       );
@@ -192,12 +194,18 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
     return topRows;
   }
 
-  static String _formatPoints(num value) {
-    final rounded = value.round();
-    final raw = rounded.toString();
-    return raw.replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]},',
-    );
+  static String _formatJoinedAt(DateTime value) {
+    final now = DateTime.now();
+    final diff = now.difference(value);
+    if (diff.inDays <= 0) {
+      return 'Today';
+    }
+    if (diff.inDays == 1) {
+      return '1d ago';
+    }
+    if (diff.inDays < 7) {
+      return '${diff.inDays}d ago';
+    }
+    return '${value.day}/${value.month}/${value.year}';
   }
 }

@@ -14,10 +14,7 @@ import '../storage/structured_cache_store.dart';
 /// Usage: Add as a widget observer via [AppLifecycleObserverWidget]
 /// in the widget tree (typically in `app.dart`).
 class AppLifecycleObserver extends WidgetsBindingObserver {
-  AppLifecycleObserver({
-    required this.ref,
-    this.onForeground,
-  });
+  AppLifecycleObserver({required this.ref, this.onForeground});
 
   final WidgetRef ref;
   final VoidCallback? onForeground;
@@ -120,5 +117,4 @@ class _AppLifecycleObserverWidgetState
 /// ```
 /// When the app returns to the foreground, this provider is
 /// invalidated, causing all watchers to rebuild.
-final matchRefreshTriggerProvider =
-    StateProvider.autoDispose<int>((ref) => 0);
+final matchRefreshTriggerProvider = StateProvider.autoDispose<int>((ref) => 0);

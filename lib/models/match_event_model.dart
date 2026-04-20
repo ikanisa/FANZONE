@@ -42,8 +42,7 @@ class MatchEventModel {
       eventType == 'own_goal' ||
       eventType == 'penalty_scored';
 
-  bool get isCard =>
-      eventType == 'yellow_card' || eventType == 'red_card';
+  bool get isCard => eventType == 'yellow_card' || eventType == 'red_card';
 
   bool get isSubstitution => eventType == 'substitution';
 

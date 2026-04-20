@@ -1,4 +1,3 @@
-
 import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -100,7 +99,7 @@ class SupabaseWalletGateway implements WalletGateway {
   Future<int> getAvailableBalance(String userId) async {
     final client = _connection.client;
     if (client == null) {
-      return _cachedBalance(userId);
+      return _cachedBalanceOrThrow(userId);
     }
 
     try {
@@ -118,7 +117,7 @@ class SupabaseWalletGateway implements WalletGateway {
       AppLogger.d('Failed to load wallet balance: $error');
     }
 
-    return _cachedBalance(userId);
+    return _cachedBalanceOrThrow(userId);
   }
 
   @override
@@ -145,40 +144,42 @@ class SupabaseWalletGateway implements WalletGateway {
   @override
   Future<List<WalletTransaction>> getTransactions(String userId) async {
     final client = _connection.client;
-    if (client != null) {
-      try {
-        final rows = await client
-            .from('fet_wallet_transactions')
-            .select()
-            .eq('user_id', userId)
-            .order('created_at', ascending: false)
-            .limit(50);
-        final transactions = (rows as List)
-            .whereType<Map>()
-            .map(
-              (row) => WalletTransaction(
-                id: row['id']?.toString() ?? '',
-                title: row['title']?.toString() ?? 'Wallet activity',
-                amount: (row['amount_fet'] as num?)?.toInt() ?? 0,
-                type: _transactionTypeFromRow(Map<String, dynamic>.from(row)),
-                date:
-                    DateTime.tryParse(row['created_at']?.toString() ?? '') ??
-                    DateTime.now(),
-                dateStr: _relativeDateLabel(
-                  DateTime.tryParse(row['created_at']?.toString() ?? '') ??
-                      DateTime.now(),
-                ),
-              ),
-            )
-            .toList(growable: false);
-        _localTransactions[userId] = transactions;
-        return transactions;
-      } catch (error) {
-        AppLogger.d('Failed to load wallet transactions: $error');
-      }
+    if (client == null) {
+      return _cachedTransactionsOrThrow(userId);
     }
 
-    return _cachedTransactions(userId);
+    try {
+      final rows = await client
+          .from('fet_wallet_transactions')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .limit(50);
+      final transactions = (rows as List)
+          .whereType<Map>()
+          .map(
+            (row) => WalletTransaction(
+              id: row['id']?.toString() ?? '',
+              title: row['title']?.toString() ?? 'Wallet activity',
+              amount: (row['amount_fet'] as num?)?.toInt() ?? 0,
+              type: _transactionTypeFromRow(Map<String, dynamic>.from(row)),
+              date:
+                  DateTime.tryParse(row['created_at']?.toString() ?? '') ??
+                  DateTime.now(),
+              dateStr: _relativeDateLabel(
+                DateTime.tryParse(row['created_at']?.toString() ?? '') ??
+                    DateTime.now(),
+              ),
+            ),
+          )
+          .toList(growable: false);
+      _localTransactions[userId] = transactions;
+      return transactions;
+    } catch (error) {
+      AppLogger.d('Failed to load wallet transactions: $error');
+    }
+
+    return _cachedTransactionsOrThrow(userId);
   }
 
   @override
@@ -191,9 +192,9 @@ class SupabaseWalletGateway implements WalletGateway {
             .select()
             .eq('is_active', true)
             .order('rank');
-      final clubs = (rows as List)
-          .whereType<Map>()
-          .map(
+        final clubs = (rows as List)
+            .whereType<Map>()
+            .map(
               (row) => FanClub(
                 id: row['id']?.toString() ?? '',
                 name: row['name']?.toString() ?? '',
@@ -466,17 +467,23 @@ class SupabaseWalletGateway implements WalletGateway {
             .eq('base_currency', 'EUR')
             .order('target_currency');
         final rates = <FetExchangeRateDto>[
-          const FetExchangeRateDto(currency: 'EUR', symbol: '€', rate: fetPerEur),
+          const FetExchangeRateDto(
+            currency: 'EUR',
+            symbol: '€',
+            rate: fetPerEur,
+          ),
         ];
         for (final row in (rows as List).whereType<Map>()) {
           final target = row['target_currency']?.toString();
           final eurRate = (row['rate'] as num?)?.toDouble();
           if (target == null || eurRate == null || target == 'EUR') continue;
-          rates.add(FetExchangeRateDto(
-            currency: target,
-            symbol: _currencySymbol(target),
-            rate: fetPerEur * eurRate,
-          ));
+          rates.add(
+            FetExchangeRateDto(
+              currency: target,
+              symbol: _currencySymbol(target),
+              rate: fetPerEur * eurRate,
+            ),
+          );
         }
         return rates;
       } catch (error) {
@@ -495,11 +502,16 @@ class SupabaseWalletGateway implements WalletGateway {
 
   String _currencySymbol(String code) {
     switch (code) {
-      case 'USD': return '\$';
-      case 'GBP': return '£';
-      case 'RWF': return 'FRw';
-      case 'EUR': return '€';
-      default: return code;
+      case 'USD':
+        return '\$';
+      case 'GBP':
+        return '£';
+      case 'RWF':
+        return 'FRw';
+      case 'EUR':
+        return '€';
+      default:
+        return code;
     }
   }
 
@@ -513,6 +525,13 @@ class SupabaseWalletGateway implements WalletGateway {
       return seeded;
     }
     return 0;
+  }
+
+  int _cachedBalanceOrThrow(String userId) {
+    if (_localBalances.containsKey(userId) || _allowSeedFallback) {
+      return _cachedBalance(userId);
+    }
+    _throwUnavailable('Wallet');
   }
 
   List<WalletTransaction> _cachedTransactions(String userId) {
@@ -537,6 +556,13 @@ class SupabaseWalletGateway implements WalletGateway {
         dateStr: '1d ago',
       ),
     ];
+  }
+
+  List<WalletTransaction> _cachedTransactionsOrThrow(String userId) {
+    if (_localTransactions.containsKey(userId) || _allowSeedFallback) {
+      return _cachedTransactions(userId);
+    }
+    _throwUnavailable('Wallet history');
   }
 
   Never _throwUnavailable(String action) {

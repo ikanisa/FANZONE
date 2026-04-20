@@ -1,4 +1,3 @@
-
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/daily_challenge_model.dart';
@@ -117,13 +116,13 @@ class SupabaseDailyChallengeGateway implements DailyChallengeGateway {
             .select()
             .eq('user_id', userId)
             .order('submitted_at', ascending: false);
-      final entries = (rows as List)
-          .whereType<Map>()
-          .map(
+        final entries = (rows as List)
+            .whereType<Map>()
+            .map(
               (row) =>
                   DailyChallengeEntry.fromJson(Map<String, dynamic>.from(row)),
-          )
-          .toList(growable: false);
+            )
+            .toList(growable: false);
         return entries;
       } catch (error) {
         AppLogger.d('Failed to load daily challenge history: $error');

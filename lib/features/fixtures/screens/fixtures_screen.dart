@@ -151,7 +151,9 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                       child: Row(
                         children: [
                           IconButton(
-                            onPressed: _canMoveDateBackward ? () => _shiftSelectedDate(-1) : null,
+                            onPressed: _canMoveDateBackward
+                                ? () => _shiftSelectedDate(-1)
+                                : null,
                             visualDensity: VisualDensity.compact,
                             icon: const Icon(Icons.chevron_left_rounded),
                           ),
@@ -159,21 +161,29 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.calendar_today_rounded, size: 14, color: FzColors.primary),
+                                const Icon(
+                                  Icons.calendar_today_rounded,
+                                  size: 14,
+                                  color: FzColors.primary,
+                                ),
                                 const SizedBox(width: 6),
                                 Text(
                                   'This Week',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? FzColors.darkText : FzColors.lightText,
+                                    color: isDark
+                                        ? FzColors.darkText
+                                        : FzColors.lightText,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           IconButton(
-                            onPressed: _canMoveDateForward ? () => _shiftSelectedDate(1) : null,
+                            onPressed: _canMoveDateForward
+                                ? () => _shiftSelectedDate(1)
+                                : null,
                             visualDensity: VisualDensity.compact,
                             icon: const Icon(Icons.chevron_right_rounded),
                           ),
@@ -182,9 +192,19 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  ToolbarIconButton(tooltip: 'Search fixtures', icon: Icons.search_rounded, muted: muted, onTap: () => context.push('/search')),
+                  ToolbarIconButton(
+                    tooltip: 'Search fixtures',
+                    icon: Icons.search_rounded,
+                    muted: muted,
+                    onTap: () => context.push('/search'),
+                  ),
                   const SizedBox(width: 6),
-                  ToolbarIconButton(tooltip: 'Filter fixtures', icon: Icons.filter_alt_outlined, muted: muted, onTap: () => _showFilterSheet(context)),
+                  ToolbarIconButton(
+                    tooltip: 'Filter fixtures',
+                    icon: Icons.filter_alt_outlined,
+                    muted: muted,
+                    onTap: () => _showFilterSheet(context),
+                  ),
                 ],
               ),
             ),
@@ -195,7 +215,12 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
               child: Center(
                 child: Text(
                   _fixtureGroupLabel(_selectedDate),
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1.1),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: muted,
+                    letterSpacing: 1.1,
+                  ),
                 ),
               ),
             ),
@@ -206,31 +231,46 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
               height: 42,
               child: matchesAsync.when(
                 data: (matches) {
-                  final competitionIds = matches
-                      .map((match) => match.competitionId)
-                      .toSet()
-                      .toList()
-                    ..sort((left, right) {
-                      final leftFav = favourites.isCompetitionFavourite(left) ? 0 : 1;
-                      final rightFav = favourites.isCompetitionFavourite(right) ? 0 : 1;
-                      if (leftFav != rightFav) return leftFav.compareTo(rightFav);
-                      return left.compareTo(right);
-                    });
+                  final competitionIds =
+                      matches
+                          .map((match) => match.competitionId)
+                          .toSet()
+                          .toList()
+                        ..sort((left, right) {
+                          final leftFav =
+                              favourites.isCompetitionFavourite(left) ? 0 : 1;
+                          final rightFav =
+                              favourites.isCompetitionFavourite(right) ? 0 : 1;
+                          if (leftFav != rightFav) {
+                            return leftFav.compareTo(rightFav);
+                          }
+                          return left.compareTo(right);
+                        });
 
                   final competitions = {
-                    for (final item in competitionsAsync.valueOrNull ?? []) item.id: item,
+                    for (final item in competitionsAsync.valueOrNull ?? [])
+                      item.id: item,
                   };
 
                   return ListView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
-                      FixtureStateChip(label: 'All', selected: _selectedCompetitionId == null, onTap: () => setState(() => _selectedCompetitionId = null)),
+                      FixtureStateChip(
+                        label: 'All',
+                        selected: _selectedCompetitionId == null,
+                        onTap: () =>
+                            setState(() => _selectedCompetitionId = null),
+                      ),
                       ...competitionIds.map(
                         (competitionId) => FixtureStateChip(
-                          label: competitions[competitionId]?.shortName ?? competitionId,
+                          label:
+                              competitions[competitionId]?.shortName ??
+                              competitionId,
                           selected: _selectedCompetitionId == competitionId,
-                          onTap: () => setState(() => _selectedCompetitionId = competitionId),
+                          onTap: () => setState(
+                            () => _selectedCompetitionId = competitionId,
+                          ),
                         ),
                       ),
                     ],
@@ -240,8 +280,14 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: const [
-                    Padding(padding: EdgeInsets.only(right: 8), child: FzShimmer(width: 72, height: 34, borderRadius: 18)),
-                    Padding(padding: EdgeInsets.only(right: 8), child: FzShimmer(width: 84, height: 34, borderRadius: 18)),
+                    Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: FzShimmer(width: 72, height: 34, borderRadius: 18),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: FzShimmer(width: 84, height: 34, borderRadius: 18),
+                    ),
                   ],
                 ),
                 error: (error, stackTrace) => ListView(
@@ -249,12 +295,25 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
-                        color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+                        color: isDark
+                            ? FzColors.darkSurface2
+                            : FzColors.lightSurface2,
                         borderRadius: BorderRadius.circular(18),
                       ),
-                      child: Text('Leagues unavailable', style: TextStyle(fontSize: 12, color: isDark ? FzColors.darkMuted : FzColors.lightMuted)),
+                      child: Text(
+                        'Leagues unavailable',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? FzColors.darkMuted
+                              : FzColors.lightMuted,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -268,7 +327,11 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
               if (filtered.isEmpty) {
                 return SliverFillRemaining(
                   hasScrollBody: false,
-                  child: StateView.empty(title: 'No fixtures', subtitle: 'Try another date or league.', icon: Icons.calendar_today_rounded),
+                  child: StateView.empty(
+                    title: 'No fixtures',
+                    subtitle: 'Try another date or league.',
+                    icon: Icons.calendar_today_rounded,
+                  ),
                 );
               }
               return SliverToBoxAdapter(
@@ -282,10 +345,15 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                 ),
               );
             },
-            loading: () => const SliverFillRemaining(child: ScoresPageSkeleton()),
+            loading: () =>
+                const SliverFillRemaining(child: ScoresPageSkeleton()),
             error: (error, stack) => SliverFillRemaining(
               hasScrollBody: false,
-              child: StateView.fromError(error, onRetry: () => ref.invalidate(matchesByDateProvider(_selectedDate))),
+              child: StateView.fromError(
+                error,
+                onRetry: () =>
+                    ref.invalidate(matchesByDateProvider(_selectedDate)),
+              ),
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 96)),
@@ -302,7 +370,9 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
         _FixtureStateFilter.finished => match.isFinished,
         _FixtureStateFilter.all => true,
       };
-      final competitionMatches = _selectedCompetitionId == null ? true : match.competitionId == _selectedCompetitionId;
+      final competitionMatches = _selectedCompetitionId == null
+          ? true
+          : match.competitionId == _selectedCompetitionId;
       return stateMatches && competitionMatches;
     }).toList();
 
@@ -313,15 +383,20 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     return filtered;
   }
 
-  bool get _canMoveDateBackward => _dates.indexWhere((date) => _isSameDate(date, _selectedDate)) > 0;
+  bool get _canMoveDateBackward =>
+      _dates.indexWhere((date) => _isSameDate(date, _selectedDate)) > 0;
 
   bool get _canMoveDateForward {
-    final currentIndex = _dates.indexWhere((date) => _isSameDate(date, _selectedDate));
+    final currentIndex = _dates.indexWhere(
+      (date) => _isSameDate(date, _selectedDate),
+    );
     return currentIndex >= 0 && currentIndex < _dates.length - 1;
   }
 
   void _shiftSelectedDate(int delta) {
-    final currentIndex = _dates.indexWhere((date) => _isSameDate(date, _selectedDate));
+    final currentIndex = _dates.indexWhere(
+      (date) => _isSameDate(date, _selectedDate),
+    );
     if (currentIndex == -1) return;
     final nextIndex = (currentIndex + delta).clamp(0, _dates.length - 1);
     if (nextIndex == currentIndex) return;
@@ -339,7 +414,9 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
             for (final filter in _FixtureStateFilter.values)
               ListTile(
                 title: Text(_stateFilterLabel(filter)),
-                trailing: filter == _selectedState ? const Icon(Icons.check_rounded, color: FzColors.primary) : null,
+                trailing: filter == _selectedState
+                    ? const Icon(Icons.check_rounded, color: FzColors.primary)
+                    : null,
                 onTap: () => Navigator.of(context).pop(filter),
               ),
           ],
@@ -363,14 +440,18 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     final today = DateTime.now();
     final prefix = switch (true) {
       _ when _isSameDate(date, today) => 'Today',
-      _ when _isSameDate(date, today.add(const Duration(days: 1))) => 'Tomorrow',
-      _ when _isSameDate(date, today.subtract(const Duration(days: 1))) => 'Yesterday',
+      _ when _isSameDate(date, today.add(const Duration(days: 1))) =>
+        'Tomorrow',
+      _ when _isSameDate(date, today.subtract(const Duration(days: 1))) =>
+        'Yesterday',
       _ => DateFormat('EEE').format(date),
     };
     return '$prefix, ${DateFormat('MMM d').format(date)}';
   }
 
   bool _isSameDate(DateTime left, DateTime right) {
-    return left.year == right.year && left.month == right.month && left.day == right.day;
+    return left.year == right.year &&
+        left.month == right.month &&
+        left.day == right.day;
   }
 }

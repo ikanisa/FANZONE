@@ -1,4 +1,3 @@
-
 import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
@@ -64,7 +63,11 @@ class SupabaseNotificationSettingsGateway
           .select()
           .eq('user_id', userId)
           .maybeSingle();
-      if (row == null) return cached ?? const NotificationPreferences();
+      if (row == null) {
+        const defaults = NotificationPreferences();
+        await _cacheNotificationPreferences(userId, defaults);
+        return defaults;
+      }
 
       final preferences = NotificationPreferences.fromJson(
         Map<String, dynamic>.from(row),
@@ -82,10 +85,12 @@ class SupabaseNotificationSettingsGateway
     String userId,
     NotificationPreferences preferences,
   ) async {
-    await _cacheNotificationPreferences(userId, preferences);
-
     final client = _connection.client;
-    if (client == null) return;
+    if (client == null) {
+      throw StateError(
+        'Notification preferences are unavailable right now. Please try again.',
+      );
+    }
 
     try {
       await client.from('notification_preferences').upsert({
@@ -97,8 +102,10 @@ class SupabaseNotificationSettingsGateway
         'community_news': preferences.communityNews,
         'marketing': preferences.marketing,
       }, onConflict: 'user_id');
+      await _cacheNotificationPreferences(userId, preferences);
     } catch (error) {
       AppLogger.d('Failed to save notification preferences: $error');
+      rethrow;
     }
   }
 
@@ -166,19 +173,21 @@ class SupabaseNotificationSettingsGateway
   Future<void> markNotificationAsRead(String notificationId) async {
     final userId = _connection.currentUser?.id;
     final client = _connection.client;
-    if (client != null) {
-      try {
-        await client
-            .from('notification_log')
-            .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-            .eq('id', notificationId);
-      } catch (error) {
-        AppLogger.d('Failed to mark notification as read: $error');
-      }
+    if (userId == null || client == null) {
+      throw StateError('Notifications are unavailable right now.');
     }
 
-    if (userId == null) return;
-    final notifications = await getNotificationLog(userId);
+    try {
+      await client
+          .from('notification_log')
+          .update({'read_at': DateTime.now().toUtc().toIso8601String()})
+          .eq('id', notificationId);
+    } catch (error) {
+      AppLogger.d('Failed to mark notification as read: $error');
+      rethrow;
+    }
+
+    final notifications = await _cachedNotificationLog(userId);
     final updated = notifications
         .map(
           (item) => item.id == notificationId
@@ -192,18 +201,21 @@ class SupabaseNotificationSettingsGateway
   @override
   Future<void> markAllNotificationsRead(String userId) async {
     final client = _connection.client;
-    if (client != null) {
-      try {
-        await client
-            .from('notification_log')
-            .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-            .eq('user_id', userId);
-      } catch (error) {
-        AppLogger.d('Failed to mark all notifications read: $error');
-      }
+    if (client == null) {
+      throw StateError('Notifications are unavailable right now.');
     }
 
-    final notifications = await getNotificationLog(userId);
+    try {
+      await client
+          .from('notification_log')
+          .update({'read_at': DateTime.now().toUtc().toIso8601String()})
+          .eq('user_id', userId);
+    } catch (error) {
+      AppLogger.d('Failed to mark all notifications read: $error');
+      rethrow;
+    }
+
+    final notifications = await _cachedNotificationLog(userId);
     final updated = notifications
         .map((item) => item.copyWith(readAt: item.readAt ?? DateTime.now()))
         .toList(growable: false);
@@ -257,7 +269,10 @@ class SupabaseNotificationSettingsGateway
   Future<List<NotificationItem>> getNotificationLog(String userId) async {
     final cached = await _cachedNotificationLog(userId);
     final client = _connection.client;
-    if (client == null) return cached;
+    if (client == null) {
+      if (cached.isNotEmpty) return cached;
+      throw StateError('Notifications are unavailable right now.');
+    }
 
     try {
       final rows = await client
@@ -271,14 +286,12 @@ class SupabaseNotificationSettingsGateway
             (row) => NotificationItem.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
-      if (notifications.isNotEmpty) {
-        await _cacheNotificationLog(userId, notifications);
-        return notifications;
-      }
-      return cached;
+      await _cacheNotificationLog(userId, notifications);
+      return notifications;
     } catch (error) {
       AppLogger.d('Failed to load notification log: $error');
-      return cached;
+      if (cached.isNotEmpty) return cached;
+      rethrow;
     }
   }
 

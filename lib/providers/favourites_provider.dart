@@ -38,7 +38,8 @@ class FavouritesState {
 class FavouritesNotifier extends AsyncNotifier<FavouritesState> {
   CompetitionPreferencesGateway get _gateway =>
       ref.read(competitionPreferencesGatewayProvider);
-  OnboardingGateway get _onboardingGateway => ref.read(onboardingGatewayProvider);
+  OnboardingGateway get _onboardingGateway =>
+      ref.read(onboardingGatewayProvider);
 
   @override
   Future<FavouritesState> build() async {

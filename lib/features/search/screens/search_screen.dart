@@ -151,7 +151,9 @@ class _SearchSection extends StatelessWidget {
                               result.subtitle,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? FzColors.darkMuted
                                     : FzColors.lightMuted,
                               ),

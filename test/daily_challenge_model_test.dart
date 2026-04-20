@@ -122,7 +122,12 @@ void main() {
     });
 
     test('result values', () {
-      for (final result in ['pending', 'correct_result', 'exact_score', 'wrong']) {
+      for (final result in [
+        'pending',
+        'correct_result',
+        'exact_score',
+        'wrong',
+      ]) {
         final entry = DailyChallengeEntry.fromJson({...json, 'result': result});
         expect(entry.result, result);
       }

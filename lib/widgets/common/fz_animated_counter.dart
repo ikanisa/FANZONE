@@ -58,10 +58,7 @@ class _FzAnimatedCounterState extends State<FzAnimatedCounter>
   void initState() {
     super.initState();
     _previousValue = widget.value;
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
+    _controller = AnimationController(vsync: this, duration: widget.duration);
     _animation = Tween<double>(
       begin: widget.value,
       end: widget.value,
@@ -104,7 +101,8 @@ class _FzAnimatedCounterState extends State<FzAnimatedCounter>
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.maybeOf(context);
-    final reduceMotion = mediaQuery?.disableAnimations == true ||
+    final reduceMotion =
+        mediaQuery?.disableAnimations == true ||
         mediaQuery?.accessibleNavigation == true;
 
     if (reduceMotion) {

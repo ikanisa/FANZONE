@@ -250,7 +250,10 @@ final pushNotificationServiceProvider = Provider<PushNotificationService>((
 });
 
 final pushNotificationInitProvider = FutureProvider<void>((ref) async {
-  if (!ref.watch(featureFlagsProvider).notifications || !appRuntime.supabaseInitialized) return;
+  if (!ref.watch(featureFlagsProvider).notifications ||
+      !appRuntime.supabaseInitialized) {
+    return;
+  }
 
   await appRuntime.firebaseReady;
   if (!appRuntime.firebaseInitialized) return;

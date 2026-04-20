@@ -2,10 +2,8 @@
 import { useMemo, useRef, useState } from "react";
 import { Loader, MessageCircle } from "lucide-react";
 
-import {
-  FanzoneWordmark,
-  renderFanzoneText,
-} from "../../components/FanzoneWordmark";
+import { FanzoneWordmark } from "../../components/FanzoneWordmark";
+import { renderFanzoneText } from "../../components/renderFanzoneText";
 import { useAuth } from "../../hooks/useAuth";
 
 const logoImg = "/brand/logo-mark-128.png";

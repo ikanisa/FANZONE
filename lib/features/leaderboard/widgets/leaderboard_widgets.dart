@@ -71,23 +71,66 @@ const List<StandardLeaderboardEntry> weeklyEntries = <StandardLeaderboardEntry>[
   StandardLeaderboardEntry(rank: 8, name: 'User_8', fetValue: 2500),
 ];
 
-const List<StandardLeaderboardEntry> friendsEntries = <StandardLeaderboardEntry>[
-  StandardLeaderboardEntry(rank: 1, name: 'Marco_B', fetValue: 9800),
-  StandardLeaderboardEntry(rank: 2, name: 'Sarah_G', fetValue: 9100),
-  StandardLeaderboardEntry(rank: 3, name: 'Jake_C', fetValue: 8400),
-  StandardLeaderboardEntry(rank: 4, name: 'Isla_F', fetValue: 7600),
-  StandardLeaderboardEntry(rank: 5, name: 'Daniel_G', fetValue: 6900),
-  StandardLeaderboardEntry(rank: 6, name: 'Maria_T', fetValue: 6200),
-];
+const List<StandardLeaderboardEntry> friendsEntries =
+    <StandardLeaderboardEntry>[
+      StandardLeaderboardEntry(rank: 1, name: 'Marco_B', fetValue: 9800),
+      StandardLeaderboardEntry(rank: 2, name: 'Sarah_G', fetValue: 9100),
+      StandardLeaderboardEntry(rank: 3, name: 'Jake_C', fetValue: 8400),
+      StandardLeaderboardEntry(rank: 4, name: 'Isla_F', fetValue: 7600),
+      StandardLeaderboardEntry(rank: 5, name: 'Daniel_G', fetValue: 6900),
+      StandardLeaderboardEntry(rank: 6, name: 'Maria_T', fetValue: 6200),
+    ];
 
 const List<FanClubEntry> fanClubEntries = <FanClubEntry>[
-  FanClubEntry(rank: 1, name: 'Hamrun S.', crest: 'H', fetValue: 620000, trend: Trend.up),
-  FanClubEntry(rank: 2, name: 'Sliema W.', crest: 'S', fetValue: 450000, trend: Trend.same),
-  FanClubEntry(rank: 3, name: 'Valletta FC', crest: 'V', fetValue: 310000, trend: Trend.up),
-  FanClubEntry(rank: 4, name: 'Floriana', crest: 'F', fetValue: 280000, trend: Trend.up),
-  FanClubEntry(rank: 5, name: 'Birkirkara', crest: 'B', fetValue: 210000, trend: Trend.down),
-  FanClubEntry(rank: 6, name: 'Hibernians', crest: 'H', fetValue: 195000, trend: Trend.same),
-  FanClubEntry(rank: 7, name: 'Balzan FC', crest: 'B', fetValue: 150000, trend: Trend.up),
+  FanClubEntry(
+    rank: 1,
+    name: 'Hamrun S.',
+    crest: 'H',
+    fetValue: 620000,
+    trend: Trend.up,
+  ),
+  FanClubEntry(
+    rank: 2,
+    name: 'Sliema W.',
+    crest: 'S',
+    fetValue: 450000,
+    trend: Trend.same,
+  ),
+  FanClubEntry(
+    rank: 3,
+    name: 'Valletta FC',
+    crest: 'V',
+    fetValue: 310000,
+    trend: Trend.up,
+  ),
+  FanClubEntry(
+    rank: 4,
+    name: 'Floriana',
+    crest: 'F',
+    fetValue: 280000,
+    trend: Trend.up,
+  ),
+  FanClubEntry(
+    rank: 5,
+    name: 'Birkirkara',
+    crest: 'B',
+    fetValue: 210000,
+    trend: Trend.down,
+  ),
+  FanClubEntry(
+    rank: 6,
+    name: 'Hibernians',
+    crest: 'H',
+    fetValue: 195000,
+    trend: Trend.same,
+  ),
+  FanClubEntry(
+    rank: 7,
+    name: 'Balzan FC',
+    crest: 'B',
+    fetValue: 150000,
+    trend: Trend.up,
+  ),
 ];
 
 // ──────────────────────────────────────────────
@@ -110,7 +153,9 @@ class LeaderboardTabChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final inactiveColor = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final inactiveColor = isDark
+        ? FzColors.darkSurface2
+        : FzColors.lightSurface2;
     final inactiveBorder = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final inactiveText = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
@@ -127,7 +172,13 @@ class LeaderboardTabChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
             border: active ? null : Border.all(color: inactiveBorder, width: 1),
             boxShadow: active
-                ? [BoxShadow(color: FzColors.primary.withValues(alpha: 0.28), blurRadius: 14, spreadRadius: 0)]
+                ? [
+                    BoxShadow(
+                      color: FzColors.primary.withValues(alpha: 0.28),
+                      blurRadius: 14,
+                      spreadRadius: 0,
+                    ),
+                  ]
                 : null,
           ),
           child: Text(
@@ -167,7 +218,9 @@ class PodiumItem extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final borderColor = isDark ? FzColors.darkBorder : FzColors.lightBorder;
-    final surface3Color = isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
+    final surface3Color = isDark
+        ? FzColors.darkSurface3
+        : FzColors.lightSurface3;
     final trophyColor = switch (rank) {
       1 => const Color(0xFFFFD700),
       2 => const Color(0xFFC0C0C0),
@@ -179,14 +232,20 @@ class PodiumItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Icon(LucideIcons.trophy, size: rank == 1 ? 32 : 24, color: trophyColor),
+          Icon(
+            LucideIcons.trophy,
+            size: rank == 1 ? 32 : 24,
+            color: trophyColor,
+          ),
           const SizedBox(height: 8),
           Container(
             width: 64,
             height: pedestalHeight,
             decoration: BoxDecoration(
               color: surface3Color,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               border: Border(
                 top: BorderSide(color: borderColor, width: 1),
                 left: BorderSide(color: borderColor, width: 1),
@@ -198,7 +257,9 @@ class PodiumItem extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               child: Text(
                 '#$rank',
-                style: FzTypography.scoreCompact(color: isDark ? FzColors.darkText : FzColors.lightText),
+                style: FzTypography.scoreCompact(
+                  color: isDark ? FzColors.darkText : FzColors.lightText,
+                ),
               ),
             ),
           ),
@@ -208,10 +269,18 @@ class PodiumItem extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: isDark ? FzColors.darkText : FzColors.lightText, height: 1.15),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: isDark ? FzColors.darkText : FzColors.lightText,
+              height: 1.15,
+            ),
           ),
           const SizedBox(height: 2),
-          Text('$fet FET', style: FzTypography.scoreCompact(color: FzColors.coral)),
+          Text(
+            '$fet FET',
+            style: FzTypography.scoreCompact(color: FzColors.coral),
+          ),
         ],
       ),
     );
@@ -233,8 +302,12 @@ class LeaderboardRow extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final surface2Color = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
-    final surface3Color = isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
+    final surface2Color = isDark
+        ? FzColors.darkSurface2
+        : FzColors.lightSurface2;
+    final surface3Color = isDark
+        ? FzColors.darkSurface3
+        : FzColors.lightSurface3;
 
     return FzCard(
       borderRadius: 16,
@@ -245,20 +318,50 @@ class LeaderboardRow extends StatelessWidget {
           Text('${entry.rank}', style: FzTypography.scoreCompact(color: muted)),
           const SizedBox(width: 12),
           Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(color: surface3Color, shape: BoxShape.circle, border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder)),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: surface3Color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+              ),
+            ),
             alignment: Alignment.center,
             child: const Text('👤', style: TextStyle(fontSize: 12)),
           ),
           const SizedBox(width: 12),
-          Expanded(child: Text(entry.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textColor))),
-          Text('${entry.fetLabel} FET', style: FzTypography.scoreCompact(color: FzColors.coral)),
+          Expanded(
+            child: Text(
+              entry.name,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
+            ),
+          ),
+          Text(
+            '${entry.fetLabel} FET',
+            style: FzTypography.scoreCompact(color: FzColors.coral),
+          ),
           const SizedBox(width: 10),
           Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(color: surface3Color, shape: BoxShape.circle, border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder)),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: surface3Color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+              ),
+            ),
             alignment: Alignment.center,
-            child: const Icon(LucideIcons.userPlus, size: 14, color: FzColors.primary),
+            child: const Icon(
+              LucideIcons.userPlus,
+              size: 14,
+              color: FzColors.primary,
+            ),
           ),
         ],
       ),
@@ -288,12 +391,24 @@ class PinnedUserCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final surface3Color = isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
-    final rankLabel = rankAsync.when(data: (rank) => '#${rank ?? 42}', loading: () => '#42', error: (e, s) => '#42');
-    final balanceLabel = balanceAsync.when(data: (b) => '+${formatCompactFet(b > 0 ? b : 2100)} FET', loading: () => '+2.1k FET', error: (e, s) => '+2.1k FET');
+    final surface3Color = isDark
+        ? FzColors.darkSurface3
+        : FzColors.lightSurface3;
+    final rankLabel = rankAsync.when(
+      data: (rank) => '#${rank ?? 42}',
+      loading: () => '#42',
+      error: (e, s) => '#42',
+    );
+    final balanceLabel = balanceAsync.when(
+      data: (b) => '+${formatCompactFet(b > 0 ? b : 2100)} FET',
+      loading: () => '+2.1k FET',
+      error: (e, s) => '+2.1k FET',
+    );
 
     return Positioned(
-      left: 12, right: 12, bottom: bottomOffset,
+      left: 12,
+      right: 12,
+      bottom: bottomOffset,
       child: IgnorePointer(
         ignoring: true,
         child: Container(
@@ -305,26 +420,58 @@ class PinnedUserCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              Text(rankLabel, style: FzTypography.scoreCompact(color: FzColors.primary)),
+              Text(
+                rankLabel,
+                style: FzTypography.scoreCompact(color: FzColors.primary),
+              ),
               const SizedBox(width: 12),
               Container(
-                width: 32, height: 32,
-                decoration: BoxDecoration(color: surface3Color, shape: BoxShape.circle, border: Border.all(color: FzColors.primary.withValues(alpha: 0.3))),
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: surface3Color,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: FzColors.primary.withValues(alpha: 0.3),
+                  ),
+                ),
                 alignment: Alignment.center,
-                child: Text('👤', style: TextStyle(color: textColor, fontSize: 12)),
+                child: Text(
+                  '👤',
+                  style: TextStyle(color: textColor, fontSize: 12),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('You', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textColor, height: 1.0)),
+                    Text(
+                      'You',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                        height: 1.0,
+                      ),
+                    ),
                     const SizedBox(height: 3),
-                    Text('Accuracy 68%', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 0.9)),
+                    Text(
+                      'Accuracy 68%',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: muted,
+                        letterSpacing: 0.9,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Text(balanceLabel, style: FzTypography.scoreCompact(color: FzColors.coral)),
+              Text(
+                balanceLabel,
+                style: FzTypography.scoreCompact(color: FzColors.coral),
+              ),
             ],
           ),
         ),
@@ -347,7 +494,9 @@ class FanClubLeaderboardView extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final borderColor = isDark ? FzColors.darkBorder : FzColors.lightBorder;
-    final surface2Color = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final surface2Color = isDark
+        ? FzColors.darkSurface2
+        : FzColors.lightSurface2;
     final podium = entries.take(3).toList(growable: false);
     final rows = entries.skip(3).toList(growable: false);
 
@@ -364,11 +513,13 @@ class FanClubLeaderboardView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (podium.length > 1) ClubPodiumItem(entry: podium[1], pedestalHeight: 112),
+              if (podium.length > 1)
+                ClubPodiumItem(entry: podium[1], pedestalHeight: 112),
               if (podium.length > 1) const SizedBox(width: 8),
               ClubPodiumItem(entry: podium[0], pedestalHeight: 144),
               if (podium.length > 2) const SizedBox(width: 8),
-              if (podium.length > 2) ClubPodiumItem(entry: podium[2], pedestalHeight: 96),
+              if (podium.length > 2)
+                ClubPodiumItem(entry: podium[2], pedestalHeight: 96),
             ],
           ),
         ),
@@ -389,7 +540,11 @@ class FanClubLeaderboardView extends StatelessWidget {
 }
 
 class ClubPodiumItem extends StatelessWidget {
-  const ClubPodiumItem({super.key, required this.entry, required this.pedestalHeight});
+  const ClubPodiumItem({
+    super.key,
+    required this.entry,
+    required this.pedestalHeight,
+  });
 
   final FanClubEntry entry;
   final double pedestalHeight;
@@ -399,7 +554,9 @@ class ClubPodiumItem extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final borderColor = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final surfaceColor = isDark ? FzColors.darkSurface : FzColors.lightSurface;
-    final surface3Color = isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
+    final surface3Color = isDark
+        ? FzColors.darkSurface3
+        : FzColors.lightSurface3;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
 
     return SizedBox(
@@ -413,10 +570,13 @@ class ClubPodiumItem extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: Container(
-                  width: 80, height: pedestalHeight,
+                  width: 80,
+                  height: pedestalHeight,
                   decoration: BoxDecoration(
                     color: surface3Color,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
                     border: Border(
                       top: BorderSide(color: borderColor, width: 1),
                       left: BorderSide(color: borderColor, width: 1),
@@ -424,26 +584,62 @@ class ClubPodiumItem extends StatelessWidget {
                     ),
                   ),
                   padding: const EdgeInsets.all(8),
-                  child: Align(alignment: Alignment.bottomCenter, child: Text('#${entry.rank}', style: FzTypography.scoreCompact(color: textColor))),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Text(
+                      '#${entry.rank}',
+                      style: FzTypography.scoreCompact(color: textColor),
+                    ),
+                  ),
                 ),
               ),
               Container(
-                width: 40, height: 40,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: surfaceColor,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: borderColor),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.28 : 0.08), blurRadius: 14, offset: const Offset(0, 4))],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.28 : 0.08,
+                      ),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 alignment: Alignment.center,
-                child: Text(entry.crest, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: textColor)),
+                child: Text(
+                  entry.crest,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          Text(entry.name, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textColor, height: 1.15)),
+          Text(
+            entry.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+              height: 1.15,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text('${entry.fetLabel} FET', style: FzTypography.scoreCompact(color: FzColors.primary)),
+          Text(
+            '${entry.fetLabel} FET',
+            style: FzTypography.scoreCompact(color: FzColors.primary),
+          ),
         ],
       ),
     );
@@ -460,7 +656,9 @@ class ClubLeaderboardRow extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final surface3Color = isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
+    final surface3Color = isDark
+        ? FzColors.darkSurface3
+        : FzColors.lightSurface3;
 
     return FzCard(
       borderRadius: 16,
@@ -472,31 +670,76 @@ class ClubLeaderboardRow extends StatelessWidget {
             width: 22,
             child: Column(
               children: [
-                Text('${entry.rank}', style: FzTypography.scoreCompact(color: muted)),
+                Text(
+                  '${entry.rank}',
+                  style: FzTypography.scoreCompact(color: muted),
+                ),
                 const SizedBox(height: 2),
                 Icon(
-                  switch (entry.trend) { Trend.up => LucideIcons.trendingUp, Trend.down => LucideIcons.trendingDown, Trend.same => LucideIcons.minus },
+                  switch (entry.trend) {
+                    Trend.up => LucideIcons.trendingUp,
+                    Trend.down => LucideIcons.trendingDown,
+                    Trend.same => LucideIcons.minus,
+                  },
                   size: 10,
-                  color: switch (entry.trend) { Trend.up => FzColors.primary, Trend.down => FzColors.coral, Trend.same => muted },
+                  color: switch (entry.trend) {
+                    Trend.up => FzColors.primary,
+                    Trend.down => FzColors.coral,
+                    Trend.same => muted,
+                  },
                 ),
               ],
             ),
           ),
           const SizedBox(width: 12),
           Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(color: surface3Color, borderRadius: BorderRadius.circular(10), border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder)),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: surface3Color,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+              ),
+            ),
             alignment: Alignment.center,
-            child: Text(entry.crest, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textColor)),
+            child: Text(
+              entry.crest,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
-          Expanded(child: Text(entry.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textColor))),
+          Expanded(
+            child: Text(
+              entry.name,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
+            ),
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(entry.fetLabel, style: FzTypography.scoreCompact(color: FzColors.primary)),
+              Text(
+                entry.fetLabel,
+                style: FzTypography.scoreCompact(color: FzColors.primary),
+              ),
               const SizedBox(height: 2),
-              Text('POOL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: muted, letterSpacing: 0.9)),
+              Text(
+                'POOL',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: muted,
+                  letterSpacing: 0.9,
+                ),
+              ),
             ],
           ),
         ],

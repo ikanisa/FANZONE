@@ -38,22 +38,72 @@ const Map<String, CurrencyInfo> _defaultCurrencyMetadata = {
   'PLN': CurrencyInfo(code: 'PLN', symbol: 'zł', spaceSeparated: true),
   'TRY': CurrencyInfo(code: 'TRY', symbol: '₺'),
   'BRL': CurrencyInfo(code: 'BRL', symbol: 'R\$'),
-  'MXN': CurrencyInfo(code: 'MXN', symbol: 'MX\$', decimals: 0, spaceSeparated: true),
-  'ARS': CurrencyInfo(code: 'ARS', symbol: 'ARS', decimals: 0, spaceSeparated: true),
-  'RWF': CurrencyInfo(code: 'RWF', symbol: 'FRW', decimals: 0, spaceSeparated: true),
+  'MXN': CurrencyInfo(
+    code: 'MXN',
+    symbol: 'MX\$',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
+  'ARS': CurrencyInfo(
+    code: 'ARS',
+    symbol: 'ARS',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
+  'RWF': CurrencyInfo(
+    code: 'RWF',
+    symbol: 'FRW',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
   'NGN': CurrencyInfo(code: 'NGN', symbol: '₦', decimals: 0),
-  'KES': CurrencyInfo(code: 'KES', symbol: 'KSh', decimals: 0, spaceSeparated: true),
+  'KES': CurrencyInfo(
+    code: 'KES',
+    symbol: 'KSh',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
   'ZAR': CurrencyInfo(code: 'ZAR', symbol: 'R'),
   'EGP': CurrencyInfo(code: 'EGP', symbol: 'E£', decimals: 0),
-  'TZS': CurrencyInfo(code: 'TZS', symbol: 'TSh', decimals: 0, spaceSeparated: true),
-  'UGX': CurrencyInfo(code: 'UGX', symbol: 'USh', decimals: 0, spaceSeparated: true),
+  'TZS': CurrencyInfo(
+    code: 'TZS',
+    symbol: 'TSh',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
+  'UGX': CurrencyInfo(
+    code: 'UGX',
+    symbol: 'USh',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
   'GHS': CurrencyInfo(code: 'GHS', symbol: 'GH₵'),
-  'XOF': CurrencyInfo(code: 'XOF', symbol: 'CFA', decimals: 0, spaceSeparated: true),
+  'XOF': CurrencyInfo(
+    code: 'XOF',
+    symbol: 'CFA',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
   'TND': CurrencyInfo(code: 'TND', symbol: 'DT', spaceSeparated: true),
-  'DZD': CurrencyInfo(code: 'DZD', symbol: 'DA', decimals: 0, spaceSeparated: true),
+  'DZD': CurrencyInfo(
+    code: 'DZD',
+    symbol: 'DA',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
   'MAD': CurrencyInfo(code: 'MAD', symbol: 'MAD', spaceSeparated: true),
-  'CDF': CurrencyInfo(code: 'CDF', symbol: 'FC', decimals: 0, spaceSeparated: true),
-  'ETB': CurrencyInfo(code: 'ETB', symbol: 'Br', decimals: 0, spaceSeparated: true),
+  'CDF': CurrencyInfo(
+    code: 'CDF',
+    symbol: 'FC',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
+  'ETB': CurrencyInfo(
+    code: 'ETB',
+    symbol: 'Br',
+    decimals: 0,
+    spaceSeparated: true,
+  ),
   'INR': CurrencyInfo(code: 'INR', symbol: '₹', decimals: 0),
   'JPY': CurrencyInfo(code: 'JPY', symbol: '¥', decimals: 0),
   'CNY': CurrencyInfo(code: 'CNY', symbol: '¥'),
@@ -84,8 +134,9 @@ void hydrateCurrencyDisplay(Map<String, CurrencyDisplayInfo> dbData) {
 }
 
 /// Returns currency metadata: DB-driven if available, else hardcoded fallback.
-Map<String, CurrencyInfo> get currencies =>
-    _liveCurrencyMetadata.isNotEmpty ? _liveCurrencyMetadata : _defaultCurrencyMetadata;
+Map<String, CurrencyInfo> get currencies => _liveCurrencyMetadata.isNotEmpty
+    ? _liveCurrencyMetadata
+    : _defaultCurrencyMetadata;
 
 /// DEPRECATED — use [currencies] getter instead.
 Map<String, CurrencyInfo> get currencyMetadata => currencies;

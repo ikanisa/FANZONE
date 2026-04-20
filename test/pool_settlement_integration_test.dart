@@ -81,8 +81,11 @@ void main() {
       const distributed = payoutPerWinner * winnerCount;
       const remainder = totalPool - distributed;
       expect(remainder, 2, reason: 'Remainder goes to house/treasury');
-      expect(distributed + remainder, totalPool,
-          reason: 'All FET accounted for');
+      expect(
+        distributed + remainder,
+        totalPool,
+        reason: 'All FET accounted for',
+      );
     });
 
     test('entry status transitions correctly through settlement', () {
@@ -183,8 +186,11 @@ void main() {
 
       for (final entry in refundEntries) {
         expect(entry.status, 'refunded');
-        expect(entry.payout, entry.stake,
-            reason: 'Refund should equal original stake');
+        expect(
+          entry.payout,
+          entry.stake,
+          reason: 'Refund should equal original stake',
+        );
       }
     });
 
@@ -245,8 +251,7 @@ class _SettlementRecordingPoolService extends FakePoolService {
   _SettlementRecordingPoolService(super.pools);
 
   final List<({String poolId, int homeScore, int awayScore, int stake})>
-      joinRequests =
-      <({String poolId, int homeScore, int awayScore, int stake})>[];
+  joinRequests = <({String poolId, int homeScore, int awayScore, int stake})>[];
 
   @override
   Future<void> joinPool({

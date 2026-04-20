@@ -49,14 +49,16 @@ class PoolService extends _$PoolService {
     state = const AsyncLoading();
 
     try {
-      await ref.read(predictionPoolGatewayProvider).createPool(
-        PoolCreateRequestDto(
-          matchId: matchId,
-          homeScore: homeScore,
-          awayScore: awayScore,
-          stake: stake,
-        ),
-      );
+      await ref
+          .read(predictionPoolGatewayProvider)
+          .createPool(
+            PoolCreateRequestDto(
+              matchId: matchId,
+              homeScore: homeScore,
+              awayScore: awayScore,
+              stake: stake,
+            ),
+          );
       ref.invalidateSelf();
       ref.invalidate(myEntriesProvider);
     } catch (error, stack) {
@@ -90,13 +92,15 @@ class PoolService extends _$PoolService {
     state = const AsyncLoading();
 
     try {
-      await ref.read(predictionPoolGatewayProvider).joinPool(
-        PoolJoinRequestDto(
-          poolId: poolId,
-          homeScore: homeScore,
-          awayScore: awayScore,
-        ),
-      );
+      await ref
+          .read(predictionPoolGatewayProvider)
+          .joinPool(
+            PoolJoinRequestDto(
+              poolId: poolId,
+              homeScore: homeScore,
+              awayScore: awayScore,
+            ),
+          );
       ref.invalidateSelf();
       ref.invalidate(myEntriesProvider);
     } catch (error, stack) {

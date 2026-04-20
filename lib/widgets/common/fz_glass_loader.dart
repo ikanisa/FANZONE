@@ -36,12 +36,12 @@ class FzGlassLoader extends StatelessWidget {
           _PulseText(
             text: message!,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: isDark ? Colors.white70 : Colors.black54,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2.0,
-                ),
+              color: isDark ? Colors.white70 : Colors.black54,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2.0,
+            ),
           ),
-        ]
+        ],
       ],
     );
 
@@ -55,13 +55,13 @@ class FzGlassLoader extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
             decoration: BoxDecoration(
-              color: isDark 
-                  ? Colors.black.withValues(alpha: 0.2) 
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.2)
                   : Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: isDark 
-                    ? Colors.white.withValues(alpha: 0.1) 
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
                     : Colors.black.withValues(alpha: 0.05),
               ),
             ),
@@ -82,7 +82,8 @@ class _PulseText extends StatefulWidget {
   State<_PulseText> createState() => _PulseTextState();
 }
 
-class _PulseTextState extends State<_PulseText> with SingleTickerProviderStateMixin {
+class _PulseTextState extends State<_PulseText>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _opacity;
 
@@ -93,9 +94,10 @@ class _PulseTextState extends State<_PulseText> with SingleTickerProviderStateMi
       vsync: this,
       duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
-    _opacity = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _opacity = Tween<double>(
+      begin: 0.4,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -108,10 +110,7 @@ class _PulseTextState extends State<_PulseText> with SingleTickerProviderStateMi
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _opacity,
-      child: Text(
-        widget.text.toUpperCase(),
-        style: widget.style,
-      ),
+      child: Text(widget.text.toUpperCase(), style: widget.style),
     );
   }
 }

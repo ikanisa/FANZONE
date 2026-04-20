@@ -28,7 +28,9 @@ class LiveMatchEvent {
       team: json['team'] as String?,
       player: json['player'] as String?,
       details: json['details'] as String?,
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'])
+          : null,
     );
   }
 }

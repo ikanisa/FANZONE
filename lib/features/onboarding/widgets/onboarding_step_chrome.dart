@@ -120,8 +120,9 @@ class OnboardingPrimaryButton extends StatelessWidget {
                     .withValues(alpha: 0.72)),
           disabledForegroundColor: isPrimary
               ? FzColors.darkBg.withValues(alpha: 0.7)
-              : ((isDark ? FzColors.darkText : FzColors.lightText)
-                    .withValues(alpha: 0.65)),
+              : ((isDark ? FzColors.darkText : FzColors.lightText).withValues(
+                  alpha: 0.65,
+                )),
           side: isPrimary
               ? null
               : BorderSide(

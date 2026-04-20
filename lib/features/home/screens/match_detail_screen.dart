@@ -185,11 +185,7 @@ class MatchDetailScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                SliverToBoxAdapter(
-                  child: _MatchHero(
-                    match: match,
-                  ),
-                ),
+                SliverToBoxAdapter(child: _MatchHero(match: match)),
                 SliverPersistentHeader(
                   pinned: true,
                   delegate: _TabBarDelegate(
@@ -206,8 +202,7 @@ class MatchDetailScreen extends ConsumerWidget {
           ),
         );
       },
-      loading: () =>
-          const Scaffold(body: ScoresPageSkeleton()),
+      loading: () => const Scaffold(body: ScoresPageSkeleton()),
       error: (error, stack) => Scaffold(
         appBar: AppBar(title: const Text('Match')),
         body: StateView.error(

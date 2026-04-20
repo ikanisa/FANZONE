@@ -23,7 +23,9 @@ const _defaultRates = [
 final fetExchangeRatesProvider =
     FutureProvider.autoDispose<List<FetExchangeRate>>((ref) async {
       try {
-        final response = await ref.read(walletGatewayProvider).getFetExchangeRates();
+        final response = await ref
+            .read(walletGatewayProvider)
+            .getFetExchangeRates();
         if (response.isEmpty) return _defaultRates;
 
         return response

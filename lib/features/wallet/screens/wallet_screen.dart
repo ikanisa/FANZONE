@@ -57,7 +57,9 @@ class WalletScreen extends ConsumerWidget {
           _WalletHero(
             balanceAsync: balanceAsync,
             currency: currency,
-            onRedeem: ref.watch(featureFlagsProvider).rewards || ref.watch(featureFlagsProvider).marketplace
+            onRedeem:
+                ref.watch(featureFlagsProvider).rewards ||
+                    ref.watch(featureFlagsProvider).marketplace
                 ? () => context.push('/rewards')
                 : null,
             onSend: () {

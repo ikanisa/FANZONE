@@ -14,32 +14,24 @@ import '../../../widgets/match/match_list_widgets.dart';
 // ──────────────────────────────────────────────
 
 class FriendHandle {
-  const FriendHandle({
-    required this.name,
-    required this.accuracy,
-    required this.status,
-    this.poolId,
-  });
+  const FriendHandle({required this.name, required this.subtitle, this.poolId});
 
   final String name;
-  final int accuracy;
-  final FriendStatus status;
+  final String subtitle;
   final String? poolId;
 }
-
-enum FriendStatus { online, offline }
 
 class FanBoardEntry {
   const FanBoardEntry({
     required this.rank,
     required this.label,
-    required this.points,
+    required this.meta,
     required this.isMe,
   });
 
   final int rank;
   final String label;
-  final String points;
+  final String meta;
   final bool isMe;
 }
 
@@ -65,18 +57,41 @@ class SocialHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
-        color: (isDark ? FzColors.darkSurface : FzColors.lightSurface).withValues(alpha: 0.9),
-        border: Border(bottom: BorderSide(color: isDark ? FzColors.darkBorder : FzColors.lightBorder)),
+        color: (isDark ? FzColors.darkSurface : FzColors.lightSurface)
+            .withValues(alpha: 0.9),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+          ),
+        ),
       ),
       child: Row(
         children: [
-          IconButton(onPressed: onBack, icon: Icon(LucideIcons.chevronLeft, color: textColor)),
+          IconButton(
+            onPressed: onBack,
+            icon: Icon(LucideIcons.chevronLeft, color: textColor),
+          ),
           Expanded(
             child: Column(
               children: [
-                Text('Community', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1.4)),
+                Text(
+                  'Community',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: muted,
+                    letterSpacing: 1.4,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text('Social Hub', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textColor)),
+                Text(
+                  'Social Hub',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
               ],
             ),
           ),
@@ -94,7 +109,11 @@ class SocialHeader extends StatelessWidget {
 enum SocialTab { friends, clubFanZone }
 
 class SocialTabBar extends StatelessWidget {
-  const SocialTabBar({super.key, required this.activeTab, required this.onChanged});
+  const SocialTabBar({
+    super.key,
+    required this.activeTab,
+    required this.onChanged,
+  });
 
   final SocialTab activeTab;
   final ValueChanged<SocialTab> onChanged;
@@ -106,8 +125,16 @@ class SocialTabBar extends StatelessWidget {
       color: isDark ? FzColors.darkSurface : FzColors.lightSurface,
       child: Row(
         children: [
-          _TabButton(label: 'Friends', selected: activeTab == SocialTab.friends, onTap: () => onChanged(SocialTab.friends)),
-          _TabButton(label: 'Club Fan Zone', selected: activeTab == SocialTab.clubFanZone, onTap: () => onChanged(SocialTab.clubFanZone)),
+          _TabButton(
+            label: 'Friends',
+            selected: activeTab == SocialTab.friends,
+            onTap: () => onChanged(SocialTab.friends),
+          ),
+          _TabButton(
+            label: 'Club Fan Zone',
+            selected: activeTab == SocialTab.clubFanZone,
+            onTap: () => onChanged(SocialTab.clubFanZone),
+          ),
         ],
       ),
     );
@@ -115,7 +142,11 @@ class SocialTabBar extends StatelessWidget {
 }
 
 class _TabButton extends StatelessWidget {
-  const _TabButton({required this.label, required this.selected, required this.onTap});
+  const _TabButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -131,9 +162,22 @@ class _TabButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: selected ? FzColors.primary : Colors.transparent, width: 2)),
+            border: Border(
+              bottom: BorderSide(
+                color: selected ? FzColors.primary : Colors.transparent,
+                width: 2,
+              ),
+            ),
           ),
-          child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: selected ? FzColors.primary : muted)),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: selected ? FzColors.primary : muted,
+            ),
+          ),
         ),
       ),
     );
@@ -165,19 +209,31 @@ class FriendsTabView extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: SearchField(hintText: 'Search friends...', onChanged: onQueryChanged)),
+            Expanded(
+              child: SearchField(
+                hintText: 'Search friends...',
+                onChanged: onQueryChanged,
+              ),
+            ),
             const SizedBox(width: 12),
             InkWell(
               onTap: onAddPressed,
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                width: 48, height: 48,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: FzColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: FzColors.primary.withValues(alpha: 0.2)),
+                  border: Border.all(
+                    color: FzColors.primary.withValues(alpha: 0.2),
+                  ),
                 ),
-                child: const Icon(LucideIcons.userPlus, size: 20, color: FzColors.primary),
+                child: const Icon(
+                  LucideIcons.userPlus,
+                  size: 20,
+                  color: FzColors.primary,
+                ),
               ),
             ),
           ],
@@ -191,7 +247,7 @@ class FriendsTabView extends StatelessWidget {
                 ? StateView.empty(
                     title: 'No friends in play yet',
                     subtitle:
-                        'Join or create a pool to start building your friends list.',
+                        'Open community pools will appear here once creators start hosting them.',
                     icon: LucideIcons.users,
                   )
                 : ListView.separated(
@@ -214,7 +270,11 @@ class FriendsTabView extends StatelessWidget {
 }
 
 class SearchField extends StatelessWidget {
-  const SearchField({super.key, required this.hintText, required this.onChanged});
+  const SearchField({
+    super.key,
+    required this.hintText,
+    required this.onChanged,
+  });
 
   final String hintText;
   final ValueChanged<String> onChanged;
@@ -226,13 +286,19 @@ class SearchField extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
+        border: Border.all(
+          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+        ),
       ),
       child: TextField(
         onChanged: onChanged,
         decoration: InputDecoration(
           hintText: hintText,
-          prefixIcon: Icon(LucideIcons.search, size: 18, color: isDark ? FzColors.darkMuted : FzColors.lightMuted),
+          prefixIcon: Icon(
+            LucideIcons.search,
+            size: 18,
+            color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 14),
         ),
@@ -250,56 +316,73 @@ class FriendRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final statusColor = friend.status == FriendStatus.online ? FzColors.primary : muted;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Stack(
-            children: [
-              Container(
-                width: 40, height: 40,
-                decoration: BoxDecoration(color: isDark ? FzColors.darkSurface3 : FzColors.lightSurface3, shape: BoxShape.circle),
-                alignment: Alignment.center,
-                child: const Text('👤', style: TextStyle(fontSize: 18)),
-              ),
-              Positioned(
-                right: 0, bottom: 0,
-                child: Container(
-                  width: 12, height: 12,
-                  decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle, border: Border.all(color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2, width: 2)),
-                ),
-              ),
-            ],
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isDark ? FzColors.darkSurface3 : FzColors.lightSurface3,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: const Text('👤', style: TextStyle(fontSize: 18)),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(friend.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                Text(
+                  friend.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text('Acc: ${friend.accuracy}%', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1.0)),
+                Text(
+                  friend.subtitle,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: muted,
+                    letterSpacing: 1.0,
+                  ),
+                ),
               ],
             ),
           ),
           const SizedBox(width: 12),
           InkWell(
-            onTap: friend.poolId == null ? null : () => context.push('/pool/${friend.poolId}'),
+            onTap: friend.poolId == null
+                ? null
+                : () => context.push('/pool/${friend.poolId}'),
             borderRadius: BorderRadius.circular(10),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: FzColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
+                border: Border.all(
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                ),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(LucideIcons.swords, size: 14, color: FzColors.primary),
                   SizedBox(width: 6),
-                  Text('Pool', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: FzColors.primary)),
+                  Text(
+                    'Pool',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: FzColors.primary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -344,16 +427,16 @@ class ClubFanZoneView extends StatelessWidget {
     if (fanLoadError) {
       return StateView.error(
         title: 'Could not load the fan zone',
-        subtitle: 'Please try again to reload the club leaderboard.',
+        subtitle: 'Please try again to reload recent supporter activity.',
         onRetry: onRetry,
       );
     }
 
     if (fanRows.isEmpty) {
       return StateView.empty(
-        title: 'No fan rankings yet',
+        title: 'No supporters yet',
         subtitle:
-            'Club supporter rankings will appear here once members start contributing.',
+            'Recent supporters will appear here once fans start joining this club.',
         icon: LucideIcons.trophy,
       );
     }
@@ -378,23 +461,44 @@ class ClubFanZoneView extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Theme.of(context).brightness == Brightness.dark ? FzColors.darkSurface2 : FzColors.lightSurface2,
-                Theme.of(context).brightness == Brightness.dark ? FzColors.darkSurface3 : FzColors.lightSurface3,
+                Theme.of(context).brightness == Brightness.dark
+                    ? FzColors.darkSurface2
+                    : FzColors.lightSurface2,
+                Theme.of(context).brightness == Brightness.dark
+                    ? FzColors.darkSurface3
+                    : FzColors.lightSurface3,
               ],
             ),
             borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? FzColors.darkBorder : FzColors.lightBorder),
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? FzColors.darkBorder
+                  : FzColors.lightBorder,
+            ),
           ),
           child: Row(
             children: [
               Container(
-                width: 64, height: 64,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ? FzColors.darkSurface : FzColors.lightSurface,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? FzColors.darkSurface
+                      : FzColors.lightSurface,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? FzColors.darkBorder : FzColors.lightBorder),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? FzColors.darkBorder
+                        : FzColors.lightBorder,
+                  ),
                 ),
-                child: Center(child: TeamAvatar(name: team!.name, logoUrl: team!.logoUrl ?? team!.crestUrl, size: 40)),
+                child: Center(
+                  child: TeamAvatar(
+                    name: team!.name,
+                    logoUrl: team!.logoUrl ?? team!.crestUrl,
+                    size: 40,
+                  ),
+                ),
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -403,14 +507,25 @@ class ClubFanZoneView extends StatelessWidget {
                   children: [
                     Text(
                       '${(team!.shortName ?? team!.name).toUpperCase()} FANS',
-                      style: FzTypography.display(size: 28, color: Theme.of(context).brightness == Brightness.dark ? FzColors.darkText : FzColors.lightText, letterSpacing: 1.0),
+                      style: FzTypography.display(
+                        size: 28,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? FzColors.darkText
+                            : FzColors.lightText,
+                        letterSpacing: 1.0,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       rank == null
-                          ? 'Your club leaderboard is live.'
-                          : 'You are ranked #$rank among ${team!.shortName ?? team!.name} fans.',
-                      style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? FzColors.darkMuted : FzColors.lightMuted),
+                          ? 'Recent supporter activity for ${team!.shortName ?? team!.name}.'
+                          : 'You appear at #$rank in the recent supporter roll.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? FzColors.darkMuted
+                            : FzColors.lightMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -420,8 +535,14 @@ class ClubFanZoneView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'FAN LEADERBOARD',
-          style: FzTypography.display(size: 22, color: Theme.of(context).brightness == Brightness.dark ? FzColors.darkText : FzColors.lightText, letterSpacing: 1.0),
+          'SUPPORTER ROLL',
+          style: FzTypography.display(
+            size: 22,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? FzColors.darkText
+                : FzColors.lightText,
+            letterSpacing: 1.0,
+          ),
         ),
         const SizedBox(height: 16),
         Expanded(
@@ -432,7 +553,9 @@ class ClubFanZoneView extends StatelessWidget {
               itemCount: rows.length + (rows.length > 3 ? 1 : 0),
               separatorBuilder: (_, separatorIndex) => Divider(
                 height: 1,
-                color: Theme.of(context).brightness == Brightness.dark ? FzColors.darkBorder : FzColors.lightBorder,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? FzColors.darkBorder
+                    : FzColors.lightBorder,
               ),
               itemBuilder: (context, index) {
                 if (rows.length > 3 && index == 3) {
@@ -444,11 +567,20 @@ class ClubFanZoneView extends StatelessWidget {
                     child: Text(
                       '...',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Theme.of(context).brightness == Brightness.dark ? FzColors.darkMuted : FzColors.lightMuted, letterSpacing: 1.2),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? FzColors.darkMuted
+                            : FzColors.lightMuted,
+                        letterSpacing: 1.2,
+                      ),
                     ),
                   );
                 }
-                final row = rows.length > 3 && index > 3 ? rows.last : rows[index];
+                final row = rows.length > 3 && index > 3
+                    ? rows.last
+                    : rows[index];
                 return _FanLeaderboardRow(row: row);
               },
             ),
@@ -477,15 +609,26 @@ class _FanLeaderboardRow extends StatelessWidget {
               '${row.rank}',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 14, fontWeight: FontWeight.w700,
-                color: row.rank <= 3 ? FzColors.coral : Theme.of(context).brightness == Brightness.dark ? FzColors.darkMuted : FzColors.lightMuted,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: row.rank <= 3
+                    ? FzColors.coral
+                    : Theme.of(context).brightness == Brightness.dark
+                    ? FzColors.darkMuted
+                    : FzColors.lightMuted,
               ),
             ),
           ),
           const SizedBox(width: 14),
           Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? FzColors.darkSurface3 : FzColors.lightSurface3, shape: BoxShape.circle),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? FzColors.darkSurface3
+                  : FzColors.lightSurface3,
+              shape: BoxShape.circle,
+            ),
             alignment: Alignment.center,
             child: const Text('👤', style: TextStyle(fontSize: 14)),
           ),
@@ -493,10 +636,21 @@ class _FanLeaderboardRow extends StatelessWidget {
           Expanded(
             child: Text(
               row.isMe ? '${row.label} (You)' : row.label,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: row.isMe ? FzColors.primary : null),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: row.isMe ? FzColors.primary : null,
+              ),
             ),
           ),
-          Text(row.points, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: FzColors.coral)),
+          Text(
+            row.meta,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: FzColors.coral,
+            ),
+          ),
         ],
       ),
     );

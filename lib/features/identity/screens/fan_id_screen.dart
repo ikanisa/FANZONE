@@ -271,9 +271,9 @@ class _CopyButton extends StatelessWidget {
       onTap: () async {
         await Clipboard.setData(ClipboardData(text: fanId));
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fan ID copied')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Fan ID copied')));
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -394,11 +394,7 @@ class _RulesCard extends StatelessWidget {
               builder: (context, constraints) {
                 final useTwoColumns = constraints.maxWidth >= 540;
                 final items = _fanIdRules
-                    .map(
-                      (rule) => _RuleItem(
-                        text: rule,
-                      ),
-                    )
+                    .map((rule) => _RuleItem(text: rule))
                     .toList();
 
                 if (!useTwoColumns) {
@@ -437,7 +433,11 @@ class _RulesCard extends StatelessWidget {
                     Expanded(
                       child: Column(
                         children: [
-                          for (int index = 0; index < right.length; index++) ...[
+                          for (
+                            int index = 0;
+                            index < right.length;
+                            index++
+                          ) ...[
                             right[index],
                             if (index < right.length - 1)
                               const SizedBox(height: 14),

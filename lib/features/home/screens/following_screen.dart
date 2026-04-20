@@ -126,9 +126,13 @@ class _FollowingScreenState extends ConsumerState<FollowingScreen>
                       label: const Text('Explore All Teams'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: FzColors.primary,
-                        side: BorderSide(color: FzColors.primary.withValues(alpha: 0.3)),
+                        side: BorderSide(
+                          color: FzColors.primary.withValues(alpha: 0.3),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
@@ -192,19 +196,30 @@ class _FollowedMatchesTab extends ConsumerWidget {
     return matchesAsync.when(
       data: (allMatches) {
         final start = DateTime.now();
-        final end = DateTime(start.year, start.month, start.day).add(const Duration(days: 8));
+        final end = DateTime(
+          start.year,
+          start.month,
+          start.day,
+        ).add(const Duration(days: 8));
         final filtered = allMatches.where((match) {
-          final inWindow = !match.date.isBefore(DateTime(start.year, start.month, start.day)) && match.date.isBefore(end);
+          final inWindow =
+              !match.date.isBefore(
+                DateTime(start.year, start.month, start.day),
+              ) &&
+              match.date.isBefore(end);
           if (!inWindow) return false;
           return favourites.isCompetitionFavourite(match.competitionId) ||
-              (match.homeTeamId != null && favourites.isTeamFavourite(match.homeTeamId!)) ||
-              (match.awayTeamId != null && favourites.isTeamFavourite(match.awayTeamId!));
-        }).toList()
-          ..sort((a, b) => a.date.compareTo(b.date));
+              (match.homeTeamId != null &&
+                  favourites.isTeamFavourite(match.homeTeamId!)) ||
+              (match.awayTeamId != null &&
+                  favourites.isTeamFavourite(match.awayTeamId!));
+        }).toList()..sort((a, b) => a.date.compareTo(b.date));
 
         if (filtered.isEmpty) {
           return StateView.empty(
-            title: favourites.isEmpty ? 'No teams followed yet' : 'No upcoming matches',
+            title: favourites.isEmpty
+                ? 'No teams followed yet'
+                : 'No upcoming matches',
             subtitle: favourites.isEmpty
                 ? 'Follow teams and competitions to see their matches here.'
                 : 'Your followed teams have no matches in the next 7 days.',

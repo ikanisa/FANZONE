@@ -70,8 +70,7 @@ class MatchAiAnalysis {
   }
 
   /// Whether the analysis is still valid (before match kickoff).
-  bool get isValid =>
-      expiresAt == null || expiresAt!.isAfter(DateTime.now());
+  bool get isValid => expiresAt == null || expiresAt!.isAfter(DateTime.now());
 
   /// Human-readable confidence percentage.
   String get confidenceLabel {

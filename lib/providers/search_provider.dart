@@ -7,8 +7,8 @@ import '../models/search_result_model.dart';
 
 final searchProvider = FutureProvider.family.autoDispose<SearchResults, String>(
   (ref, rawQuery) async {
-    return ref.read(searchCatalogGatewayProvider).search(
-      SearchQueryDto(rawQuery.sanitisedForSearch),
-    );
+    return ref
+        .read(searchCatalogGatewayProvider)
+        .search(SearchQueryDto(rawQuery.sanitisedForSearch));
   },
 );

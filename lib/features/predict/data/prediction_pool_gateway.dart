@@ -1,4 +1,3 @@
-
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/pool.dart';
@@ -42,7 +41,11 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
   @override
   Future<List<ScorePool>> getPools() async {
     final client = _connection.client;
-    if (client == null) return _seededPools();
+    if (client == null) {
+      final seeded = _seededPools();
+      if (seeded.isNotEmpty) return seeded;
+      throwPredictUnavailable('Pools');
+    }
 
     try {
       final rows = await client
@@ -57,7 +60,9 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
       return pools;
     } catch (error) {
       AppLogger.d('Failed to load pools: $error');
-      return _seededPools();
+      final seeded = _seededPools();
+      if (seeded.isNotEmpty) return seeded;
+      throwPredictUnavailable('Pools');
     }
   }
 
@@ -110,7 +115,9 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
   Future<List<PoolEntry>> getMyEntries(String userId) async {
     final client = _connection.client;
     if (client == null) {
-      return _cachedEntries(userId);
+      final cached = _cachedEntries(userId);
+      if (cached.isNotEmpty) return cached;
+      throwPredictUnavailable('Pool history');
     }
 
     try {
@@ -126,7 +133,9 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
       return entries;
     } catch (error) {
       AppLogger.d('Failed to load pool entries: $error');
-      return _cachedEntries(userId);
+      final cached = _cachedEntries(userId);
+      if (cached.isNotEmpty) return cached;
+      throwPredictUnavailable('Pool history');
     }
   }
 

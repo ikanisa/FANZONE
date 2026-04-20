@@ -1,6 +1,14 @@
-import { type Schema, Type } from "npm:@google/genai";
-
 import { EVENT_TYPES, MATCH_PHASES, MATCH_STATES } from "./constants.ts";
+
+type Schema = Record<string, unknown>;
+
+const Type = {
+  OBJECT: "OBJECT",
+  INTEGER: "INTEGER",
+  STRING: "STRING",
+  ARRAY: "ARRAY",
+  NUMBER: "NUMBER",
+} as const;
 
 const eventItemSchema: Schema = {
   type: Type.OBJECT,

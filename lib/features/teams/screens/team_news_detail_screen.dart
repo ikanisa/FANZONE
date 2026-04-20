@@ -42,8 +42,9 @@ class TeamNewsDetailScreen extends ConsumerWidget {
             actions: [
               if (article.sourceUrl != null)
                 IconButton(
-                  onPressed: () =>
-                      SharePlus.instance.share(ShareParams(text: article.sourceUrl!)),
+                  onPressed: () => SharePlus.instance.share(
+                    ShareParams(text: article.sourceUrl!),
+                  ),
                   icon: const Icon(Icons.share_rounded, size: 20),
                 ),
             ],
@@ -60,7 +61,11 @@ class TeamNewsDetailScreen extends ConsumerWidget {
                     const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(LucideIcons.sparkles, size: 13, color: FzColors.violet),
+                        Icon(
+                          LucideIcons.sparkles,
+                          size: 13,
+                          color: FzColors.violet,
+                        ),
                         SizedBox(width: 4),
                         Text(
                           'AI Curated',
@@ -92,7 +97,11 @@ class TeamNewsDetailScreen extends ConsumerWidget {
               Row(
                 children: [
                   if (article.sourceName != null) ...[
-                    const Icon(LucideIcons.globe, size: 13, color: FzColors.primary),
+                    const Icon(
+                      LucideIcons.globe,
+                      size: 13,
+                      color: FzColors.primary,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       article.sourceName!,
@@ -113,7 +122,9 @@ class TeamNewsDetailScreen extends ConsumerWidget {
               ),
 
               const SizedBox(height: 24),
-              Divider(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
+              Divider(
+                color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+              ),
               const SizedBox(height: 24),
 
               // Summary
@@ -121,7 +132,9 @@ class TeamNewsDetailScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: FzColors.primary.withValues(alpha: isDark ? 0.06 : 0.04),
+                    color: FzColors.primary.withValues(
+                      alpha: isDark ? 0.06 : 0.04,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: FzColors.primary.withValues(alpha: 0.15),
@@ -157,7 +170,9 @@ class TeamNewsDetailScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+                    color: isDark
+                        ? FzColors.darkSurface2
+                        : FzColors.lightSurface2,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -180,9 +195,7 @@ class TeamNewsDetailScreen extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Scaffold(
-        body: FzGlassLoader(message: 'Syncing...'),
-      ),
+      loading: () => const Scaffold(body: FzGlassLoader(message: 'Syncing...')),
       error: (_, _) => Scaffold(
         appBar: AppBar(),
         body: StateView.error(
@@ -195,8 +208,18 @@ class TeamNewsDetailScreen extends ConsumerWidget {
 
   String _formatDate(DateTime date) {
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }

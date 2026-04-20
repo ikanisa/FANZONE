@@ -51,10 +51,7 @@ class FETDisplay extends ConsumerWidget {
         ? formatFETSigned(amount, currency, positive: positive)
         : formatFET(amount, currency);
 
-    return Text(
-      text,
-      style: style ?? fetStyle,
-    );
+    return Text(text, style: style ?? fetStyle);
   }
 }
 
@@ -93,8 +90,7 @@ class FETDisplaySpan extends ConsumerWidget {
     if (info.decimals == 0) {
       localStr = '${info.symbol} ${_formatNumber(localAmount.round())}';
     } else {
-      localStr =
-          '${info.symbol}${localAmount.toStringAsFixed(info.decimals)}';
+      localStr = '${info.symbol}${localAmount.toStringAsFixed(info.decimals)}';
     }
 
     final sign = showSign ? (positive ? '+ ' : '- ') : '';
@@ -107,8 +103,8 @@ class FETDisplaySpan extends ConsumerWidget {
             style: FzTypography.score(
               size: fontSize,
               weight: fontWeight,
-              color: fetColor ??
-                  (isDark ? FzColors.darkText : FzColors.lightText),
+              color:
+                  fetColor ?? (isDark ? FzColors.darkText : FzColors.lightText),
             ),
           ),
           TextSpan(
@@ -139,11 +135,7 @@ class FETDisplaySpan extends ConsumerWidget {
 ///
 /// Renders: "FET 15,000 (€150)" in a styled pill container.
 class FETBalancePill extends ConsumerWidget {
-  const FETBalancePill({
-    super.key,
-    required this.balance,
-    this.onTap,
-  });
+  const FETBalancePill({super.key, required this.balance, this.onTap});
 
   final int balance;
   final VoidCallback? onTap;
@@ -166,9 +158,7 @@ class FETBalancePill extends ConsumerWidget {
             ],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: FzColors.primary.withValues(alpha: 0.3),
-          ),
+          border: Border.all(color: FzColors.primary.withValues(alpha: 0.3)),
         ),
         child: Text(
           formatFET(balance, currency),

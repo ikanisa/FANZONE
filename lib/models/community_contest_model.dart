@@ -45,7 +45,8 @@ class CommunityContest {
       awayAccuracyAvg: (json['away_accuracy_avg'] as num?)?.toDouble() ?? 0,
       winningFanClub: json['winning_fan_club'] as String?,
       createdAt: DateTime.parse(
-          json['created_at'] as String? ?? DateTime.now().toIso8601String()),
+        json['created_at'] as String? ?? DateTime.now().toIso8601String(),
+      ),
       settledAt: json['settled_at'] != null
           ? DateTime.tryParse(json['settled_at'] as String)
           : null,
@@ -91,7 +92,8 @@ class ContestEntry {
       predictedAwayScore: json['predicted_away_score'] as int,
       accuracyScore: (json['accuracy_score'] as num?)?.toDouble(),
       createdAt: DateTime.parse(
-          json['created_at'] as String? ?? DateTime.now().toIso8601String()),
+        json['created_at'] as String? ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 

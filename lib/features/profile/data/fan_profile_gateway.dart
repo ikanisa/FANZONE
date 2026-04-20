@@ -1,4 +1,3 @@
-
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/fan_identity_model.dart';
@@ -125,15 +124,21 @@ class SupabaseFanProfileGateway implements FanProfileGateway {
   }
 
   List<FanLevel> _fallbackFanLevels() {
-    return allowEngagementSeedFallback ? fallbackFanLevels() : const <FanLevel>[];
+    return allowEngagementSeedFallback
+        ? fallbackFanLevels()
+        : const <FanLevel>[];
   }
 
   List<FanBadge> _fallbackFanBadges() {
-    return allowEngagementSeedFallback ? fallbackFanBadges() : const <FanBadge>[];
+    return allowEngagementSeedFallback
+        ? fallbackFanBadges()
+        : const <FanBadge>[];
   }
 
   FanProfile? _fallbackFanProfile(String userId) {
-    return allowEngagementSeedFallback ? fallbackFanProfileOrNull(userId) : null;
+    return allowEngagementSeedFallback
+        ? fallbackFanProfileOrNull(userId)
+        : null;
   }
 
   List<EarnedBadge> _fallbackEarnedBadges(String userId) {

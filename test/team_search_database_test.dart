@@ -114,19 +114,13 @@ void main() {
       final results = popularTeamsForRegion('africa');
       expect(results, isNotEmpty);
       // Should contain African teams
-      expect(
-        results.any((t) => t.region == 'africa'),
-        isTrue,
-      );
+      expect(results.any((t) => t.region == 'africa'), isTrue);
     });
 
     test('returns regional popular teams for malta', () {
       final results = popularTeamsForRegion('malta');
       expect(results, isNotEmpty);
-      expect(
-        results.any((t) => t.region == 'malta'),
-        isTrue,
-      );
+      expect(results.any((t) => t.region == 'malta'), isTrue);
     });
 
     test('pads sparse regions with global popular teams', () {
@@ -136,7 +130,13 @@ void main() {
     });
 
     test('returns at least 8 teams for any region', () {
-      for (final region in ['global', 'europe', 'africa', 'malta', 'americas']) {
+      for (final region in [
+        'global',
+        'europe',
+        'africa',
+        'malta',
+        'americas',
+      ]) {
         final results = popularTeamsForRegion(region);
         expect(
           results.length,

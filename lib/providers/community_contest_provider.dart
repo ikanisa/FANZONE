@@ -24,7 +24,9 @@ final userContestEntryProvider = FutureProvider.family
     .autoDispose<ContestEntry?, String>((ref, contestId) async {
       final user = ref.watch(currentUserProvider);
       if (user == null) return null;
-      return ref.read(contestGatewayProvider).getUserContestEntry(contestId, user.id);
+      return ref
+          .read(contestGatewayProvider)
+          .getUserContestEntry(contestId, user.id);
     });
 
 final settledContestsProvider =

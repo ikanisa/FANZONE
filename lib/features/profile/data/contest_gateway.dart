@@ -1,4 +1,3 @@
-
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/community_contest_model.dart';

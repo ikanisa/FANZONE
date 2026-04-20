@@ -89,8 +89,11 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(LucideIcons.messageCircle, size: 32,
-                          color: muted.withValues(alpha: 0.5)),
+                      Icon(
+                        LucideIcons.messageCircle,
+                        size: 32,
+                        color: muted.withValues(alpha: 0.5),
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         'No messages yet',
@@ -107,12 +110,15 @@ class _FeedChatState extends ConsumerState<FeedChat> {
 
               return ListView.builder(
                 reverse: true,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   final message = messages[index];
-                  final isOwn = message.userId ==
-                      ref.read(currentUserProvider)?.id;
+                  final isOwn =
+                      message.userId == ref.read(currentUserProvider)?.id;
                   return _MessageBubble(
                     message: message,
                     isOwn: isOwn,
@@ -160,7 +166,8 @@ class _FeedChatState extends ConsumerState<FeedChat> {
               color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
               border: Border(
                 top: BorderSide(
-                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                ),
               ),
             ),
             child: SafeArea(
@@ -189,7 +196,9 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                             ? FzColors.darkSurface3
                             : FzColors.lightSurface3,
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
                       ),
                       style: const TextStyle(fontSize: 13),
                     ),
@@ -270,7 +279,11 @@ class _MessageBubble extends StatelessWidget {
         child: Center(
           child: Text(
             message.content,
-            style: TextStyle(fontSize: 11, color: muted, fontStyle: FontStyle.italic),
+            style: TextStyle(
+              fontSize: 11,
+              color: muted,
+              fontStyle: FontStyle.italic,
+            ),
           ),
         ),
       );
@@ -323,7 +336,9 @@ class _MessageBubble extends StatelessWidget {
                     onTap: () => onReact(entry.key),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: isDark
                             ? FzColors.darkSurface3

@@ -50,14 +50,25 @@ class PoolStatusHeroCard extends ConsumerWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('LOCK TIME', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1)),
+                    Text(
+                      'LOCK TIME',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: muted,
+                        letterSpacing: 1,
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(LucideIcons.clock, size: 12, color: muted),
                         const SizedBox(width: 4),
-                        Text(lockTimeFormatted, style: FzTypography.scoreCompact(color: textColor)),
+                        Text(
+                          lockTimeFormatted,
+                          style: FzTypography.scoreCompact(color: textColor),
+                        ),
                       ],
                     ),
                   ],
@@ -65,22 +76,44 @@ class PoolStatusHeroCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 20),
-            Text(pool.matchName, style: FzTypography.display(size: 28, color: textColor), textAlign: TextAlign.center),
+            Text(
+              pool.matchName,
+              style: FzTypography.display(size: 28, color: textColor),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isDark ? FzColors.darkSurface3 : FzColors.lightSurface2,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
+                border: Border.all(
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                ),
               ),
               child: Wrap(
-                spacing: 8, runSpacing: 4,
+                spacing: 8,
+                runSpacing: 4,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 alignment: WrapAlignment.center,
                 children: [
-                  Text('STAKE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1)),
-                  Text(formatFET(pool.stake, currency), style: FzTypography.score(size: 18, weight: FontWeight.w700, color: FzColors.amber)),
+                  Text(
+                    'STAKE',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: muted,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  Text(
+                    formatFET(pool.stake, currency),
+                    style: FzTypography.score(
+                      size: 18,
+                      weight: FontWeight.w700,
+                      color: FzColors.amber,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -88,9 +121,29 @@ class PoolStatusHeroCard extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: PoolStatCard(icon: LucideIcons.zap, iconColor: FzColors.primary, label: 'TOTAL POOL', value: formatFET(pool.totalPool, currency), isDark: isDark, muted: muted, textColor: textColor)),
+                Expanded(
+                  child: PoolStatCard(
+                    icon: LucideIcons.zap,
+                    iconColor: FzColors.primary,
+                    label: 'TOTAL POOL',
+                    value: formatFET(pool.totalPool, currency),
+                    isDark: isDark,
+                    muted: muted,
+                    textColor: textColor,
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: PoolStatCard(icon: LucideIcons.users, iconColor: FzColors.violet, label: 'PARTICIPANTS', value: '${pool.participantsCount}', isDark: isDark, muted: muted, textColor: textColor)),
+                Expanded(
+                  child: PoolStatCard(
+                    icon: LucideIcons.users,
+                    iconColor: FzColors.violet,
+                    label: 'PARTICIPANTS',
+                    value: '${pool.participantsCount}',
+                    isDark: isDark,
+                    muted: muted,
+                    textColor: textColor,
+                  ),
+                ),
               ],
             ),
           ],
@@ -102,11 +155,15 @@ class PoolStatusHeroCard extends ConsumerWidget {
 
 FzBadgeVariant _statusBadgeVariant(String status) {
   switch (status) {
-    case 'open': return FzBadgeVariant.accent;
-    case 'settled': return FzBadgeVariant.accent3;
+    case 'open':
+      return FzBadgeVariant.accent;
+    case 'settled':
+      return FzBadgeVariant.accent3;
     case 'locked':
-    case 'void': return FzBadgeVariant.ghost;
-    default: return FzBadgeVariant.outline;
+    case 'void':
+      return FzBadgeVariant.ghost;
+    default:
+      return FzBadgeVariant.outline;
   }
 }
 
@@ -136,7 +193,15 @@ class PoolCreatorCard extends StatelessWidget {
               children: [
                 Icon(LucideIcons.swords, size: 14, color: muted),
                 const SizedBox(width: 6),
-                Text('CREATED BY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1)),
+                Text(
+                  'CREATED BY',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: muted,
+                    letterSpacing: 1,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -144,19 +209,59 @@ class PoolCreatorCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: isDark ? FzColors.darkSurface3 : FzColors.lightSurface3,
-                  child: Text(pool.creatorName.isNotEmpty ? pool.creatorName[0].toUpperCase() : '?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: textColor)),
+                  backgroundColor: isDark
+                      ? FzColors.darkSurface3
+                      : FzColors.lightSurface3,
+                  child: Text(
+                    pool.creatorName.isNotEmpty
+                        ? pool.creatorName[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(child: Text(pool.creatorName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: textColor))),
+                Expanded(
+                  child: Text(
+                    pool.creatorName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Flexible(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('PREDICTION', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1)),
+                      Text(
+                        'PREDICTION',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: muted,
+                          letterSpacing: 1,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(pool.creatorPrediction, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: FzTypography.score(size: 16, weight: FontWeight.w700, color: FzColors.primary)),
+                      Text(
+                        pool.creatorPrediction,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: FzTypography.score(
+                          size: 16,
+                          weight: FontWeight.w700,
+                          color: FzColors.primary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -191,14 +296,26 @@ class PoolJoinSection extends ConsumerWidget {
 
     if (pool.status == 'open') {
       return SizedBox(
-        width: double.infinity, height: 52,
+        width: double.infinity,
+        height: 52,
         child: ElevatedButton(
-          onPressed: () => showPoolJoinSheet(context, pool: pool, isDark: isDark, textColor: textColor, muted: muted),
+          onPressed: () => showPoolJoinSheet(
+            context,
+            pool: pool,
+            isDark: isDark,
+            textColor: textColor,
+            muted: muted,
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: FzColors.primary,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(26),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -219,7 +336,17 @@ class PoolJoinSection extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 16),
       color: statusColor.withValues(alpha: 0.1),
       borderColor: statusColor.withValues(alpha: 0.3),
-      child: Center(child: Text('Pool is ${pool.status.toUpperCase()}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: statusColor, letterSpacing: 0.5))),
+      child: Center(
+        child: Text(
+          'Pool is ${pool.status.toUpperCase()}',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: statusColor,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -234,7 +361,10 @@ class PoolChatSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('POOL CHAT', style: FzTypography.sectionLabel(Theme.of(context).brightness)),
+        Text(
+          'POOL CHAT',
+          style: FzTypography.sectionLabel(Theme.of(context).brightness),
+        ),
         const SizedBox(height: 10),
         SizedBox(
           height: 300,
@@ -280,15 +410,32 @@ class PoolStatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? FzColors.darkSurface : FzColors.lightSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
+        border: Border.all(
+          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+        ),
       ),
       child: Column(
         children: [
           Icon(icon, size: 20, color: iconColor),
           const SizedBox(height: 8),
-          Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: muted,
+              letterSpacing: 1,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: FzTypography.score(size: 18, weight: FontWeight.w700, color: textColor)),
+          Text(
+            value,
+            style: FzTypography.score(
+              size: 18,
+              weight: FontWeight.w700,
+              color: textColor,
+            ),
+          ),
         ],
       ),
     );

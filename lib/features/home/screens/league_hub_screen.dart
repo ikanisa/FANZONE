@@ -131,8 +131,7 @@ class LeagueHubScreen extends ConsumerWidget {
           ),
         );
       },
-      loading: () =>
-          const Scaffold(body: ScoresPageSkeleton()),
+      loading: () => const Scaffold(body: ScoresPageSkeleton()),
       error: (error, stack) => Scaffold(
         appBar: AppBar(title: const Text('Competition')),
         body: StateView.error(
@@ -481,7 +480,10 @@ class _LeagueMetricCard extends StatelessWidget {
               style: FzTypography.sectionLabel(Theme.of(context).brightness),
             ),
             const SizedBox(height: 8),
-            Text(value, style: FzTypography.scoreLarge(color: FzColors.primary)),
+            Text(
+              value,
+              style: FzTypography.scoreLarge(color: FzColors.primary),
+            ),
           ],
         ),
       ),

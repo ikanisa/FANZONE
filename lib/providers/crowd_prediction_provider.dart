@@ -9,38 +9,38 @@ import '../core/logging/app_logger.dart';
 /// the percentage breakdown of Home / Draw / Away predictions.
 final crowdPredictionProvider = FutureProvider.family
     .autoDispose<CrowdPrediction?, String>((ref, matchId) async {
-  final connection = ref.read(supabaseConnectionProvider);
-  final client = connection.client;
-  if (client == null) return null;
+      final connection = ref.read(supabaseConnectionProvider);
+      final client = connection.client;
+      if (client == null) return null;
 
-  try {
-    // Aggregate predictions from all entries for pools linked to this match.
-    // We count predictions as: home win = homeScore > awayScore,
-    // away win = awayScore > homeScore, draw = homeScore == awayScore.
-    final rows = await client
-        .from('prediction_challenge_entries')
-        .select('predicted_home_score, predicted_away_score')
-        .eq('match_id', matchId);
+      try {
+        // Aggregate predictions from all entries for pools linked to this match.
+        // We count predictions as: home win = homeScore > awayScore,
+        // away win = awayScore > homeScore, draw = homeScore == awayScore.
+        final rows = await client
+            .from('prediction_challenge_entries')
+            .select('predicted_home_score, predicted_away_score')
+            .eq('match_id', matchId);
 
-    final entries = rows as List;
-    if (entries.isEmpty) {
-      // Try alternative: join through prediction_challenges
-      return await _fetchViaPool(client, matchId);
-    }
+        final entries = rows as List;
+        if (entries.isEmpty) {
+          // Try alternative: join through prediction_challenges
+          return await _fetchViaPool(client, matchId);
+        }
 
-    return _computeDistribution(entries);
-  } catch (error) {
-    AppLogger.d('Crowd prediction query failed, trying via pool: $error');
-    try {
-      return await _fetchViaPool(
-        ref.read(supabaseConnectionProvider).client!,
-        matchId,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-});
+        return _computeDistribution(entries);
+      } catch (error) {
+        AppLogger.d('Crowd prediction query failed, trying via pool: $error');
+        try {
+          return await _fetchViaPool(
+            ref.read(supabaseConnectionProvider).client!,
+            matchId,
+          );
+        } catch (_) {
+          return null;
+        }
+      }
+    });
 
 /// Alternative: Query entries through prediction_challenges table.
 Future<CrowdPrediction?> _fetchViaPool(dynamic client, String matchId) async {
@@ -92,7 +92,9 @@ CrowdPrediction _computeDistribution(List<dynamic> entries) {
   }
 
   final total = home + draw + away;
-  if (total == 0) return const CrowdPrediction(home: 34, draw: 33, away: 33, total: 0);
+  if (total == 0) {
+    return const CrowdPrediction(home: 34, draw: 33, away: 33, total: 0);
+  }
 
   return CrowdPrediction(
     home: (home / total * 100).round().clamp(1, 98),

@@ -13,11 +13,7 @@ import '../../theme/colors.dart';
 /// ```dart
 /// FzNotificationToast.show(context, title: 'Pool Settled!', message: '…', type: FzToastType.poolSettled);
 /// ```
-enum FzToastType {
-  poolReceived,
-  poolSettled,
-  system,
-}
+enum FzToastType { poolReceived, poolSettled, system }
 
 class FzNotificationToast extends StatefulWidget {
   const FzNotificationToast({
@@ -99,9 +95,10 @@ class _FzNotificationToastState extends State<FzNotificationToast>
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.9, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.9,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _controller.forward();
     _autoDismissTimer = Timer(widget.autoDismissDuration, _dismiss);
@@ -169,7 +166,9 @@ class _FzNotificationToastState extends State<FzNotificationToast>
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+                  color: isDark
+                      ? FzColors.darkSurface2
+                      : FzColors.lightSurface2,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: FzColors.primary.withValues(alpha: 0.3),

@@ -238,7 +238,11 @@ class FixtureListItem extends StatelessWidget {
             child: Text(
               match.kickoffTime ?? '--:--',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: muted,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -261,9 +265,19 @@ class FixtureListItem extends StatelessWidget {
           const SizedBox(width: 12),
           Row(
             children: [
-              FixtureActionButton(tooltip: 'Open match', icon: Icons.gps_fixed_rounded, color: FzColors.coral, onTap: onOpenMatch),
+              FixtureActionButton(
+                tooltip: 'Open match',
+                icon: Icons.gps_fixed_rounded,
+                color: FzColors.coral,
+                onTap: onOpenMatch,
+              ),
               const SizedBox(width: 8),
-              FixtureActionButton(tooltip: 'Open pools', icon: Icons.sports_martial_arts_rounded, color: FzColors.primary, onTap: onOpenPools),
+              FixtureActionButton(
+                tooltip: 'Open pools',
+                icon: Icons.sports_martial_arts_rounded,
+                color: FzColors.primary,
+                onTap: onOpenPools,
+              ),
             ],
           ),
         ],
@@ -284,11 +298,14 @@ class _FixtureTeamRow extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 20, height: 20,
+          width: 20,
+          height: 20,
           decoration: BoxDecoration(
             color: isDark ? FzColors.darkBg : FzColors.lightBg,
             shape: BoxShape.circle,
-            border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
+            border: Border.all(
+              color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+            ),
           ),
           child: Center(child: TeamAvatar(name: name, size: 14)),
         ),
@@ -298,7 +315,11 @@ class _FixtureTeamRow extends StatelessWidget {
             name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textColor),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
           ),
         ),
       ],
@@ -328,7 +349,8 @@ class FixtureActionButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
         child: Container(
-          width: 40, height: 40,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,

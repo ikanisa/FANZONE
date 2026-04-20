@@ -25,19 +25,42 @@ class PrivacySettingsHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       decoration: BoxDecoration(
-        color: (isDark ? FzColors.darkSurface : FzColors.lightSurface).withValues(alpha: 0.9),
-        border: Border(bottom: BorderSide(color: isDark ? FzColors.darkBorder : FzColors.lightBorder)),
+        color: (isDark ? FzColors.darkSurface : FzColors.lightSurface)
+            .withValues(alpha: 0.9),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+          ),
+        ),
       ),
       child: Row(
         children: [
-          IconButton(onPressed: onBack, icon: Icon(LucideIcons.chevronLeft, color: textColor)),
+          IconButton(
+            onPressed: onBack,
+            icon: Icon(LucideIcons.chevronLeft, color: textColor),
+          ),
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Settings', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1.4)),
+                Text(
+                  'Settings',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: muted,
+                    letterSpacing: 1.4,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text('Privacy', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: textColor)),
+                Text(
+                  'Privacy',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
               ],
             ),
           ),
@@ -53,7 +76,11 @@ class PrivacySettingsHeader extends StatelessWidget {
 // ──────────────────────────────────────────────
 
 class PrivacySourceCard extends StatelessWidget {
-  const PrivacySourceCard({super.key, required this.child, this.padding = EdgeInsets.zero});
+  const PrivacySourceCard({
+    super.key,
+    required this.child,
+    this.padding = EdgeInsets.zero,
+  });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -66,7 +93,9 @@ class PrivacySourceCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
+        border: Border.all(
+          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+        ),
       ),
       child: child,
     );
@@ -100,14 +129,24 @@ class GuaranteeRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: showDivider ? Border(bottom: BorderSide(color: isDark ? FzColors.darkBorder : FzColors.lightBorder)) : null,
+        border: showDivider
+            ? Border(
+                bottom: BorderSide(
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                ),
+              )
+            : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.1), shape: BoxShape.circle),
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
             child: Icon(icon, size: 20, color: iconColor),
           ),
           const SizedBox(width: 16),
@@ -115,9 +154,18 @@ class GuaranteeRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(description, style: TextStyle(fontSize: 12, color: muted, height: 1.45)),
+                Text(
+                  description,
+                  style: TextStyle(fontSize: 12, color: muted, height: 1.45),
+                ),
               ],
             ),
           ),
@@ -156,7 +204,13 @@ class VisibilityControlRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: showDivider ? Border(bottom: BorderSide(color: isDark ? FzColors.darkBorder : FzColors.lightBorder)) : null,
+        border: showDivider
+            ? Border(
+                bottom: BorderSide(
+                  color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                ),
+              )
+            : null,
       ),
       child: Row(
         children: [
@@ -168,17 +222,35 @@ class VisibilityControlRow extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Flexible(child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700))),
-                      if (!enabled) ...[const SizedBox(width: 8), Icon(LucideIcons.lock, size: 12, color: muted)],
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      if (!enabled) ...[
+                        const SizedBox(width: 8),
+                        Icon(LucideIcons.lock, size: 12, color: muted),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(description, style: TextStyle(fontSize: 12, color: muted, height: 1.45)),
+                  Text(
+                    description,
+                    style: TextStyle(fontSize: 12, color: muted, height: 1.45),
+                  ),
                 ],
               ),
             ),
           ),
-          PrivacyToggle(value: value && enabled, enabled: enabled, onTap: enabled ? () => onChanged(!value) : null),
+          PrivacyToggle(
+            value: value && enabled,
+            enabled: enabled,
+            onTap: enabled ? () => onChanged(!value) : null,
+          ),
         ],
       ),
     );
@@ -190,7 +262,12 @@ class VisibilityControlRow extends StatelessWidget {
 // ──────────────────────────────────────────────
 
 class PrivacyToggle extends StatelessWidget {
-  const PrivacyToggle({super.key, required this.value, required this.enabled, required this.onTap});
+  const PrivacyToggle({
+    super.key,
+    required this.value,
+    required this.enabled,
+    required this.onTap,
+  });
 
   final bool value;
   final bool enabled;
@@ -205,8 +282,12 @@ class PrivacyToggle extends StatelessWidget {
         opacity: enabled ? 1 : 0.5,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          width: 48, height: 24,
-          decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(999)),
+          width: 48,
+          height: 24,
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(999),
+          ),
           child: Stack(
             children: [
               AnimatedPositioned(
@@ -214,7 +295,14 @@ class PrivacyToggle extends StatelessWidget {
                 curve: Curves.easeOutCubic,
                 left: value ? 28 : 4,
                 top: 4,
-                child: Container(width: 16, height: 16, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
               ),
             ],
           ),

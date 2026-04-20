@@ -13,7 +13,9 @@ feedMessagesProvider = StreamProvider.family
 
       final channelType = parts[0];
       final channelId = parts.sublist(1).join(':');
-      return ref.read(feedGatewayProvider).watchFeedMessages(channelType, channelId);
+      return ref
+          .read(feedGatewayProvider)
+          .watchFeedMessages(channelType, channelId);
     });
 
 Future<void> sendFeedMessage(
@@ -23,12 +25,14 @@ Future<void> sendFeedMessage(
   required String content,
   String? replyTo,
 }) {
-  return ref.read(feedGatewayProvider).sendFeedMessage(
-    channelType: channelType,
-    channelId: channelId,
-    content: content,
-    replyTo: replyTo,
-  );
+  return ref
+      .read(feedGatewayProvider)
+      .sendFeedMessage(
+        channelType: channelType,
+        channelId: channelId,
+        content: content,
+        replyTo: replyTo,
+      );
 }
 
 Future<void> reactToMessage(
@@ -36,8 +40,7 @@ Future<void> reactToMessage(
   required String messageId,
   required String emoji,
 }) {
-  return ref.read(feedGatewayProvider).reactToMessage(
-    messageId: messageId,
-    emoji: emoji,
-  );
+  return ref
+      .read(feedGatewayProvider)
+      .reactToMessage(messageId: messageId, emoji: emoji);
 }

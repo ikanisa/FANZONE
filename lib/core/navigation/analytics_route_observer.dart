@@ -57,11 +57,10 @@ class AnalyticsRouteObserver extends NavigatorObserver {
     return normalized.join('_').replaceAll('-', '_');
   }
 
-  static bool _isUuid(String s) =>
-      RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-              caseSensitive: false)
-          .hasMatch(s);
+  static bool _isUuid(String s) => RegExp(
+    r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+    caseSensitive: false,
+  ).hasMatch(s);
 
-  static bool _isNumericId(String s) =>
-      s.isNotEmpty && int.tryParse(s) != null;
+  static bool _isNumericId(String s) => s.isNotEmpty && int.tryParse(s) != null;
 }

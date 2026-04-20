@@ -51,7 +51,8 @@ class AllLeaguesScreen extends ConsumerWidget {
                     hasScrollBody: false,
                     child: StateView.empty(
                       title: 'No other leagues',
-                      subtitle: 'Only the Top 5 European leagues are available right now.',
+                      subtitle:
+                          'Only the Top 5 European leagues are available right now.',
                       icon: LucideIcons.trophy,
                     ),
                   ),
@@ -130,8 +131,7 @@ class AllLeaguesScreen extends ConsumerWidget {
                           index: i,
                           child: _LeagueTile(
                             league: league,
-                            onTap: () =>
-                                context.push('/league/${league.id}'),
+                            onTap: () => context.push('/league/${league.id}'),
                           ),
                         ),
                       );
@@ -148,7 +148,11 @@ class AllLeaguesScreen extends ConsumerWidget {
                 6,
                 (_) => const Padding(
                   padding: EdgeInsets.only(bottom: 8),
-                  child: FzShimmer(width: double.infinity, height: 56, borderRadius: 14),
+                  child: FzShimmer(
+                    width: double.infinity,
+                    height: 56,
+                    borderRadius: 14,
+                  ),
                 ),
               ),
             ),

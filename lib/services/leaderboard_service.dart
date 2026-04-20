@@ -10,7 +10,9 @@ part 'leaderboard_service.g.dart';
 class GlobalLeaderboard extends _$GlobalLeaderboard {
   @override
   FutureOr<List<Map<String, dynamic>>> build() async {
-    final rows = await ref.read(leaderboardGatewayProvider).getGlobalLeaderboard();
+    final rows = await ref
+        .read(leaderboardGatewayProvider)
+        .getGlobalLeaderboard();
     return rows;
   }
 }

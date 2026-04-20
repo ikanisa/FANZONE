@@ -66,21 +66,25 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
         final fans = fansAsync.valueOrNull ?? const <AnonymousFanRecord>[];
         final clubRank = _computeClubRank(teamsAsync.valueOrNull, team.id);
         final isSupported = supportedIds.contains(team.id);
-        final primaryCompetition = _resolvePrimaryCompetition(team, competitions);
+        final primaryCompetition = _resolvePrimaryCompetition(
+          team,
+          competitions,
+        );
 
         return Scaffold(
           backgroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,
           body: SafeArea(
             child: Column(
               children: [
-                TeamProfileHeader(
-                  onBack: () => context.go('/memberships'),
-                ),
+                TeamProfileHeader(onBack: () => context.go('/memberships')),
                 Expanded(
                   child: ListView(
                     padding: EdgeInsets.zero,
                     children: [
-                      TeamHeroBanner(team: team, competition: primaryCompetition),
+                      TeamHeroBanner(
+                        team: team,
+                        competition: primaryCompetition,
+                      ),
                       TeamInfoSection(
                         team: team,
                         stats: stats,
@@ -115,9 +119,7 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
           ),
         );
       },
-      loading: () => const Scaffold(
-        body: FzGlassLoader(message: 'Syncing...'),
-      ),
+      loading: () => const Scaffold(body: FzGlassLoader(message: 'Syncing...')),
       error: (error, _) => _buildStateScaffold(
         context,
         child: StateView.error(
@@ -135,9 +137,7 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            TeamProfileHeader(
-              onBack: () => context.go('/memberships'),
-            ),
+            TeamProfileHeader(onBack: () => context.go('/memberships')),
             Expanded(child: child),
           ],
         ),
@@ -159,8 +159,7 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
 
   int _computeClubRank(List<TeamModel>? teams, String teamId) {
     if (teams == null || teams.isEmpty) return 1;
-    final sorted = [...teams]
-      ..sort((a, b) => b.fanCount.compareTo(a.fanCount));
+    final sorted = [...teams]..sort((a, b) => b.fanCount.compareTo(a.fanCount));
     final index = sorted.indexWhere((team) => team.id == teamId);
     return index >= 0 ? index + 1 : 1;
   }
@@ -174,6 +173,8 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
       context.go('/login');
       return;
     }
-    await ref.read(supportedTeamsServiceProvider.notifier).toggleSupport(team.id);
+    await ref
+        .read(supportedTeamsServiceProvider.notifier)
+        .toggleSupport(team.id);
   }
 }

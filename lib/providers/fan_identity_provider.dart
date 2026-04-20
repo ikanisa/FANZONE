@@ -16,7 +16,9 @@ final fanProfileProvider = FutureProvider.autoDispose<FanProfile?>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) return null;
 
-  final profile = await ref.read(fanProfileGatewayProvider).getFanProfile(user.id);
+  final profile = await ref
+      .read(fanProfileGatewayProvider)
+      .getFanProfile(user.id);
   if (profile == null) return null;
 
   final levels = ref.read(fanLevelsProvider).valueOrNull ?? [];

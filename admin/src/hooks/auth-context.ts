@@ -1,10 +1,10 @@
 import { createContext } from 'react';
-import type { Session } from '@supabase/supabase-js';
 
+import type { AdminSessionSnapshot } from '../lib/supabase';
 import type { AdminUser } from '../types';
 
 export interface AuthState {
-  session: Session | null;
+  session: AdminSessionSnapshot | null;
   admin: AdminUser | null;
   isLoading: boolean;
   error: string | null;

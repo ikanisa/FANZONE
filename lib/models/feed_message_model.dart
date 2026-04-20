@@ -30,8 +30,9 @@ class FeedMessage {
     final reactions = <String, int>{};
     if (rawReactions is Map) {
       for (final entry in rawReactions.entries) {
-        reactions[entry.key.toString()] =
-            (entry.value is int) ? entry.value : int.tryParse('${entry.value}') ?? 0;
+        reactions[entry.key.toString()] = (entry.value is int)
+            ? entry.value
+            : int.tryParse('${entry.value}') ?? 0;
       }
     }
 
@@ -46,7 +47,8 @@ class FeedMessage {
       reactions: reactions,
       isDeleted: json['is_deleted'] as bool? ?? false,
       createdAt: DateTime.parse(
-          json['created_at'] as String? ?? DateTime.now().toIso8601String()),
+        json['created_at'] as String? ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 

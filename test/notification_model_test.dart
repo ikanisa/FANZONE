@@ -24,10 +24,7 @@ void main() {
     });
 
     test('fromJson with readAt', () {
-      final readJson = {
-        ...json,
-        'readAt': '2026-04-18T15:00:00.000Z',
-      };
+      final readJson = {...json, 'readAt': '2026-04-18T15:00:00.000Z'};
       final notif = NotificationItem.fromJson(readJson);
       expect(notif.readAt, isNotNull);
     });

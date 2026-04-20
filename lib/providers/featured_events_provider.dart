@@ -9,15 +9,16 @@ import '../providers/region_provider.dart';
 final featuredEventsProvider =
     FutureProvider.autoDispose<List<FeaturedEventModel>>((ref) async {
       ref.keepAlive();
-      return ref.read(eventCatalogGatewayProvider).getFeaturedEvents(activeOnly: true);
+      return ref
+          .read(eventCatalogGatewayProvider)
+          .getFeaturedEvents(activeOnly: true);
     });
 
 final upcomingFeaturedEventsProvider =
     FutureProvider.autoDispose<List<FeaturedEventModel>>((ref) async {
-      return ref.read(eventCatalogGatewayProvider).getFeaturedEvents(
-        upcomingOnly: true,
-        limit: 5,
-      );
+      return ref
+          .read(eventCatalogGatewayProvider)
+          .getFeaturedEvents(upcomingOnly: true, limit: 5);
     });
 
 final allVisibleEventsProvider =
@@ -29,30 +30,31 @@ final allVisibleEventsProvider =
 
 final featuredEventByTagProvider = FutureProvider.family
     .autoDispose<FeaturedEventModel?, String>((ref, eventTag) async {
-      return ref.read(eventCatalogGatewayProvider).getFeaturedEventByTag(eventTag);
+      return ref
+          .read(eventCatalogGatewayProvider)
+          .getFeaturedEventByTag(eventTag);
     });
 
 final globalChallengesProvider = FutureProvider.family
     .autoDispose<List<GlobalChallengeModel>, String?>((ref, eventTag) async {
-      return ref.read(eventCatalogGatewayProvider).getGlobalChallenges(
-        eventTag: eventTag,
-      );
+      return ref
+          .read(eventCatalogGatewayProvider)
+          .getGlobalChallenges(eventTag: eventTag);
     });
 
 final homeChallengesProvider =
     FutureProvider.autoDispose<List<GlobalChallengeModel>>((ref) async {
       final regionValues = ref.watch(userRegionQueryValuesProvider);
-      return ref.read(eventCatalogGatewayProvider).getGlobalChallenges(
-        regionValues: regionValues,
-        limit: 5,
-      );
+      return ref
+          .read(eventCatalogGatewayProvider)
+          .getGlobalChallenges(regionValues: regionValues, limit: 5);
     });
 
 final featuredCompetitionsProvider =
     FutureProvider.autoDispose<List<CompetitionModel>>((ref) async {
-      return ref.read(competitionCatalogGatewayProvider).getCompetitions(
-        featuredOnly: true,
-      );
+      return ref
+          .read(competitionCatalogGatewayProvider)
+          .getCompetitions(featuredOnly: true);
     });
 
 final majorCompetitionsProvider =

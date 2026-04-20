@@ -63,8 +63,22 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     ),
                   ),
                   InkWell(
-                    onTap: () =>
-                        ref.read(notificationServiceProvider.notifier).markAllRead(),
+                    onTap: () async {
+                      try {
+                        await ref
+                            .read(notificationServiceProvider.notifier)
+                            .markAllRead();
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Could not mark all notifications as read.',
+                            ),
+                          ),
+                        );
+                      }
+                    },
                     borderRadius: BorderRadius.circular(999),
                     child: Container(
                       width: 40,
@@ -75,8 +89,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             : FzColors.lightSurface2,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color:
-                              isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                          color: isDark
+                              ? FzColors.darkBorder
+                              : FzColors.lightBorder,
                         ),
                       ),
                       alignment: Alignment.center,
@@ -113,12 +128,24 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: GestureDetector(
-                          onTap: () {
+                          onTap: () async {
                             if (isUnread) {
-                              ref
-                                  .read(notificationServiceProvider.notifier)
-                                  .markAsRead(item.id);
+                              try {
+                                await ref
+                                    .read(notificationServiceProvider.notifier)
+                                    .markAsRead(item.id);
+                              } catch (_) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Could not update notification status.',
+                                    ),
+                                  ),
+                                );
+                              }
                             }
+                            if (!context.mounted) return;
                             _handleNotificationTap(context, item);
                           },
                           child: FzCard(
@@ -131,18 +158,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                   height: 40,
                                   decoration: BoxDecoration(
                                     color: isUnread
-                                        ? _colorForType(item.type).withValues(
-                                            alpha: 0.1,
-                                          )
+                                        ? _colorForType(
+                                            item.type,
+                                          ).withValues(alpha: 0.1)
                                         : (isDark
                                               ? FzColors.darkSurface2
                                               : FzColors.lightSurface2),
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isUnread
-                                          ? _colorForType(item.type).withValues(
-                                              alpha: 0.2,
-                                            )
+                                          ? _colorForType(
+                                              item.type,
+                                            ).withValues(alpha: 0.2)
                                           : (isDark
                                                 ? FzColors.darkBorder
                                                 : FzColors.lightBorder),
@@ -157,7 +184,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [

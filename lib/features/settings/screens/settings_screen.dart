@@ -148,37 +148,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const _SectionHeader(title: 'Developer'),
-            const SizedBox(height: 8),
-            FzCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  _SettingsLink(
-                    icon: LucideIcons.bug,
-                    label: 'Test: Pool Received',
-                    muted: muted,
-                    textColor: textColor,
-                    onTap: () => _showDeveloperStub(
-                      context,
-                      'Developer test notifications should be triggered from the backend notification pipeline.',
-                    ),
-                  ),
-                  const _Divider(),
-                  _SettingsLink(
-                    icon: LucideIcons.bug,
-                    label: 'Test: Pool Settled',
-                    muted: muted,
-                    textColor: textColor,
-                    onTap: () => _showDeveloperStub(
-                      context,
-                      'Use the live notification log or seeded backend events to validate the settled flow.',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
             const _SectionHeader(title: 'Support'),
             const SizedBox(height: 8),
             FzCard(
@@ -236,15 +205,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _updatePrefs(NotificationPreferences prefs) async {
-    await ref
-        .read(notificationServiceProvider.notifier)
-        .updatePreferences(prefs);
-  }
-
-  void _showDeveloperStub(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    try {
+      await ref
+          .read(notificationServiceProvider.notifier)
+          .updatePreferences(prefs);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not save notification preferences right now.'),
+        ),
+      );
+    }
   }
 
   static Future<void> _launchUrl(BuildContext context, String url) async {

@@ -17,7 +17,11 @@ enum MembershipFilter { myClubs, malta, european }
 // ──────────────────────────────────────────────
 
 class MembershipTabBar extends StatelessWidget {
-  const MembershipTabBar({super.key, required this.filter, required this.onChanged});
+  const MembershipTabBar({
+    super.key,
+    required this.filter,
+    required this.onChanged,
+  });
 
   final MembershipFilter filter;
   final ValueChanged<MembershipFilter> onChanged;
@@ -30,15 +34,31 @@ class MembershipTabBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: background,
         border: Border(
-          top: BorderSide(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
-          bottom: BorderSide(color: isDark ? FzColors.darkBorder : FzColors.lightBorder),
+          top: BorderSide(
+            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+          ),
+          bottom: BorderSide(
+            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+          ),
         ),
       ),
       child: Row(
         children: [
-          _TabButton(label: 'My Clubs', selected: filter == MembershipFilter.myClubs, onTap: () => onChanged(MembershipFilter.myClubs)),
-          _TabButton(label: 'Malta', selected: filter == MembershipFilter.malta, onTap: () => onChanged(MembershipFilter.malta)),
-          _TabButton(label: 'European Fan Clubs', selected: filter == MembershipFilter.european, onTap: () => onChanged(MembershipFilter.european)),
+          _TabButton(
+            label: 'My Clubs',
+            selected: filter == MembershipFilter.myClubs,
+            onTap: () => onChanged(MembershipFilter.myClubs),
+          ),
+          _TabButton(
+            label: 'Malta',
+            selected: filter == MembershipFilter.malta,
+            onTap: () => onChanged(MembershipFilter.malta),
+          ),
+          _TabButton(
+            label: 'European Fan Clubs',
+            selected: filter == MembershipFilter.european,
+            onTap: () => onChanged(MembershipFilter.european),
+          ),
         ],
       ),
     );
@@ -46,7 +66,11 @@ class MembershipTabBar extends StatelessWidget {
 }
 
 class _TabButton extends StatelessWidget {
-  const _TabButton({required this.label, required this.selected, required this.onTap});
+  const _TabButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -62,9 +86,21 @@ class _TabButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
           decoration: BoxDecoration(
-            border: selected ? const Border(bottom: BorderSide(color: FzColors.primary, width: 2)) : null,
+            border: selected
+                ? const Border(
+                    bottom: BorderSide(color: FzColors.primary, width: 2),
+                  )
+                : null,
           ),
-          child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: selected ? FzColors.primary : muted)),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: selected ? FzColors.primary : muted,
+            ),
+          ),
         ),
       ),
     );
@@ -76,7 +112,12 @@ class _TabButton extends StatelessWidget {
 // ──────────────────────────────────────────────
 
 class SectionTitleRow extends StatelessWidget {
-  const SectionTitleRow({super.key, required this.title, this.actionLabel, this.onAction});
+  const SectionTitleRow({
+    super.key,
+    required this.title,
+    this.actionLabel,
+    this.onAction,
+  });
 
   final String title;
   final String? actionLabel;
@@ -86,9 +127,17 @@ class SectionTitleRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: 1.1)),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.1,
+          ),
+        ),
         const Spacer(),
-        if (actionLabel != null && onAction != null) TextButton(onPressed: onAction, child: Text(actionLabel!)),
+        if (actionLabel != null && onAction != null)
+          TextButton(onPressed: onAction, child: Text(actionLabel!)),
       ],
     );
   }
@@ -99,7 +148,12 @@ class SectionTitleRow extends StatelessWidget {
 // ──────────────────────────────────────────────
 
 class ClubList extends StatelessWidget {
-  const ClubList({super.key, required this.teams, required this.supportedIds, required this.onTapTeam});
+  const ClubList({
+    super.key,
+    required this.teams,
+    required this.supportedIds,
+    required this.onTapTeam,
+  });
 
   final List<TeamModel> teams;
   final Set<String> supportedIds;
@@ -115,7 +169,11 @@ class ClubList extends StatelessWidget {
       itemBuilder: (context, index) {
         final team = teams[index];
         if (supportedIds.contains(team.id)) {
-          return SupportedTeamCard(team: team, index: index, onTap: () => onTapTeam(team));
+          return SupportedTeamCard(
+            team: team,
+            index: index,
+            onTap: () => onTapTeam(team),
+          );
         }
         return TeamCard(team: team, index: index, onTap: () => onTapTeam(team));
       },
@@ -128,7 +186,12 @@ class ClubList extends StatelessWidget {
 // ──────────────────────────────────────────────
 
 class DiscoverSearchCard extends StatelessWidget {
-  const DiscoverSearchCard({super.key, required this.hintText, required this.categoryLabel, required this.onChanged});
+  const DiscoverSearchCard({
+    super.key,
+    required this.hintText,
+    required this.categoryLabel,
+    required this.onChanged,
+  });
 
   final String hintText;
   final String categoryLabel;
@@ -143,7 +206,15 @@ class DiscoverSearchCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(categoryLabel.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: muted, letterSpacing: 1.0)),
+          Text(
+            categoryLabel.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: muted,
+              letterSpacing: 1.0,
+            ),
+          ),
           const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(

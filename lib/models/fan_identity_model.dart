@@ -40,16 +40,16 @@ class FanProfile {
 
   /// Attach resolved level data.
   FanProfile withLevel(FanLevel lvl) => FanProfile(
-        userId: userId,
-        displayName: displayName,
-        totalXp: totalXp,
-        currentLevel: currentLevel,
-        reputationScore: reputationScore,
-        streakDays: streakDays,
-        longestStreak: longestStreak,
-        lastActiveDate: lastActiveDate,
-        level: lvl,
-      );
+    userId: userId,
+    displayName: displayName,
+    totalXp: totalXp,
+    currentLevel: currentLevel,
+    reputationScore: reputationScore,
+    streakDays: streakDays,
+    longestStreak: longestStreak,
+    lastActiveDate: lastActiveDate,
+    level: lvl,
+  );
 
   /// XP progress towards the next level (0.0 - 1.0).
   double xpProgress(List<FanLevel> allLevels) {
@@ -159,9 +159,9 @@ class FanBadge {
       case 'legendary':
         return 0xFFFFD700;
       case 'epic':
-        return 0xFF2563EB;    // Blue
+        return 0xFF2563EB; // Blue
       case 'rare':
-        return 0xFF98FF98;    // Mint
+        return 0xFF98FF98; // Mint
       default:
         return 0xFFA8A29E;
     }
@@ -191,7 +191,8 @@ class EarnedBadge {
       userId: json['user_id'] as String,
       badgeId: json['badge_id'] as String,
       earnedAt: DateTime.parse(
-          json['earned_at'] as String? ?? DateTime.now().toIso8601String()),
+        json['earned_at'] as String? ?? DateTime.now().toIso8601String(),
+      ),
       badge: json['fan_badges'] != null
           ? FanBadge.fromJson(json['fan_badges'] as Map<String, dynamic>)
           : null,
@@ -229,7 +230,8 @@ class XpLogEntry {
       referenceType: json['reference_type'] as String?,
       referenceId: json['reference_id'] as String?,
       createdAt: DateTime.parse(
-          json['created_at'] as String? ?? DateTime.now().toIso8601String()),
+        json['created_at'] as String? ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 

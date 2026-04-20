@@ -10,7 +10,8 @@ enum UserRegion { africa, europe, northAmerica, global }
 
 /// Provider that resolves the user's region from market preferences or teams.
 final userRegionProvider = FutureProvider<UserRegion>((ref) async {
-  final marketPreferences = await ref.read(marketPreferencesGatewayProvider)
+  final marketPreferences = await ref
+      .read(marketPreferencesGatewayProvider)
       .getUserMarketPreferences();
   final preferredRegion = normalizeRegionKey(marketPreferences.primaryRegion);
 
@@ -18,7 +19,9 @@ final userRegionProvider = FutureProvider<UserRegion>((ref) async {
   if (preferredRegion == 'europe') return UserRegion.europe;
   if (preferredRegion == 'north_america') return UserRegion.northAmerica;
 
-  final cached = await ref.read(onboardingGatewayProvider).getCachedFavoriteTeams();
+  final cached = await ref
+      .read(onboardingGatewayProvider)
+      .getCachedFavoriteTeams();
   if (cached.isEmpty) return UserRegion.global;
 
   // Priority: local team > first team with a country code

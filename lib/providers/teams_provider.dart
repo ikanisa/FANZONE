@@ -10,7 +10,9 @@ final teamsProvider = FutureProvider.autoDispose<List<TeamModel>>((ref) async {
 
 final teamsByCompetitionProvider = FutureProvider.family
     .autoDispose<List<TeamModel>, String>((ref, competitionId) async {
-      return ref.read(teamCatalogGatewayProvider).getTeams(competitionId: competitionId);
+      return ref
+          .read(teamCatalogGatewayProvider)
+          .getTeams(competitionId: competitionId);
     });
 
 final teamProvider = FutureProvider.family.autoDispose<TeamModel?, String>((

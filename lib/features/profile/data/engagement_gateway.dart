@@ -1,4 +1,3 @@
-
 import '../../../models/community_contest_model.dart';
 import '../../../models/fan_identity_model.dart';
 import '../../../models/leaderboard_season_model.dart';

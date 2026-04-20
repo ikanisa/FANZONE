@@ -34,9 +34,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
 
     container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
     );
   });
 
@@ -65,47 +63,77 @@ void main() {
 
   group('Home/Catalog providers resolve', () {
     test('competitionCatalogGatewayProvider', () {
-      expect(container.read(competitionCatalogGatewayProvider), isA<CompetitionCatalogGateway>());
+      expect(
+        container.read(competitionCatalogGatewayProvider),
+        isA<CompetitionCatalogGateway>(),
+      );
     });
 
     test('teamCatalogGatewayProvider', () {
-      expect(container.read(teamCatalogGatewayProvider), isA<TeamCatalogGateway>());
+      expect(
+        container.read(teamCatalogGatewayProvider),
+        isA<TeamCatalogGateway>(),
+      );
     });
 
     test('eventCatalogGatewayProvider', () {
-      expect(container.read(eventCatalogGatewayProvider), isA<EventCatalogGateway>());
+      expect(
+        container.read(eventCatalogGatewayProvider),
+        isA<EventCatalogGateway>(),
+      );
     });
 
     test('matchListingGatewayProvider', () {
-      expect(container.read(matchListingGatewayProvider), isA<MatchListingGateway>());
+      expect(
+        container.read(matchListingGatewayProvider),
+        isA<MatchListingGateway>(),
+      );
     });
 
     test('matchDetailGatewayProvider', () {
-      expect(container.read(matchDetailGatewayProvider), isA<MatchDetailGateway>());
+      expect(
+        container.read(matchDetailGatewayProvider),
+        isA<MatchDetailGateway>(),
+      );
     });
   });
 
   group('Predict providers resolve', () {
     test('predictionPoolGatewayProvider', () {
-      expect(container.read(predictionPoolGatewayProvider), isA<PredictionPoolGateway>());
+      expect(
+        container.read(predictionPoolGatewayProvider),
+        isA<PredictionPoolGateway>(),
+      );
     });
 
     test('leaderboardGatewayProvider', () {
-      expect(container.read(leaderboardGatewayProvider), isA<LeaderboardGateway>());
+      expect(
+        container.read(leaderboardGatewayProvider),
+        isA<LeaderboardGateway>(),
+      );
     });
 
     test('dailyChallengeGatewayProvider', () {
-      expect(container.read(dailyChallengeGatewayProvider), isA<DailyChallengeGateway>());
+      expect(
+        container.read(dailyChallengeGatewayProvider),
+        isA<DailyChallengeGateway>(),
+      );
     });
 
     test('predictionSlipGatewayProvider', () {
-      expect(container.read(predictionSlipGatewayProvider), isA<PredictionSlipGateway>());
+      expect(
+        container.read(predictionSlipGatewayProvider),
+        isA<PredictionSlipGateway>(),
+      );
     });
   });
 
   group('Community providers resolve', () {
     test('teamSupportGatewayProvider', () {
-      expect(container.read(teamSupportGatewayProvider), isA<TeamSupportGateway>());
+      expect(
+        container.read(teamSupportGatewayProvider),
+        isA<TeamSupportGateway>(),
+      );
     });
 
     test('teamNewsGatewayProvider', () {
@@ -119,11 +147,17 @@ void main() {
 
   group('Settings providers resolve', () {
     test('accountSettingsGatewayProvider', () {
-      expect(container.read(accountSettingsGatewayProvider), isA<AccountSettingsGateway>());
+      expect(
+        container.read(accountSettingsGatewayProvider),
+        isA<AccountSettingsGateway>(),
+      );
     });
 
     test('notificationSettingsGatewayProvider', () {
-      expect(container.read(notificationSettingsGatewayProvider), isA<NotificationSettingsGateway>());
+      expect(
+        container.read(notificationSettingsGatewayProvider),
+        isA<NotificationSettingsGateway>(),
+      );
     });
   });
 

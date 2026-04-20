@@ -435,12 +435,12 @@ class _MobileBottomNav extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
-            padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.paddingOf(context).bottom,
+            ),
             decoration: BoxDecoration(
               color: FzColors.darkSurface.withValues(alpha: 0.9),
-              border: const Border(
-                top: BorderSide(color: FzColors.darkBorder),
-              ),
+              border: const Border(top: BorderSide(color: FzColors.darkBorder)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -515,10 +515,7 @@ class _BrandWordmark extends StatelessWidget {
         SizedBox(
           width: boxSize,
           height: boxSize,
-          child: FzBrandLogo(
-            width: boxSize,
-            height: boxSize,
-          ),
+          child: FzBrandLogo(width: boxSize, height: boxSize),
         ),
         const SizedBox(width: 10),
         FzWordmark(
@@ -618,7 +615,8 @@ bool _isPredictPath(String path) =>
 bool _isJackpotPath(String path) =>
     path == '/jackpot' || path == '/predict/jackpot';
 
-bool _isWalletPath(String path) => path == '/wallet' || path.startsWith('/wallet/');
+bool _isWalletPath(String path) =>
+    path == '/wallet' || path.startsWith('/wallet/');
 
 bool _isLeaderboardPath(String path) =>
     path == '/leaderboard' ||

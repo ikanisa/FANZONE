@@ -50,77 +50,77 @@ void main() {
       expect(snapshot!.payload, hasLength(2));
     });
 
-    test('cache hit (fresh) — returns cached data without network call',
-        () async {
-      // Pre-populate cache
-      await StructuredCacheStore.writeList(
-        'matches:2026-04-20:2026-04-20',
-        [
+    test(
+      'cache hit (fresh) — returns cached data without network call',
+      () async {
+        // Pre-populate cache
+        await StructuredCacheStore.writeList('matches:2026-04-20:2026-04-20', [
           {'id': 'm3', 'homeTeam': 'Man City', 'awayTeam': 'Newcastle'},
-        ],
-        ttl: const Duration(minutes: 10),
-      );
+        ], ttl: const Duration(minutes: 10));
 
-      var fetchCount = 0;
-      final result = await StaleWhileRevalidateCache.list(
-        cacheKey: 'matches:2026-04-20:2026-04-20',
-        ttl: const Duration(minutes: 10),
-        fetch: () async {
-          fetchCount++;
-          return [
-            {'id': 'fresh', 'homeTeam': 'SHOULD_NOT_APPEAR'},
-          ];
-        },
-      );
+        var fetchCount = 0;
+        final result = await StaleWhileRevalidateCache.list(
+          cacheKey: 'matches:2026-04-20:2026-04-20',
+          ttl: const Duration(minutes: 10),
+          fetch: () async {
+            fetchCount++;
+            return [
+              {'id': 'fresh', 'homeTeam': 'SHOULD_NOT_APPEAR'},
+            ];
+          },
+        );
 
-      expect(result, hasLength(1));
-      expect(result[0]['homeTeam'], 'Man City');
-      expect(fetchCount, 0, reason: 'Should not fetch when cache is fresh');
-    });
+        expect(result, hasLength(1));
+        expect(result[0]['homeTeam'], 'Man City');
+        expect(fetchCount, 0, reason: 'Should not fetch when cache is fresh');
+      },
+    );
 
-    test('cache hit (stale) — returns stale data and schedules background refresh',
-        () async {
-      // Write already-expired data
-      await StructuredCacheStore.writeList(
-        'matches:stale:stale',
-        [
-          {'id': 'm_stale', 'homeTeam': 'OldData'},
-        ],
-        ttl: const Duration(milliseconds: -1), // Already expired
-      );
+    test(
+      'cache hit (stale) — returns stale data and schedules background refresh',
+      () async {
+        // Write already-expired data
+        await StructuredCacheStore.writeList(
+          'matches:stale:stale',
+          [
+            {'id': 'm_stale', 'homeTeam': 'OldData'},
+          ],
+          ttl: const Duration(milliseconds: -1), // Already expired
+        );
 
-      var fetchCalled = false;
-      final completer = Completer<List<Map<String, dynamic>>>();
+        var fetchCalled = false;
+        final completer = Completer<List<Map<String, dynamic>>>();
 
-      final result = await StaleWhileRevalidateCache.list(
-        cacheKey: 'matches:stale:stale',
-        ttl: const Duration(minutes: 5),
-        fetch: () {
-          fetchCalled = true;
-          return completer.future;
-        },
-      );
+        final result = await StaleWhileRevalidateCache.list(
+          cacheKey: 'matches:stale:stale',
+          ttl: const Duration(minutes: 5),
+          fetch: () {
+            fetchCalled = true;
+            return completer.future;
+          },
+        );
 
-      // Should return stale data immediately
-      expect(result, hasLength(1));
-      expect(result[0]['homeTeam'], 'OldData');
-      expect(fetchCalled, isTrue, reason: 'Background refresh should start');
+        // Should return stale data immediately
+        expect(result, hasLength(1));
+        expect(result[0]['homeTeam'], 'OldData');
+        expect(fetchCalled, isTrue, reason: 'Background refresh should start');
 
-      // Complete the background fetch
-      completer.complete([
-        {'id': 'm_fresh', 'homeTeam': 'FreshData'},
-      ]);
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+        // Complete the background fetch
+        completer.complete([
+          {'id': 'm_fresh', 'homeTeam': 'FreshData'},
+        ]);
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      // The cache should now have fresh data
-      final freshSnapshot = await StructuredCacheStore.readList(
-        'matches:stale:stale',
-        allowExpired: false,
-      );
-      expect(freshSnapshot, isNotNull);
-      expect(freshSnapshot!.payload[0]['homeTeam'], 'FreshData');
-    });
+        // The cache should now have fresh data
+        final freshSnapshot = await StructuredCacheStore.readList(
+          'matches:stale:stale',
+          allowExpired: false,
+        );
+        expect(freshSnapshot, isNotNull);
+        expect(freshSnapshot!.payload[0]['homeTeam'], 'FreshData');
+      },
+    );
 
     test('cache miss + fetch error — rethrows', () async {
       expect(
@@ -151,11 +151,10 @@ void main() {
     });
 
     test('cache hit (fresh) — returns cached map without fetch', () async {
-      await StructuredCacheStore.writeMap(
-        'match-detail:m2',
-        {'id': 'm2', 'status': 'HT'},
-        ttl: const Duration(hours: 1),
-      );
+      await StructuredCacheStore.writeMap('match-detail:m2', {
+        'id': 'm2',
+        'status': 'HT',
+      }, ttl: const Duration(hours: 1));
 
       var fetched = false;
       final result = await StaleWhileRevalidateCache.map(
@@ -188,22 +187,19 @@ void main() {
   group('StaleWhileRevalidateCache.prefetchAdjacent', () {
     test('prefetches keys that are not already cached', () async {
       // Pre-populate one key
-      await StructuredCacheStore.writeList(
-        'matches:yesterday:yesterday',
-        [{'id': 'existing'}],
-        ttl: const Duration(hours: 1),
-      );
+      await StructuredCacheStore.writeList('matches:yesterday:yesterday', [
+        {'id': 'existing'},
+      ], ttl: const Duration(hours: 1));
 
       final fetchedKeys = <String>[];
       StaleWhileRevalidateCache.prefetchAdjacent(
-        cacheKeys: [
-          'matches:yesterday:yesterday',
-          'matches:tomorrow:tomorrow',
-        ],
+        cacheKeys: ['matches:yesterday:yesterday', 'matches:tomorrow:tomorrow'],
         ttl: const Duration(minutes: 5),
         fetch: (key) async {
           fetchedKeys.add(key);
-          return [{'id': 'prefetched', 'key': key}];
+          return [
+            {'id': 'prefetched', 'key': key},
+          ];
         },
       );
 

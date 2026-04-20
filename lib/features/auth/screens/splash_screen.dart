@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/cache/shared_preferences_cache_service.dart';
 import '../../../core/runtime/app_runtime_state.dart';
@@ -56,12 +57,41 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToNextScreen() async {
-    final cache = SharedPreferencesCacheService.global;
-    final onboardingDone = await cache.getBool('onboarding_complete') ?? false;
+    final onboardingDone = await _resolveOnboardingState();
 
     if (!mounted) return;
     context.go(onboardingDone ? '/' : '/onboarding');
     markAppInteractive();
+  }
+
+  Future<bool> _resolveOnboardingState() async {
+    final cache = SharedPreferencesCacheService.global;
+    final cached = await cache.getBool('onboarding_complete') ?? false;
+
+    if (!appRuntime.supabaseInitialized) {
+      return cached;
+    }
+
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session == null) {
+      return cached;
+    }
+
+    try {
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 5));
+      final remote = profile?['onboarding_completed'] == true;
+      if (remote != cached) {
+        await cache.setBool('onboarding_complete', remote);
+      }
+      return remote;
+    } catch (_) {
+      return cached;
+    }
   }
 
   @override
@@ -108,9 +138,7 @@ class _SplashScreenState extends State<SplashScreen>
                     FzWordmark(
                       style: FzTypography.display(
                         size: 52,
-                        color: isDark
-                            ? FzColors.darkText
-                            : FzColors.lightText,
+                        color: isDark ? FzColors.darkText : FzColors.lightText,
                         letterSpacing: 6,
                       ),
                     ),

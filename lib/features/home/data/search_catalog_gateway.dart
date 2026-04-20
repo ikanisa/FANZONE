@@ -1,4 +1,3 @@
-
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/search_result_model.dart';
@@ -26,13 +25,17 @@ class SupabaseSearchCatalogGateway implements SearchCatalogGateway {
       final competitionRows = await client
           .from('competitions')
           .select('id, name, short_name, country')
-          .or('name.ilike.$pattern,short_name.ilike.$pattern,country.ilike.$pattern')
+          .or(
+            'name.ilike.$pattern,short_name.ilike.$pattern,country.ilike.$pattern',
+          )
           .order('name')
           .limit(12);
       final teamRows = await client
           .from('teams')
           .select('id, name, short_name, country, league_name')
-          .or('name.ilike.$pattern,short_name.ilike.$pattern,country.ilike.$pattern,league_name.ilike.$pattern')
+          .or(
+            'name.ilike.$pattern,short_name.ilike.$pattern,country.ilike.$pattern,league_name.ilike.$pattern',
+          )
           .order('name')
           .limit(12);
 
@@ -56,7 +59,8 @@ class SupabaseSearchCatalogGateway implements SearchCatalogGateway {
               type: SearchResultType.team,
               id: row['id']?.toString() ?? '',
               title: row['name']?.toString() ?? 'Team',
-              subtitle: row['league_name']?.toString() ??
+              subtitle:
+                  row['league_name']?.toString() ??
                   row['country']?.toString() ??
                   'Club',
             ),

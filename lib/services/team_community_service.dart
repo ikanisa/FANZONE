@@ -30,7 +30,9 @@ class SupportedTeamsService extends _$SupportedTeamsService {
     }
 
     try {
-      final fanId = await ref.read(teamSupportGatewayProvider).supportTeam(teamId);
+      final fanId = await ref
+          .read(teamSupportGatewayProvider)
+          .supportTeam(teamId);
       final current = state.valueOrNull ?? <String>{};
       state = AsyncValue.data({...current, teamId});
       return fanId;
@@ -81,7 +83,9 @@ FutureOr<List<AnonymousFanRecord>> teamAnonymousFans(
   String teamId, {
   int limit = 50,
 }) async {
-  return ref.read(teamSupportGatewayProvider).getTeamAnonymousFans(teamId, limit: limit);
+  return ref
+      .read(teamSupportGatewayProvider)
+      .getTeamAnonymousFans(teamId, limit: limit);
 }
 
 @riverpod
@@ -101,10 +105,9 @@ class TeamContributionService extends _$TeamContributionService {
     state = const AsyncValue.loading();
 
     try {
-      final balanceAfter = await ref.read(teamSupportGatewayProvider).contributeFet(
-        teamId,
-        amount,
-      );
+      final balanceAfter = await ref
+          .read(teamSupportGatewayProvider)
+          .contributeFet(teamId, amount);
       state = const AsyncValue.data(null);
       return balanceAfter;
     } catch (error, stack) {
@@ -125,7 +128,9 @@ FutureOr<List<TeamContributionModel>> teamContributionHistory(
   final userId = ref.read(authServiceProvider).currentUser?.id;
   if (userId == null) return const [];
 
-  return ref.read(teamSupportGatewayProvider).getTeamContributionHistory(userId, teamId);
+  return ref
+      .read(teamSupportGatewayProvider)
+      .getTeamContributionHistory(userId, teamId);
 }
 
 @riverpod
@@ -135,11 +140,9 @@ FutureOr<List<TeamNewsModel>> teamNews(
   String? category,
   int limit = 20,
 }) async {
-  return ref.read(teamNewsGatewayProvider).getTeamNews(
-    teamId,
-    category: category,
-    limit: limit,
-  );
+  return ref
+      .read(teamNewsGatewayProvider)
+      .getTeamNews(teamId, category: category, limit: limit);
 }
 
 @riverpod

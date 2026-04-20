@@ -1,4 +1,3 @@
-
 import '../../../models/daily_challenge_model.dart';
 import '../../../models/pool.dart';
 import '../../../models/prediction_slip_model.dart';

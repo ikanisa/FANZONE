@@ -10,7 +10,9 @@ import 'featured_events_provider.dart';
 final userMarketPreferencesProvider =
     FutureProvider.autoDispose<UserMarketPreferences>((ref) async {
       ref.keepAlive();
-      return ref.read(marketPreferencesGatewayProvider).getUserMarketPreferences();
+      return ref
+          .read(marketPreferencesGatewayProvider)
+          .getUserMarketPreferences();
     });
 
 final primaryMarketRegionProvider = Provider<String>((ref) {

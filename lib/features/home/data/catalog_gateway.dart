@@ -1,4 +1,3 @@
-
 import '../../../models/competition_model.dart';
 import '../../../models/featured_event_model.dart';
 import '../../../models/global_challenge_model.dart';

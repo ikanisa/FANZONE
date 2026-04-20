@@ -14,12 +14,16 @@ final competitionsProvider = FutureProvider.autoDispose<List<CompetitionModel>>(
 final topCompetitionsProvider =
     FutureProvider.autoDispose<List<CompetitionModel>>((ref) async {
       ref.keepAlive();
-      return ref.read(competitionCatalogGatewayProvider).getCompetitions(tier: 1);
+      return ref
+          .read(competitionCatalogGatewayProvider)
+          .getCompetitions(tier: 1);
     });
 
 final competitionProvider = FutureProvider.family
     .autoDispose<CompetitionModel?, String>((ref, competitionId) async {
-      return ref.read(competitionCatalogGatewayProvider).getCompetition(competitionId);
+      return ref
+          .read(competitionCatalogGatewayProvider)
+          .getCompetition(competitionId);
     });
 
 final top5EuropeanLeaguesProvider =
@@ -50,7 +54,9 @@ final localLeaguesProvider = FutureProvider.family
       final all = await ref.watch(competitionsProvider.future);
       // Use DB-driven bootstrap config for country-to-region mapping
       final bootstrapConfig = ref.read(bootstrapConfigProvider);
-      final localCountryNames = bootstrapConfig.countryNamesForRegion(regionKey);
+      final localCountryNames = bootstrapConfig.countryNamesForRegion(
+        regionKey,
+      );
       if (localCountryNames.isEmpty) return const [];
 
       return all

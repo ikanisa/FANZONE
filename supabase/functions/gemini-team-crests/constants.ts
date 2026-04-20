@@ -1,14 +1,33 @@
 export const FUNCTION_NAME = "gemini-team-crests";
-export const DEFAULT_GEMINI_MODEL = Deno.env.get("GEMINI_MODEL")?.trim() ||
-  "gemini-2.0-flash";
-export const DEFAULT_GEMINI_FALLBACK_MODEL =
-  Deno.env.get("GEMINI_FALLBACK_MODEL")?.trim() || "gemini-2.5-pro";
-export const DEFAULT_GEMINI_SECOND_FALLBACK_MODEL =
-  Deno.env.get("GEMINI_SECOND_FALLBACK_MODEL")?.trim() ||
-  "gemini-2.5-flash";
-export const DEFAULT_STORAGE_BUCKET =
-  Deno.env.get("TEAM_CREST_BUCKET")?.trim() ||
-  "team-crests";
+export const DEFAULT_GEMINI_MODEL = (() => {
+  try {
+    return Deno.env.get("GEMINI_MODEL")?.trim() || "gemini-2.0-flash";
+  } catch {
+    return "gemini-2.0-flash";
+  }
+})();
+export const DEFAULT_GEMINI_FALLBACK_MODEL = (() => {
+  try {
+    return Deno.env.get("GEMINI_FALLBACK_MODEL")?.trim() || "gemini-2.5-pro";
+  } catch {
+    return "gemini-2.5-pro";
+  }
+})();
+export const DEFAULT_GEMINI_SECOND_FALLBACK_MODEL = (() => {
+  try {
+    return Deno.env.get("GEMINI_SECOND_FALLBACK_MODEL")?.trim() ||
+      "gemini-2.5-flash";
+  } catch {
+    return "gemini-2.5-flash";
+  }
+})();
+export const DEFAULT_STORAGE_BUCKET = (() => {
+  try {
+    return Deno.env.get("TEAM_CREST_BUCKET")?.trim() || "team-crests";
+  } catch {
+    return "team-crests";
+  }
+})();
 export const MAX_BATCH_SIZE = 10;
 export const DEFAULT_REFRESH_AFTER_HOURS = 24 * 30;
 export const DEFAULT_DELAY_MS = 500;

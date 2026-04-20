@@ -34,7 +34,9 @@ final userCurrencyProvider = FutureProvider<String>((ref) async {
   try {
     await ref.read(onboardingGatewayProvider).syncCachedTeamsIfAuthenticated();
 
-    final currencyCode = await ref.read(walletGatewayProvider).guessUserCurrency(userId);
+    final currencyCode = await ref
+        .read(walletGatewayProvider)
+        .guessUserCurrency(userId);
     if (currencyCode != null && currencyCode.isNotEmpty) {
       await cache.setString('user_currency', currencyCode);
       return currencyCode;
@@ -78,7 +80,9 @@ final userFanIdProvider = FutureProvider<String?>((ref) async {
 });
 
 Future<String> _guessGuestCurrency(Ref ref, String? cached) async {
-  final cachedTeams = await ref.read(onboardingGatewayProvider).getCachedFavoriteTeams();
+  final cachedTeams = await ref
+      .read(onboardingGatewayProvider)
+      .getCachedFavoriteTeams();
   if (cachedTeams.isEmpty) return cached ?? 'EUR';
 
   final entries = cachedTeams

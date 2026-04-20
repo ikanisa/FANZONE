@@ -120,9 +120,7 @@ void main() {
     });
 
     test('maps out of stock to BusinessRuleFailure', () {
-      final failure = mapExceptionToFailure(
-        Exception('Item out of stock'),
-      );
+      final failure = mapExceptionToFailure(Exception('Item out of stock'));
       expect(failure, isA<BusinessRuleFailure>());
     });
 

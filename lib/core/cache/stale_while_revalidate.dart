@@ -40,14 +40,10 @@ abstract final class StaleWhileRevalidateCache {
     if (snapshot != null) {
       if (snapshot.isExpired) {
         // Stale: return immediately, refresh in background
-        StructuredCacheStore.scheduleRefresh(
-          cacheKey,
-          () async {
-            final fresh = await fetch();
-            await StructuredCacheStore.writeList(cacheKey, fresh, ttl: ttl);
-          },
-          debugLabel: 'SWR:$cacheKey',
-        );
+        StructuredCacheStore.scheduleRefresh(cacheKey, () async {
+          final fresh = await fetch();
+          await StructuredCacheStore.writeList(cacheKey, fresh, ttl: ttl);
+        }, debugLabel: 'SWR:$cacheKey');
       }
       return snapshot.payload;
     }
@@ -55,9 +51,7 @@ abstract final class StaleWhileRevalidateCache {
     // Cache miss: fetch fresh data
     try {
       final freshData = await fetch();
-      unawaited(
-        StructuredCacheStore.writeList(cacheKey, freshData, ttl: ttl),
-      );
+      unawaited(StructuredCacheStore.writeList(cacheKey, freshData, ttl: ttl));
       return freshData;
     } catch (error) {
       AppLogger.d('SWR cache miss + fetch failed for $cacheKey: $error');
@@ -78,16 +72,12 @@ abstract final class StaleWhileRevalidateCache {
 
     if (snapshot != null) {
       if (snapshot.isExpired) {
-        StructuredCacheStore.scheduleRefresh(
-          cacheKey,
-          () async {
-            final fresh = await fetch();
-            if (fresh != null) {
-              await StructuredCacheStore.writeMap(cacheKey, fresh, ttl: ttl);
-            }
-          },
-          debugLabel: 'SWR:$cacheKey',
-        );
+        StructuredCacheStore.scheduleRefresh(cacheKey, () async {
+          final fresh = await fetch();
+          if (fresh != null) {
+            await StructuredCacheStore.writeMap(cacheKey, fresh, ttl: ttl);
+          }
+        }, debugLabel: 'SWR:$cacheKey');
       }
       return snapshot.payload;
     }
@@ -95,9 +85,7 @@ abstract final class StaleWhileRevalidateCache {
     try {
       final freshData = await fetch();
       if (freshData != null) {
-        unawaited(
-          StructuredCacheStore.writeMap(cacheKey, freshData, ttl: ttl),
-        );
+        unawaited(StructuredCacheStore.writeMap(cacheKey, freshData, ttl: ttl));
       }
       return freshData;
     } catch (error) {
@@ -116,19 +104,15 @@ abstract final class StaleWhileRevalidateCache {
     required Future<List<Map<String, dynamic>>> Function(String key) fetch,
   }) {
     for (final key in cacheKeys) {
-      StructuredCacheStore.scheduleRefresh(
-        key,
-        () async {
-          final existing = await StructuredCacheStore.readList(
-            key,
-            allowExpired: false,
-          );
-          if (existing != null) return; // Already fresh
-          final data = await fetch(key);
-          await StructuredCacheStore.writeList(key, data, ttl: ttl);
-        },
-        debugLabel: 'Prefetch:$key',
-      );
+      StructuredCacheStore.scheduleRefresh(key, () async {
+        final existing = await StructuredCacheStore.readList(
+          key,
+          allowExpired: false,
+        );
+        if (existing != null) return; // Already fresh
+        final data = await fetch(key);
+        await StructuredCacheStore.writeList(key, data, ttl: ttl);
+      }, debugLabel: 'Prefetch:$key');
     }
   }
 }

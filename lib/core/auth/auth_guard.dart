@@ -14,11 +14,7 @@ import '../../features/auth/widgets/sign_in_required_sheet.dart';
 /// if (!requireFullAuth(context, ref, feature: 'predictions')) return;
 /// // ... perform protected action
 /// ```
-bool requireFullAuth(
-  BuildContext context,
-  WidgetRef ref, {
-  String? feature,
-}) {
+bool requireFullAuth(BuildContext context, WidgetRef ref, {String? feature}) {
   final isGuest = ref.read(isGuestProvider);
   final isAuth = ref.read(isAuthenticatedProvider);
 
@@ -36,7 +32,8 @@ bool requireFullAuth(
   showSignInRequiredSheet(
     context,
     title: 'Sign In Required',
-    message: 'Create a free account to access $featureLabel. '
+    message:
+        'Create a free account to access $featureLabel. '
         'Verify with WhatsApp to unlock predictions, pools, wallet, and more.',
     from: GoRouterState.of(context).uri.toString(),
   );

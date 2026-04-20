@@ -1,5 +1,3 @@
-import { ApiError } from "npm:@google/genai";
-
 import { ALLOWED_HEADERS, FUNCTION_NAME } from "./constants.ts";
 import {
   buildCorsHeaders,
@@ -84,7 +82,7 @@ export function mapError(error: unknown, requestId: string) {
     };
   }
 
-  if (error instanceof ApiError) {
+  if (_isGeminiApiError(error)) {
     const status = error.status === 429 ? 429 : 502;
     return {
       status,
@@ -118,4 +116,16 @@ export function logUnhandledError(requestId: string, error: unknown) {
     requestId,
     error,
   });
+}
+
+function _isGeminiApiError(
+  error: unknown,
+): error is { status: number; message: string } {
+  if (typeof error != "object" || error == null) {
+    return false;
+  }
+
+  const candidate = error as Record<string, unknown>;
+  return typeof candidate["status"] == "number" &&
+    typeof candidate["message"] == "string";
 }

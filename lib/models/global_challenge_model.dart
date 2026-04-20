@@ -17,6 +17,7 @@ class GlobalChallengeModel with _$GlobalChallengeModel {
     @JsonKey(name: 'prize_pool_fet') @Default(0) int prizePoolFet,
     @JsonKey(name: 'max_participants') int? maxParticipants,
     @JsonKey(name: 'current_participants') @Default(0) int currentParticipants,
+
     /// global, africa, europe, americas
     @Default('global') String region,
     @Default('open') String status,

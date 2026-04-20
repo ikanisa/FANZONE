@@ -63,13 +63,41 @@ void main() {
     });
 
     test('all mapped countries return non-null with valid dial codes', () {
-      const countries = ['MT', 'RW', 'NG', 'KE', 'UG', 'GB', 'DE', 'FR', 'IT', 'ES', 'PT', 'NL', 'US', 'CA', 'MX'];
+      const countries = [
+        'MT',
+        'RW',
+        'NG',
+        'KE',
+        'UG',
+        'GB',
+        'DE',
+        'FR',
+        'IT',
+        'ES',
+        'PT',
+        'NL',
+        'US',
+        'CA',
+        'MX',
+      ];
       for (final code in countries) {
         final preset = phonePresetForCountry(code);
         expect(preset, isNotNull, reason: '$code should have a preset');
-        expect(preset!.dialCode.startsWith('+'), isTrue, reason: '$code dial code should start with +');
-        expect(preset.minDigits, greaterThanOrEqualTo(8), reason: '$code minDigits should be >= 8');
-        expect(preset.hint.isNotEmpty, isTrue, reason: '$code hint should not be empty');
+        expect(
+          preset!.dialCode.startsWith('+'),
+          isTrue,
+          reason: '$code dial code should start with +',
+        );
+        expect(
+          preset.minDigits,
+          greaterThanOrEqualTo(8),
+          reason: '$code minDigits should be >= 8',
+        );
+        expect(
+          preset.hint.isNotEmpty,
+          isTrue,
+          reason: '$code hint should not be empty',
+        );
       }
     });
   });
