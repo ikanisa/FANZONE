@@ -77,15 +77,19 @@ CREATE TABLE IF NOT EXISTS public.marketplace_offers (
 );
 
 CREATE TABLE IF NOT EXISTS public.featured_events (
-  id          TEXT PRIMARY KEY,
-  name        TEXT NOT NULL,
-  event_tag   TEXT,
-  description TEXT DEFAULT '',
-  start_date  DATE NOT NULL,
-  end_date    DATE NOT NULL,
-  is_active   BOOLEAN DEFAULT true,
-  banner_url  TEXT,
-  region      TEXT DEFAULT 'global'
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name           TEXT NOT NULL,
+  short_name     TEXT NOT NULL,
+  event_tag      TEXT NOT NULL UNIQUE,
+  region         TEXT NOT NULL DEFAULT 'global' CHECK (region IN ('global', 'africa', 'europe', 'americas')),
+  competition_id TEXT REFERENCES public.competitions(id),
+  start_date     TIMESTAMPTZ NOT NULL,
+  end_date       TIMESTAMPTZ NOT NULL,
+  is_active      BOOLEAN NOT NULL DEFAULT true,
+  banner_color   TEXT,
+  description    TEXT,
+  logo_url       TEXT,
+  created_at     TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Enable RLS on new tables with public read
@@ -186,7 +190,7 @@ INSERT INTO public.competitions (id, name, short_name, country, tier, data_sourc
   ('bundesliga',         'Bundesliga',              'BL',   'Germany',     1, 'api', 'active', 'europe', 'league', true),
   ('ligue-1',            'Ligue 1',                 'L1',   'France',      1, 'api', 'active', 'europe', 'league', true),
   ('champions-league',   'UEFA Champions League',   'UCL',  'Europe',      1, 'api', 'active', 'europe', 'cup',    true),
-  ('europa-league',      'UEFA Europa League',      'UEL',  'Europe',      2, 'api', 'active', 'europe', 'cup',    false),
+  ('europa-league',      'UEFA Europa League',      'UEL',  'Europe',      1, 'api', 'active', 'europe', 'cup',    false),
   ('eredivisie',         'Eredivisie',              'ERE',  'Netherlands', 1, 'manual', 'active', 'europe', 'league', false),
   ('primeira-liga',      'Primeira Liga',           'PRI',  'Portugal',    1, 'manual', 'active', 'europe', 'league', false),
   ('scottish-prem',      'Scottish Premiership',    'SPL',  'Scotland',    1, 'manual', 'active', 'europe', 'league', false),
@@ -227,10 +231,17 @@ ON CONFLICT (id) DO NOTHING;
 -- ------------------------------------------------------------------
 -- 7. Featured Events
 -- ------------------------------------------------------------------
-INSERT INTO public.featured_events (id, name, event_tag, description, start_date, end_date, is_active, banner_url, region) VALUES
-  ('ucl-final-2026',    'UCL Final 2026',        'ucl-final-2026', 'The biggest club match of the year — predict the champion!', '2026-05-20', '2026-05-31', true,  NULL, 'global'),
-  ('world-cup-2026',    'World Cup 2026',        'worldcup2026',   'FIFA World Cup 2026 kicks off in North America.',             '2026-06-11', '2026-07-19', false, NULL, 'global'),
-  ('fanzone-launch-mt', 'FANZONE Malta Launch',  'launch-mt',      'FANZONE officially launches in Malta — join the community!',  '2026-04-01', '2026-06-30', true,  NULL, 'europe')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.featured_events (event_tag, name, short_name, description, start_date, end_date, is_active, region, competition_id) VALUES
+  ('ucl-final-2026',   'UCL Final 2026',       'UCL Final', 'The biggest club match of the year — predict the champion!', '2026-05-20', '2026-05-31', true,  'global', 'champions-league'),
+  ('worldcup2026',     'World Cup 2026',       'World Cup', 'FIFA World Cup 2026 kicks off in North America.',             '2026-06-11', '2026-07-19', false, 'global', NULL),
+  ('launch-mt',        'FANZONE Malta Launch', 'MT Launch', 'FANZONE officially launches in Malta — join the community!',  '2026-04-01', '2026-06-30', true,  'europe', NULL)
+ON CONFLICT (event_tag) DO UPDATE SET
+  name = EXCLUDED.name,
+  short_name = EXCLUDED.short_name,
+  description = EXCLUDED.description,
+  start_date = EXCLUDED.start_date,
+  end_date = EXCLUDED.end_date,
+  is_active = EXCLUDED.is_active,
+  region = EXCLUDED.region;
 
 COMMIT;
