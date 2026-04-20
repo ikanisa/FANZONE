@@ -1,121 +1,97 @@
-# FANZONE Public Website
+# FANZONE Website
 
-Production-grade public website for the FANZONE football prediction and fan engagement platform.
+This package is the repo-hosted web build of the canonical FANZONE product UI.
 
-**Live URL**: [fanzone.ikanisa.com](https://fanzone.ikanisa.com)
+The non-negotiable source of truth is:
+- `/Users/jeanbosco/Downloads/FANZONE`
 
-## Tech Stack
+`website/src` is not authored independently. It is synced from that canonical source and guarded against drift.
 
-- React 19 + TypeScript
-- Vite 8
-- React Router 7
-- Lucide React (icons)
-- Vanilla CSS (Night Sandstone design system)
-
-## Local Development
+## Canonical workflow
 
 ```bash
 cd website
 npm ci
-npm run dev
+npm run sync:canonical
+npm run lint
+npm run build
 ```
 
-Open [http://localhost:5173](http://localhost:5173)
+Available checks:
+- `npm run sync:canonical` copies the canonical `src/` tree into `website/src`.
+- `npm run check:canonical` fails if `website/src` has drifted from the canonical source.
+- `npm run validate:release-metadata` checks deep-link and manifest metadata before deployment.
 
-## Production Build
+## Tech stack
+
+- React 19
+- TypeScript
+- Vite 8
+- React Router
+- Zustand
+- Motion
+- Tailwind via `@tailwindcss/vite`
+
+## Current route map
+
+The current route map is derived from the canonical source app and includes:
+
+| Route | Surface |
+| --- | --- |
+| `/onboarding` | Onboarding |
+| `/` | Home feed |
+| `/match/:id` | Match detail |
+| `/league/:id` | League hub |
+| `/leaderboard` | Leaderboard |
+| `/wallet` | Wallet |
+| `/profile` | Profile |
+| `/pools` | Pools hub |
+| `/pools/create` | Pool creation |
+| `/pool/:id` | Pool detail |
+| `/social` | Social hub |
+| `/settings` | Settings |
+| `/memberships` | Membership hub |
+| `/team/:id` | Team profile |
+| `/fan-id` | Fan ID |
+| `/privacy` | Privacy settings |
+| `/fixtures` | Fixtures |
+| `/notifications` | Notifications |
+| `/rewards` | Rewards store |
+| `/jackpot` | Jackpot pool |
+| `/error` | Empty / error states |
+
+## Build and preview
 
 ```bash
+cd website
 npm run build
-npm run preview   # preview the production build locally
+npm run preview
 ```
 
-Build output directory: `dist/`
+The production build runs the canonical drift check before bundling.
 
-## Pages
+## Release metadata
 
-| Route | Page | Description |
-|-------|------|-------------|
-| `/` | Home | Hero, features, leagues, how-it-works, CTA |
-| `/overview` | How it Works | 3-step product walkthrough |
-| `/coverage` | Competitions | League cards, AI data, Malta-first |
-| `/fet` | FET Token | Token economy, earning paths, governance |
-| `/guest-auth` | Guest vs Authenticated | Access comparison, upgrade path |
-| `/rewards` | Partner Rewards | Marketplace, redemption flow |
-| `/faq` | FAQ | 12 questions with accordion |
-| `/privacy` | Privacy Policy | Full 11-section GDPR-compliant policy |
-| `/terms` | Terms & Conditions | 13-section production terms |
-| `/contact` | Support & Contact | WhatsApp, email, privacy contacts |
-| `*` | 404 | Not found page |
+Deep-link files live under `website/public/.well-known/`.
 
-## Cloudflare Pages Deployment
+Before any production deploy, run:
 
-### Configuration
-
-| Setting | Value |
-|---------|-------|
-| **Framework preset** | None |
-| **Root directory** | `website/` |
-| **Build command** | `npm run build` |
-| **Build output directory** | `dist` |
-| **Node.js version** | 22 |
-
-### Custom Domain
-
-Target: `fanzone.ikanisa.com`
-
-1. In Cloudflare Pages project settings → Custom domains
-2. Add `fanzone.ikanisa.com`
-3. Cloudflare will auto-configure DNS if the domain is on Cloudflare
-4. If the domain is external, add a CNAME record pointing to the Pages project URL
-
-### SPA Routing
-
-The `public/_redirects` file handles SPA routing:
-```
-/* /index.html 200
+```bash
+cd website
+npm run validate:release-metadata
 ```
 
-This ensures all routes (e.g., `/privacy`, `/faq`) are served correctly on page refresh or direct navigation.
+This currently fails if:
+- `assetlinks.json` still contains the all-zero Android SHA-256 placeholder.
+- `apple-app-site-association` is malformed.
+- `site.webmanifest` is missing required FANZONE metadata.
 
-### Security Headers
+## Deployment notes
 
-The `public/_headers` file configures:
-- `Strict-Transport-Security` (HSTS with preload)
-- `X-Content-Type-Options: nosniff`
-- `X-Frame-Options: DENY`
-- `Content-Security-Policy`
-- `Permissions-Policy` (no camera, mic, geo, payment)
-- Asset caching (immutable for `/assets/*`)
-- `.well-known/*` CORS for deep linking
+The repo currently contains deployment-related assets such as:
+- `public/_headers`
+- `public/_redirects`
+- `.well-known/apple-app-site-association`
+- `.well-known/assetlinks.json`
 
-### Deep Linking
-
-The `public/.well-known/` directory contains:
-- `assetlinks.json` — Android App Links for `app.fanzone.football`
-- `apple-app-site-association` — iOS Universal Links
-
-> **Note**: The `assetlinks.json` SHA256 fingerprint is a placeholder. Update with the real upload key fingerprint before production.
-
-## Design System
-
-The website uses the **Night Sandstone** palette aligned with the Flutter mobile app:
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--fz-bg` | `#09090B` | Page background |
-| `--fz-surface` | `#131418` | Cards, sections |
-| `--fz-accent` | `#22D3EE` | Primary interactive (cyan) |
-| `--fz-blue` | `#2563EB` | Secondary interactive |
-| `--fz-teal` | `#0F7B6C` | Brand / financial |
-| `--fz-success` | `#98FF98` | Wins, positive |
-| `--fz-coral` | `#FF7F50` | Pending, warnings |
-| `--fz-danger` | `#EF4444` | Errors, LIVE |
-| `--fz-text` | `#FDFCF0` | Primary text (cream) |
-
-## TODOs
-
-- [x] ~~Replace WhatsApp support number~~ — wired to `+35699711145`
-- [ ] Add real App Store / Google Play URLs when available
-- [ ] Update `assetlinks.json` SHA256 fingerprint with real upload key
-- [ ] Add OG image for social card preview
-- [ ] Configure Cloudflare Pages project and custom domain
+Do not treat these as optional. They are part of release readiness.

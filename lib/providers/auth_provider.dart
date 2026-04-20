@@ -28,14 +28,26 @@ final authStateProvider = StreamProvider<AuthState?>((ref) {
   });
 });
 
-final currentUserProvider = Provider<User?>((ref) {
+final currentSessionProvider = Provider<Session?>((ref) {
   ref.watch(authStateProvider);
+  final session = ref.read(authServiceProvider).currentSession;
+  if (session == null || session.isExpired) {
+    return null;
+  }
+  return session;
+});
+
+final currentUserProvider = Provider<User?>((ref) {
+  final session = ref.watch(currentSessionProvider);
+  if (session == null) {
+    return null;
+  }
   return ref.read(authServiceProvider).currentUser;
 });
 
 /// True when any session exists (anonymous or phone-verified).
 final isAuthenticatedProvider = Provider<bool>((ref) {
-  return ref.watch(currentUserProvider) != null;
+  return ref.watch(currentSessionProvider) != null;
 });
 
 /// True when the current user is an anonymous/guest user.

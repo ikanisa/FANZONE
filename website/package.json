@@ -6,6 +6,7 @@
   "scripts": {
     "sync:canonical": "node ../tool/canonical_web_source.mjs sync",
     "check:canonical": "node ../tool/canonical_web_source.mjs check",
+    "validate:release-metadata": "node ../tool/validate_website_release_metadata.mjs",
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "npm run check:canonical && vite build",

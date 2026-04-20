@@ -31,7 +31,10 @@ class SupabaseConnectionImpl implements SupabaseConnection {
   Session? get currentSession => client?.auth.currentSession;
 
   @override
-  bool get isAuthenticated => currentSession != null;
+  bool get isAuthenticated {
+    final session = currentSession;
+    return session != null && !session.isExpired;
+  }
 
   @override
   Stream<AuthState> get authStateChanges =>

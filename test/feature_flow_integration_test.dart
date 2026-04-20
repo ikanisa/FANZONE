@@ -41,7 +41,8 @@ void main() {
       final gateway = _FakeAuthGateway();
       await _pumpLoginFlow(tester, gateway);
 
-      await tester.enterText(find.byType(TextFormField), '+35699112233');
+      await tester.enterText(find.byType(TextFormField), '99112233');
+      await tester.pump();
       await tester.tap(find.text('SEND CODE VIA WHATSAPP'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));

@@ -13,6 +13,8 @@ class AuthService {
 
   User? get currentUser => _gateway.currentUser;
 
+  Session? get currentSession => _gateway.currentSession;
+
   bool get isAuthenticated => _gateway.isAuthenticated;
 
   /// Whether the current user is an anonymous/guest user.

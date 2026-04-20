@@ -8,12 +8,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
+import 'app_router.dart';
 import 'config/app_config.dart';
 import 'core/di/gateway_providers.dart';
 import 'core/logging/app_logger.dart';
 import 'core/performance/app_startup.dart';
 import 'core/runtime/app_runtime_state.dart';
 import 'core/storage/structured_cache_store.dart';
+import 'core/cache/shared_preferences_cache_service.dart';
 import 'firebase_options.dart';
 import 'services/app_telemetry.dart';
 import 'services/product_analytics_service.dart';
@@ -58,12 +60,22 @@ Future<void> main() async {
       appRuntime.retrySupabaseInitialization = retrySupabaseInitialization;
       appStartupProfiler.mark('structured_cache_ready');
       appStartupProfiler.mark('dependencies_ready');
+      // Initialize Supabase before runApp so native splash covers the wait
+      await _initializeCriticalServices();
     },
-    critical: _initializeCriticalServices,
+    critical: () async {
+      // Critical services already initialized in beforeRunApp
+    },
     deferred: _initializeDeferredServices,
   );
 
   await startup.prepare();
+
+  // Resolve initial route while still under native splash
+  final initialRoute = await _resolveInitialRoute();
+  setInitialRoute(initialRoute);
+  markAppInteractive();
+
   runApp(
     ProviderScope(overrides: _providerOverrides, child: const FanzoneApp()),
   );
@@ -139,4 +151,41 @@ Future<void> retrySupabaseInitialization() async {
   if (appRuntime.supabaseInitialized) return;
   appRuntime.resetSupabaseReady();
   await _initializeSupabase();
+}
+
+/// Determine whether to start at home or onboarding.
+/// Runs before runApp() so the native splash covers this check.
+Future<String> _resolveInitialRoute() async {
+  try {
+    final cache = SharedPreferencesCacheService.global;
+    final cachedDone = await cache.getBool('onboarding_complete') ?? false;
+
+    if (!appRuntime.supabaseInitialized) {
+      return cachedDone ? '/' : '/onboarding';
+    }
+
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session == null) {
+      return cachedDone ? '/' : '/onboarding';
+    }
+
+    // Try remote check with short timeout
+    try {
+      final profile = await Supabase.instance.client
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', session.user.id)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 3));
+      final remote = profile?['onboarding_completed'] == true;
+      if (remote != cachedDone) {
+        await cache.setBool('onboarding_complete', remote);
+      }
+      return remote ? '/' : '/onboarding';
+    } catch (_) {
+      return cachedDone ? '/' : '/onboarding';
+    }
+  } catch (_) {
+    return '/onboarding';
+  }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/media/cdn_url_resolver.dart';
 import '../../core/media/fz_image_cache_manager.dart';
@@ -55,6 +56,26 @@ class TeamAvatar extends StatelessWidget {
         logoUrl!,
         width: size.round() * 2,
       );
+
+      // SVG crests need SvgPicture, not CachedNetworkImage.
+      if (logoUrl!.toLowerCase().endsWith('.svg')) {
+        return Container(
+          width: size,
+          height: size,
+          decoration: const BoxDecoration(shape: BoxShape.circle),
+          child: ClipOval(
+            child: Padding(
+              padding: EdgeInsets.all(size * 0.1),
+              child: SvgPicture.network(
+                resolvedUrl,
+                fit: BoxFit.contain,
+                placeholderBuilder: (_) => fallback,
+                errorBuilder: (_, __, ___) => fallback,
+              ),
+            ),
+          ),
+        );
+      }
 
       return Container(
         width: size,

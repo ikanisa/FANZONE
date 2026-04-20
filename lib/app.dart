@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'l10n/app_localizations.dart';
 import 'core/errors/app_error_boundary.dart';
 import 'core/lifecycle/app_lifecycle_observer.dart';
@@ -43,12 +46,29 @@ class FanzoneApp extends ConsumerWidget {
       builder: (context, child) {
         return AppErrorBoundary(
           child: AppLifecycleObserverWidget(
+            onForeground: () => _handleForegroundResume(ref),
             child: _SessionExpiryGuard(child: child ?? const SizedBox.shrink()),
           ),
         );
       },
     );
   }
+}
+
+void _handleForegroundResume(WidgetRef ref) {
+  ref.invalidate(matchRefreshTriggerProvider);
+
+  final session = ref.read(currentSessionProvider);
+  if (session != null) return;
+
+  final authService = ref.read(authServiceProvider);
+  final currentSession = authService.currentSession;
+  if (currentSession == null || !currentSession.isExpired) {
+    return;
+  }
+
+  ref.read(authExitIntentProvider.notifier).state = AuthExitIntent.none;
+  unawaited(authService.signOut());
 }
 
 /// Watches [sessionExpiredProvider] and shows a dialog when the session
@@ -64,6 +84,19 @@ class _SessionExpiryGuard extends ConsumerStatefulWidget {
 
 class _SessionExpiryGuardState extends ConsumerState<_SessionExpiryGuard> {
   bool _dialogShowing = false;
+  Timer? _customSessionExpiryTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncCustomSessionExpiryTimer(ref.read(authServiceProvider).currentSession);
+  }
+
+  @override
+  void dispose() {
+    _customSessionExpiryTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +106,44 @@ class _SessionExpiryGuardState extends ConsumerState<_SessionExpiryGuard> {
       }
     });
 
+    ref.listen<Session?>(currentSessionProvider, (previous, next) {
+      _syncCustomSessionExpiryTimer(next);
+    });
+
     return widget.child;
+  }
+
+  void _syncCustomSessionExpiryTimer(Session? session) {
+    _customSessionExpiryTimer?.cancel();
+    if (session == null) {
+      return;
+    }
+
+    final refreshToken = session.refreshToken;
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      return;
+    }
+
+    final expiresAt = session.expiresAt;
+    if (expiresAt == null) {
+      return;
+    }
+
+    final remainingMs = expiresAt * 1000 - DateTime.now().millisecondsSinceEpoch;
+    final timeoutMs = (remainingMs <= 0 ? 0 : remainingMs + 1000).clamp(
+      0,
+      2147483647,
+    );
+
+    _customSessionExpiryTimer = Timer(Duration(milliseconds: timeoutMs), () {
+      if (!mounted || _dialogShowing) {
+        return;
+      }
+
+      ref.read(authExitIntentProvider.notifier).state = AuthExitIntent.none;
+      unawaited(ref.read(authServiceProvider).signOut());
+      _showSessionExpiredDialog();
+    });
   }
 
   void _showSessionExpiredDialog() {

@@ -9,7 +9,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'widgets/navigation/app_shell.dart';
 
 import 'features/auth/screens/guest_upgrade_screen.dart';
-import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/whatsapp_login_screen.dart';
 import 'features/community/screens/membership_hub_screen.dart';
 import 'features/fixtures/screens/fixtures_screen.dart';
@@ -45,23 +44,36 @@ import 'features/wallet/screens/fet_exchange_screen.dart';
 import 'features/wallet/screens/wallet_screen.dart';
 
 /// True when any session exists (anonymous or phone-verified).
-bool _isAuthenticated() => Supabase.instance.client.auth.currentSession != null;
+bool _isAuthenticated() {
+  final session = Supabase.instance.client.auth.currentSession;
+  return session != null && !session.isExpired;
+}
 
 /// True only when the user is fully authenticated (non-anonymous).
 bool _isFullyAuthenticated() {
+  final session = Supabase.instance.client.auth.currentSession;
+  if (session == null || session.isExpired) {
+    return false;
+  }
   final user = Supabase.instance.client.auth.currentUser;
   return user != null && !user.isAnonymous;
 }
 
+/// Set by main.dart before runApp() — determined while native splash is visible.
+String _initialRoute = '/';
+
+/// Called from main.dart to set the resolved initial route.
+void setInitialRoute(String route) {
+  _initialRoute = route;
+}
+
 final router = GoRouter(
-  initialLocation: '/splash',
+  initialLocation: _initialRoute,
   refreshListenable: appRuntime.authStateVersion,
   observers: [AnalyticsRouteObserver()],
   redirect: (context, state) {
     final path = state.uri.path;
     final requestedLocation = state.uri.toString();
-
-    if (path == '/splash') return null;
 
     if (path == '/login') {
       if (!_isAuthenticated()) return null;
@@ -88,21 +100,19 @@ final router = GoRouter(
   },
   routes: [
     GoRoute(
-      path: '/splash',
-      pageBuilder: (context, state) =>
-          _fadeTransition(state, const SplashScreen()),
-    ),
-    GoRoute(
+      name: 'login',
       path: '/login',
       pageBuilder: (context, state) =>
           _fadeSlideTransition(state, const PhoneLoginScreen()),
     ),
     GoRoute(
+      name: 'onboarding',
       path: '/onboarding',
       pageBuilder: (context, state) =>
           _fadeTransition(state, const OnboardingScreen()),
     ),
     GoRoute(
+      name: 'upgrade',
       path: '/upgrade',
       pageBuilder: (context, state) => _fadeSlideTransition(
         state,
@@ -195,6 +205,7 @@ final router = GoRouter(
     GoRoute(path: '/wallet/rewards', redirect: (context, state) => '/rewards'),
     GoRoute(path: '/registry', redirect: (context, state) => '/fan-id'),
     GoRoute(
+      name: 'event_hub',
       path: '/event/:eventTag',
       pageBuilder: (context, state) => _fadeSlideTransition(
         state,
@@ -212,20 +223,24 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              name: 'home_feed',
               path: '/',
               builder: (context, state) => const HomeFeedScreen(),
               routes: [
                 GoRoute(
+                  name: 'home_scores',
                   path: 'scores',
                   pageBuilder: (context, state) =>
                       _fadeSlideTransition(state, const HomeScreen()),
                 ),
                 GoRoute(
+                  name: 'home_following',
                   path: 'following',
                   pageBuilder: (context, state) =>
                       _fadeSlideTransition(state, const FollowingScreen()),
                 ),
                 GoRoute(
+                  name: 'match_detail',
                   path: 'match/:matchId',
                   pageBuilder: (context, state) => _fadeSlideTransition(
                     state,
@@ -235,6 +250,7 @@ final router = GoRouter(
                   ),
                 ),
                 GoRoute(
+                  name: 'league_hub',
                   path: 'league/:leagueId',
                   pageBuilder: (context, state) => _fadeSlideTransition(
                     state,
@@ -244,6 +260,7 @@ final router = GoRouter(
                   ),
                 ),
                 GoRoute(
+                  name: 'leagues_discovery',
                   path: 'leagues',
                   pageBuilder: (context, state) => _fadeSlideTransition(
                     state,
@@ -251,6 +268,7 @@ final router = GoRouter(
                   ),
                   routes: [
                     GoRoute(
+                      name: 'all_leagues',
                       path: 'all',
                       pageBuilder: (context, state) =>
                           _fadeSlideTransition(state, const AllLeaguesScreen()),
@@ -258,6 +276,7 @@ final router = GoRouter(
                   ],
                 ),
                 GoRoute(
+                  name: 'search',
                   path: 'search',
                   pageBuilder: (context, state) =>
                       _fadeSlideTransition(state, const SearchScreen()),
@@ -269,6 +288,7 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              name: 'fixtures',
               path: '/fixtures',
               builder: (context, state) => const FixturesScreen(),
             ),
@@ -277,12 +297,14 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              name: 'predict_pools',
               path: '/pools',
               builder: (context, state) => AppConfig.enablePredictions
                   ? const PredictScreen()
                   : const FeatureUnavailableScreen(featureName: 'Predict'),
               routes: [
                 GoRoute(
+                  name: 'predict_create',
                   path: 'create',
                   pageBuilder: (context, state) => _fadeSlideTransition(
                     state,
@@ -292,6 +314,7 @@ final router = GoRouter(
               ],
             ),
             GoRoute(
+              name: 'pool_detail',
               path: '/pool/:poolId',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
@@ -299,6 +322,7 @@ final router = GoRouter(
               ),
             ),
             GoRoute(
+              name: 'jackpot_challenge',
               path: '/jackpot',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
@@ -316,12 +340,14 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              name: 'wallet',
               path: '/wallet',
               builder: (context, state) => AppConfig.enableWallet
                   ? const WalletScreen()
                   : const FeatureUnavailableScreen(featureName: 'Wallet'),
             ),
             GoRoute(
+              name: 'rewards',
               path: '/rewards',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
@@ -331,6 +357,7 @@ final router = GoRouter(
               ),
             ),
             GoRoute(
+              name: 'wallet_exchange',
               path: '/wallet/exchange',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const FetExchangeScreen()),
@@ -340,10 +367,12 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              name: 'profile',
               path: '/profile',
               builder: (context, state) => const ProfileScreen(),
             ),
             GoRoute(
+              name: 'leaderboard',
               path: '/leaderboard',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
@@ -355,16 +384,19 @@ final router = GoRouter(
               ),
             ),
             GoRoute(
+              name: 'settings',
               path: '/settings',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const SettingsScreen()),
               routes: [
                 GoRoute(
+                  name: 'favorite_teams',
                   path: 'favorite-teams',
                   pageBuilder: (context, state) =>
                       _fadeSlideTransition(state, const FavoriteTeamsScreen()),
                 ),
                 GoRoute(
+                  name: 'market_preferences',
                   path: 'market-preferences',
                   pageBuilder: (context, state) => _fadeSlideTransition(
                     state,
@@ -372,6 +404,7 @@ final router = GoRouter(
                   ),
                 ),
                 GoRoute(
+                  name: 'account_deletion',
                   path: 'account-deletion',
                   pageBuilder: (context, state) => _fadeSlideTransition(
                     state,
@@ -381,16 +414,19 @@ final router = GoRouter(
               ],
             ),
             GoRoute(
+              name: 'privacy',
               path: '/privacy',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const PrivacySettingsScreen()),
             ),
             GoRoute(
+              name: 'notifications',
               path: '/notifications',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const NotificationsScreen()),
             ),
             GoRoute(
+              name: 'notification_settings',
               path: '/notification-settings',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
@@ -398,26 +434,31 @@ final router = GoRouter(
               ),
             ),
             GoRoute(
+              name: 'memberships',
               path: '/memberships',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const MembershipHubScreen()),
             ),
             GoRoute(
+              name: 'social_hub',
               path: '/social',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const SocialHubScreen()),
             ),
             GoRoute(
+              name: 'fan_id',
               path: '/fan-id',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const FanIdScreen()),
             ),
             GoRoute(
+              name: 'teams_discovery',
               path: '/teams',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const TeamsDiscoveryScreen()),
             ),
             GoRoute(
+              name: 'team_profile',
               path: '/team/:teamId',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
@@ -425,6 +466,7 @@ final router = GoRouter(
               ),
               routes: [
                 GoRoute(
+                  name: 'team_news_detail',
                   path: 'news/:newsId',
                   pageBuilder: (context, state) => _fadeSlideTransition(
                     state,
