@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
@@ -278,8 +279,7 @@ class _PoolJoinSheetState extends ConsumerState<PoolJoinSheet> {
                     ? SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                        child: CupertinoActivityIndicator(
                           color: widget.isDark
                               ? FzColors.darkBg
                               : FzColors.lightBg,

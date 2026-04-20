@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
@@ -218,8 +219,7 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                                child: CupertinoActivityIndicator(
                                   color: Colors.white,
                                 ),
                               )

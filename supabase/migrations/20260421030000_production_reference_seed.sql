@@ -1,10 +1,134 @@
 -- ============================================================
 -- FANZONE Production Reference Data Seed
--- Purpose: Ensure all reference/lookup tables have complete data
--- Safe: Uses ON CONFLICT DO NOTHING — re-runnable without side effects
+-- Purpose: Ensure all reference/lookup tables exist and have data
+-- Safe: Uses IF NOT EXISTS + ON CONFLICT — re-runnable
 -- ============================================================
 
 BEGIN;
+
+-- ------------------------------------------------------------------
+-- 0. Ensure reference tables exist (may have been defined in
+--    unnumbered migrations that were not pushed to remote)
+-- ------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS public.fan_levels (
+  level     INTEGER PRIMARY KEY,
+  name      TEXT NOT NULL,
+  title     TEXT NOT NULL DEFAULT '',
+  min_xp    INTEGER NOT NULL DEFAULT 0,
+  icon_name TEXT DEFAULT 'user',
+  color_hex TEXT DEFAULT '#A8A29E'
+);
+
+CREATE TABLE IF NOT EXISTS public.fan_badges (
+  id              TEXT PRIMARY KEY,
+  name            TEXT NOT NULL,
+  description     TEXT DEFAULT '',
+  category        TEXT DEFAULT 'milestone',
+  icon_name       TEXT DEFAULT 'award',
+  color_hex       TEXT DEFAULT '#22C55E',
+  criteria_type   TEXT DEFAULT 'manual',
+  criteria_value  INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS public.fan_earned_badges (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  badge_id   TEXT REFERENCES public.fan_badges(id),
+  earned_at  TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (user_id, badge_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.currency_rates (
+  base_currency   TEXT NOT NULL,
+  target_currency TEXT NOT NULL,
+  rate            NUMERIC(18,6) NOT NULL DEFAULT 1,
+  source          TEXT DEFAULT 'manual',
+  updated_at      TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (base_currency, target_currency)
+);
+
+CREATE TABLE IF NOT EXISTS public.leaderboard_seasons (
+  id         TEXT PRIMARY KEY,
+  name       TEXT NOT NULL,
+  start_date DATE NOT NULL,
+  end_date   DATE NOT NULL,
+  status     TEXT DEFAULT 'active'
+);
+
+CREATE TABLE IF NOT EXISTS public.marketplace_partners (
+  id          TEXT PRIMARY KEY,
+  name        TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  logo_url    TEXT,
+  is_active   BOOLEAN DEFAULT true
+);
+
+CREATE TABLE IF NOT EXISTS public.marketplace_offers (
+  id              TEXT PRIMARY KEY,
+  partner_id      TEXT REFERENCES public.marketplace_partners(id),
+  title           TEXT NOT NULL,
+  description     TEXT DEFAULT '',
+  category        TEXT DEFAULT 'merch',
+  cost_fet        INTEGER NOT NULL DEFAULT 0,
+  delivery_type   TEXT DEFAULT 'voucher',
+  is_active       BOOLEAN DEFAULT true,
+  original_value  TEXT
+);
+
+CREATE TABLE IF NOT EXISTS public.featured_events (
+  id          TEXT PRIMARY KEY,
+  name        TEXT NOT NULL,
+  event_tag   TEXT,
+  description TEXT DEFAULT '',
+  start_date  DATE NOT NULL,
+  end_date    DATE NOT NULL,
+  is_active   BOOLEAN DEFAULT true,
+  banner_url  TEXT,
+  region      TEXT DEFAULT 'global'
+);
+
+-- Enable RLS on new tables with public read
+DO $$ BEGIN
+  ALTER TABLE public.fan_levels ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.fan_badges ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.currency_rates ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.leaderboard_seasons ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.marketplace_partners ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.marketplace_offers ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE public.featured_events ENABLE ROW LEVEL SECURITY;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+-- Public read policies
+DO $$ BEGIN
+  CREATE POLICY "fan_levels_public_read" ON public.fan_levels FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "fan_badges_public_read" ON public.fan_badges FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "currency_rates_public_read" ON public.currency_rates FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "leaderboard_seasons_public_read" ON public.leaderboard_seasons FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "marketplace_partners_public_read" ON public.marketplace_partners FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "marketplace_offers_public_read" ON public.marketplace_offers FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  CREATE POLICY "featured_events_public_read" ON public.featured_events FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- ------------------------------------------------------------------
 -- 1. Fan Levels (XP progression tiers)
@@ -41,7 +165,7 @@ INSERT INTO public.fan_badges (id, name, description, category, icon_name, color
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------------------------------
--- 3. Currency Rates (EUR base)
+-- 3. Currency Rates (EUR base — real-world rates Apr 2026)
 -- ------------------------------------------------------------------
 INSERT INTO public.currency_rates (base_currency, target_currency, rate, source, updated_at) VALUES
   ('EUR', 'EUR', 1.00,    'system',  NOW()),
@@ -53,29 +177,23 @@ ON CONFLICT (base_currency, target_currency) DO UPDATE SET
   updated_at = NOW();
 
 -- ------------------------------------------------------------------
--- 4. Competitions (top leagues + regional)
+-- 4. Competitions
 -- ------------------------------------------------------------------
 INSERT INTO public.competitions (id, name, short_name, country, tier, data_source, status, region, competition_type, is_featured) VALUES
-  -- Europe Top 5
   ('premier-league',     'Premier League',          'PL',   'England',     1, 'api', 'active', 'europe', 'league', true),
   ('la-liga',            'La Liga',                 'LL',   'Spain',       1, 'api', 'active', 'europe', 'league', true),
   ('serie-a',            'Serie A',                 'SA',   'Italy',       1, 'api', 'active', 'europe', 'league', true),
   ('bundesliga',         'Bundesliga',              'BL',   'Germany',     1, 'api', 'active', 'europe', 'league', true),
   ('ligue-1',            'Ligue 1',                 'L1',   'France',      1, 'api', 'active', 'europe', 'league', true),
-  -- UEFA
   ('champions-league',   'UEFA Champions League',   'UCL',  'Europe',      1, 'api', 'active', 'europe', 'cup',    true),
   ('europa-league',      'UEFA Europa League',      'UEL',  'Europe',      2, 'api', 'active', 'europe', 'cup',    false),
-  -- Regional
   ('eredivisie',         'Eredivisie',              'ERE',  'Netherlands', 1, 'manual', 'active', 'europe', 'league', false),
   ('primeira-liga',      'Primeira Liga',           'PRI',  'Portugal',    1, 'manual', 'active', 'europe', 'league', false),
   ('scottish-prem',      'Scottish Premiership',    'SPL',  'Scotland',    1, 'manual', 'active', 'europe', 'league', false),
-  -- Malta
   ('malta-premier',      'Malta Premier League',    'MPL',  'Malta',       1, 'manual', 'active', 'europe', 'league', true),
-  -- Africa
   ('rwanda-premier',     'Rwanda Premier League',   'RPL',  'Rwanda',      1, 'manual', 'active', 'africa', 'league', true),
   ('egyptian-premier',   'Egyptian Premier League', 'EPL',  'Egypt',       1, 'manual', 'active', 'africa', 'league', false),
   ('caf-champions',      'CAF Champions League',    'CAFCL','Africa',      1, 'manual', 'active', 'africa', 'cup',    true),
-  -- Americas  
   ('mls',                'Major League Soccer',     'MLS',  'USA',         1, 'manual', 'active', 'americas', 'league', false)
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
@@ -85,34 +203,34 @@ ON CONFLICT (id) DO UPDATE SET
   is_featured = EXCLUDED.is_featured;
 
 -- ------------------------------------------------------------------
--- 5. Leaderboard Season (current active season)
+-- 5. Leaderboard Season
 -- ------------------------------------------------------------------
 INSERT INTO public.leaderboard_seasons (id, name, start_date, end_date, status) VALUES
   ('season-2025-26', '2025/26 Season', '2025-08-01', '2026-06-30', 'active')
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------------------------------
--- 6. Marketplace Partners + Offers
+-- 6. Marketplace
 -- ------------------------------------------------------------------
 INSERT INTO public.marketplace_partners (id, name, description, logo_url, is_active) VALUES
-  ('fanzone-merch',     'FANZONE Merch',        'Official FANZONE merchandise and collectibles',  NULL, true),
-  ('matchday-experiences', 'Matchday Experiences', 'Premium football experiences and events',       NULL, true)
+  ('fanzone-merch',        'FANZONE Merch',         'Official FANZONE merchandise and collectibles', NULL, true),
+  ('matchday-experiences', 'Matchday Experiences',  'Premium football experiences and events',        NULL, true)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.marketplace_offers (id, partner_id, title, description, category, cost_fet, delivery_type, is_active, original_value) VALUES
-  ('offer-scarf',       'fanzone-merch',         'Club Scarf Voucher',         'Redeem for an official club scarf digital voucher.',         'merch',       120, 'voucher', true, '€20'),
-  ('offer-jersey',      'fanzone-merch',         'Jersey Discount Code',       'Get a 25% discount code for official jerseys.',              'merch',       300, 'code',    true, '€50'),
-  ('offer-watchparty',  'matchday-experiences',  'Watch Party Pass',           'Access to one premium live watch party event.',               'experience',  180, 'code',    true, '€30'),
-  ('offer-vip',         'matchday-experiences',  'VIP Matchday Experience',    'Exclusive VIP access to a matchday event near you.',          'experience',  500, 'manual',  true, '€80')
+  ('offer-scarf',      'fanzone-merch',         'Club Scarf Voucher',       'Redeem for an official club scarf digital voucher.',    'merch',       120, 'voucher', true, '€20'),
+  ('offer-jersey',     'fanzone-merch',         'Jersey Discount Code',     'Get a 25% discount code for official jerseys.',         'merch',       300, 'code',    true, '€50'),
+  ('offer-watchparty', 'matchday-experiences',  'Watch Party Pass',         'Access to one premium live watch party event.',          'experience',  180, 'code',    true, '€30'),
+  ('offer-vip',        'matchday-experiences',  'VIP Matchday Experience',  'Exclusive VIP access to a matchday event near you.',    'experience',  500, 'manual',  true, '€80')
 ON CONFLICT (id) DO NOTHING;
 
 -- ------------------------------------------------------------------
--- 7. Featured Events (current/upcoming)
+-- 7. Featured Events
 -- ------------------------------------------------------------------
 INSERT INTO public.featured_events (id, name, event_tag, description, start_date, end_date, is_active, banner_url, region) VALUES
-  ('ucl-final-2026',     'UCL Final 2026',    'ucl-final-2026',    'The biggest club match of the year — predict the champion!',  '2026-05-20', '2026-05-31', true,  NULL, 'global'),
-  ('world-cup-2026',     'World Cup 2026',    'worldcup2026',      'FIFA World Cup 2026 kicks off in North America.',              '2026-06-11', '2026-07-19', false, NULL, 'global'),
-  ('fanzone-launch-mt',  'FANZONE Malta Launch', 'launch-mt',      'FANZONE officially launches in Malta — join the community!',   '2026-04-01', '2026-06-30', true,  NULL, 'europe')
+  ('ucl-final-2026',    'UCL Final 2026',        'ucl-final-2026', 'The biggest club match of the year — predict the champion!', '2026-05-20', '2026-05-31', true,  NULL, 'global'),
+  ('world-cup-2026',    'World Cup 2026',        'worldcup2026',   'FIFA World Cup 2026 kicks off in North America.',             '2026-06-11', '2026-07-19', false, NULL, 'global'),
+  ('fanzone-launch-mt', 'FANZONE Malta Launch',  'launch-mt',      'FANZONE officially launches in Malta — join the community!',  '2026-04-01', '2026-06-30', true,  NULL, 'europe')
 ON CONFLICT (id) DO NOTHING;
 
 COMMIT;

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -422,8 +423,7 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
+                          child: CupertinoActivityIndicator(
                             color: Colors.white,
                           ),
                         )

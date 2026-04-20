@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
@@ -305,8 +306,7 @@ class _PredictionSlipModalState extends ConsumerState<_PredictionSlipModal> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
+                      child: CupertinoActivityIndicator(
                         color: Colors.white,
                       ),
                     )

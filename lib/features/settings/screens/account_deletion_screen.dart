@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -298,8 +299,8 @@ class _AccountDeletionScreenState extends ConsumerState<AccountDeletionScreen> {
                             ? const SizedBox(
                                 width: 14,
                                 height: 14,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                                child: CupertinoActivityIndicator(
+                                  color: FzColors.error,
                                 ),
                               )
                             : const Icon(LucideIcons.userX, size: 16),

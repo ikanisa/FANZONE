@@ -70,28 +70,11 @@ class _InsightsTab extends ConsumerWidget {
       },
       loading: () => ListView(
         padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 16),
-        children: [
-          Column(
-            children: [
-              const SizedBox(
-                width: 28,
-                height: 28,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color: FzColors.primary,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                'Gathering AI insights...',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: muted,
-                  letterSpacing: 0.6,
-                ),
-              ),
-            ],
+        children: const [
+          FzGlassLoader(
+            message: 'Gathering AI insights...',
+            useBackdrop: false,
+            size: 28,
           ),
         ],
       ),
