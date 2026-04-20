@@ -33,6 +33,7 @@ class SupabaseSearchCatalogGateway implements SearchCatalogGateway {
       final teamRows = await client
           .from('teams')
           .select('id, name, short_name, country, league_name')
+          .eq('is_active', true)
           .or(
             'name.ilike.$pattern,short_name.ilike.$pattern,country.ilike.$pattern,league_name.ilike.$pattern',
           )

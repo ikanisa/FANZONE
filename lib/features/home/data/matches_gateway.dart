@@ -65,4 +65,8 @@ class SupabaseMatchesGateway implements MatchesGateway {
   @override
   Future<MatchAiAnalysis?> getMatchAiAnalysis(String matchId) =>
       _detail.getMatchAiAnalysis(matchId);
+
+  @override
+  Stream<List<MatchModel>> watchLiveMatches() =>
+      _listing.watchLiveMatches();
 }

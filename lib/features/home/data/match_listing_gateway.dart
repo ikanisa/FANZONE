@@ -17,6 +17,9 @@ abstract interface class MatchListingGateway {
   Stream<List<MatchModel>> watchTeamMatches(String teamId);
 
   Stream<List<MatchModel>> watchUpcomingMatches();
+
+  /// Watches currently live matches via the `get_live_matches()` RPC.
+  Stream<List<MatchModel>> watchLiveMatches();
 }
 
 class SupabaseMatchListingGateway implements MatchListingGateway {
@@ -208,6 +211,30 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
           ascending: true,
         ),
       ),
+    );
+  }
+
+  @override
+  Stream<List<MatchModel>> watchLiveMatches() {
+    return pollMatchStream<List<MatchModel>>(
+      () async {
+        final client = _connection.client;
+        if (client == null) return const <MatchModel>[];
+
+        try {
+          final rows = await client.rpc('get_live_matches');
+          return (rows as List)
+              .whereType<Map>()
+              .map((row) => MatchModel.fromJson(Map<String, dynamic>.from(row)))
+              .toList(growable: false);
+        } catch (error) {
+          AppLogger.d('Failed to load live matches via RPC: $error');
+          // Fallback to view-based query
+          return getMatches(
+            const MatchesFilter(status: 'live', limit: 100, ascending: true),
+          );
+        }
+      },
     );
   }
 }

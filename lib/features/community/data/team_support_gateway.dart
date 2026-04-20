@@ -252,6 +252,7 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
         final rows = await client
             .from('teams')
             .select('id, name, fan_count, country, league_name, crest_url')
+            .eq('is_active', true)
             .eq('is_featured', true)
             .order('fan_count', ascending: false)
             .limit(6);

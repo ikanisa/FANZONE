@@ -109,4 +109,9 @@ class SupabaseCatalogGateway implements CatalogGateway {
       featuredOnly: featuredOnly,
     );
   }
+
+  @override
+  Future<String> resolveTeamId(String teamId) {
+    return _teams.resolveTeamId(teamId);
+  }
 }
