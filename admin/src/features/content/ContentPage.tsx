@@ -105,7 +105,7 @@ export function ContentPage() {
               <DrawerField label="Priority" value={`#${selected.priority}`} />
               <DrawerField label="Country" value={selected.country} />
               <DrawerField label="Status" value={<StatusBadge status={selected.is_active ? 'active' : 'archived'} />} />
-              <DrawerField label="Action URL" value={selected.action_url ? <a href={selected.action_url} className="text-accent">{selected.action_url}</a> : '—'} />
+              <DrawerField label="Action URL" value={selected.action_url ? <a href={selected.action_url} className="text-primary">{selected.action_url}</a> : '—'} />
             </DrawerSection>
             <DrawerSection title="Validity">
               <DrawerField label="Valid From" value={selected.valid_from ? formatDate(selected.valid_from) : '—'} />

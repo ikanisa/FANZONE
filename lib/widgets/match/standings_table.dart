@@ -156,7 +156,7 @@ class _StandingRow extends StatelessWidget {
                 style: FzTypography.scoreCompact(
                   color: row.goalDifference >= 0
                       ? textColor
-                      : FzColors.maltaRed,
+                      : FzColors.danger,
                 ),
               ),
             ),

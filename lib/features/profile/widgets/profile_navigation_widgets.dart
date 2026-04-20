@@ -274,11 +274,11 @@ class VerifyAccountRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF25D366),
+                  color: FzColors.primary,
                 ),
               ),
             ),
-            Icon(LucideIcons.chevronRight, size: 16, color: Color(0xFF25D366)),
+            Icon(LucideIcons.chevronRight, size: 16, color: FzColors.primary),
           ],
         ),
       ),
@@ -295,16 +295,16 @@ class VerifyAccountIcon extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: const Color(0xFF25D366).withValues(alpha: 0.1),
+        color: FzColors.primary.withValues(alpha: 0.1),
         shape: BoxShape.circle,
         border: Border.all(
-          color: const Color(0xFF25D366).withValues(alpha: 0.2),
+          color: FzColors.primary.withValues(alpha: 0.2),
         ),
       ),
       child: const Icon(
         LucideIcons.messageCircle,
         size: 16,
-        color: Color(0xFF25D366),
+        color: FzColors.primary,
       ),
     );
   }

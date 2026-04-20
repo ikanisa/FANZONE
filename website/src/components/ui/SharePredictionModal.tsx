@@ -54,13 +54,13 @@ export function SharePredictionModal({ isOpen, onClose, matchName, prediction, e
             </button>
 
             <div className="mb-8 bg-gradient-to-br from-surface2 to-surface3 border border-border rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-accent"></div>
-              <div className="text-accent text-4xl mb-4">🎯</div>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
+              <div className="text-primary text-4xl mb-4">🎯</div>
               <h4 className="font-bold text-text text-xl mb-2">{matchName}</h4>
               <p className="text-muted text-sm mb-4">I predict: <span className="text-text font-bold">{prediction}</span></p>
               <div className="inline-block bg-surface border border-border rounded-full px-4 py-2">
                 <span className="text-xs text-muted uppercase tracking-widest mr-2">Potential Win</span>
-                <span className="font-mono font-bold text-accent3">+{earn} FET</span>
+                <span className="font-mono font-bold text-secondary">+{earn} FET</span>
               </div>
             </div>
 
@@ -68,7 +68,7 @@ export function SharePredictionModal({ isOpen, onClose, matchName, prediction, e
               <h3 className="font-display text-xl text-text tracking-widest mb-4 text-center">SHARE PREDICTION</h3>
               
               <div className="grid grid-cols-3 gap-3">
-                <button onClick={() => handleShare('WhatsApp')} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/20 transition-colors">
+                <button onClick={() => handleShare('WhatsApp')} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors">
                   <MessageCircle size={24} />
                   <span className="text-[10px] font-bold uppercase tracking-widest">WhatsApp</span>
                 </button>
@@ -76,7 +76,7 @@ export function SharePredictionModal({ isOpen, onClose, matchName, prediction, e
                   <Twitter size={24} />
                   <span className="text-[10px] font-bold uppercase tracking-widest">X (Twitter)</span>
                 </button>
-                <button onClick={() => handleShare('Save Image')} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-colors">
+                <button onClick={() => handleShare('Save Image')} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors">
                   <Download size={24} />
                   <span className="text-[10px] font-bold uppercase tracking-widest">Save Image</span>
                 </button>

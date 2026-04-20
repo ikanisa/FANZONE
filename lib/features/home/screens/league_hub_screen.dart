@@ -61,7 +61,7 @@ class LeagueHubScreen extends ConsumerWidget {
                         ? Icons.star_rounded
                         : Icons.star_border_rounded,
                     color: favourites.isCompetitionFavourite(competition.id)
-                        ? FzColors.amber
+                        ? FzColors.secondary
                         : null,
                   ),
                 ),

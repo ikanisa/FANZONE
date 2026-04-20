@@ -18,7 +18,7 @@ export default function FanIdScreen() {
     <div className="min-h-screen bg-bg pb-24">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-surface/80 backdrop-blur-md border-b border-border p-4 flex items-center justify-between">
-        <Link to="/profile" className="text-text hover:text-accent transition-all">
+        <Link to="/profile" className="text-text hover:text-primary transition-all">
           <ChevronLeft size={24} />
         </Link>
         <div className="text-center">
@@ -36,10 +36,10 @@ export default function FanIdScreen() {
 
         {/* ID Display Card */}
         <div className="bg-surface2 border border-border rounded-3xl p-6 lg:p-8 relative overflow-hidden">
-          <div className="absolute top-[-50px] right-[-50px] w-32 h-32 bg-accent/10 blur-[40px] rounded-full pointer-events-none"></div>
+          <div className="absolute top-[-50px] right-[-50px] w-32 h-32 bg-primary/10 blur-[40px] rounded-full pointer-events-none"></div>
           
           <div className="flex items-center gap-6 mb-6 relative z-10">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent to-[#0099ff] flex items-center justify-center text-3xl shadow-inner flex-shrink-0">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl shadow-inner flex-shrink-0">
               ⚽
             </div>
             <div className="flex-1">
@@ -47,9 +47,9 @@ export default function FanIdScreen() {
                 <div className="font-mono text-3xl font-bold text-text tracking-[4px]">{fanId}</div>
                 <button 
                   onClick={handleCopy}
-                  className="w-8 h-8 rounded-full bg-surface3 flex items-center justify-center text-muted hover:text-accent transition-colors"
+                  className="w-8 h-8 rounded-full bg-surface3 flex items-center justify-center text-muted hover:text-primary transition-colors"
                 >
-                  {copied ? <CheckCircle2 size={16} className="text-accent" /> : <Copy size={16} />}
+                  {copied ? <CheckCircle2 size={16} className="text-primary" /> : <Copy size={16} />}
                 </button>
               </div>
               <div className="text-[10px] text-muted uppercase tracking-widest font-bold">
@@ -59,7 +59,7 @@ export default function FanIdScreen() {
           </div>
 
           <div className="flex gap-2 flex-wrap relative z-10">
-            <span className="inline-flex items-center gap-1 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-[10px] font-bold text-accent">
+            <span className="inline-flex items-center gap-1 bg-primary/10 border border-primary/20 rounded-full px-3 py-1 text-[10px] font-bold text-primary">
               <ShieldCheck size={12} /> Anonymous
             </span>
             <span className="inline-flex items-center gap-1 bg-surface3 border border-border rounded-full px-3 py-1 text-[10px] font-bold text-muted">
@@ -99,7 +99,7 @@ export default function FanIdScreen() {
 function RuleItem({ text }: { text: string }) {
   return (
     <li className="flex items-start gap-3 text-xs text-text">
-      <Fingerprint size={14} className="text-accent shrink-0 mt-[2px]" />
+      <Fingerprint size={14} className="text-primary shrink-0 mt-[2px]" />
       <span className="leading-relaxed">{text}</span>
     </li>
   );

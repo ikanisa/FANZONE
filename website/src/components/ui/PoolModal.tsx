@@ -50,7 +50,7 @@ export function PoolModal({ isOpen, onClose, targetName }: PoolModalProps) {
 
             {step === 1 && (
               <div className="flex flex-col gap-6">
-                <div className="flex items-center justify-center gap-3 text-accent mb-2">
+                <div className="flex items-center justify-center gap-3 text-primary mb-2">
                   <Swords size={32} />
                 </div>
                 <div className="text-center">
@@ -65,8 +65,8 @@ export function PoolModal({ isOpen, onClose, targetName }: PoolModalProps) {
                       onClick={() => setSelectedMatch(match.id)}
                       className={`p-4 rounded-xl border cursor-pointer transition-all ${
                         selectedMatch === match.id 
-                          ? 'border-accent bg-accent/10' 
-                          : 'border-border bg-surface3 hover:border-accent/50'
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border bg-surface3 hover:border-primary/50'
                       }`}
                     >
                       <div className="flex justify-between items-center text-sm font-bold text-text mb-2">
@@ -82,7 +82,7 @@ export function PoolModal({ isOpen, onClose, targetName }: PoolModalProps) {
                 <button 
                   onClick={() => setStep(2)}
                   disabled={!selectedMatch}
-                  className="w-full bg-accent hover:bg-accent/90 disabled:opacity-50 text-bg font-bold py-4 rounded-xl transition-all"
+                  className="w-full bg-secondary hover:bg-secondary/90 disabled:opacity-50 text-bg font-bold py-4 rounded-xl transition-all"
                 >
                   NEXT
                 </button>
@@ -91,7 +91,7 @@ export function PoolModal({ isOpen, onClose, targetName }: PoolModalProps) {
 
             {step === 2 && (
               <div className="flex flex-col gap-6">
-                <div className="flex items-center justify-center gap-3 text-accent mb-2">
+                <div className="flex items-center justify-center gap-3 text-primary mb-2">
                   <Trophy size={32} />
                 </div>
                 <div className="text-center">
@@ -102,7 +102,7 @@ export function PoolModal({ isOpen, onClose, targetName }: PoolModalProps) {
                 <div className="flex items-center justify-between bg-surface3 border border-border rounded-xl p-4">
                   <button 
                     onClick={() => setWager(Math.max(50, wager - 50))}
-                    className="w-10 h-10 rounded-full bg-surface2 border border-border flex items-center justify-center text-text hover:text-accent font-mono text-xl transition-colors"
+                    className="w-10 h-10 rounded-full bg-surface2 border border-border flex items-center justify-center text-text hover:text-primary font-mono text-xl transition-colors"
                   >
                     -
                   </button>
@@ -111,7 +111,7 @@ export function PoolModal({ isOpen, onClose, targetName }: PoolModalProps) {
                   </div>
                   <button 
                     onClick={() => setWager(wager + 50)}
-                    className="w-10 h-10 rounded-full bg-surface2 border border-border flex items-center justify-center text-text hover:text-accent font-mono text-xl transition-colors"
+                    className="w-10 h-10 rounded-full bg-surface2 border border-border flex items-center justify-center text-text hover:text-primary font-mono text-xl transition-colors"
                   >
                     +
                   </button>
@@ -132,7 +132,7 @@ export function PoolModal({ isOpen, onClose, targetName }: PoolModalProps) {
                   </button>
                   <button 
                     onClick={handleCreate}
-                    className="flex-1 bg-accent hover:bg-accent/90 text-bg font-bold py-4 rounded-xl transition-all"
+                    className="flex-1 bg-secondary hover:bg-secondary/90 text-bg font-bold py-4 rounded-xl transition-all"
                   >
                     CHALLENGE
                   </button>

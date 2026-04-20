@@ -160,7 +160,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                                 children: [
                                   GuaranteeRow(
                                     icon: LucideIcons.smartphone,
-                                    iconColor: Color(0xFF25D366),
+                                    iconColor: FzColors.primary,
                                     title: 'Phone Number Hidden',
                                     description:
                                         'Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users, club admins, or in public leaderboards.',

@@ -57,7 +57,7 @@ export default function TeamProfile() {
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#00e5a0', '#ffd32a', '#ffffff']
+      colors: ['#98ff98', '#ff7f50', '#fdfcf0']
     });
   };
 
@@ -65,7 +65,7 @@ export default function TeamProfile() {
     <div className="min-h-screen bg-bg pb-24">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-surface/80 backdrop-blur-md border-b border-border p-4 flex items-center justify-between">
-        <Link to="/memberships" className="text-text hover:text-accent transition-all">
+        <Link to="/memberships" className="text-text hover:text-primary transition-all">
           <ChevronLeft size={24} />
         </Link>
         <div className="text-center">
@@ -75,7 +75,7 @@ export default function TeamProfile() {
       </header>
 
       {/* Hero Banner */}
-      <div className="relative h-48 bg-gradient-to-br from-[#1a0a00] to-[#2d1100] border-b border-border overflow-hidden">
+      <div className="relative h-48 bg-gradient-to-br from-secondary/35 via-surface to-primary/10 border-b border-border overflow-hidden">
         <div className="absolute top-4 left-4 text-[9px] font-bold tracking-widest text-text/40 uppercase">Malta Premier League</div>
         
         <div className="absolute -bottom-8 left-6 w-24 h-24 rounded-full bg-surface border-4 border-surface2 flex items-center justify-center shadow-xl z-10 overflow-hidden p-2">
@@ -105,13 +105,13 @@ export default function TeamProfile() {
 
         <div className="bg-surface3 border border-border rounded-xl p-4 mb-6">
           <div className="text-[9px] font-bold tracking-widest uppercase text-text mb-1">BOV Mobile Pay Add-on</div>
-          <div className="font-mono text-lg text-accent tracking-widest">79X2 84X1</div>
+          <div className="font-mono text-lg text-primary tracking-widest">79X2 84X1</div>
           <div className="text-[10px] text-muted mt-2">Send instantly using BOV Mobile Pay · Verified via Fan ID</div>
         </div>
 
         <button 
           onClick={handleJoinClick}
-          className="w-full bg-gradient-to-r from-accent/20 to-accent/10 border border-accent/30 text-accent font-bold py-3 rounded-xl transition-all"
+          className="w-full bg-secondary hover:bg-secondary/90 text-bg font-bold py-3 rounded-xl transition-all"
         >
           {isVerified ? 'Manage Membership' : 'Join Spartans Fan Club — Free'}
         </button>
@@ -123,7 +123,7 @@ export default function TeamProfile() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 min-w-[100px] py-4 text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab ? 'text-accent border-b-2 border-accent' : 'text-muted hover:text-text'}`}
+            className={`flex-1 min-w-[100px] py-4 text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-muted hover:text-text'}`}
           >
             {tab}
           </button>
@@ -218,21 +218,21 @@ export default function TeamProfile() {
             <h3 className="font-display text-xl text-text tracking-widest mb-4">MOMO USSD CONTRIBUTION</h3>
             <div className="bg-surface2 border border-border rounded-2xl p-6">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-[#FFCC00]/10 border border-[#FFCC00]/30 flex items-center justify-center text-[#FFCC00] font-mono font-bold shrink-0">1</div>
+                <div className="w-12 h-12 rounded-full bg-secondary/10 border border-secondary/30 flex items-center justify-center text-secondary font-mono font-bold shrink-0">1</div>
                 <div>
                   <div className="font-bold text-text text-sm">Dial USSD Code</div>
                   <div className="text-xs text-muted">Dial *182*8*1*0780123456# on your MTN line.</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-[#FFCC00]/10 border border-[#FFCC00]/30 flex items-center justify-center text-[#FFCC00] font-mono font-bold shrink-0">2</div>
+                <div className="w-12 h-12 rounded-full bg-secondary/10 border border-secondary/30 flex items-center justify-center text-secondary font-mono font-bold shrink-0">2</div>
                 <div>
                   <div className="font-bold text-text text-sm">Complete Payment</div>
                   <div className="text-xs text-muted">Select amount tier and enter PIN.</div>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#FFCC00]/10 border border-[#FFCC00]/30 flex items-center justify-center text-[#FFCC00] font-mono font-bold shrink-0">3</div>
+                <div className="w-12 h-12 rounded-full bg-secondary/10 border border-secondary/30 flex items-center justify-center text-secondary font-mono font-bold shrink-0">3</div>
                 <div>
                   <div className="font-bold text-text text-sm">Confirm Here</div>
                   <div className="text-xs text-muted">Return to FANZONE to activate your tier.</div>
@@ -241,7 +241,7 @@ export default function TeamProfile() {
             </div>
             <button 
               onClick={handleMoMoDial}
-              className="w-full bg-[#FFCC00] hover:bg-[#FFCC00]/90 text-[#1a1400] font-bold py-4 rounded-xl transition-all"
+              className="w-full bg-secondary hover:bg-secondary/90 text-bg font-bold py-4 rounded-xl transition-all"
             >
               DIAL NOW
             </button>
@@ -267,18 +267,18 @@ export default function TeamProfile() {
 
 function MemberRow({ rank, fanId, tier, fet, isMe = false }: { rank: number, fanId: string, tier: string, fet: string, isMe?: boolean }) {
   return (
-    <div className={`flex items-center justify-between p-3 rounded-xl border ${isMe ? 'bg-accent/10 border-accent/30' : 'bg-surface2 border-border'}`}>
+    <div className={`flex items-center justify-between p-3 rounded-xl border ${isMe ? 'bg-primary/10 border-primary/30' : 'bg-surface2 border-border'}`}>
       <div className="flex items-center gap-3">
         <div className="font-mono text-muted text-xs w-4">{rank}</div>
         <div className="w-8 h-8 rounded-full bg-surface3 flex items-center justify-center text-xs">👤</div>
         <div>
           <div className="text-sm font-bold text-text flex items-center gap-2">
-            {fanId} {isMe && <span className="text-[9px] bg-accent text-bg px-1.5 py-0.5 rounded-sm uppercase tracking-widest">You</span>}
+            {fanId} {isMe && <span className="text-[9px] bg-primary text-bg px-1.5 py-0.5 rounded-sm uppercase tracking-widest">You</span>}
           </div>
-          <div className="text-[10px] text-accent3">{tier}</div>
+          <div className="text-[10px] text-secondary">{tier}</div>
         </div>
       </div>
-      <div className="font-mono text-sm font-bold text-accent">{fet}</div>
+      <div className="font-mono text-sm font-bold text-primary">{fet}</div>
     </div>
   );
 }

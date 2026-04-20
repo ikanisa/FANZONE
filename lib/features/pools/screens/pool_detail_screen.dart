@@ -40,7 +40,7 @@ class PoolDetailScreen extends ConsumerWidget {
               icon: Icon(LucideIcons.share2, color: textColor, size: 20),
               tooltip: 'Share Pool',
               onPressed: () {
-                final url = 'https://fanzone.mt/pool/$poolId';
+                final url = 'https://fanzone.ikanisa.com/pool/$poolId';
                 SharePlus.instance.share(
                   ShareParams(
                     text: 'Join my prediction pool on FANZONE! 🏆⚽\n$url',
@@ -96,11 +96,11 @@ class _PoolContent extends ConsumerWidget {
       case 'open':
         return FzColors.primary;
       case 'locked':
-        return FzColors.amber;
+        return FzColors.secondary;
       case 'settled':
         return FzColors.success;
       case 'void':
-        return FzColors.maltaRed;
+        return FzColors.danger;
       default:
         return muted;
     }

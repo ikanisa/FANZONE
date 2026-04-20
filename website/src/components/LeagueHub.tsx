@@ -39,7 +39,7 @@ export default function LeagueHub() {
           scrollDirection === 'down' ? 'top-0' : 'top-[60px] lg:top-0'
         }`}
       >
-        <Link to="/fixtures" className="text-text hover:text-accent transition-all">
+        <Link to="/fixtures" className="text-text hover:text-primary transition-all">
           <ChevronLeft size={24} />
         </Link>
         <div className="text-center">
@@ -52,7 +52,7 @@ export default function LeagueHub() {
       {/* Hero Action Platform */}
       <div className="bg-surface2 p-6 border-b border-border relative overflow-hidden">
         {/* Glow effect behind hero */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3 pointer-events-none" />
 
         <div className="flex items-center gap-4 mb-4 relative z-10">
           <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center text-3xl shadow-inner border border-border shrink-0">
@@ -61,7 +61,7 @@ export default function LeagueHub() {
           <div>
             <h1 className="font-display text-2xl md:text-3xl text-text tracking-tight mb-1">{leagueName}</h1>
             <div className="flex gap-3 text-[10px] font-bold text-muted uppercase tracking-widest">
-              <span className="flex items-center gap-1"><Zap size={12} className="text-accent" /> Live Now</span>
+              <span className="flex items-center gap-1"><Zap size={12} className="text-primary" /> Live Now</span>
               <span className="flex items-center gap-1"><Users size={12} /> 12 Active Pools</span>
             </div>
           </div>
@@ -71,7 +71,7 @@ export default function LeagueHub() {
         <div className="flex gap-3 mt-6 relative z-10">
           <button 
             onClick={() => navigate('/pools/create')}
-            className="flex-1 bg-accent text-surface font-bold py-3 rounded-xl flex justify-center items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(34,211,238,0.3)] text-xs"
+            className="flex-1 bg-secondary text-bg font-bold py-3 rounded-xl flex justify-center items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all shadow-[0_0_15px_rgba(152,255,152,0.3)] text-xs"
           >
             <Plus size={16} /> NEW POOL
           </button>
@@ -93,7 +93,7 @@ export default function LeagueHub() {
             <h2 className="font-sans font-bold text-lg text-text flex items-center gap-2">
                Action Center <Badge variant="danger" pulse>LIVE</Badge>
             </h2>
-            <Link to="/fixtures" className="text-xs font-bold text-accent">SEE ALL</Link>
+            <Link to="/fixtures" className="text-xs font-bold text-primary">SEE ALL</Link>
           </div>
           <div className="grid gap-3">
             {liveMatches.map(m => (
@@ -115,9 +115,9 @@ export default function LeagueHub() {
         <section>
           <div className="flex items-center justify-between mb-3 px-2">
             <h2 className="font-sans font-bold text-lg text-text flex items-center gap-2">
-              <Swords size={20} className="text-[var(--accent2)]" /> Hot Pools
+              <Swords size={20} className="text-[var(--secondary)]" /> Hot Pools
             </h2>
-            <Link to="/pools" className="text-xs font-bold text-accent">BROWSE POOLS</Link>
+            <Link to="/pools" className="text-xs font-bold text-primary">BROWSE POOLS</Link>
           </div>
           <div className="grid gap-3">
              {activePools.map(pool => (
@@ -133,14 +133,14 @@ export default function LeagueHub() {
                    </div>
                    <div className="text-right">
                      <span className="text-[10px] font-bold text-muted uppercase block">Total Pool</span>
-                     <FETDisplay amount={pool.pool} showFiat={false} className="text-xl text-[var(--accent2)] tracking-tight" />
+                     <FETDisplay amount={pool.pool} showFiat={false} className="text-xl text-[var(--secondary)] tracking-tight" />
                    </div>
                  </div>
                  <div className="bg-surface2 px-4 py-3 flex gap-2">
                     <button onClick={() => navigate(`/pool/${pool.id}`)} className="w-full bg-surface border border-border rounded-lg py-2 text-sm font-bold text-text hover:bg-text hover:text-bg transition-colors">
                       VIEW POOL
                     </button>
-                    <button onClick={() => navigate(`/pool/${pool.id}`)} className="px-4 bg-[var(--accent2)] text-bg rounded-lg font-bold flex items-center justify-center hover:opacity-90">
+                    <button onClick={() => navigate(`/pool/${pool.id}`)} className="px-4 bg-[var(--secondary)] text-bg rounded-lg font-bold flex items-center justify-center hover:opacity-90">
                       JOIN
                     </button>
                  </div>

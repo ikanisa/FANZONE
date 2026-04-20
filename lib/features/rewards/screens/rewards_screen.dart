@@ -55,10 +55,10 @@ class RewardsScreen extends ConsumerWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: FzColors.amber.withValues(alpha: 0.12),
+                      color: FzColors.secondary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(LucideIcons.gift, color: FzColors.amber),
+                    child: const Icon(LucideIcons.gift, color: FzColors.secondary),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -275,7 +275,7 @@ class _BalancePill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: FzColors.amber.withValues(alpha: 0.12),
+        color: FzColors.secondary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -283,7 +283,7 @@ class _BalancePill extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: FzColors.amber,
+          color: FzColors.secondary,
         ),
       ),
     );
@@ -420,7 +420,7 @@ class _RedemptionCard extends StatelessWidget {
       'fulfilled' => FzColors.success,
       'used' => FzColors.primary,
       'expired' => FzColors.error,
-      _ => FzColors.amber,
+      _ => FzColors.secondary,
     };
 
     return FzCard(

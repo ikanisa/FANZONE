@@ -91,7 +91,7 @@ Google Play content rating questionnaire answers:
 
 ## Privacy Policy
 
-**Required URL**: `https://fanzone.mt/privacy`  
+**Required URL**: `https://fanzone.ikanisa.com/privacy`  
 (or Firebase Hosting alternative until domain is configured)
 
 See `docs/privacy-policy.md` for the full text.
@@ -102,7 +102,7 @@ See `docs/privacy-policy.md` for the full text.
 
 - **Developer name**: IKANISA
 - **Email**: info@ikanisa.com
-- **Website**: https://fanzone.mt
+- **Website**: https://fanzone.ikanisa.com
 - **Phone**: (optional)
 
 ---

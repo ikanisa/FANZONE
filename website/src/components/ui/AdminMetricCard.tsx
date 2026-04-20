@@ -16,7 +16,7 @@ export function AdminMetricCard({ label, value, trend, trendUp }: AdminMetricCar
       <div className="text-xs font-bold text-muted uppercase tracking-widest mb-2">{label}</div>
       <div className="font-mono text-3xl font-bold text-text">{value}</div>
       {trend && (
-        <div className={`text-xs font-bold mt-2 ${trendUp ? 'text-accent' : 'text-accent2'}`}>
+        <div className={`text-xs font-bold mt-2 ${trendUp ? 'text-primary' : 'text-secondary'}`}>
           {trend}
         </div>
       )}

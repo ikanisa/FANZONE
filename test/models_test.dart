@@ -314,7 +314,7 @@ void main() {
       'id': 'n1',
       'title': 'Valletta wins derby',
       'source': 'FANZONE',
-      'url': 'https://fanzone.mt/news/1',
+      'url': 'https://fanzone.ikanisa.com/news/1',
       'published_at': '2026-04-17T12:00:00.000Z',
     };
 

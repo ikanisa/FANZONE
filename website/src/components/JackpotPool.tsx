@@ -13,7 +13,7 @@ export default function JackpotPool() {
       </header>
 
       {/* Prize Card */}
-      <div className="bg-gradient-to-r from-accent4/90 to-accent/90 rounded-[28px] p-6 mb-8 text-black relative overflow-hidden shadow-sm">
+      <div className="bg-gradient-to-r from-secondary/90 to-primary/90 rounded-[28px] p-6 mb-8 text-black relative overflow-hidden shadow-sm">
         <div className="relative z-10">
            <Badge variant="ghost" className="mb-4 bg-black/10 text-black border-transparent">
              <Trophy size={10} className="mr-1 inline" /> WEEKLY POOL
@@ -37,11 +37,11 @@ export default function JackpotPool() {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-surface2 border border-border flex items-center justify-center text-xs shadow-inner shrink-0">⚽</div>
               <div>
-                <div className="text-sm font-bold text-text group-hover:text-accent transition-colors leading-tight">Team A vs Team B</div>
+                <div className="text-sm font-bold text-text group-hover:text-primary transition-colors leading-tight">Team A vs Team B</div>
                 <div className="text-[10px] font-bold uppercase tracking-widest text-muted mt-1">EPL · 18:00</div>
               </div>
             </div>
-            <button className="bg-surface2 border border-border text-muted group-hover:text-accent group-hover:border-accent/40 w-10 h-10 rounded-full flex justify-center items-center font-bold text-xs transition-colors shrink-0 shadow-[0_0_15px_rgba(34,211,238,0.0)] group-hover:shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+            <button className="bg-surface2 border border-border text-muted group-hover:text-primary group-hover:border-primary/40 w-10 h-10 rounded-full flex justify-center items-center font-bold text-xs transition-colors shrink-0 shadow-[0_0_15px_rgba(152,255,152,0.0)] group-hover:shadow-[0_0_15px_rgba(152,255,152,0.1)]">
                <ChevronRight size={18} />
             </button>
           </div>
@@ -49,7 +49,7 @@ export default function JackpotPool() {
       </div>
 
       <div className="fixed bottom-[70px] lg:bottom-0 left-0 right-0 p-4 bg-surface/80 backdrop-blur-xl border-t border-border z-40 lg:w-[calc(100%-16rem)] lg:ml-64">
-        <button className="w-full bg-[var(--accent2)] hover:opacity-90 text-bg font-bold py-3.5 rounded-full transition-opacity shadow-[0_0_15px_rgba(255,127,80,0.3)] flex items-center justify-center gap-2">
+        <button className="w-full bg-[var(--secondary)] hover:opacity-90 text-bg font-bold py-3.5 rounded-full transition-opacity shadow-[0_0_15px_rgba(255,127,80,0.3)] flex items-center justify-center gap-2">
           <Check size={18} /> SUBMIT 500 FET
         </button>
       </div>

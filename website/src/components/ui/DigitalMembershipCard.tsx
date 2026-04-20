@@ -1,6 +1,3 @@
-import { motion } from 'motion/react';
-import { Share2 } from 'lucide-react';
-
 interface DigitalMembershipCardProps {
   clubName: string;
   tier: string;
@@ -17,7 +14,7 @@ export function DigitalMembershipCard({ clubName, tier, fanId, crest, color, mem
       <div 
         className="absolute inset-0 opacity-90"
         style={{
-          background: `linear-gradient(135deg, ${color}40 0%, #0d0a27 100%)`,
+          background: `linear-gradient(135deg, ${color}44 0%, rgba(19,20,24,0.94) 62%, rgba(152,255,152,0.18) 100%)`,
         }}
       />
       <div className="absolute inset-0 backdrop-blur-xl bg-surface/40 border border-white/10 rounded-2xl" />
@@ -29,7 +26,7 @@ export function DigitalMembershipCard({ clubName, tier, fanId, crest, color, mem
       />
       <div 
         className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full blur-[50px] opacity-30"
-        style={{ background: color }}
+        style={{ background: 'rgba(152,255,152,0.55)' }}
       />
 
       {/* Content */}

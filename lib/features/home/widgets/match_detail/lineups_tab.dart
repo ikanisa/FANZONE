@@ -237,7 +237,7 @@ class _PlayerRow extends StatelessWidget {
               child: Icon(
                 Icons.assistant_rounded,
                 size: 12,
-                color: FzColors.amber,
+                color: FzColors.secondary,
               ),
             ),
           if (player.yellowCards > 0)

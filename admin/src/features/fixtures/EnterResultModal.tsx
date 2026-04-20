@@ -26,7 +26,7 @@ export function EnterResultModal({ open, matchId, matchLabel, onConfirm, onCance
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal-panel" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
         <div className="flex items-center gap-3 mb-5">
-          <div style={{ color: 'var(--fz-accent)', flexShrink: 0 }}>
+          <div style={{ color: 'var(--fz-primary)', flexShrink: 0 }}>
             <Target size={24} />
           </div>
           <div>

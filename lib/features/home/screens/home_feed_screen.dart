@@ -263,7 +263,7 @@ class _HomeMatchCard extends StatelessWidget {
     final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
     final surface2 = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
     final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
-    const accent2 = FzColors.coral;
+    const ctaColor = FzColors.coral;
     final scoreText = match.isLive ? (match.scoreDisplay ?? 'LIVE') : 'VS';
 
     return Container(
@@ -378,13 +378,13 @@ class _HomeMatchCard extends StatelessWidget {
                         icon: LucideIcons.target,
                         backgroundColor: match.isLive
                             ? FzColors.danger
-                            : accent2.withValues(alpha: 0.10),
+                            : ctaColor.withValues(alpha: 0.10),
                         foregroundColor: match.isLive
                             ? FzColors.darkBg
-                            : accent2,
+                            : ctaColor,
                         borderColor: match.isLive
                             ? FzColors.danger
-                            : accent2.withValues(alpha: 0.20),
+                            : ctaColor.withValues(alpha: 0.20),
                         onTap: onPredict,
                       ),
                     ),

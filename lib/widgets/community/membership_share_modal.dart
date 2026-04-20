@@ -258,8 +258,8 @@ class _MembershipShareSheet extends ConsumerWidget {
 
   static _Tier _tierForLevel(int level) {
     if (level >= 20) return const _Tier('Legend', FzColors.primary);
-    if (level >= 10) return const _Tier('Ultra', FzColors.blue);
-    if (level >= 5) return const _Tier('Member', FzColors.teal);
+    if (level >= 10) return const _Tier('Ultra', FzColors.secondary);
+    if (level >= 5) return const _Tier('Member', FzColors.primary);
     return const _Tier('Supporter', FzColors.coral);
   }
 }

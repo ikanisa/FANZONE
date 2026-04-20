@@ -87,7 +87,7 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    FzColors.teal.withValues(alpha: 0.12),
+                    FzColors.primary.withValues(alpha: 0.12),
                     FzColors.primary.withValues(alpha: 0.12),
                   ],
                 ),
@@ -297,7 +297,7 @@ class _FetExchangeScreenState extends ConsumerState<FetExchangeScreen> {
               icon: const Icon(LucideIcons.arrowUpRight, size: 16),
               label: const Text('Request Payout'),
               style: FilledButton.styleFrom(
-                backgroundColor: FzColors.teal,
+                backgroundColor: FzColors.secondary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -418,7 +418,7 @@ class _PayoutRule extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: FzColors.teal),
+        Icon(icon, size: 16, color: FzColors.primary),
         const SizedBox(width: 10),
         Expanded(
           child: Text(

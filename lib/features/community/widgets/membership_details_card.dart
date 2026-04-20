@@ -27,7 +27,7 @@ class MembershipDetailsCard extends StatelessWidget {
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     return FzCard(
       padding: const EdgeInsets.all(20),
-      borderColor: FzColors.violet.withValues(alpha: 0.24),
+      borderColor: FzColors.secondary.withValues(alpha: 0.24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -36,7 +36,7 @@ class MembershipDetailsCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: FzColors.violet.withValues(alpha: 0.14),
+                color: FzColors.secondary.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
@@ -44,7 +44,7 @@ class MembershipDetailsCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: FzColors.violet,
+                  color: FzColors.secondary,
                   letterSpacing: 0.7,
                 ),
               ),

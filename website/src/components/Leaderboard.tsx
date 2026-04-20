@@ -15,7 +15,7 @@ export default function Leaderboard() {
             <button 
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeTab === tab ? 'bg-accent text-bg shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'bg-surface2 border border-border text-muted hover:text-text'}`}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeTab === tab ? 'bg-primary text-bg shadow-[0_0_10px_rgba(152,255,152,0.3)]' : 'bg-surface2 border border-border text-muted hover:text-text'}`}
             >
               {tab}
             </button>
@@ -42,16 +42,16 @@ export default function Leaderboard() {
           </div>
 
           {/* Pinned User */}
-          <div className="fixed bottom-[70px] lg:bottom-4 left-3 right-3 bg-accent/10 border border-accent/20 rounded-2xl p-3 flex items-center justify-between backdrop-blur-lg z-40">
+          <div className="fixed bottom-[70px] lg:bottom-4 left-3 right-3 bg-primary/10 border border-primary/20 rounded-2xl p-3 flex items-center justify-between backdrop-blur-lg z-40">
             <div className="flex items-center gap-3">
-              <span className="font-mono text-accent font-bold w-6">#42</span>
-              <div className="w-8 h-8 rounded-full bg-surface3 flex items-center justify-center border border-accent/30 text-xs">👤</div>
+              <span className="font-mono text-primary font-bold w-6">#42</span>
+              <div className="w-8 h-8 rounded-full bg-surface3 flex items-center justify-center border border-primary/30 text-xs">👤</div>
               <div>
                 <div className="text-sm font-bold text-text leading-tight">You</div>
                 <div className="text-[10px] text-muted font-bold tracking-widest uppercase">Accuracy 68%</div>
               </div>
             </div>
-            <div className="font-mono text-sm font-bold text-accent3">+2.1k FET</div>
+            <div className="font-mono text-sm font-bold text-secondary">+2.1k FET</div>
           </div>
         </>
       )}
@@ -92,7 +92,7 @@ function ClubPodiumItem({ rank, name, fet, height, crest }: { rank: number; name
       </div>
       <div className="text-center">
         <div className="text-xs font-bold text-text whitespace-nowrap leading-tight">{name}</div>
-        <div className="text-[10px] text-accent font-mono">{fet} FET</div>
+        <div className="text-[10px] text-primary font-mono">{fet} FET</div>
       </div>
     </div>
   );
@@ -104,8 +104,8 @@ function ClubLeaderboardRow({ rank, name, fet, crest, trend }: { rank: number; n
       <div className="flex items-center gap-3">
         <div className="flex flex-col items-center justify-center w-5">
           <span className="font-mono text-muted text-xs font-bold">{rank}</span>
-          {trend === 'up' && <TrendingUp size={10} className="text-accent mt-0.5" />}
-          {trend === 'down' && <TrendingDown size={10} className="text-accent2 mt-0.5" />}
+          {trend === 'up' && <TrendingUp size={10} className="text-primary mt-0.5" />}
+          {trend === 'down' && <TrendingDown size={10} className="text-secondary mt-0.5" />}
           {trend === 'same' && <Minus size={10} className="text-muted mt-0.5" />}
         </div>
         <div className="w-8 h-8 rounded-lg bg-surface3 flex items-center justify-center font-display text-sm text-text border border-border">
@@ -114,7 +114,7 @@ function ClubLeaderboardRow({ rank, name, fet, crest, trend }: { rank: number; n
         <span className="text-sm font-bold text-text">{name}</span>
       </div>
       <div className="flex flex-col items-end">
-        <span className="font-mono text-sm font-bold text-accent">{fet}</span>
+        <span className="font-mono text-sm font-bold text-primary">{fet}</span>
         <span className="text-[9px] text-muted font-bold uppercase tracking-widest">Pool</span>
       </div>
     </div>
@@ -124,13 +124,13 @@ function ClubLeaderboardRow({ rank, name, fet, crest, trend }: { rank: number; n
 function PodiumItem({ rank, name, fet, height }: { rank: number; name: string; fet: string; height: string }) {
   return (
     <div className={`flex flex-col items-center gap-2 ${height}`}>
-      <div className={rank === 1 ? 'text-accent' : rank === 2 ? 'text-muted' : 'text-accent3'}><Trophy size={rank === 1 ? 32 : 24} /></div>
+      <div className={rank === 1 ? 'text-primary' : rank === 2 ? 'text-muted' : 'text-secondary'}><Trophy size={rank === 1 ? 32 : 24} /></div>
       <div className={`w-16 ${height} bg-surface3 rounded-t-xl border-t border-x border-border flex flex-col items-center justify-end p-2`}>
         <span className="font-mono text-xs font-bold text-text">#{rank}</span>
       </div>
       <div className="text-center">
         <div className="text-xs font-bold text-text leading-tight">{name}</div>
-        <div className="text-[10px] text-accent3 font-mono">{fet}</div>
+        <div className="text-[10px] text-secondary font-mono">{fet}</div>
       </div>
     </div>
   );
@@ -145,8 +145,8 @@ function LeaderboardRow({ rank, name, fet }: { rank: number; name: string; fet: 
         <span className="text-sm font-bold text-text">{name}</span>
       </div>
       <div className="flex items-center gap-3">
-        <span className="font-mono text-sm font-bold text-accent3">{fet} FET</span>
-        <button className="w-8 h-8 rounded-full bg-surface3 border border-border text-muted hover:text-accent flex justify-center items-center transition-colors">
+        <span className="font-mono text-sm font-bold text-secondary">{fet} FET</span>
+        <button className="w-8 h-8 rounded-full bg-surface3 border border-border text-muted hover:text-primary flex justify-center items-center transition-colors">
           <UserPlus size={14} />
         </button>
       </div>

@@ -98,6 +98,39 @@ export function toDatabasePhase(phase: MatchEventsPayload["phase"]): string {
   }
 }
 
+/**
+ * Detects whether a score update would regress (go backwards) from what
+ * is already stored.  This can happen when Gemini confuses two different
+ * matches or when grounding latency makes an older result appear after a
+ * newer one was already written.
+ */
+export function detectScoreRegression(
+  match: MatchSnapshot,
+  payload: MatchEventsPayload,
+): { regressed: boolean; reason: string | null } {
+  const existingHome = match.live_home_score ?? match.ft_home ?? 0;
+  const existingAway = match.live_away_score ?? match.ft_away ?? 0;
+  const existingTotal = existingHome + existingAway;
+  const incomingTotal = payload.home_score + payload.away_score;
+
+  // Only flag regression when flowing back to a *lower* total score
+  // while the match is still considered live (goals don't un-happen).
+  if (
+    incomingTotal < existingTotal &&
+    toDatabaseMatchStatus(payload.match_status) === "live"
+  ) {
+    return {
+      regressed: true,
+      reason:
+        `Score regression detected: existing ${existingHome}-${existingAway} ` +
+        `(total ${existingTotal}) → incoming ${payload.home_score}-${payload.away_score} ` +
+        `(total ${incomingTotal}). Flagging for manual review.`,
+    };
+  }
+
+  return { regressed: false, reason: null };
+}
+
 export function buildMatchPatch(
   match: MatchSnapshot,
   payload: MatchEventsPayload,
@@ -117,6 +150,14 @@ export function buildMatchPatch(
   const phase = toDatabasePhase(payload.phase);
 
   if (currentStatus === "finished" && nextStatus !== "finished") {
+    return patch;
+  }
+
+  // Guard: detect score regression (goals can't un-happen in live play)
+  const regression = detectScoreRegression(match, payload);
+  if (regression.regressed) {
+    patch.last_live_review_required = true;
+    // Still update timestamp/confidence, but do NOT overwrite scores
     return patch;
   }
 

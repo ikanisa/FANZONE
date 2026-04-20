@@ -74,15 +74,15 @@ class MatchDetailScreen extends ConsumerWidget {
         final flags = ref.watch(featureFlagsProvider);
         final tabs = <Tab>[
           if (flags.predictions) const Tab(text: 'Predict'),
-          const Tab(text: 'Insights'),
-          const Tab(text: 'Stats'),
+          if (flags.aiAnalysis) const Tab(text: 'Insights'),
+          if (flags.advancedStats) const Tab(text: 'Stats'),
           const Tab(text: 'H2H'),
           const Tab(text: 'Lineups'),
         ];
         final views = <Widget>[
           if (flags.predictions) _PredictTab(match: match),
-          _InsightsTab(match: match),
-          _StatsTab(match: match),
+          if (flags.aiAnalysis) _InsightsTab(match: match),
+          if (flags.advancedStats) _StatsTab(match: match),
           _H2HTab(match: match),
           _LineupsTab(match: match),
         ];

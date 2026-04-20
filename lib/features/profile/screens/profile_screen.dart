@@ -122,7 +122,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 16),
 
             ProfileAccountLinksCard(
-              onHelp: () => _launchUrl(context, 'https://fanzone.mt/help'),
+              onHelp: () => _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
               showVerifyAction: !isAuthenticated,
               onVerifyPhone: () => context.go('/login'),
               showSignOut: isAuthenticated,

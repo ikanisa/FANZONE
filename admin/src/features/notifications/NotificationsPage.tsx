@@ -92,7 +92,7 @@ export function NotificationsPage() {
       {/* Create Form */}
       {showCreate && (
         <div className="card mb-4">
-          <h3 className="text-md font-semibold mb-4 flex items-center gap-2"><Megaphone size={18} className="text-accent" /> Create Campaign</h3>
+          <h3 className="text-md font-semibold mb-4 flex items-center gap-2"><Megaphone size={18} className="text-primary" /> Create Campaign</h3>
           <div className="flex flex-col gap-4">
             <div className="flex gap-4">
               <div className="field-group" style={{ flex: 2 }}>

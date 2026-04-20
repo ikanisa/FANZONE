@@ -44,7 +44,10 @@ export function EventsPage() {
 
   const getRegionBadge = (r: string) => {
     const colors: Record<string, string> = {
-      global: '#1565C0', africa: '#388E3C', europe: '#7B1FA2', americas: '#E65100',
+      global: 'var(--fz-primary)',
+      africa: 'var(--fz-secondary)',
+      europe: 'var(--fz-primary-strong)',
+      americas: 'var(--fz-secondary-strong)',
     };
     return (
       <span className="badge" style={{

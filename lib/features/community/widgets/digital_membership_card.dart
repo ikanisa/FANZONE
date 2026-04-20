@@ -39,7 +39,7 @@ class DigitalMembershipCard extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [FzColors.primary, FzColors.violet],
+            colors: [FzColors.primary, FzColors.secondary],
           ),
           borderRadius: BorderRadius.circular(16),
         ),

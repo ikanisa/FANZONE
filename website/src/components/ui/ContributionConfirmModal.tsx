@@ -48,7 +48,7 @@ export function ContributionConfirmModal({ isOpen, onClose, tier, onConfirm }: C
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-[#FFCC00]/10 border border-[#FFCC00]/30 flex items-center justify-center text-[#FFCC00] mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full bg-secondary/10 border border-secondary/30 flex items-center justify-center text-secondary mx-auto mb-4">
                 <CheckCircle2 size={32} />
               </div>
               <h3 className="font-display text-2xl text-text tracking-widest mb-2">CONFIRM CONTRIBUTION</h3>
@@ -64,7 +64,7 @@ export function ContributionConfirmModal({ isOpen, onClose, tier, onConfirm }: C
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-xs text-muted">Status</span>
-                <span className="text-[10px] font-bold text-[#FFCC00] uppercase tracking-widest bg-[#FFCC00]/10 px-2 py-1 rounded-full">Pending Verification</span>
+                <span className="text-[10px] font-bold text-secondary uppercase tracking-widest bg-secondary/10 px-2 py-1 rounded-full">Pending Verification</span>
               </div>
             </div>
 
@@ -78,7 +78,7 @@ export function ContributionConfirmModal({ isOpen, onClose, tier, onConfirm }: C
               <button 
                 onClick={handleConfirm}
                 disabled={isConfirming}
-                className="flex-1 bg-[#FFCC00] hover:bg-[#FFCC00]/90 disabled:opacity-50 text-[#1a1400] font-bold py-3 rounded-xl transition-all text-sm flex justify-center items-center"
+                className="flex-1 bg-secondary hover:bg-secondary/90 disabled:opacity-50 text-bg font-bold py-3 rounded-xl transition-all text-sm flex justify-center items-center"
               >
                 {isConfirming ? 'Confirming...' : 'Yes, I Paid'}
               </button>

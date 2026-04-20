@@ -38,7 +38,7 @@ export default function MarketSelector({ isOpen, onClose }: MarketSelectorProps)
               <input 
                 type="text" 
                 placeholder="Search markets..." 
-                className="w-full bg-surface2 border border-border rounded-xl py-3 pl-10 pr-4 text-sm text-text focus:outline-none focus:border-accent"
+                className="w-full bg-surface2 border border-border rounded-xl py-3 pl-10 pr-4 text-sm text-text focus:outline-none focus:border-primary"
               />
             </div>
 
@@ -47,7 +47,7 @@ export default function MarketSelector({ isOpen, onClose }: MarketSelectorProps)
                 <button 
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeTab === tab ? 'bg-accent text-bg' : 'bg-surface2 text-muted hover:text-text'}`}
+                  className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeTab === tab ? 'bg-primary text-bg' : 'bg-surface2 text-muted hover:text-text'}`}
                 >
                   {tab}
                 </button>
@@ -61,7 +61,7 @@ export default function MarketSelector({ isOpen, onClose }: MarketSelectorProps)
               <MarketItem title="Both Teams to Score" odds="1.65" />
             </div>
 
-            <button className="w-full bg-accent hover:bg-accent/90 text-bg font-bold py-4 rounded-xl transition-all mt-4">
+            <button className="w-full bg-secondary hover:bg-secondary/90 text-bg font-bold py-4 rounded-xl transition-all mt-4">
               ADD 4 PREDICTIONS · EARN 48 FET
             </button>
           </motion.div>
@@ -76,7 +76,7 @@ function MarketItem({ title, odds }: { title: string; odds: string }) {
     <div className="bg-surface2 p-4 rounded-2xl border border-border flex justify-between items-center">
       <span className="text-sm font-bold text-text">{title}</span>
       <div className="flex gap-2">
-        <button className="bg-surface3 hover:bg-accent/20 border border-border rounded-lg px-4 py-2 text-xs font-mono font-bold text-accent transition-all">
+        <button className="bg-surface3 hover:bg-primary/20 border border-border rounded-lg px-4 py-2 text-xs font-mono font-bold text-primary transition-all">
           {odds}
         </button>
       </div>

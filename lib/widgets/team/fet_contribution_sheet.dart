@@ -180,7 +180,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(LucideIcons.wallet, size: 14, color: FzColors.amber),
+              const Icon(LucideIcons.wallet, size: 14, color: FzColors.secondary),
               const SizedBox(width: 8),
               Text('Balance: ', style: TextStyle(fontSize: 13, color: muted)),
               balanceAsync.when(
@@ -316,7 +316,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
           child: FilledButton(
             onPressed: isLoading ? null : _submit,
             style: FilledButton.styleFrom(
-              backgroundColor: FzColors.primary,
+              backgroundColor: FzColors.secondary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -384,7 +384,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
           child: FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: FzColors.primary,
+              backgroundColor: FzColors.secondary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),

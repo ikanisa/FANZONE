@@ -596,11 +596,11 @@ class TeamContributeTab extends ConsumerWidget {
                   }
                 : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFFCC00),
-              foregroundColor: const Color(0xFF1A1400),
-              disabledBackgroundColor: const Color(
-                0xFFFFCC00,
-              ).withValues(alpha: 0.35),
+              backgroundColor: FzColors.secondary,
+              foregroundColor: FzColors.onSecondary,
+              disabledBackgroundColor: FzColors.secondary.withValues(
+                alpha: 0.35,
+              ),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -639,10 +639,10 @@ class _ContributionStep extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: const Color(0xFFFFCC00).withValues(alpha: 0.12),
+            color: FzColors.secondary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
             border: Border.all(
-              color: const Color(0xFFFFCC00).withValues(alpha: 0.3),
+              color: FzColors.secondary.withValues(alpha: 0.3),
             ),
           ),
           alignment: Alignment.center,
@@ -652,7 +652,7 @@ class _ContributionStep extends StatelessWidget {
               fontSize: 16,
               fontWeight: FontWeight.w700,
               fontFamily: 'monospace',
-              color: Color(0xFFFFCC00),
+              color: FzColors.secondary,
             ),
           ),
         ),

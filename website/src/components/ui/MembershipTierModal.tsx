@@ -47,7 +47,7 @@ export function MembershipTierModal({ isOpen, onClose, onSelectTier }: Membershi
                 name="SUPPORTER" 
                 icon="⚽" 
                 price="FREE" 
-                color="#6070a0"
+                color="var(--muted)"
                 fetShare="0%"
                 perks={[
                   "Club profile access",
@@ -61,7 +61,7 @@ export function MembershipTierModal({ isOpen, onClose, onSelectTier }: Membershi
                 name="MEMBER" 
                 icon="🏅" 
                 price="500 RWF" 
-                color="#00e5a0"
+                color="var(--brand-primary)"
                 fetShare="10%"
                 perks={[
                   "All Supporter benefits",
@@ -75,7 +75,7 @@ export function MembershipTierModal({ isOpen, onClose, onSelectTier }: Membershi
                 name="ULTRA" 
                 icon="🔥" 
                 price="1,500 RWF" 
-                color="#ffd32a"
+                color="var(--brand-secondary)"
                 fetShare="20%"
                 popular
                 perks={[
@@ -90,7 +90,7 @@ export function MembershipTierModal({ isOpen, onClose, onSelectTier }: Membershi
                 name="LEGEND" 
                 icon="👑" 
                 price="5,000 RWF" 
-                color="#e0393e"
+                color="var(--brand-secondary)"
                 fetShare="35%"
                 perks={[
                   "All Ultra benefits",
@@ -102,10 +102,10 @@ export function MembershipTierModal({ isOpen, onClose, onSelectTier }: Membershi
               />
             </div>
             
-            <div className="mt-6 bg-surface3 border border-[#FFCC00]/20 rounded-xl p-4 flex gap-3 items-start">
+            <div className="mt-6 bg-surface3 border border-secondary/20 rounded-xl p-4 flex gap-3 items-start">
               <span className="text-xl">ℹ️</span>
               <div>
-                <div className="font-bold text-xs text-[#FFCC00] mb-1">FET Contribution Pool Logic</div>
+                <div className="font-bold text-xs text-secondary mb-1">FET Contribution Pool Logic</div>
                 <div className="text-[10px] text-muted leading-relaxed">
                   Each member's prediction FET earn is split: (100% - tier%) goes to personal wallet, tier% goes to the club's collective FET pool. Club's total pooled FET is the ranking currency on the Fan Club Leaderboard.
                 </div>
@@ -123,11 +123,15 @@ function TierCard({ name, icon, price, color, fetShare, perks, popular, onSelect
   return (
     <div 
       className={`bg-surface3 border-2 rounded-2xl p-5 relative flex flex-col transition-all hover:scale-[1.02] cursor-pointer`}
-      style={{ borderColor: popular ? '#FFCC00' : 'transparent', borderTopColor: color, borderTopWidth: '4px' }}
+      style={{
+        borderColor: popular ? 'var(--brand-secondary)' : 'transparent',
+        borderTopColor: color,
+        borderTopWidth: '4px',
+      }}
       onClick={onSelect}
     >
       {popular && (
-        <div className="absolute top-3 right-3 bg-[#FFCC00] text-[#1a1400] text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">
+        <div className="absolute top-3 right-3 bg-secondary text-bg text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">
           Popular
         </div>
       )}
@@ -150,7 +154,7 @@ function TierCard({ name, icon, price, color, fetShare, perks, popular, onSelect
       
       <div className="bg-surface2 border border-border rounded-lg p-2 flex justify-between items-center mt-auto">
         <span className="text-[9px] font-bold text-muted uppercase tracking-widest">FET to Club</span>
-        <span className="font-mono text-sm font-bold text-accent3">{fetShare}</span>
+        <span className="font-mono text-sm font-bold text-secondary">{fetShare}</span>
       </div>
     </div>
   );

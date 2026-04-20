@@ -145,7 +145,7 @@ class _QuickChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: isMax ? FontWeight.w700 : FontWeight.w600,
-            color: isMax ? FzColors.maltaRed : null,
+            color: isMax ? FzColors.danger : null,
           ),
         ),
       ),

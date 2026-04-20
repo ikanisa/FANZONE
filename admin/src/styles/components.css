@@ -24,15 +24,15 @@
 
 .btn-primary {
   background: var(--fz-secondary);
-  color: #fff;
+  color: var(--fz-bg);
 }
 .btn-primary:hover:not(:disabled) { background: var(--fz-secondary-hover); }
 
 .btn-danger {
   background: var(--fz-error);
-  color: #fff;
+  color: var(--fz-text);
 }
-.btn-danger:hover:not(:disabled) { background: var(--fz-malta-red-hover); }
+.btn-danger:hover:not(:disabled) { background: var(--fz-error-hover); }
 
 .btn-secondary {
   background: var(--fz-surface-2);
@@ -140,8 +140,8 @@
 }
 .input:focus {
   outline: none;
-  border-color: var(--fz-accent);
-  box-shadow: 0 0 0 3px rgba(152, 255, 152, 0.15);
+  border-color: var(--fz-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--fz-primary) 16%, transparent);
 }
 .input::placeholder {
   color: var(--fz-muted-2);
@@ -358,7 +358,7 @@
   right: 6px;
   width: 7px;
   height: 7px;
-  background: var(--fz-malta-red);
+  background: var(--fz-error);
   border-radius: 50%;
   border: 2px solid var(--fz-surface);
 }
@@ -380,8 +380,8 @@
   height: 28px;
   background: linear-gradient(
     135deg,
-    var(--fz-accent),
-    var(--fz-accent-dark)
+    var(--fz-primary),
+    var(--fz-secondary)
   );
   border-radius: var(--fz-radius-full);
   display: flex;
@@ -389,7 +389,7 @@
   justify-content: center;
   font-weight: 600;
   font-size: 11px;
-  color: #fff;
+  color: var(--fz-bg);
 }
 
 .topbar-profile-info {
@@ -614,18 +614,18 @@
 }
 
 .sidebar-link.active {
-  background: rgba(152, 255, 152, 0.1);
-  color: var(--fz-accent);
+  background: color-mix(in srgb, var(--fz-primary) 10%, transparent);
+  color: var(--fz-primary);
 }
 
 .sidebar-link.active svg {
-  color: var(--fz-accent);
+  color: var(--fz-primary);
 }
 
 .sidebar-badge {
   margin-left: auto;
-  background: var(--fz-malta-red);
-  color: #fff;
+  background: var(--fz-error);
+  color: var(--fz-text);
   font-size: 10px;
   font-weight: 700;
   padding: 1px 6px;
@@ -820,7 +820,7 @@
   justify-content: center;
 }
 .pagination-btn:hover:not(:disabled) { background: var(--fz-surface-2); color: var(--fz-text); }
-.pagination-btn.active { background: var(--fz-secondary); color: #fff; }
+.pagination-btn.active { background: var(--fz-secondary); color: var(--fz-bg); }
 .pagination-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 /* ── Filter Bar ── */
@@ -852,8 +852,8 @@
 }
 .tab:hover { color: var(--fz-text); }
 .tab.active {
-  color: var(--fz-accent);
-  border-bottom-color: var(--fz-accent);
+  color: var(--fz-primary);
+  border-bottom-color: var(--fz-primary);
 }
 
 /* ── Empty / Error / Loading States ── */

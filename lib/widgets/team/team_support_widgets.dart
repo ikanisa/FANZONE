@@ -35,7 +35,7 @@ class SupportTeamButton extends StatelessWidget {
                 : Icons.favorite_border_rounded,
             key: ValueKey(isSupported),
             size: 22,
-            color: isSupported ? FzColors.maltaRed : FzColors.darkMuted,
+            color: isSupported ? FzColors.danger : FzColors.darkMuted,
           ),
         ),
       );
@@ -48,9 +48,9 @@ class SupportTeamButton extends StatelessWidget {
         onPressed: onTap,
         style: FilledButton.styleFrom(
           backgroundColor: isSupported
-              ? FzColors.maltaRed.withValues(alpha: 0.15)
+              ? FzColors.danger.withValues(alpha: 0.15)
               : FzColors.primary,
-          foregroundColor: isSupported ? FzColors.maltaRed : Colors.white,
+          foregroundColor: isSupported ? FzColors.danger : Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -237,7 +237,7 @@ class ContributionCTA extends StatelessWidget {
               icon: LucideIcons.coins,
               title: 'Contribute FET',
               subtitle: 'Use your Fan Engagement Tokens',
-              color: FzColors.amber,
+              color: FzColors.secondary,
               onTap: onFetTap,
             ),
           if (hasFet && hasFiat) const SizedBox(height: 10),
@@ -296,13 +296,13 @@ class TeamContributionSummaryCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: FzColors.amber.withValues(alpha: 0.1),
+                  color: FzColors.secondary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   LucideIcons.coins,
                   size: 20,
-                  color: FzColors.amber,
+                  color: FzColors.secondary,
                 ),
               ),
               const SizedBox(width: 14),

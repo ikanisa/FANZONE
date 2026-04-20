@@ -94,7 +94,7 @@ export function RedemptionsPage() {
                       </div>
                     )}
                     {r.status === 'approved' && (
-                      <button className="btn btn-ghost btn-sm text-accent" onClick={e => { e.stopPropagation(); setFulfillTarget(r); }}><Package size={14} /> Fulfill</button>
+                      <button className="btn btn-ghost btn-sm text-primary" onClick={e => { e.stopPropagation(); setFulfillTarget(r); }}><Package size={14} /> Fulfill</button>
                     )}
                   </td>
                 </tr>

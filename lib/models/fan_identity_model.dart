@@ -159,9 +159,9 @@ class FanBadge {
       case 'legendary':
         return 0xFFFFD700;
       case 'epic':
-        return 0xFF2563EB; // Blue
+        return 0xFFFF7F50;
       case 'rare':
-        return 0xFF22D3EE; // Cyan
+        return 0xFF98FF98;
       default:
         return 0xFFA8A29E;
     }

@@ -17,9 +17,9 @@ void main() {
         body: Column(
           children: [
             FzBadge(
-              key: ValueKey('accent-badge'),
-              label: 'ACCENT',
-              variant: FzBadgeVariant.accent,
+              key: ValueKey('primary-badge'),
+              label: 'PRIMARY',
+              variant: FzBadgeVariant.primary,
             ),
             FzBadge(
               key: ValueKey('danger-badge'),
@@ -33,18 +33,18 @@ void main() {
               variant: FzBadgeVariant.ghost,
             ),
             FzBadge(
-              key: ValueKey('accent3-badge'),
+              key: ValueKey('secondary-badge'),
               label: 'SETTLED',
-              variant: FzBadgeVariant.accent3,
+              variant: FzBadgeVariant.secondary,
             ),
           ],
         ),
       ),
     );
 
-    final accentDecoration = _containerDecoration(
+    final primaryDecoration = _containerDecoration(
       tester,
-      const ValueKey('accent-badge'),
+      const ValueKey('primary-badge'),
     );
     final dangerDecoration = _containerDecoration(
       tester,
@@ -54,16 +54,19 @@ void main() {
       tester,
       const ValueKey('ghost-badge'),
     );
-    final accent3Decoration = _containerDecoration(
+    final secondaryDecoration = _containerDecoration(
       tester,
-      const ValueKey('accent3-badge'),
+      const ValueKey('secondary-badge'),
     );
 
-    expect(accentDecoration.borderRadius, FzRadii.fullRadius);
-    expect(accentDecoration.color, FzColors.accent.withValues(alpha: 0.10));
+    expect(primaryDecoration.borderRadius, FzRadii.fullRadius);
+    expect(primaryDecoration.color, FzColors.primary.withValues(alpha: 0.10));
     expect(dangerDecoration.color, FzColors.danger.withValues(alpha: 0.10));
     expect(ghostDecoration.color, FzColors.darkSurface3);
-    expect(accent3Decoration.color, FzColors.coral.withValues(alpha: 0.10));
+    expect(
+      secondaryDecoration.color,
+      FzColors.secondary.withValues(alpha: 0.10),
+    );
   });
 
   testWidgets('FzCard default radius matches the primary card token', (

@@ -65,9 +65,9 @@ class _SlipCard extends ConsumerWidget {
       case 'settled_win':
         return FzColors.success;
       case 'settled_loss':
-        return FzColors.maltaRed;
+        return FzColors.danger;
       case 'voided':
-        return FzColors.amber;
+        return FzColors.secondary;
       default:
         return FzColors.primary;
     }
@@ -93,9 +93,9 @@ class _SlipCard extends ConsumerWidget {
       case 'settled_loss':
         return FzBadgeVariant.danger;
       case 'voided':
-        return FzBadgeVariant.accent3;
+        return FzBadgeVariant.secondary;
       default:
-        return FzBadgeVariant.accent;
+        return FzBadgeVariant.primary;
     }
   }
 

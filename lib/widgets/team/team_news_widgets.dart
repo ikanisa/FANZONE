@@ -43,14 +43,14 @@ class TeamNewsCard extends StatelessWidget {
                       Icon(
                         LucideIcons.sparkles,
                         size: 12,
-                        color: FzColors.violet,
+                        color: FzColors.secondary,
                       ),
                       SizedBox(width: 4),
                       Text(
                         'AI Curated',
                         style: TextStyle(
                           fontSize: 10,
-                          color: FzColors.violet,
+                          color: FzColors.secondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

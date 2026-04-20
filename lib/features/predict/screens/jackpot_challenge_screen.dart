@@ -69,7 +69,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
                   end: Alignment.bottomRight,
                   colors: [
                     FzColors.primary.withValues(alpha: 0.12),
-                    FzColors.teal.withValues(alpha: 0.12),
+                    FzColors.primary.withValues(alpha: 0.12),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
@@ -139,7 +139,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
                 child: _TierCard(
                   correct: '7+',
                   reward: '500 FET',
-                  color: FzColors.blue,
+                  color: FzColors.secondary,
                   textColor: textColor,
                   muted: muted,
                 ),
@@ -271,7 +271,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
               icon: const Icon(LucideIcons.zap, size: 16),
               label: const Text('Weekly Jackpot Opens Soon'),
               style: FilledButton.styleFrom(
-                backgroundColor: FzColors.primary,
+                backgroundColor: FzColors.secondary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(

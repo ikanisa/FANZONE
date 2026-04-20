@@ -28,14 +28,15 @@ void main() {
     });
 
     // Content palette
-    test('content palette has 7 vibrant colors', () {
-      expect(FzColors.accent, const Color(0xFF22D3EE));
-      expect(FzColors.blue, const Color(0xFF2563EB));
-      expect(FzColors.teal, const Color(0xFF0F7B6C));
-      expect(FzColors.coral, const Color(0xFFFF7F50));
-      expect(FzColors.success, const Color(0xFF98FF98));
+    test('brand palette exposes the official platform colors', () {
+      expect(FzColors.primary, const Color(0xFF98FF98));
+      expect(FzColors.onPrimary, const Color(0xFF061514));
+      expect(FzColors.secondary, const Color(0xFFFF7F50));
+      expect(FzColors.onSecondary, const Color(0xFF2A120A));
+      expect(FzColors.coral, FzColors.secondary);
+      expect(FzColors.success, FzColors.primary);
+      expect(FzColors.warning, FzColors.secondary);
       expect(FzColors.danger, const Color(0xFFEF4444));
-      expect(FzColors.accentDark, const Color(0xFF0891B2));
     });
 
     // Semantic aliases
@@ -45,16 +46,9 @@ void main() {
       expect(FzColors.error, FzColors.danger);
     });
 
-    // Backwards-compatible aliases
-    test('backwards-compatible aliases map correctly', () {
-      expect(FzColors.maltaRed, FzColors.danger);
-      expect(FzColors.amber, FzColors.coral);
-      expect(FzColors.violet, FzColors.blue);
-    });
-
     // Card colors
     test('card colors are valid', () {
-      expect(FzColors.yellowCard, const Color(0xFFFBBF24));
+      expect(FzColors.yellowCard, FzColors.secondary);
       expect(FzColors.redCard, const Color(0xFFDC2626));
     });
   });
@@ -70,8 +64,8 @@ void main() {
 
   group('FzColors ColorSchemes', () {
     test('dark color scheme has correct primary', () {
-      expect(FzColors.darkColorScheme.primary, FzColors.accent);
-      expect(FzColors.darkColorScheme.secondary, FzColors.teal);
+      expect(FzColors.darkColorScheme.primary, FzColors.primary);
+      expect(FzColors.darkColorScheme.secondary, FzColors.secondary);
       expect(FzColors.darkColorScheme.error, FzColors.error);
       expect(FzColors.darkColorScheme.surface, FzColors.darkSurface);
       expect(FzColors.darkColorScheme.onSurface, FzColors.darkText);

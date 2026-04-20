@@ -297,13 +297,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case 'wallet_credit':
       case 'wallet_debit':
       case 'wallet':
-        return FzColors.violet;
+        return FzColors.secondary;
       case 'daily_challenge':
-        return FzColors.amber;
+        return FzColors.secondary;
       case 'community':
-        return FzColors.primaryDark;
+        return FzColors.secondary;
       case 'marketing':
-        return FzColors.amber;
+        return FzColors.secondary;
       default:
         return FzColors.primary;
     }

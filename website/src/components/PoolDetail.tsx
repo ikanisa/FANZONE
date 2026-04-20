@@ -29,7 +29,7 @@ export default function PoolDetail() {
           scrollDirection === 'down' ? 'top-0' : 'top-[60px] lg:top-0'
         }`}
       >
-        <button onClick={() => navigate(-1)} className="text-text hover:text-accent transition-all">
+        <button onClick={() => navigate(-1)} className="text-text hover:text-primary transition-all">
           <ChevronLeft size={24} />
         </button>
         <div className="text-center">
@@ -43,8 +43,8 @@ export default function PoolDetail() {
         {/* Status Hero */}
         <div className="bg-surface2 rounded-3xl p-6 border border-border mb-6">
           <div className="flex justify-between items-start mb-6">
-            <div className="bg-accent/10 border border-accent/20 px-3 py-1 rounded-full text-accent text-[10px] uppercase tracking-widest font-bold flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" /> {pool.status}
+            <div className="bg-primary/10 border border-primary/20 px-3 py-1 rounded-full text-primary text-[10px] uppercase tracking-widest font-bold flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" /> {pool.status}
             </div>
             <div className="text-right">
               <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Lock Time</div>
@@ -58,7 +58,7 @@ export default function PoolDetail() {
             <h2 className="font-display text-4xl tracking-tight text-text mb-2">{pool.matchName}</h2>
             <div className="inline-flex items-center gap-2 bg-surface3 border border-border rounded-xl px-4 py-2">
               <span className="text-xs font-bold text-muted">STAKE</span>
-              <span className="font-mono text-xl text-accent3 font-bold">
+              <span className="font-mono text-xl text-secondary font-bold">
                  <FETDisplay amount={pool.stake} showFiat={true} className="whitespace-nowrap inline" fiatClassName="text-muted ml-1 text-sm font-sans tracking-normal font-normal" />
               </span>
             </div>
@@ -66,14 +66,14 @@ export default function PoolDetail() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-surface border border-border rounded-2xl p-4 text-center">
-              <Zap size={20} className="mx-auto text-accent mb-2" />
+              <Zap size={20} className="mx-auto text-primary mb-2" />
               <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1">Total Pool</div>
               <div className="font-mono text-lg text-text font-bold">
                  <FETDisplay amount={pool.totalPool} showFiat={false} className="whitespace-nowrap" />
               </div>
             </div>
             <div className="bg-surface border border-border rounded-2xl p-4 text-center">
-              <Users size={20} className="mx-auto text-accent4 mb-2" />
+              <Users size={20} className="mx-auto text-secondary mb-2" />
               <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1">Participants</div>
               <div className="font-mono text-lg text-text font-bold">{pool.participantsCount}</div>
             </div>
@@ -94,7 +94,7 @@ export default function PoolDetail() {
             </div>
             <div className="text-right">
               <div className="text-[10px] text-muted font-bold uppercase tracking-widest mb-1">Prediction</div>
-              <div className="font-mono text-sm font-bold text-accent">{pool.creatorPrediction}</div>
+              <div className="font-mono text-sm font-bold text-primary">{pool.creatorPrediction}</div>
             </div>
           </div>
         </div>
@@ -103,14 +103,14 @@ export default function PoolDetail() {
         {pool.status === 'open' && !isJoined && (
           <button 
             onClick={() => setShowJoinSheet(true)}
-            className="w-full bg-accent text-surface font-bold text-lg py-4 rounded-full shadow-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 px-2"
+            className="w-full bg-primary text-surface font-bold text-lg py-4 rounded-full shadow-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 px-2"
           >
             Join for <FETDisplay amount={pool.stake} showFiat={true} className="inline" fiatClassName="opacity-80 ml-1 text-sm font-normal" /> <ArrowRight size={20} className="shrink-0" />
           </button>
         )}
         {isJoined && (
-          <div className="w-full bg-surface2 border border-[#25D366]/30 text-center py-4 rounded-xl">
-            <span className="text-[#25D366] font-bold tracking-tight text-sm flex items-center justify-center gap-2">
+          <div className="w-full bg-surface2 border border-primary/30 text-center py-4 rounded-xl">
+            <span className="text-primary font-bold tracking-tight text-sm flex items-center justify-center gap-2">
               <ShieldAlert size={18} /> YOU ARE IN THIS CHALLENGE
             </span>
           </div>
@@ -190,7 +190,7 @@ function JoinSheet({ isOpen, onClose, pool, balance, onJoin }: any) {
 
             <div className="bg-surface2 rounded-xl p-4 mb-6 border border-border flex justify-between items-center">
               <span className="text-xs font-bold text-muted uppercase tracking-widest">Required Stake</span>
-              <span className="font-mono text-accent font-bold">
+              <span className="font-mono text-primary font-bold">
                  <FETDisplay amount={pool.stake} showFiat={true} />
               </span>
             </div>
@@ -207,7 +207,7 @@ function JoinSheet({ isOpen, onClose, pool, balance, onJoin }: any) {
               {isAffordable ? 'Confirm & Stake' : 'Insufficient Funds'}
             </button>
             {!isAffordable && (
-              <p className="text-center text-xs text-accent2 mt-3 font-medium">You have {balance} FET</p>
+              <p className="text-center text-xs text-secondary mt-3 font-medium">You have {balance} FET</p>
             )}
           </motion.div>
         </>

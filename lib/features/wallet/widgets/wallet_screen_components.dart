@@ -272,7 +272,7 @@ class WalletFetSplitRow extends StatelessWidget {
                 style: FzTypography.score(
                   size: 10,
                   weight: FontWeight.w700,
-                  color: FzColors.teal,
+                  color: FzColors.primary,
                 ),
               ),
               Padding(
@@ -314,7 +314,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(LucideIcons.pieChart, size: 14, color: FzColors.teal),
+            const Icon(LucideIcons.pieChart, size: 14, color: FzColors.primary),
             const SizedBox(width: 8),
             Text(
               'Club Earnings Split',
@@ -344,7 +344,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
-                        color: FzColors.teal,
+                        color: FzColors.primary,
                         letterSpacing: 1,
                       ),
                     ),
@@ -369,7 +369,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
                     children: [
                       Expanded(
                         flex: 80,
-                        child: ColoredBox(color: FzColors.teal),
+                        child: ColoredBox(color: FzColors.primary),
                       ),
                       Expanded(
                         flex: 20,

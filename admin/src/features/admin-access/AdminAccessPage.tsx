@@ -105,7 +105,7 @@ export function AdminAccessPage() {
       {showInvite && (
         <div className="card mb-4">
           <h3 className="text-md font-semibold mb-2 flex items-center gap-2">
-            <UserPlus size={18} className="text-accent" /> Grant Admin Access
+            <UserPlus size={18} className="text-primary" /> Grant Admin Access
           </h3>
           <p className="text-sm text-muted mb-4">
             {renderFanzoneText(
@@ -158,24 +158,24 @@ export function AdminAccessPage() {
       {/* Role Hierarchy */}
       <div className="card mb-6 p-5">
         <h3 className="text-md font-semibold mb-3 flex items-center gap-2">
-          <Shield size={18} className="text-accent" /> Role Hierarchy
+          <Shield size={18} className="text-primary" /> Role Hierarchy
         </h3>
         <div className="grid grid-4 gap-3">
           {[
             {
               role: "Super Admin",
               desc: "Full system access. Can manage other admins and feature flags.",
-              color: "var(--fz-malta-red)",
+              color: "var(--fz-error)",
             },
             {
               role: "Admin",
               desc: "Full operational access. Cannot manage other admins or system settings.",
-              color: "var(--fz-accent)",
+              color: "var(--fz-primary)",
             },
             {
               role: "Moderator",
               desc: "Can moderate content, challenges, and handle reports. No financial ops.",
-              color: "var(--fz-amber)",
+              color: "var(--fz-secondary)",
             },
             {
               role: "Viewer",

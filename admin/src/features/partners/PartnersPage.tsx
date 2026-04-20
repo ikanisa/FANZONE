@@ -178,7 +178,7 @@ export function PartnersPage() {
               <DrawerField label="Phone" value={selectedPartner.contact_phone || '—'} />
               <DrawerField label="Website" value={
                 selectedPartner.website_url ? (
-                  <a href={selectedPartner.website_url} target="_blank" rel="noopener noreferrer" className="text-accent">
+                  <a href={selectedPartner.website_url} target="_blank" rel="noopener noreferrer" className="text-primary">
                     {selectedPartner.website_url}
                   </a>
                 ) : '—'

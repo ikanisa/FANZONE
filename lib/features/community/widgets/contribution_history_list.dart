@@ -90,7 +90,7 @@ class _ContributionRow extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: FzColors.violet,
+                  color: FzColors.secondary,
                 ),
               ),
               const SizedBox(height: 2),

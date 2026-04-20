@@ -35,7 +35,7 @@ export function SettingsPage() {
 
       {/* Market Cards */}
       <div className="card mb-6">
-        <h3 className="text-md font-semibold mb-4 flex items-center gap-2"><Globe size={18} className="text-accent" /> Market Configuration</h3>
+        <h3 className="text-md font-semibold mb-4 flex items-center gap-2"><Globe size={18} className="text-primary" /> Market Configuration</h3>
         <div className="grid grid-2 gap-4">
           <div className="p-4" style={{ background: 'var(--fz-surface-2)', borderRadius: 'var(--fz-radius)' }}>
             <div className="flex items-center gap-2 mb-2">

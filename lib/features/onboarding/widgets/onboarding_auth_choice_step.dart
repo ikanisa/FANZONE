@@ -64,7 +64,7 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
                 onPressed: onWhatsApp,
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
-                  backgroundColor: const Color(0xFF25D366),
+                  backgroundColor: FzColors.secondary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),

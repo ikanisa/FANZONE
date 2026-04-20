@@ -93,7 +93,7 @@ export function AuthGateModal() {
 
             {step === 'phone' && (
               <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-3 text-[#25D366]">
+                <div className="flex items-center gap-3 text-primary">
                   <MessageCircle size={24} />
                   <h3 className="font-display text-xl tracking-widest">VERIFY VIA WHATSAPP</h3>
                 </div>
@@ -111,7 +111,7 @@ export function AuthGateModal() {
                     placeholder="78X XXX XXX" 
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="flex-1 bg-surface3 border border-border rounded-xl p-4 text-text font-mono focus:outline-none focus:border-[#25D366] transition-all"
+                    className="flex-1 bg-surface3 border border-border rounded-xl p-4 text-text font-mono focus:outline-none focus:border-primary transition-all"
                     autoFocus
                   />
                 </div>
@@ -119,7 +119,7 @@ export function AuthGateModal() {
                 <button 
                   onClick={handleSendOTP}
                   disabled={phone.length < 8 || isLoading}
-                  className="w-full bg-[#25D366] hover:bg-[#25D366]/90 disabled:opacity-50 disabled:cursor-not-allowed text-[#1a1400] font-bold py-4 rounded-xl transition-all flex justify-center items-center gap-2"
+                  className="w-full bg-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed text-bg font-bold py-4 rounded-xl transition-all flex justify-center items-center gap-2"
                 >
                   {isLoading ? 'SENDING...' : 'SEND CODE VIA WHATSAPP'}
                 </button>
@@ -134,7 +134,7 @@ export function AuthGateModal() {
 
             {step === 'otp' && (
               <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-3 text-[#25D366]">
+                <div className="flex items-center gap-3 text-primary">
                   <MessageCircle size={24} />
                   <h3 className="font-display text-xl tracking-widest">ENTER OTP</h3>
                 </div>
@@ -152,7 +152,7 @@ export function AuthGateModal() {
                       maxLength={1}
                       value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
-                      className="w-12 h-14 bg-surface3 border border-border rounded-xl text-center text-text font-mono text-xl focus:outline-none focus:border-[#25D366] transition-all"
+                      className="w-12 h-14 bg-surface3 border border-border rounded-xl text-center text-text font-mono text-xl focus:outline-none focus:border-primary transition-all"
                     />
                   ))}
                 </div>
@@ -160,7 +160,7 @@ export function AuthGateModal() {
                 <button 
                   onClick={handleVerifyOTP}
                   disabled={otp.join('').length < 6 || isLoading}
-                  className="w-full bg-[#25D366] hover:bg-[#25D366]/90 disabled:opacity-50 disabled:cursor-not-allowed text-[#1a1400] font-bold py-4 rounded-xl transition-all flex justify-center items-center gap-2"
+                  className="w-full bg-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed text-bg font-bold py-4 rounded-xl transition-all flex justify-center items-center gap-2"
                 >
                   {isLoading ? 'VERIFYING...' : 'VERIFY CODE'}
                 </button>
@@ -177,7 +177,7 @@ export function AuthGateModal() {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col gap-6"
               >
-                <div className="flex items-center gap-3 text-accent">
+                <div className="flex items-center gap-3 text-primary">
                   <User size={24} />
                   <h3 className="font-display text-xl tracking-widest">PROFILE SETUP</h3>
                 </div>
@@ -187,7 +187,7 @@ export function AuthGateModal() {
                 </p>
 
                 <div className="flex justify-center mb-2">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent to-[#0099ff] flex items-center justify-center text-3xl shadow-inner relative">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl shadow-inner relative">
                     ⚽
                     <div className="absolute -bottom-2 bg-surface3 border border-border text-[9px] font-bold px-2 py-1 rounded-full text-muted">
                       Auto-Avatar
@@ -202,7 +202,7 @@ export function AuthGateModal() {
                     placeholder="e.g. KigaliKicker99" 
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full bg-surface3 border border-border rounded-xl p-4 text-text focus:outline-none focus:border-accent transition-all"
+                    className="w-full bg-surface3 border border-border rounded-xl p-4 text-text focus:outline-none focus:border-primary transition-all"
                   />
                 </div>
 
@@ -215,7 +215,7 @@ export function AuthGateModal() {
                   </button>
                   <button 
                     onClick={handleCompleteSetup}
-                    className="flex-1 bg-accent hover:bg-accent/90 text-[#1a1400] font-bold py-4 rounded-xl transition-all text-sm"
+                    className="flex-1 bg-secondary hover:bg-secondary/90 text-bg font-bold py-4 rounded-xl transition-all text-sm"
                   >
                     Save Profile
                   </button>

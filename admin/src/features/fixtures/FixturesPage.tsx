@@ -112,7 +112,7 @@ export function FixturesPage() {
                     <div className="flex gap-1">
                       {(f.status === 'upcoming' || f.status === 'live') && (
                         <button
-                          className="btn btn-ghost btn-sm text-accent"
+                          className="btn btn-ghost btn-sm text-primary"
                           onClick={e => { e.stopPropagation(); setResultTarget(f); setSettleAndResult(false); }}
                           title="Enter Result"
                         >

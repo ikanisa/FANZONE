@@ -131,7 +131,7 @@ class _CrowdPredictionBar extends ConsumerWidget {
                     const SizedBox(width: 2),
                     Expanded(
                       flex: awayPercent.clamp(1, 98),
-                      child: Container(color: FzColors.blue),
+                      child: Container(color: FzColors.secondary),
                     ),
                   ],
                 ),
@@ -159,7 +159,7 @@ class _CrowdPredictionBar extends ConsumerWidget {
                 ),
                 const Spacer(),
                 _CrowdLabel(
-                  color: FzColors.blue,
+                  color: FzColors.secondary,
                   label: 'AWAY',
                   percent: awayPercent,
                   textColor: textColor,

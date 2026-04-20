@@ -183,11 +183,11 @@ void main() {
       );
       expect(
         FanBadge.fromJson({...json, 'rarity': 'epic'}).rarityColorValue,
-        0xFF2563EB,
+        0xFFFF7F50,
       );
       expect(
         FanBadge.fromJson({...json, 'rarity': 'rare'}).rarityColorValue,
-        0xFF22D3EE,
+        0xFF98FF98,
       );
       expect(FanBadge.fromJson(json).rarityColorValue, 0xFFA8A29E);
     });

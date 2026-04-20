@@ -370,7 +370,7 @@ class FanIdentityCard extends ConsumerWidget {
                           LucideIcons.flame,
                           size: 14,
                           color: profile.streakDays >= 7
-                              ? FzColors.amber
+                              ? FzColors.secondary
                               : muted,
                         ),
                         const SizedBox(width: 4),
@@ -380,7 +380,7 @@ class FanIdentityCard extends ConsumerWidget {
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: profile.streakDays >= 7
-                                ? FzColors.amber
+                                ? FzColors.secondary
                                 : muted,
                           ),
                         ),

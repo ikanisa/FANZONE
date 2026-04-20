@@ -80,13 +80,46 @@ abstract final class FzTheme {
       // Chips
       chipTheme: ChipThemeData(
         backgroundColor: FzColors.darkSurface2,
-        selectedColor: FzColors.primary,
+        selectedColor: FzColors.primary.withValues(alpha: 0.14),
         labelStyle: textTheme.labelSmall!,
         side: const BorderSide(color: FzColors.darkBorder),
         shape: const RoundedRectangleBorder(
           borderRadius: FzRadii.compactRadius,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      ),
+
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: FzColors.secondary,
+          foregroundColor: FzColors.onSecondary,
+          disabledBackgroundColor: FzColors.secondary.withValues(alpha: 0.35),
+          disabledForegroundColor: FzColors.onSecondary.withValues(alpha: 0.7),
+          shape: const RoundedRectangleBorder(
+            borderRadius: FzRadii.compactRadius,
+          ),
+        ),
+      ),
+
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: FzColors.secondary,
+          foregroundColor: FzColors.onSecondary,
+          disabledBackgroundColor: FzColors.secondary.withValues(alpha: 0.35),
+          disabledForegroundColor: FzColors.onSecondary.withValues(alpha: 0.7),
+          shape: const RoundedRectangleBorder(
+            borderRadius: FzRadii.compactRadius,
+          ),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: FzColors.primary,
+          shape: const RoundedRectangleBorder(
+            borderRadius: FzRadii.compactRadius,
+          ),
+        ),
       ),
 
       // Bottom Sheet

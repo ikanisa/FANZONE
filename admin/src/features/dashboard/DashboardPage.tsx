@@ -91,7 +91,7 @@ export function DashboardPage() {
         {/* Recent Activity */}
         <div className="card">
           <div className="flex items-center gap-2 mb-4">
-            <Activity size={18} className="text-accent" />
+            <Activity size={18} className="text-primary" />
             <h2 className="text-md font-semibold">Recent Activity</h2>
           </div>
           {activityLoading ? (

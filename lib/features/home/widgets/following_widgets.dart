@@ -74,7 +74,7 @@ class FollowableRow extends StatelessWidget {
             onPressed: onTrailingTap ?? onTap,
             icon: Icon(
               selected ? Icons.star_rounded : Icons.add_rounded,
-              color: selected ? FzColors.amber : FzColors.primary,
+              color: selected ? FzColors.secondary : FzColors.primary,
             ),
           ),
         ],
@@ -392,7 +392,7 @@ class SupportedTeamsSection extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: FzColors.maltaRed.withValues(alpha: 0.12),
+                color: FzColors.danger.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -400,7 +400,7 @@ class SupportedTeamsSection extends ConsumerWidget {
                 style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: FzColors.maltaRed,
+                  color: FzColors.danger,
                 ),
               ),
             ),

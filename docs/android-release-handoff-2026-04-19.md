@@ -68,7 +68,7 @@ adb install -r -g build/app/outputs/flutter-apk/app-release.apk
 2. Verify onboarding and WhatsApp OTP flow.
 3. Verify home, fixtures, match detail, predict, wallet, profile, and social hub.
 4. Verify notifications permission prompt behavior on Android 13+.
-5. Verify deep links for `https://fanzone.mt/pool/...` and `fanzone://pool`.
+5. Verify deep links for `https://fanzone.ikanisa.com/pool/...` and `fanzone://pool`.
 6. Verify production Supabase data loads correctly in release mode.
 
 ## Google Play next steps
@@ -79,4 +79,3 @@ adb install -r -g build/app/outputs/flutter-apk/app-release.apk
 - Upload final screenshots, feature graphic, and store listing copy.
 - Provide reviewer app-access instructions for WhatsApp OTP login.
 - Prepare release notes for Internal and Closed testing tracks.
-

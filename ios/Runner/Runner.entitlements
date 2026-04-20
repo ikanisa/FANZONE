@@ -6,7 +6,7 @@
 	<string>$(FANZONE_APS_ENVIRONMENT)</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:fanzone.mt</string>
+		<string>applinks:fanzone.ikanisa.com</string>
 	</array>
 </dict>
 </plist>

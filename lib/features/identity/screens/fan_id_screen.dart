@@ -179,7 +179,7 @@ class _FanIdCard extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [FzColors.primary, FzColors.blue],
+                        colors: [FzColors.primary, FzColors.secondary],
                       ),
                     ),
                     alignment: Alignment.center,

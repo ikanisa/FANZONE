@@ -65,7 +65,7 @@ export function RewardsPage() {
             <tbody>
               {rewards.map(r => (
                 <tr key={r.id} className="cursor-pointer" onClick={() => setSelected(r)}>
-                  <td><div className="flex items-center gap-2"><Gift size={16} className="text-accent" /><div><div className="font-medium">{r.title}</div><div className="text-xs text-muted mono">{r.id}</div></div></div></td>
+                  <td><div className="flex items-center gap-2"><Gift size={16} className="text-primary" /><div><div className="font-medium">{r.title}</div><div className="text-xs text-muted mono">{r.id}</div></div></div></td>
                   <td><span className="badge badge-neutral">{r.category || '—'}</span></td>
                   <td className="mono font-semibold">{formatFET(r.fet_cost)}</td>
                   <td>{r.inventory_total ? `${r.inventory_remaining}/${r.inventory_total}` : '∞'}</td>
@@ -105,7 +105,7 @@ export function RewardsPage() {
               <DrawerField label="Remaining" value={selected.inventory_remaining ?? '∞'} />
               {selected.inventory_total && selected.inventory_remaining != null && (
                 <div className="mt-2" style={{ background: 'var(--fz-surface-2)', borderRadius: 4, height: 8, overflow: 'hidden' }}>
-                  <div style={{ width: `${(selected.inventory_remaining / selected.inventory_total) * 100}%`, height: '100%', background: selected.inventory_remaining <= selected.inventory_total * 0.2 ? 'var(--fz-error)' : 'var(--fz-accent)', borderRadius: 4, transition: 'width 300ms ease' }} />
+                  <div style={{ width: `${(selected.inventory_remaining / selected.inventory_total) * 100}%`, height: '100%', background: selected.inventory_remaining <= selected.inventory_total * 0.2 ? 'var(--fz-error)' : 'var(--fz-primary)', borderRadius: 4, transition: 'width 300ms ease' }} />
                 </div>
               )}
             </DrawerSection>

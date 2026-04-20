@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// FANZONE design tokens — Night Sandstone dark mode + vibrant content palette.
+/// FANZONE design tokens — dark-first with a two-color brand system.
 ///
-/// Dark-first. Premium sports-financial identity.
-/// Canonical tokens are sourced from /Users/jeanbosco/Downloads/FANZONE.
+/// The only platform brand colors are:
+///   Soft Mint  #98FF98 — primary interactive, selected, focus, positive
+///   Warm Coral #FF7F50 — CTA, highlight, pending, emphasis
 ///
-/// Color Mapping:
-///   Cream   #FDFCF0 — primary text (dark mode)
-///   Cyan    #22D3EE — primary interactive (nav, tabs, badges, focus)
-///   Blue    #2563EB — data visualization accent
-///   Coral   #FF7F50 — warm highlights / secondary accent
-///   Mint    #98FF98 — success / positive states
-///   Teal    #0F7B6C — financial/stable data, brand highlight
-///   Red     #EF4444 — danger, LIVE, errors, notifications
+/// Supporting colors are limited to neutral surfaces plus strict danger/error.
 abstract final class FzColors {
   // ════════════════════════════════════════════
   // Dark Theme (default) — Warm Stone palette
@@ -40,64 +34,31 @@ abstract final class FzColors {
   static const lightMuted = darkMuted;
 
   // ════════════════════════════════════════════
-  // Platform primary / accent colors
+  // Official platform brand colors
   // ════════════════════════════════════════════
 
-  /// Cyan #22D3EE — primary interactive accent.
-  /// Active navigation icons, tab indicators, interactive elements,
-  /// badges and focus rings.
-  static const primary = Color(0xFF22D3EE);
-  static const primaryDark = Color(0xFF0891B2);
+  /// Soft Mint #98FF98 — primary interactive, selected and focus color.
+  static const primary = Color(0xFF98FF98);
+  static const onPrimary = Color(0xFF061514);
 
-  /// Warm Coral #FF7F50 — secondary interactive / CTA accent.
-  /// Primary CTA buttons, warm highlights, step indicators,
-  /// notification dots, active borders, hover accents.
+  /// Warm Coral #FF7F50 — emphasized CTA and highlight color.
   static const secondary = Color(0xFFFF7F50);
-  static const secondaryLight = Color(0xFFFF9E7A); // Lighter coral (hover)
-  static const secondaryDark = Color(0xFFE5673E); // Darker coral (pressed)
+  static const onSecondary = Color(0xFF2A120A);
 
   // ════════════════════════════════════════════
-  // Content Palette — supporting colors
-  // Applied to text, icons, accents, badges,
-  // charts, indicators. NEVER to backgrounds.
+  // Semantic support colors
   // ════════════════════════════════════════════
-
-  /// Blue #2563EB — data visualization accent.
-  /// Chart gradients, secondary data hooks, animated financial gradients.
-  static const blue = Color(0xFF2563EB);
-
-  /// Teal #0F7B6C — financial/stable data sections.
-  /// Wallet split charts, data components, "FAN" brand highlight,
-  /// upper navigation header accents.
-  static const teal = Color(0xFF0F7B6C);
-
   /// Red #EF4444 — danger / LIVE / error.
-  /// Notification badge bubbles, LIVE match indicator, error states,
-  /// strict and noticeable app update/alert signals.
   static const danger = Color(0xFFEF4444);
 
-  // ════════════════════════════════════════════
-  // Semantic aliases
-  // ════════════════════════════════════════════
-  static const success = Color(0xFF98FF98);
-  static const coral = secondary; // Coral = pending/warm tags
+  static const success = primary;
+  static const coral = secondary;
   static const live = danger;
-  static const warning = secondary; // Warm coral for warnings
+  static const warning = secondary;
   static const error = danger;
 
-  // ════════════════════════════════════════════
-  // Backwards-compatible aliases
-  // Maps old token names → new tokens so existing
-  // code compiles without changes during migration.
-  // ════════════════════════════════════════════
-  static const accent = primary;
-  static const accentDark = primaryDark;
-  static const maltaRed = danger;
-  static const amber = secondary;
-  static const violet = blue;
-
   // Cards / Yellow / Red
-  static const yellowCard = Color(0xFFFBBF24);
+  static const yellowCard = secondary;
   static const redCard = Color(0xFFDC2626);
 
   // ════════════════════════════════════════════
@@ -107,9 +68,10 @@ abstract final class FzColors {
     surface: darkSurface,
     onSurface: darkText,
     primary: primary,
-    onPrimary: Color(0xFF09090B),
-    secondary: teal,
-    onSecondary: Colors.white,
+    onPrimary: onPrimary,
+    secondary: secondary,
+    onSecondary: onSecondary,
+    tertiary: secondary,
     error: error,
     onError: Colors.white,
     outline: darkBorder,

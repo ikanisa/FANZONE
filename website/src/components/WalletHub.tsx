@@ -21,13 +21,13 @@ export default function WalletHub() {
         }`}
       >
         <h1 className="font-display text-4xl text-text tracking-tight flex items-center gap-2">
-          <Wallet size={24} className="text-accent" /> Wallet
+          <Wallet size={24} className="text-primary" /> Wallet
         </h1>
       </header>
 
       <div className="p-4 lg:p-12 pb-24 space-y-6">
         {/* Balance Card */}
-        <div className="bg-gradient-to-br from-[#0F7B6C] to-[#2563EB] rounded-[28px] p-5 text-[#FDFCF0] relative overflow-hidden shadow-[0_10px_30px_-10px_rgba(37,99,235,0.3)]">
+        <div className="bg-gradient-to-br from-primary/85 to-secondary/85 rounded-[28px] p-5 text-[#FDFCF0] relative overflow-hidden shadow-[0_10px_30px_-10px_rgba(255,127,80,0.3)]">
           <div className="relative z-10 flex flex-col items-center text-center">
             <div className="text-[10px] font-bold opacity-80 uppercase tracking-widest mb-1 select-none">Total Balance</div>
             <div className="text-5xl lg:text-6xl font-mono font-bold tracking-tight mb-5 [text-shadow:0_0_20px_rgba(253,252,240,0.3)] flex flex-col items-center justify-center h-20">
@@ -38,7 +38,7 @@ export default function WalletHub() {
                 to="/rewards"
                 className="bg-[#FDFCF0] text-[#09090b] h-12 rounded-xl font-bold flex flex-col items-center justify-center gap-0.5 flex-1 hover:scale-[1.02] transition-transform shadow-sm"
               >
-                <div className="flex items-center gap-1.5"><Gift size={14} className="text-accent" /> <span className="text-[10px] tracking-widest">REDEEM</span></div>
+                <div className="flex items-center gap-1.5"><Gift size={14} className="text-primary" /> <span className="text-[10px] tracking-widest">REDEEM</span></div>
               </Link>
               <button 
                 onClick={() => setShowTransferSheet(true)}
@@ -63,26 +63,26 @@ export default function WalletHub() {
           <div className="bg-surface2 p-3 rounded-[20px] border border-border shadow-sm flex items-center justify-between">
             <div className="flex-1">
               <div className="text-muted text-[9px] uppercase tracking-widest font-bold mb-0.5 opacity-80">Spent</div>
-              <div className="font-mono text-base font-bold text-accent3 leading-none [text-shadow:0_0_8px_rgba(255,127,80,0.1)]">-450</div>
+              <div className="font-mono text-base font-bold text-secondary leading-none [text-shadow:0_0_8px_rgba(255,127,80,0.1)]">-450</div>
             </div>
-            <div className="w-8 h-8 rounded-full bg-accent3/10 text-accent3 flex items-center justify-center shrink-0 border border-accent3/20"><ArrowDownLeft size={14} /></div>
+            <div className="w-8 h-8 rounded-full bg-secondary/10 text-secondary flex items-center justify-center shrink-0 border border-secondary/20"><ArrowDownLeft size={14} /></div>
           </div>
         </div>
 
         {/* Tiers/Split Model */}
         <section>
           <div className="flex items-center gap-2 mb-2 px-1">
-            <PieChart size={14} className="text-teal" />
+            <PieChart size={14} className="text-primary" />
             <h3 className="font-sans font-bold text-sm text-text">Club Earnings Split</h3>
           </div>
           <div className="bg-surface2 rounded-[20px] border border-border p-3">
              <div className="flex justify-between text-[9px] font-bold text-muted uppercase tracking-widest mb-1.5 px-1 truncate">
-                <span className="text-teal font-mono">80% YOU</span>
-                <span className="text-accent font-mono text-right">20% CLUB</span>
+                <span className="text-primary font-mono">80% YOU</span>
+                <span className="text-secondary font-mono text-right">20% CLUB</span>
              </div>
              <div className="h-1.5 w-full bg-surface3 rounded-full overflow-hidden flex mb-3">
-                <div className="h-full bg-teal w-[80%]" />
-                <div className="h-full bg-accent w-[20%]" />
+                <div className="h-full bg-primary w-[80%]" />
+                <div className="h-full bg-secondary w-[20%]" />
              </div>
              <div className="flex flex-col gap-1">
                <SplitRow tier="Supporter" wallet="100%" club="0%" />
@@ -124,12 +124,12 @@ export default function WalletHub() {
 
 function SplitRow({ tier, wallet, club, active = false }: { tier: string, wallet: string, club: string, active?: boolean }) {
   return (
-    <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors ${active ? 'bg-accent/10 border border-accent/20' : 'bg-transparent border border-transparent'}`}>
-      <div className={`text-[10px] font-bold leading-none uppercase tracking-widest ${active ? 'text-accent' : 'text-text'}`}>{tier}</div>
+    <div className={`flex items-center justify-between px-2 py-1.5 rounded-lg transition-colors ${active ? 'bg-primary/10 border border-primary/20' : 'bg-transparent border border-transparent'}`}>
+      <div className={`text-[10px] font-bold leading-none uppercase tracking-widest ${active ? 'text-primary' : 'text-text'}`}>{tier}</div>
       <div className="flex gap-2 text-[10px] font-mono leading-none items-center">
-        <span className="text-teal w-6 text-right">{wallet}</span>
+        <span className="text-primary w-6 text-right">{wallet}</span>
         <span className="text-border">|</span>
-        <span className="text-accent w-6 text-right">{club}</span>
+        <span className="text-secondary w-6 text-right">{club}</span>
       </div>
     </div>
   );
@@ -140,7 +140,7 @@ function TransactionItem({ transaction }: { transaction: WalletTransaction }) {
   return (
     <div className="p-2 bg-surface hover:bg-surface2 flex items-center justify-between transition-colors gap-3">
       <div className="flex items-center gap-2 overflow-hidden">
-        <div className={`w-6 h-6 rounded-full flex justify-center items-center shrink-0 border ${isPositive ? 'bg-success/10 text-success border-success/20' : 'bg-accent3/10 text-accent3 border-accent3/20'}`}>
+        <div className={`w-6 h-6 rounded-full flex justify-center items-center shrink-0 border ${isPositive ? 'bg-success/10 text-success border-success/20' : 'bg-secondary/10 text-secondary border-secondary/20'}`}>
            {isPositive ? <ArrowUpRight size={10} /> : <ArrowDownLeft size={10} />}
         </div>
         <div className="truncate">
@@ -148,7 +148,7 @@ function TransactionItem({ transaction }: { transaction: WalletTransaction }) {
           <div className="text-[8px] font-bold uppercase tracking-widest text-muted truncate">{transaction.dateStr}</div>
         </div>
       </div>
-      <div className={`shrink-0 font-mono text-[10px] font-bold leading-none flex flex-col items-end ${isPositive ? 'text-success' : 'text-accent3'}`}>
+      <div className={`shrink-0 font-mono text-[10px] font-bold leading-none flex flex-col items-end ${isPositive ? 'text-success' : 'text-secondary'}`}>
         <div className="flex items-center">
            {isPositive ? '+' : '-'}
            <FETDisplay amount={transaction.amount} showFiat={false} className="inline ml-0.5" />
@@ -220,7 +220,7 @@ function TransferSheet({ isOpen, onClose, balance, onTransfer }: {
                 animate={{ scale: 1, opacity: 1 }} 
                 className="text-center py-8"
               >
-                <div className="w-20 h-20 bg-accent/20 text-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-primary/20 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
                   <Send size={40} className="translate-x-1" />
                 </div>
                 <h3 className="font-display text-2xl text-text mb-2">Sent Successfully!</h3>
@@ -250,7 +250,7 @@ function TransferSheet({ isOpen, onClose, balance, onTransfer }: {
                         maxLength={6}
                         value={recipient}
                         onChange={(e) => setRecipient(e.target.value.replace(/\D/g, ''))}
-                        className="w-full bg-surface2 border border-border p-4 pl-8 rounded-xl text-text placeholder:text-muted/50 font-mono text-xl focus:outline-none focus:border-accent transition-colors"
+                        className="w-full bg-surface2 border border-border p-4 pl-8 rounded-xl text-text placeholder:text-muted/50 font-mono text-xl focus:outline-none focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
@@ -258,7 +258,7 @@ function TransferSheet({ isOpen, onClose, balance, onTransfer }: {
                   <div>
                     <label className="text-xs font-bold text-muted uppercase tracking-widest mb-2 flex justify-between">
                       Amount to Send
-                      <span className="text-accent2">Balance: {balance} FET</span>
+                      <span className="text-secondary">Balance: {balance} FET</span>
                     </label>
                     <div className="relative">
                       <input 
@@ -268,12 +268,12 @@ function TransferSheet({ isOpen, onClose, balance, onTransfer }: {
                         min="1"
                         max={balance}
                         onChange={(e) => setAmount(e.target.value)}
-                        className="w-full bg-surface2 border border-border p-4 rounded-xl text-text placeholder:text-muted/50 font-mono text-xl focus:outline-none focus:border-accent transition-colors pl-16 pt-6 pb-2"
+                        className="w-full bg-surface2 border border-border p-4 rounded-xl text-text placeholder:text-muted/50 font-mono text-xl focus:outline-none focus:border-primary transition-colors pl-16 pt-6 pb-2"
                       />
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted uppercase tracking-widest text-xs mt-1">FET</span>
                       <button 
                         onClick={() => setAmount(balance.toString())}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-accent bg-accent/10 px-2 py-1 rounded mt-1 hover:bg-accent/20 transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded mt-1 hover:bg-primary/20 transition-colors"
                       >
                         MAX
                       </button>
@@ -282,7 +282,7 @@ function TransferSheet({ isOpen, onClose, balance, onTransfer }: {
                 </div>
 
                 {error && (
-                  <div className="bg-accent2/10 text-accent2 text-xs font-bold p-3 rounded-xl mb-6 text-center border border-accent2/20">
+                  <div className="bg-danger/10 text-danger text-xs font-bold p-3 rounded-xl mb-6 text-center border border-danger/20">
                     {error}
                   </div>
                 )}
@@ -292,7 +292,7 @@ function TransferSheet({ isOpen, onClose, balance, onTransfer }: {
                   disabled={!isValid}
                   className={`w-full font-bold text-sm py-4 rounded-full transition-all flex items-center justify-center gap-2 ${
                     isValid 
-                      ? 'bg-text text-bg hover:opacity-90 shadow-sm' 
+                      ? 'bg-secondary text-bg hover:bg-secondary/90 shadow-sm' 
                       : 'bg-surface3 text-muted cursor-not-allowed'
                   }`}
                 >

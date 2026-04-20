@@ -86,7 +86,7 @@ export function ModerationPage() {
                   <td className="cell-actions">
                     <div className="flex gap-1">
                       {r.status === 'open' && (
-                        <button className="btn btn-ghost btn-sm text-accent" onClick={e => { e.stopPropagation(); handleStatusUpdate(r.id, 'investigating'); }} title="Investigate">
+                        <button className="btn btn-ghost btn-sm text-primary" onClick={e => { e.stopPropagation(); handleStatusUpdate(r.id, 'investigating'); }} title="Investigate">
                           <Eye size={14} />
                         </button>
                       )}

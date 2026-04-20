@@ -50,7 +50,7 @@ export default function PredictionSlip() {
           onClick={toggleSlip}
         >
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-accent text-bg flex items-center justify-center text-xs font-bold">
+            <div className="w-6 h-6 rounded-full bg-primary text-bg flex items-center justify-center text-xs font-bold">
               {slip.length}
             </div>
             <h3 className="font-display text-lg text-text tracking-widest">PREDICTION SLIP</h3>
@@ -72,7 +72,7 @@ export default function PredictionSlip() {
                   <div key={item.id} className="flex justify-between items-center bg-surface3 p-3 rounded-xl border border-border">
                     <div>
                       <div className="text-xs font-bold text-text mb-1">{item.matchName}</div>
-                      <div className="text-[10px] text-accent">{item.selection} · {item.market}</div>
+                      <div className="text-[10px] text-primary">{item.selection} · {item.market}</div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-xs text-success [text-shadow:0_0_5px_rgba(152,255,152,0.2)]">+{item.potentialEarn}</span>
@@ -96,7 +96,7 @@ export default function PredictionSlip() {
               <button 
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-accent to-accent2 hover:opacity-90 disabled:opacity-50 text-bg font-bold py-4 rounded-xl transition-all flex justify-center items-center gap-2 shadow-[0_10px_20px_-10px_rgba(34,211,238,0.5)]"
+                className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 disabled:opacity-50 text-bg font-bold py-4 rounded-xl transition-all flex justify-center items-center gap-2 shadow-[0_10px_20px_-10px_rgba(152,255,152,0.5)]"
               >
                 {isSubmitting ? (
                   <><Loader2 className="animate-spin" size={18} /> PROCESSING...</>

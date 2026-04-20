@@ -76,11 +76,14 @@ class TeamHeroBanner extends StatelessWidget {
           Container(
             height: 176,
             padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF1A0A00), Color(0xFF2D1100)],
+                colors: [
+                  FzColors.secondary.withValues(alpha: 0.30),
+                  FzColors.primary.withValues(alpha: 0.16),
+                ],
               ),
             ),
             child: Align(

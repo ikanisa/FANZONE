@@ -77,7 +77,7 @@ class _SharePredictionSheet extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: [
                       FzColors.primary.withValues(alpha: 0.15),
-                      FzColors.violet.withValues(alpha: 0.15),
+                      FzColors.secondary.withValues(alpha: 0.15),
                     ],
                   ),
                   shape: BoxShape.circle,
@@ -177,7 +177,7 @@ class _SharePredictionSheet extends StatelessWidget {
                       icon: const Icon(Icons.share_rounded, size: 16),
                       label: const Text('Share'),
                       style: FilledButton.styleFrom(
-                        backgroundColor: FzColors.primary,
+                        backgroundColor: FzColors.secondary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

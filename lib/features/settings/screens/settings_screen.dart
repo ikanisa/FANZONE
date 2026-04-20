@@ -159,7 +159,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     label: 'Help & FAQ',
                     muted: muted,
                     textColor: textColor,
-                    onTap: () => _launchUrl(context, 'https://fanzone.mt/help'),
+                    onTap: () => _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
                   ),
                   const _Divider(),
                   _SettingsLink(
@@ -168,7 +168,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     muted: muted,
                     textColor: textColor,
                     onTap: () =>
-                        _launchUrl(context, 'https://fanzone.mt/privacy'),
+                        _launchUrl(context, 'https://fanzone.ikanisa.com/privacy'),
                   ),
                   const _Divider(),
                   _SettingsLink(
@@ -177,7 +177,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     muted: muted,
                     textColor: textColor,
                     onTap: () =>
-                        _launchUrl(context, 'https://fanzone.mt/terms'),
+                        _launchUrl(context, 'https://fanzone.ikanisa.com/terms'),
                   ),
                 ],
               ),

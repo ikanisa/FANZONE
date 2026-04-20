@@ -524,7 +524,7 @@ class _BrandWordmark extends StatelessWidget {
             color: FzColors.darkText,
             letterSpacing: 0.6,
           ),
-          fanColor: FzColors.teal,
+          fanColor: FzColors.primary,
           zoneColor: FzColors.darkText,
         ),
       ],

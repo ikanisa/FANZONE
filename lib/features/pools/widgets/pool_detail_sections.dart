@@ -111,7 +111,7 @@ class PoolStatusHeroCard extends ConsumerWidget {
                     style: FzTypography.score(
                       size: 18,
                       weight: FontWeight.w700,
-                      color: FzColors.amber,
+                      color: FzColors.secondary,
                     ),
                   ),
                 ],
@@ -136,7 +136,7 @@ class PoolStatusHeroCard extends ConsumerWidget {
                 Expanded(
                   child: PoolStatCard(
                     icon: LucideIcons.users,
-                    iconColor: FzColors.violet,
+                    iconColor: FzColors.secondary,
                     label: 'PARTICIPANTS',
                     value: '${pool.participantsCount}',
                     isDark: isDark,
@@ -156,9 +156,9 @@ class PoolStatusHeroCard extends ConsumerWidget {
 FzBadgeVariant _statusBadgeVariant(String status) {
   switch (status) {
     case 'open':
-      return FzBadgeVariant.accent;
+      return FzBadgeVariant.primary;
     case 'settled':
-      return FzBadgeVariant.accent3;
+      return FzBadgeVariant.secondary;
     case 'locked':
     case 'void':
       return FzBadgeVariant.ghost;
@@ -307,7 +307,7 @@ class PoolJoinSection extends ConsumerWidget {
             muted: muted,
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: FzColors.primary,
+            backgroundColor: FzColors.secondary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(26),

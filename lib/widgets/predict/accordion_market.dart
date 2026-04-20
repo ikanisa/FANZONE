@@ -236,7 +236,7 @@ class _CorrectScoreMarketState extends ConsumerState<CorrectScoreMarket> {
                         .toggleExactScore(widget.match, _home, _away),
                     style: FilledButton.styleFrom(
                       backgroundColor: isSelected
-                          ? FzColors.maltaRed
+                          ? FzColors.danger
                           : (isDark
                                 ? FzColors.darkSurface3
                                 : FzColors.lightSurface3),
@@ -290,7 +290,7 @@ class _MarketButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isSelected
-        ? FzColors.maltaRed
+        ? FzColors.danger
         : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2);
     final textColor = isSelected
         ? Colors.white
@@ -310,7 +310,7 @@ class _MarketButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
-                ? FzColors.maltaRed
+                ? FzColors.danger
                 : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
           ),
         ),

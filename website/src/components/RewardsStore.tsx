@@ -18,7 +18,7 @@ export default function RewardsStore() {
       {/* Balance */}
       <div className="bg-surface2 p-6 rounded-2xl border border-border flex items-center justify-between mb-8">
         <div className="text-sm font-bold text-muted">Your Balance</div>
-        <div className="font-mono text-2xl font-bold text-accent3">
+        <div className="font-mono text-2xl font-bold text-secondary">
           <AnimatedCounter value={fetBalance} /> FET
         </div>
       </div>
@@ -48,7 +48,7 @@ function RewardItem({ icon, title, cost, category }: { icon: React.ReactNode; ti
   return (
     <div className="bg-surface2 p-6 rounded-2xl border border-border flex flex-col gap-4">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-surface3 flex items-center justify-center text-accent">
+        <div className="w-12 h-12 rounded-full bg-surface3 flex items-center justify-center text-primary">
           {icon}
         </div>
         <div>
@@ -61,7 +61,7 @@ function RewardItem({ icon, title, cost, category }: { icon: React.ReactNode; ti
         disabled={!canAfford}
         className={`w-full font-bold py-3 rounded-xl transition-all border ${
           canAfford 
-            ? 'bg-surface3 hover:bg-accent/20 border-border text-accent' 
+            ? 'bg-surface3 hover:bg-primary/20 border-border text-primary' 
             : 'bg-surface3/50 border-border/50 text-muted cursor-not-allowed'
         }`}
       >

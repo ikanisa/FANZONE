@@ -70,7 +70,7 @@
 .font-bold { font-weight: 700; }
 .text-muted { color: var(--fz-muted); }
 .text-secondary { color: var(--fz-text-secondary); }
-.text-accent { color: var(--fz-accent); }
+.text-primary { color: var(--fz-primary); }
 .text-success { color: var(--fz-success); }
 .text-warning { color: var(--fz-warning); }
 .text-error { color: var(--fz-error); }

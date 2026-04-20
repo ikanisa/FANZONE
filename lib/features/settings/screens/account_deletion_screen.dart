@@ -392,7 +392,7 @@ class _StatusPill extends StatelessWidget {
         color = FzColors.error;
         break;
       case 'in_review':
-        color = FzColors.teal;
+        color = FzColors.primary;
         break;
       default:
         color = FzColors.primary;

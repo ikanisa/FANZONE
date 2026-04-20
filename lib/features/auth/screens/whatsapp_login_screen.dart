@@ -22,7 +22,7 @@ import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_wordmark.dart';
 
 /// Accent used on the phone verification screen.
-const _verificationAccent = FzColors.teal;
+const _verificationAccent = FzColors.primary;
 const _defaultPhoneCountryCode = 'MT';
 const _fallbackPhonePreset = PhonePreset(
   dialCode: '+356',

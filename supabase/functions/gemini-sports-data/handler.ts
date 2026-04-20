@@ -13,6 +13,7 @@ import {
   buildLiveEventRows,
   buildMatchPatch,
   dedupeEvents,
+  detectScoreRegression,
   getEventSignature,
   toDatabaseMatchStatus,
 } from "./match.ts";
@@ -124,27 +125,43 @@ async function handleEventsRequest(
     const nextStatus = toDatabaseMatchStatus(eventPayload.match_status) ??
       normalizeStoredStatus(existingLiveState?.status ?? match.status);
 
+    // Detect score regression before publishing
+    const scoreRegression = detectScoreRegression(match, eventPayload);
+    const effectiveReviewRequired = validation.status !== "confirmed" ||
+      scoreRegression.regressed;
+    const effectiveReviewReason = scoreRegression.regressed
+      ? scoreRegression.reason
+      : validation.review_reason;
+    const effectiveConfidenceStatus = scoreRegression.regressed
+      ? "manual_review" as const
+      : validation.status;
+
     await upsertMatchLiveState(supabase, {
       match_id: payload.matchId,
       status: nextStatus,
       minute: eventPayload.minute,
       phase: eventPayload.phase.toLowerCase(),
-      home_score: eventPayload.home_score,
-      away_score: eventPayload.away_score,
+      home_score: scoreRegression.regressed
+        ? (existingLiveState?.home_score ?? match.live_home_score ??
+          eventPayload.home_score)
+        : eventPayload.home_score,
+      away_score: scoreRegression.regressed
+        ? (existingLiveState?.away_score ?? match.live_away_score ??
+          eventPayload.away_score)
+        : eventPayload.away_score,
       confidence_score: validation.confidence_score,
-      confidence_status: validation.status,
-      review_required: validation.status !== "confirmed",
-      review_reason: validation.review_reason,
+      confidence_status: effectiveConfidenceStatus,
+      review_required: effectiveReviewRequired,
+      review_reason: effectiveReviewReason,
       provider: PROVIDER_NAME,
       last_checked_at: nowIso,
-      last_success_at: validation.status === "confirmed"
+      last_success_at: validation.status === "confirmed" &&
+          !scoreRegression.regressed
         ? nowIso
         : existingLiveState?.last_success_at ?? null,
       next_check_at: nextCheckAt,
       last_event_count: dedupedEvents.length,
-      last_error: validation.status === "confirmed"
-        ? null
-        : validation.review_reason,
+      last_error: effectiveReviewRequired ? effectiveReviewReason : null,
       consecutive_failures: 0,
       grounding_sources: grounded.sources as unknown as Array<
         Record<string, unknown>
@@ -157,7 +174,7 @@ async function handleEventsRequest(
     let insertedLiveEventCount = 0;
     let insertedMatchEventCount = 0;
 
-    if (validation.status === "confirmed") {
+    if (validation.status === "confirmed" && !scoreRegression.regressed) {
       const existingEvents = await loadExistingLiveEvents(
         supabase,
         payload.matchId,
@@ -225,7 +242,9 @@ async function handleEventsRequest(
     }
 
     await finalizeLiveUpdateRun(supabase, runId, {
-      status: validation.status === "confirmed"
+      status: scoreRegression.regressed
+        ? "manual_review"
+        : validation.status === "confirmed"
         ? "completed"
         : validation.status,
       confidence_score: validation.confidence_score,
@@ -235,7 +254,7 @@ async function handleEventsRequest(
       inserted_live_event_count: insertedLiveEventCount,
       inserted_match_event_count: insertedMatchEventCount,
       updated_match: updatedMatch != null,
-      review_reason: validation.review_reason,
+      review_reason: effectiveReviewReason,
       response_payload: {
         payload: eventPayload,
         validation,
@@ -253,7 +272,7 @@ async function handleEventsRequest(
       geminiModel: DEFAULT_GEMINI_MODEL,
       insertedCount: insertedLiveEventCount,
       canonicalInsertedCount: insertedMatchEventCount,
-      reviewRequired: validation.status !== "confirmed",
+      reviewRequired: effectiveReviewRequired,
       confidence: validation,
       currentState: {
         match_status: eventPayload.match_status,

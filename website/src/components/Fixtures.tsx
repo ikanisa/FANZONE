@@ -21,13 +21,13 @@ export default function Fixtures() {
         <div className="flex gap-1.5 bg-surface2 p-1 rounded-full border border-border">
           <button 
             onClick={() => setActiveTab('competitions')}
-            className={`p-2 rounded-full transition-all flex items-center justify-center ${activeTab === 'competitions' ? 'bg-[var(--accent2)] text-bg shadow-sm' : 'text-muted hover:text-text'}`}
+            className={`p-2 rounded-full transition-all flex items-center justify-center ${activeTab === 'competitions' ? 'bg-[var(--secondary)] text-bg shadow-sm' : 'text-muted hover:text-text'}`}
           >
             <Compass size={16} />
           </button>
           <button 
             onClick={() => setActiveTab('matches')}
-            className={`p-2 rounded-full transition-all flex items-center justify-center ${activeTab === 'matches' ? 'bg-accent text-bg shadow-sm' : 'text-muted hover:text-text'}`}
+            className={`p-2 rounded-full transition-all flex items-center justify-center ${activeTab === 'matches' ? 'bg-primary text-bg shadow-sm' : 'text-muted hover:text-text'}`}
           >
             <Calendar size={16} />
           </button>
@@ -80,31 +80,31 @@ function CompetitionsView() {
       {/* 1. My Local & Favorites */}
       <section>
         <div className="flex items-center gap-2 mb-2 px-1">
-          <Star size={14} className="text-accent3" />
+          <Star size={14} className="text-secondary" />
           <h2 className="font-sans font-bold text-sm text-text">For You</h2>
         </div>
         <div className="grid grid-cols-3 gap-2">
           <Card 
-            className="hover:border-accent/30 cursor-pointer group flex flex-col items-center justify-center p-3 text-center gap-1.5 border-border shadow-none"
+            className="hover:border-primary/30 cursor-pointer group flex flex-col items-center justify-center p-3 text-center gap-1.5 border-border shadow-none"
             onClick={() => handleNavigate(localLeague)}
           >
             <div className="w-8 h-8 rounded-full bg-surface2 border border-border flex justify-center items-center text-sm shadow-inner">🇷🇼</div>
             <div>
-              <h3 className="font-bold text-[10px] text-text group-hover:text-accent transition-colors leading-tight">Rwanda<br/>Premier League</h3>
+              <h3 className="font-bold text-[10px] text-text group-hover:text-primary transition-colors leading-tight">Rwanda<br/>Premier League</h3>
             </div>
           </Card>
 
           {favoriteTeams.map(team => (
             <Card 
               key={team}
-              className="hover:border-accent/30 cursor-pointer group flex flex-col items-center justify-center p-3 text-center gap-1.5 border-border shadow-none"
+              className="hover:border-primary/30 cursor-pointer group flex flex-col items-center justify-center p-3 text-center gap-1.5 border-border shadow-none"
               onClick={() => handleNavigate('EPL')} // Temporary nav
             >
               <div className="w-8 h-8 rounded-full bg-surface2 border border-border flex justify-center items-center overflow-hidden">
                 <TeamLogo teamName={team} size={20} />
               </div>
               <div>
-                <h3 className="font-bold text-[10px] text-text group-hover:text-accent transition-colors leading-tight truncate px-1 max-w-full block">{team}</h3>
+                <h3 className="font-bold text-[10px] text-text group-hover:text-primary transition-colors leading-tight truncate px-1 max-w-full block">{team}</h3>
               </div>
             </Card>
           ))}
@@ -114,7 +114,7 @@ function CompetitionsView() {
       {/* 2. Top 5 European */}
       <section>
         <div className="flex items-center gap-2 mb-2 px-1">
-          <Globe size={14} className="text-accent" />
+          <Globe size={14} className="text-primary" />
           <h2 className="font-sans font-bold text-sm text-text">Europe</h2>
         </div>
         <div className="grid gap-1.5">
@@ -126,9 +126,9 @@ function CompetitionsView() {
             >
               <div className="flex items-center gap-3">
                 <div className="text-base">{league.icon}</div>
-                <div className="font-bold text-text text-xs group-hover:text-accent transition-colors">{league.name}</div>
+                <div className="font-bold text-text text-xs group-hover:text-primary transition-colors">{league.name}</div>
               </div>
-              <ChevronRightIcon size={14} className="text-muted/50 group-hover:text-accent transition-colors" />
+              <ChevronRightIcon size={14} className="text-muted/50 group-hover:text-primary transition-colors" />
             </div>
           ))}
 
@@ -174,7 +174,7 @@ function CompetitionsView() {
       {/* 3. Major Competitions */}
       <section>
         <div className="flex items-center gap-2 mb-2 px-1">
-          <Trophy size={14} className="text-[var(--accent2)]" />
+          <Trophy size={14} className="text-[var(--secondary)]" />
           <h2 className="font-sans font-bold text-sm text-text">Major Tournaments</h2>
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -186,10 +186,10 @@ function CompetitionsView() {
             >
               <div className="flex items-center justify-between">
                 <div className="text-xl group-hover:scale-110 transition-transform">{comp.icon}</div>
-                <ChevronRightIcon size={12} className="text-muted/30 group-hover:text-accent transition-colors" />
+                <ChevronRightIcon size={12} className="text-muted/30 group-hover:text-primary transition-colors" />
               </div>
               <div>
-                <h3 className="font-bold text-text text-[10px] leading-tight group-hover:text-accent transition-colors truncate">{comp.name}</h3>
+                <h3 className="font-bold text-text text-[10px] leading-tight group-hover:text-primary transition-colors truncate">{comp.name}</h3>
                 <p className="text-[9px] text-muted truncate">{comp.desc}</p>
               </div>
             </div>
@@ -219,7 +219,7 @@ function MatchesView({ scrollDirection }: { scrollDirection: 'up' | 'down' | nul
           <div className="flex items-center bg-surface2 rounded-xl p-1 border border-border flex-1">
             <button className="text-muted hover:text-text p-1.5"><ChevronLeft size={16} /></button>
             <div className="flex-1 flex justify-center items-center gap-1.5 text-xs font-bold text-text">
-              <Calendar size={14} className="text-accent" />
+              <Calendar size={14} className="text-primary" />
               <span className="truncate">This Week</span>
             </div>
             <button className="text-muted hover:text-text p-1.5"><ChevronRight size={16} /></button>
@@ -287,13 +287,13 @@ function FixtureItem({ time, teamA, teamB, matchId }: { time: string; teamA: str
              <div className="w-5 h-5 rounded-full overflow-hidden bg-bg flex items-center justify-center shrink-0 border border-border/50 shadow-sm">
                <TeamLogo teamName={teamA} size={20} className="w-full h-full object-contain" />
              </div>
-             <span className="text-sm font-bold text-text group-hover:text-accent transition-all truncate leading-none">{teamA}</span>
+             <span className="text-sm font-bold text-text group-hover:text-primary transition-all truncate leading-none">{teamA}</span>
           </div>
           <div className="flex items-center gap-2.5">
              <div className="w-5 h-5 rounded-full overflow-hidden bg-bg flex items-center justify-center shrink-0 border border-border/50 shadow-sm">
                <TeamLogo teamName={teamB} size={20} className="w-full h-full object-contain" />
              </div>
-             <span className="text-sm font-bold text-text group-hover:text-accent transition-all truncate leading-none">{teamB}</span>
+             <span className="text-sm font-bold text-text group-hover:text-primary transition-all truncate leading-none">{teamB}</span>
           </div>
         </div>
       </Link>
@@ -301,13 +301,13 @@ function FixtureItem({ time, teamA, teamB, matchId }: { time: string; teamA: str
       <div className="flex items-center gap-2 shrink-0 pr-1">
         <button 
           onClick={(e) => { e.preventDefault(); navigate(`/match/${matchId}`); }}
-          className="w-10 h-10 rounded-full bg-[var(--accent2)]/10 text-[var(--accent2)] hover:bg-[var(--accent2)] hover:text-bg flex items-center justify-center transition-colors border border-[var(--accent2)]/20"
+          className="w-10 h-10 rounded-full bg-[var(--secondary)]/10 text-[var(--secondary)] hover:bg-[var(--secondary)] hover:text-bg flex items-center justify-center transition-colors border border-[var(--secondary)]/20"
         >
           <Target size={18} />
         </button>
         <button 
           onClick={(e) => { e.preventDefault(); navigate('/pools'); }}
-          className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent hover:bg-accent hover:text-bg transition-colors border border-accent/20"
+          className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-bg transition-colors border border-primary/20"
         >
           <Swords size={18} />
         </button>

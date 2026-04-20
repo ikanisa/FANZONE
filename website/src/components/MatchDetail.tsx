@@ -21,7 +21,7 @@ export default function MatchDetail() {
           scrollDirection === 'down' ? 'top-0' : 'top-[60px] lg:top-0'
         }`}
       >
-        <Link to="/" className="text-text hover:text-accent transition-all">
+        <Link to="/" className="text-text hover:text-primary transition-all">
           <ChevronLeft size={24} />
         </Link>
         <div className="text-center">
@@ -29,8 +29,8 @@ export default function MatchDetail() {
           <div className="text-sm font-bold text-text">Liverpool vs Arsenal</div>
         </div>
         <div className="flex gap-4">
-          <Share2 size={20} className="text-muted hover:text-accent cursor-pointer" />
-          <Bell size={20} className="text-muted hover:text-accent cursor-pointer" />
+          <Share2 size={20} className="text-muted hover:text-primary cursor-pointer" />
+          <Bell size={20} className="text-muted hover:text-primary cursor-pointer" />
         </div>
       </header>
 
@@ -51,8 +51,8 @@ export default function MatchDetail() {
             <span className="font-bold text-sm">ARS</span>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs font-bold text-accent bg-accent/10 px-3 py-1 rounded-full">
-          <span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+        <div className="flex items-center gap-2 text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
           63' LIVE
         </div>
       </div>
@@ -63,7 +63,7 @@ export default function MatchDetail() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-none px-6 py-4 text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab ? 'text-accent border-b-2 border-accent' : 'text-muted hover:text-text'}`}
+            className={`flex-none px-6 py-4 text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-muted hover:text-text'}`}
           >
             {tab === 'Insights' && <Sparkles size={14} className="inline mr-1 -mt-0.5" />}
             {tab}
@@ -88,7 +88,7 @@ function PredictTab({ onOpenMarket }: { onOpenMarket: () => void }) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="font-display text-xl text-text tracking-widest">MATCH MARKETS</h3>
-        <button onClick={onOpenMarket} className="flex items-center gap-2 text-xs font-bold text-accent bg-accent/10 px-3 py-2 rounded-lg hover:bg-accent/20 transition-all">
+        <button onClick={onOpenMarket} className="flex items-center gap-2 text-xs font-bold text-primary bg-primary/10 px-3 py-2 rounded-lg hover:bg-primary/20 transition-all">
           <Plus size={14} /> More Markets
         </button>
       </div>
@@ -108,7 +108,7 @@ function MarketGroup({ title, options }: { title: string; options: string[] }) {
           <button key={opt} className="bg-surface3 hover:bg-surface3/80 border border-border rounded-xl p-3 flex flex-col items-center transition-all">
             <span className="text-[10px] font-bold text-muted mb-1">{opt}</span>
             <span className="font-mono text-sm font-bold text-text">1.85</span>
-            <span className="text-[9px] text-accent mt-1">+12 FET</span>
+            <span className="text-[9px] text-primary mt-1">+12 FET</span>
           </button>
         ))}
       </div>
@@ -166,19 +166,19 @@ function InsightsTab({ matchQuery }: { matchQuery: string }) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-4">
-        <Loader2 className="animate-spin text-accent" size={32} />
+        <Loader2 className="animate-spin text-primary" size={32} />
         <div className="text-sm font-bold text-muted animate-pulse">Gathering AI Insights...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-surface2 rounded-2xl border border-accent/20 p-6 shadow-lg shadow-accent/5">
-      <div className="flex items-center gap-2 mb-4 text-accent">
+    <div className="bg-surface2 rounded-2xl border border-primary/20 p-6 shadow-lg shadow-primary/5">
+      <div className="flex items-center gap-2 mb-4 text-primary">
         <Sparkles size={20} />
         <h3 className="font-display text-lg tracking-widest">MATCH INSIGHTS</h3>
       </div>
-      <div className="text-sm text-text leading-relaxed prose prose-invert prose-p:mb-2 prose-strong:text-accent max-w-none">
+      <div className="text-sm text-text leading-relaxed prose prose-invert prose-p:mb-2 prose-strong:text-primary max-w-none">
         {insight && <Markdown>{insight}</Markdown>}
       </div>
     </div>

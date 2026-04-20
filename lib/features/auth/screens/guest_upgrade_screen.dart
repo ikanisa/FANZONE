@@ -227,12 +227,12 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF25D366).withValues(alpha: 0.12),
+                  color: FzColors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
                   LucideIcons.messageCircle,
-                  color: Color(0xFF25D366),
+                  color: FzColors.primary,
                   size: 24,
                 ),
               ),
@@ -410,11 +410,11 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
                       : (_view == _phoneView ? _sendOtp : _verifyOtp),
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
-                    backgroundColor: const Color(0xFF25D366),
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: const Color(
-                      0xFF25D366,
-                    ).withValues(alpha: 0.4),
+                    backgroundColor: FzColors.secondary,
+                    foregroundColor: FzColors.onSecondary,
+                    disabledBackgroundColor: FzColors.secondary.withValues(
+                      alpha: 0.4,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -424,7 +424,7 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
                           width: 20,
                           height: 20,
                           child: CupertinoActivityIndicator(
-                            color: Colors.white,
+                            color: FzColors.onSecondary,
                           ),
                         )
                       : Text(

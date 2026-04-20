@@ -255,7 +255,7 @@ export function LoginPage() {
           display: flex;
           align-items: center;
           gap: var(--fz-sp-3);
-          color: var(--fz-accent);
+          color: var(--fz-primary);
         }
         .login-step-header h2 {
           margin: 0;
@@ -304,8 +304,8 @@ export function LoginPage() {
         }
         .otp-input:focus {
           outline: none;
-          border-color: var(--fz-accent);
-          box-shadow: 0 0 0 1px color-mix(in srgb, var(--fz-accent) 35%, transparent);
+          border-color: var(--fz-primary);
+          box-shadow: 0 0 0 1px color-mix(in srgb, var(--fz-primary) 35%, transparent);
         }
         .login-secondary {
           border: 0;

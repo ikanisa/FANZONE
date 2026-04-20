@@ -127,7 +127,7 @@ class _PredictScreenState extends ConsumerState<PredictScreen>
                           semanticLabel: 'Create pool',
                         ),
                         style: IconButton.styleFrom(
-                          backgroundColor: FzColors.blue,
+                          backgroundColor: FzColors.secondary,
                           foregroundColor: Colors.white,
                           minimumSize: const Size(40, 40),
                           padding: EdgeInsets.zero,

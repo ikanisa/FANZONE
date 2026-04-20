@@ -154,7 +154,7 @@ class FETBalancePill extends ConsumerWidget {
             end: Alignment.bottomRight,
             colors: [
               FzColors.primary.withValues(alpha: 0.15),
-              FzColors.blue.withValues(alpha: 0.1),
+              FzColors.secondary.withValues(alpha: 0.1),
             ],
           ),
           borderRadius: BorderRadius.circular(20),

@@ -25,6 +25,14 @@ const TOOLTIP_STYLE = {
   fontSize: 13,
 };
 
+const PIE_COLORS = [
+  'var(--fz-primary)',
+  'var(--fz-secondary)',
+  'var(--fz-error)',
+  'var(--fz-primary-strong)',
+  'var(--fz-secondary-strong)',
+];
+
 interface AnalyticsChartsProps {
   engagement?: EngagementDay[];
   fetFlow?: FetFlowWeek[];
@@ -41,7 +49,7 @@ export function AnalyticsCharts({
       <div className="grid grid-2 gap-6 mb-6">
         <div className="card">
           <h3 className="text-md font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 size={18} className="text-accent" /> Daily Engagement
+            <BarChart3 size={18} className="text-primary" /> Daily Engagement
           </h3>
           {engagement ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -55,13 +63,21 @@ export function AnalyticsCharts({
                 />
                 <YAxis tick={CHART_STYLE} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
-                <Bar dataKey="dau" fill="#98FF98" radius={[4, 4, 0, 0]} />
                 <Bar
-                  dataKey="predictions"
-                  fill="#6366F1"
+                  dataKey="dau"
+                  fill="var(--fz-primary)"
                   radius={[4, 4, 0, 0]}
                 />
-                <Bar dataKey="pools" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                <Bar
+                  dataKey="predictions"
+                  fill="var(--fz-secondary)"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="pools"
+                  fill="var(--fz-error)"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -71,7 +87,7 @@ export function AnalyticsCharts({
 
         <div className="card">
           <h3 className="text-md font-semibold mb-4 flex items-center gap-2">
-            <Coins size={18} className="text-accent" /> FET Token Flow (Weekly)
+            <Coins size={18} className="text-primary" /> FET Token Flow (Weekly)
           </h3>
           {fetFlow ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -88,28 +104,28 @@ export function AnalyticsCharts({
                 <Line
                   type="monotone"
                   dataKey="issued"
-                  stroke="#22C55E"
+                  stroke="var(--fz-primary)"
                   strokeWidth={2}
                   dot={false}
                 />
                 <Line
                   type="monotone"
                   dataKey="transferred"
-                  stroke="#98FF98"
+                  stroke="var(--fz-secondary)"
                   strokeWidth={2}
                   dot={false}
                 />
                 <Line
                   type="monotone"
                   dataKey="redeemed"
-                  stroke="#F59E0B"
+                  stroke="var(--fz-error)"
                   strokeWidth={2}
                   dot={false}
                 />
                 <Line
                   type="monotone"
                   dataKey="staked"
-                  stroke="#6366F1"
+                  stroke="var(--fz-primary-strong)"
                   strokeWidth={2}
                   dot={false}
                 />
@@ -124,7 +140,7 @@ export function AnalyticsCharts({
       <div className="grid grid-2 gap-6">
         <div className="card">
           <h3 className="text-md font-semibold mb-4 flex items-center gap-2">
-            <Trophy size={18} className="text-accent" /> Engagement by
+            <Trophy size={18} className="text-primary" /> Engagement by
             Competition
           </h3>
           <div className="flex items-center justify-center">
@@ -141,8 +157,11 @@ export function AnalyticsCharts({
                     dataKey="value"
                     label={({ name, value }) => `${name} ${value}%`}
                   >
-                    {competitionPie.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} />
+                    {competitionPie.map((_, index) => (
+                      <Cell
+                        key={index}
+                        fill={PIE_COLORS[index % PIE_COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={TOOLTIP_STYLE} />

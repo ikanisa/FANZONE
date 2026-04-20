@@ -29,9 +29,9 @@ export function NotificationToast() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'pool_received':
-        return <Swords className="text-accent" size={20} />;
+        return <Swords className="text-primary" size={20} />;
       case 'pool_settled':
-        return <Trophy className="text-accent3" size={20} />;
+        return <Trophy className="text-secondary" size={20} />;
       case 'system':
       default:
         return <Bell className="text-muted" size={20} />;
@@ -45,7 +45,7 @@ export function NotificationToast() {
           initial={{ opacity: 0, y: -50, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.9 }}
-          className="fixed top-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-[100] bg-surface2 border border-accent/30 rounded-2xl p-4 shadow-2xl flex gap-4 cursor-pointer"
+          className="fixed top-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-[100] bg-surface2 border border-primary/30 rounded-2xl p-4 shadow-2xl flex gap-4 cursor-pointer"
           onClick={() => setActiveToast(null)}
         >
           <div className="mt-1 bg-surface3 p-2 rounded-full shrink-0">

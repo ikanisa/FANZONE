@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════
    FANZONE Admin — Design System Tokens & Global Styles
-   Dark-only palette aligned to /Users/jeanbosco/Downloads/FANZONE.
+   Dark-only palette with a two-color platform brand system.
    ═══════════════════════════════════════════════════════════ */
 
 @import "./reset.css";
@@ -23,27 +23,24 @@
   --fz-muted: #8b8e99;
   --fz-muted-2: #6c7280;
 
-  /* ── Canonical Accent Palette ── */
-  --fz-accent: #22d3ee;
-  --fz-accent-hover: #67e8f9;
-  --fz-accent-dark: #0891b2;
+  /* ── Official Brand Colors ── */
+  --fz-primary: #98ff98;
+  --fz-primary-hover: color-mix(in srgb, var(--fz-primary) 85%, white 15%);
+  --fz-primary-strong: color-mix(in srgb, var(--fz-primary) 78%, black 22%);
   --fz-secondary: #ff7f50;
-  --fz-secondary-hover: #ff9e7a;
-  --fz-secondary-dark: #e5673e;
-  --fz-malta-red: #ef4444;
-  --fz-malta-red-hover: #f87171;
-  --fz-amber: #f59e0b;
-  --fz-violet: #6366f1;
+  --fz-secondary-hover: color-mix(in srgb, var(--fz-secondary) 88%, white 12%);
+  --fz-secondary-strong: color-mix(in srgb, var(--fz-secondary) 78%, black 22%);
 
   /* ── Status ── */
-  --fz-success: #98ff98;
-  --fz-success-bg: rgba(152, 255, 152, 0.12);
-  --fz-warning: #f59e0b;
-  --fz-warning-bg: rgba(245, 158, 11, 0.12);
+  --fz-success: var(--fz-primary);
+  --fz-success-bg: color-mix(in srgb, var(--fz-primary) 12%, transparent);
+  --fz-warning: var(--fz-secondary);
+  --fz-warning-bg: color-mix(in srgb, var(--fz-secondary) 12%, transparent);
   --fz-error: #ef4444;
+  --fz-error-hover: #f87171;
   --fz-error-bg: rgba(239, 68, 68, 0.12);
-  --fz-info: #2563eb;
-  --fz-info-bg: rgba(37, 99, 235, 0.12);
+  --fz-info: var(--fz-primary);
+  --fz-info-bg: color-mix(in srgb, var(--fz-primary) 12%, transparent);
 
   /* ── Typography ── */
   --fz-font: "Outfit", ui-sans-serif, system-ui, sans-serif;
@@ -119,7 +116,7 @@ body {
 }
 
 .fz-wordmark-fan {
-  color: var(--fz-success);
+  color: var(--fz-primary);
 }
 
 .fz-wordmark-zone {
@@ -155,6 +152,6 @@ button {
 
 /* ── Selection ── */
 ::selection {
-  background: var(--fz-accent);
-  color: var(--fz-text);
+  background: var(--fz-primary);
+  color: var(--fz-bg);
 }

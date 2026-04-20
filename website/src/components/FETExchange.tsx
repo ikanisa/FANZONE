@@ -85,7 +85,7 @@ export default function FETExchange() {
         <motion.div 
            initial={{ scale: 0.8, opacity: 0 }}
            animate={{ scale: 1, opacity: 1 }}
-           className="w-24 h-24 bg-accent/20 text-accent rounded-full flex items-center justify-center mb-6"
+           className="w-24 h-24 bg-primary/20 text-primary rounded-full flex items-center justify-center mb-6"
         >
           <CheckCircle size={48} />
         </motion.div>
@@ -119,7 +119,7 @@ export default function FETExchange() {
       <div className="p-6 lg:p-12 max-w-xl mx-auto">
         <div className="mb-8">
            <div className="inline-flex items-center gap-2 bg-surface2 px-3 py-1 rounded-full border border-border mb-4">
-              <Globe size={14} className="text-accent" />
+              <Globe size={14} className="text-primary" />
               <span className="text-[10px] font-bold text-text uppercase tracking-widest">Global Payouts Active</span>
            </div>
            <h1 className="font-display text-4xl text-text tracking-widest mb-2">CASH OUT</h1>
@@ -130,7 +130,7 @@ export default function FETExchange() {
         <div className="bg-surface2 rounded-3xl border border-border p-6 shadow-sm mb-6 relative">
            
            {/* Exchange Rate Badge */}
-           <div className="absolute -top-3 right-6 bg-accent text-bg px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
+           <div className="absolute -top-3 right-6 bg-primary text-bg px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
              Base Rate: 100 FET = 1 EUR
            </div>
 
@@ -146,7 +146,7 @@ export default function FETExchange() {
                     value={amountFET}
                     onChange={(e) => setAmountFET(e.target.value)}
                     placeholder="0"
-                    className="w-full bg-surface border border-border rounded-2xl p-4 pr-24 font-mono text-2xl text-text focus:outline-none focus:border-accent transition-colors"
+                    className="w-full bg-surface border border-border rounded-2xl p-4 pr-24 font-mono text-2xl text-text focus:outline-none focus:border-primary transition-colors"
                  />
                  <button 
                     onClick={handleMax}
@@ -178,7 +178,7 @@ export default function FETExchange() {
                     {selectedCurrency} <ChevronDown size={16} className="text-muted" />
                  </button>
                  <div className="flex-1 bg-surface border border-border rounded-2xl p-4 flex items-center justify-end overflow-hidden">
-                    <span className="font-mono text-2xl text-accent truncate">
+                    <span className="font-mono text-2xl text-primary truncate">
                        {EXCHANGE_RATES[selectedCurrency].symbol} {targetAmount > 0 ? targetAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00'}
                     </span>
                  </div>
@@ -205,7 +205,7 @@ export default function FETExchange() {
         </button>
 
         {!isAffordable && numAmount > 0 && (
-           <p className="text-accent2 text-xs font-bold text-center mt-3">Insufficient FET balance</p>
+           <p className="text-secondary text-xs font-bold text-center mt-3">Insufficient FET balance</p>
         )}
       </div>
 
@@ -248,7 +248,7 @@ export default function FETExchange() {
                                     }}
                                     className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
                                        selectedCurrency === c.code 
-                                          ? 'border-accent bg-accent/5'
+                                          ? 'border-primary bg-primary/5'
                                           : 'border-border bg-surface2 hover:bg-surface3'
                                     }`}
                                  >
@@ -261,7 +261,7 @@ export default function FETExchange() {
                                           <div className="text-xs text-muted leading-tight">{c.label}</div>
                                        </div>
                                     </div>
-                                    {selectedCurrency === c.code && <Check className="text-accent" size={18} />}
+                                    {selectedCurrency === c.code && <Check className="text-primary" size={18} />}
                                  </button>
                               ))}
                            </div>

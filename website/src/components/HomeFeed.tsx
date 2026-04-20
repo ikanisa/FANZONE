@@ -80,7 +80,7 @@ export default function HomeFeed() {
           Predictions
         </h1>
         <div className="flex gap-2">
-           <Link to="/pools/create" className="bg-[var(--accent2)] text-bg w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(255,127,80,0.3)]">
+           <Link to="/pools/create" className="bg-[var(--secondary)] text-bg w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(255,127,80,0.3)]">
              <PlusCircle size={20} />
            </Link>
            <Link to="/registry" className="bg-surface2 text-text w-10 h-10 rounded-full flex items-center justify-center border border-border hover:bg-surface3 transition-colors">
@@ -130,7 +130,7 @@ export default function HomeFeed() {
              <Calendar size={16} className="text-muted" />
              <h2 className="font-sans font-bold text-sm text-text">Upcoming</h2>
           </div>
-          <Link to="/fixtures" className="text-muted hover:text-accent transition-colors">
+          <Link to="/fixtures" className="text-muted hover:text-primary transition-colors">
              <ChevronRight size={20} />
           </Link>
         </div>

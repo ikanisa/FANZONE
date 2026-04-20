@@ -63,7 +63,7 @@ export default function PoolCreation() {
           scrollDirection === 'down' ? 'top-0' : 'top-[60px] lg:top-0'
         }`}
       >
-        <button onClick={() => navigate(-1)} className="text-text hover:text-accent transition-all">
+        <button onClick={() => navigate(-1)} className="text-text hover:text-primary transition-all">
           <ChevronLeft size={24} />
         </button>
         <div className="text-center">
@@ -82,7 +82,7 @@ export default function PoolCreation() {
                 <button 
                   key={m.id}
                   onClick={() => { setSelectedMatch(m.id); setStep(2); }}
-                  className="w-full bg-surface2 border border-border p-4 rounded-2xl flex items-center justify-between hover:border-accent/50 transition-colors group"
+                  className="w-full bg-surface2 border border-border p-4 rounded-2xl flex items-center justify-between hover:border-primary/50 transition-colors group"
                 >
                   <div className="flex items-center gap-4">
                      <div className="flex items-center">
@@ -94,7 +94,7 @@ export default function PoolCreation() {
                        <div className="text-[10px] text-muted flex items-center gap-1 mt-1 font-bold uppercase tracking-widest"><Calendar size={10}/> {m.time}</div>
                      </div>
                   </div>
-                  <ChevronLeft size={18} className="text-muted rotate-180 group-hover:text-accent transition-colors" />
+                  <ChevronLeft size={18} className="text-muted rotate-180 group-hover:text-primary transition-colors" />
                 </button>
               ))}
             </div>
@@ -133,7 +133,7 @@ export default function PoolCreation() {
 
             <button 
               onClick={() => setStep(3)}
-              className="w-full bg-accent text-surface font-bold text-lg py-4 rounded-xl shadow-sm"
+              className="w-full bg-primary text-surface font-bold text-lg py-4 rounded-xl shadow-sm"
             >
               Continue to Stake
             </button>
@@ -147,7 +147,7 @@ export default function PoolCreation() {
             <div className="bg-surface2 border border-border p-6 rounded-3xl mb-8">
               <div className="text-center mb-6">
                 <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1">STAKE AMOUNT</div>
-                <div className="font-mono text-4xl text-accent3 font-bold">
+                <div className="font-mono text-4xl text-secondary font-bold">
                    <FETDisplay amount={stake} showFiat={true} />
                 </div>
               </div>
@@ -157,7 +157,7 @@ export default function PoolCreation() {
                 min="50" max="5000" step="50"
                 value={stake}
                 onChange={(e) => setStake(Number(e.target.value))}
-                className="w-full accent-accent3 bg-surface3 rounded-lg appearance-none h-2 cursor-pointer mb-6"
+                className="w-full primary-secondary bg-surface3 rounded-lg appearance-none h-2 cursor-pointer mb-6"
               />
 
               <div className="flex justify-between items-center text-xs">
@@ -168,7 +168,7 @@ export default function PoolCreation() {
 
             <div className="bg-surface p-4 rounded-2xl border border-border flex justify-between items-center mb-8">
               <span className="text-sm text-text font-bold">Your Balance</span>
-              <span className={`font-mono font-bold ${isAffordable ? 'text-accent' : 'text-accent2'}`}>
+              <span className={`font-mono font-bold ${isAffordable ? 'text-primary' : 'text-secondary'}`}>
                  <FETDisplay amount={fetBalance} showFiat={false} />
               </span>
             </div>
@@ -178,7 +178,7 @@ export default function PoolCreation() {
               disabled={!isAffordable}
               className={`w-full font-bold text-lg py-4 rounded-xl transition-all ${
                 isAffordable 
-                  ? 'bg-accent text-surface shadow-sm hover:scale-[1.02]' 
+                  ? 'bg-primary text-surface shadow-sm hover:scale-[1.02]' 
                   : 'bg-surface3 text-muted cursor-not-allowed'
               }`}
             >

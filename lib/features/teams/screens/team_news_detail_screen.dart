@@ -64,14 +64,14 @@ class TeamNewsDetailScreen extends ConsumerWidget {
                         Icon(
                           LucideIcons.sparkles,
                           size: 13,
-                          color: FzColors.violet,
+                          color: FzColors.secondary,
                         ),
                         SizedBox(width: 4),
                         Text(
                           'AI Curated',
                           style: TextStyle(
                             fontSize: 11,
-                            color: FzColors.violet,
+                            color: FzColors.secondary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

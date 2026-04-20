@@ -13,7 +13,7 @@ export default function PrivacySettings() {
     <div className="min-h-screen bg-bg pb-24">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-surface/80 backdrop-blur-md border-b border-border p-4 flex items-center justify-between">
-        <Link to="/profile" className="text-text hover:text-accent transition-all">
+        <Link to="/profile" className="text-text hover:text-primary transition-all">
           <ChevronLeft size={24} />
         </Link>
         <div className="text-center">
@@ -30,7 +30,7 @@ export default function PrivacySettings() {
           <h3 className="text-[10px] font-bold text-muted uppercase tracking-widest mb-3 px-2">Core Guarantees</h3>
           <div className="bg-surface2 rounded-3xl border border-border overflow-hidden">
             <div className="p-4 border-b border-border flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#25D366] shrink-0">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 <Smartphone size={20} />
               </div>
               <div>
@@ -41,7 +41,7 @@ export default function PrivacySettings() {
               </div>
             </div>
             <div className="p-4 flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent shrink-0">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                 <Shield size={20} />
               </div>
               <div>
@@ -72,7 +72,7 @@ export default function PrivacySettings() {
               <button 
                 disabled={!isVerified}
                 onClick={() => setShowName(!showName)}
-                className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${showName && isVerified ? 'bg-accent' : 'bg-surface3'} ${!isVerified && 'opacity-50 cursor-not-allowed'}`}
+                className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${showName && isVerified ? 'bg-primary' : 'bg-surface3'} ${!isVerified && 'opacity-50 cursor-not-allowed'}`}
               >
                 <motion.div 
                   className="w-4 h-4 bg-white rounded-full absolute top-1"
@@ -94,7 +94,7 @@ export default function PrivacySettings() {
               <button 
                 disabled={!isVerified}
                 onClick={() => setFindable(!findable)}
-                className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${findable && isVerified ? 'bg-accent' : 'bg-surface3'} ${!isVerified && 'opacity-50 cursor-not-allowed'}`}
+                className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ${findable && isVerified ? 'bg-primary' : 'bg-surface3'} ${!isVerified && 'opacity-50 cursor-not-allowed'}`}
               >
                 <motion.div 
                   className="w-4 h-4 bg-white rounded-full absolute top-1"
@@ -105,7 +105,7 @@ export default function PrivacySettings() {
 
           </div>
           {!isVerified && (
-            <p className="text-[10px] text-accent2 mt-3 px-4 font-bold">
+            <p className="text-[10px] text-secondary mt-3 px-4 font-bold">
               * Verification required to change visibility settings.
             </p>
           )}

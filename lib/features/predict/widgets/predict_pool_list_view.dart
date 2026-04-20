@@ -287,7 +287,7 @@ class _PoolCard extends ConsumerWidget {
               FzBadge(
                 label: pool.status.toUpperCase(),
                 variant: pool.status == 'open'
-                    ? FzBadgeVariant.accent
+                    ? FzBadgeVariant.primary
                     : FzBadgeVariant.ghost,
                 pulse: pool.status == 'open',
                 fontSize: 8,

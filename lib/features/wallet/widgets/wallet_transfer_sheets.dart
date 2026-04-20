@@ -300,7 +300,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: FzColors.blue,
+                        color: FzColors.secondary,
                       ),
                     ),
                   ],

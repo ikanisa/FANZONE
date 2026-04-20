@@ -30,7 +30,7 @@ class ProfileStatsRow extends StatelessWidget {
           child: ProfileStatCard(
             label: 'Predictions',
             value: '${stats.totalPredictions}',
-            accent: FzColors.amber,
+            accent: FzColors.secondary,
           ),
         ),
         const SizedBox(width: 10),
@@ -63,18 +63,18 @@ class ProfileWalletCard extends ConsumerWidget {
     return FzCard(
       onTap: onTap,
       padding: const EdgeInsets.all(16),
-      borderColor: FzColors.amber.withValues(alpha: 0.3),
+      borderColor: FzColors.secondary.withValues(alpha: 0.3),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: FzColors.amber.withValues(alpha: 0.1),
+              color: FzColors.secondary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               LucideIcons.wallet,
-              color: FzColors.amber,
+              color: FzColors.secondary,
               size: 20,
             ),
           ),
@@ -98,16 +98,16 @@ class ProfileWalletCard extends ConsumerWidget {
                         ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
                     return Text(
                       formatFET(balance, currency),
-                      style: FzTypography.scoreLarge(color: FzColors.amber),
+                      style: FzTypography.scoreLarge(color: FzColors.secondary),
                     );
                   },
                   loading: () => Text(
                     '...',
-                    style: FzTypography.scoreLarge(color: FzColors.amber),
+                    style: FzTypography.scoreLarge(color: FzColors.secondary),
                   ),
                   error: (_, _) => Text(
                     '—',
-                    style: FzTypography.scoreLarge(color: FzColors.amber),
+                    style: FzTypography.scoreLarge(color: FzColors.secondary),
                   ),
                 ),
               ],
