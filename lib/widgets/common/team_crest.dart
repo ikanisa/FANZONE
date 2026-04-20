@@ -150,7 +150,7 @@ class _SafeSvgCrestState extends State<_SafeSvgCrest> {
       widget.url,
       fit: BoxFit.contain,
       placeholderBuilder: (_) => widget.fallback,
-      errorBuilder: (_, __, ___) {
+      errorBuilder: (context, error, stackTrace) {
         // Schedule the error state for after the current build frame.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && !_hasError) {
@@ -162,4 +162,3 @@ class _SafeSvgCrestState extends State<_SafeSvgCrest> {
     );
   }
 }
-

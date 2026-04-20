@@ -157,7 +157,13 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
     int limit = 50,
   }) async {
     final client = _connection.client;
-    if (client != null) {
+    if (client == null) {
+      if (!AppConfig.isDevelopment) {
+        throw StateError(
+          'Club supporter activity is unavailable right now. Please try again.',
+        );
+      }
+    } else {
       try {
         final rows = await client
             .from('team_supporters')
@@ -176,10 +182,11 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
         return supporters;
       } catch (error) {
         AppLogger.d('Failed to load anonymous fans: $error');
+        if (!AppConfig.isDevelopment) {
+          rethrow;
+        }
       }
     }
-
-    if (!AppConfig.isDevelopment) return const <AnonymousFanRecord>[];
 
     final count = limit.clamp(0, 6);
     return List<AnonymousFanRecord>.generate(

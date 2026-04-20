@@ -297,7 +297,7 @@ class ProfileHeaderCard extends ConsumerWidget {
               loading: () => const SizedBox(
                 width: 20,
                 height: 20,
-                child: FzGlassLoader(useBackdrop: false),
+                child: FzGlassLoader(useBackdrop: false, size: 20),
               ),
               error: (_, _) => Text(
                 'SUPPORTED TEAMS UNAVAILABLE',

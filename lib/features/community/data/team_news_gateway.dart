@@ -26,7 +26,13 @@ class SupabaseTeamNewsGateway implements TeamNewsGateway {
     int limit = 20,
   }) async {
     final client = _connection.client;
-    if (client != null) {
+    if (client == null) {
+      if (!AppConfig.isDevelopment) {
+        throw StateError(
+          'Team news is unavailable right now. Please try again.',
+        );
+      }
+    } else {
       try {
         var query = client
             .from('team_news')
@@ -48,10 +54,11 @@ class SupabaseTeamNewsGateway implements TeamNewsGateway {
         return news;
       } catch (error) {
         AppLogger.d('Failed to load team news: $error');
+        if (!AppConfig.isDevelopment) {
+          rethrow;
+        }
       }
     }
-
-    if (!AppConfig.isDevelopment) return const <TeamNewsModel>[];
 
     final seeded = seedTeamNews(teamId);
     final filtered = category == null || category.isEmpty
@@ -65,7 +72,13 @@ class SupabaseTeamNewsGateway implements TeamNewsGateway {
   @override
   Future<TeamNewsModel?> getTeamNewsDetail(String newsId) async {
     final client = _connection.client;
-    if (client != null) {
+    if (client == null) {
+      if (!AppConfig.isDevelopment) {
+        throw StateError(
+          'Team news is unavailable right now. Please try again.',
+        );
+      }
+    } else {
       try {
         final row = await client
             .from('team_news')
@@ -77,10 +90,11 @@ class SupabaseTeamNewsGateway implements TeamNewsGateway {
         }
       } catch (error) {
         AppLogger.d('Failed to load team news detail: $error');
+        if (!AppConfig.isDevelopment) {
+          rethrow;
+        }
       }
     }
-
-    if (!AppConfig.isDevelopment) return null;
 
     for (final item in [
       ...seedTeamNews('liverpool'),

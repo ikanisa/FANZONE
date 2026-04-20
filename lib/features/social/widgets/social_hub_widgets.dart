@@ -535,7 +535,7 @@ class ClubFanZoneView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'SUPPORTER ROLL',
+          'FAN LEADERBOARD',
           style: FzTypography.display(
             size: 22,
             color: Theme.of(context).brightness == Brightness.dark

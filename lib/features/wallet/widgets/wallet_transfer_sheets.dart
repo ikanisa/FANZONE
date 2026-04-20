@@ -422,7 +422,10 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                         ? const SizedBox(
                             width: 14,
                             height: 14,
-                            child: FzGlassLoader(useBackdrop: false),
+                            child: FzGlassLoader(
+                              useBackdrop: false,
+                              size: 14,
+                            ),
                           )
                         : const Icon(LucideIcons.send, size: 16),
                     label: Text(

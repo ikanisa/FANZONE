@@ -110,6 +110,8 @@ class ScoresPageSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.only(top: 16),
+      shrinkWrap: true,
+      primary: false,
       physics: const NeverScrollableScrollPhysics(),
       children: const [
         FixtureGroupSkeleton(count: 3),

@@ -3,10 +3,18 @@ import {
   FunctionsFetchError,
   FunctionsHttpError,
   FunctionsRelayError,
-  type Session,
 } from '@supabase/supabase-js';
 
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import {
+  clearStoredAdminSession,
+  isAdminSessionExpired,
+  isSupabaseConfigured,
+  persistAdminSession,
+  readStoredAdminSession,
+  supabase,
+  supabaseAuth,
+  type AdminSessionSnapshot,
+} from '../lib/supabase';
 import type { AdminUser } from '../types';
 import { AuthContext, UNCONFIGURED_ADMIN_ERROR } from './auth-context';
 
@@ -20,7 +28,7 @@ interface AdminProfileResult {
 }
 
 interface InitialAuthSnapshot {
-  session: Session | null;
+  session: AdminSessionSnapshot | null;
   admin: AdminUser | null;
   isLoading: boolean;
   error: string | null;
@@ -34,7 +42,11 @@ interface WhatsAppOtpSendResponse {
 
 interface WhatsAppOtpVerifyResponse extends WhatsAppOtpSendResponse {
   access_token?: string;
-  refresh_token?: string;
+  expires_at?: number;
+  user?: {
+    id?: string;
+    phone?: string | null;
+  } | null;
 }
 
 function toAdminAuthErrorMessage(error: unknown, fallback: string) {
@@ -112,7 +124,7 @@ function getInitialAuthSnapshot(): InitialAuthSnapshot {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const initialSnapshot = getInitialAuthSnapshot();
-  const [session, setSession] = useState<Session | null>(
+  const [session, setSession] = useState<AdminSessionSnapshot | null>(
     initialSnapshot.session,
   );
   const [admin, setAdmin] = useState<AdminUser | null>(initialSnapshot.admin);
@@ -154,21 +166,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     let isActive = true;
 
-    const applySession = async (nextSession: Session | null) => {
-      if (!isActive) return;
-
-      setSession(nextSession);
-
-      if (!nextSession?.user?.id) {
+    const restore = async () => {
+      const storedSession = readStoredAdminSession();
+      if (!storedSession || isAdminSessionExpired(storedSession)) {
+        clearStoredAdminSession();
+        if (!isActive) return;
+        setSession(null);
         setAdmin(null);
-        setError(null);
+        setError(
+          storedSession
+            ? 'Your admin session expired. Request a new WhatsApp code to continue.'
+            : null,
+        );
         setIsLoading(false);
         return;
       }
 
+      if (!isActive) return;
+      setSession(storedSession);
       setIsLoading(true);
-      const profile = await fetchAdminProfile(nextSession.user.id);
 
+      const profile = await fetchAdminProfile(storedSession.userId);
       if (!isActive) return;
 
       setAdmin(profile.admin);
@@ -176,21 +194,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(false);
     };
 
-    void supabase.auth
-      .getSession()
-      .then(({ data: { session: currentSession } }) => applySession(currentSession));
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      void applySession(nextSession);
-    });
+    void restore();
 
     return () => {
       isActive = false;
-      subscription.unsubscribe();
     };
   }, [fetchAdminProfile]);
+
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+
+    const expiresInMs = Math.max(0, session.expiresAt * 1000 - Date.now());
+    const timeoutMs = Math.min(expiresInMs + 1_000, 2_147_483_647);
+
+    const timeout = window.setTimeout(() => {
+      clearStoredAdminSession();
+      setSession(null);
+      setAdmin(null);
+      setError('Your admin session expired. Request a new WhatsApp code to continue.');
+    }, timeoutMs);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [session]);
 
   const requestOtp = useCallback(async (phone: string) => {
     if (!isSupabaseConfigured) {
@@ -202,7 +231,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
 
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke<WhatsAppOtpSendResponse>(
+      const { data, error: invokeError } = await supabaseAuth.functions.invoke<WhatsAppOtpSendResponse>(
         'whatsapp-otp',
         {
           body: {
@@ -251,7 +280,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
 
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke<WhatsAppOtpVerifyResponse>(
+      const { data, error: invokeError } = await supabaseAuth.functions.invoke<WhatsAppOtpVerifyResponse>(
         'whatsapp-otp',
         {
           body: {
@@ -275,28 +304,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(data?.error || 'Unable to verify the WhatsApp code.');
       }
 
-      if (!data.access_token) {
+      if (!data.access_token || !data.user?.id || !data.expires_at) {
         throw new Error('Server did not return a valid session.');
       }
 
-      const refreshToken =
-        typeof data.refresh_token === 'string' && data.refresh_token.length > 0
-          ? data.refresh_token
-          : data.access_token;
+      const nextSession: AdminSessionSnapshot = {
+        accessToken: data.access_token,
+        userId: data.user.id,
+        expiresAt: data.expires_at,
+        phone: data.user.phone ?? phone,
+      };
 
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: data.access_token,
-        // The custom WhatsApp auth flow mints a signed access token directly.
-        // Supabase still expects a non-empty refresh token when restoring a
-        // client session, so we reuse the access token as a session seed until
-        // the short-lived token expires and the admin signs in again.
-        refresh_token: refreshToken,
-      });
+      persistAdminSession(nextSession);
+      setSession(nextSession);
 
-      if (sessionError) {
-        throw sessionError;
-      }
+      const profile = await fetchAdminProfile(nextSession.userId);
+      setAdmin(profile.admin);
+      setError(profile.error);
+      setIsLoading(false);
+      return profile.admin != null;
     } catch (authError: unknown) {
+      clearStoredAdminSession();
+      setSession(null);
+      setAdmin(null);
       setError(
         toAdminAuthErrorMessage(
           authError,
@@ -306,19 +336,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(false);
       return false;
     }
-
-    return true;
-  }, []);
+  }, [fetchAdminProfile]);
 
   const signOut = useCallback(async () => {
-    if (!isSupabaseConfigured) {
-      setSession(null);
-      setAdmin(null);
-      setError(null);
-      return;
-    }
-
-    await supabase.auth.signOut();
+    clearStoredAdminSession();
     setSession(null);
     setAdmin(null);
     setError(null);

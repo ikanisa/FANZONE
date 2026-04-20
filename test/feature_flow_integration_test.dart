@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/features/auth/data/auth_gateway.dart';
 import 'package:fanzone/features/auth/screens/whatsapp_login_screen.dart';
 import 'package:fanzone/features/pools/widgets/pool_join_sheet.dart';
@@ -225,6 +227,8 @@ Future<void> _pumpLoginFlow(
   WidgetTester tester,
   _FakeAuthGateway gateway,
 ) async {
+  SharedPreferences.setMockInitialValues({});
+  final sharedPreferences = await SharedPreferences.getInstance();
   tester.view
     ..physicalSize = const Size(400, 844)
     ..devicePixelRatio = 1;
@@ -256,6 +260,7 @@ Future<void> _pumpLoginFlow(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPreferences),
         authServiceProvider.overrideWith((ref) => AuthService(gateway)),
         primaryMarketRegionProvider.overrideWith((ref) => 'europe'),
       ],

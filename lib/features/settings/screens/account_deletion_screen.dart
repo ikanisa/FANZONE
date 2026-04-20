@@ -227,7 +227,10 @@ class _AccountDeletionScreenState extends ConsumerState<AccountDeletionScreen> {
                           ? const SizedBox(
                               width: 14,
                               height: 14,
-                              child: FzGlassLoader(useBackdrop: false),
+                              child: FzGlassLoader(
+                                useBackdrop: false,
+                                size: 14,
+                              ),
                             )
                           : const Icon(LucideIcons.xCircle, size: 16),
                       label: Text(

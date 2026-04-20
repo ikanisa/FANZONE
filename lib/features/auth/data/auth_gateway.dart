@@ -109,21 +109,16 @@ class SupabaseAuthGateway implements AuthGateway {
       throw AuthException(errorMsg);
     }
 
-    final accessToken = data['access_token'] as String?;
     final sessionString = data['session_string'] as String?;
 
-    if (accessToken == null && sessionString == null) {
+    if (sessionString == null || sessionString.isEmpty) {
       throw const AuthException(
-        'Server did not return a valid session. Please try again.',
+        'Server did not return a recoverable session. Please request a new code.',
       );
     }
 
     try {
-      if (sessionString != null && sessionString.isNotEmpty) {
-        await client.auth.recoverSession(sessionString);
-      } else {
-        await client.auth.setSession(accessToken!, accessToken: accessToken);
-      }
+      await client.auth.recoverSession(sessionString);
     } catch (error) {
       AppLogger.d(
         'Failed to recover session from WhatsApp OTP response: $error',

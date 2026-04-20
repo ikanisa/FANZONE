@@ -161,7 +161,7 @@ class FanBadge {
       case 'epic':
         return 0xFF2563EB; // Blue
       case 'rare':
-        return 0xFF98FF98; // Mint
+        return 0xFF22D3EE; // Cyan
       default:
         return 0xFFA8A29E;
     }
