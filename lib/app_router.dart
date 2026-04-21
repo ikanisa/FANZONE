@@ -9,6 +9,7 @@ import 'core/runtime/app_runtime_state.dart';
 import 'widgets/navigation/app_shell.dart';
 
 import 'features/auth/screens/guest_upgrade_screen.dart';
+import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/whatsapp_login_screen.dart';
 import 'features/community/screens/membership_hub_screen.dart';
 import 'features/fixtures/screens/fixtures_screen.dart';
@@ -37,16 +38,6 @@ bool _isAuthenticated() {
   return session != null && !session.isExpired;
 }
 
-/// True only when the user is fully authenticated (non-anonymous).
-bool _isFullyAuthenticated() {
-  final session = RuntimeAuthSessionManager.instance.currentSession;
-  if (session == null || session.isExpired) {
-    return false;
-  }
-  final user = RuntimeAuthSessionManager.instance.currentUser;
-  return user != null && !user.isAnonymous;
-}
-
 /// Set by main.dart before runApp() — determined while native splash is visible.
 String _initialRoute = '/';
 
@@ -61,7 +52,6 @@ final router = GoRouter(
   observers: [AnalyticsRouteObserver()],
   redirect: (context, state) {
     final path = state.uri.path;
-    final requestedLocation = state.uri.toString();
 
     if (path == '/login') {
       if (!_isAuthenticated()) return null;
@@ -72,21 +62,15 @@ final router = GoRouter(
       return '/';
     }
 
-    // Routes that require full authentication (not guest)
-    if (_requiresFullAuthPath(path) && !_isFullyAuthenticated()) {
-      if (_isAuthenticated()) {
-        // Guest user → redirect to upgrade screen
-        final redirectTo = Uri.encodeComponent(requestedLocation);
-        return '/upgrade?from=$redirectTo';
-      }
-      // Not authenticated at all → login
-      final redirectTo = Uri.encodeComponent(requestedLocation);
-      return '/login?from=$redirectTo';
-    }
-
     return null;
   },
   routes: [
+    GoRoute(
+      name: 'splash',
+      path: '/splash',
+      pageBuilder: (context, state) =>
+          _fadeTransition(state, const SplashScreen()),
+    ),
     GoRoute(
       name: 'login',
       path: '/login',
@@ -348,35 +332,6 @@ final router = GoRouter(
     ),
   ],
 );
-
-/// Paths that require full (non-anonymous) authentication.
-/// Guest users browsing public content are allowed through.
-bool _requiresFullAuthPath(String path) {
-  const exactPaths = {
-    '/wallet/rewards',
-    // Identity & memberships
-    '/fan-id',
-    '/memberships',
-    '/social',
-    '/rewards',
-    // Notifications (settings require full auth)
-    '/notifications',
-    '/privacy',
-    // Legacy redirects
-    '/profile/leaderboard',
-    '/profile/notifications',
-    '/profile/fan-id',
-    '/clubs/membership',
-    '/clubs/social',
-    '/clubs/fan-id',
-  };
-
-  if (exactPaths.contains(path)) {
-    return true;
-  }
-
-  return path.startsWith('/settings') || path.startsWith('/profile/settings');
-}
 
 CustomTransitionPage<void> _fadeSlideTransition(
   GoRouterState state,

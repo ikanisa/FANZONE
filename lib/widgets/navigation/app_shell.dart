@@ -55,6 +55,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     final unreadCount =
         ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0;
     final location = widget.currentLocation;
+    final isHome = _isHomePath(location);
 
     return NotificationListener<ScrollNotification>(
       onNotification: _handleScrollNotification,
@@ -83,7 +84,7 @@ class _AppShellState extends ConsumerState<AppShell> {
           return Scaffold(
             extendBody: !isDesktop,
             extendBodyBehindAppBar: false,
-            appBar: isDesktop
+            appBar: isDesktop || !isHome
                 ? null
                 : _FzTopBar(
                     visible: _barsVisible,
@@ -447,45 +448,51 @@ class _MobileBottomNav extends StatelessWidget {
               children: items.map((item) {
                 final isActive = activeKey == item.keyName;
                 return Expanded(
-                  child: InkWell(
-                    onTap: () => context.go(item.route),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Icon(
-                                item.icon,
-                                size: 22,
-                                color: isActive
-                                    ? FzColors.primary
-                                    : FzColors.darkMuted,
-                              ),
-                              if (item.keyName == 'profile' && unreadCount > 0)
-                                const Positioned(
-                                  top: -2,
-                                  right: -4,
-                                  child: _NotificationDot(
-                                    ringColor: FzColors.darkSurface,
-                                  ),
+                  child: Semantics(
+                    button: true,
+                    label: item.label,
+                    selected: isActive,
+                    child: InkWell(
+                      onTap: () => context.go(item.route),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Icon(
+                                  item.icon,
+                                  size: 22,
+                                  color: isActive
+                                      ? FzColors.primary
+                                      : FzColors.darkMuted,
                                 ),
-                            ],
-                          ),
-                          if (isActive) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              item.label,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: FzColors.primary,
-                              ),
+                                if (item.keyName == 'profile' &&
+                                    unreadCount > 0)
+                                  const Positioned(
+                                    top: -2,
+                                    right: -4,
+                                    child: _NotificationDot(
+                                      ringColor: FzColors.darkSurface,
+                                    ),
+                                  ),
+                              ],
                             ),
+                            if (isActive) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                item.label,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: FzColors.primary,
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
                   ),

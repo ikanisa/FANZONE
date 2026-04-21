@@ -24,8 +24,7 @@ import '../widgets/onboarding_welcome_step.dart';
 /// Step 1: Welcome — FANZONE branding + GET STARTED
 /// Step 2: Enter Phone — phone input + SEND OTP
 /// Step 3: Verify OTP — 6-digit code + VERIFY
-/// Step 4: Favorite Team — search local team + CONTINUE / SKIP
-/// Step 5: Popular Teams — top 20 grid + search + COMPLETE SETUP / SKIP
+/// Step 4: Favorite Team — anonymous Fan ID + optional team + enter app
 ///
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -35,16 +34,14 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  // Reference-aligned step indices (matches Onboarding.tsx steps 1–5)
+  // Reference-aligned step indices (matches Onboarding.tsx steps 1–4)
   static const _welcomeStep = 0; // Step 1
   static const _phoneStep = 1; // Step 2
   static const _otpStep = 2; // Step 3
   static const _favoriteTeamStep = 3; // Step 4
-  static const _popularTeamsStep = 4; // Step 5
 
   final _phoneController = TextEditingController();
   final _favoriteSearchController = TextEditingController();
-  final _popularSearchController = TextEditingController();
   final _otpControllers = List.generate(6, (_) => TextEditingController());
   final _otpFocusNodes = List.generate(6, (_) => FocusNode());
 
@@ -56,21 +53,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    // Default to Malta — primary market
-    _selectedCountry = findCountryByCode('MT');
-    ref.read(selectedLaunchRegionProvider.notifier).state = 'europe';
+    _selectedCountry = findCountryByCode('RW');
+    ref.read(selectedLaunchRegionProvider.notifier).state = 'global';
     ref.read(selectedLaunchFocusTagsProvider.notifier).replaceAll({});
     ref.read(localTeamSearchQueryProvider.notifier).state = '';
-    ref.read(popularTeamSearchQueryProvider.notifier).state = '';
     ref.read(selectedLocalTeamProvider.notifier).state = null;
-    ref.read(selectedPopularTeamProvider.notifier).state = null;
   }
 
   @override
   void dispose() {
     _phoneController.dispose();
     _favoriteSearchController.dispose();
-    _popularSearchController.dispose();
     for (final controller in _otpControllers) {
       controller.dispose();
     }
@@ -114,35 +107,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
   }
 
-  void _handleCountryChanged(CountryEntry country) {
-    setState(() {
-      _selectedCountry = country;
-      _error = null;
-    });
-    _reformatPhoneInput();
-  }
-
   void _handlePhoneChanged(String value) {
-    final adoptedCountry = resolveCountryFromPhoneInput(
-      value,
-      fallback: _selectedCountry,
-    );
     var digits = value.replaceAll(RegExp(r'\D'), '');
 
-    if (value.trimLeft().startsWith('+') &&
-        digits.startsWith(adoptedCountry.dialDigits)) {
-      digits = digits.substring(adoptedCountry.dialDigits.length);
-    }
-
     final maxDigits = maxPhoneDigitsForHint(
-      adoptedCountry.hint,
-      minDigits: adoptedCountry.minDigits,
+      _selectedCountry.hint,
+      minDigits: _selectedCountry.minDigits,
     );
     if (digits.length > maxDigits) {
       digits = digits.substring(0, maxDigits);
     }
 
-    final formatted = formatPhoneDigits(digits, adoptedCountry.hint);
+    final formatted = formatPhoneDigits(digits, _selectedCountry.hint);
     if (_phoneController.text != formatted) {
       _phoneController.value = TextEditingValue(
         text: formatted,
@@ -151,25 +127,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     setState(() {
-      _selectedCountry = adoptedCountry;
       _error = null;
     });
-  }
-
-  void _reformatPhoneInput() {
-    final digits = _localPhoneDigits;
-    final maxDigits = maxPhoneDigitsForHint(
-      _selectedCountry.hint,
-      minDigits: _selectedCountry.minDigits,
-    );
-    final clipped = digits.length > maxDigits
-        ? digits.substring(0, maxDigits)
-        : digits;
-    final formatted = formatPhoneDigits(clipped, _selectedCountry.hint);
-    _phoneController.value = TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
   }
 
   // ── Step handlers ──
@@ -188,8 +147,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     if (!_canUseOtp) {
       setState(() {
         _error = appRuntime.supabaseInitError == null
-            ? 'Phone verification is required before continuing.'
-            : 'Phone verification is temporarily unavailable.';
+            ? 'WhatsApp OTP verification is required before continuing.'
+            : 'WhatsApp OTP verification is temporarily unavailable.';
       });
       return;
     }
@@ -197,7 +156,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final phone = _fullPhone;
     if (!_isPhoneNumberValid) {
       setState(() {
-        _error = 'Enter your mobile number before continuing.';
+        _error = 'Enter your WhatsApp number before continuing.';
       });
       return;
     }
@@ -216,7 +175,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         _otpFocusNodes.first.requestFocus();
       } else {
         setState(() {
-          _error = 'Could not send the verification code. Please try again.';
+          _error = 'Could not send the WhatsApp OTP. Please try again.';
         });
       }
     } on AuthException catch (error) {
@@ -225,7 +184,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'Something went wrong while sending the verification code.';
+        _error = 'Something went wrong while sending the WhatsApp OTP.';
       });
     } finally {
       if (mounted) {
@@ -237,7 +196,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _handleOtpContinue() async {
     if (_otpLength != 6) {
       setState(() {
-        _error = 'Enter the full 6-digit code before verifying.';
+        _error = 'Enter the full 6-digit WhatsApp OTP before verifying.';
       });
       return;
     }
@@ -262,7 +221,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'Verification failed. Please try again.';
+        _error = 'WhatsApp OTP verification failed. Please try again.';
       });
     } finally {
       if (mounted) {
@@ -285,35 +244,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     ref.read(localTeamSearchQueryProvider.notifier).state = '';
   }
 
-  void _handlePopularSearchChanged(String value) {
-    ref.read(popularTeamSearchQueryProvider.notifier).state = value;
-  }
-
-  void _handlePopularTeamSelected(OnboardingTeam team) {
-    HapticFeedback.selectionClick();
-    ref.read(selectedPopularTeamProvider.notifier).state = team;
-    _popularSearchController.clear();
-    ref.read(popularTeamSearchQueryProvider.notifier).state = '';
-  }
-
   void _goBackFromFavoriteTeam() {
     if (_isAlreadyAuthenticated) {
-      // Guest or already-authenticated path: go back to welcome
       _setStep(_welcomeStep);
       return;
     }
-    // Verified path: go back to OTP step
     _setStep(_otpStep);
   }
 
   Future<void> _completeOnboarding() async {
     final localTeam = ref.read(selectedLocalTeamProvider);
-    final popularTeam = ref.read(selectedPopularTeamProvider);
-    final popularTeamIds = <String>{if (popularTeam != null) popularTeam.id};
-    if (localTeam != null) {
-      popularTeamIds.remove(localTeam.id);
-    }
-
     final launchRegion = ref.read(selectedLaunchRegionProvider);
     final selectedTags = ref.read(selectedLaunchFocusTagsProvider);
     final focusTags = selectedTags.isEmpty
@@ -324,7 +264,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         .read(onboardingGatewayProvider)
         .saveOnboardingTeams(
           localTeam: localTeam,
-          popularTeamIds: popularTeamIds,
+          popularTeamIds: const <String>{},
         );
     await ref
         .read(marketPreferencesGatewayProvider)
@@ -356,9 +296,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final popularTeams = popularTeamsForRegion(
-      ref.watch(selectedLaunchRegionProvider),
-    );
+    final suggestedTeams = allTeams
+        .where(
+          (team) => const {
+            'APR FC',
+            'Rayon Sports',
+            'Arsenal',
+            'Real Madrid',
+          }.contains(team.name),
+        )
+        .take(4)
+        .toList(growable: false);
 
     return Scaffold(
       backgroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,
@@ -428,7 +376,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             textColor: textColor,
                             muted: muted,
                             isDark: isDark,
-                            popularTeams: popularTeams,
+                            suggestedTeams: suggestedTeams,
                           ),
                         ),
                       ),
@@ -469,7 +417,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     required Color textColor,
     required Color muted,
     required bool isDark,
-    required List<OnboardingTeam> popularTeams,
+    required List<OnboardingTeam> suggestedTeams,
   }) {
     switch (_currentStep) {
       // Step 1: Welcome (ref: Step1)
@@ -488,14 +436,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           isDark: isDark,
           phoneController: _phoneController,
           selectedCountry: _selectedCountry,
-          onCountryChanged: _handleCountryChanged,
           onChanged: _handlePhoneChanged,
           canContinue: _loading ? false : (_canUseOtp && _isPhoneNumberValid),
           onBack: () => _setStep(_welcomeStep),
           onNext: _handlePhoneContinue,
           buttonLabel: _loading
               ? 'SENDING...'
-              : (_canUseOtp ? 'SEND OTP' : 'VERIFICATION REQUIRED'),
+              : (_canUseOtp ? 'SEND OTP TO WHATSAPP' : 'VERIFICATION REQUIRED'),
         );
       // Step 3: OTP Verify (ref: Step3)
       case _otpStep:
@@ -519,7 +466,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             _setStep(_phoneStep);
           },
           onNext: _handleOtpContinue,
-          buttonLabel: _loading ? 'VERIFYING...' : 'VERIFY',
+          buttonLabel: _loading ? 'VERIFYING...' : 'VERIFY CODE',
         );
       // Step 4: Favorite Team (ref: Step4)
       case _favoriteTeamStep:
@@ -531,26 +478,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           results: ref.watch(localTeamSearchResultsProvider),
           selectedTeam: ref.watch(selectedLocalTeamProvider),
           query: ref.watch(localTeamSearchQueryProvider),
+          suggestedTeams: suggestedTeams,
           onSearchChanged: _handleFavoriteSearchChanged,
           onTeamSelected: _handleFavoriteTeamSelected,
           onBack: _goBackFromFavoriteTeam,
-          onNext: () => _setStep(_popularTeamsStep),
-        );
-      // Step 5: Popular Teams (ref: Step5)
-      case _popularTeamsStep:
-        return OnboardingPopularTeamsStep(
-          textColor: textColor,
-          muted: muted,
-          isDark: isDark,
-          searchController: _popularSearchController,
-          query: ref.watch(popularTeamSearchQueryProvider),
-          searchResults: ref.watch(popularTeamSearchResultsProvider),
-          popularTeams: popularTeams,
-          selectedTeam: ref.watch(selectedPopularTeamProvider),
-          onSearchChanged: _handlePopularSearchChanged,
-          onSelectTeam: _handlePopularTeamSelected,
-          onBack: () => _setStep(_favoriteTeamStep),
-          onFinish: _completeOnboarding,
+          onNext: _completeOnboarding,
         );
       default:
         return const SizedBox.shrink();

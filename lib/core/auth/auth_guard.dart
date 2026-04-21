@@ -18,20 +18,14 @@ bool requireFullAuth(BuildContext context, WidgetRef ref, {String? feature}) {
   final isGuest = ref.read(isGuestProvider);
   final isAuth = ref.read(isAuthenticatedProvider);
 
-  // Not authenticated at all — shouldn't happen in normal flow
-  if (!isAuth) {
-    context.go('/login');
-    return false;
-  }
-
   // Fully authenticated — allow action
-  if (!isGuest) return true;
+  if (isAuth && !isGuest) return true;
 
-  // Guest user — show upgrade prompt
+  // All other states should open the in-context WhatsApp auth gate.
   final featureLabel = feature ?? 'this feature';
   showSignInRequiredSheet(
     context,
-    title: 'Sign In Required',
+    title: 'Verification Required',
     message:
         'Create a free account to access $featureLabel. '
         'Verify with WhatsApp to unlock predictions, pools, wallet, and more.',

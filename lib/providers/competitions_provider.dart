@@ -30,13 +30,16 @@ final top5EuropeanLeaguesProvider =
     FutureProvider.autoDispose<List<CompetitionModel>>((ref) async {
       ref.keepAlive();
       final all = await ref.watch(competitionsProvider.future);
-      final result = <CompetitionModel>[];
-      for (final country in kTop5EuropeanCountries) {
-        final match = all
-            .where((c) => c.country == country && c.tier == 1)
-            .firstOrNull;
-        if (match != null) result.add(match);
-      }
+      final result = all
+          .where(
+            (competition) =>
+                competitionCatalogRankByIdName(
+                  competition.id,
+                  competition.name,
+                ) <
+                kRestOfWorldCompetitionRank,
+          )
+          .toList(growable: false);
       return result;
     });
 
@@ -44,7 +47,17 @@ final otherLeaguesProvider = FutureProvider.autoDispose<List<CompetitionModel>>(
   (ref) async {
     ref.keepAlive();
     final all = await ref.watch(competitionsProvider.future);
-    return all.where((c) => c.tier == 1 && !isTop5Country(c.country)).toList()
+    return all
+        .where(
+          (competition) =>
+              competition.tier == 1 &&
+              !isPriorityCompetitionByIdName(
+                competition.id,
+                competition.name,
+              ) &&
+              !isTop5Country(competition.country),
+        )
+        .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
   },
 );

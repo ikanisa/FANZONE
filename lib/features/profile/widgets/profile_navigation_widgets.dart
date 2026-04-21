@@ -40,7 +40,7 @@ class ProfileQuickLinksCard extends StatelessWidget {
               ProfileLinkRow(
                 icon: LucideIcons.wallet,
                 label: 'Wallet',
-                onTap: () => context.go('/wallet'),
+                onTap: () => context.push('/wallet'),
               ),
             if (showPredictions || showWallet)
               const Divider(height: 0.5, indent: 56),
@@ -107,19 +107,19 @@ class ProfileAccountLinksCard extends StatelessWidget {
             ProfileLinkRow(
               icon: LucideIcons.lock,
               label: 'Privacy',
-              onTap: () => context.go('/privacy'),
+              onTap: () => context.push('/privacy'),
             ),
             const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(
               icon: LucideIcons.bell,
               label: 'Inbox',
-              onTap: () => context.go('/notifications'),
+              onTap: () => context.push('/notifications'),
             ),
             const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(
               icon: LucideIcons.settings,
               label: 'Preferences',
-              onTap: () => context.go('/settings'),
+              onTap: () => context.push('/settings'),
             ),
             const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(

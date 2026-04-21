@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../models/team_model.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/team/team_widgets.dart';
 
@@ -34,32 +35,35 @@ class MembershipTabBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: background,
         border: Border(
-          top: BorderSide(
-            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-          ),
           bottom: BorderSide(
             color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
           ),
         ),
       ),
-      child: Row(
-        children: [
-          _TabButton(
-            label: 'My Clubs',
-            selected: filter == MembershipFilter.myClubs,
-            onTap: () => onChanged(MembershipFilter.myClubs),
-          ),
-          _TabButton(
-            label: 'Malta',
-            selected: filter == MembershipFilter.malta,
-            onTap: () => onChanged(MembershipFilter.malta),
-          ),
-          _TabButton(
-            label: 'European Fan Clubs',
-            selected: filter == MembershipFilter.european,
-            onTap: () => onChanged(MembershipFilter.european),
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _TabButton(
+              label: 'My Clubs',
+              minWidth: 120,
+              selected: filter == MembershipFilter.myClubs,
+              onTap: () => onChanged(MembershipFilter.myClubs),
+            ),
+            _TabButton(
+              label: 'Malta',
+              minWidth: 120,
+              selected: filter == MembershipFilter.malta,
+              onTap: () => onChanged(MembershipFilter.malta),
+            ),
+            _TabButton(
+              label: 'European Fan Clubs',
+              minWidth: 168,
+              selected: filter == MembershipFilter.european,
+              onTap: () => onChanged(MembershipFilter.european),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -68,11 +72,13 @@ class MembershipTabBar extends StatelessWidget {
 class _TabButton extends StatelessWidget {
   const _TabButton({
     required this.label,
+    required this.minWidth,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
+  final double minWidth;
   final bool selected;
   final VoidCallback onTap;
 
@@ -80,11 +86,12 @@ class _TabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
+    return InkWell(
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: minWidth),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
           decoration: BoxDecoration(
             border: selected
                 ? const Border(
@@ -96,7 +103,7 @@ class _TabButton extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: FontWeight.w700,
               color: selected ? FzColors.primary : muted,
             ),
@@ -125,19 +132,40 @@ class SectionTitleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     return Row(
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.1,
+          style: FzTypography.display(
+            size: 20,
+            color: textColor,
+            letterSpacing: 1.6,
           ),
         ),
         const Spacer(),
         if (actionLabel != null && onAction != null)
-          TextButton(onPressed: onAction, child: Text(actionLabel!)),
+          TextButton(
+            onPressed: onAction,
+            style: TextButton.styleFrom(
+              foregroundColor: FzColors.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+                side: BorderSide(
+                  color: FzColors.primary.withValues(alpha: 0.2),
+                ),
+              ),
+              backgroundColor: FzColors.primary.withValues(alpha: 0.1),
+              textStyle: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+              ),
+            ),
+            child: Text(actionLabel!.toUpperCase()),
+          ),
       ],
     );
   }

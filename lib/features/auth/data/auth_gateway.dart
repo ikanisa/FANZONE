@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/auth/runtime_auth_session_manager.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
+import 'auth_function_error.dart';
 
 /// Authentication gateway using WhatsApp Cloud API for OTP delivery.
 ///
@@ -76,39 +77,38 @@ class SupabaseAuthGateway implements AuthGateway {
 
   @override
   Future<bool> sendOtp(String phone) async {
-    final client = _requireClient();
-
-    final response = await client.functions
-        .invoke('whatsapp-otp', body: {'action': 'send', 'phone': phone})
-        .timeout(_timeout);
-
-    final data = response.data as Map<String, dynamic>? ?? {};
+    final data = await _invokeWhatsappOtp(
+      action: 'send',
+      body: {'phone': phone},
+      timeout: _timeout,
+      fallbackMessage: 'Failed to send the WhatsApp OTP. Please try again.',
+    );
 
     if (data['success'] == true) {
       return true;
     }
 
     final errorMsg =
-        data['error'] as String? ?? 'Failed to send OTP. Please try again.';
+        data['error'] as String? ??
+        data['message'] as String? ??
+        'Failed to send the WhatsApp OTP. Please try again.';
     throw AuthException(errorMsg);
   }
 
   @override
   Future<void> verifyOtp(String phone, String otp) async {
-    final client = _requireClient();
-
-    final response = await client.functions
-        .invoke(
-          'whatsapp-otp',
-          body: {'action': 'verify', 'phone': phone, 'otp': otp},
-        )
-        .timeout(const Duration(seconds: 30));
-
-    final data = response.data as Map<String, dynamic>? ?? {};
+    final data = await _invokeWhatsappOtp(
+      action: 'verify',
+      body: {'phone': phone, 'otp': otp},
+      timeout: const Duration(seconds: 30),
+      fallbackMessage: 'WhatsApp OTP verification failed. Please try again.',
+    );
 
     if (data['success'] != true) {
       final errorMsg =
-          data['error'] as String? ?? 'Verification failed. Please try again.';
+          data['error'] as String? ??
+          data['message'] as String? ??
+          'WhatsApp OTP verification failed. Please try again.';
       throw AuthException(errorMsg);
     }
 
@@ -121,12 +121,15 @@ class SupabaseAuthGateway implements AuthGateway {
       );
     }
 
-    final guestSession = client.auth.currentSession;
+    final guestClient = RuntimeAuthSessionManager.instance.guestClient;
+    final guestSession = guestClient?.auth.currentSession;
     if (guestSession != null) {
       try {
-        await client.auth.signOut();
+        await guestClient!.auth.signOut();
       } catch (error) {
-        AppLogger.d('Guest session cleanup after WhatsApp login failed: $error');
+        AppLogger.d(
+          'Guest session cleanup after WhatsApp login failed: $error',
+        );
       }
     }
   }
@@ -213,5 +216,33 @@ class SupabaseAuthGateway implements AuthGateway {
       );
     }
     return client;
+  }
+
+  Future<Map<String, dynamic>> _invokeWhatsappOtp({
+    required String action,
+    required Map<String, Object?> body,
+    required Duration timeout,
+    required String fallbackMessage,
+  }) async {
+    final client = _requireClient();
+
+    try {
+      final response = await client.functions
+          .invoke(
+            'whatsapp-otp',
+            body: <String, Object?>{'action': action, ...body},
+          )
+          .timeout(timeout);
+      return Map<String, dynamic>.from(
+        response.data as Map<String, dynamic>? ?? const {},
+      );
+    } on FunctionException catch (error) {
+      throw AuthException(
+        extractAuthFunctionErrorMessage(
+          error,
+          fallbackMessage: fallbackMessage,
+        ),
+      );
+    }
   }
 }

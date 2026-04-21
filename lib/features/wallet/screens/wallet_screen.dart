@@ -21,6 +21,38 @@ import '../widgets/wallet_transfer_sheets.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Wallet screen aligned to the primary reference wallet hub.
+const _walletPromos = <WalletPromoOffer>[
+  WalletPromoOffer(
+    id: 'mobio',
+    title: 'Pay Mobio Rides',
+    description: 'Use FET balance directly.',
+    actionLabel: 'Link App',
+    gradientColors: [Color(0xFF2563EB), Color(0xFF4338CA)],
+    emoji: '🚗',
+    cost: 0,
+    flexible: true,
+  ),
+  WalletPromoOffer(
+    id: 'rayon',
+    title: 'Rayon Sports Tickets',
+    description: 'VIP section available.',
+    actionLabel: 'Buy Now',
+    gradientColors: [Color(0xFF0F7B6C), Color(0xFF115E59)],
+    emoji: '🎟️',
+    cost: 250,
+  ),
+  WalletPromoOffer(
+    id: 'kigali',
+    title: 'Bar Tab: Kigali Lounge',
+    description: 'Pay with FET via QR.',
+    actionLabel: 'Show Code',
+    gradientColors: [Color(0xFFFF7F50), Color(0xFFEA580C)],
+    emoji: '🍹',
+    cost: 0,
+    flexible: true,
+  ),
+];
+
 class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
 
@@ -81,6 +113,44 @@ class WalletScreen extends ConsumerWidget {
                 builder: (_) => const TransferFetSheet(),
               );
             },
+          ),
+          const SizedBox(height: 18),
+          const Row(
+            children: [
+              Icon(LucideIcons.gift, size: 16, color: FzColors.accent2),
+              SizedBox(width: 8),
+              Text(
+                'Spend FET',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: FzColors.darkText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 162,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                final offer = _walletPromos[index];
+                return WalletPromoCard(
+                  offer: offer,
+                  onTap: () {
+                    showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => PartnerSpendSheet(offer: offer),
+                    );
+                  },
+                );
+              },
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              itemCount: _walletPromos.length,
+            ),
           ),
           const SizedBox(height: 18),
           balanceAsync.when(
@@ -159,8 +229,15 @@ class WalletScreen extends ConsumerWidget {
                           horizontal: 12,
                           vertical: 4,
                         ),
-                        child: WalletTransactionRow(
-                          transaction: transactions[index],
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => TransactionReceiptDialog.show(
+                            context,
+                            transaction: transactions[index],
+                          ),
+                          child: WalletTransactionRow(
+                            transaction: transactions[index],
+                          ),
                         ),
                       ),
                     ],
@@ -351,11 +428,11 @@ class _HeroActionButton extends StatelessWidget {
                 : Colors.white.withValues(alpha: enabled ? 0.2 : 0.08),
           ),
         ),
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 14, color: iconColor),
-            const SizedBox(width: 6),
+            const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(

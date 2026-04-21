@@ -13,13 +13,15 @@ class MembershipDetailsCard extends StatelessWidget {
     required this.activeClub,
     required this.membershipTier,
     required this.clubSplit,
-    required this.levelLabel,
+    required this.rank,
+    required this.onUpgrade,
   });
 
   final TeamModel activeClub;
   final String membershipTier;
   final int clubSplit;
-  final String levelLabel;
+  final int rank;
+  final VoidCallback onUpgrade;
 
   @override
   Widget build(BuildContext context) {
@@ -85,10 +87,7 @@ class MembershipDetailsCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _MembershipMetric(
-                  label: 'Supporter Tier',
-                  value: levelLabel,
-                ),
+                child: _MembershipMetric(label: 'Your Rank', value: '#$rank'),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -111,8 +110,8 @@ class MembershipDetailsCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: FilledButton(
-                  onPressed: () => context.push('/wallet'),
-                  child: const Text('Support With FET'),
+                  onPressed: onUpgrade,
+                  child: const Text('Upgrade Tier'),
                 ),
               ),
             ],

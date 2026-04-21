@@ -1,6 +1,7 @@
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/team_model.dart';
+import 'sports_data_exception.dart';
 
 abstract interface class TeamCatalogGateway {
   Future<List<TeamModel>> getTeams({String? competitionId, bool featuredOnly});
@@ -21,43 +22,87 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
   /// In-memory alias cache to avoid repeated lookups.
   final Map<String, String> _aliasCache = {};
 
+  Never _throwUnavailable(String operation) {
+    throw SportsDataUnavailableException(
+      'Sports data is unavailable for $operation.',
+    );
+  }
+
   @override
   Future<List<TeamModel>> getTeams({
     String? competitionId,
     bool featuredOnly = false,
   }) async {
     final client = _connection.client;
-    if (client == null) return const <TeamModel>[];
+    if (client == null) {
+      _throwUnavailable('team loading');
+    }
 
     try {
-      final rows = await client.from('team_catalog_entries').select();
+      dynamic rows;
+      if (competitionId != null && competitionId.trim().isNotEmpty) {
+        try {
+          rows = await client.rpc(
+            'app_competition_teams',
+            params: {'p_competition_id': competitionId.trim()},
+          );
+        } catch (error) {
+          AppLogger.d('Failed to load competition teams via RPC: $error');
+          rows = await client
+              .from('team_catalog_entries')
+              .select()
+              .contains('competition_ids', [competitionId.trim()])
+              .eq('is_active', true)
+              .order('name', ascending: true)
+              .range(0, 999);
+        }
+      } else {
+        var query = client
+            .from('team_catalog_entries')
+            .select()
+            .eq('is_active', true);
+        if (featuredOnly) {
+          query = query.eq('is_featured', true);
+        }
+        rows = await query.order('name', ascending: true).range(0, 2999);
+      }
       final teams = (rows as List)
           .whereType<Map>()
           .map((row) => TeamModel.fromJson(Map<String, dynamic>.from(row)))
           .toList(growable: false);
-      Iterable<TeamModel> result = teams;
-      if (competitionId != null) {
-        result = result.where((t) => t.competitionIds.contains(competitionId));
-      }
-      if (featuredOnly) {
-        result = result.where((t) => t.isFeatured);
-      }
-      return result.toList(growable: false);
+      return teams;
     } catch (error) {
       AppLogger.d('Failed to load teams: $error');
-      return const <TeamModel>[];
+      if (error is SportsDataException) rethrow;
+      throw SportsDataQueryException('Failed to load teams.', cause: error);
     }
   }
 
   @override
   Future<TeamModel?> getTeam(String teamId) async {
-    // Resolve alias first
     final canonicalId = await resolveTeamId(teamId);
-    final teams = await getTeams();
-    for (final team in teams) {
-      if (team.id == canonicalId) return team;
+    final client = _connection.client;
+    if (client == null) {
+      _throwUnavailable('team details');
     }
-    return null;
+
+    try {
+      final row = await client
+          .from('team_catalog_entries')
+          .select()
+          .eq('id', canonicalId)
+          .maybeSingle();
+      if (row == null) return null;
+      return TeamModel.fromJson(
+        Map<String, dynamic>.from(row as Map<dynamic, dynamic>),
+      );
+    } catch (error) {
+      AppLogger.d('Failed to load team $canonicalId: $error');
+      throw SportsDataQueryException(
+        'Failed to load team details for $canonicalId.',
+        cause: error,
+      );
+    }
   }
 
   @override

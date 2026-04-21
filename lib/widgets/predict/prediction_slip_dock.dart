@@ -19,60 +19,55 @@ class PredictionSlipDock extends ConsumerWidget {
     final selections = ref.watch(predictionSlipProvider);
     if (selections.isEmpty) return const SizedBox.shrink();
 
-    return Positioned(
-      bottom: 16,
-      left: 16,
-      right: 16,
-      child: Material(
-        color: FzColors.primary,
+    return Material(
+      color: FzColors.primary,
+      borderRadius: BorderRadius.circular(12),
+      elevation: 8,
+      shadowColor: Colors.black45,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => const _PredictionSlipModal(),
+          );
+        },
         borderRadius: BorderRadius.circular(12),
-        elevation: 8,
-        shadowColor: Colors.black45,
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              useSafeArea: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => const _PredictionSlipModal(),
-            );
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    color: Colors.white24,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    '${selections.length}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                    ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.white24,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '${selections.length}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    'Free Prediction Slip',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Free Prediction Slip',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
                   ),
                 ),
-                const Icon(LucideIcons.arrowUp, color: Colors.white, size: 20),
-              ],
-            ),
+              ),
+              const Icon(LucideIcons.arrowUp, color: Colors.white, size: 20),
+            ],
           ),
         ),
       ),

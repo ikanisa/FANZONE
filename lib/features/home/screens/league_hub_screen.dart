@@ -1,20 +1,22 @@
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+
 import '../../../models/match_model.dart';
+import '../../../models/pool.dart';
 import '../../../models/team_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/matches_provider.dart';
-import '../../../providers/standings_provider.dart';
 import '../../../providers/teams_provider.dart';
+import '../../../services/pool_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_badge.dart';
 import '../../../widgets/common/fz_card.dart';
-import '../../../widgets/common/state_view.dart';
-import '../../../widgets/match/match_list_widgets.dart';
-import '../../../widgets/match/standings_table.dart';
 import '../../../widgets/common/fz_shimmer.dart';
+import '../../../widgets/common/state_view.dart';
+import '../../../widgets/common/team_crest.dart';
 
 class LeagueHubScreen extends ConsumerWidget {
   const LeagueHubScreen({super.key, required this.leagueId});
@@ -24,13 +26,10 @@ class LeagueHubScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final competitionAsync = ref.watch(competitionProvider(leagueId));
-    final standingsAsync = ref.watch(
-      competitionStandingsProvider(
-        CompetitionStandingsFilter(competitionId: leagueId),
-      ),
-    );
     final matchesAsync = ref.watch(competitionMatchesProvider(leagueId));
+    final poolsAsync = ref.watch(poolServiceProvider);
     final teamsAsync = ref.watch(teamsByCompetitionProvider(leagueId));
+
     return competitionAsync.when(
       data: (competition) {
         if (competition == null) {
@@ -43,80 +42,221 @@ class LeagueHubScreen extends ConsumerWidget {
           );
         }
 
-        return DefaultTabController(
-          length: 5,
-          child: Scaffold(
-            appBar: AppBar(
-              centerTitle: true,
-              leading: IconButton(
-                onPressed: () => context.go('/fixtures'),
-                icon: const Icon(LucideIcons.chevronLeft, size: 24),
-              ),
-              title: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _leagueEyebrow(competition).toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.0,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? FzColors.darkMuted
-                          : FzColors.lightMuted,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    competition.shortName,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            body: Column(
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+        final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+        final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+        final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+
+        return Scaffold(
+          body: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 120),
               children: [
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+                  decoration: BoxDecoration(
+                    color: surface.withValues(alpha: 0.92),
+                    border: Border(bottom: BorderSide(color: border)),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.go('/fixtures'),
+                        icon: Icon(
+                          LucideIcons.chevronLeft,
+                          size: 24,
+                          color: textColor,
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              _leagueEyebrow(competition).toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: muted,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              competition.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 48),
+                    ],
+                  ),
+                ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                  child: _LeagueHeroCard(
-                    competitionName: competition.name,
-                    competitionCountry: competition.country,
-                    emoji: _leagueEmoji(competition),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: _LeagueHero(
+                    emoji: _leagueEmoji(competition.id),
+                    name: competition.name,
                     liveCount:
                         matchesAsync.valueOrNull
                             ?.where((match) => match.isLive)
                             .length ??
                         0,
-                    teamCount:
-                        competition.teamCount ?? teamsAsync.valueOrNull?.length,
+                    activePoolCount: _leaguePools(
+                      poolsAsync.valueOrNull ?? const <ScorePool>[],
+                      matchesAsync.valueOrNull ?? const <MatchModel>[],
+                    ).length,
                   ),
                 ),
-                const TabBar(
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
-                  tabs: [
-                    Tab(text: 'Table'),
-                    Tab(text: 'Fixtures'),
-                    Tab(text: 'Results'),
-                    Tab(text: 'Stats'),
-                    Tab(text: 'Teams'),
-                  ],
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _SectionHeader(
+                    title: 'Action Center',
+                    actionLabel: 'SEE ALL',
+                    badge: const FzBadge(
+                      label: 'LIVE',
+                      variant: FzBadgeVariant.danger,
+                      pulse: true,
+                    ),
+                    onTap: () => context.go('/fixtures'),
+                  ),
                 ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      _LeagueTableTab(standingsAsync: standingsAsync),
-                      _LeagueFixturesTab(matchesAsync: matchesAsync),
-                      _LeagueResultsTab(matchesAsync: matchesAsync),
-                      _LeagueStatsTab(
-                        matchesAsync: matchesAsync,
-                        teamsAsync: teamsAsync,
-                      ),
-                      _LeagueTeamsTab(teamsAsync: teamsAsync),
-                    ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: matchesAsync.when(
+                    data: (matches) {
+                      final spotlight = _spotlightMatches(matches);
+                      if (spotlight.isEmpty) {
+                        return StateView.empty(
+                          title: 'No league fixtures right now',
+                          subtitle: 'Upcoming matches will appear here.',
+                          icon: LucideIcons.activity,
+                        );
+                      }
+
+                      return Column(
+                        children: [
+                          for (int index = 0; index < spotlight.length; index++)
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: index == spotlight.length - 1 ? 0 : 12,
+                              ),
+                              child: _LeagueMatchCard(match: spotlight[index]),
+                            ),
+                        ],
+                      );
+                    },
+                    loading: () => const _LeagueSectionSkeleton(),
+                    error: (_, _) => StateView.error(
+                      title: 'Could not load league fixtures',
+                      onRetry: () =>
+                          ref.invalidate(competitionMatchesProvider(leagueId)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _SectionHeader(
+                    title: 'Hot Pools',
+                    icon: LucideIcons.swords,
+                    actionLabel: 'BROWSE POOLS',
+                    onTap: () => context.go('/pools'),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: poolsAsync.when(
+                    data: (pools) {
+                      final leaguePools = _leaguePools(
+                        pools,
+                        matchesAsync.valueOrNull ?? const <MatchModel>[],
+                      ).take(2).toList(growable: false);
+                      if (leaguePools.isEmpty) {
+                        return StateView.empty(
+                          title: 'No league pools yet',
+                          subtitle:
+                              'Open pools for this competition will show here.',
+                          icon: LucideIcons.swords,
+                        );
+                      }
+
+                      return Column(
+                        children: [
+                          for (
+                            int index = 0;
+                            index < leaguePools.length;
+                            index++
+                          )
+                            Padding(
+                              padding: EdgeInsets.only(
+                                bottom: index == leaguePools.length - 1
+                                    ? 0
+                                    : 12,
+                              ),
+                              child: _LeaguePoolCard(pool: leaguePools[index]),
+                            ),
+                        ],
+                      );
+                    },
+                    loading: () => const _LeagueSectionSkeleton(),
+                    error: (_, _) => StateView.error(
+                      title: 'Could not load league pools',
+                      onRetry: () => ref.invalidate(poolServiceProvider),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: _SectionHeader(title: 'Top Registries'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: teamsAsync.when(
+                    data: (teams) {
+                      final topTeams = [...teams]
+                        ..sort((a, b) => b.fanCount.compareTo(a.fanCount));
+                      final visible = topTeams.take(2).toList(growable: false);
+                      if (visible.isEmpty) {
+                        return StateView.empty(
+                          title: 'No registries available',
+                          subtitle: 'Club communities will appear here.',
+                          icon: LucideIcons.shield,
+                        );
+                      }
+
+                      return FzCard(
+                        padding: EdgeInsets.zero,
+                        child: Column(
+                          children: [
+                            for (
+                              int index = 0;
+                              index < visible.length;
+                              index++
+                            ) ...[
+                              _RegistryRow(team: visible[index]),
+                              if (index < visible.length - 1)
+                                Divider(height: 1, color: border, indent: 68),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
+                    loading: () => const _LeagueSectionSkeleton(),
+                    error: (_, _) => StateView.error(
+                      title: 'Could not load registries',
+                      onRetry: () =>
+                          ref.invalidate(teamsByCompetitionProvider(leagueId)),
+                    ),
                   ),
                 ),
               ],
@@ -125,7 +265,7 @@ class LeagueHubScreen extends ConsumerWidget {
         );
       },
       loading: () => const Scaffold(body: ScoresPageSkeleton()),
-      error: (error, stack) => Scaffold(
+      error: (_, _) => Scaffold(
         appBar: AppBar(title: const Text('Competition')),
         body: StateView.error(
           title: 'Competition unavailable',
@@ -134,6 +274,25 @@ class LeagueHubScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  List<MatchModel> _spotlightMatches(List<MatchModel> matches) {
+    final live = matches.where((match) => match.isLive).toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    final upcoming = matches.where((match) => match.isUpcoming).toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    return [...live, ...upcoming].take(2).toList(growable: false);
+  }
+
+  List<ScorePool> _leaguePools(
+    List<ScorePool> pools,
+    List<MatchModel> matches,
+  ) {
+    final ids = matches.map((match) => match.id).toSet();
+    return pools
+        .where((pool) => pool.status == 'open' && ids.contains(pool.matchId))
+        .toList()
+      ..sort((a, b) => b.totalPool.compareTo(a.totalPool));
   }
 }
 
@@ -150,53 +309,55 @@ String _leagueEyebrow(dynamic competition) {
   return 'League Action';
 }
 
-String _leagueEmoji(dynamic competition) {
-  final id = competition.id.toString().toLowerCase();
-  if (id.contains('ucl') || id.contains('champions')) return '⭐';
-  if (id.contains('world')) return '🌎';
+String _leagueEmoji(String id) {
+  final normalized = id.toLowerCase();
+  if (normalized.contains('ucl') || normalized.contains('champions')) {
+    return '⭐';
+  }
+  if (normalized.contains('world')) {
+    return '🌎';
+  }
   return '🏆';
 }
 
-class _LeagueHeroCard extends StatelessWidget {
-  const _LeagueHeroCard({
-    required this.competitionName,
-    required this.competitionCountry,
+class _LeagueHero extends StatelessWidget {
+  const _LeagueHero({
     required this.emoji,
+    required this.name,
     required this.liveCount,
-    required this.teamCount,
+    required this.activePoolCount,
   });
 
-  final String competitionName;
-  final String competitionCountry;
   final String emoji;
+  final String name;
   final int liveCount;
-  final int? teamCount;
+  final int activePoolCount;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+        color: surface,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-        ),
+        border: Border.all(color: border),
       ),
       child: Stack(
         children: [
           Positioned(
-            top: -40,
-            right: -40,
+            top: -20,
+            right: -10,
             child: Container(
               width: 180,
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: FzColors.accent.withValues(alpha: 0.08),
+                color: FzColors.primary.withValues(alpha: 0.10),
               ),
             ),
           ),
@@ -206,23 +367,18 @@ class _LeagueHeroCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       width: 64,
                       height: 64,
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: isDark
                             ? FzColors.darkSurface
                             : FzColors.lightSurface,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isDark
-                              ? FzColors.darkBorder
-                              : FzColors.lightBorder,
-                        ),
+                        border: Border.all(color: border),
                       ),
-                      alignment: Alignment.center,
                       child: Text(emoji, style: const TextStyle(fontSize: 30)),
                     ),
                     const SizedBox(width: 16),
@@ -231,28 +387,27 @@ class _LeagueHeroCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            competitionName,
+                            name,
                             style: FzTypography.display(
-                              size: 28,
+                              size: 30,
                               color: textColor,
+                              letterSpacing: 0.2,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Wrap(
                             spacing: 12,
-                            runSpacing: 6,
+                            runSpacing: 8,
                             children: [
-                              _HeroMetaItem(
+                              _HeroMeta(
                                 icon: LucideIcons.zap,
                                 label: liveCount > 0 ? 'Live Now' : 'Fixtures',
-                                color: FzColors.accent,
+                                color: FzColors.primary,
                                 muted: muted,
                               ),
-                              _HeroMetaItem(
+                              _HeroMeta(
                                 icon: LucideIcons.users,
-                                label: teamCount == null
-                                    ? competitionCountry
-                                    : '$teamCount Teams',
+                                label: '$activePoolCount Active Pools',
                                 color: muted,
                                 muted: muted,
                               ),
@@ -263,18 +418,18 @@ class _LeagueHeroCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 22),
                 Row(
                   children: [
                     Expanded(
                       child: FilledButton.icon(
                         onPressed: () => context.push('/pools/create'),
                         style: FilledButton.styleFrom(
-                          backgroundColor: FzColors.accent,
+                          backgroundColor: FzColors.primary,
                           foregroundColor: FzColors.darkBg,
                           minimumSize: const Size.fromHeight(48),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         icon: const Icon(LucideIcons.plus, size: 16),
@@ -283,7 +438,7 @@ class _LeagueHeroCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 0.6,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
@@ -294,14 +449,10 @@ class _LeagueHeroCard extends StatelessWidget {
                         onPressed: () => context.push('/memberships'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: textColor,
-                          side: BorderSide(
-                            color: isDark
-                                ? FzColors.darkBorder
-                                : FzColors.lightBorder,
-                          ),
+                          side: BorderSide(color: border),
                           minimumSize: const Size.fromHeight(48),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         icon: const Icon(LucideIcons.shield, size: 16),
@@ -310,7 +461,7 @@ class _LeagueHeroCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 0.6,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
@@ -326,8 +477,8 @@ class _LeagueHeroCard extends StatelessWidget {
   }
 }
 
-class _HeroMetaItem extends StatelessWidget {
-  const _HeroMetaItem({
+class _HeroMeta extends StatelessWidget {
+  const _HeroMeta({
     required this.icon,
     required this.label,
     required this.color,
@@ -352,7 +503,7 @@ class _HeroMetaItem extends StatelessWidget {
             fontSize: 10,
             fontWeight: FontWeight.w700,
             color: muted,
-            letterSpacing: 1.0,
+            letterSpacing: 1,
           ),
         ),
       ],
@@ -360,391 +511,350 @@ class _HeroMetaItem extends StatelessWidget {
   }
 }
 
-class _LeagueTableTab extends StatelessWidget {
-  const _LeagueTableTab({required this.standingsAsync});
-
-  final AsyncValue<List<dynamic>> standingsAsync;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        standingsAsync.when(
-          data: (rows) {
-            if (rows.isEmpty) {
-              return StateView.empty(
-                title: 'No table',
-                subtitle: 'Standings unavailable.',
-                icon: LucideIcons.table,
-              );
-            }
-            return StandingsTable(
-              rows: rows.cast(),
-              onTapTeam: (teamId) => context.push('/team/$teamId'),
-            );
-          },
-          loading: () => const FzCard(
-            padding: EdgeInsets.all(20),
-            child: ScoresPageSkeleton(),
-          ),
-          error: (error, stackTrace) => StateView.empty(
-            title: 'No table',
-            subtitle: 'Standings unavailable.',
-            icon: LucideIcons.table,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LeagueFixturesTab extends StatelessWidget {
-  const _LeagueFixturesTab({required this.matchesAsync});
-
-  final AsyncValue<List<MatchModel>> matchesAsync;
-
-  @override
-  Widget build(BuildContext context) {
-    return matchesAsync.when(
-      data: (matches) {
-        final live = matches.where((m) => m.isLive).toList();
-        final upcoming = matches.where((m) => m.isUpcoming).toList()
-          ..sort((a, b) => a.date.compareTo(b.date));
-        final combined = [...live, ...upcoming];
-
-        if (combined.isEmpty) {
-          return StateView.empty(
-            title: 'No upcoming fixtures',
-            subtitle: 'All matches have been played.',
-            icon: LucideIcons.calendar,
-          );
-        }
-
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (live.isNotEmpty) ...[
-              Text(
-                'Live',
-                style: FzTypography.sectionLabel(Theme.of(context).brightness),
-              ),
-              const SizedBox(height: 10),
-              MatchListCard(
-                matches: live,
-                onTapMatch: (match) => context.push('/match/${match.id}'),
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (upcoming.isNotEmpty) ...[
-              Text(
-                'Upcoming',
-                style: FzTypography.sectionLabel(Theme.of(context).brightness),
-              ),
-              const SizedBox(height: 10),
-              MatchListCard(
-                matches: upcoming.take(20).toList(),
-                onTapMatch: (match) => context.push('/match/${match.id}'),
-              ),
-            ],
-          ],
-        );
-      },
-      loading: () => const ScoresPageSkeleton(),
-      error: (error, stackTrace) => StateView.error(
-        title: 'Fixtures unavailable',
-        subtitle: 'Try again later.',
-      ),
-    );
-  }
-}
-
-class _LeagueResultsTab extends StatelessWidget {
-  const _LeagueResultsTab({required this.matchesAsync});
-
-  final AsyncValue<List<MatchModel>> matchesAsync;
-
-  @override
-  Widget build(BuildContext context) {
-    return matchesAsync.when(
-      data: (matches) {
-        final results = matches.where((m) => m.isFinished).toList()
-          ..sort((a, b) => b.date.compareTo(a.date));
-
-        if (results.isEmpty) {
-          return StateView.empty(
-            title: 'No results yet',
-            subtitle: 'Season matches have not started.',
-            icon: LucideIcons.target,
-          );
-        }
-
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            MatchListCard(
-              matches: results.take(20).toList(),
-              onTapMatch: (match) => context.push('/match/${match.id}'),
-            ),
-          ],
-        );
-      },
-      loading: () => const ScoresPageSkeleton(),
-      error: (error, stackTrace) => StateView.error(
-        title: 'Results unavailable',
-        subtitle: 'Try again later.',
-      ),
-    );
-  }
-}
-
-class _LeagueTeamsTab extends StatelessWidget {
-  const _LeagueTeamsTab({required this.teamsAsync});
-
-  final AsyncValue<List<dynamic>> teamsAsync;
-
-  @override
-  Widget build(BuildContext context) {
-    return teamsAsync.when(
-      data: (teams) {
-        if (teams.isEmpty) {
-          return StateView.empty(
-            title: 'No teams',
-            subtitle: 'No teams available.',
-          );
-        }
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: teams.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final team = teams[index];
-            return FzCard(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: InkWell(
-                onTap: () => context.push('/team/${team.id}'),
-                child: Row(
-                  children: [
-                    TeamAvatar(name: team.name),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        team.name,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const Icon(LucideIcons.chevronRight),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-      loading: () => const ScoresPageSkeleton(),
-      error: (error, stackTrace) => StateView.error(
-        title: 'Teams unavailable',
-        subtitle: 'Try again later.',
-      ),
-    );
-  }
-}
-
-class _LeagueStatsTab extends StatelessWidget {
-  const _LeagueStatsTab({required this.matchesAsync, required this.teamsAsync});
-
-  final AsyncValue<List<MatchModel>> matchesAsync;
-  final AsyncValue<List<TeamModel>> teamsAsync;
-
-  @override
-  Widget build(BuildContext context) {
-    return matchesAsync.when(
-      data: (matches) {
-        final teams = teamsAsync.valueOrNull ?? const <TeamModel>[];
-        final finished = matches.where((m) => m.isFinished).toList();
-        final live = matches.where((m) => m.isLive).toList();
-        final upcoming = matches.where((m) => m.isUpcoming).toList()
-          ..sort((a, b) => a.date.compareTo(b.date));
-        final totalGoals = finished.fold<int>(
-          0,
-          (sum, match) => sum + (match.ftHome ?? 0) + (match.ftAway ?? 0),
-        );
-        final averageGoals = finished.isEmpty
-            ? '—'
-            : (totalGoals / finished.length).toStringAsFixed(1);
-        final biggestMatch = finished.isEmpty
-            ? null
-            : (finished.toList()..sort(
-                    (a, b) => ((b.ftHome ?? 0) + (b.ftAway ?? 0)).compareTo(
-                      (a.ftHome ?? 0) + (a.ftAway ?? 0),
-                    ),
-                  ))
-                  .first;
-
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text(
-              'Competition Snapshot',
-              style: FzTypography.sectionLabel(Theme.of(context).brightness),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _LeagueMetricCard(label: 'Teams', value: '${teams.length}'),
-                _LeagueMetricCard(label: 'Played', value: '${finished.length}'),
-                _LeagueMetricCard(label: 'Live', value: '${live.length}'),
-                _LeagueMetricCard(label: 'Avg Goals', value: averageGoals),
-              ],
-            ),
-            const SizedBox(height: 16),
-            FzCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Key moments',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 14),
-                  _LeagueInsightRow(
-                    icon: LucideIcons.circle,
-                    label: 'Goals scored',
-                    value:
-                        '$totalGoals across ${finished.length} finished matches',
-                  ),
-                  const SizedBox(height: 12),
-                  _LeagueInsightRow(
-                    icon: LucideIcons.radio,
-                    label: 'Live now',
-                    value: live.isEmpty
-                        ? 'No matches are live in this competition right now'
-                        : '${live.length} match${live.length == 1 ? '' : 'es'} currently live',
-                  ),
-                  const SizedBox(height: 12),
-                  _LeagueInsightRow(
-                    icon: LucideIcons.clock,
-                    label: 'Next kickoff',
-                    value: upcoming.isEmpty
-                        ? 'No upcoming fixtures scheduled'
-                        : '${upcoming.first.homeTeam} vs ${upcoming.first.awayTeam}',
-                  ),
-                ],
-              ),
-            ),
-            if (biggestMatch != null) ...[
-              const SizedBox(height: 16),
-              FzCard(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Highest-scoring result',
-                      style: FzTypography.sectionLabel(
-                        Theme.of(context).brightness,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      '${biggestMatch.homeTeam} ${biggestMatch.ftHome ?? 0}–${biggestMatch.ftAway ?? 0} ${biggestMatch.awayTeam}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        );
-      },
-      loading: () => const ScoresPageSkeleton(),
-      error: (_, _) => StateView.empty(
-        title: 'Competition stats unavailable',
-        subtitle: 'Try again later.',
-        icon: LucideIcons.barChart3,
-      ),
-    );
-  }
-}
-
-class _LeagueMetricCard extends StatelessWidget {
-  const _LeagueMetricCard({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 156,
-      child: FzCard(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label.toUpperCase(),
-              style: FzTypography.sectionLabel(Theme.of(context).brightness),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: FzTypography.scoreLarge(color: FzColors.primary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LeagueInsightRow extends StatelessWidget {
-  const _LeagueInsightRow({
-    required this.icon,
-    required this.label,
-    required this.value,
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    this.icon,
+    this.actionLabel,
+    this.onTap,
+    this.badge,
   });
 
-  final IconData icon;
-  final String label;
-  final String value;
+  final String title;
+  final IconData? icon;
+  final String? actionLabel;
+  final VoidCallback? onTap;
+  final Widget? badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = Theme.of(context).brightness == Brightness.dark
+        ? FzColors.darkText
+        : FzColors.lightText;
+    return Row(
+      children: [
+        Expanded(
+          child: Row(
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
+                ),
+              ),
+              if (badge != null) ...[
+                const SizedBox(width: 8),
+                badge!,
+              ] else if (icon != null) ...[
+                const SizedBox(width: 8),
+                Icon(icon, size: 18, color: FzColors.coral),
+              ],
+            ],
+          ),
+        ),
+        if (actionLabel != null)
+          InkWell(
+            onTap: onTap,
+            child: Text(
+              actionLabel!,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: FzColors.primary,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _LeagueMatchCard extends StatelessWidget {
+  const _LeagueMatchCard({required this.match});
+
+  final MatchModel match;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+
+    return FzCard(
+      onTap: () => context.push('/match/${match.id}'),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (match.isLive)
+            const FzBadge(
+              label: 'LIVE',
+              variant: FzBadgeVariant.danger,
+              pulse: true,
+            ),
+          if (match.isLive) const SizedBox(height: 12),
+          _TeamLine(
+            name: match.homeTeam,
+            crestUrl: match.homeLogoUrl,
+            trailing: match.isLive ? '${match.ftHome ?? 0}' : null,
+          ),
+          const SizedBox(height: 10),
+          _TeamLine(
+            name: match.awayTeam,
+            crestUrl: match.awayLogoUrl,
+            trailing: match.isLive ? '${match.ftAway ?? 0}' : null,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            match.isLive ? match.liveStatusLabel() : match.kickoffLabel,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: match.isLive ? FzColors.primary : muted,
+              letterSpacing: 1,
+            ),
+          ),
+          if (!match.isLive) ...[
+            const SizedBox(height: 4),
+            Text(
+              match.round?.toUpperCase() ?? 'UPCOMING',
+              style: TextStyle(
+                fontSize: 11,
+                color: textColor.withValues(alpha: 0.74),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TeamLine extends StatelessWidget {
+  const _TeamLine({required this.name, required this.crestUrl, this.trailing});
+
+  final String name;
+  final String? crestUrl;
+  final String? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = Theme.of(context).brightness == Brightness.dark
+        ? FzColors.darkText
+        : FzColors.lightText;
+    return Row(
+      children: [
+        TeamCrest(
+          label: name,
+          crestUrl: crestUrl,
+          size: 28,
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? FzColors.darkSurface3
+              : FzColors.lightSurface3,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            name,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
+          ),
+        ),
+        if (trailing != null)
+          Text(
+            trailing!,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: textColor,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _LeaguePoolCard extends StatelessWidget {
+  const _LeaguePoolCard({required this.pool});
+
+  final ScorePool pool;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+
+    return FzCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FzBadge(
+                        label: 'Stake: ${pool.stake} FET',
+                        variant: FzBadgeVariant.ghost,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        pool.matchName,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'By ${pool.creatorName} • ${pool.participantsCount} entries',
+                        style: TextStyle(fontSize: 12, color: muted),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'TOTAL POOL',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: muted,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${pool.totalPool} FET',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: FzColors.coral,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(24),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => context.push('/pool/${pool.id}'),
+                    child: const Text('VIEW POOL'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  height: 40,
+                  child: FilledButton(
+                    onPressed: () => context.push('/pool/${pool.id}'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: FzColors.coral,
+                      foregroundColor: FzColors.darkBg,
+                    ),
+                    child: const Text('JOIN'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RegistryRow extends StatelessWidget {
+  const _RegistryRow({required this.team});
+
+  final TeamModel team;
 
   @override
   Widget build(BuildContext context) {
     final muted = Theme.of(context).brightness == Brightness.dark
         ? FzColors.darkMuted
         : FzColors.lightMuted;
+    final textColor = Theme.of(context).brightness == Brightness.dark
+        ? FzColors.darkText
+        : FzColors.lightText;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: FzColors.primary),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
+    return InkWell(
+      onTap: () => context.push('/team/${team.id}'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            TeamCrest(
+              label: team.name,
+              crestUrl: team.crestUrl ?? team.logoUrl,
+              size: 40,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? FzColors.darkSurface2
+                  : FzColors.lightSurface2,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    team.name,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${team.fanCount} Members',
+                    style: TextStyle(fontSize: 12, color: muted),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(value, style: TextStyle(fontSize: 12, color: muted)),
-            ],
-          ),
+            ),
+            Icon(LucideIcons.chevronRight, size: 18, color: muted),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _LeagueSectionSkeleton extends StatelessWidget {
+  const _LeagueSectionSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        FzShimmer(width: double.infinity, height: 132),
+        SizedBox(height: 12),
+        FzShimmer(width: double.infinity, height: 132),
       ],
     );
   }

@@ -206,7 +206,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             ),
           );
         }
-        return resolved.isEmpty ? weeklyEntries : resolved;
+        return resolved;
       case _LeaderboardTab.weekly:
         return weeklyEntries;
       case _LeaderboardTab.friends:

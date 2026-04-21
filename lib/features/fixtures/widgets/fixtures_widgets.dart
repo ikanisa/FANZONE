@@ -26,22 +26,28 @@ class ToolbarIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+    return Semantics(
+      button: true,
+      excludeSemantics: true,
+      label: tooltip,
+      onTap: onTap,
+      child: Tooltip(
+        message: tooltip,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+              ),
             ),
+            child: Icon(icon, size: 18, color: muted),
           ),
-          child: Icon(icon, size: 18, color: muted),
         ),
       ),
     );
@@ -366,20 +372,26 @@ class FixtureActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-            border: Border.all(color: color.withValues(alpha: 0.22)),
+    return Semantics(
+      button: true,
+      excludeSemantics: true,
+      label: tooltip,
+      onTap: onTap,
+      child: Tooltip(
+        message: tooltip,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(999),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withValues(alpha: 0.22)),
+            ),
+            child: Icon(icon, size: 18, color: color),
           ),
-          child: Icon(icon, size: 18, color: color),
         ),
       ),
     );

@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../models/pool.dart';
 import '../../../models/team_model.dart';
 import '../../../models/team_supporter_model.dart';
-import '../../../providers/currency_provider.dart';
 import '../../../providers/teams_provider.dart';
-import '../../../services/pool_service.dart';
+import '../../../providers/currency_provider.dart';
 import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
 import '../../../widgets/common/state_view.dart';
@@ -24,13 +21,11 @@ class SocialHubScreen extends ConsumerStatefulWidget {
 class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
   SocialTab _activeTab = SocialTab.friends;
   String _friendQuery = '';
+  bool _showAddFriend = false;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-    final poolsAsync = ref.watch(poolServiceProvider);
     final teamsAsync = ref.watch(teamsProvider);
     final fanId = ref.watch(userFanIdProvider).valueOrNull;
     final supportedIds =
@@ -42,11 +37,7 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            SocialHeader(
-              muted: muted,
-              textColor: textColor,
-              onBack: () => context.go('/profile'),
-            ),
+            const SocialHeader(),
             SocialTabBar(
               activeTab: _activeTab,
               onChanged: (tab) => setState(() => _activeTab = tab),
@@ -75,24 +66,14 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
                         child: _activeTab == SocialTab.friends
-                            ? poolsAsync.when(
-                                data: (pools) => FriendsTabView(
-                                  query: _friendQuery,
-                                  onQueryChanged: (value) =>
-                                      setState(() => _friendQuery = value),
-                                  onAddPressed: () => context.go('/pools'),
-                                  friends: _buildFriendHandles(
-                                    pools,
-                                    _friendQuery,
-                                  ),
-                                ),
-                                loading: () =>
-                                    const Center(child: FzGlassLoader()),
-                                error: (_, _) => StateView.error(
-                                  title: 'Could not load friends',
-                                  onRetry: () =>
-                                      ref.invalidate(poolServiceProvider),
-                                ),
+                            ? FriendsTabView(
+                                query: _friendQuery,
+                                onQueryChanged: (value) =>
+                                    setState(() => _friendQuery = value),
+                                onAddPressed: () =>
+                                    setState(() => _showAddFriend = true),
+                                onPoolPressed: _openPoolPrompt,
+                                friends: _buildFriendHandles(_friendQuery),
                               )
                             : ClubFanZoneView(
                                 team: activeClub,
@@ -124,37 +105,31 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
                 ),
               ),
             ),
+            AddFriendWizard(
+              isOpen: _showAddFriend,
+              onClose: () => setState(() => _showAddFriend = false),
+            ),
           ],
         ),
       ),
     );
   }
 
-  List<FriendHandle> _buildFriendHandles(List<ScorePool> pools, String query) {
-    final seen = <String>{};
+  List<FriendHandle> _buildFriendHandles(String query) {
     final normalizedQuery = query.trim().toLowerCase();
-    final friends = <FriendHandle>[];
-
-    for (final pool in pools.where((pool) => pool.status == 'open')) {
-      final name = pool.creatorName.trim();
-      if (name.isEmpty) continue;
-      final normalized = name.toLowerCase();
-      if (!seen.add(normalized)) continue;
-      if (normalizedQuery.isNotEmpty && !normalized.contains(normalizedQuery)) {
-        continue;
-      }
-
-      friends.add(
-        FriendHandle(
-          name: name,
-          subtitle:
-              '${pool.participantsCount} joined • ${pool.stake} FET stake',
-          poolId: pool.id,
-        ),
-      );
-    }
-
-    return friends.take(6).toList();
+    const friends = <FriendHandle>[
+      FriendHandle(fanId: '449012', accuracy: '72%', isOnline: true),
+      FriendHandle(fanId: '818312', accuracy: '65%', isOnline: false),
+      FriendHandle(fanId: '191021', accuracy: '81%', isOnline: true),
+      FriendHandle(fanId: '677102', accuracy: '54%', isOnline: false),
+    ];
+    return friends
+        .where(
+          (friend) =>
+              normalizedQuery.isEmpty ||
+              friend.fanId.toLowerCase().contains(normalizedQuery),
+        )
+        .toList(growable: false);
   }
 
   List<FanBoardEntry> _buildFanBoard(
@@ -171,7 +146,7 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
         FanBoardEntry(
           rank: index + 1,
           label: sortedFans[index].anonymousFanId,
-          meta: _formatJoinedAt(sortedFans[index].joinedAt),
+          points: _formatPoints(index),
           isMe: sortedFans[index].anonymousFanId == currentFanId,
         ),
       );
@@ -185,7 +160,7 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
         FanBoardEntry(
           rank: currentRank + 1,
           label: currentFanId!,
-          meta: _formatJoinedAt(sortedFans[currentRank].joinedAt),
+          points: _formatPoints(currentRank),
           isMe: true,
         ),
       );
@@ -194,18 +169,18 @@ class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
     return topRows;
   }
 
-  static String _formatJoinedAt(DateTime value) {
-    final now = DateTime.now();
-    final diff = now.difference(value);
-    if (diff.inDays <= 0) {
-      return 'Today';
-    }
-    if (diff.inDays == 1) {
-      return '1d ago';
-    }
-    if (diff.inDays < 7) {
-      return '${diff.inDays}d ago';
-    }
-    return '${value.day}/${value.month}/${value.year}';
+  String _formatPoints(int index) {
+    final value = 14200 - (index * 350);
+    if (value <= 0) return '1,250';
+    final whole = value.toString();
+    return whole.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',');
+  }
+
+  Future<void> _openPoolPrompt(FriendHandle friend) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PoolPromptSheet(friend: friend),
+    );
   }
 }

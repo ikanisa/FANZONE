@@ -7,6 +7,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/utils/currency_utils.dart';
+import '../../../models/wallet.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../services/wallet_service.dart';
 import '../../../theme/colors.dart';
@@ -14,6 +15,7 @@ import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 import '../../../widgets/common/fz_wordmark.dart';
+import 'wallet_screen_components.dart';
 
 typedef WalletTransferSubmit = Future<void> Function(String fanId, int amount);
 
@@ -422,10 +424,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                         ? const SizedBox(
                             width: 14,
                             height: 14,
-                            child: FzGlassLoader(
-                              useBackdrop: false,
-                              size: 14,
-                            ),
+                            child: FzGlassLoader(useBackdrop: false, size: 14),
                           )
                         : const Icon(LucideIcons.send, size: 16),
                     label: Text(
@@ -613,6 +612,644 @@ class ReceiveFetSheet extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class PartnerSpendSheet extends ConsumerStatefulWidget {
+  const PartnerSpendSheet({super.key, required this.offer});
+
+  final WalletPromoOffer offer;
+
+  @override
+  ConsumerState<PartnerSpendSheet> createState() => _PartnerSpendSheetState();
+}
+
+class _PartnerSpendSheetState extends ConsumerState<PartnerSpendSheet> {
+  final _recipientController = TextEditingController();
+  final _amountController = TextEditingController();
+  String _step = 'details';
+
+  @override
+  void dispose() {
+    _recipientController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  bool get _isValidRecipient =>
+      RegExp(r'^\d{6}$').hasMatch(_recipientController.text.trim());
+
+  int get _cost {
+    if (!widget.offer.flexible) return widget.offer.cost;
+    return int.tryParse(_amountController.text.trim()) ?? 0;
+  }
+
+  Future<void> _pay(int balance) async {
+    if (!_isValidRecipient || _cost <= 0 || _cost > balance) return;
+    setState(() => _step = 'processing');
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return;
+    setState(() => _step = 'success');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+    final panel = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final balance = ref.watch(walletServiceProvider).valueOrNull ?? 0;
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final canPay = _isValidRecipient && _cost > 0 && _cost <= balance;
+
+    return Container(
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: _step == 'processing'
+                ? SizedBox(
+                    key: const ValueKey('promo-processing'),
+                    height: 320,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 64,
+                            height: 64,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 4,
+                              color: FzColors.primary,
+                              backgroundColor: panel,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Processing Payment...',
+                            style: FzTypography.display(
+                              size: 22,
+                              color: textColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Awaiting confirmation from ${widget.offer.title}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14, color: muted),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : _step == 'success'
+                ? SizedBox(
+                    key: const ValueKey('promo-success'),
+                    height: 340,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: FzColors.success.withValues(alpha: 0.16),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.checkSquare,
+                            size: 38,
+                            color: FzColors.success,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Success!',
+                          style: FzTypography.display(
+                            size: 30,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'You paid $_cost FET for ${widget.offer.title}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14, color: muted),
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: panel,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: border),
+                          ),
+                          child: Text(
+                            'Recipient: #${_recipientController.text.trim()}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: muted,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: textColor,
+                              side: BorderSide(color: border),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                            child: const Text(
+                              'Done',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    key: const ValueKey('promo-details'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Checkout ',
+                                      style: FzTypography.display(
+                                        size: 26,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: widget.offer.emoji,
+                                      style: const TextStyle(fontSize: 24),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () => Navigator.of(context).pop(),
+                              borderRadius: BorderRadius.circular(999),
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: panel,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  LucideIcons.x,
+                                  size: 16,
+                                  color: muted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: panel,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.offer.title,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                widget.offer.description,
+                                style: TextStyle(fontSize: 14, color: muted),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Recipient ID (6 Digits)',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: muted,
+                                  letterSpacing: 0.9,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: _recipientController,
+                                maxLength: 6,
+                                textAlign: TextAlign.center,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(6),
+                                ],
+                                onChanged: (_) => setState(() {}),
+                                style: FzTypography.score(
+                                  size: 22,
+                                  weight: FontWeight.w700,
+                                  color: textColor,
+                                ),
+                                decoration: InputDecoration(
+                                  counterText: '',
+                                  hintText: '582910',
+                                  hintStyle: TextStyle(
+                                    color: muted.withValues(alpha: 0.45),
+                                    fontSize: 22,
+                                  ),
+                                  filled: true,
+                                  fillColor: surface,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(color: border),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(color: border),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                      color: FzColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              if (widget.offer.flexible) ...[
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Enter FET Amount',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: muted,
+                                        letterSpacing: 0.9,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      'Balance: $balance FET',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: FzColors.accent2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: _amountController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  onChanged: (_) => setState(() {}),
+                                  style: FzTypography.score(
+                                    size: 22,
+                                    weight: FontWeight.w700,
+                                    color: textColor,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: '0',
+                                    hintStyle: TextStyle(
+                                      color: muted.withValues(alpha: 0.45),
+                                      fontSize: 22,
+                                    ),
+                                    filled: true,
+                                    fillColor: surface,
+                                    suffixIcon: TextButton(
+                                      onPressed: balance <= 0
+                                          ? null
+                                          : () {
+                                              _amountController.text =
+                                                  '$balance';
+                                              setState(() {});
+                                            },
+                                      child: const Text('MAX'),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: BorderSide(color: border),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: BorderSide(color: border),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      borderSide: const BorderSide(
+                                        color: FzColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ] else
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Total Cost',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: muted,
+                                        letterSpacing: 0.9,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      '${widget.offer.cost} FET',
+                                      style: FzTypography.score(
+                                        size: 20,
+                                        weight: FontWeight.w700,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: canPay ? () => _pay(balance) : null,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: textColor,
+                              foregroundColor: isDark
+                                  ? FzColors.darkBg
+                                  : FzColors.lightBg,
+                              disabledBackgroundColor: panel,
+                              disabledForegroundColor: muted,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
+                            child: const Text(
+                              'Pay Now',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TransactionReceiptDialog extends StatelessWidget {
+  const TransactionReceiptDialog({super.key, required this.transaction});
+
+  final WalletTransaction transaction;
+
+  static Future<void> show(
+    BuildContext context, {
+    required WalletTransaction transaction,
+  }) {
+    return showDialog<void>(
+      context: context,
+      builder: (_) => TransactionReceiptDialog(transaction: transaction),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+    final panel = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final isPositive =
+        transaction.type == 'earn' || transaction.type == 'transfer_received';
+    final amountColor = isPositive ? FzColors.success : FzColors.coral;
+    final refSuffix = transaction.id.substring(
+      0,
+      transaction.id.length < 8 ? transaction.id.length : 8,
+    );
+
+    return Dialog(
+      backgroundColor: surface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: panel,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: border),
+                  ),
+                  child: Icon(LucideIcons.receipt, size: 22, color: muted),
+                ),
+                const Spacer(),
+                InkWell(
+                  onTap: () => Navigator.of(context).pop(),
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: panel,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(LucideIcons.x, size: 16, color: muted),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    '${isPositive ? '+' : '-'}${transaction.amount} FET',
+                    style: FzTypography.score(
+                      size: 38,
+                      weight: FontWeight.w700,
+                      color: amountColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    transaction.title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    transaction.dateStr,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: muted,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: panel,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: border),
+              ),
+              child: Column(
+                children: [
+                  _ReceiptRow(
+                    label: 'Status',
+                    value: 'Completed',
+                    valueColor: FzColors.success,
+                    muted: muted,
+                    leadingIcon: LucideIcons.checkSquare,
+                  ),
+                  const SizedBox(height: 12),
+                  _ReceiptRow(
+                    label: 'Type',
+                    value: transaction.type.replaceAll('_', ' ').toUpperCase(),
+                    valueColor: textColor,
+                    muted: muted,
+                  ),
+                  const SizedBox(height: 12),
+                  _ReceiptRow(
+                    label: 'Ref ID',
+                    value: 'TX_${refSuffix.toUpperCase()}',
+                    valueColor: muted,
+                    muted: muted,
+                    monospace: true,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: FilledButton.styleFrom(
+                  backgroundColor: textColor,
+                  foregroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                child: const Text(
+                  'Close Receipt',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptRow extends StatelessWidget {
+  const _ReceiptRow({
+    required this.label,
+    required this.value,
+    required this.valueColor,
+    required this.muted,
+    this.leadingIcon,
+    this.monospace = false,
+  });
+
+  final String label;
+  final String value;
+  final Color valueColor;
+  final Color muted;
+  final IconData? leadingIcon;
+  final bool monospace;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: muted,
+            letterSpacing: 0.9,
+          ),
+        ),
+        const Spacer(),
+        if (leadingIcon != null) ...[
+          Icon(leadingIcon, size: 12, color: valueColor),
+          const SizedBox(width: 4),
+        ],
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: valueColor,
+            fontFamily: monospace ? 'monospace' : null,
+          ),
+        ),
+      ],
     );
   }
 }

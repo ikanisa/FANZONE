@@ -4,6 +4,7 @@ import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/match_model.dart';
 import 'home_dtos.dart';
 import 'matches_gateway_shared.dart';
+import 'sports_data_exception.dart';
 
 abstract interface class MatchListingGateway {
   Future<List<MatchModel>> getMatches(MatchesFilter filter);
@@ -32,10 +33,28 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
   String _dateCacheKey(String dateFrom, String dateTo) =>
       'matches:$dateFrom:$dateTo';
 
+  Never _throwUnavailable(String operation) {
+    throw SportsDataUnavailableException(
+      'Sports data is unavailable for $operation.',
+    );
+  }
+
   @override
   Future<List<MatchModel>> getMatches(MatchesFilter filter) async {
-    final client = _connection.client;
-    if (client == null) return const <MatchModel>[];
+    if (_connection.client == null) {
+      _throwUnavailable('match loading');
+    }
+
+    if (_isCompetitionOnlyFilter(filter)) {
+      return _fetchCompetitionMatches(
+        filter.competitionId!,
+        limit: filter.limit,
+      );
+    }
+
+    if (_isTeamOnlyFilter(filter)) {
+      return _fetchTeamMatches(filter.teamId!, limit: filter.limit);
+    }
 
     // Build a cache key for date-filtered queries
     final useSWR =
@@ -53,7 +72,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
           ttl: _matchCacheTtl,
           fetch: () => _fetchMatchRows(filter),
         );
-        return cachedRows.map(MatchModel.fromJson).toList(growable: false);
+        return _parseMatchRows(cachedRows);
       } catch (_) {
         // Fall through to direct fetch
       }
@@ -61,10 +80,122 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
     try {
       final rows = await _fetchMatchRows(filter);
-      return rows.map(MatchModel.fromJson).toList(growable: false);
+      return _parseMatchRows(rows);
     } catch (error) {
       AppLogger.d('Failed to load matches: $error');
-      return const <MatchModel>[];
+      if (error is SportsDataException) rethrow;
+      throw SportsDataQueryException('Failed to load matches.', cause: error);
+    }
+  }
+
+  bool _isCompetitionOnlyFilter(MatchesFilter filter) {
+    return filter.competitionId != null &&
+        filter.competitionId!.isNotEmpty &&
+        filter.teamId == null &&
+        filter.status == null &&
+        filter.dateFrom == null &&
+        filter.dateTo == null;
+  }
+
+  bool _isTeamOnlyFilter(MatchesFilter filter) {
+    return filter.teamId != null &&
+        filter.teamId!.isNotEmpty &&
+        filter.competitionId == null &&
+        filter.status == null &&
+        filter.dateFrom == null &&
+        filter.dateTo == null;
+  }
+
+  String? _singleDayFilterValue(MatchesFilter filter) {
+    final from = filter.dateFrom;
+    final to = filter.dateTo;
+    if (from == null || to == null) return null;
+
+    final fromDay = from.split('T').first;
+    final toDay = to.split('T').first;
+    if (fromDay != toDay || fromDay.isEmpty) return null;
+
+    return fromDay;
+  }
+
+  List<MatchModel> _parseMatchRows(dynamic rows) {
+    return (rows as List)
+        .whereType<Map>()
+        .map((row) => MatchModel.fromJson(Map<String, dynamic>.from(row)))
+        .toList(growable: false);
+  }
+
+  Future<List<MatchModel>> _fetchCompetitionMatches(
+    String competitionId, {
+    int limit = 500,
+  }) async {
+    final client = _connection.client;
+    if (client == null) {
+      _throwUnavailable('competition fixtures');
+    }
+
+    try {
+      final rows = await client.rpc(
+        'app_competition_matches',
+        params: {'p_competition_id': competitionId, 'p_limit': limit},
+      );
+      return _parseMatchRows(rows);
+    } catch (error) {
+      AppLogger.d('Failed to load competition matches via RPC: $error');
+      try {
+        final rows = await client
+            .from('matches_live_view')
+            .select()
+            .eq('competition_id', competitionId)
+            .order('date', ascending: false)
+            .limit(limit);
+        return _parseMatchRows(rows);
+      } catch (fallbackError) {
+        AppLogger.d(
+          'Failed to load competition matches via fallback query: $fallbackError',
+        );
+        throw SportsDataQueryException(
+          'Failed to load competition fixtures for $competitionId.',
+          cause: fallbackError,
+        );
+      }
+    }
+  }
+
+  Future<List<MatchModel>> _fetchTeamMatches(
+    String teamId, {
+    int limit = 120,
+  }) async {
+    final client = _connection.client;
+    if (client == null) {
+      _throwUnavailable('team fixtures');
+    }
+
+    try {
+      final rows = await client.rpc(
+        'app_team_matches',
+        params: {'p_team_id': teamId, 'p_limit': limit},
+      );
+      return _parseMatchRows(rows);
+    } catch (error) {
+      AppLogger.d('Failed to load team matches via RPC: $error');
+      try {
+        final rows = await client
+            .from('matches_live_view')
+            .select()
+            .or('home_team_id.eq.$teamId,away_team_id.eq.$teamId')
+            .order('date', ascending: false)
+            .limit(limit);
+        return _parseMatchRows(rows);
+      } catch (fallbackError) {
+        AppLogger.d(
+          'Failed to load team matches via fallback query: $fallbackError',
+        );
+        throw SportsDataQueryException(
+          'Failed to load team fixtures for $teamId.',
+          cause: fallbackError,
+        );
+      }
     }
   }
 
@@ -73,6 +204,25 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     MatchesFilter filter,
   ) async {
     final client = _connection.client!;
+    final singleDay = _singleDayFilterValue(filter);
+
+    if (singleDay != null &&
+        filter.teamId == null &&
+        filter.status == null &&
+        filter.competitionId == null) {
+      try {
+        final rows = await client.rpc(
+          'app_matches_by_date',
+          params: {'p_date': singleDay},
+        );
+        return (rows as List)
+            .whereType<Map>()
+            .map(Map<String, dynamic>.from)
+            .toList(growable: false);
+      } catch (error) {
+        AppLogger.d('Failed to load matches by date via RPC: $error');
+      }
+    }
 
     var query = client.from('matches_live_view').select();
     if (filter.competitionId != null && filter.competitionId!.isNotEmpty) {
@@ -95,6 +245,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
     final rows = await query
         .order('date', ascending: filter.ascending)
+        .order('kickoff_time', ascending: filter.ascending)
         .limit(filter.limit);
 
     return (rows as List)
@@ -106,11 +257,28 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
   @override
   Stream<MatchModel?> watchMatch(String matchId) {
     return pollMatchStream<MatchModel?>(() async {
-      final matches = await getMatches(const MatchesFilter(limit: 200));
-      for (final match in matches) {
-        if (match.id == matchId) return match;
+      final client = _connection.client;
+      if (client == null) {
+        _throwUnavailable('match details');
       }
-      return null;
+
+      try {
+        final row = await client
+            .from('matches_live_view')
+            .select()
+            .eq('id', matchId)
+            .maybeSingle();
+        if (row == null) return null;
+        return MatchModel.fromJson(
+          Map<String, dynamic>.from(row as Map<dynamic, dynamic>),
+        );
+      } catch (error) {
+        AppLogger.d('Failed to load match $matchId: $error');
+        throw SportsDataQueryException(
+          'Failed to load match details for $matchId.',
+          cause: error,
+        );
+      }
     });
   }
 
@@ -181,22 +349,14 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
   @override
   Stream<List<MatchModel>> watchCompetitionMatches(String competitionId) {
     return pollMatchStream<List<MatchModel>>(
-      () => getMatches(
-        MatchesFilter(
-          competitionId: competitionId,
-          limit: 200,
-          ascending: true,
-        ),
-      ),
+      () => _fetchCompetitionMatches(competitionId, limit: 500),
     );
   }
 
   @override
   Stream<List<MatchModel>> watchTeamMatches(String teamId) {
     return pollMatchStream<List<MatchModel>>(
-      () => getMatches(
-        MatchesFilter(teamId: teamId, limit: 200, ascending: true),
-      ),
+      () => _fetchTeamMatches(teamId, limit: 120),
     );
   }
 
@@ -216,25 +376,22 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
   @override
   Stream<List<MatchModel>> watchLiveMatches() {
-    return pollMatchStream<List<MatchModel>>(
-      () async {
-        final client = _connection.client;
-        if (client == null) return const <MatchModel>[];
+    return pollMatchStream<List<MatchModel>>(() async {
+      final client = _connection.client;
+      if (client == null) {
+        _throwUnavailable('live matches');
+      }
 
-        try {
-          final rows = await client.rpc('get_live_matches');
-          return (rows as List)
-              .whereType<Map>()
-              .map((row) => MatchModel.fromJson(Map<String, dynamic>.from(row)))
-              .toList(growable: false);
-        } catch (error) {
-          AppLogger.d('Failed to load live matches via RPC: $error');
-          // Fallback to view-based query
-          return getMatches(
-            const MatchesFilter(status: 'live', limit: 100, ascending: true),
-          );
-        }
-      },
-    );
+      try {
+        final rows = await client.rpc('get_live_matches');
+        return _parseMatchRows(rows);
+      } catch (error) {
+        AppLogger.d('Failed to load live matches via RPC: $error');
+        // Fallback to view-based query
+        return getMatches(
+          const MatchesFilter(status: 'live', limit: 100, ascending: true),
+        );
+      }
+    });
   }
 }

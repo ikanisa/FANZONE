@@ -22,6 +22,7 @@ import '../cache/cache_service.dart';
 import '../cache/shared_preferences_cache_service.dart';
 import '../logging/app_logger.dart';
 import '../supabase/supabase_connection.dart';
+import '../utils/team_name_cleanup.dart';
 
 // ── Feature gateways ───────────────────────────────────────
 import '../../features/auth/data/auth_gateway.dart';
@@ -203,14 +204,37 @@ OnboardingTeam? _mapTeamRow(Map<String, dynamic> row, BootstrapConfig config) {
 Future<List<Map<String, dynamic>>> _fetchAllActiveTeamRows(
   SupabaseClient client,
 ) async {
-  Future<List<Map<String, dynamic>>> fetchPageSet(String selectColumns) async {
+  Map<String, dynamic>? sanitizeTeamRow(Map<String, dynamic> row) {
+    final rawName = _firstString(row, const ['team_name', 'name']);
+    if (rawName == null || isPlaceholderTeamName(rawName)) {
+      return null;
+    }
+
+    final sanitized = Map<String, dynamic>.from(row);
+    sanitized['name'] = normalizeTeamDisplayName(rawName);
+
+    final rawShortName = _firstString(row, const [
+      'team_short_name',
+      'short_name',
+    ]);
+    if (rawShortName != null) {
+      sanitized['short_name'] = normalizeTeamDisplayName(rawShortName);
+    }
+
+    return sanitized;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchPageSet(
+    String table,
+    String selectColumns,
+  ) async {
     const pageSize = 1000;
     final rows = <Map<String, dynamic>>[];
     var start = 0;
 
     while (true) {
       final page = await client
-          .from('teams')
+          .from(table)
           .select(selectColumns)
           .eq('is_active', true)
           .order('name')
@@ -222,7 +246,12 @@ Future<List<Map<String, dynamic>>> _fetchAllActiveTeamRows(
           .toList(growable: false);
       if (normalized.isEmpty) break;
 
-      rows.addAll(normalized);
+      rows.addAll(
+        normalized
+            .map(sanitizeTeamRow)
+            .whereType<Map<String, dynamic>>()
+            .toList(growable: false),
+      );
       if (normalized.length < pageSize) break;
       start += pageSize;
     }
@@ -231,14 +260,25 @@ Future<List<Map<String, dynamic>>> _fetchAllActiveTeamRows(
   }
 
   try {
-    return await fetchPageSet(_teamCatalogSelectColumns);
+    return await fetchPageSet(
+      'team_catalog_entries',
+      _teamCatalogSelectColumns,
+    );
+  } catch (error) {
+    AppLogger.d(
+      'Startup: app team catalog view unavailable, retrying raw teams: $error',
+    );
+  }
+
+  try {
+    return await fetchPageSet('teams', _teamCatalogSelectColumns);
   } catch (error) {
     AppLogger.d(
       'Startup: primary team catalog select failed, retrying legacy columns: $error',
     );
   }
 
-  return fetchPageSet(_teamCatalogLegacySelectColumns);
+  return fetchPageSet('teams', _teamCatalogLegacySelectColumns);
 }
 
 List<String> _popularTableCandidates() {
@@ -303,7 +343,6 @@ Future<TeamSearchCatalog?> _loadRemoteTeamSearchCatalog(
   if (client == null) return null;
   return _buildRemoteTeamSearchCatalog(client, config);
 }
-
 
 void _applyRuntimeBootstrap(BootstrapConfig config) {
   runtimeBootstrapStore.update(config);

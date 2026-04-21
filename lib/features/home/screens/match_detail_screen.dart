@@ -14,7 +14,6 @@ import '../../../models/live_match_event.dart';
 import '../../../models/match_ai_analysis_model.dart';
 import '../../../models/match_event_model.dart';
 import '../../../models/match_model.dart';
-import '../../../models/match_player_stats_model.dart';
 import '../../../models/prediction_market_catalog_item.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/crowd_prediction_provider.dart';
@@ -31,10 +30,10 @@ import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 
 part '../widgets/match_detail/ai_analysis_card.dart';
+part '../widgets/match_detail/comments_tab.dart';
 part '../widgets/match_detail/crowd_prediction_bar.dart';
 part '../widgets/match_detail/h2h_table_predict_tabs.dart';
 part '../widgets/match_detail/insights_tab.dart';
-part '../widgets/match_detail/lineups_tab.dart';
 part '../widgets/match_detail/match_hero.dart';
 part '../widgets/match_detail/overview_tab.dart';
 part '../widgets/match_detail/stats_support.dart';
@@ -95,15 +94,13 @@ class MatchDetailScreen extends ConsumerWidget {
               ),
             ),
           if (flags.advancedStats) const Tab(text: 'Stats'),
-          const Tab(text: 'H2H'),
-          const Tab(text: 'Lineups'),
+          const Tab(text: 'Comments'),
         ];
         final views = <Widget>[
           if (flags.predictions) _PredictTab(match: match),
           if (flags.aiAnalysis) _InsightsTab(match: match),
           if (flags.advancedStats) _StatsTab(match: match),
-          _H2HTab(match: match),
-          _LineupsTab(match: match),
+          _CommentsTab(match: match),
         ];
 
         return DefaultTabController(

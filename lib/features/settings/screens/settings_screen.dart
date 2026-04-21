@@ -145,53 +145,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const _SectionHeader(title: 'Developer'),
-            const SizedBox(height: 8),
-            FzCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  _SettingsAction(
-                    icon: LucideIcons.bug,
-                    iconTint: FzColors.accent,
-                    label: 'Test: Pool Received',
-                    muted: muted,
-                    textColor: textColor,
-                    onTap: () {
-                      _queueDebugNotification(
-                        type: 'pool_received',
-                        title: 'New Friend Pool!',
-                        body:
-                            'User 582910 has pooled you to predict the LIV vs ARS match. Tap to accept.',
-                        data: const {'screen': '/pools'},
-                      );
-                      _showDeveloperMessage('Added a pool invite to Inbox.');
-                    },
-                  ),
-                  const _Divider(),
-                  _SettingsAction(
-                    icon: LucideIcons.bug,
-                    iconTint: FzColors.accent3,
-                    label: 'Test: Pool Settled',
-                    muted: muted,
-                    textColor: textColor,
-                    onTap: () {
-                      _queueDebugNotification(
-                        type: 'pool_settled',
-                        title: 'Pool Settled',
-                        body:
-                            'You won the pool against User 582910! +50 FET has been added to your wallet.',
-                        data: const {'screen': '/wallet'},
-                      );
-                      _showDeveloperMessage(
-                        'Added a settlement update to Inbox.',
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
             const _SectionHeader(title: 'Support'),
             const SizedBox(height: 8),
             FzCard(
@@ -264,22 +217,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showDeveloperMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void _queueDebugNotification({
-    required String type,
-    required String title,
-    required String body,
-    Map<String, dynamic> data = const {},
-  }) {
-    ref
-        .read(notificationServiceProvider.notifier)
-        .addDebugNotification(type: type, title: title, body: body, data: data);
-  }
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -468,68 +405,28 @@ class _SettingsLink extends StatelessWidget {
   }
 }
 
-class _SettingsAction extends StatelessWidget {
-  const _SettingsAction({
-    required this.icon,
-    required this.iconTint,
-    required this.label,
-    required this.muted,
-    required this.textColor,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final Color iconTint;
-  final String label;
-  final Color muted;
-  final Color textColor;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      leading: _LeadingIcon(
-        icon: icon,
-        color: iconTint,
-        backgroundColor: iconTint.withValues(alpha: 0.10),
-        borderColor: iconTint.withValues(alpha: 0.20),
-      ),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          color: textColor,
-        ),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    );
-  }
-}
-
 class _LeadingIcon extends StatelessWidget {
   const _LeadingIcon({
     required this.icon,
     required this.color,
-    this.backgroundColor = FzColors.darkSurface3,
-    this.borderColor = FzColors.darkBorder,
   });
 
   final IconData icon;
   final Color color;
-  final Color backgroundColor;
-  final Color borderColor;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: isDark ? FzColors.darkSurface3 : FzColors.lightSurface2,
         shape: BoxShape.circle,
-        border: Border.all(color: borderColor),
+        border: Border.all(
+          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+        ),
       ),
       alignment: Alignment.center,
       child: Icon(icon, size: 16, color: color),

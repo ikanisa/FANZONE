@@ -9,7 +9,7 @@ class AppConfig {
   static const appName = 'FANZONE';
   static const appVersion = String.fromEnvironment(
     'APP_VERSION',
-    defaultValue: '2.0.1',
+    defaultValue: '1.1.0',
   );
   static const environmentName = String.fromEnvironment(
     'APP_ENV',

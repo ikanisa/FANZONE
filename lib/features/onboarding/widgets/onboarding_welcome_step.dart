@@ -61,8 +61,8 @@ class OnboardingWelcomeStep extends StatelessWidget {
             const SizedBox(height: 22),
             OnboardingFeatureRow(
               icon: LucideIcons.shieldCheck,
-              title: '100% Free to Play',
-              description: 'No stakes, no risk. Just pure fandom.',
+              title: 'Anonymous Profile',
+              description: 'Play securely without identity exposure.',
               textColor: textColor,
               muted: muted,
               isDark: isDark,

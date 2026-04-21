@@ -10,6 +10,28 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 
+class WalletPromoOffer {
+  const WalletPromoOffer({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.actionLabel,
+    required this.gradientColors,
+    required this.emoji,
+    required this.cost,
+    this.flexible = false,
+  });
+
+  final String id;
+  final String title;
+  final String description;
+  final String actionLabel;
+  final List<Color> gradientColors;
+  final String emoji;
+  final int cost;
+  final bool flexible;
+}
+
 class WalletActionButton extends StatelessWidget {
   const WalletActionButton({
     super.key,
@@ -147,6 +169,7 @@ class WalletTransactionRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(userCurrencyProvider);
     final isEarn =
         transaction.type == 'earn' ||
         transaction.type == 'transfer_received' ||
@@ -156,22 +179,22 @@ class WalletTransactionRow extends ConsumerWidget {
     final prefix = isEarn ? '+' : '-';
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 24,
+            height: 24,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withValues(alpha: 0.2)),
             ),
-            child: Icon(icon, size: 16, color: color),
+            child: Icon(icon, size: 11, color: color),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,20 +202,30 @@ class WalletTransactionRow extends ConsumerWidget {
                 Text(
                   transaction.title,
                   style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
                   ),
                 ),
                 Text(
                   transaction.dateStr,
-                  style: TextStyle(fontSize: 10, color: muted),
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: muted,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
                 ),
               ],
             ),
           ),
           Text(
-            '$prefix ${formatFET(transaction.amount, currency)}',
-            style: FzTypography.scoreCompact(color: color),
+            '$prefix${formatFETCompact(transaction.amount)}',
+            style: FzTypography.score(
+              size: 10,
+              weight: FontWeight.w700,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -272,7 +305,7 @@ class WalletFetSplitRow extends StatelessWidget {
                 style: FzTypography.score(
                   size: 10,
                   weight: FontWeight.w700,
-                  color: FzColors.primary,
+                  color: FzColors.teal,
                 ),
               ),
               Padding(
@@ -284,7 +317,7 @@ class WalletFetSplitRow extends StatelessWidget {
                 style: FzTypography.score(
                   size: 10,
                   weight: FontWeight.w700,
-                  color: FzColors.primary,
+                  color: FzColors.accent,
                 ),
               ),
             ],
@@ -314,7 +347,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(LucideIcons.pieChart, size: 14, color: FzColors.primary),
+            const Icon(LucideIcons.pieChart, size: 14, color: FzColors.teal),
             const SizedBox(width: 8),
             Text(
               'Club Earnings Split',
@@ -344,7 +377,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
-                        color: FzColors.primary,
+                        color: FzColors.teal,
                         letterSpacing: 1,
                       ),
                     ),
@@ -353,7 +386,7 @@ class WalletFetSplitModelCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
-                        color: FzColors.primary,
+                        color: FzColors.accent,
                         letterSpacing: 1,
                       ),
                     ),
@@ -369,11 +402,11 @@ class WalletFetSplitModelCard extends StatelessWidget {
                     children: [
                       Expanded(
                         flex: 80,
-                        child: ColoredBox(color: FzColors.primary),
+                        child: ColoredBox(color: FzColors.teal),
                       ),
                       Expanded(
                         flex: 20,
-                        child: ColoredBox(color: FzColors.primary),
+                        child: ColoredBox(color: FzColors.accent),
                       ),
                     ],
                   ),
@@ -415,6 +448,108 @@ class WalletFetSplitModelCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class WalletPromoCard extends StatelessWidget {
+  const WalletPromoCard({super.key, required this.offer, required this.onTap});
+
+  final WalletPromoOffer offer;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 240,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: offer.gradientColors,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: offer.gradientColors.last.withValues(alpha: 0.22),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -28,
+              bottom: -28,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.10),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(offer.emoji, style: const TextStyle(fontSize: 28)),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.20),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.20),
+                        ),
+                      ),
+                      child: Text(
+                        offer.actionLabel,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  offer.title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    height: 1.15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  offer.description,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.white70,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

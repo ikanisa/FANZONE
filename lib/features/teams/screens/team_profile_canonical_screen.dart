@@ -14,6 +14,10 @@ import '../../../providers/teams_provider.dart';
 import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
 import '../../../widgets/common/state_view.dart';
+import '../../../widgets/common/fz_confetti.dart';
+import '../../../widgets/community/contribution_confirm_modal.dart';
+import '../../../widgets/community/membership_tier_sheet.dart';
+import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../widgets/team_profile_header.dart';
 import '../widgets/team_profile_tabs.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
@@ -29,6 +33,7 @@ class TeamProfileScreen extends ConsumerStatefulWidget {
 
 class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
   TeamProfileTab _activeTab = TeamProfileTab.overview;
+  String? _selectedTier;
 
   @override
   Widget build(BuildContext context) {
@@ -74,48 +79,53 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
 
         return Scaffold(
           backgroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,
-          body: SafeArea(
-            child: Column(
-              children: [
-                TeamProfileHeader(onBack: () => context.go('/memberships')),
-                Expanded(
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      TeamHeroBanner(
-                        team: team,
-                        competition: primaryCompetition,
-                      ),
-                      TeamInfoSection(
-                        team: team,
-                        stats: stats,
-                        clubRank: clubRank,
-                        isSupported: isSupported,
-                        isAuthenticated: isAuthenticated,
-                        onMembershipTap: () => _handleMembershipTap(
-                          context,
-                          team,
-                          isAuthenticated,
-                        ),
-                      ),
-                      TeamProfileTabs(
-                        activeTab: _activeTab,
-                        onChanged: (tab) => setState(() => _activeTab = tab),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
-                        child: TeamProfileTabBody(
-                          activeTab: _activeTab,
+          body: FzConfetti(
+            child: SafeArea(
+              child: Column(
+                children: [
+                  TeamProfileHeader(onBack: () => context.go('/memberships')),
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        TeamHeroBanner(
                           team: team,
-                          matches: matches,
-                          stats: stats,
-                          fans: fans,
+                          competition: primaryCompetition,
                         ),
-                      ),
-                    ],
+                        TeamInfoSection(
+                          team: team,
+                          stats: stats,
+                          clubRank: clubRank,
+                          isSupported: isSupported,
+                          isAuthenticated: isAuthenticated,
+                          onMembershipTap: () => _handleMembershipTap(
+                            context,
+                            team,
+                            isAuthenticated,
+                            isSupported,
+                          ),
+                        ),
+                        TeamProfileTabs(
+                          activeTab: _activeTab,
+                          onChanged: (tab) => setState(() => _activeTab = tab),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
+                          child: TeamProfileTabBody(
+                            activeTab: _activeTab,
+                            team: team,
+                            matches: matches,
+                            stats: stats,
+                            fans: fans,
+                            selectedTier: _selectedTier,
+                            onDialNow: () => _handleDialNow(context, team),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -169,13 +179,55 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
     BuildContext context,
     TeamModel team,
     bool isAuthenticated,
+    bool isSupported,
   ) async {
     if (!isAuthenticated) {
-      context.go('/login');
+      await showSignInRequiredSheet(
+        context,
+        title: 'Verify to Join',
+        message:
+            'Verify your number via WhatsApp to join fan clubs and contribute.',
+        from: '/team/${team.id}',
+      );
       return;
     }
-    await ref
-        .read(supportedTeamsServiceProvider.notifier)
-        .toggleSupport(team.id);
+
+    final tier = await MembershipTierSheet.show(context);
+    if (!mounted || tier == null) return;
+
+    setState(() => _selectedTier = tier);
+
+    if (tier == 'Supporter') {
+      if (!isSupported) {
+        await ref
+            .read(supportedTeamsServiceProvider.notifier)
+            .supportTeam(team.id);
+      }
+      if (context.mounted) {
+        FzConfetti.fire(context);
+      }
+      return;
+    }
+
+    setState(() => _activeTab = TeamProfileTab.contribute);
+  }
+
+  Future<void> _handleDialNow(BuildContext context, TeamModel team) async {
+    final tier = _selectedTier ?? 'Supporter';
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    if (!mounted || !context.mounted) return;
+
+    final confirmed = await showContributionConfirmModal(context, tier: tier);
+    if (!mounted || !context.mounted || confirmed != true) return;
+
+    final supportedIds =
+        ref.read(supportedTeamsServiceProvider).valueOrNull ?? const <String>{};
+    if (!supportedIds.contains(team.id)) {
+      await ref
+          .read(supportedTeamsServiceProvider.notifier)
+          .supportTeam(team.id);
+    }
+    if (!mounted || !context.mounted) return;
+    FzConfetti.fire(context);
   }
 }

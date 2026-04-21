@@ -11,7 +11,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/phone_presets.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_card.dart';
 
 /// Screen for upgrading a guest/anonymous user to a fully authenticated user
 /// via WhatsApp OTP verification. Reuses the same WhatsApp Cloud API pipeline.
@@ -79,6 +81,13 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
     if (digits.isEmpty) return '';
     return '$_dialCode$digits';
   }
+
+  int get _phoneLength =>
+      _phoneController.text.replaceAll(RegExp(r'\D'), '').length;
+
+  bool get _canSend => !_loading && _phoneLength >= _phonePreset.minDigits;
+
+  bool get _canVerify => !_loading && _otpLength == 6;
 
   int get _otpLength =>
       _otpControllers.fold<int>(0, (count, c) => count + c.text.trim().length);
@@ -182,265 +191,376 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bg = isDark ? FzColors.darkBg : FzColors.lightBg;
+    final surface = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final surfaceAlt = isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     return Scaffold(
       backgroundColor: bg,
-      appBar: AppBar(
-        backgroundColor: bg,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(LucideIcons.arrowLeft, color: textColor, size: 20),
-          onPressed: () {
-            if (_view == _otpView) {
-              setState(() {
-                _view = _phoneView;
-                _error = null;
-                for (final c in _otpControllers) {
-                  c.clear();
-                }
-              });
-            } else {
-              context.pop();
-            }
-          },
-        ),
-        title: Text(
-          'Verify Account',
-          style: FzTypography.display(size: 18, color: textColor),
-        ),
-        centerTitle: true,
-      ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Spacer(),
-
-              // Icon
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: FzColors.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  LucideIcons.messageCircle,
-                  color: FzColors.primary,
-                  size: 24,
-                ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                16,
+                20,
+                24 + MediaQuery.viewInsetsOf(context).bottom,
               ),
-              const SizedBox(height: 20),
-
-              Text(
-                _view == _phoneView
-                    ? 'Verify with WhatsApp'
-                    : 'Enter verification code',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _view == _phoneView
-                    ? 'We\'ll send a 6-digit code to your WhatsApp to verify your identity and unlock all features.'
-                    : 'Enter the 6-digit code sent to your WhatsApp at $_fullPhone',
-                style: TextStyle(fontSize: 14, color: muted, height: 1.5),
-              ),
-
-              const SizedBox(height: 32),
-
-              if (_view == _phoneView) ...[
-                // Phone input
-                Container(
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? FzColors.darkSurface
-                        : FzColors.lightSurface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isDark
-                          ? FzColors.darkBorder
-                          : FzColors.lightBorder,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: Text(
-                          _dialCode,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: textColor,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 1,
-                        height: 24,
-                        margin: const EdgeInsets.symmetric(horizontal: 12),
-                        color: isDark
-                            ? FzColors.darkBorder
-                            : FzColors.lightBorder,
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          style: TextStyle(fontSize: 16, color: textColor),
-                          decoration: InputDecoration(
-                            hintText: _phoneHint,
-                            hintStyle: TextStyle(color: muted),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                            ),
-                          ),
-                          onChanged: (_) {
-                            if (_error != null) {
-                              setState(() => _error = null);
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            if (_view == _otpView) {
+                              setState(() {
+                                _view = _phoneView;
+                                _error = null;
+                                for (final c in _otpControllers) {
+                                  c.clear();
+                                }
+                              });
+                            } else {
+                              context.pop();
                             }
                           },
+                          style: IconButton.styleFrom(
+                            backgroundColor: surfaceAlt,
+                            foregroundColor: textColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: FzRadii.cardAltRadius,
+                              side: BorderSide(color: border),
+                            ),
+                          ),
+                          icon: const Icon(LucideIcons.arrowLeft, size: 18),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ] else ...[
-                // OTP input
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(6, (i) {
-                    return SizedBox(
-                      width: 46,
-                      height: 54,
-                      child: TextField(
-                        controller: _otpControllers[i],
-                        focusNode: _otpFocusNodes[i],
-                        keyboardType: TextInputType.number,
+                        const Spacer(),
+                        Text(
+                          'GUEST ACCESS',
+                          style: FzTypography.metaLabel(color: muted),
+                        ),
+                        const Spacer(),
+                        const SizedBox(width: 40),
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+                    Center(
+                      child: Text(
+                        'KEEP YOUR PROGRESS',
                         textAlign: TextAlign.center,
-                        maxLength: 1,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
+                        style: FzTypography.display(
+                          size: 34,
                           color: textColor,
+                          letterSpacing: 2.4,
                         ),
-                        decoration: InputDecoration(
-                          counterText: '',
-                          filled: true,
-                          fillColor: isDark
-                              ? FzColors.darkSurface
-                              : FzColors.lightSurface,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDark
-                                  ? FzColors.darkBorder
-                                  : FzColors.lightBorder,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDark
-                                  ? FzColors.darkBorder
-                                  : FzColors.lightBorder,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: FzColors.primary,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        onChanged: (value) {
-                          if (value.isNotEmpty && i < 5) {
-                            _otpFocusNodes[i + 1].requestFocus();
-                          }
-                          if (_error != null) {
-                            setState(() => _error = null);
-                          }
-                        },
                       ),
-                    );
-                  }),
-                ),
-              ],
-
-              if (_error != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: FzColors.error.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _error!,
-                    style: const TextStyle(fontSize: 12, color: FzColors.error),
-                  ),
-                ),
-              ],
-
-              const Spacer(flex: 2),
-
-              // Action button
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _loading
-                      ? null
-                      : (_view == _phoneView ? _sendOtp : _verifyOtp),
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    backgroundColor: FzColors.secondary,
-                    foregroundColor: FzColors.onSecondary,
-                    disabledBackgroundColor: FzColors.secondary.withValues(
-                      alpha: 0.4,
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: _loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CupertinoActivityIndicator(
-                            color: FzColors.onSecondary,
-                          ),
-                        )
-                      : Text(
-                          _view == _phoneView
-                              ? 'SEND CODE VIA WHATSAPP'
-                              : 'VERIFY',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.8,
+                    const SizedBox(height: 10),
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: Text(
+                          'Verify via WhatsApp to secure your guest account, keep your picks, and unlock the full FANZONE experience.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: muted,
+                            height: 1.5,
                           ),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    FzCard(
+                      color: surface,
+                      borderRadius: FzRadii.card,
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: FzColors.whatsapp.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              LucideIcons.messageCircle,
+                              color: FzColors.whatsapp,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          Text(
+                            _view == _phoneView
+                                ? 'VERIFY VIA WHATSAPP'
+                                : 'ENTER OTP',
+                            style: FzTypography.display(
+                              size: 24,
+                              color: textColor,
+                              letterSpacing: 1.6,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            _view == _phoneView
+                                ? 'We\'ll send a 6-digit code to your WhatsApp. No names or emails required.'
+                                : 'Enter the 6-digit code sent to your WhatsApp.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: muted,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          if (_view == _phoneView) ...[
+                            Row(
+                              children: [
+                                Container(
+                                  width: 92,
+                                  height: 56,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: surfaceAlt,
+                                    borderRadius: FzRadii.cardAltRadius,
+                                    border: Border.all(color: border),
+                                  ),
+                                  child: Text(
+                                    _dialCode,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          color: textColor,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _phoneController,
+                                    autofocus: true,
+                                    keyboardType: TextInputType.phone,
+                                    onChanged: (_) {
+                                      if (_error != null) {
+                                        setState(() => _error = null);
+                                      } else {
+                                        setState(() {});
+                                      }
+                                    },
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    style: FzTypography.score(
+                                      size: 16,
+                                      color: textColor,
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: _phoneHint,
+                                      hintStyle: theme.textTheme.bodyLarge
+                                          ?.copyWith(color: muted),
+                                      filled: true,
+                                      fillColor: surfaceAlt,
+                                      border: OutlineInputBorder(
+                                        borderRadius: FzRadii.cardAltRadius,
+                                        borderSide: BorderSide(color: border),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: FzRadii.cardAltRadius,
+                                        borderSide: BorderSide(color: border),
+                                      ),
+                                      focusedBorder: const OutlineInputBorder(
+                                        borderRadius: FzRadii.cardAltRadius,
+                                        borderSide: BorderSide(
+                                          color: FzColors.whatsapp,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: List.generate(
+                                6,
+                                (i) => SizedBox(
+                                  width: 46,
+                                  child: TextField(
+                                    controller: _otpControllers[i],
+                                    focusNode: _otpFocusNodes[i],
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    maxLength: 1,
+                                    style: FzTypography.score(
+                                      size: 22,
+                                      color: textColor,
+                                    ),
+                                    decoration: InputDecoration(
+                                      counterText: '',
+                                      filled: true,
+                                      fillColor: surfaceAlt,
+                                      contentPadding: EdgeInsets.zero,
+                                      border: OutlineInputBorder(
+                                        borderRadius: FzRadii.cardAltRadius,
+                                        borderSide: BorderSide(color: border),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: FzRadii.cardAltRadius,
+                                        borderSide: BorderSide(color: border),
+                                      ),
+                                      focusedBorder: const OutlineInputBorder(
+                                        borderRadius: FzRadii.cardAltRadius,
+                                        borderSide: BorderSide(
+                                          color: FzColors.whatsapp,
+                                        ),
+                                      ),
+                                    ),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(1),
+                                    ],
+                                    onChanged: (value) {
+                                      if (_error != null) {
+                                        setState(() => _error = null);
+                                      } else {
+                                        setState(() {});
+                                      }
+                                      if (value.isNotEmpty && i < 5) {
+                                        _otpFocusNodes[i + 1].requestFocus();
+                                      } else if (value.isEmpty && i > 0) {
+                                        _otpFocusNodes[i - 1].requestFocus();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                          if (_error != null) ...[
+                            const SizedBox(height: 16),
+                            _UpgradeStatusBanner(message: _error!),
+                          ],
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: _view == _phoneView
+                                  ? (_canSend ? _sendOtp : null)
+                                  : (_canVerify ? _verifyOtp : null),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: FzColors.whatsapp,
+                                foregroundColor: const Color(0xFF1A1400),
+                                disabledBackgroundColor: FzColors.darkSurface3,
+                                disabledForegroundColor: muted,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: FzRadii.cardAltRadius,
+                                ),
+                                textStyle: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              child: _loading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CupertinoActivityIndicator(
+                                        color: Color(0xFF1A1400),
+                                      ),
+                                    )
+                                  : Text(
+                                      _view == _phoneView
+                                          ? 'SEND CODE VIA WHATSAPP'
+                                          : 'VERIFY CODE',
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Center(
+                            child: TextButton(
+                              onPressed: _loading
+                                  ? null
+                                  : () {
+                                      if (_view == _otpView) {
+                                        setState(() {
+                                          _view = _phoneView;
+                                          _error = null;
+                                          for (final c in _otpControllers) {
+                                            c.clear();
+                                          }
+                                        });
+                                      } else {
+                                        context.pop();
+                                      }
+                                    },
+                              child: Text(
+                                _view == _phoneView
+                                    ? 'Not Now'
+                                    : 'Use a Different Number',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  color: muted,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_view == _otpView) ...[
+                            const SizedBox(height: 2),
+                            Center(
+                              child: Text(
+                                'Your number is never shown to others.',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: muted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
+      ),
+    );
+  }
+}
+
+class _UpgradeStatusBanner extends StatelessWidget {
+  const _UpgradeStatusBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: FzColors.error.withValues(alpha: 0.10),
+        borderRadius: FzRadii.cardAltRadius,
+        border: Border.all(color: FzColors.error.withValues(alpha: 0.24)),
+      ),
+      child: Text(
+        message,
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(color: FzColors.darkText, height: 1.4),
       ),
     );
   }

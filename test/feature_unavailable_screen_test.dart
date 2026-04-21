@@ -10,7 +10,8 @@ void main() {
       const MaterialApp(home: FeatureUnavailableScreen(featureName: 'Predict')),
     );
 
-    expect(find.text('Predict is unavailable in this build'), findsOneWidget);
-    expect(find.text('Predict'), findsWidgets);
+    expect(find.text('Predict IS NOT LIVE'), findsOneWidget);
+    expect(find.text('UNAVAILABLE'), findsOneWidget);
+    expect(find.textContaining('Predict'), findsOneWidget);
   });
 }

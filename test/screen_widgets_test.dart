@@ -1,10 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/data/team_search_database.dart';
 import 'package:fanzone/features/fixtures/screens/fixtures_screen.dart';
 import 'package:fanzone/features/home/screens/home_feed_screen.dart';
@@ -45,6 +48,7 @@ import 'package:fanzone/services/notification_service.dart';
 import 'package:fanzone/services/pool_service.dart';
 import 'package:fanzone/services/team_community_service.dart';
 import 'package:fanzone/services/wallet_service.dart';
+import 'package:fanzone/theme/app_theme.dart';
 
 import 'support/test_app.dart';
 import 'support/test_fakes.dart';
@@ -59,9 +63,7 @@ void main() {
         final selectedDate = DateTime(today.year, today.month, today.day);
         final feedFilter = MatchesFilter(
           dateFrom: selectedDate.toIso8601String(),
-          dateTo: selectedDate
-              .add(const Duration(days: 7))
-              .toIso8601String(),
+          dateTo: selectedDate.add(const Duration(days: 7)).toIso8601String(),
           limit: 200,
           ascending: true,
         );
@@ -101,10 +103,10 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 150));
 
-        expect(find.text('Predictions'), findsOneWidget);
+        expect(find.text('Predictions'), findsNothing);
         expect(find.text('Live Action'), findsOneWidget);
         expect(find.text('Upcoming'), findsOneWidget);
-        expect(find.byTooltip('Create pool'), findsOneWidget);
+        expect(find.byTooltip('Create pool'), findsNothing);
         expect(
           find.byKey(const ValueKey('home-match-card-home_live')),
           findsOneWidget,
@@ -190,6 +192,24 @@ void main() {
     testWidgets('create pool screen renders the live route entry state', (
       tester,
     ) async {
+      final now = DateTime.now();
+      final start = DateTime(now.year, now.month, now.day);
+      final end = start.add(const Duration(days: 14));
+      final createPoolFilter = MatchesFilter(
+        dateFrom:
+            '${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}',
+        dateTo:
+            '${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}',
+        limit: 24,
+        ascending: true,
+      );
+      final poolMatch = sampleMatch(
+        homeTeam: 'Girona FC',
+        awayTeam: 'Real Betis Balompié',
+        date: start,
+        kickoffTime: '21:30',
+      );
+
       await pumpAppScreen(
         tester,
         const CreatePoolScreen(),
@@ -197,6 +217,9 @@ void main() {
           poolServiceProvider.overrideWith(
             () => FakePoolService([samplePool()]),
           ),
+          matchesProvider(
+            createPoolFilter,
+          ).overrideWith((ref) async => [poolMatch]),
           myEntriesProvider.overrideWith(() => FakeMyEntries([])),
           currentUserProvider.overrideWith((ref) => null),
           isAuthenticatedProvider.overrideWith((ref) => false),
@@ -208,6 +231,7 @@ void main() {
       expect(find.text('Create'), findsOneWidget);
       expect(find.text('New Pool'), findsOneWidget);
       expect(find.text('Select a Match'), findsOneWidget);
+      expect(find.text('Girona FC vs Real Betis Balompié'), findsOneWidget);
     });
 
     testWidgets('wallet screen renders balance and history', (tester) async {
@@ -609,7 +633,7 @@ void main() {
       expect(find.text('Liverpool'), findsAtLeastNWidgets(1));
       expect(find.text('Arsenal'), findsAtLeastNWidgets(1));
       expect(find.text('Predict'), findsOneWidget);
-      expect(find.text('H2H'), findsOneWidget);
+      expect(find.text('Comments'), findsOneWidget);
       expect(find.byTooltip('Share match'), findsOneWidget);
     });
 
@@ -662,8 +686,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Fixtures'), findsOneWidget);
-        expect(find.text('This Week'), findsOneWidget);
-        expect(find.textContaining('Today'), findsOneWidget);
+        expect(find.text('LIVE'), findsOneWidget);
         expect(find.byTooltip('Search fixtures'), findsOneWidget);
 
         await tester.tap(find.byTooltip('Competitions'));
@@ -673,6 +696,173 @@ void main() {
         expect(find.text('For You'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'fixtures open pools action switches to the pools shell branch',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final sharedPreferences = await SharedPreferences.getInstance();
+        tester.view
+          ..physicalSize = const Size(390, 844)
+          ..devicePixelRatio = 1;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final today = DateTime.now();
+        final selectedDate = DateTime(today.year, today.month, today.day);
+        final sampleLeague = sampleCompetition(
+          id: 'la_liga',
+          name: 'La Liga',
+          shortName: 'LL',
+          country: 'Spain',
+        );
+
+        final router = GoRouter(
+          initialLocation: '/fixtures',
+          routes: [
+            StatefulShellRoute.indexedStack(
+              builder: (context, state, navigationShell) =>
+                  Scaffold(body: navigationShell),
+              branches: [
+                StatefulShellBranch(
+                  routes: [
+                    GoRoute(
+                      path: '/',
+                      builder: (context, state) => const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+                StatefulShellBranch(
+                  routes: [
+                    GoRoute(
+                      path: '/fixtures',
+                      builder: (context, state) => const FixturesScreen(),
+                    ),
+                  ],
+                ),
+                StatefulShellBranch(
+                  routes: [
+                    GoRoute(
+                      path: '/pools',
+                      builder: (context, state) => const Scaffold(
+                        body: Center(child: Text('Pools destination')),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+              competitionsProvider.overrideWith((ref) async => [sampleLeague]),
+              top5EuropeanLeaguesProvider.overrideWith(
+                (ref) async => [sampleLeague],
+              ),
+              localLeaguesProvider(
+                'malta',
+              ).overrideWith((ref) async => const []),
+              favoriteTeamRecordsProvider.overrideWith((ref) async => const []),
+              teamsProvider.overrideWith((ref) async => const []),
+              matchesByDateProvider(selectedDate).overrideWith(
+                (ref) => Stream.value([
+                  sampleMatch(
+                    id: 'fixture_match',
+                    date: selectedDate,
+                    competitionId: 'la_liga',
+                    homeTeam: 'Girona FC',
+                    awayTeam: 'Real Betis Balompié',
+                  ),
+                ]),
+              ),
+              favouritesProvider.overrideWith(
+                () => _StaticFavouritesNotifier(const FavouritesState()),
+              ),
+            ],
+            child: MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              theme: FzTheme.dark(),
+              darkTheme: FzTheme.dark(),
+              themeMode: ThemeMode.dark,
+              routerConfig: router,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Fixtures'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Open pools').first);
+        await tester.pumpAndSettle();
+
+        expect(find.text('Pools destination'), findsOneWidget);
+      },
+    );
+
+    testWidgets('fixture action buttons expose tappable semantics', (
+      tester,
+    ) async {
+      final today = DateTime.now();
+      final selectedDate = DateTime(today.year, today.month, today.day);
+      final sampleLeague = sampleCompetition(
+        id: 'la_liga',
+        name: 'La Liga',
+        shortName: 'LL',
+        country: 'Spain',
+      );
+
+      await pumpAppScreen(
+        tester,
+        const FixturesScreen(),
+        overrides: [
+          competitionsProvider.overrideWith((ref) async => [sampleLeague]),
+          top5EuropeanLeaguesProvider.overrideWith(
+            (ref) async => [sampleLeague],
+          ),
+          localLeaguesProvider('malta').overrideWith((ref) async => const []),
+          favoriteTeamRecordsProvider.overrideWith((ref) async => const []),
+          teamsProvider.overrideWith((ref) async => const []),
+          matchesByDateProvider(selectedDate).overrideWith(
+            (ref) => Stream.value([
+              sampleMatch(
+                id: 'fixture_match',
+                date: selectedDate,
+                competitionId: 'la_liga',
+                homeTeam: 'Girona FC',
+                awayTeam: 'Real Betis Balompié',
+              ),
+            ]),
+          ),
+          favouritesProvider.overrideWith(
+            () => _StaticFavouritesNotifier(const FavouritesState()),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getSemantics(find.byTooltip('Open match').first),
+        matchesSemantics(
+          label: 'Open match',
+          isButton: true,
+          hasTapAction: true,
+        ),
+      );
+      expect(
+        tester.getSemantics(find.byTooltip('Open pools').first),
+        matchesSemantics(
+          label: 'Open pools',
+          isButton: true,
+          hasTapAction: true,
+        ),
+      );
+    });
   });
 }
 

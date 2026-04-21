@@ -1,514 +1,618 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../core/media/cdn_url_resolver.dart';
-import '../../../core/media/fz_image_cache_manager.dart';
-import '../../../core/utils/currency_utils.dart';
-import '../../../models/marketplace_model.dart';
-import '../../../providers/auth_provider.dart';
-import '../../../providers/currency_provider.dart';
-import '../../../services/marketplace_service.dart';
 import '../../../services/wallet_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
-import '../../../widgets/common/state_view.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
-class RewardsScreen extends ConsumerWidget {
+class RewardsScreen extends ConsumerStatefulWidget {
   const RewardsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final offersAsync = ref.watch(marketplaceOffersProvider);
-    final redemptionsAsync = ref.watch(marketplaceRedemptionsProvider);
+  ConsumerState<RewardsScreen> createState() => _RewardsScreenState();
+}
+
+class _RewardsScreenState extends ConsumerState<RewardsScreen> {
+  RewardItemData? _activeReward;
+
+  @override
+  Widget build(BuildContext context) {
     final balanceAsync = ref.watch(walletServiceProvider);
-    final isAuthenticated = ref.watch(isAuthenticatedProvider);
-    final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'REWARDS',
-          style: FzTypography.display(size: 28, color: textColor),
-        ),
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(marketplaceOffersProvider);
-          ref.invalidate(marketplaceRedemptionsProvider);
-          ref.invalidate(walletServiceProvider);
-        },
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            FzCard(
-              padding: const EdgeInsets.all(18),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: FzColors.secondary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(LucideIcons.gift, color: FzColors.secondary),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Redeem your FET with local partners',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Use fan engagement tokens on rewards, experiences, and exclusive offers.',
-                          style: TextStyle(fontSize: 12, color: muted),
-                        ),
-                      ],
-                    ),
-                  ),
-                  balanceAsync.when(
-                    data: (balance) =>
-                        _BalancePill(balance: balance, currencyCode: currency),
-                    loading: () => const _BalancePill(balanceLabel: '...'),
-                    error: (_, _) => const _BalancePill(balanceLabel: '—'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'AVAILABLE NOW',
-              style: FzTypography.sectionLabel(Theme.of(context).brightness),
-            ),
-            const SizedBox(height: 10),
-            offersAsync.when(
-              data: (offers) {
-                if (offers.isEmpty) {
-                  return StateView.empty(
-                    title: 'No rewards live',
-                    subtitle: 'New partner offers will show up here.',
-                    icon: LucideIcons.gift,
-                  );
-                }
-
-                return Column(
-                  children: offers
-                      .map(
-                        (offer) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _OfferCard(
-                            offer: offer,
-                            currencyCode: currency,
-                            canRedeem: isAuthenticated,
-                            onRedeem: () => _redeem(context, ref, offer),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: FzGlassLoader(message: 'Syncing...'),
-              ),
-              error: (_, _) => StateView.error(
-                title: 'Could not load rewards',
-                subtitle: 'Try again in a moment.',
-                onRetry: () => ref.invalidate(marketplaceOffersProvider),
-              ),
-            ),
-            if (isAuthenticated) ...[
-              const SizedBox(height: 20),
+      body: Stack(
+        children: [
+          ListView(
+            padding: const EdgeInsets.fromLTRB(24, 32, 24, 120),
+            children: [
               Text(
-                'MY REDEMPTIONS',
-                style: FzTypography.sectionLabel(Theme.of(context).brightness),
+                'REWARDS STORE',
+                style: FzTypography.display(
+                  size: 32,
+                  color: textColor,
+                  letterSpacing: 1.8,
+                ),
               ),
-              const SizedBox(height: 10),
-              redemptionsAsync.when(
-                data: (redemptions) {
-                  if (redemptions.isEmpty) {
-                    return FzCard(
-                      padding: const EdgeInsets.all(16),
+              const SizedBox(height: 8),
+              Text(
+                'Redeem your FET for exclusive rewards',
+                style: TextStyle(fontSize: 14, color: muted),
+              ),
+              const SizedBox(height: 24),
+              FzCard(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Expanded(
                       child: Text(
-                        'Your reward history will appear here once you redeem an offer.',
-                        style: TextStyle(fontSize: 12, color: muted),
+                        'Your Balance',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: muted,
+                        ),
                       ),
-                    );
-                  }
-                  return Column(
-                    children: redemptions
-                        .map(
-                          (item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: _RedemptionCard(
-                              item: item,
-                              currencyCode: currency,
-                            ),
-                          ),
-                        )
-                        .toList(),
+                    ),
+                    balanceAsync.when(
+                      data: (balance) => Text(
+                        '$balance FET',
+                        style: FzTypography.score(
+                          size: 28,
+                          weight: FontWeight.w700,
+                          color: FzColors.coral,
+                        ),
+                      ),
+                      loading: () => const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      error: (_, _) => Text(
+                        '—',
+                        style: FzTypography.score(
+                          size: 28,
+                          weight: FontWeight.w700,
+                          color: FzColors.coral,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: kRewards.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 1,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 2.2,
+                ),
+                itemBuilder: (context, index) {
+                  final reward = kRewards[index];
+                  return _RewardCard(
+                    reward: reward,
+                    onTap: () => setState(() => _activeReward = reward),
                   );
                 },
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: FzGlassLoader(message: 'Syncing...'),
-                ),
-                error: (_, _) => StateView.error(
-                  title: 'Could not load redemption history',
-                  subtitle: 'Pull to refresh and try again.',
-                  onRetry: () => ref.invalidate(marketplaceRedemptionsProvider),
-                ),
               ),
             ],
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _redeem(
-    BuildContext context,
-    WidgetRef ref,
-    MarketplaceOffer offer,
-  ) async {
-    final currency = ref.read(userCurrencyProvider).valueOrNull ?? 'EUR';
-    final messenger = ScaffoldMessenger.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Redeem ${offer.title}?'),
-        content: Text(
-          'This will spend ${formatFET(offer.costFet, currency)} on ${offer.partnerName}.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Redeem'),
+          _RewardWizard(
+            reward: _activeReward,
+            balance: balanceAsync.valueOrNull ?? 0,
+            onClose: () => setState(() => _activeReward = null),
           ),
         ],
       ),
     );
-
-    if (confirmed != true || !context.mounted) return;
-
-    try {
-      final result = await ref
-          .read(marketplaceServiceProvider)
-          .redeemOffer(offer.id);
-
-      if (!context.mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Reward ready'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('${offer.title} from ${offer.partnerName} is ready.'),
-              if ((result.deliveryValue ?? '').isNotEmpty) ...[
-                const SizedBox(height: 12),
-                const Text(
-                  'Code',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 6),
-                SelectableText(
-                  result.deliveryValue!,
-                  style: FzTypography.scoreMedium(color: FzColors.primary),
-                ),
-              ],
-              const SizedBox(height: 12),
-              Text(
-                'Balance after redemption: ${formatFET(result.balanceAfter, currency)}',
-              ),
-            ],
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Done'),
-            ),
-          ],
-        ),
-      );
-    } catch (error) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(error.toString().replaceFirst('Bad state: ', '')),
-        ),
-      );
-    }
   }
 }
 
-class _BalancePill extends StatelessWidget {
-  const _BalancePill({this.balance, this.balanceLabel, this.currencyCode});
-
-  final int? balance;
-  final String? balanceLabel;
-  final String? currencyCode;
-
-  @override
-  Widget build(BuildContext context) {
-    final label =
-        balanceLabel ?? formatFET(balance ?? 0, currencyCode ?? 'EUR');
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: FzColors.secondary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: FzColors.secondary,
-        ),
-      ),
-    );
-  }
-}
-
-class _OfferCard extends StatelessWidget {
-  const _OfferCard({
-    required this.offer,
-    required this.currencyCode,
-    required this.canRedeem,
-    required this.onRedeem,
+class RewardItemData {
+  const RewardItemData({
+    required this.id,
+    required this.title,
+    required this.category,
+    required this.cost,
+    required this.icon,
+    this.requiresPhone = false,
   });
 
-  final MarketplaceOffer offer;
-  final String currencyCode;
-  final bool canRedeem;
-  final VoidCallback onRedeem;
+  final String id;
+  final String title;
+  final String category;
+  final int cost;
+  final IconData icon;
+  final bool requiresPhone;
+}
+
+const kRewards = <RewardItemData>[
+  RewardItemData(
+    id: 'airtime',
+    title: 'Mobile Airtime',
+    category: 'Utility',
+    cost: 500,
+    icon: LucideIcons.smartphone,
+    requiresPhone: true,
+  ),
+  RewardItemData(
+    id: 'badge',
+    title: 'Premium Badge',
+    category: 'Cosmetic',
+    cost: 200,
+    icon: LucideIcons.star,
+  ),
+  RewardItemData(
+    id: 'jackpot',
+    title: 'Jackpot Entry',
+    category: 'Gameplay',
+    cost: 100,
+    icon: LucideIcons.zap,
+  ),
+  RewardItemData(
+    id: 'voucher',
+    title: 'Partner Voucher',
+    category: 'Utility',
+    cost: 1000,
+    icon: LucideIcons.gift,
+  ),
+];
+
+class _RewardCard extends ConsumerWidget {
+  const _RewardCard({required this.reward, required this.onTap});
+
+  final RewardItemData reward;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final balance = ref.watch(walletServiceProvider).valueOrNull ?? 0;
+    final canAfford = balance >= reward.cost;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     return FzCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: FzColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: (isDark
+                      ? FzColors.darkSurface2
+                      : FzColors.lightSurface2),
+                  shape: BoxShape.circle,
                 ),
-                child:
-                    offer.partnerLogoUrl != null &&
-                        offer.partnerLogoUrl!.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: CachedNetworkImage(
-                          imageUrl: CdnUrlResolver.resolveImageUrl(
-                            offer.partnerLogoUrl!,
-                            width: 88,
-                          ),
-                          cacheManager: FzImageCacheManager.instance,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, _, _) => const Icon(
-                            LucideIcons.store,
-                            color: FzColors.primary,
-                          ),
-                        ),
-                      )
-                    : const Icon(LucideIcons.store, color: FzColors.primary),
+                child: Icon(reward.icon, color: FzColors.primary),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      offer.title,
+                      reward.title,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      offer.partnerName,
-                      style: TextStyle(fontSize: 12, color: muted),
-                    ),
-                  ],
-                ),
-              ),
-              _BalancePill(
-                balanceLabel: formatFET(offer.costFet, currencyCode),
-              ),
-            ],
-          ),
-          if ((offer.description ?? '').isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              offer.description!,
-              style: TextStyle(fontSize: 12, color: muted, height: 1.4),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _MetaChip(label: offer.deliveryType.toUpperCase()),
-              if ((offer.originalValue ?? '').isNotEmpty)
-                _MetaChip(label: offer.originalValue!),
-              if (offer.stock != null) _MetaChip(label: '${offer.stock} left'),
-              if (offer.validUntil != null)
-                _MetaChip(
-                  label:
-                      'Valid until ${offer.validUntil!.day}/${offer.validUntil!.month}',
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: canRedeem ? onRedeem : null,
-              icon: const Icon(LucideIcons.gift, size: 16),
-              label: Text(canRedeem ? 'Redeem reward' : 'Sign in to redeem'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RedemptionCard extends StatelessWidget {
-  const _RedemptionCard({required this.item, required this.currencyCode});
-
-  final MarketplaceRedemption item;
-  final String currencyCode;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final statusColor = switch (item.status) {
-      'fulfilled' => FzColors.success,
-      'used' => FzColors.primary,
-      'expired' => FzColors.error,
-      _ => FzColors.secondary,
-    };
-
-    return FzCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
                     const SizedBox(height: 4),
                     Text(
-                      item.partnerName,
-                      style: TextStyle(fontSize: 12, color: muted),
+                      reward.category.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: muted,
+                        letterSpacing: 1.2,
+                      ),
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  item.status.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: statusColor,
-                  ),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            '${formatFET(item.costFet, currencyCode)} • ${item.deliveryType.toUpperCase()} • ${item.redeemedAt.day}/${item.redeemedAt.month}/${item.redeemedAt.year}',
-            style: TextStyle(fontSize: 12, color: muted),
-          ),
-          if ((item.deliveryValue ?? '').isNotEmpty) ...[
-            const SizedBox(height: 8),
-            SelectableText(
-              item.deliveryValue!,
-              style: FzTypography.scoreCompact(color: FzColors.primary),
+          const Spacer(),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: canAfford ? onTap : null,
+              child: Text(
+                'Redeem ${reward.cost} FET',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
-          ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.label});
+enum _RewardWizardStep { details, processing, success }
 
-  final String label;
+class _RewardWizard extends StatefulWidget {
+  const _RewardWizard({
+    required this.reward,
+    required this.balance,
+    required this.onClose,
+  });
+
+  final RewardItemData? reward;
+  final int balance;
+  final VoidCallback onClose;
+
+  @override
+  State<_RewardWizard> createState() => _RewardWizardState();
+}
+
+class _RewardWizardState extends State<_RewardWizard> {
+  _RewardWizardStep _step = _RewardWizardStep.details;
+  final _phoneController = TextEditingController();
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _resetAndClose() {
+    _timer?.cancel();
+    _phoneController.clear();
+    setState(() => _step = _RewardWizardStep.details);
+    widget.onClose();
+  }
+
+  void _redeem() {
+    setState(() => _step = _RewardWizardStep.processing);
+    _timer = Timer(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      setState(() => _step = _RewardWizardStep.success);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final reward = widget.reward;
+    if (reward == null) return const SizedBox.shrink();
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: isDark ? FzColors.darkText : FzColors.lightText,
+    final bg = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+    final surface = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final canSubmit =
+        !reward.requiresPhone || _phoneController.text.trim().length >= 8;
+
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
+            onTap: _step == _RewardWizardStep.processing
+                ? null
+                : _resetAndClose,
+            child: Container(color: Colors.black.withValues(alpha: 0.72)),
+          ),
         ),
-      ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(32),
+              ),
+              border: Border(top: BorderSide(color: border)),
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
+            child: SafeArea(
+              top: false,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: switch (_step) {
+                  _RewardWizardStep.details => Column(
+                    key: const ValueKey('reward-details'),
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: surface,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(reward.icon, color: FzColors.primary),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            onPressed: _resetAndClose,
+                            icon: const Icon(LucideIcons.x, size: 18),
+                            style: IconButton.styleFrom(
+                              backgroundColor: surface,
+                              foregroundColor: muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        reward.title,
+                        style: FzTypography.display(
+                          size: 28,
+                          color: textColor,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${reward.category.toUpperCase()} • ${reward.cost} FET',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: muted,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      if (reward.requiresPhone) ...[
+                        const SizedBox(height: 20),
+                        Text(
+                          'Mobile Money Number',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: muted,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          onChanged: (_) => setState(() {}),
+                          decoration: InputDecoration(
+                            hintText: 'e.g. 078XXXXXXX',
+                            filled: true,
+                            fillColor: surface,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(color: border),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(color: border),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: const BorderSide(
+                                color: FzColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Rewards will be sent directly to this number.',
+                          style: TextStyle(fontSize: 12, color: muted),
+                        ),
+                      ],
+                      const SizedBox(height: 18),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: border),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Current Balance',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: muted,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${widget.balance} FET',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: FzColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: canSubmit ? _redeem : null,
+                          child: const Text('CONFIRM REDEMPTION'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  _RewardWizardStep.processing => const SizedBox(
+                    key: ValueKey('reward-processing'),
+                    height: 220,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 42,
+                            height: 42,
+                            child: FzGlassLoader(useBackdrop: false, size: 42),
+                          ),
+                          SizedBox(height: 18),
+                          Text(
+                            'Processing...',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: FzColors.darkText,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            'Connecting to fulfillment partner',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: FzColors.darkMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  _RewardWizardStep.success => Column(
+                    key: const ValueKey('reward-success'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: FzColors.success.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          LucideIcons.checkCircle2,
+                          size: 40,
+                          color: FzColors.success,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(
+                        'Redemption Successful!',
+                        style: FzTypography.display(
+                          size: 24,
+                          color: textColor,
+                          letterSpacing: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '-${reward.cost} FET',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: FzColors.coral,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: surface,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: border),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'RECEIPT ID',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: muted,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'RWD-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).toUpperCase()}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'REWARD',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: muted,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              reward.title,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
+                              ),
+                            ),
+                            if (reward.requiresPhone) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                'DELIVERED TO',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: muted,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _phoneController.text.trim(),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: _resetAndClose,
+                          child: const Text('Done'),
+                        ),
+                      ),
+                    ],
+                  ),
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

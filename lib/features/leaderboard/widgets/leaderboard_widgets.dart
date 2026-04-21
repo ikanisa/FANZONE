@@ -57,29 +57,14 @@ String formatCompactFet(int value) {
 }
 
 // ──────────────────────────────────────────────
-// Seed / fallback data
+// Production-safe fallback data
 // ──────────────────────────────────────────────
 
-const List<StandardLeaderboardEntry> weeklyEntries = <StandardLeaderboardEntry>[
-  StandardLeaderboardEntry(rank: 1, name: 'SpartanKing', fetValue: 15200),
-  StandardLeaderboardEntry(rank: 2, name: 'MaltaFan', fetValue: 12400),
-  StandardLeaderboardEntry(rank: 3, name: 'PacevillePro', fetValue: 10100),
-  StandardLeaderboardEntry(rank: 4, name: 'User_4', fetValue: 6500),
-  StandardLeaderboardEntry(rank: 5, name: 'User_5', fetValue: 5500),
-  StandardLeaderboardEntry(rank: 6, name: 'User_6', fetValue: 4500),
-  StandardLeaderboardEntry(rank: 7, name: 'User_7', fetValue: 3500),
-  StandardLeaderboardEntry(rank: 8, name: 'User_8', fetValue: 2500),
-];
+const List<StandardLeaderboardEntry> weeklyEntries =
+    <StandardLeaderboardEntry>[];
 
 const List<StandardLeaderboardEntry> friendsEntries =
-    <StandardLeaderboardEntry>[
-      StandardLeaderboardEntry(rank: 1, name: 'Marco_B', fetValue: 9800),
-      StandardLeaderboardEntry(rank: 2, name: 'Sarah_G', fetValue: 9100),
-      StandardLeaderboardEntry(rank: 3, name: 'Jake_C', fetValue: 8400),
-      StandardLeaderboardEntry(rank: 4, name: 'Isla_F', fetValue: 7600),
-      StandardLeaderboardEntry(rank: 5, name: 'Daniel_G', fetValue: 6900),
-      StandardLeaderboardEntry(rank: 6, name: 'Maria_T', fetValue: 6200),
-    ];
+    <StandardLeaderboardEntry>[];
 
 const List<FanClubEntry> fanClubEntries = <FanClubEntry>[
   FanClubEntry(

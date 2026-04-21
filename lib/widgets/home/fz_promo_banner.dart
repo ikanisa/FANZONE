@@ -152,18 +152,26 @@ class _FzPromoBannerState extends State<FzPromoBanner>
                     children: [
                       GestureDetector(
                         onTap: _dismiss,
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: FzColors.darkSurface2,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: FzColors.darkBorder),
-                          ),
-                          child: const Icon(
-                            LucideIcons.x,
-                            size: 12,
-                            color: FzColors.darkMuted,
+                        excludeFromSemantics: true,
+                        child: Semantics(
+                          button: true,
+                          label: 'Dismiss promotion',
+                          onTap: _dismiss,
+                          child: ExcludeSemantics(
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: FzColors.darkSurface2,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: FzColors.darkBorder),
+                              ),
+                              child: const Icon(
+                                LucideIcons.x,
+                                size: 12,
+                                color: FzColors.darkMuted,
+                              ),
+                            ),
                           ),
                         ),
                       ),

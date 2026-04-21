@@ -1,6 +1,6 @@
 part of '../screens/predict_screen.dart';
 
-enum _CreatePoolStep { selectMatch, predictScore, setStake }
+enum _CreatePoolStep { selectMatch, predictScore, setStake, confirm }
 
 class CreatePoolScreen extends ConsumerStatefulWidget {
   const CreatePoolScreen({super.key});
@@ -92,12 +92,64 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
         : _step;
     final canAffordStake = balance >= _stake.round();
     final isAffordable = !isAuthenticated || canAffordStake;
+    final stepBody = switch (effectiveStep) {
+      _CreatePoolStep.selectMatch => _MatchSelectionStep(
+        key: const ValueKey('match-selection-step'),
+        matchesAsync: matchesAsync,
+        matches: availableMatches,
+        onRetry: () => ref.invalidate(matchesProvider(_matchFilter)),
+        onSelectMatch: _handleSelectMatch,
+        formatTime: _formatMatchTime,
+      ),
+      _CreatePoolStep.predictScore when selectedMatch != null =>
+        _ScorePredictionStep(
+          key: const ValueKey('score-prediction-step'),
+          match: selectedMatch,
+          homeScore: _homeScore,
+          awayScore: _awayScore,
+          onIncrementHome: () => _adjustScore(home: true, delta: 1),
+          onDecrementHome: () => _adjustScore(home: true, delta: -1),
+          onIncrementAway: () => _adjustScore(home: false, delta: 1),
+          onDecrementAway: () => _adjustScore(home: false, delta: -1),
+          onContinue: _goToStake,
+        ),
+      _CreatePoolStep.setStake when selectedMatch != null => _StakeStep(
+        key: const ValueKey('stake-step'),
+        stake: _stake,
+        currency: currency,
+        balanceLabel: isAuthenticated
+            ? formatFETCompact(balance)
+            : 'Sign in to view',
+        isAffordable: isAffordable,
+        onStakeChanged: (value) => setState(() => _stake = value),
+        onContinue: _goToConfirm,
+      ),
+      _CreatePoolStep.confirm when selectedMatch != null => _ConfirmStep(
+        key: const ValueKey('confirm-step'),
+        match: selectedMatch,
+        homeScore: _homeScore,
+        awayScore: _awayScore,
+        stake: _stake.round(),
+        currency: currency,
+        isAffordable: isAffordable,
+        isSubmitting: _submitting,
+        onCreate: _createPool,
+      ),
+      _ => _MatchSelectionStep(
+        key: const ValueKey('match-selection-step'),
+        matchesAsync: matchesAsync,
+        matches: availableMatches,
+        onRetry: () => ref.invalidate(matchesProvider(_matchFilter)),
+        onSelectMatch: _handleSelectMatch,
+        formatTime: _formatMatchTime,
+      ),
+    };
 
     return Scaffold(
       backgroundColor: FzColors.darkBg,
       body: Column(
         children: [
-          _CreatePoolHeader(onBack: _handleBack),
+          _CreatePoolHeader(step: effectiveStep, onBack: _handleBack),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 156),
@@ -108,71 +160,7 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
                     _WizardErrorBanner(message: _error!),
                     const SizedBox(height: 18),
                   ],
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
-                    switchInCurve: Curves.easeOut,
-                    switchOutCurve: Curves.easeIn,
-                    transitionBuilder: (child, animation) {
-                      final offset = Tween<Offset>(
-                        begin: const Offset(0.06, 0),
-                        end: Offset.zero,
-                      ).animate(animation);
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(position: offset, child: child),
-                      );
-                    },
-                    child: KeyedSubtree(
-                      key: ValueKey(effectiveStep),
-                      child: switch (effectiveStep) {
-                        _CreatePoolStep.selectMatch => _MatchSelectionStep(
-                          matchesAsync: matchesAsync,
-                          matches: availableMatches,
-                          onRetry: () =>
-                              ref.invalidate(matchesProvider(_matchFilter)),
-                          onSelectMatch: _handleSelectMatch,
-                          formatTime: _formatMatchTime,
-                        ),
-                        _CreatePoolStep.predictScore
-                            when selectedMatch != null =>
-                          _ScorePredictionStep(
-                            match: selectedMatch,
-                            homeScore: _homeScore,
-                            awayScore: _awayScore,
-                            onIncrementHome: () =>
-                                _adjustScore(home: true, delta: 1),
-                            onDecrementHome: () =>
-                                _adjustScore(home: true, delta: -1),
-                            onIncrementAway: () =>
-                                _adjustScore(home: false, delta: 1),
-                            onDecrementAway: () =>
-                                _adjustScore(home: false, delta: -1),
-                            onContinue: _goToStake,
-                          ),
-                        _CreatePoolStep.setStake when selectedMatch != null =>
-                          _StakeStep(
-                            stake: _stake,
-                            currency: currency,
-                            balanceLabel: isAuthenticated
-                                ? formatFETCompact(balance)
-                                : 'Sign in to view',
-                            isAffordable: isAffordable,
-                            isSubmitting: _submitting,
-                            onStakeChanged: (value) =>
-                                setState(() => _stake = value),
-                            onCreate: _createPool,
-                          ),
-                        _ => _MatchSelectionStep(
-                          matchesAsync: matchesAsync,
-                          matches: availableMatches,
-                          onRetry: () =>
-                              ref.invalidate(matchesProvider(_matchFilter)),
-                          onSelectMatch: _handleSelectMatch,
-                          formatTime: _formatMatchTime,
-                        ),
-                      },
-                    ),
-                  ),
+                  stepBody,
                   if (selectedMatch != null) ...[
                     const SizedBox(height: 18),
                     Text(
@@ -210,6 +198,18 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
   }
 
   void _handleBack() {
+    if (_step == _CreatePoolStep.confirm) {
+      setState(() => _step = _CreatePoolStep.setStake);
+      return;
+    }
+    if (_step == _CreatePoolStep.setStake) {
+      setState(() => _step = _CreatePoolStep.predictScore);
+      return;
+    }
+    if (_step == _CreatePoolStep.predictScore) {
+      setState(() => _step = _CreatePoolStep.selectMatch);
+      return;
+    }
     final navigator = Navigator.of(context);
     if (navigator.canPop()) {
       context.pop();
@@ -242,6 +242,13 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
   void _goToStake() {
     setState(() {
       _step = _CreatePoolStep.setStake;
+      _error = null;
+    });
+  }
+
+  void _goToConfirm() {
+    setState(() {
+      _step = _CreatePoolStep.confirm;
       _error = null;
     });
   }
@@ -281,8 +288,9 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
 }
 
 class _CreatePoolHeader extends StatelessWidget {
-  const _CreatePoolHeader({required this.onBack});
+  const _CreatePoolHeader({required this.step, required this.onBack});
 
+  final _CreatePoolStep step;
   final VoidCallback onBack;
 
   @override
@@ -293,42 +301,142 @@ class _CreatePoolHeader extends StatelessWidget {
         color: FzColors.darkSurface.withValues(alpha: 0.92),
         border: const Border(bottom: BorderSide(color: FzColors.darkBorder)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          IconButton(
-            onPressed: onBack,
-            splashRadius: 22,
-            icon: const Icon(
-              LucideIcons.chevronLeft,
-              size: 24,
-              color: FzColors.darkText,
+          Row(
+            children: [
+              IconButton(
+                onPressed: onBack,
+                splashRadius: 22,
+                icon: const Icon(
+                  LucideIcons.chevronLeft,
+                  size: 24,
+                  color: FzColors.darkText,
+                ),
+              ),
+              const Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      'Create',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: FzColors.darkMuted,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'New Pool',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: FzColors.darkText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 48),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _CreatePoolProgress(step: step),
+        ],
+      ),
+    );
+  }
+}
+
+class _CreatePoolProgress extends StatelessWidget {
+  const _CreatePoolProgress({required this.step});
+
+  final _CreatePoolStep step;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeIndex = switch (step) {
+      _CreatePoolStep.selectMatch => 0,
+      _CreatePoolStep.predictScore => 1,
+      _CreatePoolStep.setStake => 2,
+      _CreatePoolStep.confirm => 3,
+    };
+    const labels = ['Match', 'Predict', 'Stake', 'Confirm'];
+
+    return SizedBox(
+      height: 44,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: 20,
+            right: 20,
+            child: Container(height: 2, color: FzColors.darkSurface3),
+          ),
+          Positioned(
+            left: 20,
+            right: 20,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: activeIndex / 3,
+                child: Container(height: 2, color: FzColors.primary),
+              ),
             ),
           ),
-          const Expanded(
-            child: Column(
-              children: [
-                Text(
-                  'Create',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: FzColors.darkMuted,
-                    letterSpacing: 1.4,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(labels.length, (index) {
+              final isActive = index <= activeIndex;
+              final isComplete = index < activeIndex;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isActive ? FzColors.primary : FzColors.darkSurface,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isActive
+                            ? FzColors.primary
+                            : FzColors.darkSurface3,
+                        width: 2,
+                      ),
+                    ),
+                    child: isComplete
+                        ? const Icon(
+                            LucideIcons.check,
+                            size: 12,
+                            color: FzColors.darkBg,
+                          )
+                        : Text(
+                            '${index + 1}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: isActive
+                                  ? FzColors.darkBg
+                                  : FzColors.darkMuted,
+                            ),
+                          ),
                   ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'New Pool',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: FzColors.darkText,
+                  const SizedBox(height: 4),
+                  Text(
+                    labels[index],
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                      color: isActive ? FzColors.darkText : FzColors.darkMuted,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            }),
           ),
-          const SizedBox(width: 48),
         ],
       ),
     );
@@ -337,6 +445,7 @@ class _CreatePoolHeader extends StatelessWidget {
 
 class _MatchSelectionStep extends StatelessWidget {
   const _MatchSelectionStep({
+    super.key,
     required this.matchesAsync,
     required this.matches,
     required this.onRetry,
@@ -353,7 +462,6 @@ class _MatchSelectionStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      key: const ValueKey('match-selection-step'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _WizardStepTitle(
@@ -396,6 +504,7 @@ class _MatchSelectionStep extends StatelessWidget {
 
 class _ScorePredictionStep extends StatelessWidget {
   const _ScorePredictionStep({
+    super.key,
     required this.match,
     required this.homeScore,
     required this.awayScore,
@@ -418,7 +527,6 @@ class _ScorePredictionStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      key: const ValueKey('score-prediction-step'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _WizardStepTitle(
@@ -470,29 +578,27 @@ class _ScorePredictionStep extends StatelessWidget {
 
 class _StakeStep extends StatelessWidget {
   const _StakeStep({
+    super.key,
     required this.stake,
     required this.currency,
     required this.balanceLabel,
     required this.isAffordable,
-    required this.isSubmitting,
     required this.onStakeChanged,
-    required this.onCreate,
+    required this.onContinue,
   });
 
   final double stake;
   final String currency;
   final String balanceLabel;
   final bool isAffordable;
-  final bool isSubmitting;
   final ValueChanged<double> onStakeChanged;
-  final VoidCallback onCreate;
+  final VoidCallback onContinue;
 
   @override
   Widget build(BuildContext context) {
     final amount = stake.round();
 
     return Column(
-      key: const ValueKey('stake-step'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const _WizardStepTitle(
@@ -543,7 +649,7 @@ class _StakeStep extends StatelessWidget {
                   max: 5000,
                   divisions: 99,
                   value: stake.clamp(50, 5000),
-                  onChanged: isSubmitting ? null : onStakeChanged,
+                  onChanged: onStakeChanged,
                 ),
               ),
               const SizedBox(height: 8),
@@ -605,12 +711,199 @@ class _StakeStep extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         _WizardPrimaryButton(
-          label: isAffordable ? 'CREATE CHALLENGE' : 'INSUFFICIENT FUNDS',
-          onPressed: isAffordable && !isSubmitting ? onCreate : null,
-          isLoading: isSubmitting,
-          enabled: isAffordable && !isSubmitting,
+          label: isAffordable ? 'Review Challenge' : 'Insufficient Funds',
+          onPressed: isAffordable ? onContinue : null,
+          enabled: isAffordable,
         ),
       ],
+    );
+  }
+}
+
+class _ConfirmStep extends StatelessWidget {
+  const _ConfirmStep({
+    super.key,
+    required this.match,
+    required this.homeScore,
+    required this.awayScore,
+    required this.stake,
+    required this.currency,
+    required this.isAffordable,
+    required this.isSubmitting,
+    required this.onCreate,
+  });
+
+  final MatchModel match;
+  final int homeScore;
+  final int awayScore;
+  final int stake;
+  final String currency;
+  final bool isAffordable;
+  final bool isSubmitting;
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _WizardStepTitle(
+          title: 'Confirm Pool',
+          showDivider: true,
+          centered: false,
+        ),
+        const SizedBox(height: 24),
+        _ConfirmCard(
+          label: 'Target Match',
+          child: Row(
+            children: [
+              TeamCrest(
+                label: match.homeTeam,
+                crestUrl: match.homeLogoUrl,
+                size: 28,
+                backgroundColor: FzColors.darkSurface,
+                borderColor: FzColors.darkBorder,
+              ),
+              const SizedBox(width: 8),
+              TeamCrest(
+                label: match.awayTeam,
+                crestUrl: match.awayLogoUrl,
+                size: 28,
+                backgroundColor: FzColors.darkSurface,
+                borderColor: FzColors.darkBorder,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '${match.homeTeam} vs ${match.awayTeam}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: FzColors.darkText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        _ConfirmCard(
+          label: 'Your Prediction',
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  match.homeTeam,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: FzColors.darkText,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: FzColors.darkSurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: FzColors.darkBorder),
+                ),
+                child: Text(
+                  '$homeScore : $awayScore',
+                  style: FzTypography.score(
+                    size: 22,
+                    weight: FontWeight.w700,
+                    color: FzColors.darkText,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  match.awayTeam,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: FzColors.darkText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        _ConfirmCard(
+          label: 'Your Stake',
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Will be locked until the match settles',
+                  style: TextStyle(fontSize: 12, color: FzColors.darkMuted),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                formatFET(stake, currency),
+                style: FzTypography.score(
+                  size: 20,
+                  weight: FontWeight.w700,
+                  color: FzColors.secondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        _WizardPrimaryButton(
+          label: 'Confirm & Create Pool',
+          onPressed: isAffordable && !isSubmitting ? onCreate : null,
+          enabled: isAffordable && !isSubmitting,
+          isLoading: isSubmitting,
+        ),
+      ],
+    );
+  }
+}
+
+class _ConfirmCard extends StatelessWidget {
+  const _ConfirmCard({required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface2,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: FzColors.darkBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: FzColors.darkMuted,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
     );
   }
 }
@@ -681,6 +974,7 @@ class _MatchSelectionCard extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: 52,
+                    height: 32,
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [

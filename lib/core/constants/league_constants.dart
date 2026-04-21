@@ -8,6 +8,17 @@ library;
 import '../config/bootstrap_config.dart';
 import '../config/runtime_bootstrap.dart';
 
+const kRestOfWorldCompetitionRank = 1000;
+
+const kPriorityCompetitionIds = <String>[
+  'champions-league',
+  'epl',
+  'la-liga',
+  'ligue-1',
+  'bundesliga',
+  'serie-a',
+];
+
 /// The Big 5 European domestic league countries — always shown first.
 const kTop5EuropeanCountries = [
   'England',
@@ -96,4 +107,54 @@ String flagForCountry(String? country) {
 bool isTop5Country(String? country) {
   if (country == null) return false;
   return kTop5EuropeanCountries.contains(country);
+}
+
+String _normalizeCompetitionKey(String? value) {
+  return (value ?? '')
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+}
+
+int competitionCatalogRankByIdName(String? id, String? name) {
+  final normalizedId = _normalizeCompetitionKey(id);
+  final normalizedName = _normalizeCompetitionKey(name);
+
+  final combined = '$normalizedId $normalizedName'.trim();
+
+  if (combined.contains('champions league') ||
+      normalizedId == 'ucl' ||
+      normalizedId == 'uefa champions league') {
+    return 1;
+  }
+
+  if (normalizedId == 'epl' ||
+      normalizedName == 'premier league' ||
+      normalizedName == 'english premier league') {
+    return 2;
+  }
+
+  if (combined.contains('la liga')) {
+    return 3;
+  }
+
+  if (combined.contains('ligue 1')) {
+    return 4;
+  }
+
+  if (combined.contains('bundesliga')) {
+    return 5;
+  }
+
+  if (combined.contains('serie a')) {
+    return 6;
+  }
+
+  return kRestOfWorldCompetitionRank;
+}
+
+bool isPriorityCompetitionByIdName(String? id, String? name) {
+  return competitionCatalogRankByIdName(id, name) < kRestOfWorldCompetitionRank;
 }

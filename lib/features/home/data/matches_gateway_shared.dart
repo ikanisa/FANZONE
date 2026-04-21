@@ -13,9 +13,14 @@ Stream<T> pollMatchStream<T>(Future<T> Function() loader) {
     if (loading || controller.isClosed) return;
     loading = true;
     try {
-      controller.add(await loader());
+      final nextValue = await loader();
+      if (!controller.isClosed) {
+        controller.add(nextValue);
+      }
     } catch (error, stackTrace) {
-      controller.addError(error, stackTrace);
+      if (!controller.isClosed) {
+        controller.addError(error, stackTrace);
+      }
     } finally {
       loading = false;
     }

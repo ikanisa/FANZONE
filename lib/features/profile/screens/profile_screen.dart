@@ -15,6 +15,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../services/wallet_service.dart';
+import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../widgets/profile_sections.dart';
 
 /// User profile screen with real auth data, FET balance, quick links, and logout.
@@ -61,7 +62,7 @@ class ProfileScreen extends ConsumerWidget {
                   Tooltip(
                     message: 'Open settings',
                     child: InkWell(
-                      onTap: () => context.go('/settings'),
+                      onTap: () => context.push('/settings'),
                       borderRadius: FzRadii.fullRadius,
                       child: Container(
                         width: 40,
@@ -104,8 +105,14 @@ class ProfileScreen extends ConsumerWidget {
                 teams: favoriteTeamsAsync.valueOrNull ?? const [],
                 selectedTeamId: profileIdentity?.teamId,
               ),
-              onWalletTap: () => context.go('/wallet'),
-              onVerifyPhone: () => context.go('/login'),
+              onWalletTap: () => context.push('/wallet'),
+              onVerifyPhone: () => showSignInRequiredSheet(
+                context,
+                title: 'Verify WhatsApp',
+                message:
+                    'Verify your number to unlock your FANZONE profile, fan ID, and club features.',
+                from: '/profile',
+              ),
             ),
 
             const SizedBox(height: 12),
@@ -122,7 +129,13 @@ class ProfileScreen extends ConsumerWidget {
               onHelp: () =>
                   _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
               showVerifyAction: !isAuthenticated,
-              onVerifyPhone: () => context.go('/login'),
+              onVerifyPhone: () => showSignInRequiredSheet(
+                context,
+                title: 'Verify WhatsApp',
+                message:
+                    'Verify your number to unlock your FANZONE profile, fan ID, and club features.',
+                from: '/profile',
+              ),
               showSignOut: isAuthenticated,
               onSignOut: () async {
                 final authService = ref.read(authServiceProvider);

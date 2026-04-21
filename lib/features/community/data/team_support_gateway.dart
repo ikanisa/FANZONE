@@ -1,6 +1,7 @@
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
+import '../../../core/utils/team_name_cleanup.dart';
 import '../../../models/team_contribution_model.dart';
 import '../../../models/team_supporter_model.dart';
 
@@ -249,16 +250,37 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
     final client = _connection.client;
     if (client != null) {
       try {
-        final rows = await client
-            .from('teams')
-            .select('id, name, fan_count, country, league_name, crest_url')
-            .eq('is_active', true)
-            .eq('is_featured', true)
-            .order('fan_count', ascending: false)
-            .limit(6);
+        dynamic rows;
+        try {
+          rows = await client
+              .from('team_catalog_entries')
+              .select('id, name, fan_count, country, league_name, crest_url')
+              .eq('is_active', true)
+              .eq('is_featured', true)
+              .order('fan_count', ascending: false)
+              .limit(6);
+        } catch (error) {
+          AppLogger.d(
+            'Failed to load featured teams from catalog view: $error',
+          );
+          rows = await client
+              .from('teams')
+              .select('id, name, country, league_name, crest_url')
+              .eq('is_active', true)
+              .eq('is_featured', true)
+              .limit(12);
+        }
+
         final teams = (rows as List)
             .whereType<Map>()
             .map(Map<String, dynamic>.from)
+            .where((row) => !isPlaceholderTeamName(row['name']?.toString()))
+            .map((row) {
+              row['name'] = normalizeTeamDisplayName(row['name']?.toString());
+              row['fan_count'] = row['fan_count'] ?? 0;
+              return row;
+            })
+            .take(6)
             .toList(growable: false);
         return teams;
       } catch (error) {
@@ -271,8 +293,6 @@ class SupabaseTeamSupportGateway implements TeamSupportGateway {
 
   String _contributionKey(String userId, String teamId) =>
       '$_contributionPrefix$userId.$teamId';
-
-
 
   String _requireUserId() {
     final userId = _connection.currentUser?.id;

@@ -157,8 +157,6 @@ class _HeroTeam extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = _abbr(name);
-
     return Column(
       children: [
         Container(
@@ -175,21 +173,13 @@ class _HeroTeam extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          label,
+          name,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
         ),
       ],
     );
-  }
-
-  String _abbr(String teamName) {
-    final parts = teamName.trim().split(RegExp(r'\s+'));
-    if (parts.length == 1) {
-      final value = parts.first;
-      return value.substring(0, math.min(3, value.length)).toUpperCase();
-    }
-    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
-        .toUpperCase();
   }
 }

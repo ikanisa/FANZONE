@@ -16,7 +16,6 @@ import 'core/logging/app_logger.dart';
 import 'core/performance/app_startup.dart';
 import 'core/runtime/app_runtime_state.dart';
 import 'core/storage/structured_cache_store.dart';
-import 'core/cache/shared_preferences_cache_service.dart';
 import 'firebase_options.dart';
 import 'services/app_telemetry.dart';
 import 'services/product_analytics_service.dart';
@@ -72,10 +71,8 @@ Future<void> main() async {
 
   await startup.prepare();
 
-  // Resolve initial route while still under native splash
-  final initialRoute = await _resolveInitialRoute();
-  setInitialRoute(initialRoute);
-  markAppInteractive();
+  // The canonical product flow always opens with the in-app splash first.
+  setInitialRoute('/splash');
 
   runApp(
     ProviderScope(overrides: _providerOverrides, child: const FanzoneApp()),
@@ -130,8 +127,8 @@ Future<void> _initializeSupabase() async {
     appStartupProfiler.mark('supabase_ready');
     appRuntime.notifyAuthStateChanged();
     await _authStateSubscription?.cancel();
-    _authStateSubscription =
-        RuntimeAuthSessionManager.instance.authStateChanges.listen((_) {
+    _authStateSubscription = RuntimeAuthSessionManager.instance.authStateChanges
+        .listen((_) {
           appRuntime.notifyAuthStateChanged();
           unawaited(ProductAnalytics.flush());
           unawaited(AppTelemetry.flush());
@@ -153,47 +150,4 @@ Future<void> retrySupabaseInitialization() async {
   if (appRuntime.supabaseInitialized) return;
   appRuntime.resetSupabaseReady();
   await _initializeSupabase();
-}
-
-/// Determine whether to start at home or onboarding.
-/// Runs before runApp() so the native splash covers this check.
-Future<String> _resolveInitialRoute() async {
-  try {
-    final cache = SharedPreferencesCacheService.global;
-    final cachedDone = await cache.getBool('onboarding_complete') ?? false;
-
-    if (!appRuntime.supabaseInitialized) {
-      return cachedDone ? '/' : '/onboarding';
-    }
-
-    final session = RuntimeAuthSessionManager.instance.currentSession;
-    final user = RuntimeAuthSessionManager.instance.currentUser;
-    if (session == null || user == null || session.isExpired) {
-      return cachedDone ? '/' : '/onboarding';
-    }
-
-    // Try remote check with short timeout
-    try {
-      final client = RuntimeAuthSessionManager.instance.activeClient;
-      if (client == null) {
-        return cachedDone ? '/' : '/onboarding';
-      }
-
-      final profile = await client
-          .from('profiles')
-          .select('onboarding_completed')
-          .eq('id', user.id)
-          .maybeSingle()
-          .timeout(const Duration(seconds: 3));
-      final remote = profile?['onboarding_completed'] == true;
-      if (remote != cachedDone) {
-        await cache.setBool('onboarding_complete', remote);
-      }
-      return remote ? '/' : '/onboarding';
-    } catch (_) {
-      return cachedDone ? '/' : '/onboarding';
-    }
-  } catch (_) {
-    return '/onboarding';
-  }
 }

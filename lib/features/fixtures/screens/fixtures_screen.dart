@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../../models/competition_model.dart';
 import '../../../models/match_model.dart';
+import '../../../core/constants/league_constants.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/favourites_provider.dart';
 import '../../../providers/matches_provider.dart';
@@ -52,6 +53,35 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     ]);
   }
 
+  Future<void> _openFixturesSearch({
+    required BuildContext context,
+    required List<MatchModel> matches,
+    required List<CompetitionModel> competitions,
+  }) async {
+    final result = await showSearch<_FixtureSearchSelection?>(
+      context: context,
+      delegate: _FixtureSearchDelegate(
+        matches: matches,
+        competitions: competitions,
+      ),
+    );
+    if (!context.mounted || result == null) return;
+
+    switch (result) {
+      case _FixtureSearchSelectionMatch(:final matchId):
+        await context.push('/match/$matchId');
+      case _FixtureSearchSelectionCompetition(:final competitionId):
+        setState(() {
+          _activeView = FixturesPrimaryView.matches;
+          _selectedCompetitionId = competitionId;
+        });
+    }
+  }
+
+  void _openPools(BuildContext context) {
+    context.go('/pools');
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -60,7 +90,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     final matchesAsync = ref.watch(matchesByDateProvider(_selectedDate));
     final competitionsAsync = ref.watch(competitionsProvider);
     final top5Async = ref.watch(top5EuropeanLeaguesProvider);
-    final localAsync = ref.watch(localLeaguesProvider('malta'));
+    final localAsync = ref.watch(localLeaguesProvider('africa'));
     final favourites =
         ref.watch(favouritesProvider).valueOrNull ?? const FavouritesState();
 
@@ -151,6 +181,11 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                 competitionsAsync: competitionsAsync,
                 favourites: favourites,
                 fixtureLeagueLabel: _fixtureLeagueLabel,
+                onSearch: () => _openFixturesSearch(
+                  context: context,
+                  matches: matchesAsync.valueOrNull ?? const [],
+                  competitions: competitionsAsync.valueOrNull ?? const [],
+                ),
                 onSelectDate: (date) => setState(() => _selectedDate = date),
                 onSelectCompetition: (competitionId) =>
                     setState(() => _selectedCompetitionId = competitionId),
@@ -171,13 +206,34 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                   ),
                 );
               }
+              final activeDateLabel = DateFormat(
+                'd MMM',
+              ).format(_selectedDate).toUpperCase();
               return SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: FixtureGroupCard(
-                    matches: filtered,
-                    onOpenMatch: (match) => context.push('/match/${match.id}'),
-                    onOpenPools: () => context.go('/pools'),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4, bottom: 8),
+                        child: Text(
+                          'Selected: $activeDateLabel',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: muted,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                      ),
+                      FixtureGroupCard(
+                        matches: filtered,
+                        onOpenMatch: (match) =>
+                            context.push('/match/${match.id}'),
+                        onOpenPools: () => _openPools(context),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -235,10 +291,10 @@ class _MatchesFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
   final Widget child;
 
   @override
-  double get minExtent => 112;
+  double get minExtent => 168;
 
   @override
-  double get maxExtent => 112;
+  double get maxExtent => 168;
 
   @override
   Widget build(
@@ -252,7 +308,7 @@ class _MatchesFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
 
     return Container(
       color: background,
-      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      padding: const EdgeInsets.only(top: 4, bottom: 4),
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border(
@@ -286,6 +342,7 @@ class _MatchesFilterHeader extends StatelessWidget {
     required this.competitionsAsync,
     required this.favourites,
     required this.fixtureLeagueLabel,
+    required this.onSearch,
     required this.onSelectDate,
     required this.onSelectCompetition,
   });
@@ -300,67 +357,86 @@ class _MatchesFilterHeader extends StatelessWidget {
   final AsyncValue<List<CompetitionModel>> competitionsAsync;
   final FavouritesState favourites;
   final String Function(String competitionId) fixtureLeagueLabel;
+  final VoidCallback onSearch;
   final ValueChanged<DateTime> onSelectDate;
   final ValueChanged<String?> onSelectCompetition;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: Row(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? FzColors.darkSurface2
-                      : FzColors.lightSurface2,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? FzColors.darkSurface2
+                          : FzColors.lightSurface2,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: isDark
+                            ? FzColors.darkBorder
+                            : FzColors.lightBorder,
+                      ),
+                    ),
+                    child: Text(
+                      'LIVE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                        color: textColor,
+                      ),
+                    ),
                   ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  'LIVE',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: textColor,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      DateFormat('d MMM').format(selectedDate).toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: muted,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
                   ),
-                ),
+                  ToolbarIconButton(
+                    tooltip: 'Search fixtures',
+                    icon: LucideIcons.search,
+                    muted: muted,
+                    onTap: onSearch,
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SizedBox(
-                  height: 52,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: dates.length,
-                    itemBuilder: (context, index) {
-                      final date = dates[index];
-                      final selected = _sameDate(date, selectedDate);
-                      return Padding(
-                        padding: EdgeInsets.only(left: index == 0 ? 0 : 6),
-                        child: _FixtureDateChip(
-                          date: date,
-                          selected: selected,
-                          onTap: () => onSelectDate(date),
-                        ),
-                      );
-                    },
-                  ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 52,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: dates.length,
+                  itemBuilder: (context, index) {
+                    final date = dates[index];
+                    final selected = _sameDate(date, selectedDate);
+                    return Padding(
+                      padding: EdgeInsets.only(left: index == 0 ? 0 : 6),
+                      child: _FixtureDateChip(
+                        date: date,
+                        selected: selected,
+                        onTap: () => onSelectDate(date),
+                      ),
+                    );
+                  },
                 ),
-              ),
-              const SizedBox(width: 12),
-              ToolbarIconButton(
-                tooltip: 'Calendar',
-                icon: LucideIcons.calendar,
-                muted: muted,
-                onTap: () {},
               ),
             ],
           ),
@@ -483,7 +559,7 @@ class _FixtureDateChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         width: 74,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: selected
               ? (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2)
@@ -515,23 +591,126 @@ class _FixtureDateChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
+                letterSpacing: 1.2,
                 color: selected ? textColor : muted,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               DateFormat('d MMM').format(date).toUpperCase(),
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0.7,
+                letterSpacing: 0.9,
                 color: selected ? textColor.withValues(alpha: 0.84) : muted,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+sealed class _FixtureSearchSelection {}
+
+class _FixtureSearchSelectionMatch extends _FixtureSearchSelection {
+  _FixtureSearchSelectionMatch(this.matchId);
+
+  final String matchId;
+}
+
+class _FixtureSearchSelectionCompetition extends _FixtureSearchSelection {
+  _FixtureSearchSelectionCompetition(this.competitionId);
+
+  final String competitionId;
+}
+
+class _FixtureSearchDelegate extends SearchDelegate<_FixtureSearchSelection?> {
+  _FixtureSearchDelegate({required this.matches, required this.competitions});
+
+  final List<MatchModel> matches;
+  final List<CompetitionModel> competitions;
+
+  @override
+  String get searchFieldLabel => 'Search fixtures';
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      if (query.isNotEmpty)
+        IconButton(
+          tooltip: 'Clear search',
+          onPressed: () => query = '',
+          icon: const Icon(Icons.close),
+        ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      tooltip: 'Close search',
+      onPressed: () => close(context, null),
+      icon: const Icon(Icons.arrow_back),
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) => _buildBody(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) => _buildBody(context);
+
+  Widget _buildBody(BuildContext context) {
+    final normalizedQuery = query.trim().toLowerCase();
+    final filteredMatches = matches
+        .where((match) {
+          if (normalizedQuery.isEmpty) return true;
+          return match.homeTeam.toLowerCase().contains(normalizedQuery) ||
+              match.awayTeam.toLowerCase().contains(normalizedQuery);
+        })
+        .toList(growable: false);
+    final filteredCompetitions = competitions
+        .where((competition) {
+          if (normalizedQuery.isEmpty) return true;
+          return competition.name.toLowerCase().contains(normalizedQuery) ||
+              competition.shortName.toLowerCase().contains(normalizedQuery) ||
+              competition.country.toLowerCase().contains(normalizedQuery);
+        })
+        .toList(growable: false);
+
+    if (filteredMatches.isEmpty && filteredCompetitions.isEmpty) {
+      return const Center(
+        child: Text('No fixtures or competitions match your search.'),
+      );
+    }
+
+    return ListView(
+      children: [
+        if (filteredMatches.isNotEmpty) const ListTile(title: Text('Matches')),
+        ...filteredMatches.map(
+          (match) => ListTile(
+            leading: const Icon(LucideIcons.activity),
+            title: Text('${match.homeTeam} vs ${match.awayTeam}'),
+            subtitle: Text(DateFormat('EEE d MMM • HH:mm').format(match.date)),
+            onTap: () => close(context, _FixtureSearchSelectionMatch(match.id)),
+          ),
+        ),
+        if (filteredCompetitions.isNotEmpty)
+          const ListTile(title: Text('Competitions')),
+        ...filteredCompetitions.map(
+          (competition) => ListTile(
+            leading: const Icon(LucideIcons.trophy),
+            title: Text(competition.name),
+            subtitle: Text(competition.country),
+            onTap: () => close(
+              context,
+              _FixtureSearchSelectionCompetition(competition.id),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -572,14 +751,20 @@ class _FixturesCompetitionsView extends StatelessWidget {
           ),
         ].take(3).toList(growable: false);
         final majorCompetitions = allCompetitions
-            .where(
-              (competition) =>
-                  competition.name.toLowerCase().contains('champions') ||
-                  competition.name.toLowerCase().contains('europa') ||
-                  competition.name.toLowerCase().contains('world cup') ||
-                  competition.name.toLowerCase().contains('euro') ||
-                  competition.name.toLowerCase().contains('cup'),
-            )
+            .where((competition) {
+              if (isPriorityCompetitionByIdName(
+                competition.id,
+                competition.name,
+              )) {
+                return false;
+              }
+              final normalizedName = competition.name.toLowerCase();
+              return normalizedName.contains('champions') ||
+                  normalizedName.contains('europa') ||
+                  normalizedName.contains('world cup') ||
+                  normalizedName.contains('euro') ||
+                  normalizedName.contains('cup');
+            })
             .take(4)
             .toList(growable: false);
         final otherCompetitions = allCompetitions

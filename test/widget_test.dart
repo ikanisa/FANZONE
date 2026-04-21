@@ -39,7 +39,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Ready to send your WhatsApp code to Malta.'),
+      find.text('Ready to send your WhatsApp OTP to Malta.'),
       findsOneWidget,
     );
     expect(

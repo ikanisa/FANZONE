@@ -259,24 +259,40 @@ class TeamInfoSection extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onMembershipTap,
               style: ElevatedButton.styleFrom(
-                backgroundColor: FzColors.primary.withValues(alpha: 0.14),
+                backgroundColor: Colors.transparent,
                 foregroundColor: FzColors.primary,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(
-                  color: FzColors.primary.withValues(alpha: 0.3),
-                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(
-                isAuthenticated && isSupported
-                    ? 'Manage Membership'
-                    : 'Join ${team.shortName ?? team.name} Fan Club — Free',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      FzColors.primary.withValues(alpha: 0.20),
+                      FzColors.primary.withValues(alpha: 0.10),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: FzColors.primary.withValues(alpha: 0.30),
+                  ),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  alignment: Alignment.center,
+                  child: Text(
+                    isAuthenticated && isSupported
+                        ? 'Manage Membership'
+                        : 'Join ${team.shortName ?? team.name} Fan Club — Free',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -298,12 +314,18 @@ class TeamInfoSection extends StatelessWidget {
   }
 
   String _addonTitle(TeamModel team) {
-    if (team.fiatContributionsEnabled) return 'FIAT CONTRIBUTION CHANNEL';
+    if ((team.country ?? '').toLowerCase().contains('malta')) {
+      return 'BOV MOBILE PAY ADD-ON';
+    }
+    if (team.fiatContributionsEnabled) return 'MOMO USSD ADD-ON';
     if (team.fetContributionsEnabled) return 'FET CONTRIBUTION ADD-ON';
     return 'FAN SUPPORT CHANNEL';
   }
 
   String _addonValue(TeamModel team) {
+    if ((team.country ?? '').toLowerCase().contains('malta')) {
+      return '79X2 84X1';
+    }
     if (team.fiatContributionMode != null &&
         team.fiatContributionMode!.isNotEmpty) {
       return team.fiatContributionMode!.toUpperCase().replaceAll('_', ' ');
@@ -313,8 +335,11 @@ class TeamInfoSection extends StatelessWidget {
   }
 
   String _addonDescription(TeamModel team) {
+    if ((team.country ?? '').toLowerCase().contains('malta')) {
+      return 'Send instantly using BOV Mobile Pay · Verified via Fan ID';
+    }
     if (team.fiatContributionsEnabled || team.fetContributionsEnabled) {
-      return 'Open the contribution flow from the Contribute tab · Verified via Fan ID';
+      return 'Send instantly using MoMo USSD · Verified via Fan ID';
     }
     return 'Contribution channels are not available for this club yet.';
   }

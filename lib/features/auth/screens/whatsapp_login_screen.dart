@@ -22,7 +22,7 @@ import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_wordmark.dart';
 
 /// Accent used on the phone verification screen.
-const _verificationAccent = FzColors.primary;
+const _verificationAccent = FzColors.whatsapp;
 const _defaultPhoneCountryCode = 'MT';
 const _fallbackPhonePreset = PhonePreset(
   dialCode: '+356',
@@ -438,7 +438,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                     const SizedBox(height: 8),
                     Text(
                       _otpSent
-                          ? 'Enter the 6-digit code sent to your WhatsApp.'
+                          ? 'Enter the 6-digit OTP sent to your WhatsApp.'
                           : 'Verify your number to start earning FET tokens and join fan clubs. It\'s 100% free.',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -504,7 +504,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
     final helperText = _localDigits.isEmpty
         ? '${selectedCountry.countryName} • ${selectedCountry.preset.dialCode} • e.g. ${selectedCountry.preset.hint}'
         : _isPhoneValid
-        ? 'Ready to send your WhatsApp code to ${selectedCountry.countryName}.'
+        ? 'Ready to send your WhatsApp OTP to ${selectedCountry.countryName}.'
         : 'Add $_remainingDigits more digit${_remainingDigits == 1 ? '' : 's'} for ${selectedCountry.countryName}.';
 
     return Column(
@@ -570,10 +570,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                           ),
                         ),
                       ),
-                      Icon(
-                        LucideIcons.chevronDown,
-                        color: mutedColor,
-                      ),
+                      Icon(LucideIcons.chevronDown, color: mutedColor),
                     ],
                   ),
                 ),

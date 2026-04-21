@@ -7,6 +7,10 @@ void main() {
       expect(AppConfig.appName, 'FANZONE');
     });
 
+    test('default appVersion matches the current release line', () {
+      expect(AppConfig.appVersion, '1.1.0');
+    });
+
     test('hasSupabaseConfig returns false without dart-defines', () {
       // Without --dart-define, both are empty strings
       expect(AppConfig.supabaseUrl, isEmpty);

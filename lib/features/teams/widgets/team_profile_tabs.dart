@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../models/match_model.dart';
 import '../../../models/team_contribution_model.dart';
@@ -10,7 +9,6 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_wordmark.dart';
 import '../../../widgets/match/match_list_widgets.dart';
-import '../../../widgets/team/fet_contribution_sheet.dart';
 
 /// Tab IDs used by the team profile screen.
 enum TeamProfileTab { overview, members, fixtures, contribute, about }
@@ -119,6 +117,8 @@ class TeamProfileTabBody extends StatelessWidget {
     required this.matches,
     required this.stats,
     required this.fans,
+    required this.selectedTier,
+    required this.onDialNow,
   });
 
   final TeamProfileTab activeTab;
@@ -126,6 +126,8 @@ class TeamProfileTabBody extends StatelessWidget {
   final List<MatchModel> matches;
   final TeamCommunityStats? stats;
   final List<AnonymousFanRecord> fans;
+  final String? selectedTier;
+  final VoidCallback onDialNow;
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +139,11 @@ class TeamProfileTabBody extends StatelessWidget {
       case TeamProfileTab.fixtures:
         return TeamFixturesTab(matches: matches);
       case TeamProfileTab.contribute:
-        return TeamContributeTab(team: team);
+        return TeamContributeTab(
+          team: team,
+          selectedTier: selectedTier,
+          onDialNow: onDialNow,
+        );
       case TeamProfileTab.about:
         return TeamAboutTab(team: team);
     }
@@ -516,9 +522,16 @@ class TeamFixturesTab extends StatelessWidget {
 // ──────────────────────────────────────────────
 
 class TeamContributeTab extends ConsumerWidget {
-  const TeamContributeTab({super.key, required this.team});
+  const TeamContributeTab({
+    super.key,
+    required this.team,
+    required this.selectedTier,
+    required this.onDialNow,
+  });
 
   final TeamModel team;
+  final String? selectedTier;
+  final VoidCallback onDialNow;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -527,18 +540,28 @@ class TeamContributeTab extends ConsumerWidget {
     final textColor = Theme.of(context).brightness == Brightness.dark
         ? FzColors.darkText
         : FzColors.lightText;
+    final muted = Theme.of(context).brightness == Brightness.dark
+        ? FzColors.darkMuted
+        : FzColors.lightMuted;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'CONTRIBUTION FLOW',
+          'MOMO USSD CONTRIBUTION',
           style: FzTypography.display(
             size: 22,
             color: textColor,
             letterSpacing: 1.0,
           ),
         ),
+        if (selectedTier != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Selected tier: $selectedTier',
+            style: TextStyle(fontSize: 12, color: muted),
+          ),
+        ],
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(20),
@@ -553,24 +576,24 @@ class TeamContributeTab extends ConsumerWidget {
                   : FzColors.lightBorder,
             ),
           ),
-          child: const Column(
+          child: Column(
             children: [
               _ContributionStep(
                 index: '1',
-                title: 'Choose Contribution Method',
-                subtitle: 'Use the available FET or fiat flow for this club.',
+                title: 'Dial USSD Code',
+                subtitle: _dialSubtitle(team, selectedTier ?? 'Supporter'),
               ),
-              SizedBox(height: 20),
-              _ContributionStep(
+              const SizedBox(height: 20),
+              const _ContributionStep(
                 index: '2',
                 title: 'Complete Payment',
-                subtitle: 'Confirm the transfer in the selected payment flow.',
+                subtitle: 'Select amount tier and enter PIN.',
               ),
-              SizedBox(height: 20),
-              _ContributionStep(
+              const SizedBox(height: 20),
+              const _ContributionStep(
                 index: '3',
-                title: 'Return to FANZONE',
-                subtitle: 'Your supporter status updates after confirmation.',
+                title: 'Confirm Here',
+                subtitle: 'Return to FANZONE to activate your tier.',
               ),
             ],
           ),
@@ -579,25 +602,10 @@ class TeamContributeTab extends ConsumerWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: canContribute
-                ? () async {
-                    if (team.fetContributionsEnabled) {
-                      await FETContributionSheet.show(context, team);
-                      return;
-                    }
-                    final link = team.fiatContributionLink;
-                    final uri = link == null ? null : Uri.tryParse(link);
-                    if (uri != null) {
-                      await launchUrl(
-                        uri,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    }
-                  }
-                : null,
+            onPressed: canContribute ? onDialNow : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: FzColors.secondary,
-              foregroundColor: FzColors.onSecondary,
+              backgroundColor: const Color(0xFFFFCC00),
+              foregroundColor: const Color(0xFF1A1400),
               disabledBackgroundColor: FzColors.secondary.withValues(
                 alpha: 0.35,
               ),
@@ -607,13 +615,20 @@ class TeamContributeTab extends ConsumerWidget {
               ),
             ),
             child: Text(
-              canContribute ? 'CONTRIBUTE NOW' : 'CONTRIBUTIONS UNAVAILABLE',
+              canContribute ? 'DIAL NOW' : 'CONTRIBUTIONS UNAVAILABLE',
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             ),
           ),
         ),
       ],
     );
+  }
+
+  static String _dialSubtitle(TeamModel team, String tier) {
+    if ((team.country ?? '').toLowerCase().contains('malta')) {
+      return 'Dial BOV Mobile Pay for the $tier tier add-on.';
+    }
+    return 'Dial *182*8*1*0780123456# for the $tier tier.';
   }
 }
 

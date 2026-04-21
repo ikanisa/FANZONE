@@ -16,8 +16,8 @@ class _PoolListView extends ConsumerStatefulWidget {
 }
 
 class _PoolListViewState extends ConsumerState<_PoolListView> {
-  String _sortBy = 'newest';
-  String _mineFilter = 'all';
+  String _sortBy = 'ending_soon';
+  String _mineFilter = 'open';
 
   @override
   Widget build(BuildContext context) {
@@ -68,11 +68,15 @@ class _PoolListViewState extends ConsumerState<_PoolListView> {
                             )
                             .toList()
                   ..sort((left, right) => left.lockAt.compareTo(right.lockAt));
-            if (_mineFilter == 'active') {
-              filtered = filtered
-                  .where((pool) => pool.status == 'open')
-                  .toList();
-            }
+            filtered = switch (_mineFilter) {
+              'locked' =>
+                filtered.where((pool) => pool.status == 'locked').toList(),
+              'settled' =>
+                filtered.where((pool) => pool.status == 'settled').toList(),
+              'voided' =>
+                filtered.where((pool) => pool.status == 'void').toList(),
+              _ => filtered.where((pool) => pool.status == 'open').toList(),
+            };
             emptyTitle = 'No personal pools';
             emptySubtitle = 'Pools you create or join will appear here.';
             break;
@@ -100,25 +104,26 @@ class _PoolListViewState extends ConsumerState<_PoolListView> {
                 child: Row(
                   children: [
                     _SortChip(
-                      label: 'Newest',
-                      selected: _sortBy == 'newest',
-                      onTap: () => setState(() => _sortBy = 'newest'),
+                      label: 'Soon',
+                      selected: _sortBy == 'ending_soon',
+                      onTap: () => setState(() => _sortBy = 'ending_soon'),
                       isDark: isDark,
                       muted: muted,
                     ),
                     const SizedBox(width: 8),
                     _SortChip(
-                      label: 'Highest Pool',
-                      selected: _sortBy == 'pool',
-                      onTap: () => setState(() => _sortBy = 'pool'),
+                      label: 'Big Pool',
+                      selected: _sortBy == 'high_pool',
+                      onTap: () => setState(() => _sortBy = 'high_pool'),
                       isDark: isDark,
                       muted: muted,
                     ),
                     const SizedBox(width: 8),
                     _SortChip(
-                      label: 'Most Players',
-                      selected: _sortBy == 'participants',
-                      onTap: () => setState(() => _sortBy = 'participants'),
+                      label: 'Entries',
+                      selected: _sortBy == 'most_participants',
+                      onTap: () =>
+                          setState(() => _sortBy = 'most_participants'),
                       isDark: isDark,
                       muted: muted,
                     ),
@@ -131,17 +136,33 @@ class _PoolListViewState extends ConsumerState<_PoolListView> {
                 child: Row(
                   children: [
                     _SortChip(
-                      label: 'All',
-                      selected: _mineFilter == 'all',
-                      onTap: () => setState(() => _mineFilter = 'all'),
+                      label: 'Open',
+                      selected: _mineFilter == 'open',
+                      onTap: () => setState(() => _mineFilter = 'open'),
                       isDark: isDark,
                       muted: muted,
                     ),
                     const SizedBox(width: 8),
                     _SortChip(
-                      label: 'Active',
-                      selected: _mineFilter == 'active',
-                      onTap: () => setState(() => _mineFilter = 'active'),
+                      label: 'Locked',
+                      selected: _mineFilter == 'locked',
+                      onTap: () => setState(() => _mineFilter = 'locked'),
+                      isDark: isDark,
+                      muted: muted,
+                    ),
+                    const SizedBox(width: 8),
+                    _SortChip(
+                      label: 'Settled',
+                      selected: _mineFilter == 'settled',
+                      onTap: () => setState(() => _mineFilter = 'settled'),
+                      isDark: isDark,
+                      muted: muted,
+                    ),
+                    const SizedBox(width: 8),
+                    _SortChip(
+                      label: 'Voided',
+                      selected: _mineFilter == 'voided',
+                      onTap: () => setState(() => _mineFilter = 'voided'),
                       isDark: isDark,
                       muted: muted,
                     ),
@@ -183,14 +204,14 @@ class _PoolListViewState extends ConsumerState<_PoolListView> {
 
   void _applySortFilter(List<ScorePool> list) {
     switch (_sortBy) {
-      case 'pool':
+      case 'high_pool':
         list.sort((a, b) => b.totalPool.compareTo(a.totalPool));
         break;
-      case 'participants':
+      case 'most_participants':
         list.sort((a, b) => b.participantsCount.compareTo(a.participantsCount));
         break;
       default:
-        list.sort((a, b) => b.lockAt.compareTo(a.lockAt));
+        list.sort((a, b) => a.lockAt.compareTo(b.lockAt));
     }
   }
 }
@@ -274,7 +295,9 @@ class _PoolCard extends ConsumerWidget {
     final canJoin = pool.status == 'open' && !isOwnPool;
 
     // Parse team names from matchName
-    final parts = pool.matchName.split(RegExp(r'\s+vs?\s+', caseSensitive: false));
+    final parts = pool.matchName.split(
+      RegExp(r'\s+vs?\s+', caseSensitive: false),
+    );
     final homeTeam = parts.isNotEmpty ? parts[0].trim() : 'Home';
     final awayTeam = parts.length > 1 ? parts[1].trim() : 'Away';
 
@@ -298,8 +321,8 @@ class _PoolCard extends ConsumerWidget {
                 colors: pool.status == 'open'
                     ? [FzColors.primary, FzColors.cyan]
                     : pool.status == 'settled'
-                        ? [FzColors.secondary, FzColors.danger]
-                        : [FzColors.darkMuted, FzColors.darkBorder],
+                    ? [FzColors.secondary, FzColors.danger]
+                    : [FzColors.darkMuted, FzColors.darkBorder],
               ),
             ),
           ),
@@ -328,8 +351,8 @@ class _PoolCard extends ConsumerWidget {
                             variant: pool.status == 'open'
                                 ? FzBadgeVariant.primary
                                 : pool.status == 'settled'
-                                    ? FzBadgeVariant.secondary
-                                    : FzBadgeVariant.ghost,
+                                ? FzBadgeVariant.secondary
+                                : FzBadgeVariant.ghost,
                             pulse: pool.status == 'open',
                             fontSize: 9,
                           ),
@@ -340,10 +363,7 @@ class _PoolCard extends ConsumerWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          'STAKE',
-                          style: FzTypography.metaLabel(),
-                        ),
+                        Text('STAKE', style: FzTypography.metaLabel()),
                         Text(
                           formatFET(pool.stake, currency),
                           style: FzTypography.score(
@@ -418,6 +438,7 @@ class _PoolCard extends ConsumerWidget {
       ),
     );
   }
+
   String _formatLockTime(DateTime lockAt) {
     final local = lockAt.toLocal();
     final hour = local.hour.toString().padLeft(2, '0');
@@ -443,16 +464,17 @@ class _TeamRow extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: FzColors.darkBorder),
           ),
-          child: const Icon(LucideIcons.shield, size: 12, color: FzColors.darkMuted),
+          child: const Icon(
+            LucideIcons.shield,
+            size: 12,
+            color: FzColors.darkMuted,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             name,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             overflow: TextOverflow.ellipsis,
           ),
         ),

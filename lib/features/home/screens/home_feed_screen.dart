@@ -34,6 +34,7 @@ class HomeFeedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDesktop = MediaQuery.sizeOf(context).width >= 1024;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
@@ -85,36 +86,38 @@ class HomeFeedScreen extends ConsumerWidget {
             await ref.read(matchesProvider(filter).future);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+            padding: EdgeInsets.fromLTRB(16, isDesktop ? 16 : 8, 16, 120),
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Predictions',
-                      style: FzTypography.display(
-                        size: 36,
-                        color: textColor,
-                        letterSpacing: 0.8,
+              if (isDesktop) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Predictions',
+                        style: FzTypography.display(
+                          size: 36,
+                          color: textColor,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ),
-                  ),
-                  _RoundActionButton(
-                    tooltip: 'Create pool',
-                    backgroundColor: FzColors.accent2,
-                    foregroundColor: FzColors.darkBg,
-                    icon: LucideIcons.plusCircle,
-                    onTap: () => context.go('/pools/create'),
-                  ),
-                  const SizedBox(width: 8),
-                  _RoundActionButton(
-                    tooltip: 'Open memberships',
-                    icon: LucideIcons.shield,
-                    onTap: () => context.go('/memberships'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                    _RoundActionButton(
+                      tooltip: 'Create pool',
+                      backgroundColor: FzColors.accent2,
+                      foregroundColor: FzColors.darkBg,
+                      icon: LucideIcons.plusCircle,
+                      onTap: () => context.go('/pools/create'),
+                    ),
+                    const SizedBox(width: 8),
+                    _RoundActionButton(
+                      tooltip: 'Open memberships',
+                      icon: LucideIcons.shield,
+                      onTap: () => context.go('/memberships'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
               const FzPromoBanner(),
               matchesAsync.when(
                 data: (matches) {
@@ -826,41 +829,37 @@ class _RoundActionButton extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final hasCustomBackground = backgroundColor != null;
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: FzRadii.fullRadius,
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color:
+    return Semantics(
+      button: true,
+      label: tooltip,
+      onTap: onTap,
+      child: ExcludeSemantics(
+        child: IconButton(
+          onPressed: onTap,
+          tooltip: tooltip,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+          style: IconButton.styleFrom(
+            backgroundColor:
                 backgroundColor ??
                 (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
-            borderRadius: FzRadii.fullRadius,
-            border: Border.all(
+            foregroundColor:
+                foregroundColor ??
+                (isDark ? FzColors.darkText : FzColors.lightText),
+            shape: const RoundedRectangleBorder(
+              borderRadius: FzRadii.fullRadius,
+            ),
+            side: BorderSide(
               color: hasCustomBackground
                   ? Colors.transparent
                   : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
             ),
-            boxShadow: hasCustomBackground
-                ? [
-                    BoxShadow(
-                      color: backgroundColor!.withValues(alpha: 0.28),
-                      blurRadius: 18,
-                      spreadRadius: -8,
-                    ),
-                  ]
+            shadowColor: hasCustomBackground
+                ? backgroundColor!.withValues(alpha: 0.28)
                 : null,
+            elevation: hasCustomBackground ? 6 : 0,
           ),
-          child: Icon(
-            icon,
-            size: 18,
-            color:
-                foregroundColor ??
-                (isDark ? FzColors.darkText : FzColors.lightText),
-          ),
+          icon: Icon(icon, size: 18),
         ),
       ),
     );
