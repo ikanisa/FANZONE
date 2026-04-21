@@ -129,7 +129,7 @@ class _StandingRow extends StatelessWidget {
                       row.teamName,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: highlight
                             ? FontWeight.w700
                             : FontWeight.w500,

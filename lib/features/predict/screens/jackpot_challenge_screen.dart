@@ -116,7 +116,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
           Text(
             'REWARD TIERS',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
               color: muted,
               letterSpacing: 0.8,
@@ -163,7 +163,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
           Text(
             'THIS WEEK\'S MATCHES',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
               color: muted,
               letterSpacing: 0.8,
@@ -232,7 +232,7 @@ class JackpotChallengeScreen extends ConsumerWidget {
           Text(
             'CHALLENGE RULES',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
               color: muted,
               letterSpacing: 0.8,
@@ -318,7 +318,7 @@ class _TierCard extends StatelessWidget {
               child: Text(
                 correct,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w700,
                   color: color,
                 ),
@@ -393,7 +393,7 @@ class _MatchPredictionCardState extends State<_MatchPredictionCard> {
             child: Text(
               widget.match,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: widget.textColor,
               ),
@@ -455,7 +455,7 @@ class _OutcomeChip extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
               color: selected ? Colors.white : FzColors.primary,
             ),

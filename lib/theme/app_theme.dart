@@ -4,7 +4,7 @@ import 'colors.dart';
 import 'radii.dart';
 import 'typography.dart';
 
-/// FANZONE theme — dark-first, premium, football-native, non-gambling.
+/// FANZONE theme aligned to the original design reference.
 abstract final class FzTheme {
   // ════════════════════════════════════════════
   // DARK THEME (default)
@@ -34,7 +34,7 @@ abstract final class FzTheme {
       // Bottom Navigation
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: FzColors.darkSurface,
-        selectedItemColor: FzColors.primary,
+        selectedItemColor: FzColors.accent,
         unselectedItemColor: FzColors.darkMuted,
         type: BottomNavigationBarType.fixed,
         selectedLabelStyle: TextStyle(
@@ -68,9 +68,9 @@ abstract final class FzTheme {
 
       // TabBar
       tabBarTheme: TabBarThemeData(
-        labelColor: FzColors.primary,
+        labelColor: FzColors.accent,
         unselectedLabelColor: FzColors.darkMuted,
-        indicatorColor: FzColors.primary,
+        indicatorColor: FzColors.accent,
         indicatorSize: TabBarIndicatorSize.label,
         labelStyle: textTheme.titleSmall,
         unselectedLabelStyle: textTheme.bodySmall,
@@ -80,7 +80,7 @@ abstract final class FzTheme {
       // Chips
       chipTheme: ChipThemeData(
         backgroundColor: FzColors.darkSurface2,
-        selectedColor: FzColors.primary.withValues(alpha: 0.14),
+        selectedColor: FzColors.accent.withValues(alpha: 0.14),
         labelStyle: textTheme.labelSmall!,
         side: const BorderSide(color: FzColors.darkBorder),
         shape: const RoundedRectangleBorder(
@@ -91,9 +91,9 @@ abstract final class FzTheme {
 
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: FzColors.secondary,
+          backgroundColor: FzColors.accent3,
           foregroundColor: FzColors.onSecondary,
-          disabledBackgroundColor: FzColors.secondary.withValues(alpha: 0.35),
+          disabledBackgroundColor: FzColors.accent3.withValues(alpha: 0.35),
           disabledForegroundColor: FzColors.onSecondary.withValues(alpha: 0.7),
           shape: const RoundedRectangleBorder(
             borderRadius: FzRadii.compactRadius,
@@ -103,9 +103,9 @@ abstract final class FzTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: FzColors.secondary,
+          backgroundColor: FzColors.accent3,
           foregroundColor: FzColors.onSecondary,
-          disabledBackgroundColor: FzColors.secondary.withValues(alpha: 0.35),
+          disabledBackgroundColor: FzColors.accent3.withValues(alpha: 0.35),
           disabledForegroundColor: FzColors.onSecondary.withValues(alpha: 0.7),
           shape: const RoundedRectangleBorder(
             borderRadius: FzRadii.compactRadius,
@@ -115,7 +115,7 @@ abstract final class FzTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: FzColors.primary,
+          foregroundColor: FzColors.accent,
           shape: const RoundedRectangleBorder(
             borderRadius: FzRadii.compactRadius,
           ),
@@ -128,7 +128,7 @@ abstract final class FzTheme {
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(FzRadii.card),
+            top: Radius.circular(FzRadii.card), // 24px = rounded-t-3xl
           ),
         ),
       ),
@@ -147,7 +147,7 @@ abstract final class FzTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: FzColors.primary, width: 1.5),
+          borderSide: const BorderSide(color: FzColors.accent, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -168,7 +168,7 @@ abstract final class FzTheme {
 
       // Progress
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: FzColors.primary,
+        color: FzColors.accent,
       ),
 
       // Splash / InkWell

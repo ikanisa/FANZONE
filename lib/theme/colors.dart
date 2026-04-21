@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-/// FANZONE design tokens — dark-first with a two-color brand system.
+/// FANZONE design tokens aligned to the permanent source-of-truth reference.
 ///
-/// The only platform brand colors are:
-///   Soft Mint  #98FF98 — primary interactive, selected, focus, positive
-///   Warm Coral #FF7F50 — CTA, highlight, pending, emphasis
-///
-/// Supporting colors are limited to neutral surfaces plus strict danger/error.
+/// Canonical interactive palette:
+/// - Accent   #22D3EE
+/// - Accent2  #2563EB
+/// - Accent3  #FF7F50
+/// - Success  #98FF98
+/// - Danger   #EF4444
+/// - Teal     #0F7B6C
 abstract final class FzColors {
   // ════════════════════════════════════════════
   // Dark Theme (default) — Warm Stone palette
@@ -34,31 +36,34 @@ abstract final class FzColors {
   static const lightMuted = darkMuted;
 
   // ════════════════════════════════════════════
-  // Official platform brand colors
+  // Canonical FANZONE accents from the original design
   // ════════════════════════════════════════════
-
-  /// Soft Mint #98FF98 — primary interactive, selected and focus color.
-  static const primary = Color(0xFF98FF98);
-  static const onPrimary = Color(0xFF061514);
-
-  /// Warm Coral #FF7F50 — emphasized CTA and highlight color.
-  static const secondary = Color(0xFFFF7F50);
-  static const onSecondary = Color(0xFF2A120A);
-
-  // ════════════════════════════════════════════
-  // Semantic support colors
-  // ════════════════════════════════════════════
-  /// Red #EF4444 — danger / LIVE / error.
+  static const accent = Color(0xFF22D3EE);
+  static const accent2 = Color(0xFF2563EB);
+  static const accent3 = Color(0xFFFF7F50);
+  static const success = Color(0xFF98FF98);
   static const danger = Color(0xFFEF4444);
+  static const teal = Color(0xFF0F7B6C);
+  static const warning = Color(0xFFEAB308);
+  static const whatsapp = Color(0xFF25D366);
 
-  static const success = primary;
-  static const coral = secondary;
+  // Legacy aliases still used across the Flutter codebase.
+  static const primary = accent;
+  static const onPrimary = darkBg;
+  static const secondary = accent3;
+  static const onSecondary = darkBg;
+
+  // ════════════════════════════════════════════
+  // Semantic aliases
+  // ════════════════════════════════════════════
+  static const cyan = accent;
+  static const blue = accent2;
+  static const coral = accent3;
   static const live = danger;
-  static const warning = secondary;
   static const error = danger;
 
   // Cards / Yellow / Red
-  static const yellowCard = secondary;
+  static const yellowCard = warning;
   static const redCard = Color(0xFFDC2626);
 
   // ════════════════════════════════════════════
@@ -67,11 +72,11 @@ abstract final class FzColors {
   static const darkColorScheme = ColorScheme.dark(
     surface: darkSurface,
     onSurface: darkText,
-    primary: primary,
+    primary: accent,
     onPrimary: onPrimary,
-    secondary: secondary,
+    secondary: accent3,
     onSecondary: onSecondary,
-    tertiary: secondary,
+    tertiary: accent2,
     error: error,
     onError: Colors.white,
     outline: darkBorder,

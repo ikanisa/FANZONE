@@ -404,6 +404,7 @@ export async function upsertMatchOddsCache(
         match_id: matchId,
         ...odds,
         provider: "google_gemini_grounded",
+        source_tier: "gemini_grounding",
         source_payload: sourcePayload,
         refreshed_at: now,
         updated_at: now,

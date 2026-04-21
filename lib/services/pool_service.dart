@@ -19,13 +19,18 @@ class PoolService extends _$PoolService {
     return ref.read(predictionPoolGatewayProvider).getPools();
   }
 
-  Future<void> createPool({
+  Future<String> createPool({
     required String matchId,
     required int homeScore,
     required int awayScore,
     required int stake,
   }) async {
-    if (state is AsyncLoading) return;
+    if (state is AsyncLoading) {
+      throw const ValidationFailure(
+        message: 'Pool creation is already in progress',
+        code: 'pool_create_busy',
+      );
+    }
 
     if (ref.read(authServiceProvider).currentUser == null) {
       throw const AuthFailure();
@@ -49,7 +54,7 @@ class PoolService extends _$PoolService {
     state = const AsyncLoading();
 
     try {
-      await ref
+      final poolId = await ref
           .read(predictionPoolGatewayProvider)
           .createPool(
             PoolCreateRequestDto(
@@ -61,6 +66,7 @@ class PoolService extends _$PoolService {
           );
       ref.invalidateSelf();
       ref.invalidate(myEntriesProvider);
+      return poolId;
     } catch (error, stack) {
       final failure = mapExceptionToFailure(error, stack);
       AppLogger.w('createPool failed: ${failure.message}');

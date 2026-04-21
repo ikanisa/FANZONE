@@ -497,10 +497,10 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         ? FzColors.success
         : FzColors.coral;
     final helperIcon = _localDigits.isEmpty
-        ? Icons.info_outline_rounded
+        ? LucideIcons.info
         : _isPhoneValid
-        ? Icons.check_circle_outline_rounded
-        : Icons.edit_outlined;
+        ? LucideIcons.checkCircle
+        : LucideIcons.pencil;
     final helperText = _localDigits.isEmpty
         ? '${selectedCountry.countryName} • ${selectedCountry.preset.dialCode} • e.g. ${selectedCountry.preset.hint}'
         : _isPhoneValid
@@ -514,7 +514,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         Row(
           children: [
             const Icon(
-              Icons.chat_bubble_outline_rounded,
+              LucideIcons.messageCircle,
               color: _verificationAccent,
               size: 22,
             ),
@@ -571,7 +571,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                         ),
                       ),
                       Icon(
-                        Icons.keyboard_arrow_down_rounded,
+                        LucideIcons.chevronDown,
                         color: mutedColor,
                       ),
                     ],
@@ -686,7 +686,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         Row(
           children: [
             const Icon(
-              Icons.chat_bubble_outline_rounded,
+              LucideIcons.messageCircle,
               color: _verificationAccent,
               size: 22,
             ),
@@ -908,7 +908,7 @@ class _PrimaryActionButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
           ),
           textStyle: const TextStyle(
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: FontWeight.w800,
             letterSpacing: 0.4,
           ),
@@ -948,7 +948,7 @@ class _StatusBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline_rounded, size: 18, color: color),
+          Icon(LucideIcons.info, size: 18, color: color),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -1309,7 +1309,7 @@ class _SmartPhoneCountryPickerSheetState
                     ? '${widget.countries.length} countries'
                     : '${_filtered.length} results',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: muted,
                   letterSpacing: 0.3,
                 ),
@@ -1384,7 +1384,7 @@ class _SmartPhoneCountryPickerSheetState
                                       Text(
                                         entry.countryCode,
                                         style: TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 10,
                                           color: muted,
                                         ),
                                       ),

@@ -175,7 +175,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                         'You sent ${_amountController.text.trim()} FET to Fan #${_recipientController.text.trim()}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           color: muted,
                           height: 1.4,
                         ),
@@ -228,7 +228,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                 Text(
                   'Recipient Fan ID',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: muted,
                     letterSpacing: 0.8,
@@ -289,7 +289,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                     Text(
                       'Amount to Send',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: muted,
                         letterSpacing: 0.8,
@@ -298,7 +298,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                     Text(
                       'Balance: ${formatFET(balance, currency)}',
                       style: const TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: FzColors.secondary,
                       ),
@@ -318,7 +318,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                       Text(
                         'FET',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: muted,
                           letterSpacing: 0.8,
@@ -372,7 +372,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                         child: const Text(
                           'MAX',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.4,
                           ),
@@ -539,7 +539,7 @@ class ReceiveFetSheet extends ConsumerWidget {
                     Text(
                       'Your Fan ID',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         color: muted,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.5,
@@ -591,7 +591,7 @@ class ReceiveFetSheet extends ConsumerWidget {
                                 const SnackBar(content: Text('Fan ID copied.')),
                               );
                             },
-                      icon: const Icon(Icons.copy_rounded, size: 18),
+                      icon: const Icon(LucideIcons.copy, size: 18),
                       label: const Text('Copy'),
                     ),
                   ),
@@ -603,7 +603,7 @@ class ReceiveFetSheet extends ConsumerWidget {
                           ShareParams(text: shareText),
                         );
                       },
-                      icon: const Icon(Icons.share_rounded, size: 18),
+                      icon: const Icon(LucideIcons.share2, size: 18),
                       label: const Text('Share'),
                     ),
                   ),

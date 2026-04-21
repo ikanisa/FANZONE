@@ -19,8 +19,8 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-bg flex flex-col relative overflow-hidden">
       {/* Background glow */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-accent/20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-accent4/20 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="flex-1 flex flex-col justify-center p-6 lg:p-12 z-10 max-w-md mx-auto w-full">
         <AnimatePresence mode="wait">
@@ -44,8 +44,8 @@ function Step1({ onNext }: { onNext: () => void }) {
       className="flex flex-col h-full justify-center"
     >
       <div className="mb-12">
-        <h1 className="font-display text-6xl text-text tracking-widest mb-2">FANZONE</h1>
-        <p className="text-primary text-sm font-bold tracking-[3px] uppercase">Predict. Earn. Repeat.</p>
+        <h1 className="font-display text-6xl text-text tracking-widest mb-2"><span className="text-success">FAN</span><span className="text-accent3">ZONE</span></h1>
+        <p className="text-accent text-sm font-bold tracking-[3px] uppercase">Predict. Earn. Repeat.</p>
       </div>
 
       <div className="space-y-6 mb-12">
@@ -54,7 +54,7 @@ function Step1({ onNext }: { onNext: () => void }) {
         <Feature icon={<ShieldCheck />} title="100% Free to Play" desc="No stakes, no risk. Just pure fandom." />
       </div>
 
-      <button onClick={onNext} className="w-full bg-secondary hover:bg-secondary/90 text-bg font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-auto">
+      <button onClick={onNext} className="w-full bg-accent hover:bg-accent/90 text-bg font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 mt-auto">
         GET STARTED <ChevronRight size={20} />
       </button>
     </motion.div>
@@ -64,7 +64,7 @@ function Step1({ onNext }: { onNext: () => void }) {
 function Feature({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
     <div className="flex items-center gap-4">
-      <div className="w-12 h-12 rounded-full bg-surface2 border border-border flex items-center justify-center text-primary">
+      <div className="w-12 h-12 rounded-full bg-surface2 border border-border flex items-center justify-center text-accent">
         {icon}
       </div>
       <div>
@@ -93,12 +93,12 @@ function Step2({ onNext }: { onNext: () => void }) {
         <input 
           type="tel" 
           placeholder="79XX XXXX" 
-          className="flex-1 bg-surface2 border border-border rounded-xl p-4 text-text font-mono focus:outline-none focus:border-primary transition-all"
+          className="flex-1 bg-surface2 border border-border rounded-xl p-4 text-text font-mono focus:outline-none focus:border-accent transition-all"
           autoFocus
         />
       </div>
 
-      <button onClick={onNext} className="w-full bg-secondary hover:bg-secondary/90 text-bg font-bold py-4 rounded-xl transition-all mt-auto">
+      <button onClick={onNext} className="w-full bg-accent hover:bg-accent/90 text-bg font-bold py-4 rounded-xl transition-all mt-auto">
         SEND OTP
       </button>
     </motion.div>
@@ -122,12 +122,12 @@ function Step3({ onNext }: { onNext: () => void }) {
             key={i}
             type="text" 
             maxLength={1}
-            className="w-12 h-14 bg-surface2 border border-border rounded-xl text-center text-text font-mono text-xl focus:outline-none focus:border-primary transition-all"
+            className="w-12 h-14 bg-surface2 border border-border rounded-xl text-center text-text font-mono text-xl focus:outline-none focus:border-accent transition-all"
           />
         ))}
       </div>
 
-      <button onClick={onNext} className="w-full bg-secondary hover:bg-secondary/90 text-bg font-bold py-4 rounded-xl transition-all mt-auto">
+      <button onClick={onNext} className="w-full bg-accent hover:bg-accent/90 text-bg font-bold py-4 rounded-xl transition-all mt-auto">
         VERIFY
       </button>
     </motion.div>
@@ -217,7 +217,7 @@ function Step4({ onNext }: { onNext: () => void }) {
             placeholder="Search your local favorite team"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface2 border border-border rounded-xl p-4 pl-12 text-text focus:outline-none focus:border-primary transition-all placeholder:text-muted/60"
+            className="w-full bg-surface2 border border-border rounded-xl p-4 pl-12 text-text focus:outline-none focus:border-accent transition-all placeholder:text-muted/60"
           />
         </div>
         
@@ -236,8 +236,8 @@ function Step4({ onNext }: { onNext: () => void }) {
             <div className="space-y-6">
               {selectedTeam ? (
                 <div>
-                  <div className="text-xs font-bold text-primary uppercase tracking-widest mb-3 px-1">Your Selection</div>
-                  <div className="border border-primary/20 rounded-xl bg-primary/5 p-2 mb-8">
+                  <div className="text-xs font-bold text-accent uppercase tracking-widest mb-3 px-1">Your Selection</div>
+                  <div className="border border-accent/20 rounded-xl bg-accent/5 p-2 mb-8">
                     <TeamListItem team={selectedTeam} isSelected={true} />
                   </div>
                   <div className="flex flex-col items-center justify-center text-center opacity-60">
@@ -260,7 +260,7 @@ function Step4({ onNext }: { onNext: () => void }) {
           onClick={handleNext} 
           className={`w-full font-bold py-4 rounded-xl transition-all ${
             selectedTeam 
-              ? 'bg-secondary hover:bg-secondary/90 text-bg shadow-lg shadow-secondary/20' 
+              ? 'bg-accent hover:bg-accent/90 text-bg shadow-lg shadow-accent/20' 
               : 'bg-surface2 hover:bg-surface3 text-text border border-border shadow-sm'
           }`}
         >
@@ -345,8 +345,8 @@ function Step5({ onFinish }: { onFinish: () => void }) {
       <div className="flex-1 min-h-0 flex flex-col mb-6 overflow-y-auto hide-scrollbar">
         {selectedTeam ? (
             <div className="mb-6 mt-2">
-              <div className="text-xs font-bold text-primary uppercase tracking-widest mb-3 px-1">Your Selection</div>
-              <div className="border border-primary/20 rounded-xl bg-primary/5 p-2 mb-8">
+              <div className="text-xs font-bold text-accent uppercase tracking-widest mb-3 px-1">Your Selection</div>
+              <div className="border border-accent/20 rounded-xl bg-accent/5 p-2 mb-8">
                 <TeamListItem team={selectedTeam} isSelected={true} />
               </div>
               <div className="flex flex-col items-center justify-center text-center opacity-60">
@@ -364,7 +364,7 @@ function Step5({ onFinish }: { onFinish: () => void }) {
                 title={team}
                 className={`aspect-square flex items-center justify-center rounded-xl border transition-all ${
                   selectedTeam === team 
-                    ? 'border-primary bg-primary/5 shadow-md' 
+                    ? 'border-accent bg-accent/5 shadow-md' 
                     : 'border-border bg-surface hover:bg-surface2'
                 }`}
               >
@@ -386,7 +386,7 @@ function Step5({ onFinish }: { onFinish: () => void }) {
               placeholder="Search European teams"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface2 border border-border rounded-xl p-4 pl-12 text-text focus:outline-none focus:border-primary transition-all placeholder:text-muted/60"
+              className="w-full bg-surface2 border border-border rounded-xl p-4 pl-12 text-text focus:outline-none focus:border-accent transition-all placeholder:text-muted/60"
             />
           </div>
 
@@ -408,7 +408,7 @@ function Step5({ onFinish }: { onFinish: () => void }) {
         onClick={handleFinish} 
         className={`w-full font-bold py-4 rounded-xl transition-all mt-auto shrink-0 ${
           selectedTeam 
-            ? 'bg-secondary hover:bg-secondary/90 text-bg shadow-lg shadow-secondary/20' 
+            ? 'bg-accent hover:bg-accent/90 text-bg shadow-lg shadow-accent/20' 
             : 'bg-surface2 hover:bg-surface3 text-text border border-border shadow-sm'
         }`}
       >

@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import '../../theme/colors.dart';
 import 'package:flutter/services.dart';
@@ -103,7 +104,7 @@ class QuickStakeNumpad extends StatelessWidget {
               onTap: () => _handleKey('DEL'),
               bg: gridColor,
               textColor: muted,
-              icon: Icons.backspace_rounded,
+              icon: LucideIcons.delete,
             ),
           ],
         ),
@@ -143,7 +144,7 @@ class _QuickChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: isMax ? FontWeight.w700 : FontWeight.w600,
             color: isMax ? FzColors.danger : null,
           ),

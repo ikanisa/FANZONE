@@ -254,9 +254,25 @@ Important:
 - missing `SUPABASE_URL` / `SUPABASE_ANON_KEY` causes the mobile app to show a backend connection error state
 - `lib/firebase_options.dart` is gitignored and must exist locally for the app to build
 
-### 2. Root `.env` for shell tooling
+### 2. Root `.env` for Flutter release builds and shell tooling
 
-The root `.env` file is used by shell scripts such as the Supabase probes. It is not read by the Flutter app.
+The root `.env` file is the **primary source of Supabase credentials for release builds**. It is also used by shell scripts such as the Supabase probes.
+
+> ⚠️ **CRITICAL: Every Flutter release build MUST include `--dart-define-from-file=.env`.**
+>
+> Without this flag, `SUPABASE_URL` and `SUPABASE_ANON_KEY` compile as empty strings, and the app will show **blank screens with no data** — no matches, fixtures, teams, or competitions will load. This applies to both APK and AAB builds.
+>
+> ```bash
+> # ✅ CORRECT — data will load
+> flutter build apk --release --dart-define-from-file=.env
+> flutter build appbundle --release --dart-define-from-file=.env
+>
+> # ❌ WRONG — app will have NO backend connectivity
+> flutter build apk --release
+> flutter build appbundle --release
+> ```
+>
+> Use `./tool/preflight_build_check.sh` before any release build to verify credentials are present.
 
 Tracked template:
 
@@ -419,28 +435,54 @@ npm run preview
 
 ## Build And Run Instructions
 
+> ⚠️ **All release builds MUST include `--dart-define-from-file=.env`.** Omitting this flag produces an app with no backend connectivity (blank screens). Run `./tool/preflight_build_check.sh` first to validate.
+
+### Pre-build validation
+
+```bash
+# Always run before any release build
+./tool/preflight_build_check.sh
+```
+
 ### Mobile debug / verification build
 
 ```bash
-flutter build apk --debug
+flutter build apk --debug --dart-define-from-file=.env
 ```
 
-### Android release APK
+### Android release APK (manual)
 
 ```bash
+# Recommended: use the env build script
 ./tool/build_android_release_from_env.sh staging
 ./tool/build_android_release_from_env.sh production
+
+# Manual alternative (MUST include --dart-define-from-file)
+flutter build apk --release --dart-define-from-file=.env
 ```
 
-### Android release AAB
+### Android release AAB (manual)
 
 ```bash
+# Recommended: use the env build script
 ./tool/build_android_aab_from_env.sh staging
 ./tool/build_android_aab_from_env.sh production
+
+# Manual alternative (MUST include --dart-define-from-file)
+flutter build appbundle --release --dart-define-from-file=.env
+```
+
+### Install on device
+
+```bash
+# Install APK and launch
+adb install -r build/app/outputs/flutter-apk/app-release.apk
+adb shell monkey -p app.fanzone.football 1
 ```
 
 Notes:
 
+- **all release builds require `--dart-define-from-file=.env`** — without it the app compiles with empty Supabase credentials
 - production Android builds require a valid upload keystore
 - release signing values can come from `android/key.properties` or `FANZONE_UPLOAD_*` environment variables
 - the Android package name is `app.fanzone.football`
@@ -712,13 +754,41 @@ At minimum, a backend promotion should include:
 
 ## Troubleshooting
 
+### Mobile app shows blank screens / no data (matches, fixtures, teams, competitions)
+
+**This is almost always a missing `--dart-define-from-file=.env` build flag.**
+
+The app uses `String.fromEnvironment()` which requires compile-time injection. If you built with `flutter build apk --release` (no `--dart-define-from-file`), the Supabase URL and anon key are empty strings, so the app never initializes Supabase and all data screens return empty.
+
+Fix:
+
+```bash
+# 1. Verify .env has credentials
+grep -c 'SUPABASE_URL\|SUPABASE_ANON_KEY' .env
+# Should print 2
+
+# 2. Rebuild with credentials
+flutter build apk --release --dart-define-from-file=.env
+
+# 3. Reinstall
+adb install -r build/app/outputs/flutter-apk/app-release.apk
+```
+
+Verify data is accessible independently:
+
+```bash
+curl -sS "$SUPABASE_URL/rest/v1/teams?is_active=eq.true&select=id&limit=1" \
+  -H "apikey: $SUPABASE_ANON_KEY"
+# Should return JSON array, not an error
+```
+
 ### Mobile app shows a connection/setup error at login
 
 Check:
 
-- `SUPABASE_URL` and `SUPABASE_ANON_KEY` are present in the active `env/*.json`
-- you ran with `--dart-define-from-file=...`
-- the JSON file contains real values, not example placeholders
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY` are present in `.env` and/or `env/*.json`
+- you ran with `--dart-define-from-file=.env`
+- the file contains real values, not example placeholders
 - `SUPABASE_JWT_SECRET`, `WABA_ACCESS_TOKEN`, and `WABA_PHONE_NUMBER_ID` are set for the deployed `whatsapp-otp` Edge Function
 
 ### Flutter build fails because `firebase_options.dart` is missing
@@ -780,6 +850,7 @@ Check:
 
 ## Common Issues And Gotchas
 
+- **`--dart-define-from-file=.env` is mandatory for ALL Flutter builds** — without it, the app has no backend and shows blank screens
 - `env/*.json` real files are gitignored; examples are templates only
 - `admin/.env.example` is committed as a template, but the real `admin/.env` remains local-only
 - generated Dart files must be committed when source models/providers change
@@ -902,7 +973,12 @@ Observed directly from the current code and config:
 # Mobile
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
-flutter run --dart-define-from-file=env/development.json
+flutter run --dart-define-from-file=.env
+
+# Release build (MUST include --dart-define-from-file)
+./tool/preflight_build_check.sh
+flutter build apk --release --dart-define-from-file=.env
+flutter build appbundle --release --dart-define-from-file=.env
 
 # Tests
 ./tool/flutter_analyze_release.sh

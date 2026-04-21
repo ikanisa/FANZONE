@@ -178,7 +178,7 @@ class TeamOverviewTab extends StatelessWidget {
         if (latestMatch == null)
           Text(
             'No match data available yet.',
-            style: TextStyle(fontSize: 13, color: muted),
+            style: TextStyle(fontSize: 14, color: muted),
           )
         else
           Container(
@@ -320,7 +320,7 @@ class TeamMembersTab extends StatelessWidget {
         if (entries.isEmpty)
           Text(
             'No supporters have joined this registry yet.',
-            style: TextStyle(fontSize: 13, color: muted),
+            style: TextStyle(fontSize: 14, color: muted),
           )
         else
           Column(
@@ -445,7 +445,7 @@ class _SupporterRow extends StatelessWidget {
                 Text(
                   fanId,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -486,7 +486,7 @@ class TeamFixturesTab extends StatelessWidget {
     if (upcoming.isEmpty) {
       return Text(
         'No upcoming matches yet.',
-        style: TextStyle(fontSize: 13, color: muted),
+        style: TextStyle(fontSize: 14, color: muted),
       );
     }
 

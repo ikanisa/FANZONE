@@ -17,12 +17,12 @@ export default function Notifications() {
   const getIconForType = (type: string) => {
     switch (type) {
       case 'pool_received':
-        return <Swords className="text-primary" size={16} />;
+        return <Swords className="text-accent" size={16} />;
       case 'pool_settled':
-        return <Trophy className="text-secondary" size={16} />;
+        return <Trophy className="text-accent3" size={16} />;
       case 'system':
       default:
-        return <Zap className="text-[var(--secondary)]" size={16} />;
+        return <Zap className="text-[var(--accent2)]" size={16} />;
     }
   };
 
@@ -80,19 +80,19 @@ function NotificationItem({ icon, title, desc, time, unread = false, onClick }: 
   return (
     <div 
       onClick={onClick}
-      className={`bg-surface p-3 rounded-2xl border flex items-center gap-3 transition-colors cursor-pointer group hover:bg-surface2 ${unread ? 'border-primary/40 bg-primary/5' : 'border-border'}`}
+      className={`bg-surface p-3 rounded-2xl border flex items-center gap-3 transition-colors cursor-pointer group hover:bg-surface2 ${unread ? 'border-accent/40 bg-accent/5' : 'border-border'}`}
     >
-      <div className={`w-10 h-10 rounded-full flex justify-center items-center shrink-0 border ${unread ? 'bg-primary/10 border-primary/20' : 'bg-surface2 border-border'}`}>
+      <div className={`w-10 h-10 rounded-full flex justify-center items-center shrink-0 border ${unread ? 'bg-accent/10 border-accent/20' : 'bg-surface2 border-border'}`}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center mb-0.5">
-          <span className="text-sm font-bold text-text truncate pr-2 group-hover:text-primary transition-colors">{title}</span>
+          <span className="text-sm font-bold text-text truncate pr-2 group-hover:text-accent transition-colors">{title}</span>
           <span className="text-[10px] font-bold text-muted uppercase shrink-0">{time}</span>
         </div>
         <p className="text-xs text-muted truncate">{desc}</p>
       </div>
-      {unread && <div className="w-2 h-2 rounded-full bg-primary shrink-0"></div>}
+      {unread && <div className="w-2 h-2 rounded-full bg-accent shrink-0"></div>}
     </div>
   );
 }

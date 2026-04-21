@@ -151,7 +151,7 @@ class _PoolJoinSheetState extends ConsumerState<PoolJoinSheet> {
             const SizedBox(height: 4),
             Text(
               widget.pool.matchName,
-              style: TextStyle(fontSize: 13, color: widget.muted),
+              style: TextStyle(fontSize: 14, color: widget.muted),
             ),
             const SizedBox(height: 24),
             Row(

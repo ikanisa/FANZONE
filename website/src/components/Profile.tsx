@@ -38,7 +38,7 @@ export default function Profile() {
 
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1.5">
-               <Fingerprint size={14} className="text-primary" />
+               <Fingerprint size={14} className="text-accent" />
                <div className="text-base font-mono text-text font-bold">
                  Fan ID {fanId}
                </div>
@@ -98,7 +98,7 @@ export default function Profile() {
                       }}
                       className={`aspect-square flex items-center justify-center rounded-2xl border transition-all ${
                         profileTeam === team 
-                          ? 'border-primary bg-primary/10 shadow-md' 
+                          ? 'border-accent bg-accent/10 shadow-md' 
                           : 'border-border bg-surface hover:bg-surface3 hover:border-muted'
                       }`}
                       title={team}
@@ -146,10 +146,10 @@ export default function Profile() {
             {!isVerified && (
               <button 
                 onClick={openAuthGate}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-surface3 transition-all text-primary border-b border-border"
+                className="w-full flex items-center justify-between p-3.5 hover:bg-surface3 transition-all text-[#25D366] border-b border-border"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20"><MessageCircle size={16} /></div>
+                  <div className="w-8 h-8 rounded-full bg-[#25D366]/10 flex items-center justify-center border border-[#25D366]/20"><MessageCircle size={16} /></div>
                   <div className="text-left">
                     <div className="font-bold text-sm leading-tight">Verify WhatsApp</div>
                   </div>

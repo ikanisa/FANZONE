@@ -34,7 +34,7 @@ class SupabasePredictGateway implements PredictGateway {
   final PredictionSlipGateway _slips;
 
   @override
-  Future<void> createPool(PoolCreateRequestDto request) {
+  Future<String> createPool(PoolCreateRequestDto request) {
     return _pools.createPool(request);
   }
 

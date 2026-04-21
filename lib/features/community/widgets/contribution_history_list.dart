@@ -78,7 +78,7 @@ class _ContributionRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(date, style: TextStyle(fontSize: 11, color: muted)),
+                Text(date, style: TextStyle(fontSize: 10, color: muted)),
               ],
             ),
           ),

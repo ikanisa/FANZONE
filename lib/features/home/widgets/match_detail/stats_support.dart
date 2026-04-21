@@ -169,7 +169,7 @@ class _DualStatBar extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: muted,
               ),

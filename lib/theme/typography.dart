@@ -93,25 +93,25 @@ abstract final class FzTypography {
         height: 1.5,
       ),
 
-      // Labels
+      // Labels — w700 to match reference's aggressive font-bold usage
       labelLarge: TextStyle(
         fontSize: 13,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         color: color,
         height: 1.3,
       ),
       labelMedium: TextStyle(
         fontSize: 12,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w700,
         color: color,
         height: 1.3,
       ),
       labelSmall: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
         color: color,
         height: 1.3,
-        letterSpacing: 0.3,
+        letterSpacing: 1.2,
       ),
     );
 
@@ -159,7 +159,7 @@ abstract final class FzTypography {
   static TextStyle display({
     double size = 32,
     Color? color,
-    double letterSpacing = 2.0,
+    double letterSpacing = 3.2,
   }) {
     final fallback = TextStyle(
       fontSize: size,
@@ -181,11 +181,36 @@ abstract final class FzTypography {
   }
 
   /// Section label style — uppercase, spaced, theme-aware muted color.
+  /// Matches design reference: `text-[10px] font-bold uppercase tracking-widest`
   static TextStyle sectionLabel(Brightness brightness) => const TextStyle(
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: FontWeight.w700,
-    color: Color(0xFFA8A29E),
-    letterSpacing: 0.8,
+    color: Color(0xFF8B8E99),
+    letterSpacing: 2.4,
+  );
+
+  /// Meta/status label style — uppercase, tracking-widest, small.
+  /// Matches the reference's ubiquitous `text-[9px] font-bold uppercase tracking-widest` pattern.
+  static TextStyle metaLabel({
+    double size = 9,
+    Color? color,
+  }) => TextStyle(
+    fontSize: size,
+    fontWeight: FontWeight.w700,
+    color: color ?? const Color(0xFF8B8E99),
+    letterSpacing: 1.6,
+  );
+
+  /// Status/badge text — bold + tracked for premium sports-editorial feel.
+  /// Matches: `text-[10px] font-bold uppercase tracking-widest`
+  static TextStyle statusLabel({
+    double size = 10,
+    Color? color,
+  }) => TextStyle(
+    fontSize: size,
+    fontWeight: FontWeight.w700,
+    color: color,
+    letterSpacing: 1.4,
   );
 
   static TextTheme _withGoogleFontTextTheme(

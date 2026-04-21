@@ -1,8 +1,11 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'dart:async' show TimeoutException;
 import 'dart:io' show SocketException;
 
 import '../../theme/colors.dart';
+import '../../theme/radii.dart';
+import '../../theme/typography.dart';
 
 /// Unified view for empty, error, and loading states.
 ///
@@ -26,7 +29,7 @@ class StateView extends StatelessWidget {
   factory StateView.empty({
     String title = 'Nothing here yet',
     String subtitle = 'Check back later.',
-    IconData icon = Icons.inbox_outlined,
+    IconData icon = LucideIcons.inbox,
     VoidCallback? action,
     String? actionLabel,
   }) => StateView._(
@@ -43,7 +46,7 @@ class StateView extends StatelessWidget {
     String subtitle = 'Please try again.',
     VoidCallback? onRetry,
   }) => StateView._(
-    icon: Icons.warning_amber_rounded,
+    icon: LucideIcons.alertTriangle,
     title: title,
     subtitle: subtitle,
     action: onRetry,
@@ -52,7 +55,7 @@ class StateView extends StatelessWidget {
 
   /// Offline state — no network.
   factory StateView.offline({VoidCallback? onRetry}) => StateView._(
-    icon: Icons.wifi_off_rounded,
+    icon: LucideIcons.wifiOff,
     title: 'You\'re offline',
     subtitle: 'Connect to the internet and try again.',
     action: onRetry,
@@ -69,9 +72,21 @@ class StateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final text = isDark ? FzColors.darkText : FzColors.lightText;
+    final surface2 = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final surface3 = isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    final isErrorState =
+        icon == LucideIcons.alertTriangle || icon == LucideIcons.wifiOff;
+    final actionColor = isErrorState ? FzColors.accent2 : text;
+    final actionBackground = isErrorState
+        ? FzColors.accent2.withValues(alpha: 0.10)
+        : surface3;
+    final actionBorder = isErrorState
+        ? FzColors.accent2.withValues(alpha: 0.20)
+        : border;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -84,40 +99,70 @@ class StateView extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: minHeight),
             child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? FzColors.darkSurface2
-                          : FzColors.lightSurface2,
-                      shape: BoxShape.circle,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 360),
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: surface2,
+                  borderRadius: FzRadii.cardRadius,
+                  border: Border.all(color: border),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: surface3,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, size: 24, color: muted),
                     ),
-                    child: Icon(icon, size: 24, color: muted),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(color: muted),
-                    textAlign: TextAlign.center,
-                  ),
-                  if (action != null) ...[
-                    const SizedBox(height: 20),
-                    FilledButton.tonal(
-                      onPressed: action,
-                      child: Text(actionLabel ?? 'Try again'),
+                    const SizedBox(height: 24),
+                    Text(
+                      title,
+                      style: FzTypography.display(
+                        size: 24,
+                        color: text,
+                        letterSpacing: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 14, color: muted, height: 1.45),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (action != null) ...[
+                      const SizedBox(height: 32),
+                      InkWell(
+                        onTap: action,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: actionBackground,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: actionBorder),
+                          ),
+                          child: Text(
+                            actionLabel ?? 'Try again',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: actionColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),

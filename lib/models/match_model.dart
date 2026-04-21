@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:intl/intl.dart';
 
 part 'match_model.freezed.dart';
 part 'match_model.g.dart';
@@ -82,10 +83,41 @@ class MatchModel with _$MatchModel {
   /// Whether the match is upcoming.
   bool get isUpcoming => normalizedStatus == 'upcoming';
 
+  /// Kickoff parsed from the GMT-based match date + kickoff_time fields.
+  DateTime? get kickoffAtUtc {
+    final value = kickoffTime?.trim();
+    if (value == null || value.isEmpty) return null;
+
+    final match = RegExp(r'^(\d{1,2}):(\d{2})(?::(\d{2}))?$').firstMatch(value);
+    if (match == null) return null;
+
+    final baseDate = date.isUtc ? date.toUtc() : date;
+    final hour = int.parse(match.group(1)!);
+    final minute = int.parse(match.group(2)!);
+    final second = int.parse(match.group(3) ?? '0');
+
+    return DateTime.utc(
+      baseDate.year,
+      baseDate.month,
+      baseDate.day,
+      hour,
+      minute,
+      second,
+    );
+  }
+
+  DateTime? get kickoffAtLocal => kickoffAtUtc?.toLocal();
+
+  String get kickoffTimeLocalLabel {
+    final kickoff = kickoffAtLocal;
+    if (kickoff == null) return '--:--';
+    return DateFormat('HH:mm').format(kickoff);
+  }
+
   /// Kickoff label (time or status).
   String get kickoffLabel {
     if (isLive) return 'LIVE';
     if (isFinished) return 'FT';
-    return kickoffTime ?? '--:--';
+    return kickoffTimeLocalLabel;
   }
 }

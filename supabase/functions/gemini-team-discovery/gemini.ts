@@ -80,7 +80,10 @@ function sanitizeTeam(
   entry: LeagueEntry,
   leagueName: string,
 ): DiscoveredTeam | null {
-  const rawName = typeof record.name === "string" ? record.name.trim() : "";
+  // Gemini grounded response may use 'team_name' instead of 'name'
+  const rawName = typeof record.name === "string" ? record.name.trim()
+    : typeof record.team_name === "string" ? (record.team_name as string).trim()
+    : "";
   if (!rawName) return null;
 
   const shortName = typeof record.short_name === "string" &&
@@ -147,21 +150,97 @@ function extractGroundingSummary(response: unknown): GroundingSummary {
   };
 }
 
+/**
+ * Step 2: Normalize grounded text into structured JSON using responseSchema.
+ * This second call does NOT use search tools, so responseSchema is allowed.
+ */
+async function normalizeGroundedText(
+  groundedText: string,
+  entry: LeagueEntry,
+): Promise<string> {
+  const genAI = new GoogleGenerativeAI(requireEnv("GEMINI_API_KEY"));
+  const normalizer = genAI.getGenerativeModel({
+    model: DEFAULT_GEMINI_MODEL,
+    // No tools — responseSchema is safe here
+  });
+
+  const normPrompt = [
+    "Extract the football team data from the following grounded search results into the required JSON schema.",
+    `Country: ${entry.country} (${entry.countryCode})`,
+    `Expected league: ${entry.league ?? "top-flight domestic league"}`,
+    "",
+    "Rules:",
+    "- Return ONLY the JSON, no prose or markdown.",
+    `- 'country' must be exactly "${entry.country}".`,
+    `- 'country_code' must be exactly "${entry.countryCode}".`,
+    "- 'league_name' must be the verified current first-division league name.",
+    "- 'short_name' should be a concise abbreviation (3-5 letters).",
+    "- 'search_terms' should include aliases, fan nicknames, abbreviations.",
+    "- Never invent clubs. Only include teams from the search results below.",
+    "",
+    "--- GROUNDED SEARCH RESULTS ---",
+    groundedText,
+  ].join("\n");
+
+  const result = await normalizer.generateContent({
+    contents: [{ role: "user", parts: [{ text: normPrompt }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: discoveredLeagueSchema,
+      temperature: 0,
+    },
+  });
+
+  return result.response.text();
+}
+
 export async function discoverTeamsForLeague(
   entry: LeagueEntry,
 ): Promise<LeagueDiscoveryResult> {
+  // Step 1: Grounded search — no responseSchema/responseMimeType allowed
   const model = getModel();
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: buildPrompt(entry) }] }],
     generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: discoveredLeagueSchema,
       temperature: 0.1,
     },
   });
 
-  const text = stripFences(result.response.text());
-  const parsed = JSON.parse(text) as Record<string, unknown>;
+  const grounding = extractGroundingSummary(result.response);
+  const rawText = result.response.text();
+
+  console.log(
+    `[gemini-team-discovery] ${entry.country}: grounded response length=${rawText.length}, first 200 chars: ${rawText.substring(0, 200)}`,
+  );
+  
+  // Try to parse the grounded response directly
+  let parsed: Record<string, unknown>;
+  try {
+    const stripped = stripFences(rawText);
+    parsed = JSON.parse(stripped) as Record<string, unknown>;
+    console.log(
+      `[gemini-team-discovery] ${entry.country}: direct parse OK, teams=${Array.isArray(parsed.teams) ? parsed.teams.length : "missing"}`,
+    );
+    if (!Array.isArray(parsed.teams) || parsed.teams.length === 0) {
+      throw new Error("No teams array in direct parse");
+    }
+  } catch (directError) {
+    // Step 2: Normalize grounded text → structured JSON via second Gemini call
+    const directMsg = directError instanceof Error ? directError.message : String(directError);
+    console.log(
+      `[gemini-team-discovery] ${entry.country}: direct parse failed (${directMsg}), running normalization step...`,
+    );
+    const normalizedText = await normalizeGroundedText(rawText, entry);
+    console.log(
+      `[gemini-team-discovery] ${entry.country}: normalized response length=${normalizedText.length}, first 200 chars: ${normalizedText.substring(0, 200)}`,
+    );
+    const stripped = stripFences(normalizedText);
+    parsed = JSON.parse(stripped) as Record<string, unknown>;
+    console.log(
+      `[gemini-team-discovery] ${entry.country}: normalized parse OK, teams=${Array.isArray(parsed.teams) ? parsed.teams.length : "missing"}`,
+    );
+  }
+
   const leagueName = typeof parsed.league_name === "string" &&
       parsed.league_name.trim().length > 0
     ? parsed.league_name.trim()
@@ -189,6 +268,7 @@ export async function discoverTeamsForLeague(
     league_name: leagueName,
     total_count: totalCount,
     teams,
-    grounding: extractGroundingSummary(result.response),
+    grounding,
+    debugRawText: rawText.substring(0, 500),
   };
 }

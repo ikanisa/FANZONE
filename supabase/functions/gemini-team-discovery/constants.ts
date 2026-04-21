@@ -2,10 +2,9 @@ export const FUNCTION_NAME = "gemini-team-discovery";
 
 export const DEFAULT_GEMINI_MODEL = (() => {
   try {
-    // Try models in order of preference. 2.0-flash-lite has separate quota.
-    return Deno.env.get("TEAM_DISCOVERY_MODEL")?.trim() || "gemini-2.0-flash-lite";
+    return Deno.env.get("TEAM_DISCOVERY_MODEL")?.trim() || "gemini-2.0-flash";
   } catch {
-    return "gemini-2.0-flash-lite";
+    return "gemini-2.0-flash";
   }
 })();
 

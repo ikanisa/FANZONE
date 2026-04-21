@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,7 +53,7 @@ class _TeamProfileScreenState extends ConsumerState<TeamProfileScreen> {
               title: 'Team not found',
               subtitle:
                   'This club profile is unavailable right now. Please try another team.',
-              icon: Icons.shield_outlined,
+              icon: LucideIcons.shield,
               action: () => context.go('/memberships'),
               actionLabel: 'Back to memberships',
             ),

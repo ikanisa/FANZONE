@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { type ScorePool, type PoolEntry } from '../types';
+import type { ScorePool, PoolEntry } from '../types';
 import { mockScorePools, mockPoolEntries } from '../lib/mockData';
 
 export interface Prediction {
@@ -91,7 +91,7 @@ export const useAppStore = create<AppState>()(
 
       // Initial Auth State
       isVerified: false,
-      fanId: '#483 291',
+      fanId: '483291',
       showAuthGate: false,
       hasSeenSplash: false,
       hasCompletedOnboarding: false,

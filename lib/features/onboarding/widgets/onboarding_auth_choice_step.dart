@@ -89,7 +89,7 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
             Center(
               child: Text(
                 'Verify your phone to unlock all features',
-                style: TextStyle(fontSize: 11, color: muted),
+                style: TextStyle(fontSize: 10, color: muted),
               ),
             ),
 
@@ -137,7 +137,7 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
             Center(
               child: Text(
                 'Browse matches and teams • Sign in anytime',
-                style: TextStyle(fontSize: 11, color: muted),
+                style: TextStyle(fontSize: 10, color: muted),
               ),
             ),
 

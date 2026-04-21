@@ -39,8 +39,8 @@ function StatRow({ label, left, right, leftValue, rightValue }: StatItem) {
         <span>{right}</span>
       </div>
       <div className="h-2 bg-surface3 rounded-full overflow-hidden flex">
-        <div className="h-full bg-primary" style={{ width: `${leftPercent}%` }}></div>
-        <div className="h-full bg-secondary" style={{ width: `${rightPercent}%` }}></div>
+        <div className="h-full bg-accent" style={{ width: `${leftPercent}%` }}></div>
+        <div className="h-full bg-accent2" style={{ width: `${rightPercent}%` }}></div>
       </div>
     </div>
   );

@@ -225,8 +225,7 @@ class TeamSearchCatalog {
        popularTeams = _resolvePopularTeams(_dedupeTeams(teams), popularTeams);
 
   factory TeamSearchCatalog.defaults() {
-    // Empty by default — populated from Supabase teams table.
-    return TeamSearchCatalog(const []);
+    return TeamSearchCatalog(_bundledFallbackTeams);
   }
 
   factory TeamSearchCatalog.fromRawJson(String raw) {
@@ -272,21 +271,38 @@ class TeamSearchCatalog {
   }
 
   List<OnboardingTeam> popularForRegion(String region) {
-    if (popularTeams.isNotEmpty) {
-      return popularTeams.take(20).toList(growable: false);
+    final normalizedRegion = _normalizeRegion(region);
+    final rankedPopular = popularTeams.isNotEmpty
+        ? popularTeams
+        : _sortPopularTeams(
+            allTeams.where((team) => team.isPopular).toList(growable: false),
+          );
+    if (rankedPopular.isEmpty) {
+      final europeanFallback = _sortPopularTeams(
+        allTeams
+            .where((team) => _normalizeRegion(team.region) == 'europe')
+            .toList(growable: false),
+      );
+      return europeanFallback.take(20).toList(growable: false);
     }
 
-    final rankedPopular = _sortPopularTeams(
-      allTeams.where((team) => team.isPopular).toList(growable: false),
-    );
-    if (rankedPopular.isNotEmpty) {
+    if (normalizedRegion == 'global') {
       return rankedPopular.take(20).toList(growable: false);
     }
 
-    final europeanFallback = _sortPopularTeams(
-      allTeams.where((team) => team.region == 'europe').toList(growable: false),
-    );
-    return europeanFallback.take(20).toList(growable: false);
+    final regional = rankedPopular
+        .where((team) => _normalizeRegion(team.region) == normalizedRegion)
+        .toList(growable: false);
+    final padded = <OnboardingTeam>[
+      ...regional,
+      ...rankedPopular.where(
+        (team) =>
+            _normalizeRegion(team.region) != normalizedRegion &&
+            !regional.any((existing) => existing.id == team.id),
+      ),
+    ];
+
+    return padded.take(20).toList(growable: false);
   }
 
   List<OnboardingTeam> get _popularSearchPool {
@@ -406,6 +422,23 @@ class TeamSearchCatalog {
   static String _normalize(String value) {
     return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
   }
+
+  String _normalizeRegion(String value) {
+    switch (value.trim().toLowerCase()) {
+      case 'africa':
+        return 'africa';
+      case 'europe':
+        return 'europe';
+      case 'malta':
+        return 'malta';
+      case 'americas':
+      case 'north_america':
+      case 'northamerica':
+        return 'north_america';
+      default:
+        return 'global';
+    }
+  }
 }
 
 class _ScoredOnboardingTeam {
@@ -415,4 +448,202 @@ class _ScoredOnboardingTeam {
   final int score;
 }
 
-
+const _bundledFallbackTeams = <OnboardingTeam>[
+  OnboardingTeam(
+    id: 'gb-liverpool',
+    name: 'Liverpool',
+    country: 'England',
+    league: 'Premier League',
+    aliases: ['LIV', 'Reds'],
+    region: 'europe',
+    isPopular: true,
+    popularRank: 1,
+  ),
+  OnboardingTeam(
+    id: 'gb-arsenal',
+    name: 'Arsenal',
+    country: 'England',
+    league: 'Premier League',
+    aliases: ['ARS', 'Gunners'],
+    region: 'europe',
+    isPopular: true,
+    popularRank: 2,
+  ),
+  OnboardingTeam(
+    id: 'gb-manchester-city',
+    name: 'Manchester City',
+    country: 'England',
+    league: 'Premier League',
+    aliases: ['Man City', 'City'],
+    region: 'europe',
+    isPopular: true,
+    popularRank: 3,
+  ),
+  OnboardingTeam(
+    id: 'gb-manchester-united',
+    name: 'Manchester United',
+    country: 'England',
+    league: 'Premier League',
+    aliases: ['Man United', 'United'],
+    region: 'europe',
+    isPopular: true,
+    popularRank: 4,
+  ),
+  OnboardingTeam(
+    id: 'es-real-madrid',
+    name: 'Real Madrid',
+    country: 'Spain',
+    league: 'La Liga',
+    aliases: ['Madrid', 'RMA'],
+    region: 'europe',
+    isPopular: true,
+    popularRank: 5,
+  ),
+  OnboardingTeam(
+    id: 'es-barcelona',
+    name: 'Barcelona',
+    country: 'Spain',
+    league: 'La Liga',
+    aliases: ['Barca', 'FCB'],
+    region: 'europe',
+    isPopular: true,
+    popularRank: 6,
+  ),
+  OnboardingTeam(
+    id: 'de-bayern',
+    name: 'Bayern Munich',
+    country: 'Germany',
+    league: 'Bundesliga',
+    aliases: ['Bayern'],
+    region: 'europe',
+    isPopular: true,
+    popularRank: 7,
+  ),
+  OnboardingTeam(
+    id: 'it-juventus',
+    name: 'Juventus',
+    country: 'Italy',
+    league: 'Serie A',
+    aliases: ['Juve'],
+    region: 'europe',
+    isPopular: true,
+    popularRank: 8,
+  ),
+  OnboardingTeam(
+    id: 'england',
+    name: 'England',
+    country: 'England',
+    league: 'National Team',
+    aliases: ['Three Lions'],
+    region: 'europe',
+    isPopular: true,
+    popularRank: 9,
+  ),
+  OnboardingTeam(
+    id: 'rw-apr-fc',
+    name: 'APR FC',
+    country: 'Rwanda',
+    league: 'Rwanda Premier League',
+    aliases: ['APR'],
+    region: 'africa',
+    isPopular: true,
+    popularRank: 10,
+  ),
+  OnboardingTeam(
+    id: 'rw-rayon-sports',
+    name: 'Rayon Sports',
+    country: 'Rwanda',
+    league: 'Rwanda Premier League',
+    aliases: ['Rayon'],
+    region: 'africa',
+    isPopular: true,
+    popularRank: 11,
+  ),
+  OnboardingTeam(
+    id: 'eg-al-ahly',
+    name: 'Al Ahly',
+    country: 'Egypt',
+    league: 'Egyptian Premier League',
+    aliases: ['Ahly'],
+    region: 'africa',
+    isPopular: true,
+    popularRank: 12,
+  ),
+  OnboardingTeam(
+    id: 'za-kaizer-chiefs',
+    name: 'Kaizer Chiefs',
+    country: 'South Africa',
+    league: 'Premier Soccer League',
+    aliases: ['Chiefs'],
+    region: 'africa',
+    isPopular: true,
+    popularRank: 13,
+  ),
+  OnboardingTeam(
+    id: 'mt-valletta',
+    name: 'Valletta',
+    country: 'Malta',
+    league: 'Maltese Premier League',
+    aliases: ['Valletta FC'],
+    region: 'malta',
+    isPopular: true,
+    popularRank: 14,
+  ),
+  OnboardingTeam(
+    id: 'mt-hamrun-spartans',
+    name: 'Hamrun Spartans',
+    country: 'Malta',
+    league: 'Maltese Premier League',
+    aliases: ['Hamrun'],
+    region: 'malta',
+    isPopular: true,
+    popularRank: 15,
+  ),
+  OnboardingTeam(
+    id: 'mt-floriana',
+    name: 'Floriana',
+    country: 'Malta',
+    league: 'Maltese Premier League',
+    region: 'malta',
+    isPopular: true,
+    popularRank: 16,
+  ),
+  OnboardingTeam(
+    id: 'mt-hibernians',
+    name: 'Hibernians',
+    country: 'Malta',
+    league: 'Maltese Premier League',
+    region: 'malta',
+    isPopular: true,
+    popularRank: 17,
+  ),
+  OnboardingTeam(
+    id: 'us-inter-miami',
+    name: 'Inter Miami',
+    country: 'United States',
+    league: 'MLS',
+    aliases: ['Miami'],
+    region: 'americas',
+    isPopular: true,
+    popularRank: 18,
+  ),
+  OnboardingTeam(
+    id: 'ar-boca-juniors',
+    name: 'Boca Juniors',
+    country: 'Argentina',
+    league: 'Primera Division',
+    aliases: ['Boca'],
+    region: 'americas',
+    isPopular: true,
+    popularRank: 19,
+  ),
+  OnboardingTeam(
+    id: 'br-flamengo',
+    name: 'Flamengo',
+    country: 'Brazil',
+    league: 'Brasileirao',
+    region: 'americas',
+    isPopular: true,
+    popularRank: 20,
+  ),
+];

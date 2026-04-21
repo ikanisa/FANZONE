@@ -253,7 +253,7 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
                 _view == _phoneView
                     ? 'We\'ll send a 6-digit code to your WhatsApp to verify your identity and unlock all features.'
                     : 'Enter the 6-digit code sent to your WhatsApp at $_fullPhone',
-                style: TextStyle(fontSize: 13, color: muted, height: 1.5),
+                style: TextStyle(fontSize: 14, color: muted, height: 1.5),
               ),
 
               const SizedBox(height: 32),

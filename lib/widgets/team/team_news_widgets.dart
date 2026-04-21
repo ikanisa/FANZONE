@@ -73,7 +73,7 @@ class TeamNewsCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 news.summary!,
-                style: TextStyle(fontSize: 13, color: muted, height: 1.4),
+                style: TextStyle(fontSize: 14, color: muted, height: 1.4),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -85,7 +85,7 @@ class TeamNewsCard extends StatelessWidget {
                   Text(
                     news.sourceName!,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       color: FzColors.primary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -94,7 +94,7 @@ class TeamNewsCard extends StatelessWidget {
                 if (news.publishedAt != null)
                   Text(
                     formatTeamRelativeTime(news.publishedAt!),
-                    style: TextStyle(fontSize: 11, color: muted),
+                    style: TextStyle(fontSize: 10, color: muted),
                   ),
               ],
             ),
@@ -137,7 +137,7 @@ class TeamNewsCategoryChip extends StatelessWidget {
         child: Text(
           TeamNewsCategory.label(category),
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.w600,
             color: selected
                 ? FzColors.primary

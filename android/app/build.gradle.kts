@@ -1,6 +1,8 @@
+import groovy.json.JsonSlurper
 import java.io.FileInputStream
 import java.util.Base64
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -85,6 +87,52 @@ val hasValidReleaseKeystoreConfig =
             releaseKeyPassword,
         ).none(::isPlaceholderCredential)
 
+fun sanitizeReleaseGeneratedPluginRegistrant() {
+    val registrantFile =
+        project.layout.projectDirectory
+            .file("src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java")
+            .asFile
+    if (!registrantFile.exists()) {
+        return
+    }
+
+    val pluginsMetadataFile = rootProject.file("../.flutter-plugins-dependencies")
+    if (!pluginsMetadataFile.exists()) {
+        return
+    }
+
+    val parsed =
+        JsonSlurper().parseText(pluginsMetadataFile.readText()) as? Map<*, *>
+            ?: return
+    val plugins =
+        (((parsed["plugins"] as? Map<*, *>)?.get("android")) as? List<*>)
+            ?: return
+    val devPluginNames =
+        plugins
+            .mapNotNull { plugin ->
+                val pluginMap = plugin as? Map<*, *> ?: return@mapNotNull null
+                if (pluginMap["dev_dependency"] == true) {
+                    pluginMap["name"] as? String
+                } else {
+                    null
+                }
+            }
+            .toSet()
+    if (devPluginNames.isEmpty()) {
+        return
+    }
+
+    var sanitizedText = registrantFile.readText()
+    devPluginNames.forEach { pluginName ->
+        val blockPattern =
+            Regex(
+                """(?ms)^\s*try \{\n\s*flutterEngine\.getPlugins\(\)\.add\(new .*?\);\n\s*\} catch \(Exception e\) \{\n\s*Log\.e\(TAG, "Error registering plugin ${Regex.escape(pluginName)}, .*?", e\);\n\s*\}\n?""",
+            )
+        sanitizedText = sanitizedText.replace(blockPattern, "")
+    }
+    registrantFile.writeText(sanitizedText)
+}
+
 android {
     namespace = "com.fanzone.fanzone"
     compileSdk = flutter.compileSdkVersion
@@ -93,10 +141,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
@@ -147,4 +191,21 @@ android {
 
 flutter {
     source = "../.."
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
+val sanitizeReleaseGeneratedPluginRegistrantTask =
+    tasks.register("sanitizeReleaseGeneratedPluginRegistrant") {
+        doLast {
+            sanitizeReleaseGeneratedPluginRegistrant()
+        }
+    }
+
+tasks.matching { it.name == "compileReleaseJavaWithJavac" }.configureEach {
+    dependsOn(sanitizeReleaseGeneratedPluginRegistrantTask)
 }

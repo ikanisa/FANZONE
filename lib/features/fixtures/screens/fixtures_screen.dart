@@ -1,10 +1,11 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../home/screens/leagues_discovery_screen.dart';
+import '../../../models/competition_model.dart';
 import '../../../models/match_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/favourites_provider.dart';
@@ -14,8 +15,6 @@ import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_shimmer.dart';
 import '../../../widgets/common/state_view.dart';
 import '../widgets/fixtures_widgets.dart';
-
-enum _FixtureStateFilter { all, live, upcoming, finished }
 
 class FixturesScreen extends ConsumerStatefulWidget {
   const FixturesScreen({super.key});
@@ -27,16 +26,16 @@ class FixturesScreen extends ConsumerStatefulWidget {
 class _FixturesScreenState extends ConsumerState<FixturesScreen> {
   late final List<DateTime> _dates;
   late DateTime _selectedDate;
-  FixturesPrimaryView _activeView = FixturesPrimaryView.competitions;
-  _FixtureStateFilter _selectedState = _FixtureStateFilter.all;
+  FixturesPrimaryView _activeView = FixturesPrimaryView.matches;
   String? _selectedCompetitionId;
 
   @override
   void initState() {
     super.initState();
     final today = DateTime.now();
+    // Source-of-truth reference shows a compact 7-day rail.
     _dates = List.generate(
-      9,
+      7,
       (index) => DateTime(today.year, today.month, today.day + index - 2),
     );
     _selectedDate = DateTime(today.year, today.month, today.day);
@@ -60,6 +59,8 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     final matchesAsync = ref.watch(matchesByDateProvider(_selectedDate));
     final competitionsAsync = ref.watch(competitionsProvider);
+    final top5Async = ref.watch(top5EuropeanLeaguesProvider);
+    final localAsync = ref.watch(localLeaguesProvider('malta'));
     final favourites =
         ref.watch(favouritesProvider).valueOrNull ?? const FavouritesState();
 
@@ -75,7 +76,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                     child: Text(
                       'Fixtures',
                       style: FzTypography.display(
-                        size: 32,
+                        size: 36,
                         color: isDark ? FzColors.darkText : FzColors.lightText,
                       ),
                     ),
@@ -93,11 +94,13 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                 switchInCurve: Curves.easeOutCubic,
                 switchOutCurve: Curves.easeInCubic,
                 child: _activeView == FixturesPrimaryView.competitions
-                    ? const KeyedSubtree(
-                        key: ValueKey('fixtures-competitions'),
-                        child: LeaguesDiscoveryContent(
-                          showSearchAction: false,
-                          topPadding: 12,
+                    ? KeyedSubtree(
+                        key: const ValueKey('fixtures-competitions'),
+                        child: _FixturesCompetitionsView(
+                          competitionsAsync: competitionsAsync,
+                          top5Async: top5Async,
+                          localAsync: localAsync,
+                          favourites: favourites,
                         ),
                       )
                     : KeyedSubtree(
@@ -124,11 +127,10 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     required Color muted,
     required bool isDark,
     required AsyncValue<List<MatchModel>> matchesAsync,
-    required AsyncValue competitionsAsync,
+    required AsyncValue<List<CompetitionModel>> competitionsAsync,
     required FavouritesState favourites,
   }) {
-    final chipSurface = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
-    final chipBorder = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
 
     return RefreshIndicator(
       onRefresh: _onRefresh,
@@ -137,95 +139,70 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Row(
                 children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: chipSurface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: chipBorder),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? FzColors.darkSurface2
+                          : FzColors.lightSurface2,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark
+                            ? FzColors.darkBorder
+                            : FzColors.lightBorder,
                       ),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            onPressed: _canMoveDateBackward
-                                ? () => _shiftSelectedDate(-1)
-                                : null,
-                            visualDensity: VisualDensity.compact,
-                            icon: const Icon(Icons.chevron_left_rounded),
-                          ),
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.calendar_today_rounded,
-                                  size: 14,
-                                  color: FzColors.primary,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'This Week',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? FzColors.darkText
-                                        : FzColors.lightText,
-                                  ),
-                                ),
-                              ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'LIVE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _dates.length,
+                        itemBuilder: (context, index) {
+                          final date = _dates[index];
+                          final selected = _isSameDate(date, _selectedDate);
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              left: index == 0 ? 0 : 6,
+                              right: index == _dates.length - 1 ? 0 : 0,
                             ),
-                          ),
-                          IconButton(
-                            onPressed: _canMoveDateForward
-                                ? () => _shiftSelectedDate(1)
-                                : null,
-                            visualDensity: VisualDensity.compact,
-                            icon: const Icon(Icons.chevron_right_rounded),
-                          ),
-                        ],
+                            child: _FixtureDateChip(
+                              date: date,
+                              selected: selected,
+                              onTap: () => setState(() => _selectedDate = date),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   ToolbarIconButton(
-                    tooltip: 'Search fixtures',
-                    icon: Icons.search_rounded,
+                    tooltip: 'Calendar',
+                    icon: LucideIcons.calendar,
                     muted: muted,
-                    onTap: () => context.push('/search'),
-                  ),
-                  const SizedBox(width: 6),
-                  ToolbarIconButton(
-                    tooltip: 'Filter fixtures',
-                    icon: Icons.filter_alt_outlined,
-                    muted: muted,
-                    onTap: () => _showFilterSheet(context),
+                    onTap: () {},
                   ),
                 ],
               ),
             ),
           ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 28,
-              child: Center(
-                child: Text(
-                  _fixtureGroupLabel(_selectedDate),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: muted,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 10)),
+          SliverToBoxAdapter(child: SizedBox(height: 12)),
           SliverToBoxAdapter(
             child: SizedBox(
               height: 42,
@@ -246,10 +223,12 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                           }
                           return left.compareTo(right);
                         });
-
-                  final competitions = {
-                    for (final item in competitionsAsync.valueOrNull ?? [])
-                      item.id: item,
+                  final competitionLabels = {
+                    for (final competition
+                        in competitionsAsync.valueOrNull ?? const [])
+                      competition.id: competition.shortName.isNotEmpty
+                          ? competition.shortName
+                          : competition.name,
                   };
 
                   return ListView(
@@ -265,8 +244,8 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                       ...competitionIds.map(
                         (competitionId) => FixtureStateChip(
                           label:
-                              competitions[competitionId]?.shortName ??
-                              competitionId,
+                              competitionLabels[competitionId] ??
+                              _fixtureLeagueLabel(competitionId),
                           selected: _selectedCompetitionId == competitionId,
                           onTap: () => setState(
                             () => _selectedCompetitionId = competitionId,
@@ -330,7 +309,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                   child: StateView.empty(
                     title: 'No fixtures',
                     subtitle: 'Try another date or league.',
-                    icon: Icons.calendar_today_rounded,
+                    icon: LucideIcons.calendar,
                   ),
                 );
               }
@@ -340,7 +319,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                   child: FixtureGroupCard(
                     matches: filtered,
                     onOpenMatch: (match) => context.push('/match/${match.id}'),
-                    onOpenPools: () => context.go('/pools'),
+                    onOpenPools: () => context.go('/pools/create'),
                   ),
                 ),
               );
@@ -364,16 +343,10 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
 
   List<MatchModel> _filterMatches(List<MatchModel> matches) {
     final filtered = matches.where((match) {
-      final stateMatches = switch (_selectedState) {
-        _FixtureStateFilter.live => match.isLive,
-        _FixtureStateFilter.upcoming => match.isUpcoming,
-        _FixtureStateFilter.finished => match.isFinished,
-        _FixtureStateFilter.all => true,
-      };
       final competitionMatches = _selectedCompetitionId == null
           ? true
           : match.competitionId == _selectedCompetitionId;
-      return stateMatches && competitionMatches;
+      return competitionMatches;
     }).toList();
 
     filtered.sort((left, right) {
@@ -383,75 +356,352 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     return filtered;
   }
 
-  bool get _canMoveDateBackward =>
-      _dates.indexWhere((date) => _isSameDate(date, _selectedDate)) > 0;
-
-  bool get _canMoveDateForward {
-    final currentIndex = _dates.indexWhere(
-      (date) => _isSameDate(date, _selectedDate),
-    );
-    return currentIndex >= 0 && currentIndex < _dates.length - 1;
-  }
-
-  void _shiftSelectedDate(int delta) {
-    final currentIndex = _dates.indexWhere(
-      (date) => _isSameDate(date, _selectedDate),
-    );
-    if (currentIndex == -1) return;
-    final nextIndex = (currentIndex + delta).clamp(0, _dates.length - 1);
-    if (nextIndex == currentIndex) return;
-    setState(() => _selectedDate = _dates[nextIndex]);
-  }
-
-  Future<void> _showFilterSheet(BuildContext context) async {
-    final nextFilter = await showModalBottomSheet<_FixtureStateFilter>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final filter in _FixtureStateFilter.values)
-              ListTile(
-                title: Text(_stateFilterLabel(filter)),
-                trailing: filter == _selectedState
-                    ? const Icon(Icons.check_rounded, color: FzColors.primary)
-                    : null,
-                onTap: () => Navigator.of(context).pop(filter),
-              ),
-          ],
-        ),
-      ),
-    );
-    if (nextFilter == null || !mounted) return;
-    setState(() => _selectedState = nextFilter);
-  }
-
-  String _stateFilterLabel(_FixtureStateFilter filter) {
-    return switch (filter) {
-      _FixtureStateFilter.all => 'All Fixtures',
-      _FixtureStateFilter.live => 'Live',
-      _FixtureStateFilter.upcoming => 'Upcoming',
-      _FixtureStateFilter.finished => 'Finished',
-    };
-  }
-
-  String _fixtureGroupLabel(DateTime date) {
-    final today = DateTime.now();
-    final prefix = switch (true) {
-      _ when _isSameDate(date, today) => 'Today',
-      _ when _isSameDate(date, today.add(const Duration(days: 1))) =>
-        'Tomorrow',
-      _ when _isSameDate(date, today.subtract(const Duration(days: 1))) =>
-        'Yesterday',
-      _ => DateFormat('EEE').format(date),
-    };
-    return '$prefix, ${DateFormat('MMM d').format(date)}';
+  String _fixtureLeagueLabel(String competitionId) {
+    final normalized = competitionId.toLowerCase();
+    if (normalized.contains('premier')) return 'Premier League';
+    if (normalized.contains('la_liga') || normalized.contains('laliga')) {
+      return 'La Liga';
+    }
+    if (normalized.contains('serie')) return 'Serie A';
+    if (normalized.contains('champions') || normalized.contains('ucl')) {
+      return 'UCL';
+    }
+    if (normalized.contains('malta')) return 'Malta Premier';
+    return competitionId;
   }
 
   bool _isSameDate(DateTime left, DateTime right) {
     return left.year == right.year &&
         left.month == right.month &&
         left.day == right.day;
+  }
+}
+
+class _FixtureDateChip extends StatelessWidget {
+  const _FixtureDateChip({
+    required this.date,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final DateTime date;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 74,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected
+                ? (isDark
+                      ? FzColors.darkBorder.withValues(alpha: 0.5)
+                      : FzColors.lightBorder.withValues(alpha: 0.5))
+                : Colors.transparent,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.10),
+                    blurRadius: 12,
+                    spreadRadius: -8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              DateFormat('EEE').format(date).toUpperCase(),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+                color: selected ? textColor : muted,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              DateFormat('d MMM').format(date).toUpperCase(),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.7,
+                color: selected ? textColor.withValues(alpha: 0.84) : muted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FixturesCompetitionsView extends StatelessWidget {
+  const _FixturesCompetitionsView({
+    required this.competitionsAsync,
+    required this.top5Async,
+    required this.localAsync,
+    required this.favourites,
+  });
+
+  final AsyncValue<List<CompetitionModel>> competitionsAsync;
+  final AsyncValue<List<CompetitionModel>> top5Async;
+  final AsyncValue<List<CompetitionModel>> localAsync;
+  final FavouritesState favourites;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+
+    return competitionsAsync.when(
+      data: (allCompetitions) {
+        final local = localAsync.valueOrNull ?? const <CompetitionModel>[];
+        final top5 = top5Async.valueOrNull ?? const <CompetitionModel>[];
+        final favouriteCompetitions = allCompetitions
+            .where(
+              (competition) =>
+                  favourites.competitionIds.contains(competition.id),
+            )
+            .toList(growable: false);
+        final forYou = <CompetitionModel>[
+          ...local,
+          ...favouriteCompetitions.where(
+            (competition) =>
+                !local.any((existing) => existing.id == competition.id),
+          ),
+        ].take(3).toList(growable: false);
+        final majorCompetitions = allCompetitions
+            .where(
+              (competition) =>
+                  competition.name.toLowerCase().contains('champions') ||
+                  competition.name.toLowerCase().contains('europa') ||
+                  competition.name.toLowerCase().contains('world cup') ||
+                  competition.name.toLowerCase().contains('euro') ||
+                  competition.name.toLowerCase().contains('cup'),
+            )
+            .take(4)
+            .toList(growable: false);
+
+        return ListView(
+          key: const ValueKey('fixtures-competitions-list'),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+          children: [
+            const _CompetitionSectionTitle(
+              title: 'For You',
+              icon: LucideIcons.star,
+              iconColor: FzColors.accent3,
+            ),
+            const SizedBox(height: 8),
+            if (forYou.isEmpty)
+              StateView.empty(
+                title: 'No competitions pinned',
+                subtitle: 'Favourite competitions will show up here.',
+                icon: LucideIcons.star,
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: forYou.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 1.05,
+                ),
+                itemBuilder: (context, index) {
+                  final competition = forYou[index];
+                  return _CompetitionTile(
+                    competition: competition,
+                    compact: true,
+                  );
+                },
+              ),
+            const SizedBox(height: 24),
+            const _CompetitionSectionTitle(
+              title: 'Europe',
+              icon: LucideIcons.globe2,
+              iconColor: FzColors.accent,
+            ),
+            const SizedBox(height: 8),
+            ...top5.map(
+              (competition) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: _CompetitionTile(competition: competition),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const _CompetitionSectionTitle(
+              title: 'Major Tournaments',
+              icon: LucideIcons.trophy,
+              iconColor: FzColors.accent2,
+            ),
+            const SizedBox(height: 8),
+            if (majorCompetitions.isEmpty)
+              Text(
+                'Major tournaments will appear here when they are available.',
+                style: TextStyle(fontSize: 12, color: muted),
+              )
+            else
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: majorCompetitions.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 1.35,
+                ),
+                itemBuilder: (context, index) {
+                  final competition = majorCompetitions[index];
+                  return _CompetitionTile(
+                    competition: competition,
+                    compact: true,
+                    iconColor: FzColors.accent2,
+                  );
+                },
+              ),
+            if (top5.isEmpty && forYou.isEmpty && majorCompetitions.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 24),
+                child: Center(
+                  child: Text(
+                    'Competition catalogue unavailable',
+                    style: TextStyle(fontSize: 12, color: muted),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: ScoresPageSkeleton(),
+      ),
+      error: (_, stackTrace) => StateView.error(
+        title: 'Could not load competitions',
+        subtitle: 'Pull to refresh and try again.',
+      ),
+    );
+  }
+}
+
+class _CompetitionSectionTitle extends StatelessWidget {
+  const _CompetitionSectionTitle({
+    required this.title,
+    required this.icon,
+    required this.iconColor,
+  });
+
+  final String title;
+  final IconData icon;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: iconColor),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+        ),
+      ],
+    );
+  }
+}
+
+class _CompetitionTile extends StatelessWidget {
+  const _CompetitionTile({
+    required this.competition,
+    this.compact = false,
+    this.iconColor,
+  });
+
+  final CompetitionModel competition;
+  final bool compact;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final text = isDark ? FzColors.darkText : FzColors.lightText;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+
+    return InkWell(
+      onTap: () => context.push('/league/${competition.id}'),
+      borderRadius: BorderRadius.circular(compact ? 14 : 16),
+      child: Container(
+        padding: EdgeInsets.all(compact ? 12 : 14),
+        decoration: BoxDecoration(
+          color: compact ? FzColors.darkSurface : FzColors.darkSurface2,
+          borderRadius: BorderRadius.circular(compact ? 14 : 16),
+          border: Border.all(color: FzColors.darkBorder),
+        ),
+        child: compact
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    LucideIcons.trophy,
+                    size: 16,
+                    color: iconColor ?? FzColors.accent,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    competition.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: text,
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  Icon(
+                    LucideIcons.trophy,
+                    size: 16,
+                    color: iconColor ?? FzColors.accent,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      competition.name,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: text,
+                      ),
+                    ),
+                  ),
+                  Icon(LucideIcons.chevronRight, size: 14, color: muted),
+                ],
+              ),
+      ),
+    );
   }
 }

@@ -4,12 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../config/app_config.dart';
 import '../../../models/notification_model.dart';
 import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
-import '../../../widgets/common/fz_wordmark.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
@@ -73,10 +71,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
-                  _SettingsInfo(
+                  _SettingsPreviewToggle(
                     icon: LucideIcons.moon,
-                    label: 'Appearance',
-                    value: 'Dark only',
+                    label: 'Dark Mode',
                     muted: muted,
                     textColor: textColor,
                   ),
@@ -148,6 +145,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 24),
+            const _SectionHeader(title: 'Developer'),
+            const SizedBox(height: 8),
+            FzCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  _SettingsAction(
+                    icon: LucideIcons.bug,
+                    iconTint: FzColors.accent,
+                    label: 'Test: Pool Received',
+                    muted: muted,
+                    textColor: textColor,
+                    onTap: () {
+                      _queueDebugNotification(
+                        type: 'pool_received',
+                        title: 'New Friend Pool!',
+                        body:
+                            'User 582910 has pooled you to predict the LIV vs ARS match. Tap to accept.',
+                        data: const {'screen': '/pools'},
+                      );
+                      _showDeveloperMessage('Added a pool invite to Inbox.');
+                    },
+                  ),
+                  const _Divider(),
+                  _SettingsAction(
+                    icon: LucideIcons.bug,
+                    iconTint: FzColors.accent3,
+                    label: 'Test: Pool Settled',
+                    muted: muted,
+                    textColor: textColor,
+                    onTap: () {
+                      _queueDebugNotification(
+                        type: 'pool_settled',
+                        title: 'Pool Settled',
+                        body:
+                            'You won the pool against User 582910! +50 FET has been added to your wallet.',
+                        data: const {'screen': '/wallet'},
+                      );
+                      _showDeveloperMessage(
+                        'Added a settlement update to Inbox.',
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
             const _SectionHeader(title: 'Support'),
             const SizedBox(height: 8),
             FzCard(
@@ -159,7 +203,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     label: 'Help & FAQ',
                     muted: muted,
                     textColor: textColor,
-                    onTap: () => _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
+                    onTap: () =>
+                        _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
                   ),
                   const _Divider(),
                   _SettingsLink(
@@ -167,8 +212,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     label: 'Privacy Policy',
                     muted: muted,
                     textColor: textColor,
-                    onTap: () =>
-                        _launchUrl(context, 'https://fanzone.ikanisa.com/privacy'),
+                    onTap: () => _launchUrl(
+                      context,
+                      'https://fanzone.ikanisa.com/privacy',
+                    ),
                   ),
                   const _Divider(),
                   _SettingsLink(
@@ -176,26 +223,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     label: 'Terms of Service',
                     muted: muted,
                     textColor: textColor,
-                    onTap: () =>
-                        _launchUrl(context, 'https://fanzone.ikanisa.com/terms'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 28),
-            Center(
-              child: Text.rich(
-                TextSpan(
-                  children: FzWordmark.spansForText(
-                    'FANZONE v${AppConfig.appVersion}',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: muted,
-                      letterSpacing: 1.2,
+                    onTap: () => _launchUrl(
+                      context,
+                      'https://fanzone.ikanisa.com/terms',
                     ),
                   ),
-                ),
-                textAlign: TextAlign.center,
+                ],
               ),
             ),
           ],
@@ -229,6 +262,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Could not open that link right now.')),
     );
+  }
+
+  void _showDeveloperMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _queueDebugNotification({
+    required String type,
+    required String title,
+    required String body,
+    Map<String, dynamic> data = const {},
+  }) {
+    ref
+        .read(notificationServiceProvider.notifier)
+        .addDebugNotification(type: type, title: title, body: body, data: data);
   }
 }
 
@@ -288,18 +338,16 @@ class _SettingsToggle extends StatelessWidget {
   }
 }
 
-class _SettingsInfo extends StatelessWidget {
-  const _SettingsInfo({
+class _SettingsPreviewToggle extends StatelessWidget {
+  const _SettingsPreviewToggle({
     required this.icon,
     required this.label,
-    required this.value,
     required this.muted,
     required this.textColor,
   });
 
   final IconData icon;
   final String label;
-  final String value;
   final Color muted;
   final Color textColor;
 
@@ -315,22 +363,11 @@ class _SettingsInfo extends StatelessWidget {
           color: textColor,
         ),
       ),
-      subtitle: Text.rich(
-        TextSpan(
-          children: FzWordmark.spansForText(
-            'Locked to the supported FANZONE appearance.',
-            style: TextStyle(fontSize: 12, color: muted),
-          ),
-        ),
-      ),
-      trailing: Text(
-        value,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          color: FzColors.primary,
-          letterSpacing: 0.4,
-        ),
+      trailing: Switch.adaptive(
+        value: true,
+        onChanged: null,
+        activeThumbColor: FzColors.accent,
+        activeTrackColor: FzColors.accent.withValues(alpha: 0.35),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
     );
@@ -431,11 +468,58 @@ class _SettingsLink extends StatelessWidget {
   }
 }
 
+class _SettingsAction extends StatelessWidget {
+  const _SettingsAction({
+    required this.icon,
+    required this.iconTint,
+    required this.label,
+    required this.muted,
+    required this.textColor,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color iconTint;
+  final String label;
+  final Color muted;
+  final Color textColor;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: _LeadingIcon(
+        icon: icon,
+        color: iconTint,
+        backgroundColor: iconTint.withValues(alpha: 0.10),
+        borderColor: iconTint.withValues(alpha: 0.20),
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: textColor,
+        ),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+    );
+  }
+}
+
 class _LeadingIcon extends StatelessWidget {
-  const _LeadingIcon({required this.icon, required this.color});
+  const _LeadingIcon({
+    required this.icon,
+    required this.color,
+    this.backgroundColor = FzColors.darkSurface3,
+    this.borderColor = FzColors.darkBorder,
+  });
 
   final IconData icon;
   final Color color;
+  final Color backgroundColor;
+  final Color borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -443,9 +527,9 @@ class _LeadingIcon extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: FzColors.darkSurface3,
+        color: backgroundColor,
         shape: BoxShape.circle,
-        border: Border.all(color: FzColors.darkBorder),
+        border: Border.all(color: borderColor),
       ),
       alignment: Alignment.center,
       child: Icon(icon, size: 16, color: color),

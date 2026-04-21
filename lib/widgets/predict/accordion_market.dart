@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/match_model.dart';
@@ -124,7 +125,7 @@ class MatchResultMarket extends ConsumerWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Loading live multipliers…',
-                  style: TextStyle(fontSize: 11, color: FzColors.lightMuted),
+                  style: TextStyle(fontSize: 10, color: FzColors.lightMuted),
                 ),
               ),
             )
@@ -135,7 +136,7 @@ class MatchResultMarket extends ConsumerWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Live multipliers unavailable. You can still save the pick.',
-                  style: TextStyle(fontSize: 11, color: FzColors.lightMuted),
+                  style: TextStyle(fontSize: 10, color: FzColors.lightMuted),
                 ),
               ),
             ),
@@ -258,7 +259,7 @@ class _CorrectScoreMarketState extends ConsumerState<CorrectScoreMarket> {
                   'Exact-score multipliers are not live yet. This pick will save without projected points.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
                   ),
                 ),
@@ -339,7 +340,7 @@ class _MarketButton extends StatelessWidget {
               Text(
                 oddsLabel!,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w700,
                   color: isSelected ? Colors.white : FzColors.primary,
                 ),
@@ -373,7 +374,7 @@ class _ScoreStepper extends StatelessWidget {
       children: [
         Text(
           teamName,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
         ),
         const SizedBox(height: 12),
         Row(
@@ -390,7 +391,7 @@ class _ScoreStepper extends StatelessWidget {
                   color: btnBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.remove, size: 20, color: iconColor),
+                child: Icon(LucideIcons.minus, size: 20, color: iconColor),
               ),
             ),
             const SizedBox(width: 16),
@@ -408,7 +409,7 @@ class _ScoreStepper extends StatelessWidget {
                   color: btnBg,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.add, size: 20, color: iconColor),
+                child: Icon(LucideIcons.plus, size: 20, color: iconColor),
               ),
             ),
           ],

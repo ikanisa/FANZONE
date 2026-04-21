@@ -10,10 +10,10 @@ interface ErrorStateProps {
 export function ErrorState({ title, desc, onRetry }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center p-12 text-center">
-      <AlertCircle className="text-secondary mb-6" size={48} />
+      <AlertCircle className="text-accent2 mb-6" size={48} />
       <h3 className="font-display text-2xl text-text tracking-widest mb-2">{title}</h3>
       <p className="text-muted text-sm max-w-xs mb-8">{desc}</p>
-      <button onClick={onRetry} className="bg-secondary/10 hover:bg-secondary/20 text-secondary font-bold px-6 py-3 rounded-xl transition-all border border-secondary/20">
+      <button onClick={onRetry} className="bg-accent2/10 hover:bg-accent2/20 text-accent2 font-bold px-6 py-3 rounded-xl transition-all border border-accent2/20">
         Retry
       </button>
     </div>

@@ -868,7 +868,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                     ? '${kAllCountries.length} countries'
                     : '${_filtered.length} results',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: muted,
                   letterSpacing: 0.3,
                 ),
@@ -973,7 +973,7 @@ class _CountryTile extends StatelessWidget {
                     const SizedBox(height: 1),
                     Text(
                       entry.code,
-                      style: TextStyle(fontSize: 11, color: muted),
+                      style: TextStyle(fontSize: 10, color: muted),
                     ),
                   ],
                 ),

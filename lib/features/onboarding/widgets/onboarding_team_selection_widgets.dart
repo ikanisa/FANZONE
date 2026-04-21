@@ -56,7 +56,7 @@ class OnboardingSelectedTeamCard extends StatelessWidget {
             child: Text(
               helperText,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: muted),
+              style: TextStyle(fontSize: 14, color: muted),
             ),
           ),
         ],
@@ -124,7 +124,7 @@ class OnboardingTeamTile extends StatelessWidget {
                             .substring(0, team.shortName.length >= 2 ? 2 : 1)
                             .toUpperCase(),
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: isDark ? FzColors.darkBg : FzColors.lightBg,
                         ),

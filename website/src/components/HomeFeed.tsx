@@ -1,14 +1,61 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { MatchCard } from './ui/MatchCard';
 import { mockMatches } from '../lib/mockData';
 import { EmptyState } from './ui/EmptyState';
-import { Trophy, Calendar, Sparkles, Loader2, Play, Activity, PlusCircle, Shield, ChevronRight } from 'lucide-react';
+import { Trophy, Calendar, Sparkles, Loader2, Play, Activity, PlusCircle, Shield, ChevronRight, X, Flame } from 'lucide-react';
 import { Badge } from './ui/Badge';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { useAppStore } from '../store/useAppStore';
 import Markdown from 'react-markdown';
+
+function PromoBanner() {
+  const [hidden, setHidden] = useState(false);
+
+  if (hidden) return null;
+
+  return (
+    <AnimatePresence>
+      {!hidden && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="mb-4"
+        >
+          <div className="bg-gradient-to-r from-[#2563EB]/20 to-[#EF4444]/20 border border-border rounded-[20px] p-3 flex items-center justify-between gap-3 overflow-hidden relative shadow-sm">
+            <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/derby/800/200')] opacity-5 mix-blend-overlay bg-cover bg-center pointer-events-none" />
+            <div className="flex items-center gap-3 relative z-10 min-w-0">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2563EB] to-[#EF4444] p-[1px] shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                <div className="w-full h-full bg-bg rounded-full flex items-center justify-center">
+                  <Flame size={18} className="text-danger" />
+                </div>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                   <Badge variant="danger" pulse className="px-1 py-0.5 text-[8px] leading-none">DERBY DAY</Badge>
+                   <span className="text-[9px] font-bold text-muted uppercase tracking-widest truncate">Global</span>
+                </div>
+                <h3 className="font-display text-sm text-text leading-tight truncate">Manchester Is RED</h3>
+                <p className="text-[9px] text-muted truncate">Unmissable odds & exclusive pools open now!</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-1.5 relative z-10 shrink-0">
+               <button onClick={() => setHidden(true)} className="w-6 h-6 rounded-full bg-surface2 flex items-center justify-center text-muted hover:text-text hover:bg-surface3 transition-colors border border-border">
+                 <X size={12} />
+               </button>
+               <button className="h-6 px-2.5 rounded-full bg-[#EF4444] text-bg font-bold text-[9px] uppercase tracking-widest hover:bg-[#EF4444]/90 transition-colors shadow-sm whitespace-nowrap">
+                 ENTER POOL
+               </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 function DailyInsight({ team }: { team: string | null }) {
   const [insight, setInsight] = useState<string | null>(null);
@@ -80,14 +127,16 @@ export default function HomeFeed() {
           Predictions
         </h1>
         <div className="flex gap-2">
-           <Link to="/pools/create" className="bg-[var(--secondary)] text-bg w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(255,127,80,0.3)]">
+           <Link to="/pools/create" className="bg-[var(--accent2)] text-bg w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(255,127,80,0.3)]">
              <PlusCircle size={20} />
            </Link>
-           <Link to="/registry" className="bg-surface2 text-text w-10 h-10 rounded-full flex items-center justify-center border border-border hover:bg-surface3 transition-colors">
+           <Link to="/memberships" className="bg-surface2 text-text w-10 h-10 rounded-full flex items-center justify-center border border-border hover:bg-surface3 transition-colors">
              <Shield size={20} />
            </Link>
         </div>
       </header>
+
+      <PromoBanner />
 
       <DailyInsight team={profileTeam || 'Liverpool'} />
 
@@ -130,7 +179,7 @@ export default function HomeFeed() {
              <Calendar size={16} className="text-muted" />
              <h2 className="font-sans font-bold text-sm text-text">Upcoming</h2>
           </div>
-          <Link to="/fixtures" className="text-muted hover:text-primary transition-colors">
+          <Link to="/fixtures" className="text-muted hover:text-accent transition-colors">
              <ChevronRight size={20} />
           </Link>
         </div>

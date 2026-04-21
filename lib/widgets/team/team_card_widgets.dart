@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -136,13 +137,13 @@ class SupportedTeamCard extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
                         '${formatCompactTeamCount(team.fanCount)} supporters',
-                        style: TextStyle(fontSize: 11, color: muted),
+                        style: TextStyle(fontSize: 10, color: muted),
                       ),
                     ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, size: 20),
+            const Icon(LucideIcons.chevronRight, size: 20),
           ],
         ),
       ),
@@ -206,7 +207,7 @@ class TeamHeroHeader extends ConsumerWidget {
                       team.leagueName,
                       team.country,
                     ].where((s) => s != null && s.isNotEmpty).join(' · '),
-                    style: TextStyle(fontSize: 13, color: muted),
+                    style: TextStyle(fontSize: 14, color: muted),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -215,7 +216,7 @@ class TeamHeroHeader extends ConsumerWidget {
                   const SizedBox(height: 10),
                   Text(
                     team.description!,
-                    style: TextStyle(fontSize: 13, color: muted, height: 1.5),
+                    style: TextStyle(fontSize: 14, color: muted, height: 1.5),
                     textAlign: TextAlign.center,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,

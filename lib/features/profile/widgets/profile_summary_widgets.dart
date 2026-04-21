@@ -86,7 +86,7 @@ class ProfileWalletCard extends ConsumerWidget {
                 Text(
                   'FET Balance',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10,
                     color: muted,
                     fontWeight: FontWeight.w600,
                   ),

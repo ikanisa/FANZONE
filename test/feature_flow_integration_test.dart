@@ -360,7 +360,7 @@ class _RecordingPredictGateway implements PredictGateway {
   PredictionSlipSubmissionDto? lastSlipSubmission;
 
   @override
-  Future<void> createPool(PoolCreateRequestDto request) async {}
+  Future<String> createPool(PoolCreateRequestDto request) async => 'pool_1';
 
   @override
   Future<List<DailyChallengeEntry>> getDailyChallengeHistory(

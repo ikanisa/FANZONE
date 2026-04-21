@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:async' show unawaited;
 import 'dart:math' as math;
 
@@ -53,7 +54,7 @@ class MatchDetailScreen extends ConsumerWidget {
             body: StateView.empty(
               title: 'Match not found',
               subtitle: 'Return to scores.',
-              icon: Icons.sports_soccer_rounded,
+              icon: LucideIcons.circle,
             ),
           );
         }
@@ -104,7 +105,7 @@ class MatchDetailScreen extends ConsumerWidget {
                   leading: IconButton(
                     tooltip: 'Back',
                     onPressed: () => context.pop(),
-                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
+                    icon: const Icon(LucideIcons.chevronLeft, size: 28),
                   ),
                   title: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -163,8 +164,8 @@ class MatchDetailScreen extends ConsumerWidget {
                       },
                       icon: Icon(
                         matchAlertsEnabled
-                            ? Icons.notifications_active_rounded
-                            : Icons.notifications_none_rounded,
+                            ? LucideIcons.bellRing
+                            : LucideIcons.bell,
                         size: 22,
                         color: matchAlertsEnabled ? FzColors.primary : null,
                       ),
@@ -181,7 +182,7 @@ class MatchDetailScreen extends ConsumerWidget {
                           ),
                         );
                       },
-                      icon: const Icon(Icons.share_rounded, size: 20),
+                      icon: const Icon(LucideIcons.share2, size: 20),
                     ),
                   ],
                 ),

@@ -149,7 +149,7 @@ class _SlipCard extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(dateLabel, style: TextStyle(fontSize: 11, color: muted)),
+                Text(dateLabel, style: TextStyle(fontSize: 10, color: muted)),
               ],
             ),
           ),

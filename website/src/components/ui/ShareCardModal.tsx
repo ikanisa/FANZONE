@@ -46,7 +46,7 @@ export function ShareCardModal({ isOpen, onClose, fanId }: ShareCardModalProps) 
                 tier="Ultra"
                 fanId={fanId}
                 crest="🦅"
-                color="var(--brand-secondary)"
+                color="#ffd32a"
                 memberSince="OCT 2023"
               />
             </div>
@@ -55,7 +55,7 @@ export function ShareCardModal({ isOpen, onClose, fanId }: ShareCardModalProps) 
               <h3 className="font-display text-xl text-text tracking-widest mb-4 text-center">SHARE YOUR FANDOM</h3>
               
               <div className="grid grid-cols-3 gap-3">
-                <button onClick={() => handleShare('WhatsApp')} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors">
+                <button onClick={() => handleShare('WhatsApp')} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/20 transition-colors">
                   <MessageCircle size={24} />
                   <span className="text-[10px] font-bold uppercase tracking-widest">WhatsApp</span>
                 </button>
@@ -63,7 +63,7 @@ export function ShareCardModal({ isOpen, onClose, fanId }: ShareCardModalProps) 
                   <Twitter size={24} />
                   <span className="text-[10px] font-bold uppercase tracking-widest">X (Twitter)</span>
                 </button>
-                <button onClick={() => handleShare('Save Image')} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors">
+                <button onClick={() => handleShare('Save Image')} className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20 transition-colors">
                   <Download size={24} />
                   <span className="text-[10px] font-bold uppercase tracking-widest">Save Image</span>
                 </button>

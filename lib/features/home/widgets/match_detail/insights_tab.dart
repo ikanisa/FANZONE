@@ -32,7 +32,7 @@ class _InsightsTab extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
-                            Icons.auto_awesome_rounded,
+                            LucideIcons.sparkles,
                             size: 18,
                             color: FzColors.primary,
                           ),
@@ -51,7 +51,7 @@ class _InsightsTab extends ConsumerWidget {
                     Text(
                       'No live AI summary is available for this fixture right now.',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         color: muted,
                         height: 1.45,
                       ),

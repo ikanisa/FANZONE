@@ -21,6 +21,7 @@ export interface LeagueDiscoveryResult {
   total_count: number;
   teams: DiscoveredTeam[];
   grounding: GroundingSummary;
+  debugRawText?: string;
 }
 
 export interface DiscoveryRequest {
@@ -46,6 +47,7 @@ export interface CountryResult {
   teamsDiscovered: number;
   teamsUpserted: number;
   grounding?: GroundingSummary;
+  debugRawText?: string;
   error?: string;
 }
 

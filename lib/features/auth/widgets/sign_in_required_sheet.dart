@@ -70,7 +70,7 @@ Future<void> showSignInRequiredSheet(
               const SizedBox(height: 10),
               Text(
                 message,
-                style: TextStyle(fontSize: 13, color: muted, height: 1.5),
+                style: TextStyle(fontSize: 14, color: muted, height: 1.5),
               ),
               const SizedBox(height: 18),
               Row(

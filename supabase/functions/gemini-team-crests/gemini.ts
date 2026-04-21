@@ -310,7 +310,9 @@ export async function fetchCrestCandidate(
     DEFAULT_GEMINI_FALLBACK_MODEL;
 
   const tryModel = async (modelName: string) => {
-    const response = await fetch(
+    // Step 1: Grounded search — no responseMimeType/responseJsonSchema
+    // because they are incompatible with googleSearch tool
+    const groundedResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${
         encodeURIComponent(apiKey)
       }`,
@@ -325,54 +327,105 @@ export async function fetchCrestCandidate(
           }],
           tools: [
             { googleSearch: {} },
-            { urlContext: {} },
           ],
           generationConfig: {
             temperature: 0.1,
-            responseMimeType: "application/json",
-            responseJsonSchema: crestLookupResponseSchema,
           },
         }),
         signal: AbortSignal.timeout(45_000),
       },
     );
 
-    const rawText = await response.text();
-    let raw: Record<string, unknown>;
+    const groundedRawText = await groundedResponse.text();
+    let groundedRaw: Record<string, unknown>;
 
     try {
-      raw = JSON.parse(rawText) as Record<string, unknown>;
+      groundedRaw = JSON.parse(groundedRawText) as Record<string, unknown>;
     } catch {
       throw new HttpError(
         502,
         "Gemini returned a non-JSON HTTP response.",
         {
           model_name: modelName,
-          rawText,
+          rawText: groundedRawText,
         },
       );
     }
 
-    if (!response.ok) {
+    if (!groundedResponse.ok) {
       throw new HttpError(
-        response.status === 429 ? 429 : 502,
-        response.status === 429
+        groundedResponse.status === 429 ? 429 : 502,
+        groundedResponse.status === 429
           ? "Gemini API rate limit or quota exceeded."
           : "Gemini API request failed.",
         {
           model_name: modelName,
-          response: raw,
-          status: response.status,
+          response: groundedRaw,
+          status: groundedResponse.status,
         },
       );
     }
 
-    const text = extractResponseText(raw);
+    const groundedText = extractResponseText(groundedRaw);
+    const grounding = extractGrounding(groundedRaw);
 
+    // Try direct parse first
+    try {
+      const directParsed = parseStructuredResponse(groundedText);
+      if (directParsed.selected_candidate) {
+        return {
+          raw_response: groundedRaw,
+          parsed: directParsed,
+          grounding,
+          model_name: modelName,
+        } satisfies GeminiLookupResult;
+      }
+    } catch {
+      // Fall through to normalization step
+    }
+
+    // Step 2: Normalize grounded text → structured JSON (no search tools, schema OK)
+    console.log(`[gemini-team-crests] ${input.team_id}: running normalization step...`);
+    const normalizeResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${
+        encodeURIComponent(apiKey)
+      }`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: `Extract the team crest data from the following search results into the required JSON schema.\n\nTeam: ${input.team_name} (${input.team_id})\nCountry: ${input.country ?? "unknown"}\nCompetition: ${input.competition ?? "unknown"}\n\nReturn valid JSON matching the schema. If no crest was found, set selected_candidate to null.\n\n--- SEARCH RESULTS ---\n${groundedText}` }],
+          }],
+          generationConfig: {
+            temperature: 0,
+            responseMimeType: "application/json",
+            responseJsonSchema: crestLookupResponseSchema,
+          },
+        }),
+        signal: AbortSignal.timeout(30_000),
+      },
+    );
+
+    const normalizedRawText = await normalizeResponse.text();
+    let normalizedRaw: Record<string, unknown>;
+    try {
+      normalizedRaw = JSON.parse(normalizedRawText) as Record<string, unknown>;
+    } catch {
+      throw new HttpError(502, "Gemini normalization returned non-JSON.", { rawText: normalizedRawText });
+    }
+
+    if (!normalizeResponse.ok) {
+      throw new HttpError(502, "Gemini normalization request failed.", { response: normalizedRaw });
+    }
+
+    const normalizedText = extractResponseText(normalizedRaw);
     return {
-      raw_response: raw,
-      parsed: parseStructuredResponse(text),
-      grounding: extractGrounding(raw),
+      raw_response: groundedRaw,
+      parsed: parseStructuredResponse(normalizedText),
+      grounding,
       model_name: modelName,
     } satisfies GeminiLookupResult;
   };

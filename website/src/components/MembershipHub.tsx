@@ -17,7 +17,7 @@ export default function MembershipHub() {
     <div className="min-h-screen bg-bg pb-24">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-surface/80 backdrop-blur-md border-b border-border p-4 flex items-center justify-between">
-        <Link to="/profile" className="text-text hover:text-primary transition-all">
+        <Link to="/profile" className="text-text hover:text-accent transition-all">
           <ChevronLeft size={24} />
         </Link>
         <div className="text-center">
@@ -33,7 +33,7 @@ export default function MembershipHub() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 min-w-[120px] py-4 text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-muted hover:text-text'}`}
+            className={`flex-1 min-w-[120px] py-4 text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab ? 'text-accent border-b-2 border-accent' : 'text-muted hover:text-text'}`}
           >
             {tab}
           </button>
@@ -77,7 +77,7 @@ function MyClubsTab({ isVerified }: { isVerified: boolean }) {
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#98ff98', '#ff7f50', '#fdfcf0']
+      colors: ['#00e5a0', '#ffd32a', '#ffffff']
     });
   };
 
@@ -104,7 +104,7 @@ function MyClubsTab({ isVerified }: { isVerified: boolean }) {
           <h3 className="font-display text-xl text-text tracking-widest">DIGITAL CARD</h3>
           <button 
             onClick={() => setIsShareModalOpen(true)}
-            className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors"
+            className="flex items-center gap-2 text-[10px] font-bold text-accent uppercase tracking-widest bg-accent/10 px-3 py-1.5 rounded-full hover:bg-accent/20 transition-colors"
           >
             <Share2 size={12} /> Share
           </button>
@@ -114,7 +114,7 @@ function MyClubsTab({ isVerified }: { isVerified: boolean }) {
           tier="Ultra"
           fanId={fanId}
           crest="H"
-          color="var(--brand-secondary)"
+          color="#aa0000"
           memberSince="OCT 2023"
         />
       </section>
@@ -122,8 +122,8 @@ function MyClubsTab({ isVerified }: { isVerified: boolean }) {
       {/* Active Memberships Details */}
       <section>
         <h3 className="font-display text-xl text-text tracking-widest mb-4">MEMBERSHIP DETAILS</h3>
-        <div className="bg-surface2 border-t-2 border-secondary rounded-2xl p-6 relative overflow-hidden">
-          <div className="absolute top-4 right-4 bg-secondary/20 text-secondary text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">
+        <div className="bg-surface2 border-t-2 border-accent3 rounded-2xl p-6 relative overflow-hidden">
+          <div className="absolute top-4 right-4 bg-accent3/20 text-accent3 text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full">
             Ultra Member
           </div>
           
@@ -140,11 +140,11 @@ function MyClubsTab({ isVerified }: { isVerified: boolean }) {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-surface3 rounded-xl p-3">
               <div className="text-[10px] text-muted uppercase tracking-widest font-bold mb-1">Your Rank</div>
-              <div className="font-mono text-lg font-bold text-secondary">#42</div>
+              <div className="font-mono text-lg font-bold text-accent3">#42</div>
             </div>
             <div className="bg-surface3 rounded-xl p-3">
               <div className="text-[10px] text-muted uppercase tracking-widest font-bold mb-1">FET to Club</div>
-              <div className="font-mono text-lg font-bold text-primary">20%</div>
+              <div className="font-mono text-lg font-bold text-accent">20%</div>
             </div>
           </div>
 
@@ -154,7 +154,7 @@ function MyClubsTab({ isVerified }: { isVerified: boolean }) {
             </Link>
             <button 
               onClick={() => setIsTierModalOpen(true)}
-              className="flex-1 bg-secondary hover:bg-secondary/90 text-bg text-xs font-bold py-3 rounded-xl text-center transition-all"
+              className="flex-1 bg-accent/10 border border-accent/20 text-accent text-xs font-bold py-3 rounded-xl text-center transition-all"
             >
               Upgrade Tier
             </button>
@@ -202,8 +202,8 @@ function HistoryRow({ date, amount, tier, status }: { date: string, amount: stri
         <div className="text-[10px] text-muted">{date}</div>
       </div>
       <div className="text-right">
-        <div className="text-xs font-bold text-secondary">{tier}</div>
-        <div className="text-[10px] text-primary">{status}</div>
+        <div className="text-xs font-bold text-accent3">{tier}</div>
+        <div className="text-[10px] text-[#25D366]">{status}</div>
       </div>
     </div>
   );
@@ -243,7 +243,7 @@ function DiscoverTab({ category }: { category: string }) {
 
 function ClubRow({ id, name, league, members, crest, rank }: { id: string, name: string, league: string, members: string, crest: string, rank: number }) {
   return (
-    <Link to={`/team/${id}`} className="block bg-surface2 border border-border rounded-2xl p-4 hover:border-primary/40 transition-colors">
+    <Link to={`/team/${id}`} className="block bg-surface2 border border-border rounded-2xl p-4 hover:border-accent/40 transition-colors">
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 rounded-full bg-surface3 border border-border flex items-center justify-center text-xl shadow-inner">
           {crest}
@@ -253,10 +253,11 @@ function ClubRow({ id, name, league, members, crest, rank }: { id: string, name:
           <div className="text-[10px] text-muted">{league}</div>
         </div>
         <div className="text-right">
-          <div className="font-mono text-sm font-bold text-secondary">#{rank}</div>
+          <div className="font-mono text-sm font-bold text-accent3">#{rank}</div>
           <div className="text-[10px] text-muted">{members} fans</div>
         </div>
       </div>
     </Link>
   );
 }
+

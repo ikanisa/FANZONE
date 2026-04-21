@@ -9,7 +9,6 @@ import '../../../models/notification_model.dart';
 import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
-import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
@@ -110,10 +109,24 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 data: (notifications) {
                   if (notifications.isEmpty) {
                     return Center(
-                      child: StateView.empty(
-                        title: 'Nothing here',
-                        subtitle: 'Pool updates and alerts will land here.',
-                        icon: LucideIcons.bell,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.bell,
+                            size: 32,
+                            color: muted.withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Nothing here',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: muted,
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }
@@ -148,8 +161,23 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             if (!context.mounted) return;
                             _handleNotificationTap(context, item);
                           },
-                          child: FzCard(
-                            padding: const EdgeInsets.all(14),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isUnread
+                                  ? FzColors.accent.withValues(alpha: 0.05)
+                                  : (isDark
+                                        ? FzColors.darkSurface
+                                        : FzColors.lightSurface),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isUnread
+                                    ? FzColors.accent.withValues(alpha: 0.4)
+                                    : (isDark
+                                          ? FzColors.darkBorder
+                                          : FzColors.lightBorder),
+                              ),
+                            ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -158,18 +186,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                   height: 40,
                                   decoration: BoxDecoration(
                                     color: isUnread
-                                        ? _colorForType(
-                                            item.type,
-                                          ).withValues(alpha: 0.1)
+                                        ? FzColors.accent.withValues(alpha: 0.1)
                                         : (isDark
                                               ? FzColors.darkSurface2
                                               : FzColors.lightSurface2),
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isUnread
-                                          ? _colorForType(
-                                              item.type,
-                                            ).withValues(alpha: 0.2)
+                                          ? FzColors.accent.withValues(
+                                              alpha: 0.2,
+                                            )
                                           : (isDark
                                                 ? FzColors.darkBorder
                                                 : FzColors.lightBorder),
@@ -192,8 +218,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                           Expanded(
                                             child: Text(
                                               item.title,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
-                                                fontSize: 13,
+                                                fontSize: 14,
                                                 fontWeight: FontWeight.w700,
                                                 color: isDark
                                                     ? FzColors.darkText
@@ -201,6 +229,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                               ),
                                             ),
                                           ),
+                                          const SizedBox(width: 8),
                                           Text(
                                             _formatTime(item.sentAt),
                                             style: TextStyle(
@@ -212,15 +241,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                         ],
                                       ),
                                       if (item.body.isNotEmpty) ...[
-                                        const SizedBox(height: 3),
+                                        const SizedBox(height: 2),
                                         Text(
                                           item.body,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: muted,
                                           ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ],
                                     ],
@@ -235,7 +264,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                       left: 8,
                                     ),
                                     decoration: const BoxDecoration(
-                                      color: FzColors.primary,
+                                      color: FzColors.accent,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -264,6 +293,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   IconData _iconForType(String type) {
     switch (type) {
+      case 'pool_received':
+        return LucideIcons.swords;
       case 'goal_alert':
         return LucideIcons.target;
       case 'pool_update':
@@ -289,11 +320,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   Color _colorForType(String type) {
     switch (type) {
-      case 'goal_alert':
-        return FzColors.success;
+      case 'pool_received':
       case 'pool_update':
+        return FzColors.accent;
       case 'pool_settled':
-        return FzColors.primary;
+        return FzColors.accent3;
+      case 'system':
+        return FzColors.accent2;
+      case 'goal_alert':
+        return FzColors.accent2;
       case 'wallet_credit':
       case 'wallet_debit':
       case 'wallet':
@@ -305,7 +340,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case 'marketing':
         return FzColors.secondary;
       default:
-        return FzColors.primary;
+        return FzColors.accent2;
     }
   }
 
@@ -321,15 +356,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final challengeId = _stringValue(item.data['challenge_id']);
     final matchId = _stringValue(item.data['match_id']);
     final teamId = _stringValue(item.data['team_id']);
-    final newsId = _stringValue(item.data['news_id']);
     final competitionId = _stringValue(item.data['competition_id']);
     final screen = _stringValue(item.data['screen']);
 
     if (poolId != null) return '/pool/$poolId';
     if (challengeId != null) return '/profile';
-    if (newsId != null && teamId != null) {
-      return '/team/$teamId/news/$newsId';
-    }
     if (teamId != null) return '/team/$teamId';
     if (competitionId != null) return '/league/$competitionId';
     if (matchId != null) return '/match/$matchId';
@@ -351,6 +382,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     }
 
     switch (item.type) {
+      case 'pool_received':
       case 'pool_update':
       case 'pool_settled':
         return '/pools';
@@ -377,145 +409,5 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     if (diff.inHours > 0) return '${diff.inHours}h';
     if (diff.inMinutes > 0) return '${diff.inMinutes}m';
     return 'Now';
-  }
-}
-
-/// Hidden advanced notification settings surface retained for ops parity.
-class NotificationSettingsScreen extends ConsumerWidget {
-  const NotificationSettingsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final prefsAsync = ref.watch(notificationServiceProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Notification Settings',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: isDark ? FzColors.darkText : FzColors.lightText,
-          ),
-        ),
-      ),
-      body: prefsAsync.when(
-        data: (prefs) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _PreferenceToggle(
-              icon: LucideIcons.target,
-              title: 'Goal Alerts',
-              subtitle:
-                  'Get notified when goals are scored in matches you follow',
-              value: prefs.goalAlerts,
-              onChanged: (v) => _update(ref, prefs.copyWith(goalAlerts: v)),
-            ),
-            _PreferenceToggle(
-              icon: LucideIcons.swords,
-              title: 'Pool Updates',
-              subtitle: 'New participants, pool results, and payouts',
-              value: prefs.poolUpdates,
-              onChanged: (v) => _update(ref, prefs.copyWith(poolUpdates: v)),
-            ),
-            _PreferenceToggle(
-              icon: LucideIcons.calendar,
-              title: 'Daily Challenge',
-              subtitle: 'Daily challenge reminder and results',
-              value: prefs.dailyChallenge,
-              onChanged: (v) => _update(ref, prefs.copyWith(dailyChallenge: v)),
-            ),
-            _PreferenceToggle(
-              icon: LucideIcons.wallet,
-              title: 'Wallet Activity',
-              subtitle: 'FET credits, transfers, and payouts',
-              value: prefs.walletActivity,
-              onChanged: (v) => _update(ref, prefs.copyWith(walletActivity: v)),
-            ),
-            _PreferenceToggle(
-              icon: LucideIcons.users,
-              title: 'Community News',
-              subtitle: 'Team news and community updates',
-              value: prefs.communityNews,
-              onChanged: (v) => _update(ref, prefs.copyWith(communityNews: v)),
-            ),
-            const Divider(height: 32),
-            _PreferenceToggle(
-              icon: LucideIcons.megaphone,
-              title: 'Marketing',
-              subtitle: 'Promotions, new features, and special offers',
-              value: prefs.marketing,
-              onChanged: (v) => _update(ref, prefs.copyWith(marketing: v)),
-            ),
-          ],
-        ),
-        loading: () => const FzGlassLoader(message: 'Syncing...'),
-        error: (error, stackTrace) => Center(
-          child: StateView.error(
-            title: 'Could not load settings',
-            onRetry: () => ref.invalidate(notificationServiceProvider),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _update(WidgetRef ref, NotificationPreferences prefs) {
-    ref.read(notificationServiceProvider.notifier).updatePreferences(prefs);
-  }
-}
-
-class _PreferenceToggle extends StatelessWidget {
-  const _PreferenceToggle({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: FzColors.primary),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? FzColors.darkText : FzColors.lightText,
-                  ),
-                ),
-                Text(subtitle, style: TextStyle(fontSize: 11, color: muted)),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: FzColors.primary,
-            activeTrackColor: FzColors.primary.withValues(alpha: 0.35),
-          ),
-        ],
-      ),
-    );
   }
 }

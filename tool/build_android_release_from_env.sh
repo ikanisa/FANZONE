@@ -24,3 +24,11 @@ echo "Building Android APK for ${APP_ENVIRONMENT} using ${DART_DEFINE_FILE}"
 flutter build apk --release \
   "${BUILD_ARGS[@]}" \
   "$@"
+
+# Flutter currently leaves the app-level GeneratedPluginRegistrant.java in a
+# dev-plugin state after the build on this toolchain. Sanitize it post-build so
+# the workspace stays production-safe for the next release invocation.
+(
+  cd android
+  ./gradlew :app:sanitizeReleaseGeneratedPluginRegistrant >/dev/null
+)

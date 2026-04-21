@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:fanzone/widgets/common/fz_animated_entry.dart';
-import 'package:fanzone/features/home/screens/home_screen.dart';
+import 'package:fanzone/features/home/screens/home_feed_screen.dart';
 import 'package:fanzone/features/home/screens/match_detail_screen.dart';
 import 'package:fanzone/features/predict/screens/predict_screen.dart';
 import 'package:fanzone/features/profile/screens/profile_screen.dart';
@@ -23,19 +23,25 @@ import 'support/test_fakes.dart';
 import 'support/test_fixtures.dart';
 
 void main() {
-  testWidgets('home screen meets labeled tap target and contrast guidelines', (
+  testWidgets('home feed meets labeled tap target and contrast guidelines', (
     tester,
   ) async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    final feedFilter = MatchesFilter(
+      dateFrom: today.toIso8601String(),
+      dateTo: today.add(const Duration(days: 7)).toIso8601String(),
+      limit: 200,
+      ascending: true,
+    );
 
     await pumpAppScreen(
       tester,
-      const HomeScreen(),
+      const HomeFeedScreen(),
       overrides: [
-        matchesByDateProvider(
-          today,
-        ).overrideWith((ref) => Stream.value([sampleMatch(date: today)])),
+        matchesProvider(
+          feedFilter,
+        ).overrideWith((ref) async => [sampleMatch(date: today)]),
         competitionsProvider.overrideWith((ref) async => [sampleCompetition()]),
       ],
     );

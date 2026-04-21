@@ -8,7 +8,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fanzone/data/team_search_database.dart';
 import 'package:fanzone/features/fixtures/screens/fixtures_screen.dart';
 import 'package:fanzone/features/home/screens/home_feed_screen.dart';
-import 'package:fanzone/features/home/screens/home_screen.dart';
 import 'package:fanzone/features/home/screens/match_detail_screen.dart';
 import 'package:fanzone/features/identity/screens/fan_id_screen.dart';
 import 'package:fanzone/features/leaderboard/screens/leaderboard_screen.dart';
@@ -58,6 +57,14 @@ void main() {
       (tester) async {
         final today = DateTime.now();
         final selectedDate = DateTime(today.year, today.month, today.day);
+        final feedFilter = MatchesFilter(
+          dateFrom: selectedDate.toIso8601String(),
+          dateTo: selectedDate
+              .add(const Duration(days: 7))
+              .toIso8601String(),
+          limit: 200,
+          ascending: true,
+        );
         final liveMatch = sampleMatch(
           id: 'home_live',
           date: selectedDate,
@@ -76,9 +83,9 @@ void main() {
           tester,
           const HomeFeedScreen(),
           overrides: [
-            matchesByDateProvider(
-              selectedDate,
-            ).overrideWith((ref) => Stream.value([liveMatch, upcomingMatch])),
+            matchesProvider(
+              feedFilter,
+            ).overrideWith((ref) async => [liveMatch, upcomingMatch]),
             supportedTeamsServiceProvider.overrideWith(
               () => _StaticSupportedTeamsController(const <String>{}),
             ),
@@ -156,48 +163,6 @@ void main() {
       },
     );
 
-    testWidgets('home screen renders grouped live and upcoming matches', (
-      tester,
-    ) async {
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final competition = sampleCompetition();
-      final liveMatch = sampleMatch(
-        id: 'match_live',
-        date: today,
-        status: 'live',
-        ftHome: 2,
-        ftAway: 1,
-        kickoffTime: '20:00',
-      );
-      final upcomingMatch = sampleMatch(
-        id: 'match_upcoming',
-        competitionId: competition.id,
-        date: today,
-        homeTeam: 'Barcelona',
-        awayTeam: 'Real Madrid',
-        kickoffTime: '21:00',
-      );
-
-      await pumpAppScreen(
-        tester,
-        const HomeScreen(),
-        overrides: [
-          matchesByDateProvider(
-            today,
-          ).overrideWith((ref) => Stream.value([liveMatch, upcomingMatch])),
-          competitionsProvider.overrideWith((ref) async => [competition]),
-        ],
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('MATCHES'), findsOneWidget);
-      expect(find.text('Liverpool'), findsAtLeastNWidgets(1));
-      expect(find.text('Barcelona'), findsAtLeastNWidgets(1));
-      expect(find.text('TODAY'), findsOneWidget);
-      expect(find.text('Live · 1'), findsOneWidget);
-    });
-
     testWidgets('predict screen renders pools and tabs', (tester) async {
       await pumpAppScreen(
         tester,
@@ -216,16 +181,18 @@ void main() {
 
       expect(find.text('FEATURED'), findsOneWidget);
       expect(find.text('OPEN'), findsAtLeastNWidgets(1));
-      expect(find.textContaining('Liverpool vs Arsenal'), findsOneWidget);
+      expect(find.text('Liverpool'), findsAtLeastNWidgets(1));
+      expect(find.text('Arsenal'), findsAtLeastNWidgets(1));
+      expect(find.text('JOIN'), findsOneWidget);
       expect(find.byTooltip('Create pool'), findsWidgets);
     });
 
-    testWidgets('predict create route opens the pool creation sheet', (
+    testWidgets('create pool screen renders the live route entry state', (
       tester,
     ) async {
       await pumpAppScreen(
         tester,
-        const PredictScreen(openCreateSheet: true),
+        const CreatePoolScreen(),
         overrides: [
           poolServiceProvider.overrideWith(
             () => FakePoolService([samplePool()]),
@@ -238,7 +205,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('YOUR SCORE PREDICTION'), findsOneWidget);
+      expect(find.text('Create'), findsOneWidget);
+      expect(find.text('New Pool'), findsOneWidget);
+      expect(find.text('Select a Match'), findsOneWidget);
     });
 
     testWidgets('wallet screen renders balance and history', (tester) async {
@@ -639,12 +608,13 @@ void main() {
 
       expect(find.text('Liverpool'), findsAtLeastNWidgets(1));
       expect(find.text('Arsenal'), findsAtLeastNWidgets(1));
-      expect(find.text('Stats'), findsOneWidget);
+      expect(find.text('Predict'), findsOneWidget);
+      expect(find.text('H2H'), findsOneWidget);
       expect(find.byTooltip('Share match'), findsOneWidget);
     });
 
     testWidgets(
-      'fixtures screen defaults to competitions and can switch views',
+      'fixtures screen defaults to matches and can switch to competitions',
       (tester) async {
         final today = DateTime.now();
         final selectedDate = DateTime(today.year, today.month, today.day);
@@ -692,15 +662,15 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Fixtures'), findsOneWidget);
-        expect(find.text('Europe'), findsOneWidget);
-        expect(find.text('For You'), findsOneWidget);
-
-        await tester.tap(find.byTooltip('Matches'));
-        await tester.pumpAndSettle();
-
         expect(find.text('This Week'), findsOneWidget);
         expect(find.textContaining('Today'), findsOneWidget);
         expect(find.byTooltip('Search fixtures'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Competitions'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Europe'), findsOneWidget);
+        expect(find.text('For You'), findsOneWidget);
       },
     );
   });

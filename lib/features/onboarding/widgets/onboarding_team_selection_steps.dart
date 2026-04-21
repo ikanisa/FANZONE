@@ -99,7 +99,7 @@ class OnboardingFavoriteTeamStep extends StatelessWidget {
                           const SizedBox(height: 16),
                           Text(
                             'Start typing to find your team',
-                            style: TextStyle(fontSize: 13, color: muted),
+                            style: TextStyle(fontSize: 14, color: muted),
                           ),
                         ],
                       ),
@@ -291,7 +291,7 @@ class _SearchResultsList extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Text(
             'No teams found matching "$query"',
-            style: TextStyle(fontSize: 13, color: muted),
+            style: TextStyle(fontSize: 14, color: muted),
             textAlign: TextAlign.center,
           ),
         ),

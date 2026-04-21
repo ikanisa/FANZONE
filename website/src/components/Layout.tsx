@@ -15,7 +15,7 @@ export default function Layout({ children }: LayoutProps) {
   const scrollDirection = useScrollDirection();
 
   return (
-    <div className="flex min-h-screen bg-bg">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-bg">
       <NotificationToast />
       
       {/* Mobile Top Bar - Auto-hiding */}
@@ -25,12 +25,12 @@ export default function Layout({ children }: LayoutProps) {
         }`}
       >
         <div className="flex items-center gap-2 font-display text-2xl text-text tracking-tight cursor-pointer">
-          <span className="w-6 h-6 rounded bg-primary flex items-center justify-center text-surface text-xs font-sans font-black">F</span>
-          <span className="text-primary">FAN</span>ZONE
+          <span className="w-6 h-6 rounded bg-accent flex items-center justify-center text-surface text-xs font-sans font-black">F</span>
+          <div><span className="text-success">FAN</span><span className="text-accent3">ZONE</span></div>
         </div>
         <div className="flex items-center gap-3">
           <div className="bg-surface2 px-3 py-1.5 rounded-full border border-border flex items-center gap-1.5">
-             <Wallet size={12} className="text-secondary" />
+             <Wallet size={12} className="text-accent3" />
              <span className="font-mono text-xs font-bold text-text">{fetBalance}</span>
           </div>
         </div>
@@ -40,8 +40,8 @@ export default function Layout({ children }: LayoutProps) {
       <nav className="hidden lg:flex w-64 flex-col bg-surface border-r border-border p-6 fixed h-full z-40">
         <div className="mb-12 cursor-pointer">
           <h1 className="font-display text-4xl text-text tracking-tight flex items-center gap-2">
-            <span className="w-8 h-8 rounded bg-primary flex items-center justify-center text-surface text-lg font-sans font-black">F</span>
-            <span className="text-primary">FAN</span>ZONE
+            <span className="w-8 h-8 rounded bg-accent flex items-center justify-center text-surface text-lg font-sans font-black">F</span>
+            <span className="text-success">FAN</span><span className="text-accent3">ZONE</span>
           </h1>
         </div>
 
@@ -57,7 +57,7 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 pb-20 lg:pb-0">
+      <main className="flex-1 min-w-0 w-full lg:w-auto lg:ml-64 pt-16 lg:pt-0 pb-20 lg:pb-0 overflow-x-hidden">
         {children}
       </main>
 
@@ -85,8 +85,8 @@ function NavItem({ to, icon, label, mobile = false, badge = 0 }: { to: string; i
       className={({ isActive }) => 
         `flex items-center gap-3 transition-colors relative ${
           mobile 
-            ? `flex-col gap-1 px-3 py-1 rounded-xl ${isActive ? 'text-primary [text-shadow:0_0_10px_rgba(152,255,152,0.4)]' : 'text-muted hover:text-text'}`
-            : `px-4 py-3 rounded-xl ${isActive ? 'bg-surface2 text-primary font-bold [text-shadow:0_0_10px_rgba(152,255,152,0.2)]' : 'text-muted hover:text-text hover:bg-surface2/50'}`
+            ? `flex-col gap-1 px-3 py-1 rounded-xl ${isActive ? 'text-accent [text-shadow:0_0_10px_rgba(34,211,238,0.4)]' : 'text-muted hover:text-text'}`
+            : `px-4 py-3 rounded-xl ${isActive ? 'bg-surface2 text-accent font-bold [text-shadow:0_0_10px_rgba(34,211,238,0.2)]' : 'text-muted hover:text-text hover:bg-surface2/50'}`
         }`
       }
     >

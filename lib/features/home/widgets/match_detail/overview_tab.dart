@@ -21,7 +21,7 @@ class _OverviewTab extends ConsumerWidget {
       (label: 'Competition', value: competitionName),
       (label: 'Round', value: match.round ?? 'Fixture'),
       (label: 'Date', value: dateLabel),
-      (label: 'Kickoff', value: match.kickoffTime ?? '--:--'),
+      (label: 'Kickoff', value: match.kickoffTimeLocalLabel),
       (label: 'Venue', value: match.venue ?? 'TBC'),
       (label: 'Status', value: match.kickoffLabel),
     ];
@@ -44,10 +44,10 @@ class _OverviewTab extends ConsumerWidget {
                       ? 'Yellow Card'
                       : (ev.eventType == 'RED_CARD' ? 'Red Card' : 'Sub')),
             icon: ev.eventType == 'GOAL'
-                ? Icons.sports_soccer_rounded
+                ? LucideIcons.circle
                 : (ev.eventType == 'SUBSTITUTION'
-                      ? Icons.sync_rounded
-                      : Icons.style_rounded),
+                      ? LucideIcons.refreshCw
+                      : LucideIcons.layers),
             isHome: ev.team == match.homeTeam,
             color: ev.eventType == 'RED_CARD'
                 ? Colors.red
@@ -64,7 +64,7 @@ class _OverviewTab extends ConsumerWidget {
             minute: 'HT',
             description: 'Half-time score',
             detail: '${match.htHome} - ${match.htAway}',
-            icon: Icons.access_time_rounded,
+            icon: LucideIcons.clock,
             isHome: true,
             color: muted,
           ),
@@ -76,7 +76,7 @@ class _OverviewTab extends ConsumerWidget {
             minute: 'FT',
             description: 'Full-time score',
             detail: '${match.ftHome} - ${match.ftAway}',
-            icon: Icons.flag_rounded,
+            icon: LucideIcons.flag,
             isHome: true,
             color: muted,
           ),
@@ -131,7 +131,7 @@ class _OverviewTab extends ConsumerWidget {
                 child: Text(
                   'No related fixtures.',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
                   ),
                 ),
@@ -166,7 +166,7 @@ class _OverviewTab extends ConsumerWidget {
             child: Text(
               'Related fixtures are unavailable right now.',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
               ),
             ),
@@ -222,7 +222,7 @@ class _EventTimelineRow extends StatelessWidget {
             child: Text(
               event.minute,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w700,
                 color: event.color,
                 fontFamily: 'JetBrains Mono',
@@ -255,7 +255,7 @@ class _EventTimelineRow extends StatelessWidget {
                     Text(
                       event.description,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: isDark ? FzColors.darkText : FzColors.lightText,
                       ),
@@ -267,7 +267,7 @@ class _EventTimelineRow extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       event.isHome ? homeTeam : awayTeam,
-                      style: TextStyle(fontSize: 11, color: muted),
+                      style: TextStyle(fontSize: 10, color: muted),
                     ),
                   )
                 else if (event.detail != null && event.detail!.isNotEmpty)
@@ -275,7 +275,7 @@ class _EventTimelineRow extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       event.detail!,
-                      style: TextStyle(fontSize: 11, color: muted),
+                      style: TextStyle(fontSize: 10, color: muted),
                     ),
                   ),
               ],

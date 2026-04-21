@@ -13,13 +13,11 @@ class ProfileQuickLinksCard extends StatelessWidget {
     required this.showClubs,
     required this.showWallet,
     required this.showPredictions,
-    required this.showRewards,
   });
 
   final bool showClubs;
   final bool showWallet;
   final bool showPredictions;
-  final bool showRewards;
 
   @override
   Widget build(BuildContext context) {
@@ -44,14 +42,13 @@ class ProfileQuickLinksCard extends StatelessWidget {
                 label: 'Wallet',
                 onTap: () => context.go('/wallet'),
               ),
-            if ((showPredictions || showWallet) && showRewards)
+            if (showPredictions || showWallet)
               const Divider(height: 0.5, indent: 56),
-            if (showRewards)
-              ProfileLinkRow(
-                icon: LucideIcons.award,
-                label: 'Rewards',
-                onTap: () => context.go('/rewards'),
-              ),
+            ProfileLinkRow(
+              icon: LucideIcons.award,
+              label: 'Badges',
+              onTap: () => context.go('/profile'),
+            ),
           ],
         ),
         const SizedBox(height: 20),
@@ -274,11 +271,11 @@ class VerifyAccountRow extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: FzColors.primary,
+                  color: FzColors.whatsapp,
                 ),
               ),
             ),
-            Icon(LucideIcons.chevronRight, size: 16, color: FzColors.primary),
+            Icon(LucideIcons.chevronRight, size: 16, color: FzColors.whatsapp),
           ],
         ),
       ),
@@ -295,16 +292,14 @@ class VerifyAccountIcon extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: FzColors.primary.withValues(alpha: 0.1),
+        color: FzColors.whatsapp.withValues(alpha: 0.1),
         shape: BoxShape.circle,
-        border: Border.all(
-          color: FzColors.primary.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: FzColors.whatsapp.withValues(alpha: 0.2)),
       ),
       child: const Icon(
         LucideIcons.messageCircle,
         size: 16,
-        color: FzColors.primary,
+        color: FzColors.whatsapp,
       ),
     );
   }

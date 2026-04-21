@@ -6,7 +6,7 @@ import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateV
 import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/DetailDrawer';
 import { EnterResultModal } from './EnterResultModal';
 import { useFixtures, useUpdateFixtureResult, useAutoSettlePools } from './useFixtures';
-import { formatDate, formatDateTime } from '../../lib/formatters';
+import { formatDate, formatDateTime, formatKickoffTime } from '../../lib/formatters';
 import { Search, Upload, Plus, Calendar, Star, Target, Gavel, Eye } from 'lucide-react';
 import type { Match } from '../../types';
 
@@ -104,7 +104,7 @@ export function FixturesPage() {
                     <div className="text-xs text-muted mono">{f.id}</div>
                   </td>
                   <td><span className="flex items-center gap-1"><Calendar size={14} className="text-muted" />{formatDate(f.date)}</span></td>
-                  <td>{f.kickoff_time || '—'}</td>
+                  <td>{formatKickoffTime(f.date, f.kickoff_time)}</td>
                   <td className="font-semibold mono">{f.ft_home !== null ? `${f.ft_home} - ${f.ft_away}` : '—'}</td>
                   <td>{f.status === 'live' ? <span className="badge badge-live">LIVE</span> : <StatusBadge status={f.status} />}</td>
                   <td>{f.home_multiplier ? <Star size={16} className="text-warning" /> : <span className="text-muted">—</span>}</td>
@@ -176,8 +176,8 @@ export function FixturesPage() {
               <DrawerField label="Competition" value={selectedFixture.competition_id} />
               <DrawerField label="Season" value={selectedFixture.season} />
               <DrawerField label="Round" value={selectedFixture.round || '—'} />
-              <DrawerField label="Date" value={formatDateTime(selectedFixture.date)} />
-              <DrawerField label="Kickoff" value={selectedFixture.kickoff_time || '—'} />
+              <DrawerField label="Date" value={formatDate(selectedFixture.date)} />
+              <DrawerField label="Kickoff" value={formatKickoffTime(selectedFixture.date, selectedFixture.kickoff_time)} />
               <DrawerField label="Venue" value={selectedFixture.venue || '—'} />
               <DrawerField label="Status" value={selectedFixture.status === 'live' ? <span className="badge badge-live">LIVE</span> : <StatusBadge status={selectedFixture.status} />} />
             </DrawerSection>

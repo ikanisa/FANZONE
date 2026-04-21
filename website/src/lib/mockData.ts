@@ -1,4 +1,4 @@
-import { type Match, type FanClub, type Pool, type ScorePool, type PoolEntry } from '../types';
+import type { Match, FanClub, Pool, ScorePool, PoolEntry } from '../types';
 
 export const mockMatches: Match[] = [
   {
@@ -104,7 +104,7 @@ export const mockScorePools: ScorePool[] = [
     matchId: 'm3',
     matchName: 'Real Madrid vs AC Milan',
     creatorId: 'u3',
-    creatorName: 'BigPredictor',
+    creatorName: '483291',
     creatorPrediction: 'Real Madrid 3:1 AC Milan',
     stake: 500,
     totalPool: 1500,
@@ -117,7 +117,7 @@ export const mockScorePools: ScorePool[] = [
     matchId: 'm1',
     matchName: 'Hamrun Spartans vs Valletta',
     creatorId: 'u4',
-    creatorName: 'StJulianBoss',
+    creatorName: '192003',
     creatorPrediction: 'Hamrun Spartans 1:2 Valletta',
     stake: 2000,
     totalPool: 4000,
@@ -132,7 +132,7 @@ export const mockPoolEntries: PoolEntry[] = [
     id: 'e1',
     poolId: 'sc1',
     userId: 'u3',
-    userName: 'BigPredictor',
+    userName: '483291',
     predictedHomeScore: 3,
     predictedAwayScore: 1,
     stake: 500,
@@ -143,7 +143,7 @@ export const mockPoolEntries: PoolEntry[] = [
     id: 'e2',
     poolId: 'sc1',
     userId: 'u5',
-    userName: 'PacevillePro',
+    userName: '881023',
     predictedHomeScore: 2,
     predictedAwayScore: 2,
     stake: 500,
@@ -154,7 +154,7 @@ export const mockPoolEntries: PoolEntry[] = [
     id: 'e3',
     poolId: 'sc1',
     userId: 'u6',
-    userName: 'GozoFan',
+    userName: '229104',
     predictedHomeScore: 1,
     predictedAwayScore: 0,
     stake: 500,
@@ -165,7 +165,7 @@ export const mockPoolEntries: PoolEntry[] = [
     id: 'e4',
     poolId: 'sc2',
     userId: 'u4',
-    userName: 'StJulianBoss',
+    userName: '192003',
     predictedHomeScore: 1,
     predictedAwayScore: 2,
     stake: 2000,
@@ -176,7 +176,7 @@ export const mockPoolEntries: PoolEntry[] = [
     id: 'e5',
     poolId: 'sc2',
     userId: 'u7',
-    userName: 'SmartBettor',
+    userName: '499102',
     predictedHomeScore: 0,
     predictedAwayScore: 0,
     stake: 2000,

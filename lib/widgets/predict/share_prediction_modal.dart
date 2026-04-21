@@ -102,7 +102,7 @@ class _SharePredictionSheet extends StatelessWidget {
               Text(
                 '$selectionCount prediction${selectionCount > 1 ? 's' : ''} added to your free matchday slip.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: muted, height: 1.4),
+                style: TextStyle(fontSize: 14, color: muted, height: 1.4),
               ),
 
               if (matchNames.isNotEmpty) ...[
@@ -151,7 +151,7 @@ class _SharePredictionSheet extends StatelessWidget {
                         Text(
                           '+${matchNames.length - 5} more',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             color: muted,
                             fontStyle: FontStyle.italic,
                           ),
@@ -174,7 +174,7 @@ class _SharePredictionSheet extends StatelessWidget {
                           ShareParams(text: shareText),
                         );
                       },
-                      icon: const Icon(Icons.share_rounded, size: 16),
+                      icon: const Icon(LucideIcons.share2, size: 16),
                       label: const Text('Share'),
                       style: FilledButton.styleFrom(
                         backgroundColor: FzColors.secondary,
@@ -196,7 +196,7 @@ class _SharePredictionSheet extends StatelessWidget {
                         const SnackBar(content: Text('Copied to clipboard')),
                       );
                     },
-                    icon: const Icon(Icons.copy_rounded, size: 16),
+                    icon: const Icon(LucideIcons.copy, size: 16),
                     label: const Text('Copy'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: textColor,
@@ -224,7 +224,7 @@ class _SharePredictionSheet extends StatelessWidget {
                 child: Text(
                   'Maybe Later',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: muted,
                     fontWeight: FontWeight.w600,
                   ),

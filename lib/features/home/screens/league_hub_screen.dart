@@ -1,10 +1,10 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../models/match_model.dart';
 import '../../../models/team_model.dart';
 import '../../../providers/competitions_provider.dart';
-import '../../../providers/favourites_provider.dart';
 import '../../../providers/matches_provider.dart';
 import '../../../providers/standings_provider.dart';
 import '../../../providers/teams_provider.dart';
@@ -31,9 +31,6 @@ class LeagueHubScreen extends ConsumerWidget {
     );
     final matchesAsync = ref.watch(competitionMatchesProvider(leagueId));
     final teamsAsync = ref.watch(teamsByCompetitionProvider(leagueId));
-    final favourites =
-        ref.watch(favouritesProvider).valueOrNull ?? const FavouritesState();
-
     return competitionAsync.when(
       data: (competition) {
         if (competition == null) {
@@ -47,58 +44,54 @@ class LeagueHubScreen extends ConsumerWidget {
         }
 
         return DefaultTabController(
-          length: 4,
+          length: 5,
           child: Scaffold(
             appBar: AppBar(
-              title: Text(competition.shortName),
-              actions: [
-                IconButton(
-                  onPressed: () => ref
-                      .read(favouritesProvider.notifier)
-                      .toggleCompetition(competition.id),
-                  icon: Icon(
-                    favourites.isCompetitionFavourite(competition.id)
-                        ? Icons.star_rounded
-                        : Icons.star_border_rounded,
-                    color: favourites.isCompetitionFavourite(competition.id)
-                        ? FzColors.secondary
-                        : null,
+              centerTitle: true,
+              leading: IconButton(
+                onPressed: () => context.go('/fixtures'),
+                icon: const Icon(LucideIcons.chevronLeft, size: 24),
+              ),
+              title: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _leagueEyebrow(competition).toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? FzColors.darkMuted
+                          : FzColors.lightMuted,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    competition.shortName,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
             ),
             body: Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                  child: FzCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          competition.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            InlineActionChip(label: competition.country),
-                            if (competition.teamCount != null)
-                              InlineActionChip(
-                                label: '${competition.teamCount} teams',
-                              ),
-                            if (competition.seasons.isNotEmpty)
-                              InlineActionChip(label: competition.seasons.last),
-                          ],
-                        ),
-                      ],
-                    ),
+                  child: _LeagueHeroCard(
+                    competitionName: competition.name,
+                    competitionCountry: competition.country,
+                    emoji: _leagueEmoji(competition),
+                    liveCount:
+                        matchesAsync.valueOrNull
+                            ?.where((match) => match.isLive)
+                            .length ??
+                        0,
+                    teamCount:
+                        competition.teamCount ?? teamsAsync.valueOrNull?.length,
                   ),
                 ),
                 const TabBar(
@@ -144,6 +137,229 @@ class LeagueHubScreen extends ConsumerWidget {
   }
 }
 
+String _leagueEyebrow(dynamic competition) {
+  final id = competition.id.toString().toLowerCase();
+  final country = competition.country.toString().toLowerCase();
+  if (id.contains('ucl') ||
+      id.contains('europa') ||
+      id.contains('champions') ||
+      id.contains('conference') ||
+      country.contains('europe')) {
+    return 'Europe';
+  }
+  return 'League Action';
+}
+
+String _leagueEmoji(dynamic competition) {
+  final id = competition.id.toString().toLowerCase();
+  if (id.contains('ucl') || id.contains('champions')) return '⭐';
+  if (id.contains('world')) return '🌎';
+  return '🏆';
+}
+
+class _LeagueHeroCard extends StatelessWidget {
+  const _LeagueHeroCard({
+    required this.competitionName,
+    required this.competitionCountry,
+    required this.emoji,
+    required this.liveCount,
+    required this.teamCount,
+  });
+
+  final String competitionName;
+  final String competitionCountry;
+  final String emoji;
+  final int liveCount;
+  final int? teamCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -40,
+            right: -40,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: FzColors.accent.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? FzColors.darkSurface
+                            : FzColors.lightSurface,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark
+                              ? FzColors.darkBorder
+                              : FzColors.lightBorder,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(emoji, style: const TextStyle(fontSize: 30)),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            competitionName,
+                            style: FzTypography.display(
+                              size: 28,
+                              color: textColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 6,
+                            children: [
+                              _HeroMetaItem(
+                                icon: LucideIcons.zap,
+                                label: liveCount > 0 ? 'Live Now' : 'Fixtures',
+                                color: FzColors.accent,
+                                muted: muted,
+                              ),
+                              _HeroMetaItem(
+                                icon: LucideIcons.users,
+                                label: teamCount == null
+                                    ? competitionCountry
+                                    : '$teamCount Teams',
+                                color: muted,
+                                muted: muted,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => context.push('/pools/create'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: FzColors.accent,
+                          foregroundColor: FzColors.darkBg,
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        icon: const Icon(LucideIcons.plus, size: 16),
+                        label: const Text(
+                          'NEW POOL',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.push('/memberships'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: textColor,
+                          side: BorderSide(
+                            color: isDark
+                                ? FzColors.darkBorder
+                                : FzColors.lightBorder,
+                          ),
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        icon: const Icon(LucideIcons.shield, size: 16),
+                        label: const Text(
+                          'CLUBS',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroMetaItem extends StatelessWidget {
+  const _HeroMetaItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.muted,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final Color muted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 12, color: color),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: muted,
+            letterSpacing: 1.0,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _LeagueTableTab extends StatelessWidget {
   const _LeagueTableTab({required this.standingsAsync});
 
@@ -160,7 +376,7 @@ class _LeagueTableTab extends StatelessWidget {
               return StateView.empty(
                 title: 'No table',
                 subtitle: 'Standings unavailable.',
-                icon: Icons.table_rows_rounded,
+                icon: LucideIcons.table,
               );
             }
             return StandingsTable(
@@ -175,7 +391,7 @@ class _LeagueTableTab extends StatelessWidget {
           error: (error, stackTrace) => StateView.empty(
             title: 'No table',
             subtitle: 'Standings unavailable.',
-            icon: Icons.table_rows_rounded,
+            icon: LucideIcons.table,
           ),
         ),
       ],
@@ -201,7 +417,7 @@ class _LeagueFixturesTab extends StatelessWidget {
           return StateView.empty(
             title: 'No upcoming fixtures',
             subtitle: 'All matches have been played.',
-            icon: Icons.calendar_today_rounded,
+            icon: LucideIcons.calendar,
           );
         }
 
@@ -259,7 +475,7 @@ class _LeagueResultsTab extends StatelessWidget {
           return StateView.empty(
             title: 'No results yet',
             subtitle: 'Season matches have not started.',
-            icon: Icons.scoreboard_outlined,
+            icon: LucideIcons.target,
           );
         }
 
@@ -320,7 +536,7 @@ class _LeagueTeamsTab extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Icon(Icons.chevron_right_rounded),
+                    const Icon(LucideIcons.chevronRight),
                   ],
                 ),
               ),
@@ -398,14 +614,14 @@ class _LeagueStatsTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   _LeagueInsightRow(
-                    icon: Icons.sports_soccer_rounded,
+                    icon: LucideIcons.circle,
                     label: 'Goals scored',
                     value:
                         '$totalGoals across ${finished.length} finished matches',
                   ),
                   const SizedBox(height: 12),
                   _LeagueInsightRow(
-                    icon: Icons.live_tv_rounded,
+                    icon: LucideIcons.radio,
                     label: 'Live now',
                     value: live.isEmpty
                         ? 'No matches are live in this competition right now'
@@ -413,7 +629,7 @@ class _LeagueStatsTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   _LeagueInsightRow(
-                    icon: Icons.schedule_rounded,
+                    icon: LucideIcons.clock,
                     label: 'Next kickoff',
                     value: upcoming.isEmpty
                         ? 'No upcoming fixtures scheduled'
@@ -454,7 +670,7 @@ class _LeagueStatsTab extends StatelessWidget {
       error: (_, _) => StateView.empty(
         title: 'Competition stats unavailable',
         subtitle: 'Try again later.',
-        icon: Icons.bar_chart_rounded,
+        icon: LucideIcons.barChart3,
       ),
     );
   }
@@ -520,7 +736,7 @@ class _LeagueInsightRow extends StatelessWidget {
               Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
               ),

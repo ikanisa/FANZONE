@@ -204,6 +204,7 @@ export async function handleTeamDiscoveryRequest(
         teamsDiscovered: discovery.teams.length,
         teamsUpserted: upsertedCount,
         grounding: body.include_grounding ? discovery.grounding : undefined,
+        debugRawText: body.include_grounding ? discovery.debugRawText : undefined,
       });
 
       console.log(

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Swords, Plus, Clock, Users, ChevronRight, Activity, Zap, Filter, Trophy, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
+import { Swords, Plus, Clock, Users, ChevronRight, Activity, Zap, Filter, Trophy, CheckCircle, XCircle, RotateCcw, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { Card } from './ui/Card';
@@ -40,75 +40,72 @@ export default function PoolsHub() {
     openPools.sort((a, b) => new Date(a.lockAt).getTime() - new Date(b.lockAt).getTime());
   }
 
-  // Helper to split matchName
-  const renderMatchLogos = (matchName: string) => {
-    const teams = matchName.split(' vs ');
-    if (teams.length === 2) {
-      return (
-        <div className="flex items-center mr-2">
-           <TeamLogo teamName={teams[0]} size={16} className="w-5 h-5 rounded-full border border-border bg-surface -mr-1 relative z-10" />
-           <TeamLogo teamName={teams[1]} size={16} className="w-5 h-5 rounded-full border border-border bg-surface" />
-        </div>
-      );
-    }
-    return null;
+  const renderPoolCard = (pool: any) => {
+    const parts = pool.matchName.split(' vs ');
+    const ht = parts[0] ? parts[0].trim() : 'Home';
+    const at = parts[1] ? parts[1].trim() : 'Away';
+
+    return (
+      <motion.div 
+        key={pool.id}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        className="mb-3"
+      >
+        <Link to={`/pool/${pool.id}`} className="block group">
+          <Card className="hover:border-accent/40 group-hover:shadow-sm p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge variant="ghost" className="px-1.5 py-0.5 text-[10px]">
+                    <Clock size={10} className="mr-1 inline" /> {new Date(pool.lockAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Badge>
+                  {pool.status === 'open' && <Badge variant="accent" pulse className="px-1.5 py-0.5 text-[10px]">OPEN</Badge>}
+                  {pool.status === 'settled' && <Badge variant="accent3" className="px-1.5 py-0.5 text-[10px]">SETTLED</Badge>}
+                  {pool.status === 'locked' && <Badge variant="ghost" className="px-1.5 py-0.5 text-[10px]">LOCKED</Badge>}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <TeamLogo teamName={ht} size={20} className="w-6 h-6 rounded-full border border-border" />
+                    <span className="font-sans font-bold text-sm text-text">{ht}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <TeamLogo teamName={at} size={20} className="w-6 h-6 rounded-full border border-border" />
+                    <span className="font-sans font-bold text-sm text-text">{at}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-muted font-bold uppercase tracking-widest mb-0.5">Stake</div>
+                <div className="font-mono font-bold text-text text-xs">
+                   <FETDisplay amount={pool.stake} showFiat={false} />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-3 mt-4">
+              <div className="bg-surface2 rounded-lg p-2 flex items-center justify-between border border-border">
+                <div className="flex items-center gap-1.5">
+                  <Zap size={14} className="text-accent" />
+                </div>
+                <div className="font-mono font-bold text-text text-xs">
+                   <FETDisplay amount={pool.totalPool} showFiat={false} />
+                </div>
+              </div>
+              <div className="bg-surface2 rounded-lg p-2 flex items-center justify-between border border-border">
+                 <div className="flex items-center gap-1.5">
+                  <Users size={14} className="text-accent4" />
+                  <span className="text-[10px] text-muted font-bold uppercase">Entries</span>
+                </div>
+                <div className="font-mono font-bold text-text text-xs">{pool.participantsCount}</div>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      </motion.div>
+    );
   };
-
-  const renderPoolCard = (pool: any) => (
-    <motion.div 
-      key={pool.id}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="mb-3"
-    >
-      <Link to={`/pool/${pool.id}`} className="block group">
-        <Card className="hover:border-primary/40 group-hover:shadow-sm p-4">
-          <div className="flex justify-between items-start mb-3">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="ghost" className="px-1.5 py-0.5 text-[10px]">
-                  <Clock size={10} className="mr-1 inline" /> {new Date(pool.lockAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Badge>
-                {pool.status === 'open' && <Badge variant="primary" pulse className="px-1.5 py-0.5 text-[10px]">OPEN</Badge>}
-                {pool.status === 'settled' && <Badge variant="secondary" className="px-1.5 py-0.5 text-[10px]">SETTLED</Badge>}
-                {pool.status === 'locked' && <Badge variant="ghost" className="px-1.5 py-0.5 text-[10px]">LOCKED</Badge>}
-              </div>
-              <div className="flex items-center mt-1">
-                 {renderMatchLogos(pool.matchName)}
-                 <h3 className="font-sans font-bold text-sm text-text tracking-tight">{pool.matchName}</h3>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-[10px] text-muted font-bold uppercase tracking-widest mb-0.5">Stake</div>
-              <div className="font-mono font-bold text-text text-xs">
-                 <FETDisplay amount={pool.stake} showFiat={false} />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            <div className="bg-surface2 rounded-lg p-2 flex items-center justify-between border border-border">
-              <div className="flex items-center gap-1.5">
-                <Zap size={14} className="text-primary" />
-                <span className="text-[10px] text-muted font-bold uppercase">Pool</span>
-              </div>
-              <div className="font-mono font-bold text-text text-xs">
-                 <FETDisplay amount={pool.totalPool} showFiat={false} />
-              </div>
-            </div>
-            <div className="bg-surface2 rounded-lg p-2 flex items-center justify-between border border-border">
-               <div className="flex items-center gap-1.5">
-                <Users size={14} className="text-secondary" />
-                <span className="text-[10px] text-muted font-bold uppercase">Entries</span>
-              </div>
-              <div className="font-mono font-bold text-text text-xs">{pool.participantsCount}</div>
-            </div>
-          </div>
-        </Card>
-      </Link>
-    </motion.div>
-  );
 
   const renderMyPoolCard = (pool: any) => {
     const myEntry = myEntryMap.get(pool.id)!;
@@ -126,18 +123,24 @@ export default function PoolsHub() {
         className="mb-3"
       >
         <Link to={`/pool/${pool.id}`} className="block group">
-          <Card className="hover:border-primary/40 group-hover:shadow-sm p-4">
+          <Card className="hover:border-accent/40 group-hover:shadow-sm p-4">
             <div className="flex justify-between items-start mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  {pool.status === 'open' && <Badge variant="primary" pulse className="px-1.5 py-0.5 text-[10px]">OPEN</Badge>}
+                  {pool.status === 'open' && <Badge variant="accent" pulse className="px-1.5 py-0.5 text-[10px]">OPEN</Badge>}
                   {pool.status === 'locked' && <Badge variant="ghost" className="px-1.5 py-0.5 text-[10px]">LOCKED</Badge>}
-                  {pool.status === 'settled' && <Badge variant="secondary" className="px-1.5 py-0.5 text-[10px]">SETTLED</Badge>}
+                  {pool.status === 'settled' && <Badge variant="accent3" className="px-1.5 py-0.5 text-[10px]">SETTLED</Badge>}
                   {pool.status === 'void' && <Badge variant="ghost" className="px-1.5 py-0.5 text-[10px]">VOIDED</Badge>}
                 </div>
-                <div className="flex items-center mt-1">
-                   {renderMatchLogos(pool.matchName)}
-                   <h3 className="font-sans font-bold text-sm text-text tracking-tight">{pool.matchName}</h3>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <TeamLogo teamName={ht} size={20} className="w-6 h-6 rounded-full border border-border" />
+                    <span className="font-sans font-bold text-sm text-text">{ht}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <TeamLogo teamName={at} size={20} className="w-6 h-6 rounded-full border border-border" />
+                    <span className="font-sans font-bold text-sm text-text">{at}</span>
+                  </div>
                 </div>
               </div>
               <div className="text-right">
@@ -153,8 +156,7 @@ export default function PoolsHub() {
               </div>
               <div className="bg-surface2 flex items-center justify-between border border-border p-2 rounded-lg">
                  <div className="flex items-center gap-1.5">
-                   <Zap size={14} className="text-primary" />
-                   <span className="text-[10px] text-muted font-bold uppercase">Pool</span>
+                   <Zap size={14} className="text-accent" />
                  </div>
                  <span className="font-mono text-xs font-bold text-text">{pool.totalPool}</span>
               </div>
@@ -162,7 +164,7 @@ export default function PoolsHub() {
 
             {pool.status === 'settled' && (
               <div className={`pt-2 border-t border-border flex items-center justify-between ${
-                myEntry.status === 'winner' ? 'text-primary' : 'text-secondary'
+                myEntry.status === 'winner' ? 'text-accent' : 'text-accent2'
               }`}>
                 <div className="flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-widest">
                   {myEntry.status === 'winner' ? <CheckCircle size={12} /> : <XCircle size={12} />}
@@ -198,7 +200,7 @@ export default function PoolsHub() {
         </div>
         <Link 
           to="/pools/create" 
-          className="bg-[var(--secondary)] w-10 h-10 rounded-full flex items-center justify-center text-bg hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(255,127,80,0.3)]"
+          className="bg-[var(--accent2)] w-10 h-10 rounded-full flex items-center justify-center text-bg hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(255,127,80,0.3)]"
         >
           <Plus size={20} />
         </Link>
@@ -215,13 +217,13 @@ export default function PoolsHub() {
             onClick={() => setActiveTab('featured')}
             className={`flex-1 p-2 rounded-full transition-all flex items-center justify-center gap-1 font-bold text-xs ${activeTab === 'featured' ? 'bg-text text-bg shadow-sm' : 'text-muted hover:text-text'}`}
           >
-            <Star size={16} className={activeTab === 'featured' ? 'text-bg' : 'text-secondary'} /> <span className="hidden sm:inline">Featured</span>
+            <Star size={16} className={activeTab === 'featured' ? 'text-bg' : 'text-accent3'} /> <span className="hidden sm:inline">Featured</span>
           </button>
           <button 
             onClick={() => setActiveTab('open')}
             className={`flex-1 p-2 rounded-full transition-all flex items-center justify-center gap-1 font-bold text-xs ${activeTab === 'open' ? 'bg-text text-bg shadow-sm' : 'text-muted hover:text-text'}`}
           >
-            <Activity size={16} className={activeTab === 'open' ? 'text-bg' : 'text-primary'} /> <span className="hidden sm:inline">Open</span>
+            <Activity size={16} className={activeTab === 'open' ? 'text-bg' : 'text-accent'} /> <span className="hidden sm:inline">Open</span>
           </button>
           <button 
             onClick={() => setActiveTab('my_pools')}
@@ -229,7 +231,7 @@ export default function PoolsHub() {
           >
             <Swords size={16} /> <span className="hidden sm:inline">Mine</span>
             {myPools.length > 0 && (
-              <span className={`text-[9px] px-1.5 py-0.5 rounded-full leading-none ${activeTab === 'my_pools' ? 'bg-bg text-text' : 'bg-primary text-surface'}`}>{myPools.length}</span>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-full leading-none ${activeTab === 'my_pools' ? 'bg-bg text-text' : 'bg-accent text-surface'}`}>{myPools.length}</span>
             )}
           </button>
           <button 

@@ -12,13 +12,8 @@ import 'features/auth/screens/guest_upgrade_screen.dart';
 import 'features/auth/screens/whatsapp_login_screen.dart';
 import 'features/community/screens/membership_hub_screen.dart';
 import 'features/fixtures/screens/fixtures_screen.dart';
-import 'features/home/screens/all_leagues_screen.dart';
-import 'features/home/screens/event_hub_screen.dart';
-import 'features/home/screens/following_screen.dart';
 import 'features/home/screens/home_feed_screen.dart';
-import 'features/home/screens/home_screen.dart';
 import 'features/home/screens/league_hub_screen.dart';
-import 'features/home/screens/leagues_discovery_screen.dart';
 import 'features/home/screens/match_detail_screen.dart';
 import 'features/identity/screens/fan_id_screen.dart';
 import 'features/leaderboard/screens/leaderboard_screen.dart';
@@ -29,18 +24,11 @@ import 'features/predict/screens/predict_screen.dart';
 import 'features/profile/screens/notifications_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/rewards/screens/rewards_screen.dart';
-import 'features/search/screens/search_screen.dart';
-import 'features/settings/screens/account_deletion_screen.dart';
-import 'features/settings/screens/favorite_teams_screen.dart';
 import 'features/settings/screens/feature_unavailable_screen.dart';
-import 'features/settings/screens/market_preferences_screen.dart';
 import 'features/settings/screens/privacy_settings_screen.dart';
 import 'features/settings/screens/settings_screen.dart';
 import 'features/social/screens/social_hub_screen.dart';
-import 'features/teams/screens/team_news_detail_screen.dart';
 import 'features/teams/screens/team_profile_canonical_screen.dart';
-import 'features/teams/screens/teams_discovery_screen.dart';
-import 'features/wallet/screens/fet_exchange_screen.dart';
 import 'features/wallet/screens/wallet_screen.dart';
 
 /// True when any session exists (anonymous or phone-verified).
@@ -143,11 +131,6 @@ final router = GoRouter(
     GoRoute(path: '/clubs/fan-id', redirect: (context, state) => '/fan-id'),
     GoRoute(path: '/clubs/teams', redirect: (context, state) => '/memberships'),
     GoRoute(
-      path: '/clubs/team/:teamId/news/:newsId',
-      redirect: (context, state) =>
-          '/team/${state.pathParameters['teamId']}/news/${state.pathParameters['newsId']}',
-    ),
-    GoRoute(
       path: '/clubs/team/:teamId',
       redirect: (context, state) => '/team/${state.pathParameters['teamId']}',
     ),
@@ -160,28 +143,12 @@ final router = GoRouter(
       redirect: (context, state) => '/notifications',
     ),
     GoRoute(
-      path: '/profile/notification-settings',
-      redirect: (context, state) => '/notification-settings',
-    ),
-    GoRoute(
       path: '/profile/settings',
       redirect: (context, state) => '/settings',
     ),
     GoRoute(
       path: '/profile/settings/privacy',
       redirect: (context, state) => '/privacy',
-    ),
-    GoRoute(
-      path: '/profile/settings/favorite-teams',
-      redirect: (context, state) => '/settings/favorite-teams',
-    ),
-    GoRoute(
-      path: '/profile/settings/market-preferences',
-      redirect: (context, state) => '/settings/market-preferences',
-    ),
-    GoRoute(
-      path: '/profile/settings/account-deletion',
-      redirect: (context, state) => '/settings/account-deletion',
     ),
     GoRoute(path: '/profile/fan-id', redirect: (context, state) => '/fan-id'),
     GoRoute(path: '/profile/rewards', redirect: (context, state) => '/rewards'),
@@ -204,16 +171,6 @@ final router = GoRouter(
     GoRoute(path: '/profile/wallet', redirect: (context, state) => '/wallet'),
     GoRoute(path: '/wallet/rewards', redirect: (context, state) => '/rewards'),
     GoRoute(path: '/registry', redirect: (context, state) => '/fan-id'),
-    GoRoute(
-      name: 'event_hub',
-      path: '/event/:eventTag',
-      pageBuilder: (context, state) => _fadeSlideTransition(
-        state,
-        AppConfig.enableFeaturedEvents
-            ? EventHubScreen(eventTag: state.pathParameters['eventTag']!)
-            : const FeatureUnavailableScreen(featureName: 'Featured Events'),
-      ),
-    ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => AppShell(
         navigationShell: navigationShell,
@@ -227,18 +184,6 @@ final router = GoRouter(
               path: '/',
               builder: (context, state) => const HomeFeedScreen(),
               routes: [
-                GoRoute(
-                  name: 'home_scores',
-                  path: 'scores',
-                  pageBuilder: (context, state) =>
-                      _fadeSlideTransition(state, const HomeScreen()),
-                ),
-                GoRoute(
-                  name: 'home_following',
-                  path: 'following',
-                  pageBuilder: (context, state) =>
-                      _fadeSlideTransition(state, const FollowingScreen()),
-                ),
                 GoRoute(
                   name: 'match_detail',
                   path: 'match/:matchId',
@@ -258,28 +203,6 @@ final router = GoRouter(
                       leagueId: state.pathParameters['leagueId']!,
                     ),
                   ),
-                ),
-                GoRoute(
-                  name: 'leagues_discovery',
-                  path: 'leagues',
-                  pageBuilder: (context, state) => _fadeSlideTransition(
-                    state,
-                    const LeaguesDiscoveryScreen(),
-                  ),
-                  routes: [
-                    GoRoute(
-                      name: 'all_leagues',
-                      path: 'all',
-                      pageBuilder: (context, state) =>
-                          _fadeSlideTransition(state, const AllLeaguesScreen()),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  name: 'search',
-                  path: 'search',
-                  pageBuilder: (context, state) =>
-                      _fadeSlideTransition(state, const SearchScreen()),
                 ),
               ],
             ),
@@ -306,10 +229,8 @@ final router = GoRouter(
                 GoRoute(
                   name: 'predict_create',
                   path: 'create',
-                  pageBuilder: (context, state) => _fadeSlideTransition(
-                    state,
-                    const PredictScreen(openCreateSheet: true),
-                  ),
+                  pageBuilder: (context, state) =>
+                      _fadeSlideTransition(state, const CreatePoolScreen()),
                 ),
               ],
             ),
@@ -356,12 +277,6 @@ final router = GoRouter(
                     : const FeatureUnavailableScreen(featureName: 'Rewards'),
               ),
             ),
-            GoRoute(
-              name: 'wallet_exchange',
-              path: '/wallet/exchange',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const FetExchangeScreen()),
-            ),
           ],
         ),
         StatefulShellBranch(
@@ -388,30 +303,6 @@ final router = GoRouter(
               path: '/settings',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const SettingsScreen()),
-              routes: [
-                GoRoute(
-                  name: 'favorite_teams',
-                  path: 'favorite-teams',
-                  pageBuilder: (context, state) =>
-                      _fadeSlideTransition(state, const FavoriteTeamsScreen()),
-                ),
-                GoRoute(
-                  name: 'market_preferences',
-                  path: 'market-preferences',
-                  pageBuilder: (context, state) => _fadeSlideTransition(
-                    state,
-                    const MarketPreferencesScreen(),
-                  ),
-                ),
-                GoRoute(
-                  name: 'account_deletion',
-                  path: 'account-deletion',
-                  pageBuilder: (context, state) => _fadeSlideTransition(
-                    state,
-                    const AccountDeletionScreen(),
-                  ),
-                ),
-              ],
             ),
             GoRoute(
               name: 'privacy',
@@ -424,14 +315,6 @@ final router = GoRouter(
               path: '/notifications',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const NotificationsScreen()),
-            ),
-            GoRoute(
-              name: 'notification_settings',
-              path: '/notification-settings',
-              pageBuilder: (context, state) => _fadeSlideTransition(
-                state,
-                const NotificationSettingsScreen(),
-              ),
             ),
             GoRoute(
               name: 'memberships',
@@ -452,31 +335,12 @@ final router = GoRouter(
                   _fadeSlideTransition(state, const FanIdScreen()),
             ),
             GoRoute(
-              name: 'teams_discovery',
-              path: '/teams',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const TeamsDiscoveryScreen()),
-            ),
-            GoRoute(
               name: 'team_profile',
               path: '/team/:teamId',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
                 TeamProfileScreen(teamId: state.pathParameters['teamId']!),
               ),
-              routes: [
-                GoRoute(
-                  name: 'team_news_detail',
-                  path: 'news/:newsId',
-                  pageBuilder: (context, state) => _fadeSlideTransition(
-                    state,
-                    TeamNewsDetailScreen(
-                      teamId: state.pathParameters['teamId']!,
-                      newsId: state.pathParameters['newsId']!,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -489,8 +353,6 @@ final router = GoRouter(
 /// Guest users browsing public content are allowed through.
 bool _requiresFullAuthPath(String path) {
   const exactPaths = {
-    // Wallet & exchange
-    '/wallet/exchange',
     '/wallet/rewards',
     // Identity & memberships
     '/fan-id',
@@ -499,12 +361,10 @@ bool _requiresFullAuthPath(String path) {
     '/rewards',
     // Notifications (settings require full auth)
     '/notifications',
-    '/notification-settings',
     '/privacy',
     // Legacy redirects
     '/profile/leaderboard',
     '/profile/notifications',
-    '/profile/notification-settings',
     '/profile/fan-id',
     '/clubs/membership',
     '/clubs/social',

@@ -170,11 +170,7 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                     ),
                   ),
                 const SizedBox(height: 20),
-                SectionTitleRow(
-                  title: 'MY CLUBS',
-                  actionLabel: 'Discover',
-                  onAction: () => context.push('/teams'),
-                ),
+                const SectionTitleRow(title: 'MY CLUBS'),
                 const SizedBox(height: 10),
                 if (supportedTeams.isEmpty)
                   Column(
@@ -184,11 +180,6 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                         subtitle:
                             'Open club discovery to build your supporter registry.',
                         icon: LucideIcons.users,
-                      ),
-                      TextButton.icon(
-                        onPressed: () => context.push('/teams'),
-                        icon: const Icon(LucideIcons.search, size: 16),
-                        label: const Text('Discover clubs'),
                       ),
                     ],
                   )
@@ -217,11 +208,6 @@ class _MembershipHubScreenState extends ConsumerState<MembershipHubScreen> {
                         subtitle:
                             'Try another search or open club discovery for the wider supporter registry.',
                         icon: LucideIcons.search,
-                      ),
-                      TextButton.icon(
-                        onPressed: () => context.push('/teams'),
-                        icon: const Icon(LucideIcons.compass, size: 16),
-                        label: const Text('Open club discovery'),
                       ),
                     ],
                   )

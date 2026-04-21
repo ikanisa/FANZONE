@@ -153,7 +153,7 @@ class _PoolListViewState extends ConsumerState<_PoolListView> {
                   ? StateView.empty(
                       title: emptyTitle,
                       subtitle: emptySubtitle,
-                      icon: Icons.sports_martial_arts,
+                      icon: LucideIcons.swords,
                     )
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
@@ -235,7 +235,7 @@ class _SortChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.w600,
             color: selected ? FzColors.primary : muted,
           ),
@@ -273,135 +273,190 @@ class _PoolCard extends ConsumerWidget {
     final isOwnPool = userId != null && pool.creatorId == userId;
     final canJoin = pool.status == 'open' && !isOwnPool;
 
+    // Parse team names from matchName
+    final parts = pool.matchName.split(RegExp(r'\s+vs?\s+', caseSensitive: false));
+    final homeTeam = parts.isNotEmpty ? parts[0].trim() : 'Home';
+    final awayTeam = parts.length > 1 ? parts[1].trim() : 'Away';
+
     return FzCard(
       onTap: () {
         HapticFeedback.selectionClick();
         context.push('/pool/${pool.id}');
       },
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              FzBadge(
-                label: pool.status.toUpperCase(),
-                variant: pool.status == 'open'
-                    ? FzBadgeVariant.primary
-                    : FzBadgeVariant.ghost,
-                pulse: pool.status == 'open',
-                fontSize: 8,
+          // Gradient status bar at top
+          Container(
+            height: 3,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(FzRadii.card),
               ),
-              const Spacer(),
-              Text(
-                formatFET(pool.stake, currency),
-                style: FzTypography.scoreCompact(color: FzColors.coral),
+              gradient: LinearGradient(
+                colors: pool.status == 'open'
+                    ? [FzColors.primary, FzColors.cyan]
+                    : pool.status == 'settled'
+                        ? [FzColors.secondary, FzColors.danger]
+                        : [FzColors.darkMuted, FzColors.darkBorder],
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            pool.matchName,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 12,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(LucideIcons.users, size: 14, color: muted),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${pool.participantsCount} participants',
-                    style: TextStyle(fontSize: 12, color: muted),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    LucideIcons.zap,
-                    size: 14,
-                    color: FzColors.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    formatFET(pool.totalPool, currency),
-                    style: TextStyle(fontSize: 12, color: muted),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Status badges row
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'CREATOR PREDICTION',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        color: muted,
-                        letterSpacing: 0.5,
+                    Expanded(
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          FzBadge(
+                            label: _formatLockTime(pool.lockAt),
+                            variant: FzBadgeVariant.ghost,
+                            fontSize: 9,
+                            icon: LucideIcons.clock,
+                          ),
+                          FzBadge(
+                            label: pool.status.toUpperCase(),
+                            variant: pool.status == 'open'
+                                ? FzBadgeVariant.primary
+                                : pool.status == 'settled'
+                                    ? FzBadgeVariant.secondary
+                                    : FzBadgeVariant.ghost,
+                            pulse: pool.status == 'open',
+                            fontSize: 9,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      pool.creatorPrediction,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      _statusLabel(isOwnPool),
-                      style: TextStyle(fontSize: 11, color: muted),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'STAKE',
+                          style: FzTypography.metaLabel(),
+                        ),
+                        Text(
+                          formatFET(pool.stake, currency),
+                          style: FzTypography.score(
+                            size: 16,
+                            color: FzColors.coral,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              if (canJoin)
-                FilledButton.icon(
-                  onPressed: () => _openJoinSheet(context),
-                  icon: const Icon(LucideIcons.swords, size: 16),
-                  label: const Text('Join'),
-                )
-              else
-                Icon(LucideIcons.chevronRight, size: 16, color: muted),
-            ],
+                const SizedBox(height: 14),
+                // Team names with crests
+                _TeamRow(name: homeTeam),
+                const SizedBox(height: 8),
+                _TeamRow(name: awayTeam),
+                const SizedBox(height: 12),
+                // Meta row
+                Row(
+                  children: [
+                    Icon(LucideIcons.users, size: 12, color: muted),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${pool.participantsCount}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: muted,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Icon(
+                      LucideIcons.zap,
+                      size: 12,
+                      color: FzColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      formatFET(pool.totalPool, currency),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: muted,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (canJoin)
+                      FilledButton.icon(
+                        onPressed: () => _openJoinSheet(context),
+                        icon: const Icon(LucideIcons.swords, size: 14),
+                        label: const Text('JOIN'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.4,
+                          ),
+                        ),
+                      )
+                    else
+                      Icon(LucideIcons.chevronRight, size: 16, color: muted),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
-
-  String _statusLabel(bool isOwnPool) {
-    if (isOwnPool && pool.status == 'open') {
-      return 'Waiting for opponents';
-    }
-    if (pool.status == 'settled') {
-      return 'Settled';
-    }
-    if (pool.status == 'open') {
-      return 'Open until ${_formatLockTime(pool.lockAt)}';
-    }
-    return pool.status;
-  }
-
   String _formatLockTime(DateTime lockAt) {
-    final hour = lockAt.hour.toString().padLeft(2, '0');
-    final minute = lockAt.minute.toString().padLeft(2, '0');
+    final local = lockAt.toLocal();
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+}
+
+/// Inline team row with crest — matches reference's TeamLogo + name layout.
+class _TeamRow extends StatelessWidget {
+  const _TeamRow({required this.name});
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: FzColors.darkSurface3,
+            shape: BoxShape.circle,
+            border: Border.all(color: FzColors.darkBorder),
+          ),
+          child: const Icon(LucideIcons.shield, size: 12, color: FzColors.darkMuted),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            name,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 }

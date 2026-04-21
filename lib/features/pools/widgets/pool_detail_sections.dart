@@ -31,7 +31,7 @@ class PoolStatusHeroCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final lockTimeFormatted = DateFormat.Hm().format(pool.lockAt);
+    final lockTimeFormatted = DateFormat.Hm().format(pool.lockAt.toLocal());
     final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
 
     return RepaintBoundary(

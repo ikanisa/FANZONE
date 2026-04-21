@@ -20,7 +20,7 @@ class _LineupsTab extends ConsumerWidget {
                   ? 'Available ~1h before KO'
                   : 'Unavailable',
               subtitle: '',
-              icon: Icons.people_outline_rounded,
+              icon: LucideIcons.users,
             ),
           );
         }
@@ -94,7 +94,7 @@ class _PlayerSection extends StatelessWidget {
             Text(
               teamName.toUpperCase(),
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w700,
                 color: muted,
                 letterSpacing: 0.8,
@@ -184,7 +184,7 @@ class _PlayerRow extends StatelessWidget {
             child: Text(
               player.playerNumber?.toString() ?? '--',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: muted,
               ),
@@ -199,7 +199,7 @@ class _PlayerRow extends StatelessWidget {
                 Text(
                   player.playerName,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: textColor,
                   ),
@@ -219,7 +219,7 @@ class _PlayerRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
-                    Icons.sports_soccer_rounded,
+                    LucideIcons.circle,
                     size: 12,
                     color: FzColors.primary,
                   ),
@@ -235,7 +235,7 @@ class _PlayerRow extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.only(right: 4),
               child: Icon(
-                Icons.assistant_rounded,
+                LucideIcons.sparkles,
                 size: 12,
                 color: FzColors.secondary,
               ),
@@ -243,12 +243,12 @@ class _PlayerRow extends StatelessWidget {
           if (player.yellowCards > 0)
             const Padding(
               padding: EdgeInsets.only(right: 4),
-              child: Icon(Icons.square_rounded, size: 10, color: Colors.amber),
+              child: Icon(LucideIcons.square, size: 10, color: Colors.amber),
             ),
           if (player.redCards > 0)
             const Padding(
               padding: EdgeInsets.only(right: 4),
-              child: Icon(Icons.square_rounded, size: 10, color: Colors.red),
+              child: Icon(LucideIcons.square, size: 10, color: Colors.red),
             ),
           if (player.rating != null)
             Container(

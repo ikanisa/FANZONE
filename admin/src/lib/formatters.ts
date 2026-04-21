@@ -25,6 +25,41 @@ export function formatDateTime(date: string | Date): string {
   });
 }
 
+export function formatKickoffTime(
+  date: string | Date,
+  kickoffTime: string | null | undefined,
+): string {
+  const value = kickoffTime?.trim();
+  if (!value) return '—';
+
+  const match = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(value);
+  if (!match) return value;
+
+  const baseDate = typeof date === 'string' ? new Date(date) : date;
+  if (Number.isNaN(baseDate.getTime())) return value;
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  const second = Number(match[3] ?? '0');
+
+  const kickoff = new Date(
+    Date.UTC(
+      baseDate.getUTCFullYear(),
+      baseDate.getUTCMonth(),
+      baseDate.getUTCDate(),
+      hour,
+      minute,
+      second,
+    ),
+  );
+
+  return kickoff.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
 export function formatRelativeTime(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   const diff = Date.now() - d.getTime();

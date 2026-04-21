@@ -28,27 +28,31 @@ void main() {
     });
 
     // Content palette
-    test('brand palette exposes the official platform colors', () {
-      expect(FzColors.primary, const Color(0xFF98FF98));
-      expect(FzColors.onPrimary, const Color(0xFF061514));
-      expect(FzColors.secondary, const Color(0xFFFF7F50));
-      expect(FzColors.onSecondary, const Color(0xFF2A120A));
-      expect(FzColors.coral, FzColors.secondary);
-      expect(FzColors.success, FzColors.primary);
-      expect(FzColors.warning, FzColors.secondary);
+    test('brand palette exposes the canonical source-of-truth colors', () {
+      expect(FzColors.accent, const Color(0xFF22D3EE));
+      expect(FzColors.accent2, const Color(0xFF2563EB));
+      expect(FzColors.accent3, const Color(0xFFFF7F50));
+      expect(FzColors.success, const Color(0xFF98FF98));
       expect(FzColors.danger, const Color(0xFFEF4444));
+      expect(FzColors.teal, const Color(0xFF0F7B6C));
+      expect(FzColors.primary, FzColors.accent);
+      expect(FzColors.secondary, FzColors.accent3);
+      expect(FzColors.onPrimary, FzColors.darkBg);
+      expect(FzColors.onSecondary, FzColors.darkBg);
     });
 
     // Semantic aliases
     test('semantic aliases map correctly', () {
       expect(FzColors.live, FzColors.danger);
-      expect(FzColors.warning, FzColors.coral);
+      expect(FzColors.coral, FzColors.accent3);
+      expect(FzColors.cyan, FzColors.accent);
+      expect(FzColors.blue, FzColors.accent2);
       expect(FzColors.error, FzColors.danger);
     });
 
     // Card colors
     test('card colors are valid', () {
-      expect(FzColors.yellowCard, FzColors.secondary);
+      expect(FzColors.yellowCard, FzColors.warning);
       expect(FzColors.redCard, const Color(0xFFDC2626));
     });
   });

@@ -22,12 +22,11 @@ import '../widgets/onboarding_welcome_step.dart';
 /// Production onboarding flow — matches the reference Onboarding.tsx exactly:
 ///
 /// Step 1: Welcome — FANZONE branding + GET STARTED
-/// Step 2: Enter Phone — phone input + SEND OTP (+ "Continue as Guest" link)
+/// Step 2: Enter Phone — phone input + SEND OTP
 /// Step 3: Verify OTP — 6-digit code + VERIFY
 /// Step 4: Favorite Team — search local team + CONTINUE / SKIP
 /// Step 5: Popular Teams — top 20 grid + search + COMPLETE SETUP / SKIP
 ///
-/// Guest path skips steps 2–3 (phone/OTP) and goes straight to step 4.
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -51,8 +50,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   int _currentStep = _welcomeStep;
   bool _loading = false;
-  bool _guestLoading = false;
-  bool _isGuestPath = false;
   String? _error;
   late CountryEntry _selectedCountry;
 
@@ -187,42 +184,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _setStep(_phoneStep);
   }
 
-  Future<void> _handleGuestContinue() async {
-    if (!_canUseOtp) {
-      setState(() {
-        _error =
-            'Guest mode is temporarily unavailable. Please try again later.';
-      });
-      return;
-    }
-
-    setState(() {
-      _guestLoading = true;
-      _error = null;
-    });
-
-    try {
-      await ref.read(authServiceProvider).signInAnonymously();
-      if (!mounted) return;
-
-      _isGuestPath = true;
-      // Guest skips phone + OTP → goes straight to team selection (step 4)
-      _setStep(_favoriteTeamStep);
-    } on AuthException catch (error) {
-      if (!mounted) return;
-      setState(() => _error = error.message);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _error = 'Could not start guest session. Please try again.';
-      });
-    } finally {
-      if (mounted) {
-        setState(() => _guestLoading = false);
-      }
-    }
-  }
-
   Future<void> _handlePhoneContinue() async {
     if (!_canUseOtp) {
       setState(() {
@@ -336,7 +297,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _goBackFromFavoriteTeam() {
-    if (_isGuestPath || _isAlreadyAuthenticated) {
+    if (_isAlreadyAuthenticated) {
       // Guest or already-authenticated path: go back to welcome
       _setStep(_welcomeStep);
       return;
@@ -519,7 +480,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           isDark: isDark,
           onNext: _handleWelcomeContinue,
         );
-      // Step 2: Phone Input (ref: Step2) — "Continue as Guest" link below button
+      // Step 2: Phone Input (ref: Step2)
       case _phoneStep:
         return OnboardingPhoneStep(
           textColor: textColor,
@@ -532,13 +493,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           canContinue: _loading ? false : (_canUseOtp && _isPhoneNumberValid),
           onBack: () => _setStep(_welcomeStep),
           onNext: _handlePhoneContinue,
-          onGuest: _handleGuestContinue,
-          guestLoading: _guestLoading,
           buttonLabel: _loading
               ? 'SENDING...'
-              : (_canUseOtp
-                    ? 'SEND CODE VIA WHATSAPP'
-                    : 'VERIFICATION REQUIRED'),
+              : (_canUseOtp ? 'SEND OTP' : 'VERIFICATION REQUIRED'),
         );
       // Step 3: OTP Verify (ref: Step3)
       case _otpStep:

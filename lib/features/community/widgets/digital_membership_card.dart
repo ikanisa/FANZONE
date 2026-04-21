@@ -150,7 +150,7 @@ class _CardStat extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: FontWeight.w700,
               color: Colors.white,
             ),

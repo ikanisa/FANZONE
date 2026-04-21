@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -151,7 +152,7 @@ class CompetitionSectionHeader extends StatelessWidget {
                       child: Text(
                         title.toUpperCase(),
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: muted,
                           letterSpacing: 0.8,
@@ -179,8 +180,8 @@ class CompetitionSectionHeader extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                   icon: Icon(
                     isFavourite
-                        ? Icons.star_rounded
-                        : Icons.star_border_rounded,
+                        ? LucideIcons.star
+                        : LucideIcons.star,
                     size: 18,
                     color: isFavourite ? FzColors.coral : muted,
                   ),
@@ -370,20 +371,10 @@ class _MatchListRowState extends State<MatchListRow> {
 
   /// Approximate live minute from kickoff time.
   String _liveMinute(MatchModel m) {
-    if (m.kickoffTime == null) return 'LIVE';
+    final kickoff = m.kickoffAtLocal;
+    if (kickoff == null) return 'LIVE';
     try {
-      final parts = m.kickoffTime!.split(':');
-      if (parts.length < 2) return 'LIVE';
-      final kickoffHour = int.parse(parts[0]);
-      final kickoffMin = int.parse(parts[1]);
       final now = DateTime.now();
-      final kickoff = DateTime(
-        m.date.year,
-        m.date.month,
-        m.date.day,
-        kickoffHour,
-        kickoffMin,
-      );
       final diff = now.difference(kickoff).inMinutes;
       if (diff < 0) return 'LIVE';
       if (diff <= 45) return "$diff'";
@@ -459,7 +450,7 @@ class _TeamLine extends StatelessWidget {
             name,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: isStrong ? FontWeight.w700 : FontWeight.w500,
               color: textColor,
             ),

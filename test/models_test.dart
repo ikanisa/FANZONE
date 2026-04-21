@@ -9,6 +9,7 @@ import 'package:fanzone/models/team_model.dart';
 import 'package:fanzone/models/team_news_model.dart';
 import 'package:fanzone/models/team_supporter_model.dart';
 import 'package:fanzone/models/team_contribution_model.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   // ──────────────────────────────────────────────────────────
@@ -268,6 +269,29 @@ void main() {
       expect(liveMatch.isUpcoming, false);
       expect(liveMatch.isFinished, false);
     });
+
+    test('kickoffTimeLocalLabel converts GMT kickoff_time to local HH:mm', () {
+      final match = MatchModel.fromJson({...json, 'kickoff_time': '20:00:00'});
+
+      final expected = DateFormat(
+        'HH:mm',
+      ).format(DateTime.utc(2026, 4, 18, 20).toLocal());
+
+      expect(match.kickoffTimeLocalLabel, expected);
+      expect(match.kickoffTimeLocalLabel.contains(':00:00'), isFalse);
+    });
+
+    test(
+      'kickoffLabel uses the normalized local time for upcoming fixtures',
+      () {
+        final match = MatchModel.fromJson({
+          ...json,
+          'kickoff_time': '20:00:00',
+        });
+
+        expect(match.kickoffLabel, match.kickoffTimeLocalLabel);
+      },
+    );
 
     test('toJson round-trip', () {
       final match = MatchModel.fromJson(json);

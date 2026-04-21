@@ -31,8 +31,8 @@ class SupportTeamButton extends StatelessWidget {
           duration: const Duration(milliseconds: 250),
           child: Icon(
             isSupported
-                ? Icons.favorite_rounded
-                : Icons.favorite_border_rounded,
+                ? LucideIcons.heart
+                : LucideIcons.heart,
             key: ValueKey(isSupported),
             size: 22,
             color: isSupported ? FzColors.danger : FzColors.darkMuted,
@@ -57,12 +57,12 @@ class SupportTeamButton extends StatelessWidget {
           ),
         ),
         icon: Icon(
-          isSupported ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+          isSupported ? LucideIcons.heart : LucideIcons.heart,
           size: 18,
         ),
         label: Text(
           isSupported ? 'Supporting' : 'Support',
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -87,7 +87,7 @@ class SupporterCounterChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
-            Icons.people_outline_rounded,
+            LucideIcons.users,
             size: 12,
             color: FzColors.primary,
           ),
@@ -95,7 +95,7 @@ class SupporterCounterChip extends StatelessWidget {
           Text(
             formatCompactTeamCount(count),
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w600,
               color: FzColors.primary,
             ),
@@ -153,7 +153,7 @@ class AnonymousFanBadge extends StatelessWidget {
                   if (joinedAt != null)
                     Text(
                       'Joined ${formatTeamRelativeTime(joinedAt!)}',
-                      style: TextStyle(fontSize: 11, color: muted),
+                      style: TextStyle(fontSize: 10, color: muted),
                     ),
                 ],
               ),
@@ -425,7 +425,7 @@ class _ContributionOption extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, size: 20, color: color),
+            Icon(LucideIcons.chevronRight, size: 20, color: color),
           ],
         ),
       ),

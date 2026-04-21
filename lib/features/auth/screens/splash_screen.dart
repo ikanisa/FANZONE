@@ -8,7 +8,6 @@ import '../../../core/cache/shared_preferences_cache_service.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
-import '../../../widgets/common/fz_brand_logo.dart';
 import '../../../widgets/common/fz_wordmark.dart';
 
 /// Splash screen — logo animation → wait for init → route guest-first.
@@ -139,20 +138,18 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const FzBrandLogo(width: 124, height: 124),
-                    const SizedBox(height: 20),
                     FzWordmark(
                       style: FzTypography.display(
-                        size: 52,
+                        size: 58,
                         color: isDark ? FzColors.darkText : FzColors.lightText,
-                        letterSpacing: 6,
+                        letterSpacing: 11.5,
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 10,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: FzColors.darkSurface2,
@@ -162,21 +159,15 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: FzColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
+                          const _PulseDot(color: FzColors.primary),
                           const SizedBox(width: 10),
                           Text(
-                            'Malta\'s Football Fan Network',
+                            'MALTA\'S FOOTBALL FAN NETWORK',
                             style: theme.textTheme.labelSmall?.copyWith(
+                              fontSize: 10,
                               color: FzColors.darkMuted,
                               fontWeight: FontWeight.w700,
-                              letterSpacing: 1.0,
+                              letterSpacing: 1.6,
                             ),
                           ),
                         ],
@@ -187,6 +178,60 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Pulsing dot matching the reference's `animate-pulse` CSS effect.
+class _PulseDot extends StatefulWidget {
+  const _PulseDot({required this.color});
+  final Color color;
+
+  @override
+  State<_PulseDot> createState() => _PulseDotState();
+}
+
+class _PulseDotState extends State<_PulseDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, child) => Opacity(
+        opacity: 0.4 + (_ctrl.value * 0.6),
+        child: Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: widget.color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: 0.5 * _ctrl.value),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../../../models/match_model.dart';
@@ -61,12 +62,34 @@ class FixtureStateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
+      padding: const EdgeInsets.only(right: 6),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: selected
+                ? (isDark ? FzColors.darkText : FzColors.lightText)
+                : (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: selected
+                  ? Colors.transparent
+                  : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: selected ? FzColors.darkBg : muted,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -106,21 +129,21 @@ class PrimaryViewToggle extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _PrimaryViewButton(
-            icon: Icons.explore_rounded,
-            tooltip: 'Competitions',
-            selected: activeView == FixturesPrimaryView.competitions,
-            activeColor: FzColors.coral,
-            mutedColor: muted,
-            onTap: () => onSelected(FixturesPrimaryView.competitions),
-          ),
-          const SizedBox(width: 4),
-          _PrimaryViewButton(
-            icon: Icons.calendar_today_rounded,
+            icon: LucideIcons.calendar,
             tooltip: 'Matches',
             selected: activeView == FixturesPrimaryView.matches,
             activeColor: FzColors.primary,
             mutedColor: muted,
             onTap: () => onSelected(FixturesPrimaryView.matches),
+          ),
+          const SizedBox(width: 4),
+          _PrimaryViewButton(
+            icon: LucideIcons.compass,
+            tooltip: 'Competitions',
+            selected: activeView == FixturesPrimaryView.competitions,
+            activeColor: FzColors.accent2,
+            mutedColor: muted,
+            onTap: () => onSelected(FixturesPrimaryView.competitions),
           ),
         ],
       ),
@@ -236,7 +259,7 @@ class FixtureListItem extends StatelessWidget {
           SizedBox(
             width: 40,
             child: Text(
-              match.kickoffTime ?? '--:--',
+              match.kickoffTimeLocalLabel,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 10,
@@ -267,14 +290,14 @@ class FixtureListItem extends StatelessWidget {
             children: [
               FixtureActionButton(
                 tooltip: 'Open match',
-                icon: Icons.gps_fixed_rounded,
-                color: FzColors.coral,
+                icon: LucideIcons.crosshair,
+                color: FzColors.accent2,
                 onTap: onOpenMatch,
               ),
               const SizedBox(width: 8),
               FixtureActionButton(
                 tooltip: 'Open pools',
-                icon: Icons.sports_martial_arts_rounded,
+                icon: LucideIcons.swords,
                 color: FzColors.primary,
                 onTap: onOpenPools,
               ),

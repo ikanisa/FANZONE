@@ -9,6 +9,10 @@ import '../providers/auth_provider.dart' show authStateProvider;
 
 part 'notification_service.g.dart';
 
+final debugNotificationLogProvider = StateProvider<List<NotificationItem>>(
+  (ref) => const [],
+);
+
 @riverpod
 class NotificationService extends _$NotificationService {
   NotificationSettingsGateway get _gateway =>
@@ -60,17 +64,64 @@ class NotificationService extends _$NotificationService {
   }
 
   Future<void> markAsRead(String notificationId) async {
+    final debugNotifications = ref.read(debugNotificationLogProvider);
+    final debugIndex = debugNotifications.indexWhere(
+      (item) => item.id == notificationId,
+    );
+    if (debugIndex != -1) {
+      final updated = [...debugNotifications];
+      updated[debugIndex] = updated[debugIndex].copyWith(
+        readAt: updated[debugIndex].readAt ?? DateTime.now(),
+      );
+      ref.read(debugNotificationLogProvider.notifier).state = updated;
+      ref.invalidate(unreadNotificationCountProvider);
+      return;
+    }
+
     await _gateway.markNotificationAsRead(notificationId);
     ref.invalidate(notificationLogProvider);
     ref.invalidate(unreadNotificationCountProvider);
   }
 
   Future<void> markAllRead() async {
+    final debugNotifications = ref.read(debugNotificationLogProvider);
+    if (debugNotifications.isNotEmpty) {
+      final now = DateTime.now();
+      ref.read(debugNotificationLogProvider.notifier).state = [
+        for (final item in debugNotifications)
+          item.copyWith(readAt: item.readAt ?? now),
+      ];
+    }
+
     final userId = _currentUserId;
-    if (userId == null) return;
+    if (userId == null) {
+      ref.invalidate(unreadNotificationCountProvider);
+      return;
+    }
 
     await _gateway.markAllNotificationsRead(userId);
     ref.invalidate(notificationLogProvider);
+    ref.invalidate(unreadNotificationCountProvider);
+  }
+
+  void addDebugNotification({
+    required String type,
+    required String title,
+    required String body,
+    Map<String, dynamic> data = const {},
+  }) {
+    final item = NotificationItem(
+      id: 'debug-${DateTime.now().microsecondsSinceEpoch}',
+      type: type,
+      title: title,
+      body: body,
+      data: data,
+      sentAt: DateTime.now(),
+    );
+    ref.read(debugNotificationLogProvider.notifier).state = [
+      item,
+      ...ref.read(debugNotificationLogProvider),
+    ];
     ref.invalidate(unreadNotificationCountProvider);
   }
 
@@ -90,13 +141,28 @@ class NotificationService extends _$NotificationService {
 @riverpod
 FutureOr<List<NotificationItem>> notificationLog(Ref ref) async {
   ref.watch(authStateProvider);
+  final debugNotifications = ref.watch(debugNotificationLogProvider);
 
   final userId = SupabaseConnectionImpl().currentUser?.id;
-  if (userId == null) return const [];
+  if (userId == null) return debugNotifications;
 
-  return ref
-      .read(notificationSettingsGatewayProvider)
-      .getNotificationLog(userId);
+  try {
+    final remote = await ref
+        .read(notificationSettingsGatewayProvider)
+        .getNotificationLog(userId);
+    final combined = [
+      ...debugNotifications,
+      ...remote.where(
+        (item) => !debugNotifications.any((debug) => debug.id == item.id),
+      ),
+    ]..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+    return combined;
+  } catch (_) {
+    if (debugNotifications.isNotEmpty) {
+      return debugNotifications;
+    }
+    rethrow;
+  }
 }
 
 @riverpod

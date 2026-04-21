@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../../../models/competition_model.dart';
@@ -33,7 +34,7 @@ class TeamProfileHeader extends StatelessWidget {
         children: [
           IconButton(
             onPressed: onBack,
-            icon: Icon(Icons.chevron_left_rounded, color: textColor),
+            icon: Icon(LucideIcons.chevronLeft, color: textColor),
           ),
           Expanded(
             child: Center(

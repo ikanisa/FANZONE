@@ -74,7 +74,7 @@ class _MatchHero extends StatelessWidget {
                           Text(
                             _statusLabel(match),
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: FontWeight.w700,
                               color: match.isLive
                                   ? FzColors.primary
@@ -106,9 +106,11 @@ class _MatchHero extends StatelessWidget {
   }
 
   String _statusLabel(MatchModel match) {
-    if (match.isLive) return "${match.kickoffTime ?? 'LIVE'} LIVE";
+    if (match.isLive) return '${match.kickoffTimeLocalLabel} LIVE';
     if (match.isFinished) return 'FULL TIME';
-    return match.kickoffTime ?? 'SCHEDULED';
+    return match.kickoffAtLocal != null
+        ? match.kickoffTimeLocalLabel
+        : 'SCHEDULED';
   }
 }
 
@@ -147,7 +149,7 @@ class _HeroTeam extends StatelessWidget {
         Text(
           label,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ],
     );

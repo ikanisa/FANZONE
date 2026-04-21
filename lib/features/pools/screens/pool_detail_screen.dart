@@ -63,7 +63,7 @@ class PoolDetailScreen extends ConsumerWidget {
             return StateView.empty(
               title: 'Not Found',
               subtitle: 'This pool may have been removed.',
-              icon: Icons.search_off_rounded,
+              icon: LucideIcons.searchX,
             );
           }
           return _PoolContent(

@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import '../../../theme/colors.dart';
 
@@ -36,7 +37,7 @@ class FeatureUnavailableScreen extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.lock_clock_outlined,
+                    LucideIcons.lock,
                     color: FzColors.primary,
                     size: 28,
                   ),

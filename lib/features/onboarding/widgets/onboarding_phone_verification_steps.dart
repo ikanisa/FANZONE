@@ -23,7 +23,7 @@ class OnboardingPhoneStep extends StatelessWidget {
     required this.onCountryChanged,
     this.onGuest,
     this.guestLoading = false,
-    this.buttonLabel = 'SEND CODE VIA WHATSAPP',
+    this.buttonLabel = 'SEND OTP',
   });
 
   final Color textColor;
@@ -50,7 +50,7 @@ class OnboardingPhoneStep extends StatelessWidget {
     final helperText = digits.isEmpty
         ? '${selectedCountry.name} • ${selectedCountry.dialCode} • e.g. ${selectedCountry.hint}'
         : canContinue
-        ? 'Ready to send your WhatsApp code to ${selectedCountry.name}.'
+        ? 'Ready to send your code to ${selectedCountry.name}.'
         : 'Add $remainingDigits more digit${remainingDigits == 1 ? '' : 's'} for ${selectedCountry.name}.';
     final helperColor = digits.isEmpty
         ? muted.withValues(alpha: 0.7)
@@ -67,13 +67,13 @@ class OnboardingPhoneStep extends StatelessWidget {
             OnboardingBackButtonRow(onBack: onBack),
             const Spacer(),
             OnboardingSectionTitle(
-              title: 'ENTER\nWHATSAPP\nNUMBER',
+              title: 'ENTER PHONE',
               textColor: textColor,
               size: 36,
             ),
             const SizedBox(height: 10),
             Text(
-              'We\'ll send you a 6-digit code on WhatsApp to verify your account.',
+              'We\'ll send you a code to verify your account.',
               style: TextStyle(fontSize: 14, color: muted, height: 1.45),
             ),
             const SizedBox(height: 28),
@@ -231,7 +231,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                   child: Text(
                     guestLoading ? 'Loading...' : 'Continue as Guest',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: muted,
                     ),
@@ -285,7 +285,7 @@ class OnboardingOtpStep extends StatelessWidget {
             OnboardingSectionTitle(title: 'VERIFY OTP', textColor: textColor),
             const SizedBox(height: 8),
             Text(
-              'Enter the 6-digit code sent to your WhatsApp.',
+              'Enter the 6-digit code sent to your phone.',
               style: TextStyle(fontSize: 14, color: muted, height: 1.45),
             ),
             const SizedBox(height: 24),

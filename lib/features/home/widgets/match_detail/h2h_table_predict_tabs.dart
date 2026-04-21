@@ -85,7 +85,7 @@ class _H2HTab extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   'No previous meetings found.',
-                  style: TextStyle(fontSize: 13, color: muted),
+                  style: TextStyle(fontSize: 14, color: muted),
                 ),
               )
             else
@@ -136,7 +136,7 @@ class _FormRow extends StatelessWidget {
         Expanded(
           child: Text(
             teamName,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -192,7 +192,7 @@ class _PredictTab extends StatelessWidget {
       return StateView.empty(
         title: 'Markets Closed',
         subtitle: 'This match has ended.',
-        icon: Icons.lock_clock,
+        icon: LucideIcons.lock,
       );
     }
 

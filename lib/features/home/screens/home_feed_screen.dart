@@ -18,9 +18,14 @@ import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 import '../../../widgets/common/fz_shimmer.dart';
+import '../../../widgets/home/fz_promo_banner.dart';
 
 class HomeFeedScreen extends ConsumerWidget {
   const HomeFeedScreen({super.key});
+
+  /// Prediction feed uses a 7-day forward window so upcoming matches always
+  /// appear, even on days without scheduled fixtures.
+  static const _feedWindowDays = 7;
 
   DateTime get _today {
     final now = DateTime.now();
@@ -33,7 +38,20 @@ class HomeFeedScreen extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final matchesAsync = ref.watch(matchesByDateProvider(_today));
+
+    // Fetch a 7-day window: today through today + 6 days
+    final matchesAsync = ref.watch(
+      matchesProvider(
+        MatchesFilter(
+          dateFrom: _today.toIso8601String(),
+          dateTo: _today
+              .add(const Duration(days: _feedWindowDays))
+              .toIso8601String(),
+          limit: 200,
+          ascending: true,
+        ),
+      ),
+    );
     final supportedIds =
         ref.watch(supportedTeamsServiceProvider).valueOrNull ??
         const <String>{};
@@ -49,16 +67,22 @@ class HomeFeedScreen extends ConsumerWidget {
     final fallbackInsightTeam = _resolveInsightTeam(supportedIds);
     final insightTeamId =
         profileIdentity?.teamId ?? fallbackInsightTeam?.id ?? 'liverpool';
-    final insightTeamName =
-        profileIdentity?.teamName ?? fallbackInsightTeam?.name ?? 'Liverpool';
 
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
           color: FzColors.primary,
           onRefresh: () async {
-            ref.invalidate(matchesByDateProvider(_today));
-            await ref.read(matchesByDateProvider(_today).future);
+            final filter = MatchesFilter(
+              dateFrom: _today.toIso8601String(),
+              dateTo: _today
+                  .add(const Duration(days: _feedWindowDays))
+                  .toIso8601String(),
+              limit: 200,
+              ascending: true,
+            );
+            ref.invalidate(matchesProvider(filter));
+            await ref.read(matchesProvider(filter).future);
           },
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
@@ -77,20 +101,21 @@ class HomeFeedScreen extends ConsumerWidget {
                   ),
                   _RoundActionButton(
                     tooltip: 'Create pool',
-                    backgroundColor: FzColors.coral,
+                    backgroundColor: FzColors.accent2,
                     foregroundColor: FzColors.darkBg,
                     icon: LucideIcons.plusCircle,
                     onTap: () => context.go('/pools/create'),
                   ),
                   const SizedBox(width: 8),
                   _RoundActionButton(
-                    tooltip: 'Open registry',
+                    tooltip: 'Open memberships',
                     icon: LucideIcons.shield,
-                    onTap: () => context.go('/registry'),
+                    onTap: () => context.go('/memberships'),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
+              const FzPromoBanner(),
               matchesAsync.when(
                 data: (matches) {
                   final liveMatches =
@@ -102,11 +127,7 @@ class HomeFeedScreen extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _DailyInsightCard(
-                        muted: muted,
-                        teamId: insightTeamId,
-                        teamName: insightTeamName,
-                      ),
+                      _DailyInsightCard(muted: muted, teamId: insightTeamId),
                       const SizedBox(height: 24),
                       _HomeSectionHeader(
                         icon: LucideIcons.activity,
@@ -178,8 +199,18 @@ class HomeFeedScreen extends ConsumerWidget {
                   child: StateView.error(
                     title: 'Could not load predictions',
                     subtitle: 'Pull to refresh and try again.',
-                    onRetry: () =>
-                        ref.invalidate(matchesByDateProvider(_today)),
+                    onRetry: () => ref.invalidate(
+                      matchesProvider(
+                        MatchesFilter(
+                          dateFrom: _today.toIso8601String(),
+                          dateTo: _today
+                              .add(const Duration(days: _feedWindowDays))
+                              .toIso8601String(),
+                          limit: 200,
+                          ascending: true,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -256,6 +287,37 @@ class _HomeMatchCard extends StatelessWidget {
   final VoidCallback onPredict;
   final VoidCallback onPool;
 
+  /// Builds the badge label: "COMPETITION · 21:30" for today,
+  /// "COMPETITION · TOMORROW" for tomorrow, "COMPETITION · Sat 15:00" for later.
+  String get _badgeLabel {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final matchDay = DateTime(
+      match.date.year,
+      match.date.month,
+      match.date.day,
+    );
+    final time = match.kickoffTimeLocalLabel;
+
+    if (match.isLive) return '$competitionLabel · LIVE';
+    if (match.isFinished) return '$competitionLabel · FT';
+
+    if (matchDay == today) {
+      return '$competitionLabel · $time';
+    } else if (matchDay == tomorrow) {
+      return '$competitionLabel · TOMORROW';
+    } else {
+      final dayName = _shortDayName(matchDay.weekday);
+      return '$competitionLabel · $dayName $time';
+    }
+  }
+
+  static String _shortDayName(int weekday) {
+    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return names[(weekday - 1) % 7];
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -263,7 +325,7 @@ class _HomeMatchCard extends StatelessWidget {
     final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
     final surface2 = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
     final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
-    const ctaColor = FzColors.coral;
+    const ctaColor = FzColors.accent2;
     final scoreText = match.isLive ? (match.scoreDisplay ?? 'LIVE') : 'VS';
 
     return Container(
@@ -317,7 +379,7 @@ class _HomeMatchCard extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: FzBadge(
-                          label: '$competitionLabel · ${match.kickoffLabel}',
+                          label: _badgeLabel,
                           variant: FzBadgeVariant.ghost,
                           fontSize: 9,
                           padding: const EdgeInsets.symmetric(
@@ -378,13 +440,11 @@ class _HomeMatchCard extends StatelessWidget {
                         icon: LucideIcons.target,
                         backgroundColor: match.isLive
                             ? FzColors.danger
-                            : ctaColor.withValues(alpha: 0.10),
+                            : ctaColor,
                         foregroundColor: match.isLive
                             ? FzColors.darkBg
-                            : ctaColor,
-                        borderColor: match.isLive
-                            ? FzColors.danger
-                            : ctaColor.withValues(alpha: 0.20),
+                            : FzColors.darkText,
+                        borderColor: match.isLive ? FzColors.danger : ctaColor,
                         onTap: onPredict,
                       ),
                     ),
@@ -394,8 +454,8 @@ class _HomeMatchCard extends StatelessWidget {
                         label: 'POOL',
                         icon: LucideIcons.swords,
                         backgroundColor: surface2,
-                        foregroundColor: FzColors.primary,
-                        borderColor: FzColors.primary.withValues(alpha: 0.20),
+                        foregroundColor: FzColors.accent,
+                        borderColor: FzColors.accent.withValues(alpha: 0.20),
                         onTap: onPool,
                       ),
                     ),
@@ -501,15 +561,10 @@ class _HomeMatchButton extends StatelessWidget {
 }
 
 class _DailyInsightCard extends ConsumerWidget {
-  const _DailyInsightCard({
-    required this.muted,
-    required this.teamId,
-    required this.teamName,
-  });
+  const _DailyInsightCard({required this.muted, required this.teamId});
 
   final Color muted;
   final String teamId;
-  final String? teamName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -523,42 +578,16 @@ class _DailyInsightCard extends ConsumerWidget {
         final article = articles.firstOrNull;
         final insight = _resolveInsightText(article);
         if (insight == null || insight.isEmpty) {
-          return _InsightCardShell(
-            muted: muted,
-            child: _InsightMessage(
-              title: 'Insights syncing',
-              message:
-                  'Club insights will appear here once the latest update lands.',
-              muted: muted,
-            ),
-          );
+          return const SizedBox.shrink();
         }
 
         return _InsightCardShell(
           muted: muted,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                insight,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _sourceLabel(
-                  teamName: teamName,
-                  sourceName: article?.sourceName,
-                ),
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: muted,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
+          child: Text(
+            insight,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
           ),
         );
       },
@@ -569,9 +598,7 @@ class _DailyInsightCard extends ConsumerWidget {
             const SizedBox(
               width: 14,
               height: 14,
-              child: CupertinoActivityIndicator(
-                color: FzColors.success,
-              ),
+              child: CupertinoActivityIndicator(color: FzColors.success),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -588,14 +615,7 @@ class _DailyInsightCard extends ConsumerWidget {
           ],
         ),
       ),
-      error: (_, _) => _InsightCardShell(
-        muted: muted,
-        child: _InsightMessage(
-          title: 'Insights unavailable',
-          message: 'We could not load the latest club signal right now.',
-          muted: muted,
-        ),
-      ),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 
@@ -608,57 +628,6 @@ class _DailyInsightCard extends ConsumerWidget {
     final title = article.title?.toString().trim();
     if (title != null && title.isNotEmpty) return title;
     return null;
-  }
-
-  String _sourceLabel({String? teamName, String? sourceName}) {
-    final club = teamName?.trim();
-    final source = sourceName?.trim();
-    if (club != null &&
-        club.isNotEmpty &&
-        source != null &&
-        source.isNotEmpty) {
-      return '$club · $source';
-    }
-    if (club != null && club.isNotEmpty) return club;
-    return source ?? 'AI-curated club update';
-  }
-}
-
-class _InsightMessage extends StatelessWidget {
-  const _InsightMessage({
-    required this.title,
-    required this.message,
-    required this.muted,
-  });
-
-  final String title;
-  final String message;
-  final Color muted;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: muted,
-            letterSpacing: 0.8,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          message,
-          style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
-        ),
-      ],
-    );
   }
 }
 
@@ -814,7 +783,7 @@ class _CompactEmptyCard extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

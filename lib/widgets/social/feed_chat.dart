@@ -98,11 +98,11 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                       const SizedBox(height: 8),
                       Text(
                         'No messages yet',
-                        style: TextStyle(fontSize: 13, color: muted),
+                        style: TextStyle(fontSize: 14, color: muted),
                       ),
                       Text(
                         'Be the first to say something!',
-                        style: TextStyle(fontSize: 11, color: muted),
+                        style: TextStyle(fontSize: 10, color: muted),
                       ),
                     ],
                   ),
@@ -155,7 +155,7 @@ class _FeedChatState extends ConsumerState<FeedChat> {
             color: FzColors.error.withValues(alpha: 0.1),
             child: Text(
               _error!,
-              style: const TextStyle(fontSize: 11, color: FzColors.error),
+              style: const TextStyle(fontSize: 10, color: FzColors.error),
             ),
           ),
 
@@ -186,7 +186,7 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                       onSubmitted: (_) => _sendMessage(),
                       decoration: InputDecoration(
                         hintText: 'Say something...',
-                        hintStyle: TextStyle(fontSize: 13, color: muted),
+                        hintStyle: TextStyle(fontSize: 14, color: muted),
                         counterText: '',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -201,7 +201,7 @@ class _FeedChatState extends ConsumerState<FeedChat> {
                           vertical: 10,
                         ),
                       ),
-                      style: const TextStyle(fontSize: 13),
+                      style: const TextStyle(fontSize: 14),
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -280,7 +280,7 @@ class _MessageBubble extends StatelessWidget {
           child: Text(
             message.content,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               color: muted,
               fontStyle: FontStyle.italic,
             ),
@@ -321,7 +321,7 @@ class _MessageBubble extends StatelessWidget {
               ),
               child: Text(
                 message.content,
-                style: TextStyle(fontSize: 13, color: textColor),
+                style: TextStyle(fontSize: 14, color: textColor),
               ),
             ),
           ),
@@ -347,7 +347,7 @@ class _MessageBubble extends StatelessWidget {
                       ),
                       child: Text(
                         '${entry.key} ${entry.value}',
-                        style: const TextStyle(fontSize: 11),
+                        style: const TextStyle(fontSize: 10),
                       ),
                     ),
                   );

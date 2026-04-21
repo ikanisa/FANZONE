@@ -325,7 +325,6 @@ export async function upsertTeams(
       const searchTerms = buildSearchTerms(team);
       const patch: Record<string, unknown> = {
         id: team.id,
-        slug: slugify(team.name),
         name: team.name,
         short_name: team.short_name,
         country: entry.country,

@@ -204,12 +204,12 @@ class _WalletHero extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [FzColors.primary, FzColors.secondary],
+          colors: [FzColors.teal, FzColors.accent2],
         ),
         borderRadius: FzRadii.heroRadius,
         boxShadow: [
           BoxShadow(
-            color: FzColors.secondary.withValues(alpha: 0.28),
+            color: FzColors.accent2.withValues(alpha: 0.30),
             blurRadius: 28,
             offset: const Offset(0, 14),
           ),

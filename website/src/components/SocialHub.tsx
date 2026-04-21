@@ -11,7 +11,7 @@ export default function SocialHub() {
     <div className="min-h-screen bg-bg pb-24">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-surface/80 backdrop-blur-md border-b border-border p-4 flex items-center justify-between">
-        <Link to="/profile" className="text-text hover:text-primary transition-all">
+        <Link to="/profile" className="text-text hover:text-accent transition-all">
           <ChevronLeft size={24} />
         </Link>
         <div className="text-center">
@@ -27,7 +27,7 @@ export default function SocialHub() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-4 text-sm font-bold transition-all ${activeTab === tab ? 'text-primary border-b-2 border-primary' : 'text-muted hover:text-text'}`}
+            className={`flex-1 py-4 text-sm font-bold transition-all ${activeTab === tab ? 'text-accent border-b-2 border-accent' : 'text-muted hover:text-text'}`}
           >
             {tab}
           </button>
@@ -57,16 +57,16 @@ function FriendsTab() {
             className="bg-transparent border-none text-text text-sm w-full focus:outline-none"
           />
         </div>
-        <button className="bg-primary/10 border border-primary/20 text-primary p-3 rounded-xl hover:bg-primary/20 transition-all">
+        <button className="bg-accent/10 border border-accent/20 text-accent p-3 rounded-xl hover:bg-accent/20 transition-all">
           <UserPlus size={20} />
         </button>
       </div>
 
       <div className="bg-surface2 rounded-3xl border border-border overflow-hidden">
-        <FriendRow name="PacevillePro" acc="72%" status="online" onPool={() => setPoolTarget('PacevillePro')} />
-        <FriendRow name="GozitanFan" acc="65%" status="offline" onPool={() => setPoolTarget('GozitanFan')} />
-        <FriendRow name="PredictorPro" acc="81%" status="online" onPool={() => setPoolTarget('PredictorPro')} />
-        <FriendRow name="SoccerFan99" acc="54%" status="offline" onPool={() => setPoolTarget('SoccerFan99')} />
+        <FriendRow name="449012" acc="72%" status="online" onPool={() => setPoolTarget('449012')} />
+        <FriendRow name="818312" acc="65%" status="offline" onPool={() => setPoolTarget('818312')} />
+        <FriendRow name="191021" acc="81%" status="online" onPool={() => setPoolTarget('191021')} />
+        <FriendRow name="677102" acc="54%" status="offline" onPool={() => setPoolTarget('677102')} />
       </div>
 
       <PoolModal 
@@ -84,7 +84,7 @@ function FriendRow({ name, acc, status, onPool }: { name: string; acc: string; s
       <div className="flex items-center gap-4">
         <div className="relative">
           <div className="w-10 h-10 rounded-full bg-surface3 flex items-center justify-center text-lg">👤</div>
-          <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-surface2 ${status === 'online' ? 'bg-primary' : 'bg-muted'}`}></div>
+          <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-surface2 ${status === 'online' ? 'bg-accent' : 'bg-muted'}`}></div>
         </div>
         <div>
           <div className="text-sm font-bold text-text">{name}</div>
@@ -93,7 +93,7 @@ function FriendRow({ name, acc, status, onPool }: { name: string; acc: string; s
       </div>
       <button 
         onClick={onPool}
-        className="flex items-center gap-2 bg-surface3 hover:bg-primary/20 text-primary text-xs font-bold px-3 py-2 rounded-lg transition-all border border-border hover:border-primary/30"
+        className="flex items-center gap-2 bg-surface3 hover:bg-accent/20 text-accent text-xs font-bold px-3 py-2 rounded-lg transition-all border border-border hover:border-accent/30"
       >
         <Swords size={14} /> Pool
       </button>
@@ -130,13 +130,13 @@ function FriendRow({ name, acc, status, onPool }: { name: string; acc: string; s
 
 function FanRow({ rank, name, pts, isMe }: { rank: number; name: string; pts: string; isMe: boolean }) {
   return (
-    <div className={`flex items-center justify-between p-4 border-b border-border last:border-0 ${isMe ? 'bg-primary/5' : 'hover:bg-surface3'} transition-colors`}>
+    <div className={`flex items-center justify-between p-4 border-b border-border last:border-0 ${isMe ? 'bg-accent/5' : 'hover:bg-surface3'} transition-colors`}>
       <div className="flex items-center gap-4">
-        <div className={`font-mono text-sm font-bold w-6 text-center ${rank <= 3 ? 'text-secondary' : 'text-muted'}`}>{rank}</div>
+        <div className={`font-mono text-sm font-bold w-6 text-center ${rank <= 3 ? 'text-accent3' : 'text-muted'}`}>{rank}</div>
         <div className="w-8 h-8 rounded-full bg-surface3 flex items-center justify-center text-sm">👤</div>
-        <div className={`text-sm font-bold ${isMe ? 'text-primary' : 'text-text'}`}>{name} {isMe && '(You)'}</div>
+        <div className={`text-sm font-bold ${isMe ? 'text-accent' : 'text-text'}`}>{name} {isMe && '(You)'}</div>
       </div>
-      <div className="font-mono text-sm font-bold text-secondary">{pts}</div>
+      <div className="font-mono text-sm font-bold text-accent3">{pts}</div>
     </div>
   );
 }

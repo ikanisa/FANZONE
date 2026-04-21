@@ -1,3 +1,4 @@
+import 'package:lucide_icons/lucide_icons.dart';
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
@@ -192,7 +193,7 @@ class _MembershipShareSheet extends ConsumerWidget {
                             : '🏟️ Join me on FANZONE!\nhttps://play.google.com/store/apps/details?id=app.fanzone.football';
                         await SharePlus.instance.share(ShareParams(text: text));
                       },
-                      icon: const Icon(Icons.share_rounded, size: 16),
+                      icon: const Icon(LucideIcons.share2, size: 16),
                       label: const Text('Share Card'),
                       style: FilledButton.styleFrom(
                         backgroundColor: tier.color,
@@ -216,7 +217,7 @@ class _MembershipShareSheet extends ConsumerWidget {
                               const SnackBar(content: Text('Fan ID copied')),
                             );
                           },
-                    icon: const Icon(Icons.copy_rounded, size: 16),
+                    icon: const Icon(LucideIcons.copy, size: 16),
                     label: const Text('Copy ID'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: textColor,
@@ -243,7 +244,7 @@ class _MembershipShareSheet extends ConsumerWidget {
                 child: Text(
                   'Close',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     color: muted,
                     fontWeight: FontWeight.w600,
                   ),

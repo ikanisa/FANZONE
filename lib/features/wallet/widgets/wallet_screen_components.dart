@@ -179,13 +179,13 @@ class WalletTransactionRow extends ConsumerWidget {
                 Text(
                   transaction.title,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
                   transaction.dateStr,
-                  style: TextStyle(fontSize: 11, color: muted),
+                  style: TextStyle(fontSize: 10, color: muted),
                 ),
               ],
             ),

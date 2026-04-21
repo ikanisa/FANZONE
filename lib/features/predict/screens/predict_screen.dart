@@ -18,9 +18,11 @@ import '../../../services/pool_service.dart';
 import '../../../services/wallet_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../theme/radii.dart';
 import '../../../widgets/common/fz_badge.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_shimmer.dart';
+import '../../../widgets/common/team_crest.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
@@ -31,9 +33,7 @@ part '../widgets/predict_pool_list_view.dart';
 part '../widgets/predict_slips_view.dart';
 
 class PredictScreen extends ConsumerStatefulWidget {
-  const PredictScreen({super.key, this.openCreateSheet = false});
-
-  final bool openCreateSheet;
+  const PredictScreen({super.key});
 
   @override
   ConsumerState<PredictScreen> createState() => _PredictScreenState();
@@ -42,42 +42,29 @@ class PredictScreen extends ConsumerStatefulWidget {
 class _PredictScreenState extends ConsumerState<PredictScreen>
     with TickerProviderStateMixin {
   late final TabController _tabController;
-  bool _hasOpenedCreateSheet = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this, initialIndex: 1);
+    _tabController.addListener(_handleTabChange);
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!widget.openCreateSheet || _hasOpenedCreateSheet) return;
-    _hasOpenedCreateSheet = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _openCreatePoolSheet();
-    });
+  void _handleTabChange() {
+    if (!mounted) return;
+    setState(() {});
   }
 
-  void _openCreatePoolSheet() {
+  void _openCreatePoolFlow() {
     HapticFeedback.selectionClick();
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => const _CreatePoolSheet(),
-    ).whenComplete(() {
-      if (!mounted || !widget.openCreateSheet) return;
-      context.go('/pools');
-    });
+    context.push('/pools/create');
   }
 
   @override
@@ -119,7 +106,7 @@ class _PredictScreenState extends ConsumerState<PredictScreen>
                       button: true,
                       label: 'Create pool',
                       child: IconButton(
-                        onPressed: _openCreatePoolSheet,
+                        onPressed: _openCreatePoolFlow,
                         tooltip: 'Create pool',
                         icon: const Icon(
                           LucideIcons.plus,
@@ -127,8 +114,8 @@ class _PredictScreenState extends ConsumerState<PredictScreen>
                           semanticLabel: 'Create pool',
                         ),
                         style: IconButton.styleFrom(
-                          backgroundColor: FzColors.secondary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: FzColors.accent2,
+                          foregroundColor: FzColors.darkBg,
                           minimumSize: const Size(40, 40),
                           padding: EdgeInsets.zero,
                         ),
@@ -149,40 +136,52 @@ class _PredictScreenState extends ConsumerState<PredictScreen>
                     color: isDark
                         ? FzColors.darkSurface2
                         : FzColors.lightSurface2,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(999),
                     border: Border.all(
                       color: isDark
                           ? FzColors.darkBorder
                           : FzColors.lightBorder,
                     ),
                   ),
-                  child: TabBar(
-                    controller: _tabController,
-                    isScrollable: false,
-                    indicator: BoxDecoration(
-                      color: FzColors.primary,
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    dividerColor: Colors.transparent,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: muted,
-                    labelStyle: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                    unselectedLabelStyle: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                    labelPadding: EdgeInsets.zero,
-                    tabs: const [
-                      Tab(text: 'FEATURED', height: 32),
-                      Tab(text: 'OPEN', height: 32),
-                      Tab(text: 'MY POOLS', height: 32),
-                      Tab(text: 'SETTLED', height: 32),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _PoolsTopTab(
+                          label: 'Featured',
+                          icon: LucideIcons.star,
+                          inactiveIconColor: FzColors.accent3,
+                          isActive: _tabController.index == 0,
+                          onTap: () => _tabController.animateTo(0),
+                        ),
+                      ),
+                      Expanded(
+                        child: _PoolsTopTab(
+                          label: 'Open',
+                          icon: LucideIcons.activity,
+                          inactiveIconColor: FzColors.accent,
+                          isActive: _tabController.index == 1,
+                          onTap: () => _tabController.animateTo(1),
+                        ),
+                      ),
+                      Expanded(
+                        child: _PoolsTopTab(
+                          label: 'Mine',
+                          icon: LucideIcons.swords,
+                          inactiveIconColor: muted,
+                          isActive: _tabController.index == 2,
+                          badgeCount: entriesAsync.valueOrNull?.length ?? 0,
+                          onTap: () => _tabController.animateTo(2),
+                        ),
+                      ),
+                      Expanded(
+                        child: _PoolsTopTab(
+                          label: 'Settled',
+                          icon: LucideIcons.trophy,
+                          inactiveIconColor: muted,
+                          isActive: _tabController.index == 3,
+                          onTap: () => _tabController.animateTo(3),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -212,6 +211,93 @@ class _PredictScreenState extends ConsumerState<PredictScreen>
                 entriesAsync: entriesAsync,
                 filter: 'settled',
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PoolsTopTab extends StatelessWidget {
+  const _PoolsTopTab({
+    required this.label,
+    required this.icon,
+    required this.inactiveIconColor,
+    required this.isActive,
+    required this.onTap,
+    this.badgeCount = 0,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color inactiveIconColor;
+  final bool isActive;
+  final VoidCallback onTap;
+  final int badgeCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = Theme.of(context).brightness == Brightness.dark
+        ? FzColors.darkMuted
+        : FzColors.lightMuted;
+
+    return Padding(
+      padding: const EdgeInsets.all(3),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          height: 36,
+          decoration: BoxDecoration(
+            color: isActive ? FzColors.darkText : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isActive ? FzColors.darkBg : inactiveIconColor,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label.toUpperCase(),
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    color: isActive ? FzColors.darkBg : muted,
+                  ),
+                ),
+              ),
+              if (badgeCount > 0) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isActive ? FzColors.darkBg : FzColors.accent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$badgeCount',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: isActive ? FzColors.darkText : FzColors.darkBg,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

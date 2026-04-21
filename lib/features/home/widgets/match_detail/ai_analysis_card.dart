@@ -41,7 +41,7 @@ class _AiAnalysisCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
-                    Icons.auto_awesome_rounded,
+                    LucideIcons.sparkles,
                     size: 18,
                     color: FzColors.primary,
                   ),
@@ -241,7 +241,7 @@ class _AiAnalysisCard extends StatelessWidget {
                                   Text(
                                     factor.description,
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 10,
                                       color: muted,
                                     ),
                                   ),
@@ -263,7 +263,7 @@ class _AiAnalysisCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               child: Text(
                 analysis.analysisNarrative!,
-                style: TextStyle(fontSize: 13, color: textColor, height: 1.5),
+                style: TextStyle(fontSize: 14, color: textColor, height: 1.5),
               ),
             )
           else

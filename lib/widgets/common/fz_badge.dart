@@ -5,6 +5,10 @@ import '../../theme/radii.dart';
 
 enum FzBadgeVariant {
   standard,
+  accent,
+  accent2,
+  accent3,
+  teal,
   primary,
   secondary,
   success,
@@ -62,14 +66,14 @@ class FzBadge extends StatelessWidget {
       case 'submitted':
         return FzBadge(
           label: status.toUpperCase(),
-          variant: FzBadgeVariant.primary,
+          variant: FzBadgeVariant.accent,
           pulse: normalized == 'open',
         );
       case 'settled':
       case 'voided':
         return FzBadge(
           label: status.toUpperCase(),
-          variant: FzBadgeVariant.secondary,
+          variant: FzBadgeVariant.accent3,
         );
       case 'won':
         return const FzBadge(label: 'WON', variant: FzBadgeVariant.success);
@@ -119,7 +123,7 @@ class FzBadge extends StatelessWidget {
                 fontSize: fontSize,
                 fontWeight: FontWeight.w700,
                 color: palette.foreground,
-                letterSpacing: 1.0,
+                letterSpacing: 1.4,
               ),
             ),
           ],
@@ -146,10 +150,18 @@ class FzBadge extends StatelessWidget {
     final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
 
     switch (variant) {
+      case FzBadgeVariant.accent:
+        return _tinted(FzColors.accent);
+      case FzBadgeVariant.accent2:
+        return _tinted(FzColors.accent2);
+      case FzBadgeVariant.accent3:
+        return _tinted(FzColors.accent3);
+      case FzBadgeVariant.teal:
+        return _tinted(FzColors.teal);
       case FzBadgeVariant.primary:
-        return _tinted(FzColors.primary);
+        return _tinted(FzColors.accent);
       case FzBadgeVariant.secondary:
-        return _tinted(FzColors.coral);
+        return _tinted(FzColors.accent3);
       case FzBadgeVariant.success:
         return _tinted(FzColors.success);
       case FzBadgeVariant.danger:

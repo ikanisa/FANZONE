@@ -8,7 +8,7 @@ export default function EmptyErrorStates() {
       
       {/* No Fixtures */}
       <StateCard 
-        icon={<Calendar className="text-primary" size={48} />}
+        icon={<Calendar className="text-accent" size={48} />}
         title="No Fixtures Found"
         desc="There are no football matches scheduled for this date. Try another day."
         action="View All Matches"
@@ -16,7 +16,7 @@ export default function EmptyErrorStates() {
 
       {/* Network Error */}
       <StateCard 
-        icon={<AlertCircle className="text-secondary" size={48} />}
+        icon={<AlertCircle className="text-accent2" size={48} />}
         title="Connection Error"
         desc="We couldn't connect to the server. Please check your internet connection."
         action="Retry Connection"

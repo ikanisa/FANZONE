@@ -23,7 +23,7 @@ class _StatsTab extends ConsumerWidget {
               child: StateView.empty(
                 title: 'Stats not available yet',
                 subtitle: 'Statistics appear after kickoff.',
-                icon: Icons.bar_chart_rounded,
+                icon: LucideIcons.barChart3,
               ),
             );
           }
@@ -67,7 +67,7 @@ class _StatsTab extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text(
                             match.homeTeam,
-                            style: TextStyle(fontSize: 11, color: muted),
+                            style: TextStyle(fontSize: 10, color: muted),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -109,7 +109,7 @@ class _StatsTab extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text(
                             match.awayTeam,
-                            style: TextStyle(fontSize: 11, color: muted),
+                            style: TextStyle(fontSize: 10, color: muted),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -144,7 +144,7 @@ class _StatsTab extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                           match.homeTeam,
-                          style: TextStyle(fontSize: 11, color: muted),
+                          style: TextStyle(fontSize: 10, color: muted),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -174,7 +174,7 @@ class _StatsTab extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                           match.awayTeam,
-                          style: TextStyle(fontSize: 11, color: muted),
+                          style: TextStyle(fontSize: 10, color: muted),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],

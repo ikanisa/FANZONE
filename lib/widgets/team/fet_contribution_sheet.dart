@@ -161,7 +161,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
                   ),
                   Text(
                     widget.team.name,
-                    style: TextStyle(fontSize: 13, color: muted),
+                    style: TextStyle(fontSize: 14, color: muted),
                   ),
                 ],
               ),
@@ -182,7 +182,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
             children: [
               const Icon(LucideIcons.wallet, size: 14, color: FzColors.secondary),
               const SizedBox(width: 8),
-              Text('Balance: ', style: TextStyle(fontSize: 13, color: muted)),
+              Text('Balance: ', style: TextStyle(fontSize: 14, color: muted)),
               balanceAsync.when(
                 data: (b) => Text(
                   '$b FET',
@@ -191,9 +191,9 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
                   ),
                 ),
                 loading: () =>
-                    Text('...', style: TextStyle(fontSize: 13, color: muted)),
+                    Text('...', style: TextStyle(fontSize: 14, color: muted)),
                 error: (_, _) =>
-                    Text('—', style: TextStyle(fontSize: 13, color: muted)),
+                    Text('—', style: TextStyle(fontSize: 14, color: muted)),
               ),
             ],
           ),
@@ -267,7 +267,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
                 child: Text(
                   '$amount',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: isSelected
                         ? FzColors.primary
@@ -291,7 +291,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
             child: Row(
               children: [
                 const Icon(
-                  Icons.warning_amber_rounded,
+                  LucideIcons.alertTriangle,
                   size: 16,
                   color: FzColors.error,
                 ),
@@ -299,7 +299,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
                 Expanded(
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(fontSize: 13, color: FzColors.error),
+                    style: const TextStyle(fontSize: 14, color: FzColors.error),
                   ),
                 ),
               ],
@@ -361,7 +361,7 @@ class _FETContributionSheetState extends ConsumerState<FETContributionSheet> {
             shape: BoxShape.circle,
           ),
           child: const Icon(
-            Icons.check_rounded,
+            LucideIcons.check,
             size: 32,
             color: FzColors.success,
           ),

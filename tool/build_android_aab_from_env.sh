@@ -28,6 +28,14 @@ flutter build appbundle --release \
   "${BUILD_ARGS[@]}" \
   "$@"
 
+# Flutter currently leaves the app-level GeneratedPluginRegistrant.java in a
+# dev-plugin state after the build on this toolchain. Sanitize it post-build so
+# the workspace stays production-safe for the next release invocation.
+(
+  cd android
+  ./gradlew :app:sanitizeReleaseGeneratedPluginRegistrant >/dev/null
+)
+
 AAB_PATH="build/app/outputs/bundle/release/app-release.aab"
 if [[ -f "$AAB_PATH" ]]; then
   SIZE=$(du -h "$AAB_PATH" | cut -f1)

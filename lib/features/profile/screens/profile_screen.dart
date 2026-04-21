@@ -15,7 +15,6 @@ import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../services/wallet_service.dart';
-import '../../../widgets/common/fz_wordmark.dart';
 import '../widgets/profile_sections.dart';
 
 /// User profile screen with real auth data, FET balance, quick links, and logout.
@@ -36,7 +35,6 @@ class ProfileScreen extends ConsumerWidget {
     final showWallet = isAuthenticated && flags.wallet;
     final showPredictions = isAuthenticated && flags.predictions;
     const showClubs = true;
-    final showRewards = isAuthenticated && (flags.rewards || flags.marketplace);
 
     return Scaffold(
       body: SafeArea(
@@ -116,13 +114,13 @@ class ProfileScreen extends ConsumerWidget {
               showClubs: showClubs,
               showWallet: showWallet,
               showPredictions: showPredictions,
-              showRewards: showRewards,
             ),
 
             const SizedBox(height: 16),
 
             ProfileAccountLinksCard(
-              onHelp: () => _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
+              onHelp: () =>
+                  _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
               showVerifyAction: !isAuthenticated,
               onVerifyPhone: () => context.go('/login'),
               showSignOut: isAuthenticated,
@@ -151,17 +149,13 @@ class ProfileScreen extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  Text.rich(
-                    TextSpan(
-                      children: FzWordmark.spansForText(
-                        '${AppConfig.appName} v${AppConfig.appVersion}',
-                        style: TextStyle(
-                          fontSize: 10,
-                          letterSpacing: 1.6,
-                          fontWeight: FontWeight.w700,
-                          color: muted,
-                        ),
-                      ),
+                  Text(
+                    '${AppConfig.appName} v${AppConfig.appVersion}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      letterSpacing: 1.6,
+                      fontWeight: FontWeight.w700,
+                      color: muted,
                     ),
                     textAlign: TextAlign.center,
                   ),

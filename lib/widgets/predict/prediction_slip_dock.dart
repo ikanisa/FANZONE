@@ -71,7 +71,7 @@ class PredictionSlipDock extends ConsumerWidget {
                   ),
                 ),
                 const Icon(
-                  Icons.arrow_upward_rounded,
+                  LucideIcons.arrowUp,
                   color: Colors.white,
                   size: 20,
                 ),
@@ -264,7 +264,7 @@ class _PredictionSlipModalState extends ConsumerState<_PredictionSlipModal> {
                                   ? 'Confidence market x${selection.multiplier!.toStringAsFixed(2)}'
                                   : 'Market added to free slip',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 10,
                                 color: selection.multiplier != null
                                     ? FzColors.primary
                                     : muted,
@@ -276,7 +276,7 @@ class _PredictionSlipModalState extends ConsumerState<_PredictionSlipModal> {
                       ),
                       IconButton(
                         icon: Icon(
-                          Icons.delete_outline,
+                          LucideIcons.trash2,
                           color: muted,
                           size: 20,
                         ),

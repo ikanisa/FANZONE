@@ -11,7 +11,7 @@ export default function Settings() {
     addNotification({
       type: 'pool_received',
       title: 'New Friend Pool!',
-      message: 'Alex has poold you to predict the LIV vs ARS match. Tap to accept.',
+      message: 'User 582910 has poold you to predict the LIV vs ARS match. Tap to accept.',
     });
   };
 
@@ -19,7 +19,7 @@ export default function Settings() {
     addNotification({
       type: 'pool_settled',
       title: 'Pool Settled',
-      message: 'You won the pool against Alex! +50 FET has been added to your wallet.',
+      message: 'You won the pool against User 582910! +50 FET has been added to your wallet.',
     });
   };
 
@@ -27,7 +27,7 @@ export default function Settings() {
     <div className="min-h-screen bg-bg pb-24 transition-colors duration-300">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-surface/80 backdrop-blur-md border-b border-border p-4 flex items-center gap-4">
-        <Link to="/profile" className="text-text hover:text-primary transition-all w-10 h-10 rounded-full bg-surface2 border border-border flex items-center justify-center">
+        <Link to="/profile" className="text-text hover:text-accent transition-all w-10 h-10 rounded-full bg-surface2 border border-border flex items-center justify-center">
           <ChevronLeft size={20} />
         </Link>
         <h1 className="font-display text-2xl text-text tracking-tight">Settings</h1>
@@ -45,7 +45,7 @@ export default function Settings() {
             </div>
             <label className="relative inline-flex items-center cursor-pointer pointer-events-none">
               <input type="checkbox" className="sr-only peer" checked={theme === 'dark'} readOnly />
-              <div className="w-9 h-5 bg-surface3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+              <div className="w-9 h-5 bg-surface3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
             </label>
           </div>
           <SettingsSelect icon={<Globe size={16} />} label="Odds Format" options={['Decimal (1.85)', 'Fractional (17/20)', 'American (-118)']} />
@@ -63,7 +63,7 @@ export default function Settings() {
             className="w-full flex items-center justify-between p-3 border-b border-border hover:bg-surface3 transition-colors text-left"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"><Bug size={16} /></div>
+              <div className="w-8 h-8 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent"><Bug size={16} /></div>
               <div>
                 <span className="font-bold text-sm text-text block leading-tight">Test: Pool Received</span>
               </div>
@@ -74,7 +74,7 @@ export default function Settings() {
             className="w-full flex items-center justify-between p-3 hover:bg-surface3 transition-colors text-left"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary"><Bug size={16} /></div>
+              <div className="w-8 h-8 rounded-full bg-accent3/10 border border-accent3/20 flex items-center justify-center text-accent3"><Bug size={16} /></div>
               <div>
                 <span className="font-bold text-sm text-text block leading-tight">Test: Pool Settled</span>
               </div>
@@ -112,7 +112,7 @@ function SettingsToggle({ icon, label, defaultChecked }: { icon: React.ReactNode
       </div>
       <label className="relative inline-flex items-center cursor-pointer pointer-events-none">
         <input type="checkbox" className="sr-only peer" defaultChecked={defaultChecked} />
-        <div className="w-9 h-5 bg-surface3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+        <div className="w-9 h-5 bg-surface3 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent"></div>
       </label>
     </div>
   );
@@ -125,7 +125,7 @@ function SettingsSelect({ icon, label, options }: { icon: React.ReactNode; label
         <div className="w-8 h-8 rounded-full bg-surface3 flex items-center justify-center text-muted">{icon}</div>
         <span className="font-bold text-sm text-text">{label}</span>
       </div>
-      <select className="bg-surface3 border border-border text-text text-[10px] font-bold rounded-lg focus:ring-primary focus:border-primary block p-1.5 outline-none">
+      <select className="bg-surface3 border border-border text-text text-[10px] font-bold rounded-lg focus:ring-accent focus:border-accent block p-1.5 outline-none">
         {options.map(opt => <option key={opt}>{opt}</option>)}
       </select>
     </div>

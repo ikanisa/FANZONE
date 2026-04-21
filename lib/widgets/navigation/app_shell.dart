@@ -524,8 +524,8 @@ class _BrandWordmark extends StatelessWidget {
             color: FzColors.darkText,
             letterSpacing: 0.6,
           ),
-          fanColor: FzColors.primary,
-          zoneColor: FzColors.darkText,
+          fanColor: FzColors.success,
+          zoneColor: FzColors.accent3,
         ),
       ],
     );
@@ -597,12 +597,8 @@ bool _isHomePath(String path) => path == '/';
 
 bool _isFixturesPath(String path) =>
     path == '/fixtures' ||
-    path == '/scores' ||
     path.startsWith('/match/') ||
-    path.startsWith('/league/') ||
-    path.startsWith('/leagues') ||
-    path.startsWith('/search') ||
-    path.startsWith('/following');
+    path.startsWith('/league/');
 
 bool _isPredictPath(String path) =>
     (path == '/pools' ||
@@ -627,11 +623,9 @@ bool _isProfilePath(String path) =>
     path == '/profile' ||
     path.startsWith('/profile/') ||
     path.startsWith('/notifications') ||
-    path.startsWith('/notification-settings') ||
     path.startsWith('/settings') ||
     path.startsWith('/privacy') ||
     path.startsWith('/fan-id') ||
     path.startsWith('/memberships') ||
     path.startsWith('/social') ||
-    path.startsWith('/team/') ||
-    path.startsWith('/teams');
+    path.startsWith('/team/');

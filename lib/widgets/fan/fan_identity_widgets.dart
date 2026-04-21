@@ -66,7 +66,7 @@ class FanLevelBadge extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
               color: color,
             ),
@@ -223,7 +223,7 @@ class BadgeGrid extends StatelessWidget {
               child: Text(
                 '+$remaining more',
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: FzColors.primary,
                 ),
@@ -264,7 +264,7 @@ class _BadgeChip extends StatelessWidget {
             Text(
               badge.name,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: rarityColor,
               ),
@@ -377,7 +377,7 @@ class FanIdentityCard extends ConsumerWidget {
                         Text(
                           '${profile.streakDays}d streak',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: profile.streakDays >= 7
                                 ? FzColors.secondary
@@ -427,7 +427,7 @@ class FanIdentityCard extends ConsumerWidget {
                   padding: const EdgeInsets.only(top: 14),
                   child: Text(
                     'Badges unavailable right now.',
-                    style: TextStyle(fontSize: 11, color: muted),
+                    style: TextStyle(fontSize: 10, color: muted),
                   ),
                 ),
               ),

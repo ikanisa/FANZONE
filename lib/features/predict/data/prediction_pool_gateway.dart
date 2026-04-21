@@ -6,7 +6,7 @@ import 'predict_gateway_models.dart';
 abstract interface class PredictionPoolGateway {
   Future<List<ScorePool>> getPools();
 
-  Future<void> createPool(PoolCreateRequestDto request);
+  Future<String> createPool(PoolCreateRequestDto request);
 
   Future<void> joinPool(PoolJoinRequestDto request);
 
@@ -42,14 +42,14 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
   }
 
   @override
-  Future<void> createPool(PoolCreateRequestDto request) async {
+  Future<String> createPool(PoolCreateRequestDto request) async {
     final client = _connection.client;
     if (client == null) {
       throw StateError('Supabase not connected');
     }
 
     try {
-      await client.rpc(
+      final result = await client.rpc(
         'create_pool_rate_limited',
         params: {
           'p_match_id': request.matchId,
@@ -58,6 +58,14 @@ class SupabasePredictionPoolGateway implements PredictionPoolGateway {
           'p_stake': request.stake,
         },
       );
+      final payload = result is Map
+          ? Map<String, dynamic>.from(result)
+          : const <String, dynamic>{};
+      final poolId = payload['pool_id']?.toString();
+      if (poolId == null || poolId.isEmpty) {
+        throw StateError('Pool created but no pool id was returned');
+      }
+      return poolId;
     } catch (error) {
       AppLogger.d('Failed to create pool: $error');
       rethrow;

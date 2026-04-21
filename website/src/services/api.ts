@@ -1,4 +1,4 @@
-import { type Match, type FanClub, type Pool } from '../types';
+import type { Match, FanClub, Pool } from '../types';
 import { mockMatches, mockFanClubs, mockPools } from '../lib/mockData';
 
 // Simulate network latency
