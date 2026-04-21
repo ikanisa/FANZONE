@@ -31,6 +31,11 @@ CREATE TABLE IF NOT EXISTS public.fan_badges (
   criteria_value  INTEGER DEFAULT 0
 );
 
+ALTER TABLE public.fan_badges
+  ADD COLUMN IF NOT EXISTS color_hex TEXT DEFAULT '#22C55E',
+  ADD COLUMN IF NOT EXISTS criteria_type TEXT DEFAULT 'manual',
+  ADD COLUMN IF NOT EXISTS criteria_value INTEGER DEFAULT 0;
+
 CREATE TABLE IF NOT EXISTS public.fan_earned_badges (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -209,24 +214,328 @@ ON CONFLICT (id) DO UPDATE SET
 -- ------------------------------------------------------------------
 -- 5. Leaderboard Season
 -- ------------------------------------------------------------------
-INSERT INTO public.leaderboard_seasons (id, name, start_date, end_date, status) VALUES
-  ('season-2025-26', '2025/26 Season', '2025-08-01', '2026-06-30', 'active')
-ON CONFLICT (id) DO NOTHING;
+DO $$
+DECLARE
+  v_has_legacy_shape BOOLEAN;
+  v_has_uuid_shape BOOLEAN;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'leaderboard_seasons'
+      AND column_name = 'start_date'
+  ) INTO v_has_legacy_shape;
+
+  SELECT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'leaderboard_seasons'
+      AND column_name = 'starts_at'
+  ) INTO v_has_uuid_shape;
+
+  IF v_has_legacy_shape THEN
+    INSERT INTO public.leaderboard_seasons (id, name, start_date, end_date, status)
+    VALUES ('season-2025-26', '2025/26 Season', '2025-08-01', '2026-06-30', 'active')
+    ON CONFLICT (id) DO NOTHING;
+  ELSIF v_has_uuid_shape THEN
+    UPDATE public.leaderboard_seasons
+    SET
+      season_type = 'seasonal',
+      starts_at = '2025-08-01T00:00:00Z'::timestamptz,
+      ends_at = '2026-06-30T23:59:59Z'::timestamptz,
+      status = 'active'
+    WHERE name = '2025/26 Season';
+
+    IF NOT FOUND THEN
+      INSERT INTO public.leaderboard_seasons (
+        name,
+        season_type,
+        competition_id,
+        starts_at,
+        ends_at,
+        status
+      ) VALUES (
+        '2025/26 Season',
+        'seasonal',
+        NULL,
+        '2025-08-01T00:00:00Z'::timestamptz,
+        '2026-06-30T23:59:59Z'::timestamptz,
+        'active'
+      );
+    END IF;
+  END IF;
+END $$;
 
 -- ------------------------------------------------------------------
 -- 6. Marketplace
 -- ------------------------------------------------------------------
-INSERT INTO public.marketplace_partners (id, name, description, logo_url, is_active) VALUES
-  ('fanzone-merch',        'FANZONE Merch',         'Official FANZONE merchandise and collectibles', NULL, true),
-  ('matchday-experiences', 'Matchday Experiences',  'Premium football experiences and events',        NULL, true)
-ON CONFLICT (id) DO NOTHING;
+DO $$
+DECLARE
+  v_text_partner_ids BOOLEAN;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'marketplace_partners'
+      AND column_name = 'id'
+      AND data_type = 'text'
+  ) INTO v_text_partner_ids;
 
-INSERT INTO public.marketplace_offers (id, partner_id, title, description, category, cost_fet, delivery_type, is_active, original_value) VALUES
-  ('offer-scarf',      'fanzone-merch',         'Club Scarf Voucher',       'Redeem for an official club scarf digital voucher.',    'merch',       120, 'voucher', true, '€20'),
-  ('offer-jersey',     'fanzone-merch',         'Jersey Discount Code',     'Get a 25% discount code for official jerseys.',         'merch',       300, 'code',    true, '€50'),
-  ('offer-watchparty', 'matchday-experiences',  'Watch Party Pass',         'Access to one premium live watch party event.',          'experience',  180, 'code',    true, '€30'),
-  ('offer-vip',        'matchday-experiences',  'VIP Matchday Experience',  'Exclusive VIP access to a matchday event near you.',    'experience',  500, 'manual',  true, '€80')
-ON CONFLICT (id) DO NOTHING;
+  IF v_text_partner_ids THEN
+    INSERT INTO public.marketplace_partners (id, name, description, logo_url, is_active) VALUES
+      ('fanzone-merch',        'FANZONE Merch',         'Official FANZONE merchandise and collectibles', NULL, true),
+      ('matchday-experiences', 'Matchday Experiences',  'Premium football experiences and events',        NULL, true)
+    ON CONFLICT (id) DO UPDATE SET
+      name = EXCLUDED.name,
+      description = EXCLUDED.description,
+      logo_url = EXCLUDED.logo_url,
+      is_active = EXCLUDED.is_active;
+
+    INSERT INTO public.marketplace_offers (id, partner_id, title, description, category, cost_fet, delivery_type, is_active, original_value) VALUES
+      ('offer-scarf',      'fanzone-merch',         'Club Scarf Voucher',       'Redeem for an official club scarf digital voucher.', 'merch',      120, 'voucher', true, '€20'),
+      ('offer-jersey',     'fanzone-merch',         'Jersey Discount Code',     'Get a 25% discount code for official jerseys.',      'merch',      300, 'code',    true, '€50'),
+      ('offer-watchparty', 'matchday-experiences',  'Watch Party Pass',         'Access to one premium live watch party event.',      'experience', 180, 'code',    true, '€30'),
+      ('offer-vip',        'matchday-experiences',  'VIP Matchday Experience',  'Exclusive VIP access to a matchday event near you.', 'experience', 500, 'voucher', true, '€80')
+    ON CONFLICT (id) DO UPDATE SET
+      partner_id = EXCLUDED.partner_id,
+      title = EXCLUDED.title,
+      description = EXCLUDED.description,
+      category = EXCLUDED.category,
+      cost_fet = EXCLUDED.cost_fet,
+      delivery_type = EXCLUDED.delivery_type,
+      is_active = EXCLUDED.is_active,
+      original_value = EXCLUDED.original_value;
+  ELSE
+    UPDATE public.marketplace_partners
+    SET
+      description = 'Official FANZONE merchandise and collectibles',
+      logo_url = NULL,
+      category = 'merchandise',
+      country = 'MT',
+      is_active = true
+    WHERE name = 'FANZONE Merch';
+
+    IF NOT FOUND THEN
+      INSERT INTO public.marketplace_partners (
+        name,
+        description,
+        logo_url,
+        category,
+        country,
+        is_active
+      ) VALUES (
+        'FANZONE Merch',
+        'Official FANZONE merchandise and collectibles',
+        NULL,
+        'merchandise',
+        'MT',
+        true
+      );
+    END IF;
+
+    UPDATE public.marketplace_partners
+    SET
+      description = 'Premium football experiences and events',
+      logo_url = NULL,
+      category = 'experience',
+      country = 'MT',
+      is_active = true
+    WHERE name = 'Matchday Experiences';
+
+    IF NOT FOUND THEN
+      INSERT INTO public.marketplace_partners (
+        name,
+        description,
+        logo_url,
+        category,
+        country,
+        is_active
+      ) VALUES (
+        'Matchday Experiences',
+        'Premium football experiences and events',
+        NULL,
+        'experience',
+        'MT',
+        true
+      );
+    END IF;
+
+    UPDATE public.marketplace_offers mo
+    SET
+      partner_id = mp.id,
+      description = 'Redeem for an official club scarf digital voucher.',
+      category = 'merch',
+      cost_fet = 120,
+      delivery_type = 'voucher',
+      is_active = true,
+      original_value = '€20',
+      stock = NULL,
+      sort_order = 0
+    FROM public.marketplace_partners mp
+    WHERE mo.title = 'Club Scarf Voucher'
+      AND mp.name = 'FANZONE Merch';
+
+    IF NOT FOUND THEN
+      INSERT INTO public.marketplace_offers (
+        partner_id,
+        title,
+        description,
+        category,
+        cost_fet,
+        delivery_type,
+        is_active,
+        original_value,
+        stock,
+        sort_order
+      )
+      SELECT
+        mp.id,
+        'Club Scarf Voucher',
+        'Redeem for an official club scarf digital voucher.',
+        'merch',
+        120,
+        'voucher',
+        true,
+        '€20',
+        NULL,
+        0
+      FROM public.marketplace_partners mp
+      WHERE mp.name = 'FANZONE Merch';
+    END IF;
+
+    UPDATE public.marketplace_offers mo
+    SET
+      partner_id = mp.id,
+      description = 'Get a 25% discount code for official jerseys.',
+      category = 'merch',
+      cost_fet = 300,
+      delivery_type = 'code',
+      is_active = true,
+      original_value = '€50',
+      stock = NULL,
+      sort_order = 1
+    FROM public.marketplace_partners mp
+    WHERE mo.title = 'Jersey Discount Code'
+      AND mp.name = 'FANZONE Merch';
+
+    IF NOT FOUND THEN
+      INSERT INTO public.marketplace_offers (
+        partner_id,
+        title,
+        description,
+        category,
+        cost_fet,
+        delivery_type,
+        is_active,
+        original_value,
+        stock,
+        sort_order
+      )
+      SELECT
+        mp.id,
+        'Jersey Discount Code',
+        'Get a 25% discount code for official jerseys.',
+        'merch',
+        300,
+        'code',
+        true,
+        '€50',
+        NULL,
+        1
+      FROM public.marketplace_partners mp
+      WHERE mp.name = 'FANZONE Merch';
+    END IF;
+
+    UPDATE public.marketplace_offers mo
+    SET
+      partner_id = mp.id,
+      description = 'Access to one premium live watch party event.',
+      category = 'experience',
+      cost_fet = 180,
+      delivery_type = 'code',
+      is_active = true,
+      original_value = '€30',
+      stock = NULL,
+      sort_order = 2
+    FROM public.marketplace_partners mp
+    WHERE mo.title = 'Watch Party Pass'
+      AND mp.name = 'Matchday Experiences';
+
+    IF NOT FOUND THEN
+      INSERT INTO public.marketplace_offers (
+        partner_id,
+        title,
+        description,
+        category,
+        cost_fet,
+        delivery_type,
+        is_active,
+        original_value,
+        stock,
+        sort_order
+      )
+      SELECT
+        mp.id,
+        'Watch Party Pass',
+        'Access to one premium live watch party event.',
+        'experience',
+        180,
+        'code',
+        true,
+        '€30',
+        NULL,
+        2
+      FROM public.marketplace_partners mp
+      WHERE mp.name = 'Matchday Experiences';
+    END IF;
+
+    UPDATE public.marketplace_offers mo
+    SET
+      partner_id = mp.id,
+      description = 'Exclusive VIP access to a matchday event near you.',
+      category = 'experience',
+      cost_fet = 500,
+      delivery_type = 'voucher',
+      is_active = true,
+      original_value = '€80',
+      stock = NULL,
+      sort_order = 3
+    FROM public.marketplace_partners mp
+    WHERE mo.title = 'VIP Matchday Experience'
+      AND mp.name = 'Matchday Experiences';
+
+    IF NOT FOUND THEN
+      INSERT INTO public.marketplace_offers (
+        partner_id,
+        title,
+        description,
+        category,
+        cost_fet,
+        delivery_type,
+        is_active,
+        original_value,
+        stock,
+        sort_order
+      )
+      SELECT
+        mp.id,
+        'VIP Matchday Experience',
+        'Exclusive VIP access to a matchday event near you.',
+        'experience',
+        500,
+        'voucher',
+        true,
+        '€80',
+        NULL,
+        3
+      FROM public.marketplace_partners mp
+      WHERE mp.name = 'Matchday Experiences';
+    END IF;
+  END IF;
+END $$;
 
 -- ------------------------------------------------------------------
 -- 7. Featured Events

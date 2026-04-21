@@ -41,27 +41,33 @@ END $$;
 -- 2. Populate known aliases
 -- ==================================================================
 
-INSERT INTO public.team_aliases (alias_id, canonical_id, source) VALUES
-  -- Inter Milan aliases
-  ('inter',           'fc-internazionale-milano', 'audit_20260421'),
-  ('it-inter-milan',  'fc-internazionale-milano', 'audit_20260421'),
-  ('inter-ita',       'fc-internazionale-milano', 'audit_20260421'),
-  -- Napoli aliases
-  ('it-ssc-napoli',   'ssc-napoli', 'audit_20260421'),
-  -- Lazio aliases
-  ('it-ss-lazio',     'ss-lazio', 'audit_20260421'),
-  ('lazio-roma',      'ss-lazio', 'audit_20260421'),
-  -- Sevilla aliases
-  ('es-sevilla',      'sevilla-fc', 'audit_20260421'),
-  -- Villarreal aliases
-  ('es-villarreal',   'villarreal-cf', 'audit_20260421'),
-  -- Monaco aliases
-  ('as-monaco',       'as-monaco-fc', 'audit_20260421'),
-  ('fr-as-monaco',    'as-monaco-fc', 'audit_20260421'),
-  -- Betis aliases
-  ('real-betis-balompie', 'real-betis', 'audit_20260421'),
-  -- Fiorentina aliases
-  ('it-acf-fiorentina', 'acf-fiorentina', 'audit_20260421')
+INSERT INTO public.team_aliases (alias_id, canonical_id, source)
+SELECT v.alias_id, v.canonical_id, v.source
+FROM (
+  VALUES
+    -- Inter Milan aliases
+    ('inter',           'fc-internazionale-milano', 'audit_20260421'),
+    ('it-inter-milan',  'fc-internazionale-milano', 'audit_20260421'),
+    ('inter-ita',       'fc-internazionale-milano', 'audit_20260421'),
+    -- Napoli aliases
+    ('it-ssc-napoli',   'ssc-napoli', 'audit_20260421'),
+    -- Lazio aliases
+    ('it-ss-lazio',     'ss-lazio', 'audit_20260421'),
+    ('lazio-roma',      'ss-lazio', 'audit_20260421'),
+    -- Sevilla aliases
+    ('es-sevilla',      'sevilla-fc', 'audit_20260421'),
+    -- Villarreal aliases
+    ('es-villarreal',   'villarreal-cf', 'audit_20260421'),
+    -- Monaco aliases
+    ('as-monaco',       'as-monaco-fc', 'audit_20260421'),
+    ('fr-as-monaco',    'as-monaco-fc', 'audit_20260421'),
+    -- Betis aliases
+    ('real-betis-balompie', 'real-betis', 'audit_20260421'),
+    -- Fiorentina aliases
+    ('it-acf-fiorentina', 'acf-fiorentina', 'audit_20260421')
+) AS v(alias_id, canonical_id, source)
+JOIN public.teams t
+  ON t.id = v.canonical_id
 ON CONFLICT (alias_id) DO NOTHING;
 
 -- ==================================================================

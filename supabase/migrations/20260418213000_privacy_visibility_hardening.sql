@@ -55,10 +55,10 @@ BEGIN
         le.prize_fet,
         CASE
           WHEN coalesce(p.show_name_on_leaderboards, false) THEN coalesce(
-            nullif(trim(fp.display_name), ''''),
-            coalesce(''Fan #'' || nullif(trim(p.fan_id), ''''), ''Fan'')
+            nullif(trim(fp.display_name), ''),
+            coalesce('Fan #' || nullif(trim(p.fan_id), ''), 'Fan')
           )
-          ELSE coalesce(''Fan #'' || nullif(trim(p.fan_id), ''''), ''Fan'')
+          ELSE coalesce('Fan #' || nullif(trim(p.fan_id), ''), 'Fan')
         END AS display_name,
         fp.current_level,
         ls.name AS season_name,
@@ -70,7 +70,7 @@ BEGIN
         ON p.id = le.user_id OR p.user_id = le.user_id
       JOIN public.leaderboard_seasons ls
         ON ls.id = le.season_id
-      WHERE ls.status = ''active''
+      WHERE ls.status = 'active'
       ORDER BY le.points DESC
     $view$;
 

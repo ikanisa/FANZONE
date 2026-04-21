@@ -1,5 +1,5 @@
 // FANZONE — Auto-Settlement Edge Function
-// Settles all eligible pools and prediction slips for finished matches.
+// Settles all eligible pools, prediction slips, and outright markets.
 //
 // Triggered by:
 //   - pg_cron every 15 minutes (via pg_net)
@@ -52,6 +52,8 @@ interface RpcSettlementSummary {
   pools_settled?: number;
   selections_settled?: number;
   total_winners?: number;
+  settled_markets?: number;
+  pending_markets?: number;
 }
 
 interface WinnerRow {
@@ -108,6 +110,7 @@ Deno.serve(async (req: Request) => {
   });
   const results: SettlementResult[] = [];
   const errors: string[] = [];
+  let marketCycleSummary: Record<string, unknown> | null = null;
 
   try {
     // ── 1) Find finished matches with unsettled pools ──
@@ -185,26 +188,7 @@ Deno.serve(async (req: Request) => {
         const poolsSettled = (settleResult as RpcSettlementSummary | null)
           ?.pools_settled || 0;
 
-        // ── 3) Settle prediction slips for the same match ──
-        let slipsSettled = 0;
-        try {
-          const { data: slipResult } = await supabase.rpc(
-            "settle_prediction_slips_for_match",
-            {
-              p_match_id: matchId,
-              p_official_home_score: info.ft_home,
-              p_official_away_score: info.ft_away,
-            },
-          );
-          slipsSettled = (slipResult as RpcSettlementSummary | null)
-            ?.selections_settled || 0;
-        } catch (slipError: unknown) {
-          errors.push(
-            `Settle slips for ${matchId}: ${getErrorMessage(slipError)}`,
-          );
-        }
-
-        // ── 4) Notify winners ──
+        // ── 3) Notify pool winners ──
         let notifsSent = 0;
         if (poolsSettled > 0) {
           try {
@@ -266,12 +250,30 @@ Deno.serve(async (req: Request) => {
           match_id: matchId,
           match_name: info.match_name,
           pools_settled: poolsSettled,
-          slips_settled: slipsSettled,
+          slips_settled: 0,
           notifications_sent: notifsSent,
         });
       } catch (matchError: unknown) {
         errors.push(`Match ${matchId}: ${getErrorMessage(matchError)}`);
       }
+    }
+
+    // ── 4) Run the generalized prediction-market settlement cycle ──
+    try {
+      const { data, error } = await supabase.rpc(
+        "run_prediction_market_settlement_cycle",
+        { p_trigger_source: "auto-settle-edge" },
+      );
+
+      if (error) {
+        errors.push(`Prediction market cycle: ${error.message}`);
+      } else {
+        marketCycleSummary = (data ?? null) as Record<string, unknown> | null;
+      }
+    } catch (marketCycleError: unknown) {
+      errors.push(
+        `Prediction market cycle: ${getErrorMessage(marketCycleError)}`,
+      );
     }
 
     // ── 5) Settle daily challenges (if match finished) ──
@@ -337,11 +339,23 @@ Deno.serve(async (req: Request) => {
       timestamp: new Date().toISOString(),
       matches_processed: results.length,
       total_pools_settled: results.reduce((s, r) => s + r.pools_settled, 0),
-      total_slips_settled: results.reduce((s, r) => s + r.slips_settled, 0),
+      total_slips_settled: Number(
+        marketCycleSummary?.selections_settled ??
+          results.reduce((s, r) => s + r.slips_settled, 0),
+      ),
+      total_outright_markets_settled: Number(
+        (marketCycleSummary?.outrights as RpcSettlementSummary | undefined)
+          ?.settled_markets ?? 0,
+      ),
+      total_outright_markets_pending: Number(
+        (marketCycleSummary?.outrights as RpcSettlementSummary | undefined)
+          ?.pending_markets ?? 0,
+      ),
       total_notifications: results.reduce(
         (s, r) => s + r.notifications_sent,
         0,
       ),
+      prediction_market_cycle: marketCycleSummary ?? undefined,
       results,
       errors: errors.length > 0 ? errors : undefined,
     };

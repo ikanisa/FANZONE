@@ -47,7 +47,6 @@ CREATE POLICY "Public read AI analysis"
 CREATE INDEX IF NOT EXISTS idx_match_ai_analysis_match
   ON public.match_ai_analysis(match_id);
 CREATE INDEX IF NOT EXISTS idx_match_ai_analysis_upcoming
-  ON public.match_ai_analysis(match_id, analysis_type)
-  WHERE expires_at > now();
+  ON public.match_ai_analysis(expires_at, match_id, analysis_type);
 
 COMMIT;

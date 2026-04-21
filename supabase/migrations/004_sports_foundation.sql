@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS public.competitions (
   short_name TEXT,
   country TEXT,
   tier INT,
+  data_source TEXT DEFAULT 'manual',
+  status TEXT DEFAULT 'active',
   created_at TIMESTAMPTZ DEFAULT now()
 );
 

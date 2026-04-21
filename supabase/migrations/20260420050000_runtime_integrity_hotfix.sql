@@ -531,7 +531,9 @@ BEGIN
     FOR EACH ROW
     EXECUTE FUNCTION public.sync_team_array_from_team_competitions();
 
-    CREATE OR REPLACE VIEW public.team_catalog_entries AS
+    DROP VIEW IF EXISTS public.team_catalog_entries;
+
+    CREATE VIEW public.team_catalog_entries AS
     SELECT
       t.id,
       t.name,
@@ -541,7 +543,7 @@ BEGIN
       null::text AS description,
       t.league_name,
       coalesce(tc.competition_ids, coalesce(t.competition_ids, '{}'::text[])) AS competition_ids,
-      coalesce(t.aliases, t.search_terms, '{}'::text[]) AS aliases,
+      coalesce(t.search_terms, '{}'::text[]) AS aliases,
       t.logo_url,
       t.crest_url,
       null::text AS cover_image_url,
