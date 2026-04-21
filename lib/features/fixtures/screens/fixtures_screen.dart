@@ -202,7 +202,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
               ),
             ),
           ),
-          SliverToBoxAdapter(child: SizedBox(height: 12)),
+          const SliverToBoxAdapter(child: SizedBox(height: 12)),
           SliverToBoxAdapter(
             child: SizedBox(
               height: 42,
@@ -319,7 +319,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                   child: FixtureGroupCard(
                     matches: filtered,
                     onOpenMatch: (match) => context.push('/match/${match.id}'),
-                    onOpenPools: () => context.go('/pools/create'),
+                    onOpenPools: () => context.go('/pools'),
                   ),
                 ),
               );
@@ -498,6 +498,17 @@ class _FixturesCompetitionsView extends StatelessWidget {
             )
             .take(4)
             .toList(growable: false);
+        final otherCompetitions = allCompetitions
+            .where(
+              (competition) =>
+                  !forYou.any((existing) => existing.id == competition.id) &&
+                  !top5.any((existing) => existing.id == competition.id) &&
+                  !majorCompetitions.any(
+                    (existing) => existing.id == competition.id,
+                  ),
+            )
+            .take(5)
+            .toList(growable: false);
 
         return ListView(
           key: const ValueKey('fixtures-competitions-list'),
@@ -547,6 +558,10 @@ class _FixturesCompetitionsView extends StatelessWidget {
                 child: _CompetitionTile(competition: competition),
               ),
             ),
+            if (otherCompetitions.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _OtherCompetitionsAccordion(competitions: otherCompetitions),
+            ],
             const SizedBox(height: 24),
             const _CompetitionSectionTitle(
               title: 'Major Tournaments',
