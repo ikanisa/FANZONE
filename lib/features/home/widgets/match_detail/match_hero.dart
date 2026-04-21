@@ -1,19 +1,26 @@
 part of '../../screens/match_detail_screen.dart';
 
-class _MatchHero extends StatelessWidget {
+class _MatchHero extends ConsumerWidget {
   const _MatchHero({required this.match});
 
   final MatchModel match;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surface = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
     final innerSurface = isDark ? FzColors.darkSurface3 : FzColors.lightSurface;
     final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final liveEvents = ref.watch(liveMatchEventsStreamProvider(match.id));
+    final matchEvents = ref.watch(matchEventsProvider(match.id));
+    final fallbackMinute = _resolveLiveMinute(
+      liveEvents.valueOrNull,
+      matchEvents.valueOrNull,
+    );
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
       decoration: BoxDecoration(
         color: surface,
         border: Border(bottom: BorderSide(color: border)),
@@ -32,12 +39,12 @@ class _MatchHero extends StatelessWidget {
                 ),
               ),
               SizedBox(
-                width: 108,
+                width: 112,
                 child: Column(
                   children: [
                     Text(
                       match.scoreDisplay ?? 'VS',
-                      style: FzTypography.score(size: 36),
+                      style: FzTypography.score(size: 40),
                     ),
                     const SizedBox(height: 10),
                     Container(
@@ -72,16 +79,12 @@ class _MatchHero extends StatelessWidget {
                             const SizedBox(width: 6),
                           ],
                           Text(
-                            _statusLabel(match),
+                            _statusLabel(match, fallbackMinute),
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: match.isLive
-                                  ? FzColors.primary
-                                  : (isDark
-                                        ? FzColors.darkMuted
-                                        : FzColors.lightMuted),
-                              letterSpacing: 0.4,
+                              color: match.isLive ? FzColors.primary : muted,
+                              letterSpacing: 0.8,
                             ),
                           ),
                         ],
@@ -105,8 +108,33 @@ class _MatchHero extends StatelessWidget {
     );
   }
 
-  String _statusLabel(MatchModel match) {
-    if (match.isLive) return '${match.kickoffTimeLocalLabel} LIVE';
+  int? _resolveLiveMinute(
+    List<LiveMatchEvent>? liveEvents,
+    List<MatchEventModel>? matchEvents,
+  ) {
+    final liveMinute = liveEvents
+        ?.map((event) => event.minute)
+        .whereType<int>()
+        .fold<int?>(null, (best, minute) {
+          if (minute <= 0) return best;
+          if (best == null || minute > best) return minute;
+          return best;
+        });
+    if (liveMinute != null) return liveMinute;
+
+    return matchEvents
+        ?.map((event) => event.minute)
+        .where((minute) => minute > 0)
+        .fold<int?>(null, (best, minute) {
+          if (best == null || minute > best) return minute;
+          return best;
+        });
+  }
+
+  String _statusLabel(MatchModel match, int? fallbackMinute) {
+    if (match.isLive) {
+      return match.liveStatusLabel(fallbackMinute: fallbackMinute);
+    }
     if (match.isFinished) return 'FULL TIME';
     return match.kickoffAtLocal != null
         ? match.kickoffTimeLocalLabel
@@ -145,7 +173,7 @@ class _HeroTeam extends StatelessWidget {
             child: TeamAvatar(name: name, logoUrl: logoUrl, size: 44),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
           label,
           textAlign: TextAlign.center,

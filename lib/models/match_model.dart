@@ -25,6 +25,7 @@ class MatchModel with _$MatchModel {
     @JsonKey(name: 'ht_away') int? htAway,
     @JsonKey(name: 'et_home') int? etHome,
     @JsonKey(name: 'et_away') int? etAway,
+    @JsonKey(name: 'live_minute') int? liveMinute,
     @Default('upcoming') String status,
     String? venue,
     @JsonKey(name: 'data_source') required String dataSource,
@@ -108,6 +109,14 @@ class MatchModel with _$MatchModel {
 
   DateTime? get kickoffAtLocal => kickoffAtUtc?.toLocal();
 
+  String liveStatusLabel({int? fallbackMinute}) {
+    final minute = liveMinute ?? fallbackMinute;
+    if (minute != null && minute > 0) {
+      return "${minute.clamp(1, 999)}' LIVE";
+    }
+    return 'LIVE';
+  }
+
   String get kickoffTimeLocalLabel {
     final kickoff = kickoffAtLocal;
     if (kickoff == null) return '--:--';
@@ -116,7 +125,7 @@ class MatchModel with _$MatchModel {
 
   /// Kickoff label (time or status).
   String get kickoffLabel {
-    if (isLive) return 'LIVE';
+    if (isLive) return liveStatusLabel();
     if (isFinished) return 'FT';
     return kickoffTimeLocalLabel;
   }

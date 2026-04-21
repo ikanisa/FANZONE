@@ -383,6 +383,12 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+[functions.auto-create-global-pools]
+# FANZONE authorizes this function internally via x-cron-secret or
+# service_role bearer, so platform JWT verification must stay off for
+# cron and operational callers.
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

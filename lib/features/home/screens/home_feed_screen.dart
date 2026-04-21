@@ -128,7 +128,6 @@ class HomeFeedScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _DailyInsightCard(muted: muted, teamId: insightTeamId),
-                      const SizedBox(height: 24),
                       _HomeSectionHeader(
                         icon: LucideIcons.activity,
                         iconColor: FzColors.danger,
@@ -581,38 +580,44 @@ class _DailyInsightCard extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        return _InsightCardShell(
-          muted: muted,
-          child: Text(
-            insight,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: _InsightCardShell(
+            muted: muted,
+            child: Text(
+              insight,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
+            ),
           ),
         );
       },
-      loading: () => _InsightCardShell(
-        muted: muted,
-        child: Row(
-          children: [
-            const SizedBox(
-              width: 14,
-              height: 14,
-              child: CupertinoActivityIndicator(color: FzColors.success),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Syncing Insights...',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: muted,
-                  letterSpacing: 0.8,
+      loading: () => Padding(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: _InsightCardShell(
+          muted: muted,
+          child: Row(
+            children: [
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CupertinoActivityIndicator(color: FzColors.success),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Syncing Insights...',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: muted,
+                    letterSpacing: 0.8,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       error: (_, _) => const SizedBox.shrink(),

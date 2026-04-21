@@ -10,22 +10,25 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/config/feature_flags.dart';
+import '../../../models/live_match_event.dart';
 import '../../../models/match_ai_analysis_model.dart';
+import '../../../models/match_event_model.dart';
 import '../../../models/match_model.dart';
 import '../../../models/match_player_stats_model.dart';
+import '../../../models/prediction_market_catalog_item.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/crowd_prediction_provider.dart';
 import '../../../providers/match_detail_providers.dart';
 import '../../../providers/matches_provider.dart';
+import '../../../providers/prediction_slip_provider.dart';
 import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_glass_loader.dart';
+import '../../../widgets/common/fz_shimmer.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
-import '../../../widgets/predict/accordion_market.dart';
-import '../../../widgets/common/fz_shimmer.dart';
-import '../../../widgets/common/fz_glass_loader.dart';
 
 part '../widgets/match_detail/ai_analysis_card.dart';
 part '../widgets/match_detail/crowd_prediction_bar.dart';
@@ -59,6 +62,11 @@ class MatchDetailScreen extends ConsumerWidget {
           );
         }
 
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+        final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+        final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+        final text = isDark ? FzColors.darkText : FzColors.lightText;
         final competitionAsync = ref.watch(
           competitionProvider(match.competitionId),
         );
@@ -75,7 +83,17 @@ class MatchDetailScreen extends ConsumerWidget {
         final flags = ref.watch(featureFlagsProvider);
         final tabs = <Tab>[
           if (flags.predictions) const Tab(text: 'Predict'),
-          if (flags.aiAnalysis) const Tab(text: 'Insights'),
+          if (flags.aiAnalysis)
+            const Tab(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(LucideIcons.sparkles, size: 14),
+                  SizedBox(width: 6),
+                  Text('Insights'),
+                ],
+              ),
+            ),
           if (flags.advancedStats) const Tab(text: 'Stats'),
           const Tab(text: 'H2H'),
           const Tab(text: 'Lineups'),
@@ -96,16 +114,17 @@ class MatchDetailScreen extends ConsumerWidget {
                 SliverAppBar(
                   pinned: true,
                   centerTitle: true,
-                  backgroundColor:
-                      Theme.of(context).brightness == Brightness.dark
-                      ? FzColors.darkSurface.withValues(alpha: 0.92)
-                      : FzColors.lightSurface.withValues(alpha: 0.92),
+                  backgroundColor: surface.withValues(alpha: 0.88),
                   surfaceTintColor: Colors.transparent,
                   scrolledUnderElevation: 0,
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(1),
+                    child: Container(height: 1, color: border),
+                  ),
                   leading: IconButton(
                     tooltip: 'Back',
                     onPressed: () => context.pop(),
-                    icon: const Icon(LucideIcons.chevronLeft, size: 28),
+                    icon: const Icon(LucideIcons.chevronLeft, size: 24),
                   ),
                   title: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -115,9 +134,7 @@ class MatchDetailScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? FzColors.darkMuted
-                              : FzColors.lightMuted,
+                          color: muted,
                           letterSpacing: 1.0,
                         ),
                       ),
@@ -128,9 +145,7 @@ class MatchDetailScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? FzColors.darkText
-                              : FzColors.lightText,
+                          color: text,
                         ),
                       ),
                     ],
@@ -193,6 +208,21 @@ class MatchDetailScreen extends ConsumerWidget {
                     TabBar(
                       isScrollable: true,
                       tabAlignment: TabAlignment.start,
+                      overlayColor: const WidgetStatePropertyAll(
+                        Colors.transparent,
+                      ),
+                      dividerColor: border,
+                      indicatorColor: FzColors.primary,
+                      indicatorWeight: 2,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 24),
+                      labelStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                       tabs: tabs,
                     ),
                   ),
@@ -233,8 +263,16 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
+      decoration: BoxDecoration(
+        color: isDark ? FzColors.darkSurface : FzColors.lightSurface,
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+          ),
+        ),
+      ),
       child: tabBar,
     );
   }

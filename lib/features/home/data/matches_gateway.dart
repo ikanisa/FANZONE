@@ -5,6 +5,7 @@ import '../../../models/match_event_model.dart';
 import '../../../models/match_model.dart';
 import '../../../models/match_odds_model.dart';
 import '../../../models/match_player_stats_model.dart';
+import '../../../models/prediction_market_catalog_item.dart';
 import 'home_dtos.dart';
 import 'match_detail_gateway.dart';
 import 'match_listing_gateway.dart';
@@ -67,6 +68,10 @@ class SupabaseMatchesGateway implements MatchesGateway {
       _detail.getMatchAiAnalysis(matchId);
 
   @override
-  Stream<List<MatchModel>> watchLiveMatches() =>
-      _listing.watchLiveMatches();
+  Future<List<PredictionMarketCatalogItem>> getMarketCatalog(
+    String competitionId,
+  ) => _detail.getMarketCatalog(competitionId);
+
+  @override
+  Stream<List<MatchModel>> watchLiveMatches() => _listing.watchLiveMatches();
 }

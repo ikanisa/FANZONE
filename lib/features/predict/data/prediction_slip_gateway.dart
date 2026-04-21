@@ -37,6 +37,8 @@ class SupabasePredictionSlipGateway implements PredictionSlipGateway {
                   'match_name':
                       '${selection.match.homeTeam} vs ${selection.match.awayTeam}',
                   'market': selection.market,
+                  'market_type_id': selection.marketTypeId,
+                  'base_fet': selection.baseFet,
                   'selection': selection.selection,
                   'potential_earn_fet': selection.projectedEarnForStake(
                     request.stake,

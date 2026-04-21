@@ -70,11 +70,7 @@ class PredictionSlipDock extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const Icon(
-                  LucideIcons.arrowUp,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                const Icon(LucideIcons.arrowUp, color: Colors.white, size: 20),
               ],
             ),
           ),
@@ -262,10 +258,16 @@ class _PredictionSlipModalState extends ConsumerState<_PredictionSlipModal> {
                             Text(
                               selection.multiplier != null
                                   ? 'Confidence market x${selection.multiplier!.toStringAsFixed(2)}'
+                                  : selection.baseFet != null &&
+                                        selection.baseFet! > 0
+                                  ? 'Earn ${selection.baseFet} FET if correct'
                                   : 'Market added to free slip',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: selection.multiplier != null
+                                color:
+                                    selection.multiplier != null ||
+                                        (selection.baseFet != null &&
+                                            selection.baseFet! > 0)
                                     ? FzColors.primary
                                     : muted,
                                 fontWeight: FontWeight.w600,
@@ -275,11 +277,7 @@ class _PredictionSlipModalState extends ConsumerState<_PredictionSlipModal> {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(
-                          LucideIcons.trash2,
-                          color: muted,
-                          size: 20,
-                        ),
+                        icon: Icon(LucideIcons.trash2, color: muted, size: 20),
                         onPressed: () => ref
                             .read(predictionSlipProvider.notifier)
                             .removeSelection(selection.id),
@@ -306,9 +304,7 @@ class _PredictionSlipModalState extends ConsumerState<_PredictionSlipModal> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CupertinoActivityIndicator(
-                        color: Colors.white,
-                      ),
+                      child: CupertinoActivityIndicator(color: Colors.white),
                     )
                   : Text(
                       'Lock Free Prediction${selections.length > 1 ? 's' : ''}',

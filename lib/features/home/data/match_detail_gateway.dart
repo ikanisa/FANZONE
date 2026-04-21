@@ -5,6 +5,7 @@ import '../../../models/match_advanced_stats_model.dart';
 import '../../../models/match_ai_analysis_model.dart';
 import '../../../models/match_event_model.dart';
 import '../../../models/match_odds_model.dart';
+import '../../../models/prediction_market_catalog_item.dart';
 import '../../../models/match_player_stats_model.dart';
 import 'matches_gateway_shared.dart';
 
@@ -20,6 +21,10 @@ abstract interface class MatchDetailGateway {
   Stream<List<MatchEventModel>> watchMatchEvents(String matchId);
 
   Future<MatchAiAnalysis?> getMatchAiAnalysis(String matchId);
+
+  Future<List<PredictionMarketCatalogItem>> getMarketCatalog(
+    String competitionId,
+  );
 }
 
 class SupabaseMatchDetailGateway implements MatchDetailGateway {
@@ -165,6 +170,41 @@ class SupabaseMatchDetailGateway implements MatchDetailGateway {
     } catch (error) {
       AppLogger.d('Failed to load match AI analysis: $error');
       return null;
+    }
+  }
+
+  @override
+  Future<List<PredictionMarketCatalogItem>> getMarketCatalog(
+    String competitionId,
+  ) async {
+    final client = _connection.client;
+    if (client == null) return const <PredictionMarketCatalogItem>[];
+
+    try {
+      final response = await client.rpc(
+        'get_market_catalog',
+        params: {
+          'p_competition_id': competitionId,
+          'p_scope': 'match',
+          'p_bet_type': null,
+        },
+      );
+
+      if (response is! List) {
+        return const <PredictionMarketCatalogItem>[];
+      }
+
+      return response
+          .whereType<Map>()
+          .map(
+            (row) => PredictionMarketCatalogItem.fromJson(
+              Map<String, dynamic>.from(row),
+            ),
+          )
+          .toList(growable: false);
+    } catch (error) {
+      AppLogger.d('Failed to load match market catalog: $error');
+      return const <PredictionMarketCatalogItem>[];
     }
   }
 }

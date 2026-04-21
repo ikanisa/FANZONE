@@ -51,6 +51,8 @@ mixin _$MatchModel {
   int? get etHome => throw _privateConstructorUsedError;
   @JsonKey(name: 'et_away')
   int? get etAway => throw _privateConstructorUsedError;
+  @JsonKey(name: 'live_minute')
+  int? get liveMinute => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   String? get venue => throw _privateConstructorUsedError;
   @JsonKey(name: 'data_source')
@@ -97,6 +99,7 @@ abstract class $MatchModelCopyWith<$Res> {
     @JsonKey(name: 'ht_away') int? htAway,
     @JsonKey(name: 'et_home') int? etHome,
     @JsonKey(name: 'et_away') int? etAway,
+    @JsonKey(name: 'live_minute') int? liveMinute,
     String status,
     String? venue,
     @JsonKey(name: 'data_source') String dataSource,
@@ -138,6 +141,7 @@ class _$MatchModelCopyWithImpl<$Res, $Val extends MatchModel>
     Object? htAway = freezed,
     Object? etHome = freezed,
     Object? etAway = freezed,
+    Object? liveMinute = freezed,
     Object? status = null,
     Object? venue = freezed,
     Object? dataSource = null,
@@ -215,6 +219,10 @@ class _$MatchModelCopyWithImpl<$Res, $Val extends MatchModel>
                 ? _value.etAway
                 : etAway // ignore: cast_nullable_to_non_nullable
                       as int?,
+            liveMinute: freezed == liveMinute
+                ? _value.liveMinute
+                : liveMinute // ignore: cast_nullable_to_non_nullable
+                      as int?,
             status: null == status
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
@@ -272,6 +280,7 @@ abstract class _$$MatchModelImplCopyWith<$Res>
     @JsonKey(name: 'ht_away') int? htAway,
     @JsonKey(name: 'et_home') int? etHome,
     @JsonKey(name: 'et_away') int? etAway,
+    @JsonKey(name: 'live_minute') int? liveMinute,
     String status,
     String? venue,
     @JsonKey(name: 'data_source') String dataSource,
@@ -312,6 +321,7 @@ class __$$MatchModelImplCopyWithImpl<$Res>
     Object? htAway = freezed,
     Object? etHome = freezed,
     Object? etAway = freezed,
+    Object? liveMinute = freezed,
     Object? status = null,
     Object? venue = freezed,
     Object? dataSource = null,
@@ -389,6 +399,10 @@ class __$$MatchModelImplCopyWithImpl<$Res>
             ? _value.etAway
             : etAway // ignore: cast_nullable_to_non_nullable
                   as int?,
+        liveMinute: freezed == liveMinute
+            ? _value.liveMinute
+            : liveMinute // ignore: cast_nullable_to_non_nullable
+                  as int?,
         status: null == status
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
@@ -439,6 +453,7 @@ class _$MatchModelImpl extends _MatchModel {
     @JsonKey(name: 'ht_away') this.htAway,
     @JsonKey(name: 'et_home') this.etHome,
     @JsonKey(name: 'et_away') this.etAway,
+    @JsonKey(name: 'live_minute') this.liveMinute,
     this.status = 'upcoming',
     this.venue,
     @JsonKey(name: 'data_source') required this.dataSource,
@@ -498,6 +513,9 @@ class _$MatchModelImpl extends _MatchModel {
   @JsonKey(name: 'et_away')
   final int? etAway;
   @override
+  @JsonKey(name: 'live_minute')
+  final int? liveMinute;
+  @override
   @JsonKey()
   final String status;
   @override
@@ -517,7 +535,7 @@ class _$MatchModelImpl extends _MatchModel {
 
   @override
   String toString() {
-    return 'MatchModel(id: $id, competitionId: $competitionId, season: $season, round: $round, matchGroup: $matchGroup, date: $date, kickoffTime: $kickoffTime, homeTeamId: $homeTeamId, awayTeamId: $awayTeamId, homeTeam: $homeTeam, awayTeam: $awayTeam, ftHome: $ftHome, ftAway: $ftAway, htHome: $htHome, htAway: $htAway, etHome: $etHome, etAway: $etAway, status: $status, venue: $venue, dataSource: $dataSource, sourceUrl: $sourceUrl, homeLogoUrl: $homeLogoUrl, awayLogoUrl: $awayLogoUrl)';
+    return 'MatchModel(id: $id, competitionId: $competitionId, season: $season, round: $round, matchGroup: $matchGroup, date: $date, kickoffTime: $kickoffTime, homeTeamId: $homeTeamId, awayTeamId: $awayTeamId, homeTeam: $homeTeam, awayTeam: $awayTeam, ftHome: $ftHome, ftAway: $ftAway, htHome: $htHome, htAway: $htAway, etHome: $etHome, etAway: $etAway, liveMinute: $liveMinute, status: $status, venue: $venue, dataSource: $dataSource, sourceUrl: $sourceUrl, homeLogoUrl: $homeLogoUrl, awayLogoUrl: $awayLogoUrl)';
   }
 
   @override
@@ -549,6 +567,8 @@ class _$MatchModelImpl extends _MatchModel {
             (identical(other.htAway, htAway) || other.htAway == htAway) &&
             (identical(other.etHome, etHome) || other.etHome == etHome) &&
             (identical(other.etAway, etAway) || other.etAway == etAway) &&
+            (identical(other.liveMinute, liveMinute) ||
+                other.liveMinute == liveMinute) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.venue, venue) || other.venue == venue) &&
             (identical(other.dataSource, dataSource) ||
@@ -582,6 +602,7 @@ class _$MatchModelImpl extends _MatchModel {
     htAway,
     etHome,
     etAway,
+    liveMinute,
     status,
     venue,
     dataSource,
@@ -623,6 +644,7 @@ abstract class _MatchModel extends MatchModel {
     @JsonKey(name: 'ht_away') final int? htAway,
     @JsonKey(name: 'et_home') final int? etHome,
     @JsonKey(name: 'et_away') final int? etAway,
+    @JsonKey(name: 'live_minute') final int? liveMinute,
     final String status,
     final String? venue,
     @JsonKey(name: 'data_source') required final String dataSource,
@@ -682,6 +704,9 @@ abstract class _MatchModel extends MatchModel {
   @override
   @JsonKey(name: 'et_away')
   int? get etAway;
+  @override
+  @JsonKey(name: 'live_minute')
+  int? get liveMinute;
   @override
   String get status;
   @override

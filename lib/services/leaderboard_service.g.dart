@@ -6,7 +6,7 @@ part of 'leaderboard_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userRankHash() => r'be60d8a75a5f32ebfe5d46153c41d94c94679963';
+String _$userRankHash() => r'88fe27504c8f4a0f5d32348ce2fb33340ccd5145';
 
 /// See also [userRank].
 @ProviderFor(userRank)
@@ -23,7 +23,7 @@ final userRankProvider = AutoDisposeFutureProvider<int?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UserRankRef = AutoDisposeFutureProviderRef<int?>;
-String _$globalLeaderboardHash() => r'102476a482f213578f8b950ae9867ad2b9f23638';
+String _$globalLeaderboardHash() => r'36a5497ae0019febed903a2248a267bd07b34edb';
 
 /// See also [GlobalLeaderboard].
 @ProviderFor(GlobalLeaderboard)

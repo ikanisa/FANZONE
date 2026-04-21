@@ -25,11 +25,13 @@ import type { DbMatch, PipelineRunResult } from "./types.ts";
 type SupabaseClient = ReturnType<typeof createClient>;
 
 function getSupabase(): SupabaseClient {
-  return createClient(
-    requireEnv("SUPABASE_URL"),
-    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  const url = (Deno.env.get("FANZONE_SUPABASE_URL") || Deno.env.get("SUPABASE_URL"))?.trim();
+  const key = (Deno.env.get("FANZONE_SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"))?.trim();
+  if (!url) throw new HttpError(500, "Missing SUPABASE_URL env var.");
+  if (!key) throw new HttpError(500, "Missing SUPABASE_SERVICE_ROLE_KEY env var.");
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -38,29 +40,32 @@ function getSupabase(): SupabaseClient {
 
 /**
  * Load upcoming/scheduled matches from the DB for fuzzy matching.
- * Includes today's and tomorrow's matches.
+ * Looks for matches in the next 7 days.
  */
 async function loadUpcomingMatches(supabase: SupabaseClient): Promise<DbMatch[]> {
   const now = new Date();
-  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-  const dayAfterTomorrow = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString();
+  // Use date strings (YYYY-MM-DD) since the column is a date type
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    .toISOString().split("T")[0];
+  const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    .toISOString().split("T")[0];
 
   const { data, error } = await supabase
     .from("matches")
-    .select("id, home_team, away_team, home_team_id, away_team_id, competition_name, kickoff_at, status")
-    .gte("kickoff_at", yesterday)
-    .lte("kickoff_at", dayAfterTomorrow)
+    .select("id, home_team, away_team, home_team_id, away_team_id, competition_id, date, kickoff_time, status")
+    .gte("date", yesterday)
+    .lte("date", nextWeek)
     .in("status", ["scheduled", "live", "in_play", "upcoming", "not_started"])
-    .limit(200);
+    .limit(300);
 
   if (error) {
-    // Fallback: try without status filter if the column has different values
+    // Fallback: try without status filter
     const { data: fallbackData, error: fallbackError } = await supabase
       .from("matches")
-      .select("id, home_team, away_team, home_team_id, away_team_id, competition_name, kickoff_at, status")
-      .gte("kickoff_at", yesterday)
-      .lte("kickoff_at", dayAfterTomorrow)
-      .limit(200);
+      .select("id, home_team, away_team, home_team_id, away_team_id, competition_id, date, kickoff_time, status")
+      .gte("date", yesterday)
+      .lte("date", nextWeek)
+      .limit(300);
 
     if (fallbackError) {
       throw new HttpError(500, "Failed to load upcoming matches.", fallbackError);

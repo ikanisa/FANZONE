@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/match_model.dart';
 import 'package:uuid/uuid.dart';
 
-enum PredictionType { matchResult, exactScore }
+enum PredictionType { matchResult, exactScore, bothTeamsToScore, overUnder25 }
 
 class PredictionSelection {
   const PredictionSelection({
@@ -14,6 +14,8 @@ class PredictionSelection {
     required this.title,
     required this.subtitle,
     this.multiplier,
+    this.marketTypeId,
+    this.baseFet,
   });
 
   final String id;
@@ -24,6 +26,8 @@ class PredictionSelection {
   final String title; // e.g. 'Arsenal to Win'
   final String subtitle; // e.g. 'Arsenal vs Chelsea • Match Result'
   final double? multiplier;
+  final String? marketTypeId;
+  final int? baseFet;
 
   PredictionSelection copyWith({
     String? id,
@@ -34,6 +38,8 @@ class PredictionSelection {
     String? title,
     String? subtitle,
     double? multiplier,
+    String? marketTypeId,
+    int? baseFet,
   }) {
     return PredictionSelection(
       id: id ?? this.id,
@@ -44,12 +50,19 @@ class PredictionSelection {
       title: title ?? this.title,
       subtitle: subtitle ?? this.subtitle,
       multiplier: multiplier ?? this.multiplier,
+      marketTypeId: marketTypeId ?? this.marketTypeId,
+      baseFet: baseFet ?? this.baseFet,
     );
   }
 
   int projectedEarnForStake(int stake) {
-    if (stake <= 0 || multiplier == null) return 0;
-    return (stake * multiplier!).round();
+    if (stake > 0 && multiplier != null) {
+      return (stake * multiplier!).round();
+    }
+    if (baseFet != null && baseFet! > 0) {
+      return baseFet!;
+    }
+    return 0;
   }
 }
 
@@ -138,6 +151,36 @@ class PredictionSlipNotifier extends Notifier<List<PredictionSelection>> {
     ];
   }
 
+  void toggleBothTeamsToScore(
+    MatchModel match,
+    String pick, {
+    required String marketTypeId,
+    required int baseFet,
+  }) {
+    _toggleSingleSelection(
+      match,
+      PredictionType.bothTeamsToScore,
+      pick,
+      marketTypeId: marketTypeId,
+      baseFet: baseFet,
+    );
+  }
+
+  void toggleOverUnder25(
+    MatchModel match,
+    String pick, {
+    required String marketTypeId,
+    required int baseFet,
+  }) {
+    _toggleSingleSelection(
+      match,
+      PredictionType.overUnder25,
+      pick,
+      marketTypeId: marketTypeId,
+      baseFet: baseFet,
+    );
+  }
+
   void removeSelection(String id) {
     state = state.where((p) => p.id != id).toList();
   }
@@ -146,11 +189,59 @@ class PredictionSlipNotifier extends Notifier<List<PredictionSelection>> {
     state = [];
   }
 
+  void _toggleSingleSelection(
+    MatchModel match,
+    PredictionType type,
+    String pick, {
+    double? multiplier,
+    String? marketTypeId,
+    int? baseFet,
+  }) {
+    final existingIndex = state.indexWhere(
+      (p) => p.match.id == match.id && p.type == type,
+    );
+
+    if (existingIndex != -1) {
+      if (state[existingIndex].selection == pick) {
+        final newState = List<PredictionSelection>.from(state)
+          ..removeAt(existingIndex);
+        state = newState;
+        return;
+      }
+
+      final newState = List<PredictionSelection>.from(state);
+      newState[existingIndex] = _createSelection(
+        match,
+        type,
+        pick,
+        multiplier: multiplier,
+        marketTypeId: marketTypeId,
+        baseFet: baseFet,
+      );
+      state = newState;
+      return;
+    }
+
+    state = [
+      ...state,
+      _createSelection(
+        match,
+        type,
+        pick,
+        multiplier: multiplier,
+        marketTypeId: marketTypeId,
+        baseFet: baseFet,
+      ),
+    ];
+  }
+
   PredictionSelection _createSelection(
     MatchModel match,
     PredictionType type,
     String pick, {
     double? multiplier,
+    String? marketTypeId,
+    int? baseFet,
   }) {
     String title = '';
     String subtitle = '${match.homeTeam} vs ${match.awayTeam}';
@@ -166,10 +257,18 @@ class PredictionSlipNotifier extends Notifier<List<PredictionSelection>> {
       }
       subtitle += ' • Match Result';
       market = 'match_result';
-    } else {
+    } else if (type == PredictionType.exactScore) {
       title = 'Exact Score: $pick';
       subtitle += ' • Correct Score';
       market = 'exact_score';
+    } else if (type == PredictionType.bothTeamsToScore) {
+      title = 'BTTS: $pick';
+      subtitle += ' • Both Teams to Score';
+      market = 'btts';
+    } else {
+      title = '${pick == 'over' ? 'Over' : 'Under'} 2.5 Goals';
+      subtitle += ' • Over / Under 2.5';
+      market = 'over_under';
     }
 
     return PredictionSelection(
@@ -181,6 +280,8 @@ class PredictionSlipNotifier extends Notifier<List<PredictionSelection>> {
       title: title,
       subtitle: subtitle,
       multiplier: multiplier,
+      marketTypeId: marketTypeId,
+      baseFet: baseFet,
     );
   }
 }

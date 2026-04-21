@@ -137,165 +137,23 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
       color: FzColors.primary,
       child: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? FzColors.darkSurface2
-                          : FzColors.lightSurface2,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isDark
-                            ? FzColors.darkBorder
-                            : FzColors.lightBorder,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'LIVE',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: textColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 52,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _dates.length,
-                        itemBuilder: (context, index) {
-                          final date = _dates[index];
-                          final selected = _isSameDate(date, _selectedDate);
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              left: index == 0 ? 0 : 6,
-                              right: index == _dates.length - 1 ? 0 : 0,
-                            ),
-                            child: _FixtureDateChip(
-                              date: date,
-                              selected: selected,
-                              onTap: () => setState(() => _selectedDate = date),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ToolbarIconButton(
-                    tooltip: 'Calendar',
-                    icon: LucideIcons.calendar,
-                    muted: muted,
-                    onTap: () {},
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 12)),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 42,
-              child: matchesAsync.when(
-                data: (matches) {
-                  final competitionIds =
-                      matches
-                          .map((match) => match.competitionId)
-                          .toSet()
-                          .toList()
-                        ..sort((left, right) {
-                          final leftFav =
-                              favourites.isCompetitionFavourite(left) ? 0 : 1;
-                          final rightFav =
-                              favourites.isCompetitionFavourite(right) ? 0 : 1;
-                          if (leftFav != rightFav) {
-                            return leftFav.compareTo(rightFav);
-                          }
-                          return left.compareTo(right);
-                        });
-                  final competitionLabels = {
-                    for (final competition
-                        in competitionsAsync.valueOrNull ?? const [])
-                      competition.id: competition.shortName.isNotEmpty
-                          ? competition.shortName
-                          : competition.name,
-                  };
-
-                  return ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      FixtureStateChip(
-                        label: 'All',
-                        selected: _selectedCompetitionId == null,
-                        onTap: () =>
-                            setState(() => _selectedCompetitionId = null),
-                      ),
-                      ...competitionIds.map(
-                        (competitionId) => FixtureStateChip(
-                          label:
-                              competitionLabels[competitionId] ??
-                              _fixtureLeagueLabel(competitionId),
-                          selected: _selectedCompetitionId == competitionId,
-                          onTap: () => setState(
-                            () => _selectedCompetitionId = competitionId,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-                loading: () => ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: const [
-                    Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: FzShimmer(width: 72, height: 34, borderRadius: 18),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(right: 8),
-                      child: FzShimmer(width: 84, height: 34, borderRadius: 18),
-                    ),
-                  ],
-                ),
-                error: (error, stackTrace) => ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? FzColors.darkSurface2
-                            : FzColors.lightSurface2,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Text(
-                        'Leagues unavailable',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark
-                              ? FzColors.darkMuted
-                              : FzColors.lightMuted,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _MatchesFilterHeaderDelegate(
+              child: _MatchesFilterHeader(
+                isDark: isDark,
+                muted: muted,
+                textColor: textColor,
+                dates: _dates,
+                selectedDate: _selectedDate,
+                selectedCompetitionId: _selectedCompetitionId,
+                matchesAsync: matchesAsync,
+                competitionsAsync: competitionsAsync,
+                favourites: favourites,
+                fixtureLeagueLabel: _fixtureLeagueLabel,
+                onSelectDate: (date) => setState(() => _selectedDate = date),
+                onSelectCompetition: (competitionId) =>
+                    setState(() => _selectedCompetitionId = competitionId),
               ),
             ),
           ),
@@ -369,8 +227,234 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     if (normalized.contains('malta')) return 'Malta Premier';
     return competitionId;
   }
+}
 
-  bool _isSameDate(DateTime left, DateTime right) {
+class _MatchesFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _MatchesFilterHeaderDelegate({required this.child});
+
+  final Widget child;
+
+  @override
+  double get minExtent => 112;
+
+  @override
+  double get maxExtent => 112;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark ? FzColors.darkBg : FzColors.lightBg;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+
+    return Container(
+      color: background,
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: overlapsContent
+                  ? border.withValues(alpha: 0.65)
+                  : Colors.transparent,
+            ),
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _MatchesFilterHeaderDelegate oldDelegate) {
+    return child != oldDelegate.child;
+  }
+}
+
+class _MatchesFilterHeader extends StatelessWidget {
+  const _MatchesFilterHeader({
+    required this.isDark,
+    required this.muted,
+    required this.textColor,
+    required this.dates,
+    required this.selectedDate,
+    required this.selectedCompetitionId,
+    required this.matchesAsync,
+    required this.competitionsAsync,
+    required this.favourites,
+    required this.fixtureLeagueLabel,
+    required this.onSelectDate,
+    required this.onSelectCompetition,
+  });
+
+  final bool isDark;
+  final Color muted;
+  final Color textColor;
+  final List<DateTime> dates;
+  final DateTime selectedDate;
+  final String? selectedCompetitionId;
+  final AsyncValue<List<MatchModel>> matchesAsync;
+  final AsyncValue<List<CompetitionModel>> competitionsAsync;
+  final FavouritesState favourites;
+  final String Function(String competitionId) fixtureLeagueLabel;
+  final ValueChanged<DateTime> onSelectDate;
+  final ValueChanged<String?> onSelectCompetition;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? FzColors.darkSurface2
+                      : FzColors.lightSurface2,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'LIVE',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SizedBox(
+                  height: 52,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: dates.length,
+                    itemBuilder: (context, index) {
+                      final date = dates[index];
+                      final selected = _sameDate(date, selectedDate);
+                      return Padding(
+                        padding: EdgeInsets.only(left: index == 0 ? 0 : 6),
+                        child: _FixtureDateChip(
+                          date: date,
+                          selected: selected,
+                          onTap: () => onSelectDate(date),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ToolbarIconButton(
+                tooltip: 'Calendar',
+                icon: LucideIcons.calendar,
+                muted: muted,
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 42,
+          child: matchesAsync.when(
+            data: (matches) {
+              final competitionIds =
+                  matches.map((match) => match.competitionId).toSet().toList()
+                    ..sort((left, right) {
+                      final leftFav = favourites.isCompetitionFavourite(left)
+                          ? 0
+                          : 1;
+                      final rightFav = favourites.isCompetitionFavourite(right)
+                          ? 0
+                          : 1;
+                      if (leftFav != rightFav) {
+                        return leftFav.compareTo(rightFav);
+                      }
+                      return left.compareTo(right);
+                    });
+              final competitionLabels = {
+                for (final competition
+                    in competitionsAsync.valueOrNull ?? const [])
+                  competition.id: competition.shortName.isNotEmpty
+                      ? competition.shortName
+                      : competition.name,
+              };
+
+              return ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  FixtureStateChip(
+                    label: 'All',
+                    selected: selectedCompetitionId == null,
+                    onTap: () => onSelectCompetition(null),
+                  ),
+                  ...competitionIds.map(
+                    (competitionId) => FixtureStateChip(
+                      label:
+                          competitionLabels[competitionId] ??
+                          fixtureLeagueLabel(competitionId),
+                      selected: selectedCompetitionId == competitionId,
+                      onTap: () => onSelectCompetition(competitionId),
+                    ),
+                  ),
+                ],
+              );
+            },
+            loading: () => ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: FzShimmer(width: 72, height: 34, borderRadius: 18),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: FzShimmer(width: 84, height: 34, borderRadius: 18),
+                ),
+              ],
+            ),
+            error: (_, _) => ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? FzColors.darkSurface2
+                        : FzColors.lightSurface2,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    'Leagues unavailable',
+                    style: TextStyle(fontSize: 12, color: muted),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  static bool _sameDate(DateTime left, DateTime right) {
     return left.year == right.year &&
         left.month == right.month &&
         left.day == right.day;
@@ -659,6 +743,9 @@ class _CompetitionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+    final surface2 = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final text = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
@@ -668,9 +755,9 @@ class _CompetitionTile extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(compact ? 12 : 14),
         decoration: BoxDecoration(
-          color: compact ? FzColors.darkSurface : FzColors.darkSurface2,
+          color: compact ? surface : surface2,
           borderRadius: BorderRadius.circular(compact ? 14 : 16),
-          border: Border.all(color: FzColors.darkBorder),
+          border: Border.all(color: border),
         ),
         child: compact
             ? Column(
@@ -716,6 +803,158 @@ class _CompetitionTile extends StatelessWidget {
                   Icon(LucideIcons.chevronRight, size: 14, color: muted),
                 ],
               ),
+      ),
+    );
+  }
+}
+
+class _OtherCompetitionsAccordion extends StatefulWidget {
+  const _OtherCompetitionsAccordion({required this.competitions});
+
+  final List<CompetitionModel> competitions;
+
+  @override
+  State<_OtherCompetitionsAccordion> createState() =>
+      _OtherCompetitionsAccordionState();
+}
+
+class _OtherCompetitionsAccordionState
+    extends State<_OtherCompetitionsAccordion> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface2 = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
+    final text = isDark ? FzColors.darkText : FzColors.lightText;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => setState(() => _expanded = !_expanded),
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: surface2.withValues(alpha: 0.72),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedRotation(
+                  turns: _expanded ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 180),
+                  child: Icon(LucideIcons.chevronDown, size: 12, color: muted),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'OTHER LEAGUES',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: text,
+                    letterSpacing: 0.7,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          child: _expanded
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Column(
+                    children: [
+                      for (final competition in widget.competitions)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: _OtherCompetitionTile(
+                            competition: competition,
+                          ),
+                        ),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+class _OtherCompetitionTile extends StatelessWidget {
+  const _OtherCompetitionTile({required this.competition});
+
+  final CompetitionModel competition;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    final text = isDark ? FzColors.darkText : FzColors.lightText;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+
+    return InkWell(
+      onTap: () => context.push('/league/${competition.id}'),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: border),
+              ),
+              child: const Icon(
+                LucideIcons.globe2,
+                size: 14,
+                color: FzColors.accent2,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    competition.name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: text,
+                    ),
+                  ),
+                  if (competition.country.trim().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        competition.country,
+                        style: TextStyle(fontSize: 11, color: muted),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Icon(LucideIcons.chevronRight, size: 14, color: muted),
+          ],
+        ),
       ),
     );
   }

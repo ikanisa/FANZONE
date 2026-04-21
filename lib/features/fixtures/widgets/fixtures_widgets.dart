@@ -290,7 +290,7 @@ class FixtureListItem extends StatelessWidget {
             children: [
               FixtureActionButton(
                 tooltip: 'Open match',
-                icon: LucideIcons.crosshair,
+                icon: LucideIcons.target,
                 color: FzColors.accent2,
                 onTap: onOpenMatch,
               ),

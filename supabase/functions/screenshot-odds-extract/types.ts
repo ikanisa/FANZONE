@@ -48,8 +48,9 @@ export interface DbMatch {
   away_team: string;
   home_team_id: string | null;
   away_team_id: string | null;
-  competition_name: string | null;
-  kickoff_at: string | null;
+  competition_id: string | null;
+  date: string | null;
+  kickoff_time: string | null;
   status: string | null;
 }
 

@@ -6,7 +6,7 @@ part of 'notification_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$notificationLogHash() => r'3a4e6570918368b7f2e1ceb5d3b45f48c161e0b3';
+String _$notificationLogHash() => r'42a857ba879fb7052da0f2ea61402eadfe1a2fec';
 
 /// See also [notificationLog].
 @ProviderFor(notificationLog)
@@ -43,7 +43,7 @@ final unreadNotificationCountProvider = AutoDisposeFutureProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UnreadNotificationCountRef = AutoDisposeFutureProviderRef<int>;
-String _$userStatsHash() => r'cd2a242879a375f1097f26fcc5d161c84c933885';
+String _$userStatsHash() => r'a02d0af2c3a49d85523536baf38164e34d7ce01e';
 
 /// See also [userStats].
 @ProviderFor(userStats)
@@ -61,7 +61,7 @@ final userStatsProvider = AutoDisposeFutureProvider<UserStats>.internal(
 // ignore: unused_element
 typedef UserStatsRef = AutoDisposeFutureProviderRef<UserStats>;
 String _$notificationServiceHash() =>
-    r'c59a2976500568fd87c544dec0dd33019983aec4';
+    r'5dc829b54981b5ec51553a735ac722c266bdb8f7';
 
 /// See also [NotificationService].
 @ProviderFor(NotificationService)

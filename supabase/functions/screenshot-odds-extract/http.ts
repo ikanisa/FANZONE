@@ -37,12 +37,25 @@ export function requireEnv(name: string): string {
 }
 
 export function assertAuthorized(req: Request) {
-  // Accept either service role bearer token or shared secret
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
+  // Accept service role bearer, anon key bearer, or shared secret
+  // Try both standard and FANZONE-prefixed env vars (project uses custom names)
+  const serviceRoleKey = (
+    Deno.env.get("FANZONE_SUPABASE_SERVICE_ROLE_KEY") ||
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+  )?.trim();
   const matchSyncSecret = Deno.env.get("MATCH_SYNC_SECRET")?.trim();
+  const anonKey = (
+    Deno.env.get("FANZONE_ANON_KEY") ||
+    Deno.env.get("SUPABASE_ANON_KEY")
+  )?.trim();
+
+  // Dev passthrough: if no auth keys are configured, skip auth
+  if (!serviceRoleKey && !matchSyncSecret && !anonKey) {
+    return;
+  }
 
   if (
-    !isAuthorizedEdgeRequest({
+    isAuthorizedEdgeRequest({
       req,
       serviceRoleKey,
       allowServiceRoleBearer: true,
@@ -51,8 +64,16 @@ export function assertAuthorized(req: Request) {
         : [],
     })
   ) {
-    throw new HttpError(401, "Unauthorized request.");
+    return;
   }
+
+  // Also accept anon key as bearer (for CLI/cron invocation)
+  if (anonKey) {
+    const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
+    if (bearer === anonKey) return;
+  }
+
+  throw new HttpError(401, "Unauthorized request.");
 }
 
 export function logError(requestId: string, error: unknown) {

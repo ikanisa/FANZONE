@@ -5,6 +5,7 @@ part of '../../screens/match_detail_screen.dart';
 /// Shows the percentage of users predicting Home / Draw / Away
 /// for the current match. Follows the reference MarketGroup card
 /// pattern (bg-surface2, rounded-2xl, border-border).
+// ignore: unused_element
 class _CrowdPredictionBar extends ConsumerWidget {
   const _CrowdPredictionBar({required this.matchId});
 

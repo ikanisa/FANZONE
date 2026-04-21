@@ -6,7 +6,7 @@ part of 'pool_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$poolDetailHash() => r'1ac61b01cb851f76adab61c132cb2a21d0f87b6e';
+String _$poolDetailHash() => r'51bdf901b2e0a4169e00637914baf6ac5b054070';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -146,7 +146,7 @@ class _PoolDetailProviderElement
   String get id => (origin as PoolDetailProvider).id;
 }
 
-String _$poolServiceHash() => r'282a5d828ae6d41cc4cdb7961f5be3e516400154';
+String _$poolServiceHash() => r'df0193a879f6075bc3c93d0aead92fa89c1e5a68';
 
 /// See also [PoolService].
 @ProviderFor(PoolService)
@@ -162,7 +162,7 @@ final poolServiceProvider =
     );
 
 typedef _$PoolService = AutoDisposeAsyncNotifier<List<ScorePool>>;
-String _$myEntriesHash() => r'e80933716b82455af8bec4a5c5e768d4f60e0394';
+String _$myEntriesHash() => r'0e35adcc72cb165422aebc1d9133eb11fde4d90d';
 
 /// See also [MyEntries].
 @ProviderFor(MyEntries)

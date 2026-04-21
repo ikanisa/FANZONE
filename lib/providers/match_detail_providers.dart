@@ -5,6 +5,7 @@ import '../models/match_advanced_stats_model.dart';
 import '../models/match_ai_analysis_model.dart';
 import '../models/match_event_model.dart';
 import '../models/match_player_stats_model.dart';
+import '../models/prediction_market_catalog_item.dart';
 
 final matchAdvancedStatsProvider = StreamProvider.family
     .autoDispose<MatchAdvancedStats?, String>((ref, matchId) {
@@ -24,4 +25,14 @@ final matchEventsProvider = StreamProvider.family
 final matchAiAnalysisProvider = FutureProvider.family
     .autoDispose<MatchAiAnalysis?, String>((ref, matchId) async {
       return ref.read(matchDetailGatewayProvider).getMatchAiAnalysis(matchId);
+    });
+
+final matchMarketCatalogProvider = FutureProvider.family
+    .autoDispose<List<PredictionMarketCatalogItem>, String>((
+      ref,
+      competitionId,
+    ) async {
+      return ref
+          .read(matchDetailGatewayProvider)
+          .getMarketCatalog(competitionId);
     });

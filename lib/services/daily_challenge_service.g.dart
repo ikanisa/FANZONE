@@ -6,7 +6,7 @@ part of 'daily_challenge_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$myDailyEntryHash() => r'dc61bbfe667ed957bf68692e84cd53f6b5c7252f';
+String _$myDailyEntryHash() => r'7665b7cba2bfabf89f7ed9adb92213eb198adf6c';
 
 /// See also [myDailyEntry].
 @ProviderFor(myDailyEntry)
@@ -25,7 +25,7 @@ final myDailyEntryProvider =
 // ignore: unused_element
 typedef MyDailyEntryRef = AutoDisposeFutureProviderRef<DailyChallengeEntry?>;
 String _$dailyChallengeHistoryHash() =>
-    r'1c2d88c592d1a43088768c635db61b5eb95ae05d';
+    r'faf8b862fd03dcecb0d191a0268a860240f0197b';
 
 /// See also [dailyChallengeHistory].
 @ProviderFor(dailyChallengeHistory)
@@ -45,7 +45,7 @@ final dailyChallengeHistoryProvider =
 typedef DailyChallengeHistoryRef =
     AutoDisposeFutureProviderRef<List<DailyChallengeEntry>>;
 String _$dailyChallengeServiceHash() =>
-    r'576a827bafbc3305279d2f639480128a7a544f92';
+    r'68f92e8b750b4b8afba651c76169b737f54d697b';
 
 /// See also [DailyChallengeService].
 @ProviderFor(DailyChallengeService)

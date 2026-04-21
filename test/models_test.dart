@@ -270,6 +270,17 @@ void main() {
       expect(liveMatch.isFinished, false);
     });
 
+    test('liveStatusLabel prefers live_minute when available', () {
+      final liveMatch = MatchModel.fromJson({
+        ...json,
+        'status': 'live',
+        'live_minute': 63,
+      });
+
+      expect(liveMatch.liveStatusLabel(), "63' LIVE");
+      expect(liveMatch.kickoffLabel, "63' LIVE");
+    });
+
     test('kickoffTimeLocalLabel converts GMT kickoff_time to local HH:mm', () {
       final match = MatchModel.fromJson({...json, 'kickoff_time': '20:00:00'});
 

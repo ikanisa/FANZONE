@@ -6,7 +6,7 @@ part of 'wallet_service.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$walletServiceHash() => r'2d6f308ea805a92d8b923a87a40cfd7f507f877a';
+String _$walletServiceHash() => r'1dde47df1921a09aea6648c1230678bdcbfaaf71';
 
 /// See also [WalletService].
 @ProviderFor(WalletService)
@@ -23,7 +23,7 @@ final walletServiceProvider =
 
 typedef _$WalletService = AutoDisposeAsyncNotifier<int>;
 String _$transactionServiceHash() =>
-    r'50c6c28d7fd7fe936600a9a5256d6166c294a9f2';
+    r'969199ab7cb5ee310c7102e5321f28b82007eedd';
 
 /// See also [TransactionService].
 @ProviderFor(TransactionService)
@@ -43,7 +43,7 @@ final transactionServiceProvider =
 
 typedef _$TransactionService =
     AutoDisposeAsyncNotifier<List<WalletTransaction>>;
-String _$fanClubServiceHash() => r'44bb441a1572e1469684cf96485fe369c8769bec';
+String _$fanClubServiceHash() => r'74b99ac8bc7c57f56cc44ce6c0fac9892516cd04';
 
 /// See also [FanClubService].
 @ProviderFor(FanClubService)

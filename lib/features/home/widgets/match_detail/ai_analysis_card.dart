@@ -1,5 +1,6 @@
 part of '../../screens/match_detail_screen.dart';
 
+// ignore: unused_element
 class _AiAnalysisCard extends StatelessWidget {
   const _AiAnalysisCard({required this.analysis, required this.match});
 
