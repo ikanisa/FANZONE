@@ -24,5 +24,5 @@ export function useAuditLogs(pagination: PaginationOpts, filters?: { module?: st
 export const AUDIT_MODULES = [
   'users', 'predictions', 'fixtures', 'wallets', 'tokens',
   'competitions', 'moderation', 'analytics',
-  'settings', 'admin-access', 'auth',
+  'platform-control', 'settings', 'admin-access', 'auth',
 ] as const;

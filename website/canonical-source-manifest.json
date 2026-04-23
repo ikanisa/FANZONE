@@ -1,6 +1,6 @@
 {
   "sourceLabel": "/Volumes/PRO-G40/FANZONE/website",
-  "generatedAt": "2026-04-23T06:27:32.551Z",
+  "generatedAt": "2026-04-23T08:24:23.272Z",
   "routes": [
     "/onboarding",
     "/*",
@@ -53,14 +53,14 @@
     "teal": "#0F7B6C"
   },
   "files": {
-    "App.tsx": "c57b52ba00775d55e8f6d66f176f9dcbc4bc580f9b45b589be1e903ea8d04b5a",
+    "App.tsx": "1a11e9c0cb26a082b7620cad0d85b885464f30dbba4623be3f9437756af38174",
     "components/EmptyErrorStates.tsx": "05ec0789e17594a3ae5b4d7636271ef3a6c89a3526408aa1c841d7619584abbd",
     "components/Fixtures.tsx": "9d94e995a9276b220ce6c60560b6d4f18f83aa3278b0fb3af9cc292ef95db8e6",
-    "components/HomeFeed.tsx": "d2191a8ddb76fd3a5decebd36e3c605c6de50c1870f1a708311736a839b26790",
-    "components/Layout.tsx": "7f1d1838d34842a61a410bb9711ac31c1c02f1006ceb419651794d74426e95c2",
+    "components/HomeFeed.tsx": "706167643b1d94eedc08a9e7748d2e3b14beacb862f5371dc2940c000475e333",
+    "components/Layout.tsx": "b217cb13e3c70197908d0a2c85f27bc494d9b40160b94d96af763087df1bb782",
     "components/Leaderboard.tsx": "80bb93de9307ebe26dad4a23865be5addc86379abb6da2ac7316fc61bafbd707",
     "components/LeagueHub.tsx": "593433e1baec7c899c36fefe3c6cefb289f03ec800e53a97477c36ba292879e8",
-    "components/MatchDetail.tsx": "b93a897a72aee961f2ce43742479262b61216d09dd4dfdefec2c64a6036aba2f",
+    "components/MatchDetail.tsx": "20436c4b836bd168432e3aefb5036570efec05c8f9a1a8984d5382f31c3f9909",
     "components/Notifications.tsx": "6b5a8d4cbc46ca359e847c6c935fd15121d3ddf8894b3bbe4307bebc70dca20d",
     "components/Onboarding.tsx": "2c9ec702f60cf04bef7bb268359d219eb660555e1617a5487b0bee9fc361bf96",
     "components/PredictionOptionsSheet.tsx": "18874ed87de2b231440465ad02f22ff33407c048cb830de10f19558dbf6f5085",
@@ -90,9 +90,13 @@
     "hooks/useScrollDirection.ts": "c16b4d61bdbd30e3a13bb17580f05e2ad3d424d6546de2449fe2447ac36bab03",
     "index.css": "2f28c352d8d2e21a40f8c1385d30267178d412562ec8e9a303c2bc9f3d767e29",
     "lib/confetti.ts": "1acedd0d6cf6bd03a5e4d5cc4e6a6cfbe8f9d834e9df6c83b7df57d126b6be97",
-    "lib/supabase.ts": "651eaad676d2d5fd991121ae3f28b0957b25c56ed9223a566695f58294863dc4",
+    "lib/supabase.ts": "750e55a3d18a64e1e36479c407b75da3b45a57945761ab0ea450b52c4afd1bd6",
     "main.tsx": "5e34cd9b8231395ed43493bf31556e2d4e427cd9d3dc726accd89287a9e90acc",
-    "services/api.ts": "69d6c76520281454895a4ae6d439f83b7feea32daaa4af818a4170d31a28c95e",
+    "platform/access.ts": "131fef160d41616c77c457aeb870566d3808aa2cc94f2811258b2b884e0677c3",
+    "platform/bootstrap.tsx": "0d721fb2bce24426ebc711660b0d0d74051127a604a6d40cfda3ff3444510dc3",
+    "platform/normalize.ts": "efd862418affb4abf041cc941814fdb7ddf9b7a3acac6b26a168672d2d6b67d9",
+    "platform/types.ts": "fffbba99a33929eccf9891ae5ccbf2c25eed862243565c0b9d9f8c3c60d186bf",
+    "services/api.ts": "df1266755d0fb3f51f035f59c6756b2946b2b197810d85a628beab0084cbc4e9",
     "store/useAppStore.ts": "d29ecccfb353862e15992e43760b4b4aba49eb4a02006b2e9e68b15686c36086",
     "types.ts": "b0143d602da3a173d485b6a504a21265e056dad1d3b869aa68610e945abdfdc2"
   },

@@ -14,6 +14,8 @@ BEGIN
   FROM (
     VALUES
       ('public.admin_feature_flags'),
+      ('public.admin_platform_content_blocks'),
+      ('public.admin_platform_features'),
       ('public.fet_supply_overview_admin'),
       ('public.fet_transactions_admin')
   ) AS expected(required_name)

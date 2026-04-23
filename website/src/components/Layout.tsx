@@ -1,11 +1,19 @@
-import { ReactNode, useEffect } from 'react';
-import { Home, Trophy, Calendar, User, Wallet } from 'lucide-react';
+import { ReactNode, useEffect, useMemo } from 'react';
+import {
+  Calendar,
+  Home,
+  Trophy,
+  User,
+  Wallet,
+} from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { AuthGateModal } from './ui/AuthGateModal';
 import { NotificationToast } from './ui/NotificationToast';
 import { useAppStore } from '../store/useAppStore';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { api } from '../services/api';
+import { getWebsiteNavigationFeatures } from '../platform/access';
+import { usePlatformBootstrap } from '../platform/bootstrap';
 
 interface LayoutProps {
   children: ReactNode;
@@ -15,8 +23,32 @@ export default function Layout({ children }: LayoutProps) {
   const { unreadCount, fetBalance, hydrateViewerState } = useAppStore();
   const scrollDirection = useScrollDirection();
   const location = useLocation();
+  const { bootstrap } = usePlatformBootstrap();
 
   const isHome = location.pathname === '/';
+  const navigationItems = useMemo(
+    () =>
+      getWebsiteNavigationFeatures().map((feature) => ({
+        to:
+          feature.channels.web.routeKey ??
+          feature.defaultRouteKey ??
+          '/',
+        label:
+          feature.channels.web.navigationLabel ??
+          feature.displayName,
+        icon: iconForRoute(
+          feature.channels.web.routeKey ??
+            feature.defaultRouteKey ??
+            '/',
+        ),
+      })),
+    [bootstrap],
+  );
+  const mobileNavigationItems = useMemo(() => {
+    const topItems = navigationItems.slice(0, 4);
+    return topItems;
+  }, [navigationItems]);
+  const showWalletLink = navigationItems.some((item) => item.to === '/wallet');
 
   useEffect(() => {
     let active = true;
@@ -63,12 +95,14 @@ export default function Layout({ children }: LayoutProps) {
               <span className="text-text">FAN</span><span className="text-accent3 opacity-90">ZONE</span>
             </div>
           </div>
-          <NavLink to="/wallet" className="bg-surface_container_lowest hover:bg-surface2 transition-colors px-3 py-1.5 rounded-full border border-border flex items-center gap-2 shadow-sm">
-             <div className="w-4 h-4 rounded-full bg-accent3/20 flex items-center justify-center border border-accent3/30">
-               <Wallet size={10} className="text-accent3" />
-             </div>
-             <span className="font-mono text-xs font-bold text-text">{fetBalance}</span>
-          </NavLink>
+          {showWalletLink && (
+            <NavLink to="/wallet" className="bg-surface_container_lowest hover:bg-surface2 transition-colors px-3 py-1.5 rounded-full border border-border flex items-center gap-2 shadow-sm">
+               <div className="w-4 h-4 rounded-full bg-accent3/20 flex items-center justify-center border border-accent3/30">
+                 <Wallet size={10} className="text-accent3" />
+               </div>
+               <span className="font-mono text-xs font-bold text-text">{fetBalance}</span>
+            </NavLink>
+          )}
         </div>
       )}
 
@@ -82,11 +116,15 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <NavItem to="/" icon={<Home size={20} />} label="Home" />
-          <NavItem to="/fixtures" icon={<Calendar size={20} />} label="Fixtures" />
-          <NavItem to="/leaderboard" icon={<Trophy size={20} />} label="Leaderboard" />
-          <NavItem to="/wallet" icon={<Wallet size={20} />} label="Wallet" />
-          <NavItem to="/profile" icon={<User size={20} />} label="Profile" badge={unreadCount} />
+          {navigationItems.map((item) => (
+            <NavItem
+              key={item.to}
+              to={item.to}
+              icon={item.icon}
+              label={item.label}
+              badge={item.to === '/profile' ? unreadCount : 0}
+            />
+          ))}
         </div>
       </nav>
 
@@ -101,14 +139,29 @@ export default function Layout({ children }: LayoutProps) {
           scrollDirection === 'down' ? 'translate-y-full' : 'translate-y-0'
         }`}
       >
-        <NavItem to="/" icon={<Home size={22} />} label="Home" mobile />
-        <NavItem to="/fixtures" icon={<Calendar size={22} />} label="Matches" mobile />
-        <NavItem to="/profile" icon={<User size={22} />} label="Profile" mobile badge={unreadCount} />
+        {mobileNavigationItems.map((item) => (
+          <NavItem
+            key={item.to}
+            to={item.to}
+            icon={item.icon}
+            label={item.label}
+            mobile
+            badge={item.to === '/profile' ? unreadCount : 0}
+          />
+        ))}
       </div>
 
       <AuthGateModal />
     </div>
   );
+}
+
+function iconForRoute(route: string) {
+  if (route === '/leaderboard') return <Trophy size={20} />;
+  if (route === '/wallet') return <Wallet size={20} />;
+  if (route === '/profile') return <User size={20} />;
+  if (route === '/fixtures') return <Calendar size={20} />;
+  return <Home size={20} />;
 }
 
 function NavItem({ to, icon, label, mobile = false, badge = 0 }: { to: string; icon: ReactNode; label: string; mobile?: boolean; badge?: number }) {

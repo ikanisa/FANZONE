@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../core/config/platform_feature_access.dart';
 import '../../../models/match_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/home_feed_provider.dart';
@@ -33,10 +34,20 @@ class HomeFeedScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = MediaQuery.sizeOf(context).width >= 1024;
+    final featureAccess = ref.watch(platformFeatureAccessProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final homeBlocks = featureAccess.homeBlocks();
+    final canOpenPredictions = featureAccess.isVisible(
+      'predictions',
+      surface: PlatformSurface.action,
+    );
+    final canOpenLeaderboard = featureAccess.isVisible(
+      'leaderboard',
+      surface: PlatformSurface.route,
+    );
 
     // Fetch a 7-day window: today through today + 6 days
     final feedFilter = MatchesFilter(
@@ -87,80 +98,166 @@ class HomeFeedScreen extends ConsumerWidget {
                       backgroundColor: FzColors.accent2,
                       foregroundColor: FzColors.darkBg,
                       icon: LucideIcons.target,
-                      onTap: () => context.go('/predict'),
+                      onTap: canOpenPredictions
+                          ? () => context.go('/predict')
+                          : () => context.go('/fixtures'),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
               ],
-              const FzPromoBanner(),
               matchesAsync.when(
                 data: (selection) {
                   final liveMatches = selection.liveMatches;
                   final upcomingMatches = selection.upcomingMatches;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _DailyInsightCard(muted: muted),
-                      _HomeSectionHeader(
-                        icon: LucideIcons.activity,
-                        iconColor: FzColors.danger,
-                        title: 'Live Action',
-                        trailing: FzBadge(
-                          label: '${liveMatches.length}',
-                          variant: FzBadgeVariant.danger,
-                          pulse: liveMatches.isNotEmpty,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      if (liveMatches.isEmpty)
-                        _CompactEmptyCard(
-                          icon: LucideIcons.trophy,
-                          title: 'No Live Matches',
-                          subtitle: 'Check upcoming.',
-                          muted: muted,
-                        )
-                      else
-                        _MatchGrid(
-                          matches: liveMatches,
-                          competitionLabels: competitionLabels,
-                          onOpenMatch: (match) =>
-                              context.push('/match/${match.id}'),
-                          onOpenPredict: () => context.push('/predict'),
-                        ),
-                      const SizedBox(height: 24),
-                      _HomeSectionHeader(
-                        icon: LucideIcons.calendar,
-                        iconColor: muted,
-                        title: 'Upcoming',
-                        trailing: IconButton(
-                          onPressed: () => context.go('/fixtures'),
-                          tooltip: 'Open fixtures',
-                          visualDensity: VisualDensity.compact,
-                          icon: Icon(
-                            LucideIcons.chevronRight,
-                            size: 18,
-                            color: muted,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      if (upcomingMatches.isEmpty)
-                        _CompactEmptyCard(
-                          icon: LucideIcons.calendar,
-                          title: 'No Upcoming',
-                          subtitle: 'None left.',
-                          muted: muted,
-                        )
-                      else
-                        _MatchGrid(
-                          matches: upcomingMatches,
-                          competitionLabels: competitionLabels,
-                          onOpenMatch: (match) =>
-                              context.push('/match/${match.id}'),
-                          onOpenPredict: () => context.push('/predict'),
-                        ),
-                    ],
+                    children: homeBlocks
+                        .map<Widget>((block) {
+                          if (block.blockType == 'promo_banner') {
+                            return FzPromoBanner(
+                              key: ValueKey(block.blockKey),
+                              badgeLabel:
+                                  block.content['badge']?.toString() ??
+                                  'DERBY DAY',
+                              kickerLabel:
+                                  block.content['kicker']?.toString() ??
+                                  'GLOBAL',
+                              title: block.title,
+                              subtitle:
+                                  block.content['subtitle']?.toString() ??
+                                  'Fresh free picks are live now.',
+                              ctaLabel:
+                                  block.content['cta_label']?.toString() ??
+                                  'OPEN',
+                              ctaRoute: canOpenPredictions
+                                  ? block.content['cta_route']?.toString() ??
+                                        '/predict'
+                                  : '/fixtures',
+                            );
+                          }
+
+                          if (block.blockType == 'daily_insight') {
+                            return _DailyInsightCard(
+                              key: ValueKey(block.blockKey),
+                              muted: muted,
+                              subtitle:
+                                  block.content['subtitle']?.toString() ??
+                                  'Track live fixtures, lock free picks, and follow the leaderboard from one place.',
+                            );
+                          }
+
+                          if (block.blockType == 'live_matches') {
+                            return Column(
+                              key: ValueKey(block.blockKey),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _HomeSectionHeader(
+                                  icon: LucideIcons.activity,
+                                  iconColor: FzColors.danger,
+                                  title: block.title,
+                                  trailing: FzBadge(
+                                    label: '${liveMatches.length}',
+                                    variant: FzBadgeVariant.danger,
+                                    pulse: liveMatches.isNotEmpty,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                if (liveMatches.isEmpty)
+                                  _CompactEmptyCard(
+                                    icon: LucideIcons.trophy,
+                                    title:
+                                        block.content['empty_title']
+                                            ?.toString() ??
+                                        'No Live Matches',
+                                    subtitle:
+                                        block.content['empty_description']
+                                            ?.toString() ??
+                                        'Check upcoming.',
+                                    muted: muted,
+                                  )
+                                else
+                                  _MatchGrid(
+                                    matches: liveMatches,
+                                    competitionLabels: competitionLabels,
+                                    onOpenMatch: (match) =>
+                                        context.push('/match/${match.id}'),
+                                    onOpenPredict: canOpenPredictions
+                                        ? () => context.push('/predict')
+                                        : null,
+                                  ),
+                                const SizedBox(height: 24),
+                              ],
+                            );
+                          }
+
+                          if (block.blockType == 'upcoming_matches') {
+                            return Column(
+                              key: ValueKey(block.blockKey),
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _HomeSectionHeader(
+                                  icon: LucideIcons.calendar,
+                                  iconColor: muted,
+                                  title: block.title,
+                                  trailing: IconButton(
+                                    onPressed: () => context.go(
+                                      block.content['cta_route']?.toString() ??
+                                          '/fixtures',
+                                    ),
+                                    tooltip: 'Open fixtures',
+                                    visualDensity: VisualDensity.compact,
+                                    icon: Icon(
+                                      LucideIcons.chevronRight,
+                                      size: 18,
+                                      color: muted,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                if (upcomingMatches.isEmpty)
+                                  _CompactEmptyCard(
+                                    icon: LucideIcons.calendar,
+                                    title:
+                                        block.content['empty_title']
+                                            ?.toString() ??
+                                        'No Upcoming',
+                                    subtitle:
+                                        block.content['empty_description']
+                                            ?.toString() ??
+                                        'None left.',
+                                    muted: muted,
+                                  )
+                                else
+                                  _MatchGrid(
+                                    matches: upcomingMatches,
+                                    competitionLabels: competitionLabels,
+                                    onOpenMatch: (match) =>
+                                        context.push('/match/${match.id}'),
+                                    onOpenPredict: canOpenPredictions
+                                        ? () => context.push('/predict')
+                                        : null,
+                                  ),
+                                if (canOpenLeaderboard)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: TextButton.icon(
+                                      onPressed: () =>
+                                          context.push('/leaderboard'),
+                                      icon: const Icon(
+                                        LucideIcons.trophy,
+                                        size: 14,
+                                      ),
+                                      label: const Text('Open leaderboard'),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          }
+
+                          return const SizedBox.shrink();
+                        })
+                        .toList(growable: false),
                   );
                 },
                 loading: () => const Padding(
@@ -196,7 +293,7 @@ class _MatchGrid extends StatelessWidget {
   final List<MatchModel> matches;
   final Map<String, String> competitionLabels;
   final ValueChanged<MatchModel> onOpenMatch;
-  final VoidCallback onOpenPredict;
+  final VoidCallback? onOpenPredict;
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +338,7 @@ class _HomeMatchCard extends StatelessWidget {
   final MatchModel match;
   final String competitionLabel;
   final VoidCallback onOpenMatch;
-  final VoidCallback onOpenPredict;
+  final VoidCallback? onOpenPredict;
 
   /// Builds the badge label: "COMPETITION · 21:30" for today,
   /// "COMPETITION · TOMORROW" for tomorrow, "COMPETITION · Sat 15:00" for later.
@@ -390,21 +487,25 @@ class _HomeMatchCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Expanded(
-                      child: _HomeMatchButton(
-                        label: 'PREDICT',
-                        icon: LucideIcons.target,
-                        backgroundColor: match.isLive
-                            ? FzColors.danger
-                            : ctaColor,
-                        foregroundColor: match.isLive
-                            ? FzColors.darkBg
-                            : FzColors.darkText,
-                        borderColor: match.isLive ? FzColors.danger : ctaColor,
-                        onTap: onOpenPredict,
+                    if (onOpenPredict != null) ...[
+                      Expanded(
+                        child: _HomeMatchButton(
+                          label: 'PREDICT',
+                          icon: LucideIcons.target,
+                          backgroundColor: match.isLive
+                              ? FzColors.danger
+                              : ctaColor,
+                          foregroundColor: match.isLive
+                              ? FzColors.darkBg
+                              : FzColors.darkText,
+                          borderColor: match.isLive
+                              ? FzColors.danger
+                              : ctaColor,
+                          onTap: onOpenPredict!,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
+                      const SizedBox(width: 8),
+                    ],
                     Expanded(
                       child: _HomeMatchButton(
                         label: 'MATCH',
@@ -517,9 +618,14 @@ class _HomeMatchButton extends StatelessWidget {
 }
 
 class _DailyInsightCard extends StatelessWidget {
-  const _DailyInsightCard({required this.muted});
+  const _DailyInsightCard({
+    super.key,
+    required this.muted,
+    required this.subtitle,
+  });
 
   final Color muted;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -543,7 +649,7 @@ class _DailyInsightCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'The home feed now focuses on live fixtures, upcoming picks, and leaderboard progress.',
+                subtitle,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 12, height: 1.38, color: textColor),

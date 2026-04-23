@@ -11,7 +11,7 @@ import 'theme/app_theme.dart';
 import 'theme/colors.dart';
 import 'app_router.dart';
 import 'config/app_config.dart';
-import 'core/config/feature_flags.dart';
+import 'core/config/platform_feature_access.dart';
 import 'providers/auth_provider.dart';
 import 'services/push_notification_service.dart';
 
@@ -21,7 +21,9 @@ class FanzoneApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (ref.watch(featureFlagsProvider).notifications) {
+    if (ref
+        .watch(platformFeatureAccessProvider)
+        .isVisible('notifications', surface: PlatformSurface.route)) {
       ref.watch(pushNotificationInitProvider);
     }
 
@@ -141,7 +143,8 @@ class _SessionExpiryGuardState extends ConsumerState<_SessionExpiryGuard> {
       return;
     }
 
-    final remainingMs = expiresAt * 1000 - DateTime.now().millisecondsSinceEpoch;
+    final remainingMs =
+        expiresAt * 1000 - DateTime.now().millisecondsSinceEpoch;
     final timeoutMs = (remainingMs <= 0 ? 0 : remainingMs + 1000).clamp(
       0,
       2147483647,

@@ -11,6 +11,9 @@ import type {
   ViewerProfile,
   ViewerWallet,
 } from "../types";
+import { assertClientFeatureAvailable } from "../platform/access";
+import { normalizePlatformBootstrap } from "../platform/normalize";
+import type { PlatformBootstrap } from "../platform/types";
 import {
   ensureWebsiteSession,
   isSupabaseConfigured,
@@ -444,6 +447,24 @@ function normalizePhonePresetRow(row: JsonRecord): WebsitePhonePreset {
 
 export const api = {
   isConfigured: isSupabaseConfigured,
+
+  async getPlatformBootstrap(): Promise<PlatformBootstrap> {
+    const client = await ensureClient();
+    if (!client) {
+      throw new Error("Supabase is not configured for the website.");
+    }
+
+    const { data, error } = await client.rpc("get_app_bootstrap_config", {
+      p_market: "global",
+      p_platform: "web",
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return normalizePlatformBootstrap(data);
+  },
 
   async getLiveMatches(limit = 12): Promise<Match[]> {
     const client = await ensureClient();
@@ -1164,6 +1185,11 @@ export const api = {
     }
 
     try {
+      assertClientFeatureAvailable(
+        "predictions",
+        "Prediction entry is currently unavailable.",
+      );
+
       const { data, error } = await client.rpc("submit_user_prediction", {
         p_match_id: input.matchId,
         p_predicted_result_code: input.predictedResultCode ?? null,
@@ -1207,6 +1233,11 @@ export const api = {
     }
 
     try {
+      assertClientFeatureAvailable(
+        "wallet",
+        "Wallet transfers are currently unavailable.",
+      );
+
       const { error } = await client.rpc("transfer_fet_by_fan_id", {
         p_recipient_fan_id: recipientFanId,
         p_amount_fet: amountFet,
@@ -1232,11 +1263,17 @@ export const api = {
     if (!client) return;
 
     try {
-      await client
-        .from("notification_log")
-        .update({ read_at: new Date().toISOString() })
-        .eq("id", notificationId)
-        .is("read_at", null);
+      assertClientFeatureAvailable(
+        "notifications",
+        "Notifications are currently unavailable.",
+      );
+
+      const { error } = await client.rpc("mark_notification_read", {
+        p_notification_id: notificationId,
+      });
+      if (error) {
+        throw error;
+      }
     } catch (error) {
       console.warn(
         `Failed to mark notification ${notificationId} as read`,
@@ -1247,15 +1284,18 @@ export const api = {
 
   async markAllNotificationsRead(): Promise<void> {
     const client = await ensureClient();
-    const userId = await ensureWebsiteSession();
-    if (!client || !userId) return;
+    if (!client) return;
 
     try {
-      await client
-        .from("notification_log")
-        .update({ read_at: new Date().toISOString() })
-        .eq("user_id", userId)
-        .is("read_at", null);
+      assertClientFeatureAvailable(
+        "notifications",
+        "Notifications are currently unavailable.",
+      );
+
+      const { error } = await client.rpc("mark_all_notifications_read");
+      if (error) {
+        throw error;
+      }
     } catch (error) {
       console.warn("Failed to mark all notifications as read", error);
     }

@@ -5,7 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../config/app_config.dart';
-import '../../../core/config/feature_flags.dart';
+import '../../../core/config/platform_feature_access.dart';
 import '../../../features/profile/providers/profile_identity_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/currency_provider.dart';
@@ -32,11 +32,23 @@ class ProfileScreen extends ConsumerWidget {
     final fanId = ref.watch(userFanIdProvider).valueOrNull;
     final favoriteTeamsAsync = ref.watch(favoriteTeamRecordsProvider);
     final profileIdentity = ref.watch(profileIdentityProvider).valueOrNull;
-    final flags = ref.watch(featureFlagsProvider);
-    final showWallet = isAuthenticated && flags.wallet;
-    final showPredictions = isAuthenticated && flags.predictions;
-    final showLeaderboard = flags.leaderboard;
-    final showInbox = isAuthenticated && flags.notifications;
+    final featureAccess = ref.watch(platformFeatureAccessProvider);
+    final showWallet =
+        isAuthenticated &&
+        featureAccess.isVisible('wallet', surface: PlatformSurface.route);
+    final showPredictions =
+        isAuthenticated &&
+        featureAccess.isVisible('predictions', surface: PlatformSurface.route);
+    final showLeaderboard = featureAccess.isVisible(
+      'leaderboard',
+      surface: PlatformSurface.route,
+    );
+    final showInbox =
+        isAuthenticated &&
+        featureAccess.isVisible(
+          'notifications',
+          surface: PlatformSurface.route,
+        );
 
     return Scaffold(
       body: SafeArea(

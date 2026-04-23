@@ -39,6 +39,8 @@ migrate_working_dir/
 /supabase/.temp/
 /supabase/archive/
 /output/
+/.audit/
+/.wrangler/
 
 # Environment secrets
 .env

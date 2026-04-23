@@ -13,6 +13,8 @@ import PredictionOptionsSheet from './PredictionOptionsSheet';
 import { StatsPanel } from './ui/StatsPanel';
 import { TeamLogo } from './ui/TeamLogo';
 import { api } from '../services/api';
+import { isPlatformFeatureVisible } from '../platform/access';
+import { usePlatformBootstrap } from '../platform/bootstrap';
 import type {
   Match,
   PredictionConsensus,
@@ -99,6 +101,7 @@ function formatPredictionSummary(prediction: UserPrediction | null, match: Match
 
 export default function MatchDetail() {
   const { id } = useParams();
+  const { bootstrap } = usePlatformBootstrap();
   const [activeTab, setActiveTab] = useState<PredictionTab>('Predict');
   const [isPredictionOptionsOpen, setIsPredictionOptionsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -200,6 +203,23 @@ export default function MatchDetail() {
     () => formatPredictionSummary(prediction, match),
     [match, prediction],
   );
+  const canPredict = isPlatformFeatureVisible('predictions', { surface: 'action' });
+  const showNotifications = isPlatformFeatureVisible('notifications', {
+    surface: 'route',
+  });
+  const visibleTabs = useMemo(
+    () =>
+      (['Predict', 'Insights', 'Stats', 'Comments'] as PredictionTab[]).filter(
+        (tab) => canPredict || tab !== 'Predict',
+      ),
+    [bootstrap, canPredict],
+  );
+
+  useEffect(() => {
+    if (!canPredict && activeTab === 'Predict') {
+      setActiveTab('Insights');
+    }
+  }, [activeTab, canPredict]);
 
   const handleSelectResult = (resultCode: string) => {
     setDraft((current) => {
@@ -252,6 +272,14 @@ export default function MatchDetail() {
 
   const handleSavePrediction = async () => {
     if (!match) return;
+
+    if (!canPredict) {
+      setSaveFeedback({
+        tone: 'error',
+        message: 'Prediction entry is currently disabled.',
+      });
+      return;
+    }
 
     if (
       draft.resultCode == null &&
@@ -372,15 +400,17 @@ export default function MatchDetail() {
             className="text-muted hover:text-accent transition-all"
             aria-label="Share match"
           >
-            <Share2 size={20} />
-          </button>
-          <Link
-            to="/notifications"
-            className="text-muted hover:text-accent transition-all"
-            aria-label="Open notifications"
-          >
-            <Bell size={20} />
-          </Link>
+              <Share2 size={20} />
+            </button>
+          {showNotifications && (
+            <Link
+              to="/notifications"
+              className="text-muted hover:text-accent transition-all"
+              aria-label="Open notifications"
+            >
+              <Bell size={20} />
+            </Link>
+          )}
         </div>
       </header>
 
@@ -423,7 +453,7 @@ export default function MatchDetail() {
       </div>
 
       <div className="flex border-b border-border bg-surface overflow-x-auto hide-scrollbar">
-        {(['Predict', 'Insights', 'Stats', 'Comments'] as PredictionTab[]).map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -440,7 +470,7 @@ export default function MatchDetail() {
       </div>
 
       <div className="p-6">
-        {activeTab === 'Predict' && (
+        {canPredict && activeTab === 'Predict' && (
           <PredictTab
             match={match}
             prediction={prediction}
@@ -487,20 +517,22 @@ export default function MatchDetail() {
         </div>
       )}
 
-      <PredictionOptionsSheet
-        isOpen={isPredictionOptionsOpen}
-        onClose={() => setIsPredictionOptionsOpen(false)}
-        homeTeam={match.homeTeam}
-        awayTeam={match.awayTeam}
-        selectedHomeGoals={draft.homeGoals}
-        selectedAwayGoals={draft.awayGoals}
-        suggestedHomeGoals={engine?.predictedHomeGoals ?? null}
-        suggestedAwayGoals={engine?.predictedAwayGoals ?? null}
-        onSelectScore={handleSelectScore}
-        onClearScore={() =>
-          setDraft((current) => ({ ...current, homeGoals: null, awayGoals: null }))
-        }
-      />
+      {canPredict && (
+        <PredictionOptionsSheet
+          isOpen={isPredictionOptionsOpen}
+          onClose={() => setIsPredictionOptionsOpen(false)}
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          selectedHomeGoals={draft.homeGoals}
+          selectedAwayGoals={draft.awayGoals}
+          suggestedHomeGoals={engine?.predictedHomeGoals ?? null}
+          suggestedAwayGoals={engine?.predictedAwayGoals ?? null}
+          onSelectScore={handleSelectScore}
+          onClearScore={() =>
+            setDraft((current) => ({ ...current, homeGoals: null, awayGoals: null }))
+          }
+        />
+      )}
     </div>
   );
 }

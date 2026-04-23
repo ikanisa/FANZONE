@@ -25,10 +25,11 @@ type DatasetType =
 type CsvRecord = Record<string, string>;
 
 interface ImportPayload {
-  datasetType: DatasetType;
+  datasetType?: DatasetType;
   csv?: string;
   rows?: Record<string, unknown>[];
   generatePredictions?: boolean;
+  mode?: "manual" | "scheduled";
 }
 
 interface ImportErrorRow {
@@ -322,6 +323,16 @@ Deno.serve(async (req: Request) => {
     const datasetType = payload.datasetType;
 
     if (!datasetType) {
+      if (payload.mode === "scheduled") {
+        return Response.json(
+          {
+            success: true,
+            skipped: true,
+            reason: "scheduled_import_requires_payload",
+          },
+          { headers: buildCorsHeaders("content-type") },
+        );
+      }
       return Response.json(
         { error: "datasetType is required" },
         { status: 400, headers: buildCorsHeaders("content-type") },
@@ -330,6 +341,17 @@ Deno.serve(async (req: Request) => {
 
     const rows = normalizeRows(payload);
     if (!rows.length) {
+      if (payload.mode === "scheduled") {
+        return Response.json(
+          {
+            success: true,
+            skipped: true,
+            reason: "scheduled_import_has_no_rows",
+            datasetType,
+          },
+          { headers: buildCorsHeaders("content-type") },
+        );
+      }
       return Response.json(
         { error: "Provide csv or rows with at least one record" },
         { status: 400, headers: buildCorsHeaders("content-type") },

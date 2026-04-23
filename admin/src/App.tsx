@@ -63,6 +63,10 @@ const AnalyticsPage = lazyPage(
   () => import('./features/analytics/AnalyticsPage'),
   'AnalyticsPage',
 );
+const PlatformControlPage = lazyPage(
+  () => import('./features/platform-control/PlatformControlPage'),
+  'PlatformControlPage',
+);
 const AuditLogsPage = lazyPage(
   () => import('./features/audit-logs/AuditLogsPage'),
   'AuditLogsPage',
@@ -100,6 +104,7 @@ function ProtectedRoutes() {
           <Route path={ROUTES.ACCOUNT_DELETIONS} element={<RoleGuard minRole="admin"><LazyRoute><AccountDeletionRequestsPage /></LazyRoute></RoleGuard>} />
 
           {/* System */}
+          <Route path={ROUTES.PLATFORM_CONTROL} element={<RoleGuard minRole="admin"><LazyRoute><PlatformControlPage /></LazyRoute></RoleGuard>} />
           <Route path={ROUTES.SETTINGS} element={<RoleGuard minRole="super_admin"><LazyRoute><SettingsPage /></LazyRoute></RoleGuard>} />
           <Route path={ROUTES.ADMIN_ACCESS} element={<RoleGuard minRole="super_admin"><LazyRoute><AdminAccessPage /></LazyRoute></RoleGuard>} />
           <Route path={ROUTES.AUDIT_LOGS} element={<RoleGuard minRole="admin"><LazyRoute><AuditLogsPage /></LazyRoute></RoleGuard>} />

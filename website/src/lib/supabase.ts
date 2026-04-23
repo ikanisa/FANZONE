@@ -16,6 +16,7 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
       global: {
         headers: {
           'x-client-info': 'fanzone-website',
+          'x-fanzone-channel': 'web',
         },
       },
     })

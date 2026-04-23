@@ -12,7 +12,22 @@ import '../common/fz_badge.dart';
 /// Uses `AnimatedSize` + `FadeTransition` for animated entry/exit,
 /// matching the reference's `AnimatePresence` + `opacity/height` approach.
 class FzPromoBanner extends StatefulWidget {
-  const FzPromoBanner({super.key});
+  const FzPromoBanner({
+    super.key,
+    this.badgeLabel = 'DERBY DAY',
+    this.kickerLabel = 'GLOBAL',
+    this.title = 'Manchester Is RED',
+    this.subtitle = 'Fresh free picks are live now.',
+    this.ctaLabel = 'OPEN PICKS',
+    this.ctaRoute = '/predict',
+  });
+
+  final String badgeLabel;
+  final String kickerLabel;
+  final String title;
+  final String subtitle;
+  final String ctaLabel;
+  final String? ctaRoute;
 
   @override
   State<FzPromoBanner> createState() => _FzPromoBannerState();
@@ -126,23 +141,26 @@ class _FzPromoBannerState extends State<FzPromoBanner>
                       children: [
                         Row(
                           children: [
-                            const FzBadge(
-                              label: 'DERBY DAY',
+                            FzBadge(
+                              label: widget.badgeLabel,
                               variant: FzBadgeVariant.danger,
                               pulse: true,
                               fontSize: 8,
                             ),
                             const SizedBox(width: 8),
-                            Text('GLOBAL', style: FzTypography.metaLabel()),
+                            Text(
+                              widget.kickerLabel.toUpperCase(),
+                              style: FzTypography.metaLabel(),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Manchester Is RED',
+                          widget.title,
                           style: FzTypography.display(size: 14),
                         ),
                         Text(
-                          'Fresh free picks are live now.',
+                          widget.subtitle,
                           style: FzTypography.metaLabel(size: 9),
                         ),
                       ],
@@ -176,26 +194,27 @@ class _FzPromoBannerState extends State<FzPromoBanner>
                         ),
                       ),
                       const SizedBox(width: 6),
-                      GestureDetector(
-                        onTap: () => context.go('/predict'),
-                        child: Container(
-                          height: 24,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          decoration: const BoxDecoration(
-                            color: FzColors.accent2,
-                            borderRadius: FzRadii.fullRadius,
-                          ),
-                          child: Center(
-                            child: Text(
-                              'OPEN PICKS',
-                              style: FzTypography.metaLabel(
-                                size: 9,
-                                color: FzColors.darkText,
+                      if (widget.ctaRoute != null)
+                        GestureDetector(
+                          onTap: () => context.go(widget.ctaRoute!),
+                          child: Container(
+                            height: 24,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: const BoxDecoration(
+                              color: FzColors.accent2,
+                              borderRadius: FzRadii.fullRadius,
+                            ),
+                            child: Center(
+                              child: Text(
+                                widget.ctaLabel,
+                                style: FzTypography.metaLabel(
+                                  size: 9,
+                                  color: FzColors.darkText,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ],

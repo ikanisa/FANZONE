@@ -15,6 +15,7 @@ export const ROUTES = {
   MODERATION: '/moderation',
   ANALYTICS: '/analytics',
   ACCOUNT_DELETIONS: '/account-deletions',
+  PLATFORM_CONTROL: '/platform-control',
   SETTINGS: '/settings',
   ADMIN_ACCESS: '/admin-access',
   AUDIT_LOGS: '/audit-logs',

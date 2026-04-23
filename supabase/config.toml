@@ -395,6 +395,12 @@ verify_jwt = false
 [functions.import-football-data]
 verify_jwt = false
 
+[functions.dispatch-match-alerts]
+verify_jwt = false
+
+[functions.push-notify]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

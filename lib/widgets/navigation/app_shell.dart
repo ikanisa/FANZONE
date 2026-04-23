@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../core/config/platform_feature_access.dart';
 import '../../core/utils/currency_utils.dart';
 import '../../providers/currency_provider.dart';
 import '../../services/notification_service.dart';
@@ -53,8 +54,15 @@ class _AppShellState extends ConsumerState<AppShell> {
   Widget build(BuildContext context) {
     final unreadCount =
         ref.watch(unreadNotificationCountProvider).valueOrNull ?? 0;
+    final featureAccess = ref.watch(platformFeatureAccessProvider);
     final location = widget.currentLocation;
     final isHome = _isHomePath(location);
+    final desktopItems = _buildDesktopNavItems(featureAccess);
+    final mobileItems = _buildMobileNavItems(featureAccess);
+    final showWalletAction = featureAccess.isVisible(
+      'wallet',
+      surface: PlatformSurface.route,
+    );
 
     return NotificationListener<ScrollNotification>(
       onNotification: _handleScrollNotification,
@@ -67,6 +75,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                     _DesktopSidebar(
                       location: location,
                       unreadCount: unreadCount,
+                      items: desktopItems,
                     ),
                     Expanded(
                       child: DecoratedBox(
@@ -86,7 +95,9 @@ class _AppShellState extends ConsumerState<AppShell> {
                 : _FzTopBar(
                     visible: _barsVisible,
                     onHomeTap: () => context.go('/'),
-                    onWalletTap: () => context.go('/wallet'),
+                    onWalletTap: showWalletAction
+                        ? () => context.go('/wallet')
+                        : null,
                   ),
             body: body,
             bottomNavigationBar: isDesktop
@@ -95,6 +106,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                     visible: _barsVisible,
                     location: location,
                     unreadCount: unreadCount,
+                    items: mobileItems,
                   ),
           );
         },
@@ -112,7 +124,7 @@ class _FzTopBar extends ConsumerWidget implements PreferredSizeWidget {
 
   final bool visible;
   final VoidCallback onHomeTap;
-  final VoidCallback onWalletTap;
+  final VoidCallback? onWalletTap;
 
   @override
   Size get preferredSize => const Size.fromHeight(60);
@@ -150,52 +162,53 @@ class _FzTopBar extends ConsumerWidget implements PreferredSizeWidget {
                   ),
                 ),
                 const Spacer(),
-                InkWell(
-                  onTap: onWalletTap,
-                  borderRadius: BorderRadius.circular(999),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: FzColors.darkSurface2,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: FzColors.darkBorder),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          LucideIcons.wallet,
-                          size: 12,
-                          color: FzColors.coral,
-                        ),
-                        const SizedBox(width: 6),
-                        balanceAsync.when(
-                          data: (balance) => Text(
-                            formatFET(balance, currency),
-                            style: FzTypography.scoreCompact(
-                              color: FzColors.darkText,
+                if (onWalletTap != null)
+                  InkWell(
+                    onTap: onWalletTap,
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: FzColors.darkSurface2,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: FzColors.darkBorder),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            LucideIcons.wallet,
+                            size: 12,
+                            color: FzColors.coral,
+                          ),
+                          const SizedBox(width: 6),
+                          balanceAsync.when(
+                            data: (balance) => Text(
+                              formatFET(balance, currency),
+                              style: FzTypography.scoreCompact(
+                                color: FzColors.darkText,
+                              ),
+                            ),
+                            loading: () => Text(
+                              '...',
+                              style: FzTypography.scoreCompact(
+                                color: FzColors.darkMuted,
+                              ),
+                            ),
+                            error: (_, _) => Text(
+                              '—',
+                              style: FzTypography.scoreCompact(
+                                color: FzColors.darkMuted,
+                              ),
                             ),
                           ),
-                          loading: () => Text(
-                            '...',
-                            style: FzTypography.scoreCompact(
-                              color: FzColors.darkMuted,
-                            ),
-                          ),
-                          error: (_, _) => Text(
-                            '—',
-                            style: FzTypography.scoreCompact(
-                              color: FzColors.darkMuted,
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -206,52 +219,18 @@ class _FzTopBar extends ConsumerWidget implements PreferredSizeWidget {
 }
 
 class _DesktopSidebar extends StatelessWidget {
-  const _DesktopSidebar({required this.location, required this.unreadCount});
+  const _DesktopSidebar({
+    required this.location,
+    required this.unreadCount,
+    required this.items,
+  });
 
   final String location;
   final int unreadCount;
+  final List<_DesktopNavItem> items;
 
   @override
   Widget build(BuildContext context) {
-    final items = <_DesktopNavItem>[
-      const _DesktopNavItem(
-        label: 'Home',
-        icon: LucideIcons.home,
-        route: '/',
-        matcher: _isHomePath,
-      ),
-      const _DesktopNavItem(
-        label: 'Fixtures',
-        icon: LucideIcons.calendar,
-        route: '/fixtures',
-        matcher: _isFixturesPath,
-      ),
-      const _DesktopNavItem(
-        label: 'Predict',
-        icon: LucideIcons.target,
-        route: '/predict',
-        matcher: _isPredictPath,
-      ),
-      const _DesktopNavItem(
-        label: 'Leaderboard',
-        icon: LucideIcons.trophy,
-        route: '/leaderboard',
-        matcher: _isLeaderboardPath,
-      ),
-      const _DesktopNavItem(
-        label: 'Wallet',
-        icon: LucideIcons.wallet,
-        route: '/wallet',
-        matcher: _isWalletPath,
-      ),
-      const _DesktopNavItem(
-        label: 'Profile',
-        icon: LucideIcons.user,
-        route: '/profile',
-        matcher: _isProfilePath,
-      ),
-    ];
-
     return Container(
       width: 256,
       decoration: const BoxDecoration(
@@ -364,41 +343,17 @@ class _MobileBottomNav extends StatelessWidget {
     required this.visible,
     required this.location,
     required this.unreadCount,
+    required this.items,
   });
 
   final bool visible;
   final String location;
   final int unreadCount;
+  final List<_MobileNavItem> items;
 
   @override
   Widget build(BuildContext context) {
     final activeKey = _mobileNavKey(location);
-    const items = <_MobileNavItem>[
-      _MobileNavItem(
-        keyName: 'home',
-        label: 'Home',
-        icon: LucideIcons.home,
-        route: '/',
-      ),
-      _MobileNavItem(
-        keyName: 'matches',
-        label: 'Matches',
-        icon: LucideIcons.calendar,
-        route: '/fixtures',
-      ),
-      _MobileNavItem(
-        keyName: 'predict',
-        label: 'Predict',
-        icon: LucideIcons.target,
-        route: '/predict',
-      ),
-      _MobileNavItem(
-        keyName: 'profile',
-        label: 'Profile',
-        icon: LucideIcons.user,
-        route: '/profile',
-      ),
-    ];
 
     return AnimatedSlide(
       offset: visible ? Offset.zero : const Offset(0, 1),
@@ -559,10 +514,12 @@ class _MobileNavItem {
 }
 
 String? _mobileNavKey(String path) {
-  if (_isHomePath(path)) return 'home';
-  if (_isFixturesPath(path)) return 'matches';
-  if (_isPredictPath(path)) return 'predict';
-  if (_isProfilePath(path)) return 'profile';
+  if (_isHomePath(path)) return '/';
+  if (_isFixturesPath(path)) return '/fixtures';
+  if (_isPredictPath(path)) return '/predict';
+  if (_isWalletPath(path)) return '/wallet';
+  if (_isLeaderboardPath(path)) return '/leaderboard';
+  if (_isProfilePath(path)) return '/profile';
   return null;
 }
 
@@ -588,3 +545,69 @@ bool _isProfilePath(String path) =>
     path.startsWith('/notifications') ||
     path.startsWith('/settings') ||
     path.startsWith('/privacy');
+
+IconData _iconForRoute(String route) {
+  switch (route) {
+    case '/fixtures':
+      return LucideIcons.calendar;
+    case '/predict':
+      return LucideIcons.target;
+    case '/leaderboard':
+      return LucideIcons.trophy;
+    case '/wallet':
+      return LucideIcons.wallet;
+    case '/profile':
+      return LucideIcons.user;
+    default:
+      return LucideIcons.home;
+  }
+}
+
+bool Function(String) _matcherForRoute(String route) {
+  switch (route) {
+    case '/fixtures':
+      return _isFixturesPath;
+    case '/predict':
+      return _isPredictPath;
+    case '/leaderboard':
+      return _isLeaderboardPath;
+    case '/wallet':
+      return _isWalletPath;
+    case '/profile':
+      return _isProfilePath;
+    default:
+      return _isHomePath;
+  }
+}
+
+List<_DesktopNavItem> _buildDesktopNavItems(PlatformFeatureAccess access) {
+  return access
+      .navigationFeatures()
+      .map((feature) {
+        final route = access.routeFor(feature.featureKey);
+        return _DesktopNavItem(
+          label: access.labelFor(feature.featureKey),
+          icon: _iconForRoute(route),
+          route: route,
+          matcher: _matcherForRoute(route),
+        );
+      })
+      .toList(growable: false);
+}
+
+List<_MobileNavItem> _buildMobileNavItems(PlatformFeatureAccess access) {
+  final items = access
+      .navigationFeatures()
+      .map((feature) {
+        final route = access.routeFor(feature.featureKey);
+        return _MobileNavItem(
+          keyName: route,
+          label: access.labelFor(feature.featureKey),
+          icon: _iconForRoute(route),
+          route: route,
+        );
+      })
+      .toList(growable: false);
+
+  return items.take(4).toList(growable: false);
+}

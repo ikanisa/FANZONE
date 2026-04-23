@@ -27,6 +27,18 @@ import 'features/settings/screens/settings_screen.dart';
 import 'features/teams/screens/team_profile_canonical_screen.dart';
 import 'features/wallet/screens/wallet_screen.dart';
 
+bool _platformFeatureVisible(String key) {
+  final feature = runtimeBootstrapStore.config.platformFeature(key);
+  if (feature != null) {
+    return feature.resolvedState.isOperational &&
+        feature.resolvedState.isVisible;
+  }
+  return runtimeBootstrapStore.config.isFeatureEnabled(
+    key,
+    defaultValue: false,
+  );
+}
+
 /// True when any session exists (anonymous or phone-verified).
 bool _isAuthenticated() {
   final session = RuntimeAuthSessionManager.instance.currentSession;
@@ -144,7 +156,8 @@ final router = GoRouter(
             GoRoute(
               name: 'predict',
               path: '/predict',
-              builder: (context, state) => AppConfig.enablePredictions
+              builder: (context, state) =>
+                  _platformFeatureVisible('predictions')
                   ? const PredictScreen()
                   : const FeatureUnavailableScreen(featureName: 'Predict'),
             ),
@@ -155,7 +168,7 @@ final router = GoRouter(
             GoRoute(
               name: 'wallet',
               path: '/wallet',
-              builder: (context, state) => AppConfig.enableWallet
+              builder: (context, state) => _platformFeatureVisible('wallet')
                   ? const WalletScreen()
                   : const FeatureUnavailableScreen(featureName: 'Wallet'),
             ),
@@ -173,7 +186,7 @@ final router = GoRouter(
               path: '/leaderboard',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
-                AppConfig.enableLeaderboard
+                _platformFeatureVisible('leaderboard')
                     ? const LeaderboardScreen()
                     : const FeatureUnavailableScreen(
                         featureName: 'Leaderboard',
@@ -197,7 +210,7 @@ final router = GoRouter(
               path: '/notifications',
               pageBuilder: (context, state) => _fadeSlideTransition(
                 state,
-                AppConfig.enableNotifications
+                _platformFeatureVisible('notifications')
                     ? const NotificationsScreen()
                     : const FeatureUnavailableScreen(
                         featureName: 'Notifications',

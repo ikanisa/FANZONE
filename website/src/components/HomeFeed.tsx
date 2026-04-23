@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Trophy, Calendar, Sparkles, Activity, ChevronRight, X, Flame } from 'lucide-react';
@@ -7,9 +7,25 @@ import { EmptyState } from './ui/EmptyState';
 import { Badge } from './ui/Badge';
 import { useAppStore } from '../store/useAppStore';
 import { api } from '../services/api';
+import { getWebsiteHomeBlocks, isPlatformFeatureVisible } from '../platform/access';
+import { usePlatformBootstrap } from '../platform/bootstrap';
 import type { Match } from '../types';
 
-function PromoBanner() {
+function PromoBanner({
+  title,
+  subtitle,
+  badge,
+  kicker,
+  ctaLabel,
+  ctaRoute,
+}: {
+  title: string;
+  subtitle: string;
+  badge: string;
+  kicker: string;
+  ctaLabel: string;
+  ctaRoute: string;
+}) {
   const [hidden, setHidden] = useState(false);
 
   if (hidden) return null;
@@ -38,17 +54,17 @@ function PromoBanner() {
                     pulse
                     className="px-1 py-0.5 text-[8px] leading-none"
                   >
-                    DERBY DAY
+                    {badge}
                   </Badge>
                   <span className="text-[9px] font-bold text-muted uppercase tracking-widest truncate">
-                    Global
+                    {kicker}
                   </span>
                 </div>
                 <h3 className="font-display text-sm text-text leading-tight truncate">
-                  Lean Matchday Window
+                  {title}
                 </h3>
                 <p className="text-[9px] text-muted truncate">
-                  Live fixtures, free picks, and leaderboard movement are synced now.
+                  {subtitle}
                 </p>
               </div>
             </div>
@@ -61,10 +77,10 @@ function PromoBanner() {
                 <X size={12} />
               </button>
               <Link
-                to="/fixtures"
+                to={ctaRoute}
                 className="h-6 px-2.5 rounded-full bg-[#EF4444] text-bg font-bold text-[9px] uppercase tracking-widest hover:bg-[#EF4444]/90 transition-colors shadow-sm whitespace-nowrap flex items-center"
               >
-                MAKE PICKS
+                {ctaLabel}
               </Link>
             </div>
           </div>
@@ -74,7 +90,13 @@ function PromoBanner() {
   );
 }
 
-function DailyInsight({ team }: { team: string | null }) {
+function DailyInsight({
+  team,
+  subtitle,
+}: {
+  team: string | null;
+  subtitle: string;
+}) {
   if (!team) return null;
 
   return (
@@ -86,8 +108,7 @@ function DailyInsight({ team }: { team: string | null }) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs leading-snug text-text line-clamp-2">
-            {team} is pinned to your lean prediction feed. Track live fixtures,
-            lock free picks, and follow the leaderboard from one place.
+            {team} is pinned to your lean prediction feed. {subtitle}
           </p>
         </div>
       </div>
@@ -146,9 +167,20 @@ function FeedSection({
 
 export default function HomeFeed() {
   const profileTeam = useAppStore((state) => state.profileTeam);
+  const { bootstrap } = usePlatformBootstrap();
   const [liveMatches, setLiveMatches] = useState<Match[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const homeBlocks = useMemo(
+    () => getWebsiteHomeBlocks('home.primary'),
+    [bootstrap],
+  );
+  const showPredictions = isPlatformFeatureVisible('predictions', {
+    surface: 'action',
+  });
+  const showLeaderboard = isPlatformFeatureVisible('leaderboard', {
+    surface: 'route',
+  });
 
   useEffect(() => {
     let active = true;
@@ -181,18 +213,16 @@ export default function HomeFeed() {
           >
             <Calendar size={18} />
           </Link>
-          <Link
-            to="/leaderboard"
-            className="bg-surface2 text-text w-10 h-10 rounded-full flex items-center justify-center border border-border hover:bg-surface3 transition-colors"
-          >
-            <Trophy size={18} />
-          </Link>
+          {showLeaderboard && (
+            <Link
+              to="/leaderboard"
+              className="bg-surface2 text-text w-10 h-10 rounded-full flex items-center justify-center border border-border hover:bg-surface3 transition-colors"
+            >
+              <Trophy size={18} />
+            </Link>
+          )}
         </div>
       </header>
-
-      <PromoBanner />
-
-      <DailyInsight team={profileTeam} />
 
       {isLoading ? (
         <div className="space-y-6">
@@ -203,33 +233,76 @@ export default function HomeFeed() {
           </div>
         </div>
       ) : (
-        <>
-          <FeedSection
-            title="Live Action"
-            icon={<Activity size={16} className="text-danger" />}
-            trailing={
-              <Badge variant="danger" pulse={liveMatches.length > 0}>
-                {liveMatches.length}
-              </Badge>
-            }
-            matches={liveMatches}
-            emptyTitle="No Live Matches"
-            emptyDesc="Check upcoming."
-          />
+        homeBlocks.map((block) => {
+          if (block.blockType === 'promo_banner') {
+            return (
+              <PromoBanner
+                key={block.blockKey}
+                title={block.title}
+                subtitle={String(block.content.subtitle ?? 'Live fixtures are synced now.')}
+                badge={String(block.content.badge ?? 'LIVE')}
+                kicker={String(block.content.kicker ?? 'Global')}
+                ctaLabel={String(block.content.cta_label ?? 'Open')}
+                ctaRoute={
+                  showPredictions
+                    ? String(block.content.cta_route ?? '/fixtures')
+                    : '/fixtures'
+                }
+              />
+            );
+          }
 
-          <FeedSection
-            title="Upcoming"
-            icon={<Calendar size={16} className="text-muted" />}
-            trailing={
-              <Link to="/fixtures" className="text-muted hover:text-accent transition-colors">
-                <ChevronRight size={20} />
-              </Link>
-            }
-            matches={upcomingMatches}
-            emptyTitle="No Upcoming"
-            emptyDesc="None left."
-          />
-        </>
+          if (block.blockType === 'daily_insight') {
+            return (
+              <DailyInsight
+                key={block.blockKey}
+                team={profileTeam}
+                subtitle={String(
+                  block.content.subtitle ??
+                    'Track live fixtures, lock free picks, and follow the leaderboard from one place.',
+                )}
+              />
+            );
+          }
+
+          if (block.blockType === 'live_matches') {
+            return (
+              <FeedSection
+                key={block.blockKey}
+                title={block.title}
+                icon={<Activity size={16} className="text-danger" />}
+                trailing={
+                  <Badge variant="danger" pulse={liveMatches.length > 0}>
+                    {liveMatches.length}
+                  </Badge>
+                }
+                matches={liveMatches}
+                emptyTitle={String(block.content.empty_title ?? 'No Live Matches')}
+                emptyDesc={String(block.content.empty_description ?? 'Check upcoming.')}
+              />
+            );
+          }
+
+          if (block.blockType === 'upcoming_matches') {
+            return (
+              <FeedSection
+                key={block.blockKey}
+                title={block.title}
+                icon={<Calendar size={16} className="text-muted" />}
+                trailing={
+                  <Link to={String(block.content.cta_route ?? '/fixtures')} className="text-muted hover:text-accent transition-colors">
+                    <ChevronRight size={20} />
+                  </Link>
+                }
+                matches={upcomingMatches}
+                emptyTitle={String(block.content.empty_title ?? 'No Upcoming')}
+                emptyDesc={String(block.content.empty_description ?? 'None left.')}
+              />
+            );
+          }
+
+          return null;
+        })
       )}
     </div>
   );

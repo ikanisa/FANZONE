@@ -20,6 +20,8 @@ class BootstrapConfig {
     required this.featureFlags,
     required this.appConfig,
     required this.launchMoments,
+    required this.platformFeatures,
+    required this.platformContentBlocks,
   });
 
   factory BootstrapConfig.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,10 @@ class BootstrapConfig {
       featureFlags: _parseFeatureFlags(json['feature_flags']),
       appConfig: Map<String, dynamic>.from(json['app_config'] ?? {}),
       launchMoments: _parseLaunchMoments(json['launch_moments']),
+      platformFeatures: _parsePlatformFeatures(json['platform_features']),
+      platformContentBlocks: _parsePlatformContentBlocks(
+        json['platform_content_blocks'],
+      ),
     );
   }
 
@@ -46,6 +52,8 @@ class BootstrapConfig {
       featureFlags: const {},
       appConfig: const {},
       launchMoments: const [],
+      platformFeatures: const [],
+      platformContentBlocks: const [],
     );
   }
 
@@ -69,6 +77,12 @@ class BootstrapConfig {
 
   /// Active launch moments.
   final List<LaunchMomentInfo> launchMoments;
+
+  /// Channel-aware feature registry.
+  final List<PlatformFeatureInfo> platformFeatures;
+
+  /// Admin-managed content blocks used for home and entry-point composition.
+  final List<PlatformContentBlockInfo> platformContentBlocks;
 
   // ── Region helpers ──
 
@@ -169,6 +183,40 @@ class BootstrapConfig {
     return featureFlags[key] ?? defaultValue;
   }
 
+  PlatformFeatureInfo? platformFeature(String key) {
+    final normalized = key.trim().toLowerCase();
+    for (final feature in platformFeatures) {
+      if (feature.featureKey == normalized) {
+        return feature;
+      }
+    }
+    return null;
+  }
+
+  List<PlatformContentBlockInfo> contentBlocksForChannel(
+    String channel, {
+    String? placementKey,
+  }) {
+    final normalizedChannel = channel.trim().toLowerCase();
+    final normalizedPlacement = placementKey?.trim().toLowerCase();
+
+    return platformContentBlocks
+        .where((block) {
+          if (!block.isActive) return false;
+          if (block.targetChannel != 'both' &&
+              block.targetChannel != normalizedChannel) {
+            return false;
+          }
+          if (normalizedPlacement != null &&
+              block.placementKey != normalizedPlacement) {
+            return false;
+          }
+          return true;
+        })
+        .toList(growable: false)
+      ..sort((left, right) => left.sortOrder.compareTo(right.sortOrder));
+  }
+
   // ── App config helpers ──
 
   T? configValue<T>(String key) {
@@ -202,6 +250,12 @@ class BootstrapConfig {
       'app_config': appConfig,
       'launch_moments': launchMoments
           .map((moment) => moment.toJson())
+          .toList(growable: false),
+      'platform_features': platformFeatures
+          .map((feature) => feature.toJson())
+          .toList(growable: false),
+      'platform_content_blocks': platformContentBlocks
+          .map((block) => block.toJson())
           .toList(growable: false),
     };
   }
@@ -297,6 +351,24 @@ class BootstrapConfig {
     return data
         .whereType<Map<String, dynamic>>()
         .map(LaunchMomentInfo.fromJson)
+        .toList(growable: false);
+  }
+
+  static List<PlatformFeatureInfo> _parsePlatformFeatures(dynamic data) {
+    if (data is! List) return const [];
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(PlatformFeatureInfo.fromJson)
+        .toList(growable: false);
+  }
+
+  static List<PlatformContentBlockInfo> _parsePlatformContentBlocks(
+    dynamic data,
+  ) {
+    if (data is! List) return const [];
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(PlatformContentBlockInfo.fromJson)
         .toList(growable: false);
   }
 }
@@ -420,6 +492,248 @@ class LaunchMomentInfo {
     'subtitle': subtitle,
     'kicker': kicker,
     'region_key': regionKey,
+  };
+}
+
+class PlatformFeatureChannelInfo {
+  const PlatformFeatureChannelInfo({
+    required this.channel,
+    required this.isVisible,
+    required this.isEnabled,
+    required this.showInNavigation,
+    required this.showOnHome,
+    required this.sortOrder,
+    this.routeKey,
+    this.entryKey,
+    this.navigationLabel,
+    this.placementKey,
+    this.metadata = const {},
+  });
+
+  factory PlatformFeatureChannelInfo.fromJson(
+    Map<String, dynamic> json, {
+    required String fallbackChannel,
+  }) {
+    return PlatformFeatureChannelInfo(
+      channel:
+          json['channel']?.toString().trim().toLowerCase().isNotEmpty == true
+          ? json['channel'].toString().trim().toLowerCase()
+          : fallbackChannel,
+      isVisible: json['is_visible'] == true,
+      isEnabled: json['is_enabled'] == true,
+      showInNavigation: json['show_in_navigation'] == true,
+      showOnHome: json['show_on_home'] == true,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 100,
+      routeKey: json['route_key']?.toString(),
+      entryKey: json['entry_key']?.toString(),
+      navigationLabel: json['navigation_label']?.toString(),
+      placementKey: json['placement_key']?.toString(),
+      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+    );
+  }
+
+  final String channel;
+  final bool isVisible;
+  final bool isEnabled;
+  final bool showInNavigation;
+  final bool showOnHome;
+  final int sortOrder;
+  final String? routeKey;
+  final String? entryKey;
+  final String? navigationLabel;
+  final String? placementKey;
+  final Map<String, dynamic> metadata;
+
+  Map<String, dynamic> toJson() => {
+    'channel': channel,
+    'is_visible': isVisible,
+    'is_enabled': isEnabled,
+    'show_in_navigation': showInNavigation,
+    'show_on_home': showOnHome,
+    'sort_order': sortOrder,
+    'route_key': routeKey,
+    'entry_key': entryKey,
+    'navigation_label': navigationLabel,
+    'placement_key': placementKey,
+    'metadata': metadata,
+  };
+}
+
+class PlatformFeatureResolvedState {
+  const PlatformFeatureResolvedState({
+    required this.isOperational,
+    required this.isVisible,
+    required this.isAvailable,
+    required this.showInNavigation,
+    required this.showOnHome,
+    this.routeKey,
+    this.entryKey,
+    this.sortOrder = 100,
+  });
+
+  factory PlatformFeatureResolvedState.fromJson(Map<String, dynamic> json) {
+    return PlatformFeatureResolvedState(
+      isOperational: json['is_operational'] == true,
+      isVisible: json['is_visible'] == true,
+      isAvailable: json['is_available'] == true,
+      showInNavigation: json['show_in_navigation'] == true,
+      showOnHome: json['show_on_home'] == true,
+      routeKey: json['route_key']?.toString(),
+      entryKey: json['entry_key']?.toString(),
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 100,
+    );
+  }
+
+  final bool isOperational;
+  final bool isVisible;
+  final bool isAvailable;
+  final bool showInNavigation;
+  final bool showOnHome;
+  final String? routeKey;
+  final String? entryKey;
+  final int sortOrder;
+
+  Map<String, dynamic> toJson() => {
+    'is_operational': isOperational,
+    'is_visible': isVisible,
+    'is_available': isAvailable,
+    'show_in_navigation': showInNavigation,
+    'show_on_home': showOnHome,
+    'route_key': routeKey,
+    'entry_key': entryKey,
+    'sort_order': sortOrder,
+  };
+}
+
+class PlatformFeatureInfo {
+  const PlatformFeatureInfo({
+    required this.featureKey,
+    required this.displayName,
+    required this.description,
+    required this.status,
+    required this.isEnabled,
+    required this.navigationGroup,
+    required this.defaultRouteKey,
+    required this.authRequired,
+    required this.channels,
+    required this.resolvedState,
+  });
+
+  factory PlatformFeatureInfo.fromJson(Map<String, dynamic> json) {
+    final channels = Map<String, dynamic>.from(json['channels'] ?? {});
+    return PlatformFeatureInfo(
+      featureKey: json['feature_key']?.toString().trim().toLowerCase() ?? '',
+      displayName: json['display_name']?.toString() ?? '',
+      description: json['description']?.toString(),
+      status: json['status']?.toString().trim().toLowerCase() ?? 'inactive',
+      isEnabled: json['is_enabled'] == true,
+      navigationGroup: json['navigation_group']?.toString(),
+      defaultRouteKey: json['default_route_key']?.toString(),
+      authRequired: json['auth_required'] == true,
+      channels: {
+        'mobile': PlatformFeatureChannelInfo.fromJson(
+          Map<String, dynamic>.from(channels['mobile'] ?? {}),
+          fallbackChannel: 'mobile',
+        ),
+        'web': PlatformFeatureChannelInfo.fromJson(
+          Map<String, dynamic>.from(channels['web'] ?? {}),
+          fallbackChannel: 'web',
+        ),
+      },
+      resolvedState: PlatformFeatureResolvedState.fromJson(
+        Map<String, dynamic>.from(json['resolved_state'] ?? {}),
+      ),
+    );
+  }
+
+  final String featureKey;
+  final String displayName;
+  final String? description;
+  final String status;
+  final bool isEnabled;
+  final String? navigationGroup;
+  final String? defaultRouteKey;
+  final bool authRequired;
+  final Map<String, PlatformFeatureChannelInfo> channels;
+  final PlatformFeatureResolvedState resolvedState;
+
+  PlatformFeatureChannelInfo channel(String channelKey) {
+    return channels[channelKey] ??
+        PlatformFeatureChannelInfo.fromJson(
+          const {},
+          fallbackChannel: channelKey,
+        );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'feature_key': featureKey,
+    'display_name': displayName,
+    'description': description,
+    'status': status,
+    'is_enabled': isEnabled,
+    'navigation_group': navigationGroup,
+    'default_route_key': defaultRouteKey,
+    'auth_required': authRequired,
+    'channels': {
+      for (final entry in channels.entries) entry.key: entry.value.toJson(),
+    },
+    'resolved_state': resolvedState.toJson(),
+  };
+}
+
+class PlatformContentBlockInfo {
+  const PlatformContentBlockInfo({
+    required this.blockKey,
+    required this.blockType,
+    required this.title,
+    required this.content,
+    required this.targetChannel,
+    required this.isActive,
+    required this.sortOrder,
+    required this.placementKey,
+    this.featureKey,
+    this.metadata = const {},
+  });
+
+  factory PlatformContentBlockInfo.fromJson(Map<String, dynamic> json) {
+    return PlatformContentBlockInfo(
+      blockKey: json['block_key']?.toString().trim().toLowerCase() ?? '',
+      blockType: json['block_type']?.toString().trim().toLowerCase() ?? '',
+      title: json['title']?.toString() ?? '',
+      content: Map<String, dynamic>.from(json['content'] ?? {}),
+      targetChannel:
+          json['target_channel']?.toString().trim().toLowerCase() ?? 'both',
+      isActive: json['is_active'] == true,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 100,
+      placementKey:
+          json['placement_key']?.toString().trim().toLowerCase() ?? '',
+      featureKey: json['feature_key']?.toString().trim().toLowerCase(),
+      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+    );
+  }
+
+  final String blockKey;
+  final String blockType;
+  final String title;
+  final Map<String, dynamic> content;
+  final String targetChannel;
+  final bool isActive;
+  final int sortOrder;
+  final String placementKey;
+  final String? featureKey;
+  final Map<String, dynamic> metadata;
+
+  Map<String, dynamic> toJson() => {
+    'block_key': blockKey,
+    'block_type': blockType,
+    'title': title,
+    'content': content,
+    'target_channel': targetChannel,
+    'is_active': isActive,
+    'sort_order': sortOrder,
+    'placement_key': placementKey,
+    'feature_key': featureKey,
+    'metadata': metadata,
   };
 }
 

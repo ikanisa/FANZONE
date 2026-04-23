@@ -12,6 +12,7 @@ import {
   Wallet,
   Shield,
   BarChart3,
+  PanelsTopLeft,
   Settings,
   UserCog,
   ScrollText,
@@ -117,6 +118,12 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
   {
     title: "System",
     items: [
+      {
+        label: "Platform Control",
+        path: "/platform-control",
+        icon: <PanelsTopLeft size={18} />,
+        minRole: "admin",
+      },
       {
         label: "Settings",
         path: "/settings",
