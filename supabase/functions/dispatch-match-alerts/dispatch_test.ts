@@ -1,8 +1,5 @@
 import {
-  buildGoalAlertBody,
-  buildGoalAlertTitle,
   buildResultDispatchKey,
-  type GoalEventRow,
   type MatchRow,
   singleMatch,
   uniqueUserIds,
@@ -35,35 +32,6 @@ Deno.test("uniqueUserIds preserves order while deduplicating", () => {
 
   if (result.join(",") !== "user-1,user-2,user-3") {
     throw new Error(`Unexpected dedupe result: ${result.join(",")}`);
-  }
-});
-
-Deno.test("goal alert helpers build the reference notification copy", () => {
-  const event: GoalEventRow = {
-    id: "event-1",
-    match_id: "match-1",
-    minute: 63,
-    team: "Liverpool",
-    player: "Salah",
-    details: null,
-    created_at: "2026-04-20T12:00:00.000Z",
-  };
-
-  if (buildGoalAlertTitle(event) !== "Goal at 63'") {
-    throw new Error("Expected minute-based goal title");
-  }
-
-  if (buildGoalAlertBody(event) !== "Salah scored for Liverpool.") {
-    throw new Error("Expected scorer/team goal body");
-  }
-
-  const fallbackBody = buildGoalAlertBody({
-    ...event,
-    player: null,
-    team: null,
-  });
-  if (fallbackBody !== "A goal was just scored.") {
-    throw new Error("Expected generic fallback goal body");
   }
 });
 

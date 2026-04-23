@@ -4,12 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../models/match_model.dart';
-import '../../../models/pool.dart';
 import '../../../models/team_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/matches_provider.dart';
 import '../../../providers/teams_provider.dart';
-import '../../../services/pool_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_badge.dart';
@@ -27,7 +25,6 @@ class LeagueHubScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final competitionAsync = ref.watch(competitionProvider(leagueId));
     final matchesAsync = ref.watch(competitionMatchesProvider(leagueId));
-    final poolsAsync = ref.watch(poolServiceProvider);
     final teamsAsync = ref.watch(teamsByCompetitionProvider(leagueId));
 
     return competitionAsync.when(
@@ -104,13 +101,13 @@ class LeagueHubScreen extends ConsumerWidget {
                   child: _LeagueHero(
                     emoji: _leagueEmoji(competition.id),
                     name: competition.name,
+                    seasonLabel: competition.currentSeasonLabel,
                     liveCount:
                         matchesAsync.valueOrNull
                             ?.where((match) => match.isLive)
                             .length ??
                         0,
-                    activePoolCount: _leaguePools(
-                      poolsAsync.valueOrNull ?? const <ScorePool>[],
+                    openPredictionCount: _spotlightMatches(
                       matchesAsync.valueOrNull ?? const <MatchModel>[],
                     ).length,
                   ),
@@ -119,7 +116,7 @@ class LeagueHubScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _SectionHeader(
-                    title: 'Action Center',
+                    title: 'Fixtures',
                     actionLabel: 'SEE ALL',
                     badge: const FzBadge(
                       label: 'LIVE',
@@ -136,7 +133,7 @@ class LeagueHubScreen extends ConsumerWidget {
                       final spotlight = _spotlightMatches(matches);
                       if (spotlight.isEmpty) {
                         return StateView.empty(
-                          title: 'No league fixtures right now',
+                          title: 'No fixtures right now',
                           subtitle: 'Upcoming matches will appear here.',
                           icon: LucideIcons.activity,
                         );
@@ -166,58 +163,51 @@ class LeagueHubScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _SectionHeader(
-                    title: 'Hot Pools',
-                    icon: LucideIcons.swords,
-                    actionLabel: 'BROWSE POOLS',
-                    onTap: () => context.go('/pools'),
+                    title: 'Prediction Flow',
+                    icon: LucideIcons.target,
+                    actionLabel: 'OPEN PREDICT',
+                    onTap: () => context.go('/predict'),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: poolsAsync.when(
-                    data: (pools) {
-                      final leaguePools = _leaguePools(
-                        pools,
-                        matchesAsync.valueOrNull ?? const <MatchModel>[],
-                      ).take(2).toList(growable: false);
-                      if (leaguePools.isEmpty) {
-                        return StateView.empty(
-                          title: 'No league pools yet',
-                          subtitle:
-                              'Open pools for this competition will show here.',
-                          icon: LucideIcons.swords,
-                        );
-                      }
-
-                      return Column(
-                        children: [
-                          for (
-                            int index = 0;
-                            index < leaguePools.length;
-                            index++
-                          )
-                            Padding(
-                              padding: EdgeInsets.only(
-                                bottom: index == leaguePools.length - 1
-                                    ? 0
-                                    : 12,
-                              ),
-                              child: _LeaguePoolCard(pool: leaguePools[index]),
-                            ),
-                        ],
-                      );
-                    },
-                    loading: () => const _LeagueSectionSkeleton(),
-                    error: (_, _) => StateView.error(
-                      title: 'Could not load league pools',
-                      onRetry: () => ref.invalidate(poolServiceProvider),
+                  child: FzCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'This competition now uses one simple free-picks flow.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: textColor,
+                            height: 1.45,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Users save one prediction per match, earn points after results settle, and track progress in the leaderboard.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: muted,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        FilledButton.icon(
+                          onPressed: () => context.go('/predict'),
+                          icon: const Icon(LucideIcons.target, size: 16),
+                          label: const Text('Open predict'),
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 28),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: _SectionHeader(title: 'Top Registries'),
+                  child: _SectionHeader(title: 'Teams To Watch'),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -228,8 +218,8 @@ class LeagueHubScreen extends ConsumerWidget {
                       final visible = topTeams.take(2).toList(growable: false);
                       if (visible.isEmpty) {
                         return StateView.empty(
-                          title: 'No registries available',
-                          subtitle: 'Club communities will appear here.',
+                          title: 'No teams available',
+                          subtitle: 'Competition teams will appear here.',
                           icon: LucideIcons.shield,
                         );
                       }
@@ -283,17 +273,6 @@ class LeagueHubScreen extends ConsumerWidget {
       ..sort((a, b) => a.date.compareTo(b.date));
     return [...live, ...upcoming].take(2).toList(growable: false);
   }
-
-  List<ScorePool> _leaguePools(
-    List<ScorePool> pools,
-    List<MatchModel> matches,
-  ) {
-    final ids = matches.map((match) => match.id).toSet();
-    return pools
-        .where((pool) => pool.status == 'open' && ids.contains(pool.matchId))
-        .toList()
-      ..sort((a, b) => b.totalPool.compareTo(a.totalPool));
-  }
 }
 
 String _leagueEyebrow(dynamic competition) {
@@ -324,14 +303,16 @@ class _LeagueHero extends StatelessWidget {
   const _LeagueHero({
     required this.emoji,
     required this.name,
+    required this.seasonLabel,
     required this.liveCount,
-    required this.activePoolCount,
+    required this.openPredictionCount,
   });
 
   final String emoji;
   final String name;
+  final String? seasonLabel;
   final int liveCount;
-  final int activePoolCount;
+  final int openPredictionCount;
 
   @override
   Widget build(BuildContext context) {
@@ -394,6 +375,18 @@ class _LeagueHero extends StatelessWidget {
                               letterSpacing: 0.2,
                             ),
                           ),
+                          if (seasonLabel?.trim().isNotEmpty == true) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              seasonLabel!.trim(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: muted,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 6),
                           Wrap(
                             spacing: 12,
@@ -407,7 +400,7 @@ class _LeagueHero extends StatelessWidget {
                               ),
                               _HeroMeta(
                                 icon: LucideIcons.users,
-                                label: '$activePoolCount Active Pools',
+                                label: '$openPredictionCount Open picks',
                                 color: muted,
                                 muted: muted,
                               ),
@@ -423,7 +416,7 @@ class _LeagueHero extends StatelessWidget {
                   children: [
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () => context.push('/pools/create'),
+                        onPressed: () => context.push('/predict'),
                         style: FilledButton.styleFrom(
                           backgroundColor: FzColors.primary,
                           foregroundColor: FzColors.darkBg,
@@ -432,9 +425,9 @@ class _LeagueHero extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        icon: const Icon(LucideIcons.plus, size: 16),
+                        icon: const Icon(LucideIcons.target, size: 16),
                         label: const Text(
-                          'NEW POOL',
+                          'MAKE PICK',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -446,7 +439,7 @@ class _LeagueHero extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => context.push('/memberships'),
+                        onPressed: () => context.push('/leaderboard'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: textColor,
                           side: BorderSide(color: border),
@@ -455,9 +448,9 @@ class _LeagueHero extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        icon: const Icon(LucideIcons.shield, size: 16),
+                        icon: const Icon(LucideIcons.trophy, size: 16),
                         label: const Text(
-                          'CLUBS',
+                          'LEADERBOARD',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -679,115 +672,6 @@ class _TeamLine extends StatelessWidget {
   }
 }
 
-class _LeaguePoolCard extends StatelessWidget {
-  const _LeaguePoolCard({required this.pool});
-
-  final ScorePool pool;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-
-    return FzCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FzBadge(
-                        label: 'Stake: ${pool.stake} FET',
-                        variant: FzBadgeVariant.ghost,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        pool.matchName,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'By ${pool.creatorName} • ${pool.participantsCount} entries',
-                        style: TextStyle(fontSize: 12, color: muted),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'TOTAL POOL',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: muted,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${pool.totalPool} FET',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: FzColors.coral,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(24),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => context.push('/pool/${pool.id}'),
-                    child: const Text('VIEW POOL'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  height: 40,
-                  child: FilledButton(
-                    onPressed: () => context.push('/pool/${pool.id}'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: FzColors.coral,
-                      foregroundColor: FzColors.darkBg,
-                    ),
-                    child: const Text('JOIN'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _RegistryRow extends StatelessWidget {
   const _RegistryRow({required this.team});
 
@@ -831,7 +715,7 @@ class _RegistryRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${team.fanCount} Members',
+                    '${team.fanCount} followers',
                     style: TextStyle(fontSize: 12, color: muted),
                   ),
                 ],

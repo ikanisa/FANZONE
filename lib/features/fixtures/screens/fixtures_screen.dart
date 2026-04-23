@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/constants/league_constants.dart';
 import '../../../models/competition_model.dart';
 import '../../../models/match_model.dart';
-import '../../../core/constants/league_constants.dart';
+import '../../../features/home/data/home_match_curator.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/favourites_provider.dart';
 import '../../../providers/matches_provider.dart';
@@ -78,8 +79,8 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     }
   }
 
-  void _openPools(BuildContext context) {
-    context.go('/pools');
+  void _openPredict(BuildContext context) {
+    context.go('/predict');
   }
 
   @override
@@ -195,7 +196,24 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 10)),
           matchesAsync.when(
             data: (matches) {
-              final filtered = _filterMatches(matches);
+              final competitionLabels = <String, String>{
+                for (final competition
+                    in competitionsAsync.valueOrNull ?? const [])
+                  competition.id: competition.shortName.isNotEmpty
+                      ? competition.shortName
+                      : competition.name,
+              };
+              final competitionRanks = <String, int>{
+                for (final competition
+                    in competitionsAsync.valueOrNull ?? const [])
+                  if (competition.catalogRank != null)
+                    competition.id: competition.catalogRank!,
+              };
+              final filtered = _filterMatches(
+                matches,
+                competitionLabels: competitionLabels,
+                competitionRanks: competitionRanks,
+              );
               if (filtered.isEmpty) {
                 return SliverFillRemaining(
                   hasScrollBody: false,
@@ -231,7 +249,7 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                         matches: filtered,
                         onOpenMatch: (match) =>
                             context.push('/match/${match.id}'),
-                        onOpenPools: () => _openPools(context),
+                        onOpenPredict: () => _openPredict(context),
                       ),
                     ],
                   ),
@@ -255,7 +273,11 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     );
   }
 
-  List<MatchModel> _filterMatches(List<MatchModel> matches) {
+  List<MatchModel> _filterMatches(
+    List<MatchModel> matches, {
+    required Map<String, String> competitionLabels,
+    required Map<String, int> competitionRanks,
+  }) {
     final filtered = matches.where((match) {
       final competitionMatches = _selectedCompetitionId == null
           ? true
@@ -263,25 +285,15 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
       return competitionMatches;
     }).toList();
 
-    filtered.sort((left, right) {
-      if (left.isLive != right.isLive) return left.isLive ? -1 : 1;
-      return left.date.compareTo(right.date);
-    });
-    return filtered;
+    return orderFixtureMatches(
+      matches: filtered,
+      competitionNames: competitionLabels,
+      competitionRanks: competitionRanks,
+    );
   }
 
   String _fixtureLeagueLabel(String competitionId) {
-    final normalized = competitionId.toLowerCase();
-    if (normalized.contains('premier')) return 'Premier League';
-    if (normalized.contains('la_liga') || normalized.contains('laliga')) {
-      return 'La Liga';
-    }
-    if (normalized.contains('serie')) return 'Serie A';
-    if (normalized.contains('champions') || normalized.contains('ucl')) {
-      return 'UCL';
-    }
-    if (normalized.contains('malta')) return 'Malta Premier';
-    return competitionId;
+    return competitionId.replaceAll('_', ' ').replaceAll('-', ' ').trim();
   }
 }
 
@@ -459,7 +471,7 @@ class _MatchesFilterHeader extends StatelessWidget {
                       }
                       return left.compareTo(right);
                     });
-              final competitionLabels = {
+              final competitionLabels = <String, String>{
                 for (final competition
                     in competitionsAsync.valueOrNull ?? const [])
                   competition.id: competition.shortName.isNotEmpty

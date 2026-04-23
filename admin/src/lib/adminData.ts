@@ -1,5 +1,9 @@
-import { adminEnvError, getSupabaseClient } from './supabase';
-import type { AdminUser } from '../types';
+import {
+  adminEnvError,
+  createScopedSupabaseClient,
+  getSupabaseClient,
+} from "./supabase";
+import type { AdminUser } from "../types";
 
 interface AdminQueryErrorLike {
   message: string;
@@ -23,8 +27,9 @@ export interface AdminCountQuery extends PromiseLike<AdminCountResponse> {
   in(column: string, values: readonly unknown[]): AdminCountQuery;
 }
 
-export interface AdminRowsQuery<T = Record<string, unknown>>
-  extends PromiseLike<AdminRowsResponse<T>> {
+export interface AdminRowsQuery<
+  T = Record<string, unknown>,
+> extends PromiseLike<AdminRowsResponse<T>> {
   eq(column: string, value: unknown): AdminRowsQuery<T>;
   neq(column: string, value: unknown): AdminRowsQuery<T>;
   gte(column: string, value: unknown): AdminRowsQuery<T>;
@@ -42,25 +47,42 @@ export function requireAdminClient() {
   return getSupabaseClient();
 }
 
-export async function runAdminRpc<T>(
+async function runAdminRpcWithClient<T>(
+  client: ReturnType<typeof createScopedSupabaseClient>,
   fnName: string,
   args: Record<string, unknown> = {},
 ): Promise<T> {
-  const { data, error } = await requireAdminClient().rpc(fnName, args);
+  const { data, error } = await client.rpc(fnName, args);
   if (error) throw new Error(error.message);
   return data as T;
 }
 
+export async function runAdminRpc<T>(
+  fnName: string,
+  args: Record<string, unknown> = {},
+): Promise<T> {
+  return runAdminRpcWithClient(requireAdminClient(), fnName, args);
+}
+
 export async function fetchAdminMe(): Promise<AdminUser | null> {
-  return runAdminRpc<AdminUser | null>('get_admin_me');
+  return runAdminRpc<AdminUser | null>("get_admin_me");
+}
+
+export async function fetchAdminMeWithAccessToken(
+  accessToken: string,
+): Promise<AdminUser | null> {
+  return runAdminRpcWithClient<AdminUser | null>(
+    createScopedSupabaseClient(accessToken),
+    "get_admin_me",
+  );
 }
 
 export async function countAdminRows(
   table: string,
   mutate?: (query: AdminCountQuery) => AdminCountQuery,
 ): Promise<number> {
-  let query = requireAdminClient().from(table).select('id', {
-    count: 'exact',
+  let query = requireAdminClient().from(table).select("id", {
+    count: "exact",
     head: true,
   }) as unknown as AdminCountQuery;
   if (mutate) query = mutate(query);
@@ -74,7 +96,9 @@ export async function fetchAdminRows<T>(
   table: string,
   mutate?: (query: AdminRowsQuery<T>) => AdminRowsQuery<T>,
 ): Promise<T[]> {
-  let query = requireAdminClient().from(table).select('*') as unknown as AdminRowsQuery<T>;
+  let query = requireAdminClient()
+    .from(table)
+    .select("*") as unknown as AdminRowsQuery<T>;
   if (mutate) query = mutate(query);
 
   const { data, error } = await query;

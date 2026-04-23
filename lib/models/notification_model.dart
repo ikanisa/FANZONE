@@ -11,8 +11,8 @@ class NotificationItem with _$NotificationItem {
     required String title,
     @Default('') String body,
     @Default({}) Map<String, dynamic> data,
-    required DateTime sentAt,
-    DateTime? readAt,
+    @JsonKey(name: 'sent_at') required DateTime sentAt,
+    @JsonKey(name: 'read_at') DateTime? readAt,
   }) = _NotificationItem;
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) =>
@@ -22,12 +22,12 @@ class NotificationItem with _$NotificationItem {
 @freezed
 class NotificationPreferences with _$NotificationPreferences {
   const factory NotificationPreferences({
-    @Default(true) bool goalAlerts,
-    @Default(true) bool poolUpdates,
-    @Default(true) bool dailyChallenge,
-    @Default(true) bool walletActivity,
-    @Default(true) bool communityNews,
-    @Default(false) bool marketing,
+    @JsonKey(name: 'goal_alerts') @Default(true) bool goalAlerts,
+    @JsonKey(name: 'prediction_updates')
+    @Default(true)
+    bool predictionUpdates,
+    @JsonKey(name: 'reward_updates') @Default(true) bool rewardUpdates,
+    @JsonKey(name: 'marketing') @Default(false) bool marketing,
   }) = _NotificationPreferences;
 
   factory NotificationPreferences.fromJson(Map<String, dynamic> json) =>
@@ -37,13 +37,12 @@ class NotificationPreferences with _$NotificationPreferences {
 @freezed
 class UserStats with _$UserStats {
   const factory UserStats({
-    @Default(0) int predictionStreak,
-    @Default(0) int longestStreak,
-    @Default(0) int totalPredictions,
-    @Default(0) int totalPoolsEntered,
-    @Default(0) int totalPoolsWon,
-    @Default(0) int totalFetEarned,
-    @Default(0) int totalFetSpent,
+    @JsonKey(name: 'prediction_streak') @Default(0) int predictionStreak,
+    @JsonKey(name: 'longest_streak') @Default(0) int longestStreak,
+    @JsonKey(name: 'total_predictions') @Default(0) int totalPredictions,
+    @JsonKey(name: 'correct_predictions') @Default(0) int correctPredictions,
+    @JsonKey(name: 'total_fet_earned') @Default(0) int totalFetEarned,
+    @JsonKey(name: 'total_fet_spent') @Default(0) int totalFetSpent,
   }) = _UserStats;
 
   factory UserStats.fromJson(Map<String, dynamic> json) =>

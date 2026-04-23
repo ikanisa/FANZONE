@@ -7,7 +7,6 @@ export interface EngagementDay {
   day: string;
   dau: number;
   predictions: number;
-  pools: number;
 }
 
 export interface FetFlowWeek {
@@ -15,7 +14,7 @@ export interface FetFlowWeek {
   issued: number;
   transferred: number;
   redeemed: number;
-  staked: number;
+  rewarded: number;
 }
 
 export interface CompetitionShare {

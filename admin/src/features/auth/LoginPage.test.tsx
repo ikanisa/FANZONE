@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
-import { AuthContext, type AuthState } from '../../hooks/auth-context';
-import { LoginPage } from './LoginPage';
+import { AuthContext, type AuthState } from "../../hooks/auth-context";
+import { LoginPage } from "./LoginPage";
 
 function buildAuthState(overrides: Partial<AuthState> = {}): AuthState {
   return {
@@ -18,21 +18,21 @@ function buildAuthState(overrides: Partial<AuthState> = {}): AuthState {
   };
 }
 
-describe('LoginPage', () => {
-  it('exposes WhatsApp OTP login only', () => {
+describe("LoginPage", () => {
+  it("exposes WhatsApp OTP login only", () => {
     render(
       <AuthContext.Provider value={buildAuthState()}>
         <LoginPage />
       </AuthContext.Provider>,
     );
 
-    expect(screen.getByText('VERIFY VIA WHATSAPP')).toBeTruthy();
-    expect(screen.getByLabelText('WhatsApp Number')).toBeTruthy();
-    expect(screen.queryByLabelText('Email')).toBeNull();
-    expect(screen.queryByLabelText('Password')).toBeNull();
+    expect(screen.getByText("VERIFY VIA WHATSAPP")).toBeTruthy();
+    expect(screen.getByLabelText("WhatsApp Number")).toBeTruthy();
+    expect(screen.queryByLabelText("Email")).toBeNull();
+    expect(screen.queryByLabelText("Password")).toBeNull();
   });
 
-  it('moves to OTP verification after sending a WhatsApp code', async () => {
+  it("moves to OTP verification after sending a WhatsApp code", async () => {
     const requestOtp = vi.fn().mockResolvedValue(true);
 
     render(
@@ -41,24 +41,30 @@ describe('LoginPage', () => {
       </AuthContext.Provider>,
     );
 
-    fireEvent.change(screen.getByLabelText('WhatsApp Number'), {
-      target: { value: '+356 9912 3456' },
+    fireEvent.change(screen.getByLabelText("WhatsApp Number"), {
+      target: { value: "+111 9912 3456" },
     });
-    const submitButton = screen.getByRole('button', {
-      name: 'Send Code Via WhatsApp',
+    const submitButton = screen.getByRole("button", {
+      name: "Send Code Via WhatsApp",
     }) as HTMLButtonElement;
 
     await waitFor(() => {
       expect(submitButton.disabled).toBe(false);
     });
 
-    fireEvent.submit(submitButton.closest('form')!);
+    fireEvent.submit(submitButton.closest("form")!);
 
-    await waitFor(() => {
-      expect(requestOtp).toHaveBeenCalledWith('+35699123456');
-    }, { timeout: 10000 });
-    await waitFor(() => {
-      expect(screen.getByText('ENTER OTP')).toBeTruthy();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(requestOtp).toHaveBeenCalledWith("+11199123456");
+      },
+      { timeout: 10000 },
+    );
+    await waitFor(
+      () => {
+        expect(screen.getByText("ENTER OTP")).toBeTruthy();
+      },
+      { timeout: 10000 },
+    );
   });
 });

@@ -162,9 +162,7 @@ class CompetitionSectionHeader extends StatelessWidget {
                       : 'Add $title to favourites',
                   visualDensity: VisualDensity.compact,
                   icon: Icon(
-                    isFavourite
-                        ? LucideIcons.star
-                        : LucideIcons.star,
+                    isFavourite ? LucideIcons.star : LucideIcons.star,
                     size: 18,
                     color: isFavourite ? FzColors.coral : muted,
                   ),

@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/di/gateway_providers.dart';
 import '../../../core/market/launch_market.dart';
 import '../../../core/runtime/app_runtime_state.dart';
+import '../../../core/utils/phone_country_catalog.dart';
 import '../widgets/country_code_picker.dart';
 import '../../../data/team_search_database.dart';
 import '../../../models/user_market_preferences_model.dart';
@@ -53,7 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedCountry = findCountryByCode('RW');
+    _selectedCountry = findCountryByCode(null);
     ref.read(selectedLaunchRegionProvider.notifier).state = 'global';
     ref.read(selectedLaunchFocusTagsProvider.notifier).replaceAll({});
     ref.read(localTeamSearchQueryProvider.notifier).state = '';
@@ -85,7 +86,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   String get _fullPhone {
     final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
     if (digits.isEmpty) return '';
-    return '${_selectedCountry.dialCode}$digits';
+    return '${_selectedCountry.preset.dialCode}$digits';
   }
 
   int get _otpLength => _otpControllers.fold<int>(
@@ -97,7 +98,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _phoneController.text.replaceAll(RegExp(r'\D'), '');
 
   bool get _isPhoneNumberValid =>
-      _localPhoneDigits.length >= _selectedCountry.minDigits;
+      _localPhoneDigits.length >= _selectedCountry.preset.minDigits;
 
   void _setStep(int step) {
     HapticFeedback.lightImpact();
@@ -111,14 +112,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     var digits = value.replaceAll(RegExp(r'\D'), '');
 
     final maxDigits = maxPhoneDigitsForHint(
-      _selectedCountry.hint,
-      minDigits: _selectedCountry.minDigits,
+      _selectedCountry.preset.hint,
+      minDigits: _selectedCountry.preset.minDigits,
     );
     if (digits.length > maxDigits) {
       digits = digits.substring(0, maxDigits);
     }
 
-    final formatted = formatPhoneDigits(digits, _selectedCountry.hint);
+    final formatted = formatPhoneDigits(digits, _selectedCountry.preset.hint);
     if (_phoneController.text != formatted) {
       _phoneController.value = TextEditingValue(
         text: formatted,
@@ -284,7 +285,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     ref.invalidate(userMarketPreferencesProvider);
     ref.invalidate(userRegionProvider);
     ref.invalidate(homeLaunchEventsProvider);
-    ref.invalidate(spotlightChallengesProvider);
 
     await ref.read(cacheServiceProvider).setBool('onboarding_complete', true);
     if (!mounted) return;
@@ -296,17 +296,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final suggestedTeams = allTeams
-        .where(
-          (team) => const {
-            'APR FC',
-            'Rayon Sports',
-            'Arsenal',
-            'Real Madrid',
-          }.contains(team.name),
-        )
-        .take(4)
-        .toList(growable: false);
+    final selectedRegion = ref.watch(selectedLaunchRegionProvider);
+    final regionalSuggestions = popularTeamsForRegion(selectedRegion);
+    final globalSuggestions = popularTeamsForRegion('global');
+    final suggestedTeams = <OnboardingTeam>[
+      ...regionalSuggestions,
+      ...globalSuggestions.where(
+        (team) =>
+            !regionalSuggestions.any((existing) => existing.id == team.id),
+      ),
+      ...allTeams.where(
+        (team) =>
+            !regionalSuggestions.any((existing) => existing.id == team.id),
+      ),
+    ].take(4).toList(growable: false);
 
     return Scaffold(
       backgroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,

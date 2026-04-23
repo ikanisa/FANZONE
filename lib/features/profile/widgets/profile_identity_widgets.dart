@@ -128,7 +128,7 @@ class ProfileHeaderCard extends ConsumerWidget {
                               ? Text.rich(
                                   TextSpan(
                                     children: FzWordmark.spansForText(
-                                      'FANZONE Member',
+                                      'FANZONE Fan',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,

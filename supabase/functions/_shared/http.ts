@@ -6,6 +6,7 @@ interface SharedSecretOption {
 interface EdgeAuthorizationOptions {
   req: Request;
   serviceRoleKey?: string;
+  serviceRoleKeys?: string[];
   allowServiceRoleBearer?: boolean;
   sharedSecrets?: SharedSecretOption[];
 }
@@ -45,15 +46,28 @@ export function readBearerToken(req: Request): string | null {
   return match?.[1]?.trim() || null;
 }
 
+function readApiKey(req: Request): string | null {
+  return req.headers.get("apikey")?.trim() || null;
+}
+
 export function isAuthorizedEdgeRequest({
   req,
   serviceRoleKey,
+  serviceRoleKeys = [],
   allowServiceRoleBearer = false,
   sharedSecrets = [],
 }: EdgeAuthorizationOptions): boolean {
   const bearerToken = readBearerToken(req);
+  const apiKey = readApiKey(req);
+  const allowedServiceRoleKeys = [serviceRoleKey, ...serviceRoleKeys]
+    .map((value) => value?.trim() || "")
+    .filter((value) => value.length > 0);
+
   if (
-    allowServiceRoleBearer && serviceRoleKey && bearerToken === serviceRoleKey
+    allowServiceRoleBearer &&
+    allowedServiceRoleKeys.some((value) =>
+      value === bearerToken || value === apiKey
+    )
   ) {
     return true;
   }

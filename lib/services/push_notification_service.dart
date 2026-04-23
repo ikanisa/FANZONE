@@ -96,11 +96,11 @@ class PushNotificationService {
 
   FzToastType _mapToastType(String? type) {
     switch (type) {
-      case 'pool_joined':
-      case 'pool_received':
-        return FzToastType.poolReceived;
-      case 'pool_settled':
-        return FzToastType.poolSettled;
+      case 'prediction_update':
+        return FzToastType.predictionUpdate;
+      case 'prediction_scored':
+      case 'prediction_reward':
+        return FzToastType.predictionReward;
       default:
         return FzToastType.system;
     }
@@ -113,12 +113,6 @@ class PushNotificationService {
 
   void _navigateFromData(Map<String, dynamic> data) {
     if (data.isEmpty) return;
-
-    final poolId = data['pool_id']?.toString();
-    if (poolId != null && poolId.isNotEmpty) {
-      router.go('/pool/$poolId');
-      return;
-    }
 
     final matchId = data['match_id']?.toString();
     if (matchId != null && matchId.isNotEmpty) {
@@ -135,16 +129,14 @@ class PushNotificationService {
 
     final type = data['type']?.toString();
     switch (type) {
-      case 'pool_settled':
-      case 'pool_joined':
-        router.go('/pools');
+      case 'prediction_update':
+      case 'prediction_scored':
+      case 'prediction_reward':
+        router.go('/predict');
         return;
       case 'wallet_credit':
       case 'wallet_debit':
         router.go('/wallet');
-        return;
-      case 'daily_challenge':
-        router.go('/profile');
         return;
       default:
         router.go('/notifications');
@@ -156,32 +148,7 @@ class PushNotificationService {
     if (route == null || route.trim().isEmpty) return null;
 
     final normalized = route.trim();
-    if (!normalized.startsWith('/')) return null;
-    if (normalized.startsWith('/home/match/')) {
-      return normalized.replaceFirst('/home/match/', '/match/');
-    }
-    if (normalized == '/home' || normalized == '/home/') {
-      return '/';
-    }
-    if (normalized == '/predict') return '/pools';
-    if (normalized == '/predict/jackpot') return '/jackpot';
-    if (normalized.startsWith('/predict/pool/')) {
-      return normalized.replaceFirst('/predict/pool/', '/pool/');
-    }
-    if (normalized == '/profile/notifications') return '/notifications';
-    if (normalized == '/profile/settings') return '/settings';
-    if (normalized == '/profile/settings/privacy') return '/privacy';
-    if (normalized == '/profile/daily-challenge') return '/profile';
-    if (normalized == '/profile/prediction-history') return '/profile';
-    if (normalized == '/profile/seasonal-leaderboard') return '/leaderboard';
-    if (normalized == '/profile/contests') return '/profile';
-    if (normalized == '/clubs/membership') return '/memberships';
-    if (normalized == '/clubs/social') return '/social';
-    if (normalized == '/clubs/fan-id') return '/fan-id';
-    if (normalized.startsWith('/clubs/team/')) {
-      return normalized.replaceFirst('/clubs/team/', '/team/');
-    }
-    return normalized;
+    return normalized.startsWith('/') ? normalized : null;
   }
 
   Future<void> registerToken(String token) async {

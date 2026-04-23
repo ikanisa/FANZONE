@@ -85,6 +85,32 @@ Deno.test("isAuthorizedEdgeRequest only accepts configured shared secrets by def
   }
 });
 
+Deno.test("isAuthorizedEdgeRequest accepts trimmed service role bearer and apikey values when enabled", () => {
+  const bearerRequest = new Request("https://example.com", {
+    headers: { Authorization: "Bearer service-role-key" },
+  });
+  const apiKeyRequest = new Request("https://example.com", {
+    headers: { apikey: "fallback-service-role-key" },
+  });
+
+  const bearerAuthorized = isAuthorizedEdgeRequest({
+    req: bearerRequest,
+    serviceRoleKey: "  service-role-key  ",
+    allowServiceRoleBearer: true,
+  });
+  const apiKeyAuthorized = isAuthorizedEdgeRequest({
+    req: apiKeyRequest,
+    serviceRoleKeys: ["fallback-service-role-key"],
+    allowServiceRoleBearer: true,
+  });
+
+  if (!bearerAuthorized || !apiKeyAuthorized) {
+    throw new Error(
+      "Expected trimmed service-role bearer and apikey auth to be accepted",
+    );
+  }
+});
+
 Deno.test("isAuthorizedByServiceRole rejects arbitrary bearer tokens", () => {
   const request = new Request("https://example.com", {
     headers: { Authorization: "Bearer definitely-not-service-role" },

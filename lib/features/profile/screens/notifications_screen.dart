@@ -293,20 +293,19 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'pool_received':
+      case 'prediction_update':
+      case 'prediction_created':
+      case 'prediction_reminder':
         return LucideIcons.swords;
       case 'goal_alert':
         return LucideIcons.target;
-      case 'pool_update':
-        return LucideIcons.swords;
-      case 'pool_settled':
+      case 'prediction_scored':
+      case 'prediction_reward':
         return LucideIcons.trophy;
       case 'wallet_credit':
       case 'wallet_debit':
       case 'wallet':
         return LucideIcons.wallet;
-      case 'daily_challenge':
-        return LucideIcons.calendar;
       case 'community':
         return LucideIcons.users;
       case 'marketing':
@@ -320,10 +319,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   Color _colorForType(String type) {
     switch (type) {
-      case 'pool_received':
-      case 'pool_update':
+      case 'prediction_update':
+      case 'prediction_created':
+      case 'prediction_reminder':
         return FzColors.accent;
-      case 'pool_settled':
+      case 'prediction_scored':
+      case 'prediction_reward':
         return FzColors.accent3;
       case 'system':
         return FzColors.accent2;
@@ -332,8 +333,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case 'wallet_credit':
       case 'wallet_debit':
       case 'wallet':
-        return FzColors.secondary;
-      case 'daily_challenge':
         return FzColors.secondary;
       case 'community':
         return FzColors.secondary;
@@ -352,15 +351,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   String? _routeForNotification(NotificationItem item) {
-    final poolId = _stringValue(item.data['pool_id']);
-    final challengeId = _stringValue(item.data['challenge_id']);
     final matchId = _stringValue(item.data['match_id']);
     final teamId = _stringValue(item.data['team_id']);
     final competitionId = _stringValue(item.data['competition_id']);
     final screen = _stringValue(item.data['screen']);
 
-    if (poolId != null) return '/pool/$poolId';
-    if (challengeId != null) return '/profile';
     if (teamId != null) return '/team/$teamId';
     if (competitionId != null) return '/league/$competitionId';
     if (matchId != null) return '/match/$matchId';
@@ -368,26 +363,24 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     if (screen != null) {
       if (screen == '/profile') {
         switch (item.type) {
-          case 'daily_challenge':
-            return '/profile';
           case 'wallet':
           case 'wallet_credit':
           case 'wallet_debit':
             return '/wallet';
           default:
-            return '/profile';
+            return '/predict';
         }
       }
       if (screen.startsWith('/')) return screen;
     }
 
     switch (item.type) {
-      case 'pool_received':
-      case 'pool_update':
-      case 'pool_settled':
-        return '/pools';
-      case 'daily_challenge':
-        return '/profile';
+      case 'prediction_update':
+      case 'prediction_created':
+      case 'prediction_reminder':
+      case 'prediction_scored':
+      case 'prediction_reward':
+        return '/predict';
       case 'wallet':
       case 'wallet_credit':
       case 'wallet_debit':

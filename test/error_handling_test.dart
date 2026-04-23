@@ -105,16 +105,16 @@ void main() {
       expect(failure, isA<BusinessRuleFailure>());
     });
 
-    test('maps Minimum stake to BusinessRuleFailure', () {
+    test('maps no longer open to BusinessRuleFailure', () {
       final failure = mapExceptionToFailure(
-        Exception('Minimum stake is 10 FET'),
+        Exception('Prediction window is no longer open'),
       );
       expect(failure, isA<BusinessRuleFailure>());
     });
 
     test('maps already joined to BusinessRuleFailure', () {
       final failure = mapExceptionToFailure(
-        Exception('User has already joined this pool'),
+        Exception('User has already submitted a prediction for this match'),
       );
       expect(failure, isA<BusinessRuleFailure>());
     });

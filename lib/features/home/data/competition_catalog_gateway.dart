@@ -35,8 +35,16 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
   ) {
     final sorted = [...competitions];
     sorted.sort((left, right) {
-      final leftRank = competitionCatalogRankByIdName(left.id, left.name);
-      final rightRank = competitionCatalogRankByIdName(right.id, right.name);
+      final leftRank = competitionCatalogRank(
+        id: left.id,
+        name: left.name,
+        catalogRank: left.catalogRank,
+      );
+      final rightRank = competitionCatalogRank(
+        id: right.id,
+        name: right.name,
+        catalogRank: right.catalogRank,
+      );
       if (leftRank != rightRank) {
         return leftRank.compareTo(rightRank);
       }
@@ -44,6 +52,27 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
       return left.name.toLowerCase().compareTo(right.name.toLowerCase());
     });
     return sorted;
+  }
+
+  CompetitionModel _mapCompetitionRow(Map<String, dynamic> row) {
+    final normalized = <String, dynamic>{
+      'id': row['id'],
+      'name': row['name'],
+      'short_name': row['short_name'] ?? row['name'],
+      'country': row['country'] ?? row['country_or_region'] ?? '',
+      'tier': row['tier'] ?? 1,
+      'competition_type': row['competition_type'],
+      'is_featured': row['is_featured'] == true,
+      'is_international': row['is_international'] == true,
+      'is_active': row['is_active'] != false,
+      'current_season_id': row['current_season_id'],
+      'current_season_label': row['current_season_label'] ?? row['season'],
+      'future_match_count': (row['future_match_count'] as num?)?.toInt() ?? 0,
+      'catalog_rank': (row['catalog_rank'] as num?)?.toInt(),
+      'created_at': row['created_at'],
+      'updated_at': row['updated_at'],
+    };
+    return CompetitionModel.fromJson(normalized);
   }
 
   @override
@@ -58,52 +87,31 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
 
     try {
       dynamic rows;
-      var usedRankedView = false;
-      try {
+      if (featuredOnly) {
+        var query = client.from('competitions').select();
+        if (tier != null) {
+          query = query.eq('tier', tier);
+        }
+        rows = await query
+            .eq('is_featured', true)
+            .eq('is_active', true)
+            .order('name', ascending: true);
+      } else {
         var query = client.from('app_competitions_ranked').select();
         if (tier != null) {
           query = query.eq('tier', tier);
         }
-        if (featuredOnly) {
-          query = query.eq('is_featured', true);
-        }
         rows = await query
+            .eq('is_active', true)
             .order('catalog_rank', ascending: true)
             .order('future_match_count', ascending: false)
             .order('name', ascending: true);
-        usedRankedView = true;
-      } catch (error) {
-        AppLogger.d('Failed to load ranked app competitions view: $error');
-        try {
-          var fallbackViewQuery = client.from('app_competitions').select();
-          if (tier != null) {
-            fallbackViewQuery = fallbackViewQuery.eq('tier', tier);
-          }
-          if (featuredOnly) {
-            fallbackViewQuery = fallbackViewQuery.eq('is_featured', true);
-          }
-          rows = await fallbackViewQuery
-              .order('future_match_count', ascending: false)
-              .order('name', ascending: true);
-        } catch (viewError) {
-          AppLogger.d('Failed to load app competitions view: $viewError');
-          var fallbackQuery = client.from('competitions').select();
-          if (tier != null) {
-            fallbackQuery = fallbackQuery.eq('tier', tier);
-          }
-          if (featuredOnly) {
-            fallbackQuery = fallbackQuery.eq('is_featured', true);
-          }
-          rows = await fallbackQuery.order('name', ascending: true);
-        }
       }
       final competitions = (rows as List)
           .whereType<Map>()
-          .map(
-            (row) => CompetitionModel.fromJson(Map<String, dynamic>.from(row)),
-          )
+          .map((row) => _mapCompetitionRow(Map<String, dynamic>.from(row)))
           .toList(growable: false);
-      return usedRankedView ? competitions : _sortCompetitions(competitions);
+      return featuredOnly ? _sortCompetitions(competitions) : competitions;
     } catch (error) {
       AppLogger.d('Failed to load competitions: $error');
       if (error is SportsDataException) rethrow;
@@ -122,36 +130,18 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
     }
 
     try {
-      dynamic row;
-      try {
-        row = await client
-            .from('app_competitions_ranked')
-            .select()
-            .eq('id', competitionId)
-            .maybeSingle();
-      } catch (error) {
-        AppLogger.d(
-          'Failed to load ranked app competition $competitionId: $error',
-        );
-        try {
-          row = await client
-              .from('app_competitions')
-              .select()
-              .eq('id', competitionId)
-              .maybeSingle();
-        } catch (viewError) {
-          AppLogger.d(
-            'Failed to load app competition $competitionId: $viewError',
-          );
-          row = await client
-              .from('competitions')
-              .select()
-              .eq('id', competitionId)
-              .maybeSingle();
-        }
-      }
+      dynamic row = await client
+          .from('app_competitions_ranked')
+          .select()
+          .eq('id', competitionId)
+          .maybeSingle();
+      row ??= await client
+          .from('competitions')
+          .select()
+          .eq('id', competitionId)
+          .maybeSingle();
       if (row == null) return null;
-      return CompetitionModel.fromJson(
+      return _mapCompetitionRow(
         Map<String, dynamic>.from(row as Map<dynamic, dynamic>),
       );
     } catch (error) {
@@ -173,26 +163,14 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
     }
 
     try {
-      dynamic rows;
-      try {
-        rows = await client.rpc(
-          'app_competition_standings',
-          params: {
-            'p_competition_id': filter.competitionId,
-            'p_season': filter.season?.trim(),
-          },
-        );
-      } catch (error) {
-        AppLogger.d('Failed to load standings via RPC: $error');
-        var query = client
-            .from('competition_standings')
-            .select()
-            .eq('competition_id', filter.competitionId);
-        if (filter.season != null && filter.season!.trim().isNotEmpty) {
-          query = query.eq('season', filter.season!.trim());
-        }
-        rows = await query.order('position');
+      var query = client
+          .from('competition_standings')
+          .select()
+          .eq('competition_id', filter.competitionId);
+      if (filter.season != null && filter.season!.trim().isNotEmpty) {
+        query = query.eq('season', filter.season!.trim());
       }
+      final rows = await query.order('position');
       final standings = (rows as List)
           .whereType<Map>()
           .map(

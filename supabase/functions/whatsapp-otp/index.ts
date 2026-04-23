@@ -27,6 +27,8 @@
 //   OTP_EXPIRY_SECONDS                    — OTP validity in seconds (default: 600)
 //   WHATSAPP_SESSION_ACCESS_EXPIRY_SECONDS  — Access token validity (default: 3600)
 //   WHATSAPP_SESSION_REFRESH_EXPIRY_SECONDS — Refresh token validity (default: 2592000)
+//   WHATSAPP_AUTH_TEST_PHONE             — Optional reviewer/test phone with fixed OTP
+//   WHATSAPP_AUTH_TEST_OTP               — Optional fixed OTP for reviewer/test phone
 
 import {
   createClient,
@@ -35,13 +37,17 @@ import {
 import { buildCorsHeaders, getErrorMessage } from "../_shared/http.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("EDGE_SERVICE_ROLE_KEY")?.trim() ||
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
 const SUPABASE_JWT_SECRET = Deno.env.get("FANZONE_JWT_SECRET")?.trim() || "";
 
 const WABA_ACCESS_TOKEN = Deno.env.get("WABA_ACCESS_TOKEN")?.trim() || "";
 const WABA_PHONE_NUMBER_ID = Deno.env.get("WABA_PHONE_NUMBER_ID")?.trim() || "";
 const WABA_TEMPLATE_NAME = Deno.env.get("WABA_OTP_TEMPLATE_NAME")?.trim() ||
   "gikundiro";
+const WHATSAPP_AUTH_TEST_PHONE = Deno.env.get("WHATSAPP_AUTH_TEST_PHONE") ||
+  "";
+const WHATSAPP_AUTH_TEST_OTP = Deno.env.get("WHATSAPP_AUTH_TEST_OTP") || "";
 const OTP_EXPIRY_SECONDS = parseInt(
   Deno.env.get("OTP_EXPIRY_SECONDS") || "600",
   10,
@@ -57,6 +63,10 @@ const SESSION_REFRESH_EXPIRY_SECONDS = parseInt(
 
 const MAX_OTP_ATTEMPTS = 5;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
+const MAX_OTP_REQUESTS_PER_IP = parseInt(
+  Deno.env.get("MAX_OTP_REQUESTS_PER_IP") || "10",
+  10,
+);
 const CORS_HEADERS = buildCorsHeaders("authorization, content-type, apikey");
 
 type UserSummary = {
@@ -98,6 +108,37 @@ function normalizePhone(phone: string): string {
     cleaned = `+${cleaned}`;
   }
   return cleaned;
+}
+
+export function resolveConfiguredTestOtp(
+  phone: string,
+  configuredPhone: string | null | undefined,
+  configuredOtp: string | null | undefined,
+): string | null {
+  const reviewerPhone = configuredPhone?.trim()
+    ? normalizePhone(configuredPhone)
+    : "";
+  const reviewerOtp = configuredOtp?.trim() || "";
+
+  if (!reviewerPhone || !/^\d{6}$/.test(reviewerOtp)) {
+    return null;
+  }
+
+  return normalizePhone(phone) == reviewerPhone ? reviewerOtp : null;
+}
+
+function requesterIp(req: Request): string | null {
+  const directIp = req.headers.get("cf-connecting-ip") ??
+    req.headers.get("x-real-ip") ??
+    req.headers.get("x-forwarded-for");
+  const normalized = directIp?.trim() || "";
+  if (normalized.length === 0) return null;
+  return normalized.split(",")[0]?.trim() ?? null;
+}
+
+function requesterUserAgent(req: Request): string | null {
+  const userAgent = req.headers.get("user-agent")?.trim() || "";
+  return userAgent.length === 0 ? null : userAgent;
 }
 
 function generateOtp(): string {
@@ -410,8 +451,13 @@ async function resolveUserIdForPhone(
   return null;
 }
 
-async function handleSend(phone: string): Promise<Response> {
+async function handleSend(req: Request, phone: string): Promise<Response> {
   const normalized = normalizePhone(phone);
+  const configuredTestOtp = resolveConfiguredTestOtp(
+    normalized,
+    WHATSAPP_AUTH_TEST_PHONE,
+    WHATSAPP_AUTH_TEST_OTP,
+  );
 
   if (!/^\+\d{7,15}$/.test(normalized)) {
     return Response.json(
@@ -424,6 +470,8 @@ async function handleSend(phone: string): Promise<Response> {
   const windowStart = new Date(
     Date.now() - RATE_LIMIT_WINDOW_SECONDS * 1000,
   ).toISOString();
+  const ipAddress = requesterIp(req);
+  const userAgent = requesterUserAgent(req);
 
   const { count } = await supabase
     .from("otp_verifications")
@@ -438,7 +486,22 @@ async function handleSend(phone: string): Promise<Response> {
     );
   }
 
-  const otp = generateOtp();
+  if (ipAddress != null) {
+    const { count: ipCount } = await supabase
+      .from("otp_verifications")
+      .select("id", { count: "exact", head: true })
+      .eq("request_ip", ipAddress)
+      .gte("created_at", windowStart);
+
+    if ((ipCount ?? 0) >= MAX_OTP_REQUESTS_PER_IP) {
+      return Response.json(
+        { error: "Too many OTP requests from this network. Please wait." },
+        { status: 429, headers: CORS_HEADERS },
+      );
+    }
+  }
+
+  const otp = configuredTestOtp ?? generateOtp();
   const otpHash = await hashValue(otp);
   const expiresAt = new Date(Date.now() + OTP_EXPIRY_SECONDS * 1000)
     .toISOString();
@@ -455,6 +518,8 @@ async function handleSend(phone: string): Promise<Response> {
       phone: normalized,
       otp_hash: otpHash,
       expires_at: expiresAt,
+      request_ip: ipAddress,
+      user_agent: userAgent,
     });
 
   if (insertError) {
@@ -465,12 +530,14 @@ async function handleSend(phone: string): Promise<Response> {
     );
   }
 
-  const sendResult = await sendWhatsAppOtp(normalized, otp);
-  if (!sendResult.success) {
-    return Response.json(
-      { error: sendResult.error || "Failed to send WhatsApp message" },
-      { status: 502, headers: CORS_HEADERS },
-    );
+  if (configuredTestOtp == null) {
+    const sendResult = await sendWhatsAppOtp(normalized, otp);
+    if (!sendResult.success) {
+      return Response.json(
+        { error: sendResult.error || "Failed to send WhatsApp message" },
+        { status: 502, headers: CORS_HEADERS },
+      );
+    }
   }
 
   return Response.json(
@@ -654,71 +721,73 @@ async function handleLogout(refreshToken: string): Promise<Response> {
   return Response.json({ success: true }, { headers: CORS_HEADERS });
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS_HEADERS });
-  }
-
-  if (req.method !== "POST") {
-    return new Response("Method not allowed", {
-      status: 405,
-      headers: CORS_HEADERS,
-    });
-  }
-
-  try {
-    const body = await req.json();
-    const action = body?.action?.toString();
-    const phone = body?.phone?.toString();
-    const otp = body?.otp?.toString();
-    const refreshToken = body?.refresh_token?.toString();
-
-    if (!action) {
-      return Response.json(
-        {
-          error:
-            "Missing 'action' field. Use 'send', 'verify', 'refresh', or 'logout'.",
-        },
-        { status: 400, headers: CORS_HEADERS },
-      );
+if (import.meta.main) {
+  Deno.serve(async (req: Request) => {
+    if (req.method === "OPTIONS") {
+      return new Response("ok", { headers: CORS_HEADERS });
     }
 
-    switch (action) {
-      case "send":
-        if (!phone) {
-          return Response.json(
-            { error: "Missing 'phone' field" },
-            { status: 400, headers: CORS_HEADERS },
-          );
-        }
-        return await handleSend(phone);
+    if (req.method !== "POST") {
+      return new Response("Method not allowed", {
+        status: 405,
+        headers: CORS_HEADERS,
+      });
+    }
 
-      case "verify":
-        if (!phone) {
-          return Response.json(
-            { error: "Missing 'phone' field" },
-            { status: 400, headers: CORS_HEADERS },
-          );
-        }
-        return await handleVerify(phone, otp ?? "");
+    try {
+      const body = await req.json();
+      const action = body?.action?.toString();
+      const phone = body?.phone?.toString();
+      const otp = body?.otp?.toString();
+      const refreshToken = body?.refresh_token?.toString();
 
-      case "refresh":
-        return await handleRefresh(refreshToken ?? "");
-
-      case "logout":
-        return await handleLogout(refreshToken ?? "");
-
-      default:
+      if (!action) {
         return Response.json(
-          { error: `Unknown action: ${action}` },
+          {
+            error:
+              "Missing 'action' field. Use 'send', 'verify', 'refresh', or 'logout'.",
+          },
           { status: 400, headers: CORS_HEADERS },
         );
+      }
+
+      switch (action) {
+        case "send":
+          if (!phone) {
+            return Response.json(
+              { error: "Missing 'phone' field" },
+              { status: 400, headers: CORS_HEADERS },
+            );
+          }
+          return await handleSend(req, phone);
+
+        case "verify":
+          if (!phone) {
+            return Response.json(
+              { error: "Missing 'phone' field" },
+              { status: 400, headers: CORS_HEADERS },
+            );
+          }
+          return await handleVerify(phone, otp ?? "");
+
+        case "refresh":
+          return await handleRefresh(refreshToken ?? "");
+
+        case "logout":
+          return await handleLogout(refreshToken ?? "");
+
+        default:
+          return Response.json(
+            { error: `Unknown action: ${action}` },
+            { status: 400, headers: CORS_HEADERS },
+          );
+      }
+    } catch (error: unknown) {
+      console.error("WhatsApp OTP error:", error);
+      return Response.json(
+        { error: getErrorMessage(error) },
+        { status: 500, headers: CORS_HEADERS },
+      );
     }
-  } catch (error: unknown) {
-    console.error("WhatsApp OTP error:", error);
-    return Response.json(
-      { error: getErrorMessage(error) },
-      { status: 500, headers: CORS_HEADERS },
-    );
-  }
-});
+  });
+}

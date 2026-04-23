@@ -43,21 +43,5 @@ final transactionServiceProvider =
 
 typedef _$TransactionService =
     AutoDisposeAsyncNotifier<List<WalletTransaction>>;
-String _$fanClubServiceHash() => r'74b99ac8bc7c57f56cc44ce6c0fac9892516cd04';
-
-/// See also [FanClubService].
-@ProviderFor(FanClubService)
-final fanClubServiceProvider =
-    AutoDisposeAsyncNotifierProvider<FanClubService, List<FanClub>>.internal(
-      FanClubService.new,
-      name: r'fanClubServiceProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$fanClubServiceHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-typedef _$FanClubService = AutoDisposeAsyncNotifier<List<FanClub>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

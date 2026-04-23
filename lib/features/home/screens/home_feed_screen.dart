@@ -4,12 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../data/team_search_database.dart';
-import '../../../features/profile/providers/profile_identity_provider.dart';
 import '../../../models/match_model.dart';
 import '../../../providers/competitions_provider.dart';
+import '../../../providers/home_feed_provider.dart';
 import '../../../providers/matches_provider.dart';
-import '../../../services/team_community_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
@@ -41,21 +39,15 @@ class HomeFeedScreen extends ConsumerWidget {
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     // Fetch a 7-day window: today through today + 6 days
-    final matchesAsync = ref.watch(
-      matchesProvider(
-        MatchesFilter(
-          dateFrom: _today.toIso8601String(),
-          dateTo: _today
-              .add(const Duration(days: _feedWindowDays))
-              .toIso8601String(),
-          limit: 200,
-          ascending: true,
-        ),
-      ),
+    final feedFilter = MatchesFilter(
+      dateFrom: _today.toIso8601String(),
+      dateTo: _today
+          .add(const Duration(days: _feedWindowDays))
+          .toIso8601String(),
+      limit: 200,
+      ascending: true,
     );
-    final supportedIds =
-        ref.watch(supportedTeamsServiceProvider).valueOrNull ??
-        const <String>{};
+    final matchesAsync = ref.watch(homeFeedMatchesProvider(feedFilter));
     final competitions =
         ref.watch(competitionsProvider).valueOrNull ?? const [];
     final competitionLabels = {
@@ -64,26 +56,15 @@ class HomeFeedScreen extends ConsumerWidget {
             ? competition.shortName
             : competition.name,
     };
-    final profileIdentity = ref.watch(profileIdentityProvider).valueOrNull;
-    final fallbackInsightTeam = _resolveInsightTeam(supportedIds);
-    final insightTeamId =
-        profileIdentity?.teamId ?? fallbackInsightTeam?.id ?? 'liverpool';
 
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
           color: FzColors.primary,
           onRefresh: () async {
-            final filter = MatchesFilter(
-              dateFrom: _today.toIso8601String(),
-              dateTo: _today
-                  .add(const Duration(days: _feedWindowDays))
-                  .toIso8601String(),
-              limit: 200,
-              ascending: true,
-            );
-            ref.invalidate(matchesProvider(filter));
-            await ref.read(matchesProvider(filter).future);
+            ref.invalidate(matchesProvider(feedFilter));
+            ref.invalidate(homeFeedMatchesProvider(feedFilter));
+            await ref.read(homeFeedMatchesProvider(feedFilter).future);
           },
           child: ListView(
             padding: EdgeInsets.fromLTRB(16, isDesktop ? 16 : 8, 16, 120),
@@ -102,17 +83,11 @@ class HomeFeedScreen extends ConsumerWidget {
                       ),
                     ),
                     _RoundActionButton(
-                      tooltip: 'Create pool',
+                      tooltip: 'Open predict',
                       backgroundColor: FzColors.accent2,
                       foregroundColor: FzColors.darkBg,
-                      icon: LucideIcons.plusCircle,
-                      onTap: () => context.go('/pools/create'),
-                    ),
-                    const SizedBox(width: 8),
-                    _RoundActionButton(
-                      tooltip: 'Open memberships',
-                      icon: LucideIcons.shield,
-                      onTap: () => context.go('/memberships'),
+                      icon: LucideIcons.target,
+                      onTap: () => context.go('/predict'),
                     ),
                   ],
                 ),
@@ -120,17 +95,13 @@ class HomeFeedScreen extends ConsumerWidget {
               ],
               const FzPromoBanner(),
               matchesAsync.when(
-                data: (matches) {
-                  final liveMatches =
-                      matches.where((match) => match.isLive).toList()
-                        ..sort((a, b) => a.date.compareTo(b.date));
-                  final upcomingMatches =
-                      matches.where((match) => match.isUpcoming).toList()
-                        ..sort((a, b) => a.date.compareTo(b.date));
+                data: (selection) {
+                  final liveMatches = selection.liveMatches;
+                  final upcomingMatches = selection.upcomingMatches;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _DailyInsightCard(muted: muted, teamId: insightTeamId),
+                      _DailyInsightCard(muted: muted),
                       _HomeSectionHeader(
                         icon: LucideIcons.activity,
                         iconColor: FzColors.danger,
@@ -153,9 +124,9 @@ class HomeFeedScreen extends ConsumerWidget {
                         _MatchGrid(
                           matches: liveMatches,
                           competitionLabels: competitionLabels,
-                          onPredict: (match) =>
+                          onOpenMatch: (match) =>
                               context.push('/match/${match.id}'),
-                          onPool: () => context.push('/pools/create'),
+                          onOpenPredict: () => context.push('/predict'),
                         ),
                       const SizedBox(height: 24),
                       _HomeSectionHeader(
@@ -185,9 +156,9 @@ class HomeFeedScreen extends ConsumerWidget {
                         _MatchGrid(
                           matches: upcomingMatches,
                           competitionLabels: competitionLabels,
-                          onPredict: (match) =>
+                          onOpenMatch: (match) =>
                               context.push('/match/${match.id}'),
-                          onPool: () => context.push('/pools/create'),
+                          onOpenPredict: () => context.push('/predict'),
                         ),
                     ],
                   );
@@ -201,18 +172,8 @@ class HomeFeedScreen extends ConsumerWidget {
                   child: StateView.error(
                     title: 'Could not load predictions',
                     subtitle: 'Pull to refresh and try again.',
-                    onRetry: () => ref.invalidate(
-                      matchesProvider(
-                        MatchesFilter(
-                          dateFrom: _today.toIso8601String(),
-                          dateTo: _today
-                              .add(const Duration(days: _feedWindowDays))
-                              .toIso8601String(),
-                          limit: 200,
-                          ascending: true,
-                        ),
-                      ),
-                    ),
+                    onRetry: () =>
+                        ref.invalidate(homeFeedMatchesProvider(feedFilter)),
                   ),
                 ),
               ),
@@ -222,27 +183,20 @@ class HomeFeedScreen extends ConsumerWidget {
       ),
     );
   }
-
-  OnboardingTeam? _resolveInsightTeam(Set<String> supportedIds) {
-    for (final team in allTeams) {
-      if (supportedIds.contains(team.id)) return team;
-    }
-    return null;
-  }
 }
 
 class _MatchGrid extends StatelessWidget {
   const _MatchGrid({
     required this.matches,
     required this.competitionLabels,
-    required this.onPredict,
-    required this.onPool,
+    required this.onOpenMatch,
+    required this.onOpenPredict,
   });
 
   final List<MatchModel> matches;
   final Map<String, String> competitionLabels;
-  final ValueChanged<MatchModel> onPredict;
-  final VoidCallback onPool;
+  final ValueChanged<MatchModel> onOpenMatch;
+  final VoidCallback onOpenPredict;
 
   @override
   Widget build(BuildContext context) {
@@ -265,8 +219,8 @@ class _MatchGrid extends StatelessWidget {
                   competitionLabel:
                       competitionLabels[match.competitionId] ??
                       match.competitionId.toUpperCase(),
-                  onPredict: () => onPredict(match),
-                  onPool: onPool,
+                  onOpenMatch: () => onOpenMatch(match),
+                  onOpenPredict: onOpenPredict,
                 ),
               ),
           ],
@@ -280,14 +234,14 @@ class _HomeMatchCard extends StatelessWidget {
   const _HomeMatchCard({
     required this.match,
     required this.competitionLabel,
-    required this.onPredict,
-    required this.onPool,
+    required this.onOpenMatch,
+    required this.onOpenPredict,
   });
 
   final MatchModel match;
   final String competitionLabel;
-  final VoidCallback onPredict;
-  final VoidCallback onPool;
+  final VoidCallback onOpenMatch;
+  final VoidCallback onOpenPredict;
 
   /// Builds the badge label: "COMPETITION · 21:30" for today,
   /// "COMPETITION · TOMORROW" for tomorrow, "COMPETITION · Sat 15:00" for later.
@@ -396,7 +350,7 @@ class _HomeMatchCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 InkWell(
-                  onTap: onPredict,
+                  onTap: onOpenMatch,
                   borderRadius: BorderRadius.circular(FzRadii.compact),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
@@ -447,18 +401,18 @@ class _HomeMatchCard extends StatelessWidget {
                             ? FzColors.darkBg
                             : FzColors.darkText,
                         borderColor: match.isLive ? FzColors.danger : ctaColor,
-                        onTap: onPredict,
+                        onTap: onOpenPredict,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _HomeMatchButton(
-                        label: 'POOL',
-                        icon: LucideIcons.swords,
+                        label: 'MATCH',
+                        icon: LucideIcons.lineChart,
                         backgroundColor: surface2,
                         foregroundColor: FzColors.accent,
                         borderColor: FzColors.accent.withValues(alpha: 0.20),
-                        onTap: onPool,
+                        onTap: onOpenMatch,
                       ),
                     ),
                   ],
@@ -562,80 +516,43 @@ class _HomeMatchButton extends StatelessWidget {
   }
 }
 
-class _DailyInsightCard extends ConsumerWidget {
-  const _DailyInsightCard({required this.muted, required this.teamId});
+class _DailyInsightCard extends StatelessWidget {
+  const _DailyInsightCard({required this.muted});
 
   final Color muted;
-  final String teamId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-    final teamNewsAsync = ref.watch(teamNewsProvider(teamId, limit: 1));
 
-    return teamNewsAsync.when(
-      data: (articles) {
-        final article = articles.firstOrNull;
-        final insight = _resolveInsightText(article);
-        if (insight == null || insight.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: _InsightCardShell(
-            muted: muted,
-            child: Text(
-              insight,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
-            ),
-          ),
-        );
-      },
-      loading: () => Padding(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: _InsightCardShell(
-          muted: muted,
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 14,
-                height: 14,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: _InsightCardShell(
+        muted: muted,
+        child: Row(
+          children: [
+            const SizedBox(
+              width: 14,
+              height: 14,
+              child: Center(
                 child: CupertinoActivityIndicator(color: FzColors.success),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Syncing Insights...',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: muted,
-                    letterSpacing: 0.8,
-                  ),
-                ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'The home feed now focuses on live fixtures, upcoming picks, and leaderboard progress.',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-      error: (_, _) => const SizedBox.shrink(),
     );
-  }
-
-  String? _resolveInsightText(dynamic article) {
-    if (article == null) return null;
-    final summary = article.summary?.toString().trim();
-    if (summary != null && summary.isNotEmpty) return summary;
-    final content = article.content?.toString().trim();
-    if (content != null && content.isNotEmpty) return content;
-    final title = article.title?.toString().trim();
-    if (title != null && title.isNotEmpty) return title;
-    return null;
   }
 }
 

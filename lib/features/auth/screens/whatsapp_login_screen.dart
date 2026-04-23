@@ -11,10 +11,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/config/bootstrap_config.dart';
 import '../../../core/constants/phone_presets.dart';
 import '../../../core/di/gateway_providers.dart';
-import '../../../core/market/launch_market.dart';
 import '../../../core/runtime/app_runtime_state.dart';
+import '../../../core/utils/phone_country_catalog.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/market_preferences_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_brand_logo.dart';
@@ -23,29 +22,6 @@ import '../../../widgets/common/fz_wordmark.dart';
 
 /// Accent used on the phone verification screen.
 const _verificationAccent = FzColors.whatsapp;
-const _defaultPhoneCountryCode = 'MT';
-const _fallbackPhonePreset = PhonePreset(
-  dialCode: '+356',
-  hint: '79XX XXXX',
-  minDigits: 8,
-);
-const _priorityPhoneCountryCodes = <String>[
-  'MT',
-  'GB',
-  'RW',
-  'NG',
-  'KE',
-  'UG',
-  'DE',
-  'FR',
-  'IT',
-  'ES',
-  'PT',
-  'NL',
-  'US',
-  'CA',
-  'MX',
-];
 
 /// WhatsApp verification screen — used when a guest decides to sign in.
 class PhoneLoginScreen extends ConsumerStatefulWidget {
@@ -66,7 +42,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   bool _loading = false;
   String? _error;
   bool _retryingInit = false;
-  String _selectedCountryCode = _defaultPhoneCountryCode;
+  String _selectedCountryCode = '';
 
   // ── Resend cooldown ──
   int _resendCooldown = 0;
@@ -223,16 +199,10 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   }
 
   PhonePreset _presetForCountry(String countryCode) {
-    final preset = phonePresetForCountry(countryCode);
-    if (preset != null) return preset;
-
-    if (countryCode == _defaultPhoneCountryCode) {
-      return _fallbackPhonePreset;
-    }
-
-    return phonePresetForRegion(
-      normalizeRegionKey(ref.read(primaryMarketRegionProvider)),
-    );
+    return preferredPhoneCountry(
+      config: ref.read(bootstrapConfigProvider),
+      explicitCountryCode: countryCode,
+    ).preset;
   }
 
   void _handleOtpChanged(int index, String value) {
@@ -271,32 +241,36 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   }
 
   void _handlePhoneChanged(String value) {
-    final supportedCountries = _phoneCountries(
-      ref.read(bootstrapConfigProvider),
-    );
-    final adoptedCountry = _matchCountryFromInput(
+    final bootstrapConfig = ref.read(bootstrapConfigProvider);
+    final supportedCountries = _phoneCountries(bootstrapConfig);
+    final adoptedCountry = resolvePhoneCountryFromPhoneInput(
       value,
-      supportedCountries,
-      fallbackCountryCode: _selectedCountryCode,
+      fallback:
+          _countryByCode(supportedCountries, _selectedCountryCode) ??
+          preferredPhoneCountry(config: bootstrapConfig),
+      config: bootstrapConfig,
     );
     var digits = value.replaceAll(RegExp(r'\D'), '');
 
-    if (value.trim().startsWith('+') && adoptedCountry != null) {
+    if (value.trim().startsWith('+')) {
       final dialDigits = adoptedCountry.dialDigits;
       if (digits.startsWith(dialDigits)) {
         digits = digits.substring(dialDigits.length);
       }
     }
 
-    final nextCountryCode = adoptedCountry?.countryCode ?? _selectedCountryCode;
+    final nextCountryCode = adoptedCountry.countryCode;
 
-    final nextPreset = adoptedCountry?.preset ?? _phonePreset;
-    final maxDigits = _maxDigitsForHint(nextPreset.hint);
+    final nextPreset = adoptedCountry.preset;
+    final maxDigits = maxPhoneDigitsForHint(
+      nextPreset.hint,
+      minDigits: nextPreset.minDigits,
+    );
     if (digits.length > maxDigits) {
       digits = digits.substring(0, maxDigits);
     }
 
-    final formatted = _formatDigits(digits, nextPreset.hint);
+    final formatted = formatPhoneDigits(digits, nextPreset.hint);
     if (_phoneController.text != formatted) {
       _phoneController.value = TextEditingValue(
         text: formatted,
@@ -313,71 +287,18 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
 
   void _reformatLocalNumber() {
     final digits = _localDigits;
-    final maxDigits = _maxDigitsForHint(_phonePreset.hint);
+    final maxDigits = maxPhoneDigitsForHint(
+      _phonePreset.hint,
+      minDigits: _phonePreset.minDigits,
+    );
     final clipped = digits.length > maxDigits
         ? digits.substring(0, maxDigits)
         : digits;
-    final formatted = _formatDigits(clipped, _phonePreset.hint);
+    final formatted = formatPhoneDigits(clipped, _phonePreset.hint);
     _phoneController.value = TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
     );
-  }
-
-  int _maxDigitsForHint(String hint) {
-    final groups = hint
-        .split(RegExp(r'[^0-9Xx]+'))
-        .where((group) => group.isNotEmpty)
-        .map((group) => group.length)
-        .toList(growable: false);
-    if (groups.isEmpty) return math.max(_phonePreset.minDigits, 12);
-    final total = groups.fold<int>(0, (sum, part) => sum + part);
-    return math.max(total, _phonePreset.minDigits);
-  }
-
-  String _formatDigits(String digits, String hint) {
-    if (digits.isEmpty) return '';
-
-    final groups = hint
-        .split(RegExp(r'[^0-9Xx]+'))
-        .where((group) => group.isNotEmpty)
-        .map((group) => group.length)
-        .toList(growable: false);
-    if (groups.isEmpty) return digits;
-
-    final parts = <String>[];
-    var cursor = 0;
-    for (final size in groups) {
-      if (cursor >= digits.length) break;
-      final end = math.min(cursor + size, digits.length);
-      parts.add(digits.substring(cursor, end));
-      cursor = end;
-    }
-    if (cursor < digits.length) {
-      parts.add(digits.substring(cursor));
-    }
-
-    return parts.join(' ');
-  }
-
-  _PhoneCountryOption? _matchCountryFromInput(
-    String value,
-    List<_PhoneCountryOption> countries, {
-    required String fallbackCountryCode,
-  }) {
-    final digits = value.replaceAll(RegExp(r'\D'), '');
-    final fallback = _countryByCode(countries, fallbackCountryCode);
-    if (digits.isEmpty || !value.trimLeft().startsWith('+')) return fallback;
-
-    final matches = [...countries]
-      ..sort((a, b) => b.dialDigits.length.compareTo(a.dialDigits.length));
-
-    for (final country in matches) {
-      if (digits.startsWith(country.dialDigits)) {
-        return country;
-      }
-    }
-    return fallback;
   }
 
   _PhoneCountryOption? _countryByCode(
@@ -396,12 +317,9 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   Widget build(BuildContext context) {
     final bootstrapConfig = ref.watch(bootstrapConfigProvider);
     final phoneCountries = _phoneCountries(bootstrapConfig);
-    final selectedCountry = phoneCountries.firstWhere(
-      (country) => country.countryCode == _selectedCountryCode,
-      orElse: () => phoneCountries.firstWhere(
-        (country) => country.countryCode == _defaultPhoneCountryCode,
-        orElse: () => phoneCountries.first,
-      ),
+    final selectedCountry = preferredPhoneCountry(
+      config: bootstrapConfig,
+      explicitCountryCode: _selectedCountryCode,
     );
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -439,7 +357,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                     Text(
                       _otpSent
                           ? 'Enter the 6-digit OTP sent to your WhatsApp.'
-                          : 'Verify your number to start earning FET tokens and join fan clubs. It\'s 100% free.',
+                          : 'Verify your number to save picks, earn FET rewards, and track your record. It\'s 100% free.',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: mutedColor,
@@ -799,80 +717,10 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   }
 }
 
-class _PhoneCountryOption {
-  const _PhoneCountryOption({
-    required this.countryCode,
-    required this.countryName,
-    required this.flagEmoji,
-    required this.preset,
-  });
-
-  final String countryCode;
-  final String countryName;
-  final String flagEmoji;
-  final PhonePreset preset;
-
-  String get dialDigits => preset.dialCode.replaceAll('+', '');
-}
+typedef _PhoneCountryOption = PhoneCountryEntry;
 
 List<_PhoneCountryOption> _phoneCountries(BootstrapConfig config) {
-  final configuredCodes = config.phonePresets.keys.map(
-    (code) => code.toUpperCase(),
-  );
-  final availableCodes =
-      {
-        ...configuredCodes,
-        ..._priorityPhoneCountryCodes,
-      }.toList(growable: false)..sort((a, b) {
-        final aPriority = _priorityPhoneCountryCodes.indexOf(a);
-        final bPriority = _priorityPhoneCountryCodes.indexOf(b);
-        if (aPriority != -1 || bPriority != -1) {
-          if (aPriority == -1) return 1;
-          if (bPriority == -1) return -1;
-          return aPriority.compareTo(bPriority);
-        }
-        final aName = config.countryNameForCode(a) ?? _isoCountryName(a) ?? a;
-        final bName = config.countryNameForCode(b) ?? _isoCountryName(b) ?? b;
-        return aName.compareTo(bName);
-      });
-
-  return availableCodes
-      .map((countryCode) {
-        final presetInfo = config.phonePresetForCountry(countryCode);
-        final preset = presetInfo != null
-            ? PhonePreset.fromInfo(presetInfo)
-            : (phonePresetForCountry(countryCode) ??
-                  (countryCode == _defaultPhoneCountryCode
-                      ? _fallbackPhonePreset
-                      : phonePresetForRegion('europe')));
-        final countryName =
-            config.countryNameForCode(countryCode) ??
-            _isoCountryName(countryCode) ??
-            countryCode;
-        final flagEmoji = _flagEmojiForCountryCode(
-          countryCode,
-          fallback: config.flagEmojiForCountryCode(countryCode),
-        );
-
-        return _PhoneCountryOption(
-          countryCode: countryCode,
-          countryName: countryName,
-          flagEmoji: flagEmoji,
-          preset: preset,
-        );
-      })
-      .toList(growable: false);
-}
-
-String _flagEmojiForCountryCode(String countryCode, {String? fallback}) {
-  if (fallback != null && fallback != '🌍') return fallback;
-  if (countryCode.length != 2) return '🌍';
-
-  final upper = countryCode.toUpperCase();
-  final runes = upper.codeUnits
-      .map((unit) => unit + 127397)
-      .toList(growable: false);
-  return String.fromCharCodes(runes);
+  return phoneCountryCatalog(config: config);
 }
 
 class _PrimaryActionButton extends StatelessWidget {
@@ -966,172 +814,6 @@ class _StatusBanner extends StatelessWidget {
   }
 }
 
-// ─── ISO country name lookup (replaces package dependency) ─────────────────
-
-const Map<String, String> _kIsoCountryNames = {
-  'MT': 'Malta',
-  'RW': 'Rwanda',
-  'GB': 'United Kingdom',
-  'DE': 'Germany',
-  'FR': 'France',
-  'IT': 'Italy',
-  'ES': 'Spain',
-  'PT': 'Portugal',
-  'NL': 'Netherlands',
-  'BE': 'Belgium',
-  'AT': 'Austria',
-  'CH': 'Switzerland',
-  'SE': 'Sweden',
-  'NO': 'Norway',
-  'DK': 'Denmark',
-  'FI': 'Finland',
-  'PL': 'Poland',
-  'CZ': 'Czech Republic',
-  'GR': 'Greece',
-  'HR': 'Croatia',
-  'RS': 'Serbia',
-  'RO': 'Romania',
-  'HU': 'Hungary',
-  'TR': 'Turkey',
-  'IE': 'Ireland',
-  'IS': 'Iceland',
-  'NG': 'Nigeria',
-  'KE': 'Kenya',
-  'UG': 'Uganda',
-  'TZ': 'Tanzania',
-  'GH': 'Ghana',
-  'ZA': 'South Africa',
-  'EG': 'Egypt',
-  'MA': 'Morocco',
-  'DZ': 'Algeria',
-  'TN': 'Tunisia',
-  'SN': 'Senegal',
-  'CI': "Côte d'Ivoire",
-  'CM': 'Cameroon',
-  'CD': 'DR Congo',
-  'ET': 'Ethiopia',
-  'US': 'United States',
-  'CA': 'Canada',
-  'MX': 'Mexico',
-  'BR': 'Brazil',
-  'AR': 'Argentina',
-  'CO': 'Colombia',
-  'IN': 'India',
-  'AE': 'UAE',
-  'SA': 'Saudi Arabia',
-  'JP': 'Japan',
-  'KR': 'South Korea',
-  'AU': 'Australia',
-  'NZ': 'New Zealand',
-  'QA': 'Qatar',
-};
-
-String? _isoCountryName(String code) => _kIsoCountryNames[code.toUpperCase()];
-
-// ─── Smart country picker for PhoneLoginScreen ─────────────────────────────
-
-/// Aliases for smart/semantic search in the phone login picker.
-const Map<String, List<String>> _kPhoneCountryAliases = {
-  'GB': ['uk', 'britain', 'england', 'british'],
-  'US': ['usa', 'america', 'american'],
-  'AE': ['uae', 'emirates', 'dubai'],
-  'KR': ['korea', 'korean'],
-  'ZA': ['south africa', 'sa'],
-  'NZ': ['new zealand', 'kiwi'],
-  'DE': ['deutschland', 'german'],
-  'FR': ['french'],
-  'IT': ['italian', 'italia'],
-  'ES': ['spanish', 'espana'],
-  'NL': ['holland', 'dutch'],
-  'CH': ['swiss', 'schweiz'],
-  'SE': ['swedish', 'sverige'],
-  'NO': ['norwegian', 'norge'],
-  'DK': ['danish', 'danmark'],
-  'FI': ['finnish', 'suomi'],
-  'PL': ['polish', 'polska'],
-  'CZ': ['czech', 'czechia'],
-  'GR': ['greek', 'hellas'],
-  'TR': ['turkish', 'turkiye'],
-  'IE': ['irish', 'eire'],
-  'NG': ['naija', 'nigerian'],
-  'RW': ['rwandan', 'kigali'],
-  'MT': ['maltese', 'valletta'],
-  'BR': ['brazilian', 'brasil'],
-  'IN': ['indian', 'bharat'],
-  'SA': ['saudi', 'ksa'],
-  'JP': ['japanese', 'nippon'],
-  'AU': ['australian', 'aussie', 'oz'],
-  'CD': ['congo', 'drc', 'kinshasa'],
-  'CI': ['ivory coast', 'ivoire'],
-  'CM': ['cameroun'],
-  'EG': ['egyptian', 'masr'],
-  'MA': ['moroccan', 'maroc'],
-};
-
-int _phoneCountryScore(_PhoneCountryOption country, String query) {
-  final nameLower = country.countryName.toLowerCase();
-  final codeLower = country.countryCode.toLowerCase();
-  final dialCode = country.preset.dialCode;
-  final dialDigits = country.dialDigits;
-
-  if (codeLower == query) return 100;
-  if (nameLower == query) return 95;
-  if (dialCode == '+$query' || dialCode == query) return 90;
-  if (dialDigits == query) return 90;
-
-  int score = 0;
-
-  if (nameLower.startsWith(query)) {
-    score = math.max(score, 80);
-  }
-  if (codeLower.startsWith(query)) {
-    score = math.max(score, 75);
-  }
-  if (dialCode.contains(query) || dialDigits.startsWith(query)) {
-    score = math.max(score, 70);
-  }
-
-  final aliases = _kPhoneCountryAliases[country.countryCode] ?? [];
-  for (final alias in aliases) {
-    if (alias == query) {
-      score = math.max(score, 90);
-      break;
-    }
-    if (alias.startsWith(query)) {
-      score = math.max(score, 78);
-    }
-    if (alias.contains(query)) {
-      score = math.max(score, 60);
-    }
-  }
-
-  if (score == 0) {
-    final words = nameLower.split(RegExp(r'\s+'));
-    for (final word in words) {
-      if (word.startsWith(query)) {
-        score = math.max(score, 65);
-        break;
-      }
-    }
-  }
-
-  if (score == 0 && nameLower.contains(query)) {
-    score = math.max(score, 50);
-  }
-
-  if (score == 0 && query.length >= 3) {
-    var qi = 0;
-    for (var ni = 0; ni < nameLower.length && qi < query.length; ni++) {
-      if (nameLower[ni] == query[qi]) qi++;
-    }
-    if (qi == query.length) {
-      score = math.max(score, 30);
-    }
-  }
-
-  return score;
-}
-
 Future<_PhoneCountryOption?> _showPhoneCountryPicker(
   BuildContext context, {
   required List<_PhoneCountryOption> countries,
@@ -1183,7 +865,7 @@ class _SmartPhoneCountryPickerSheetState
       } else {
         final scored = <MapEntry<_PhoneCountryOption, int>>[];
         for (final c in widget.countries) {
-          final score = _phoneCountryScore(c, query);
+          final score = phoneCountrySearchScore(c, query);
           if (score > 0) {
             scored.add(MapEntry(c, score));
           }

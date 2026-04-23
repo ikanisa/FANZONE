@@ -28,7 +28,7 @@ bool requireFullAuth(BuildContext context, WidgetRef ref, {String? feature}) {
     title: 'Verification Required',
     message:
         'Create a free account to access $featureLabel. '
-        'Verify with WhatsApp to unlock predictions, pools, wallet, and more.',
+        'Verify with WhatsApp to unlock predictions, rewards, wallet, and more.',
     from: GoRouterState.of(context).uri.toString(),
   );
 

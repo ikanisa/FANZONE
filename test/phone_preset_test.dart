@@ -1,129 +1,116 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:fanzone/core/config/bootstrap_config.dart';
+import 'package:fanzone/core/config/runtime_bootstrap.dart';
 import 'package:fanzone/core/constants/phone_presets.dart';
 
+BootstrapConfig _bootstrapConfig() {
+  return BootstrapConfig(
+    regions: const {
+      'AA': RegionInfo(
+        countryCode: 'AA',
+        region: 'africa',
+        countryName: 'Test Country',
+        flagEmoji: '🏳️',
+      ),
+      'BB': RegionInfo(
+        countryCode: 'BB',
+        region: 'europe',
+        countryName: 'Country Beta',
+        flagEmoji: '🏴',
+      ),
+      'CC': RegionInfo(
+        countryCode: 'CC',
+        region: 'north_america',
+        countryName: 'Country Gamma',
+        flagEmoji: '🏁',
+      ),
+    },
+    phonePresets: const {
+      'AA': PhonePresetInfo(
+        dialCode: '+111',
+        hint: '9XX XXX XXX',
+        minDigits: 9,
+      ),
+      'BB': PhonePresetInfo(
+        dialCode: '+222',
+        hint: '8XXX XXX XXX',
+        minDigits: 10,
+      ),
+      'CC': PhonePresetInfo(
+        dialCode: '+333',
+        hint: '777 123 4567',
+        minDigits: 10,
+      ),
+    },
+    currencyDisplay: const {},
+    featureFlags: const {},
+    appConfig: const {},
+    launchMoments: const [],
+  );
+}
+
 void main() {
+  setUp(() {
+    runtimeBootstrapStore.update(BootstrapConfig.empty());
+  });
+
   group('PhonePreset', () {
     test('example combines dialCode and hint', () {
-      const preset = PhonePreset(dialCode: '+250', hint: '7XX', minDigits: 9);
-      expect(preset.example, '+250 7XX');
+      const preset = PhonePreset(dialCode: '+111', hint: '9XX', minDigits: 9);
+      expect(preset.example, '+111 9XX');
     });
   });
 
   group('phonePresetForCountry', () {
-    test('returns correct preset for MT', () {
-      final preset = phonePresetForCountry('MT');
-      expect(preset, isNotNull);
-      expect(preset!.dialCode, '+356');
-      expect(preset.minDigits, 8);
-    });
-
-    test('returns correct preset for RW', () {
-      final preset = phonePresetForCountry('RW');
-      expect(preset, isNotNull);
-      expect(preset!.dialCode, '+250');
-      expect(preset.minDigits, 9);
-    });
-
-    test('returns correct preset for NG', () {
-      final preset = phonePresetForCountry('NG');
-      expect(preset, isNotNull);
-      expect(preset!.dialCode, '+234');
-      expect(preset.minDigits, 10);
-    });
-
-    test('returns correct preset for KE', () {
-      final preset = phonePresetForCountry('KE');
-      expect(preset, isNotNull);
-      expect(preset!.dialCode, '+254');
-      expect(preset.minDigits, 9);
-    });
-
-    test('returns correct preset for GB', () {
-      final preset = phonePresetForCountry('GB');
-      expect(preset, isNotNull);
-      expect(preset!.dialCode, '+44');
-      expect(preset.minDigits, 10);
-    });
-
-    test('US and CA share the same dial code', () {
-      final us = phonePresetForCountry('US');
-      final ca = phonePresetForCountry('CA');
-      expect(us, isNotNull);
-      expect(ca, isNotNull);
-      expect(us!.dialCode, ca!.dialCode);
-      expect(us.dialCode, '+1');
-      expect(us.minDigits, 10);
-    });
-
-    test('returns null for unmapped country', () {
-      expect(phonePresetForCountry('ZZ'), isNull);
+    test('returns null without bootstrap data', () {
+      expect(phonePresetForCountry('AA'), isNull);
       expect(phonePresetForCountry(null), isNull);
       expect(phonePresetForCountry(''), isNull);
     });
 
-    test('all mapped countries return non-null with valid dial codes', () {
-      const countries = [
-        'MT',
-        'RW',
-        'NG',
-        'KE',
-        'UG',
-        'GB',
-        'DE',
-        'FR',
-        'IT',
-        'ES',
-        'PT',
-        'NL',
-        'US',
-        'CA',
-        'MX',
-      ];
-      for (final code in countries) {
-        final preset = phonePresetForCountry(code);
-        expect(preset, isNotNull, reason: '$code should have a preset');
-        expect(
-          preset!.dialCode.startsWith('+'),
-          isTrue,
-          reason: '$code dial code should start with +',
-        );
-        expect(
-          preset.minDigits,
-          greaterThanOrEqualTo(8),
-          reason: '$code minDigits should be >= 8',
-        );
-        expect(
-          preset.hint.isNotEmpty,
-          isTrue,
-          reason: '$code hint should not be empty',
-        );
-      }
+    test('returns runtime bootstrap presets by country code', () {
+      runtimeBootstrapStore.update(_bootstrapConfig());
+
+      final alpha = phonePresetForCountry('AA');
+      final beta = phonePresetForCountry('BB');
+      final gamma = phonePresetForCountry('CC');
+
+      expect(alpha, isNotNull);
+      expect(alpha!.dialCode, '+111');
+      expect(alpha.minDigits, 9);
+
+      expect(beta, isNotNull);
+      expect(beta!.dialCode, '+222');
+      expect(beta.minDigits, 10);
+
+      expect(gamma, isNotNull);
+      expect(gamma!.dialCode, '+333');
+      expect(gamma.minDigits, 10);
     });
   });
 
   group('phonePresetForRegion', () {
-    test('africa defaults to +250', () {
+    test('returns neutral fallback without bootstrap data', () {
       final preset = phonePresetForRegion('africa');
-      expect(preset.dialCode, '+250');
-      expect(preset.minDigits, 9);
+      expect(preset.dialCode, '+');
+      expect(preset.minDigits, 7);
     });
 
-    test('europe defaults to +44', () {
-      final preset = phonePresetForRegion('europe');
-      expect(preset.dialCode, '+44');
-      expect(preset.minDigits, 10);
+    test('selects region-backed presets from bootstrap data', () {
+      runtimeBootstrapStore.update(_bootstrapConfig());
+
+      expect(phonePresetForRegion('africa').dialCode, '+111');
+      expect(phonePresetForRegion('europe').dialCode, '+222');
+      expect(phonePresetForRegion('north_america').dialCode, '+333');
     });
 
-    test('north_america defaults to +1', () {
-      final preset = phonePresetForRegion('north_america');
-      expect(preset.dialCode, '+1');
-      expect(preset.minDigits, 10);
-    });
+    test('falls back to first available preset for unknown regions', () {
+      runtimeBootstrapStore.update(_bootstrapConfig());
 
-    test('unknown region falls through to +1 default', () {
       final preset = phonePresetForRegion('unknown_region');
-      expect(preset.dialCode, '+1');
+      expect(preset.dialCode, isNotEmpty);
+      expect(preset.dialCode.startsWith('+'), true);
     });
   });
 }

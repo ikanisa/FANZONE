@@ -76,7 +76,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      selectedCountry.dialCode,
+                      selectedCountry.preset.dialCode,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -100,8 +100,8 @@ class OnboardingPhoneStep extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                     decoration: InputDecoration(
-                      hintText: selectedCountry.hint.isNotEmpty
-                          ? selectedCountry.hint
+                      hintText: selectedCountry.preset.hint.isNotEmpty
+                          ? selectedCountry.preset.hint
                           : 'Phone number',
                       filled: true,
                       fillColor: isDark

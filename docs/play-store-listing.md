@@ -13,8 +13,8 @@
 
 ## Short Description (max 80 chars)
 
-```
-Football predictions, fan communities & rewards. Play. Predict. Win.
+``` 
+Free football picks and FET wallet rewards. Play. Predict. Climb.
 ```
 
 ---
@@ -22,31 +22,27 @@ Football predictions, fan communities & rewards. Play. Predict. Win.
 ## Full Description (max 4000 chars)
 
 ```
-FANZONE is the ultimate football fan engagement platform — bringing predictions, community, and rewards together in one app.
+FANZONE is a lean football prediction app built around free picks, selected competitions, and the FANZONE FET wallet.
 
-🏟️ PREDICT & WIN
-Make predictions on live football matches. Challenge your friends, join prediction pools, and climb the leaderboard. Every correct prediction earns you FET (Fan Engagement Tokens) — our in-app reward currency.
+🏟️ FREE PICKS & TOKEN REWARDS
+Make free football predictions, save your picks, and climb the leaderboard. Correct picks can earn FET (Fan Engagement Tokens) inside the app wallet.
 
-⚽ LIVE MATCH TRACKING
-Follow your favourite teams and competitions in real time. Get instant updates on fixtures, results, standings, and stats — all curated for the leagues you care about.
+⚽ FIXTURES, RESULTS, AND STANDINGS
+Follow selected teams and competitions with clean match pages, standings, and prediction guidance built from historical form.
 
-👥 FAN COMMUNITIES
-Join team communities, connect with fellow supporters, and stay updated with AI-curated news about your favourite clubs. Express your fandom without revealing your identity.
-
-🏆 LEADERBOARDS & REWARDS
-Compete on global and community leaderboards. Earn FET tokens through accurate predictions, daily challenges, and community engagement. Redeem rewards from our partner marketplace.
+🏆 LEADERBOARDS & WALLET
+Track your record on the leaderboard, receive FET rewards when applicable, and manage transfers directly from your wallet.
 
 💚 MALTA-FIRST, GLOBAL AMBITION
 Built for the Maltese football community and designed to scale. FANZONE brings Mediterranean passion to digital fan engagement.
 
 KEY FEATURES:
-• Free prediction challenges on live football matches
-• Social prediction pools — invite friends, stake FET, winner takes all
-• Real-time match data and fixture tracking
-• Team communities with AI-curated news
-• Global and per-community leaderboards
-• FET wallet — earn, transfer, and redeem tokens
-• Anonymous fan identities — support your team without revealing yourself
+• Free football picks across selected competitions
+• Simple prediction engine powered by historical form
+• Fixtures, standings, and lean match detail screens
+• Leaderboard tracking for prediction performance
+• FET wallet — earn and transfer tokens
+• Anonymous fan identities for privacy-aware wallet transfers
 • Clean, fast, mobile-first design
 
 FANZONE is free to download and use. In-app tokens (FET) are earned through engagement and cannot be purchased with real money.
@@ -61,9 +57,9 @@ Google Play requires at minimum:
 - Recommended: 4–8 screenshots showing key flows:
   1. Home screen with live matches
   2. Match detail / prediction screen
-  3. Prediction pools listing
+  3. Prediction hub
   4. Leaderboard
-  5. Team community
+  5. Team profile
   6. Wallet / FET balance
   7. Settings / profile
   8. Onboarding
@@ -76,9 +72,9 @@ Google Play content rating questionnaire answers:
 
 | Question | Answer |
 |----------|--------|
-| Does the app contain user-generated content? | Yes (predictions, community) |
+| Does the app contain user-generated content? | Yes (predictions only) |
 | Does the app share user location? | No |
-| Does the app allow users to interact? | Yes (pools, communities) |
+| Does the app allow users to interact? | Limited (predictions and wallet transfer identifiers) |
 | Does the app contain violence? | No |
 | Does the app contain sexual content? | No |
 | Does the app contain controlled substances? | No |
@@ -111,7 +107,9 @@ See `docs/privacy-policy.md` for the full text.
 
 If reviewers need login credentials to test the app:
 - The app supports WhatsApp OTP authentication only
-- Provide a test WhatsApp-enabled phone number and OTP for review
+- Dedicated reviewer/test phone number: `+35699711145`
+- Dedicated reviewer/test OTP: `123456`
+- Reviewer steps: enter `+35699711145`, tap `SEND OTP`, then enter `123456`
 - Provide a short note that core browsing flows also load for guest access where available
 
 ---

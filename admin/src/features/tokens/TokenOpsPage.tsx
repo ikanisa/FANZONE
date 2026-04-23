@@ -49,8 +49,8 @@ export function TokenOpsPage() {
           <option value="all">All types</option>
           <option value="earn">Earn</option>
           <option value="transfer">Transfer</option>
-          <option value="challenge_stake">Stakes</option>
-          <option value="challenge_payout">Payouts</option>
+          <option value="prediction_earn">Prediction credits</option>
+          <option value="prediction_reward">Prediction rewards</option>
           <option value="contribution">Contributions</option>
           <option value="admin_credit">Admin Credit</option>
           <option value="admin_debit">Admin Debit</option>

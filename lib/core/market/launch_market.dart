@@ -112,7 +112,7 @@ bool regionKeyMatches(String? candidate, String? target) {
 
 /// DEPRECATED — use BootstrapConfig.regionForCountryCode() with country codes.
 ///
-/// This function resolves region from a country *name* (e.g. "Rwanda"),
+/// This function resolves region from a country *name* (e.g. "Test Country"),
 /// kept for backward compatibility with `CompetitionModel.country` which
 /// stores the country name (not a 2-letter code).
 ///
@@ -120,101 +120,11 @@ bool regionKeyMatches(String? candidate, String? target) {
 String? regionFromCountryName(String? country) {
   if (country == null || country.trim().isEmpty) return null;
   final runtimeConfig = runtimeBootstrapStore.config;
-  if (runtimeConfig.regions.isNotEmpty) {
-    final runtimeFlag = runtimeConfig.flagEmojiForCountryName(country);
-    if (runtimeFlag != '🌍') {
-      for (final info in runtimeConfig.regions.values) {
-        if (info.countryName.toLowerCase() == country.trim().toLowerCase()) {
-          return info.region;
-        }
-      }
+  for (final info in runtimeConfig.regions.values) {
+    if (info.countryName.toLowerCase() == country.trim().toLowerCase()) {
+      return info.region;
     }
   }
-  // Delegate to a minimal set kept only for competition country-name matching.
-  // This is determined at runtime from the DB-backed bootstrap config
-  // when the BootstrapConfig is available via a provider.
-  // For pure function context (no Riverpod), use the static fallback below.
-  final normalized = country.trim().toLowerCase();
-  return _regionFromCountryNameFallback(normalized);
-}
-
-/// Minimal inline fallback for country-name-to-region when no DB is available.
-/// This only covers the most common names found in competition data.
-String? _regionFromCountryNameFallback(String name) {
-  // Africa
-  const africa = {
-    'algeria',
-    'benin',
-    'botswana',
-    'burkina faso',
-    'cameroon',
-    "côte d'ivoire",
-    "cote d'ivoire",
-    'democratic republic of the congo',
-    'dr congo',
-    'egypt',
-    'ethiopia',
-    'ghana',
-    'guinea-bissau',
-    'kenya',
-    'madagascar',
-    'mali',
-    'morocco',
-    'mozambique',
-    'namibia',
-    'niger',
-    'nigeria',
-    'rwanda',
-    'senegal',
-    'south africa',
-    'tanzania',
-    'togo',
-    'tunisia',
-    'uganda',
-    'zambia',
-    'zimbabwe',
-  };
-  // Europe
-  const europe = {
-    'austria',
-    'belgium',
-    'czech republic',
-    'denmark',
-    'england',
-    'finland',
-    'france',
-    'germany',
-    'greece',
-    'hungary',
-    'ireland',
-    'italy',
-    'malta',
-    'netherlands',
-    'norway',
-    'poland',
-    'portugal',
-    'romania',
-    'scotland',
-    'spain',
-    'sweden',
-    'switzerland',
-    'turkey',
-    'united kingdom',
-    'wales',
-  };
-  // Host-market fallback kept intentionally narrow.
-  // Broader Americas handling should come from the runtime bootstrap config.
-  const northAmerica = {
-    'canada',
-    'mexico',
-    'united states',
-    'united states of america',
-    'usa',
-  };
-
-  if (africa.contains(name)) return 'africa';
-  if (europe.contains(name)) return 'europe';
-  if (northAmerica.contains(name)) return 'north_america';
   return null;
 }
 
@@ -255,7 +165,7 @@ const launchMomentOptions = <LaunchMomentOption>[
     tag: 'worldcup2026',
     title: 'World Cup 2026',
     subtitle:
-        'Follow the tournament itself with prediction windows, global challenges, and host-market relevance.',
+        'Follow the tournament itself with featured fixtures, prediction windows, and host-market relevance.',
     kicker: 'Tournament proper',
     regionKey: 'global',
   ),
@@ -271,7 +181,7 @@ const launchMomentOptions = <LaunchMomentOption>[
     tag: 'africa-fan-momentum-2026',
     title: 'Africa Fan Momentum',
     subtitle:
-        'Grow supporter communities, club discovery, and challenge participation around African football audiences.',
+        'Grow supporter communities, club discovery, and prediction participation around African football audiences.',
     kicker: 'Africa growth',
     regionKey: 'africa',
   ),

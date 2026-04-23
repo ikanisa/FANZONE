@@ -122,7 +122,7 @@ export function LoginPage() {
                   id="login-phone"
                   type="tel"
                   className="input"
-                  placeholder="+356 99 123 456"
+                  placeholder="+123 456 789 000"
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
                   autoComplete="tel"
@@ -203,7 +203,7 @@ export function LoginPage() {
         </form>
 
         <p className="login-footer">
-          {renderFanzoneText("FANZONE Malta — Internal Use Only")}
+          {renderFanzoneText("FANZONE Admin — Internal Use Only")}
         </p>
       </div>
 

@@ -285,12 +285,6 @@ abstract class S {
   /// **'Predict'**
   String get predictTitle;
 
-  /// No description provided for @predictSlip.
-  ///
-  /// In en, this message translates to:
-  /// **'Prediction Slip'**
-  String get predictSlip;
-
   /// No description provided for @predictMatchResult.
   ///
   /// In en, this message translates to:
@@ -344,120 +338,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'{team} to Win'**
   String predictMarketAway(String team);
-
-  /// No description provided for @poolTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'POOL'**
-  String get poolTitle;
-
-  /// No description provided for @poolStatus.
-  ///
-  /// In en, this message translates to:
-  /// **'Status'**
-  String get poolStatus;
-
-  /// No description provided for @poolLockTime.
-  ///
-  /// In en, this message translates to:
-  /// **'LOCK TIME'**
-  String get poolLockTime;
-
-  /// No description provided for @poolStake.
-  ///
-  /// In en, this message translates to:
-  /// **'STAKE'**
-  String get poolStake;
-
-  /// No description provided for @poolTotalPool.
-  ///
-  /// In en, this message translates to:
-  /// **'TOTAL POOL'**
-  String get poolTotalPool;
-
-  /// No description provided for @poolParticipants.
-  ///
-  /// In en, this message translates to:
-  /// **'PARTICIPANTS'**
-  String get poolParticipants;
-
-  /// No description provided for @poolCreatedBy.
-  ///
-  /// In en, this message translates to:
-  /// **'CREATED BY'**
-  String get poolCreatedBy;
-
-  /// No description provided for @poolPrediction.
-  ///
-  /// In en, this message translates to:
-  /// **'PREDICTION'**
-  String get poolPrediction;
-
-  /// No description provided for @poolJoinFor.
-  ///
-  /// In en, this message translates to:
-  /// **'Join for {stake} FET'**
-  String poolJoinFor(int stake);
-
-  /// No description provided for @poolJoinTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'JOIN POOL'**
-  String get poolJoinTitle;
-
-  /// No description provided for @poolConfirmStake.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirm & Stake'**
-  String get poolConfirmStake;
-
-  /// No description provided for @poolRequiredStake.
-  ///
-  /// In en, this message translates to:
-  /// **'REQUIRED STAKE'**
-  String get poolRequiredStake;
-
-  /// No description provided for @poolShareMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Join my prediction pool on FANZONE! 🏆⚽\n{url}'**
-  String poolShareMessage(String url);
-
-  /// No description provided for @poolShareSubject.
-  ///
-  /// In en, this message translates to:
-  /// **'FANZONE Pool Invite'**
-  String get poolShareSubject;
-
-  /// No description provided for @poolStatusOpen.
-  ///
-  /// In en, this message translates to:
-  /// **'OPEN'**
-  String get poolStatusOpen;
-
-  /// No description provided for @poolStatusLocked.
-  ///
-  /// In en, this message translates to:
-  /// **'LOCKED'**
-  String get poolStatusLocked;
-
-  /// No description provided for @poolStatusSettled.
-  ///
-  /// In en, this message translates to:
-  /// **'SETTLED'**
-  String get poolStatusSettled;
-
-  /// No description provided for @poolStatusVoid.
-  ///
-  /// In en, this message translates to:
-  /// **'VOID'**
-  String get poolStatusVoid;
-
-  /// No description provided for @poolIsClosed.
-  ///
-  /// In en, this message translates to:
-  /// **'Pool is {status}'**
-  String poolIsClosed(String status);
 
   /// No description provided for @walletTitle.
   ///
@@ -681,29 +561,11 @@ abstract class S {
   /// **'{count} fans'**
   String teamFans(int count);
 
-  /// No description provided for @teamSupport.
-  ///
-  /// In en, this message translates to:
-  /// **'Support'**
-  String get teamSupport;
-
-  /// No description provided for @teamNews.
-  ///
-  /// In en, this message translates to:
-  /// **'News'**
-  String get teamNews;
-
   /// No description provided for @teamFixtures.
   ///
   /// In en, this message translates to:
   /// **'Fixtures'**
   String get teamFixtures;
-
-  /// No description provided for @teamCommunity.
-  ///
-  /// In en, this message translates to:
-  /// **'Community'**
-  String get teamCommunity;
 
   /// No description provided for @followingTitle.
   ///

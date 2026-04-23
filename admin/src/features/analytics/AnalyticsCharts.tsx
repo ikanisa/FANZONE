@@ -11,26 +11,30 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
-import { BarChart3, Coins, Trophy } from 'lucide-react';
+} from "recharts";
+import { BarChart3, Coins, Trophy } from "lucide-react";
 
-import { LoadingState } from '../../components/ui/StateViews';
-import type { CompetitionShare, EngagementDay, FetFlowWeek } from './useAnalytics';
+import { LoadingState } from "../../components/ui/StateViews";
+import type {
+  CompetitionShare,
+  EngagementDay,
+  FetFlowWeek,
+} from "./useAnalytics";
 
-const CHART_STYLE = { fontSize: 11, fill: '#A8A29E' };
+const CHART_STYLE = { fontSize: 11, fill: "#A8A29E" };
 const TOOLTIP_STYLE = {
-  background: '#1C1917',
-  border: '1px solid #292524',
+  background: "#1C1917",
+  border: "1px solid #292524",
   borderRadius: 8,
   fontSize: 13,
 };
 
 const PIE_COLORS = [
-  'var(--fz-primary)',
-  'var(--fz-secondary)',
-  'var(--fz-error)',
-  'var(--fz-primary-strong)',
-  'var(--fz-secondary-strong)',
+  "var(--fz-primary)",
+  "var(--fz-secondary)",
+  "var(--fz-error)",
+  "var(--fz-primary-strong)",
+  "var(--fz-secondary-strong)",
 ];
 
 interface AnalyticsChartsProps {
@@ -71,11 +75,6 @@ export function AnalyticsCharts({
                 <Bar
                   dataKey="predictions"
                   fill="var(--fz-secondary)"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="pools"
-                  fill="var(--fz-error)"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -124,7 +123,7 @@ export function AnalyticsCharts({
                 />
                 <Line
                   type="monotone"
-                  dataKey="staked"
+                  dataKey="rewarded"
                   stroke="var(--fz-primary-strong)"
                   strokeWidth={2}
                   dot={false}
@@ -178,29 +177,29 @@ export function AnalyticsCharts({
           <div className="flex flex-col gap-3">
             {[
               {
-                label: 'Malta Premier League is the #1 engagement driver',
-                detail: '35% of all predictions',
-                color: 'success',
+                label: "Top competition engagement remains concentrated",
+                detail: "35% of all predictions",
+                color: "success",
               },
               {
-                label: 'FET velocity increasing',
-                detail: 'Transfer volume +18% WoW',
-                color: 'success',
+                label: "FET velocity increasing",
+                detail: "Transfer volume +18% WoW",
+                color: "success",
               },
               {
-                label: 'Pool participation growing',
-                detail: 'Avg pool size up from 6 to 8',
-                color: 'success',
+                label: "Prediction participation growing",
+                detail: "More users are saving match picks each week",
+                color: "success",
               },
               {
-                label: 'Redemption rate healthy',
-                detail: '3.2% of earned FET redeemed',
-                color: 'info',
+                label: "Redemption rate healthy",
+                detail: "3.2% of earned FET redeemed",
+                color: "info",
               },
               {
-                label: 'Retention D7 at 42%',
-                detail: 'Target: 50%. Needs improvement.',
-                color: 'warning',
+                label: "Retention D7 at 42%",
+                detail: "Target: 50%. Needs improvement.",
+                color: "warning",
               },
             ].map((item, index) => (
               <div
@@ -208,7 +207,7 @@ export function AnalyticsCharts({
                 className="flex items-start gap-3 p-3"
                 style={{
                   background: `var(--fz-${item.color}-bg)`,
-                  borderRadius: 'var(--fz-radius)',
+                  borderRadius: "var(--fz-radius)",
                 }}
               >
                 <div className="flex-1">

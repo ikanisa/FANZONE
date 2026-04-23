@@ -99,10 +99,8 @@ class SupabaseNotificationSettingsGateway
       await client.from('notification_preferences').upsert({
         'user_id': userId,
         'goal_alerts': preferences.goalAlerts,
-        'pool_updates': preferences.poolUpdates,
-        'daily_challenge': preferences.dailyChallenge,
-        'wallet_activity': preferences.walletActivity,
-        'community_news': preferences.communityNews,
+        'prediction_updates': preferences.predictionUpdates,
+        'reward_updates': preferences.rewardUpdates,
         'marketing': preferences.marketing,
       }, onConflict: 'user_id');
       await _cacheNotificationPreferences(userId, preferences);
@@ -350,7 +348,7 @@ class SupabaseNotificationSettingsGateway
       final row = await client
           .from('user_status')
           .select(
-            'prediction_streak, longest_streak, total_predictions, total_pools_entered, total_pools_won, total_fet_earned, total_fet_spent',
+            'prediction_streak, longest_streak, total_predictions, correct_predictions, total_fet_earned, total_fet_spent',
           )
           .eq('user_id', userId)
           .maybeSingle();

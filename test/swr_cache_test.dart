@@ -31,14 +31,14 @@ void main() {
         fetch: () async {
           fetchCount++;
           return [
-            {'id': 'm1', 'homeTeam': 'Liverpool', 'awayTeam': 'Arsenal'},
-            {'id': 'm2', 'homeTeam': 'Chelsea', 'awayTeam': 'Spurs'},
+            {'id': 'm1', 'homeTeam': 'Test Club A', 'awayTeam': 'Test Club B'},
+            {'id': 'm2', 'homeTeam': 'Test Club C', 'awayTeam': 'Test Club D'},
           ];
         },
       );
 
       expect(result, hasLength(2));
-      expect(result[0]['homeTeam'], 'Liverpool');
+      expect(result[0]['homeTeam'], 'Test Club A');
       expect(fetchCount, 1);
 
       // Verify it was cached
@@ -55,7 +55,7 @@ void main() {
       () async {
         // Pre-populate cache
         await StructuredCacheStore.writeList('matches:2026-04-20:2026-04-20', [
-          {'id': 'm3', 'homeTeam': 'Man City', 'awayTeam': 'Newcastle'},
+          {'id': 'm3', 'homeTeam': 'Test Club E', 'awayTeam': 'Test Club F'},
         ], ttl: const Duration(minutes: 10));
 
         var fetchCount = 0;
@@ -71,7 +71,7 @@ void main() {
         );
 
         expect(result, hasLength(1));
-        expect(result[0]['homeTeam'], 'Man City');
+        expect(result[0]['homeTeam'], 'Test Club E');
         expect(fetchCount, 0, reason: 'Should not fetch when cache is fresh');
       },
     );

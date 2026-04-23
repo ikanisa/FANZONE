@@ -3,53 +3,69 @@ import 'package:fanzone/features/onboarding/data/team_search_catalog.dart';
 
 void main() {
   group('TeamSearchCatalog', () {
+    test('defaults starts empty without bundled football fallbacks', () {
+      final catalog = TeamSearchCatalog.defaults();
+
+      expect(catalog.allTeams, isEmpty);
+      expect(catalog.popularTeams, isEmpty);
+      expect(catalog.popularForRegion('europe'), isEmpty);
+    });
+
     test('local search ranks aliases and prefixes', () {
       final catalog = TeamSearchCatalog([
         const OnboardingTeam(
-          id: 'arsenal',
-          name: 'Arsenal',
-          country: 'England',
-          aliases: ['Gunners'],
+          id: 'metro-fc',
+          name: 'Test Club One',
+          country: 'Test Country One',
+          aliases: ['Comets'],
         ),
         const OnboardingTeam(
-          id: 'hamrun-spartans',
-          name: 'Hamrun Spartans',
-          country: 'Malta',
-          aliases: ['Hamrun'],
+          id: 'harbor-united',
+          name: 'Test Club Two',
+          country: 'Test Country Two',
+          aliases: ['Harbor'],
         ),
         const OnboardingTeam(
-          id: 'apr-fc',
-          name: 'APR FC',
-          country: 'Rwanda',
-          aliases: ['APR'],
+          id: 'desert-stars',
+          name: 'Test Club Three',
+          country: 'Test Country Three',
+          aliases: ['Desert'],
         ),
       ]);
 
-      expect(catalog.searchLocal('gunners').first.id, 'arsenal');
-      expect(catalog.searchLocal('ham').first.id, 'hamrun-spartans');
-      expect(catalog.searchLocal('apr').first.id, 'apr-fc');
+      expect(catalog.searchLocal('comets').first.id, 'metro-fc');
+      expect(catalog.searchLocal('har').first.id, 'harbor-united');
+      expect(catalog.searchLocal('desert').first.id, 'desert-stars');
     });
 
     test('popular search is scoped to dedicated popular teams', () {
       final catalog = TeamSearchCatalog(
         const [
-          OnboardingTeam(id: 'arsenal', name: 'Arsenal', country: 'England'),
-          OnboardingTeam(id: 'apr-fc', name: 'APR FC', country: 'Rwanda'),
+          OnboardingTeam(
+            id: 'metro-fc',
+            name: 'Test Club One',
+            country: 'Test Country One',
+          ),
+          OnboardingTeam(
+            id: 'desert-stars',
+            name: 'Test Club Three',
+            country: 'Test Country Three',
+          ),
         ],
         popularTeams: const [
           OnboardingTeam(
-            id: 'arsenal',
-            name: 'Arsenal',
-            country: 'England',
+            id: 'metro-fc',
+            name: 'Test Club One',
+            country: 'Test Country One',
             popularRank: 1,
           ),
         ],
       );
 
-      expect(catalog.searchPopular('arsenal').map((team) => team.id), [
-        'arsenal',
+      expect(catalog.searchPopular('test club one').map((team) => team.id), [
+        'metro-fc',
       ]);
-      expect(catalog.searchPopular('apr'), isEmpty);
+      expect(catalog.searchPopular('desert'), isEmpty);
     });
 
     test('json payload can carry a separate popular teams collection', () {
@@ -57,22 +73,22 @@ void main() {
 {
   "teams": [
     {
-      "id": "hamrun-spartans",
-      "name": "Hamrun Spartans",
-      "country": "Malta",
-      "aliases": ["Hamrun"]
+      "id": "harbor-united",
+      "name": "Test Club Two",
+      "country": "Test Country Two",
+      "aliases": ["Harbor"]
     },
     {
-      "id": "arsenal",
-      "name": "Arsenal",
-      "country": "England"
+      "id": "metro-fc",
+      "name": "Test Club One",
+      "country": "Test Country One"
     }
   ],
   "popular_teams": [
     {
-      "id": "arsenal",
-      "name": "Arsenal",
-      "country": "England",
+      "id": "metro-fc",
+      "name": "Test Club One",
+      "country": "Test Country One",
       "popular_rank": 1
     }
   ]
@@ -80,9 +96,9 @@ void main() {
 ''');
 
       expect(catalog.allTeams, hasLength(2));
-      expect(catalog.popularTeams.map((team) => team.id), ['arsenal']);
+      expect(catalog.popularTeams.map((team) => team.id), ['metro-fc']);
       expect(catalog.popularForRegion('europe').map((team) => team.id), [
-        'arsenal',
+        'metro-fc',
       ]);
     });
   });

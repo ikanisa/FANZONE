@@ -9,7 +9,7 @@ FANZONE ("we", "us", or "our") is operated by IKANISA. This Privacy Policy expla
 ### 1.1 Information You Provide
 - **Account Information**: WhatsApp-enabled phone number used for OTP authentication.
 - **Profile Information**: Display name, team preferences, and fan identity (anonymous handle).
-- **User-Generated Content**: Predictions, pool participation, and community interactions.
+- **User-Generated Content**: Predictions and community interactions.
 
 ### 1.2 Information Collected Automatically
 - **Device Information**: Device type, operating system version, and unique device identifiers.
@@ -29,7 +29,7 @@ We use the information we collect to:
 - Provide, operate, and maintain the App
 - Authenticate your identity and manage your account
 - Deliver push notifications about match updates, prediction results, and community activity
-- Manage prediction pools, leaderboards, and FET token balances
+- Manage predictions, leaderboards, and FET token balances
 - Analyze usage patterns to improve the App experience
 - Monitor and fix technical issues
 - Comply with legal obligations

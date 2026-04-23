@@ -67,10 +67,10 @@ class _DesignSystemGallery extends StatelessWidget {
               const SizedBox(height: 24),
               Row(
                 children: [
-                  const TeamCrest(label: 'Liverpool', size: 56),
+                  const TeamCrest(label: 'Test Club A', size: 56),
                   const SizedBox(width: 16),
                   const TeamCrest(
-                    label: 'Arsenal',
+                    label: 'Test Club B',
                     fallbackEmoji: '⚽',
                     size: 56,
                   ),

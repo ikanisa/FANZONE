@@ -115,30 +115,39 @@ class BootstrapConfig {
 
   PhonePresetInfo phonePresetForRegion(String region) {
     final normalized = _normalizeRegion(region);
-    switch (normalized) {
-      case 'africa':
-        return phonePresets['RW'] ??
-            const PhonePresetInfo(
-              dialCode: '+250',
-              hint: '7XX XXX XXX',
-              minDigits: 9,
-            );
-      case 'europe':
-        return phonePresets['GB'] ??
-            const PhonePresetInfo(
-              dialCode: '+44',
-              hint: '7XXX XXX XXX',
-              minDigits: 10,
-            );
-      case 'north_america':
-      default:
-        return phonePresets['US'] ??
-            const PhonePresetInfo(
-              dialCode: '+1',
-              hint: '555 123 4567',
-              minDigits: 10,
-            );
+    if (phonePresets.isNotEmpty) {
+      final regionCandidates =
+          phonePresets.entries
+              .where(
+                (entry) =>
+                    _normalizeRegion(regions[entry.key]?.region) == normalized,
+              )
+              .toList(growable: false)
+            ..sort((left, right) {
+              final leftName = regions[left.key]?.countryName ?? left.key;
+              final rightName = regions[right.key]?.countryName ?? right.key;
+              return leftName.compareTo(rightName);
+            });
+
+      if (regionCandidates.isNotEmpty) {
+        return regionCandidates.first.value;
+      }
+
+      final allCandidates = phonePresets.entries.toList(growable: false)
+        ..sort((left, right) {
+          final leftName = regions[left.key]?.countryName ?? left.key;
+          final rightName = regions[right.key]?.countryName ?? right.key;
+          return leftName.compareTo(rightName);
+        });
+
+      return allCandidates.first.value;
     }
+
+    return const PhonePresetInfo(
+      dialCode: '+',
+      hint: '000 000 000',
+      minDigits: 7,
+    );
   }
 
   // ── Feature flag helpers ──

@@ -9,10 +9,10 @@ interface EnterResultModalProps {
   onConfirm: (homeScore: number, awayScore: number) => void;
   onCancel: () => void;
   isPending: boolean;
-  settlePoolsAfter?: boolean;
+  scorePredictionsAfter?: boolean;
 }
 
-export function EnterResultModal({ open, matchId, matchLabel, onConfirm, onCancel, isPending, settlePoolsAfter }: EnterResultModalProps) {
+export function EnterResultModal({ open, matchId, matchLabel, onConfirm, onCancel, isPending, scorePredictionsAfter }: EnterResultModalProps) {
   const [homeScore, setHomeScore] = useState('');
   const [awayScore, setAwayScore] = useState('');
 
@@ -37,7 +37,7 @@ export function EnterResultModal({ open, matchId, matchLabel, onConfirm, onCance
 
         <p className="text-sm text-muted mb-4">
           Enter the official full-time score for this fixture.
-          {settlePoolsAfter && ' All associated prediction pools will be settled automatically after confirming.'}
+          {scorePredictionsAfter && ' All saved user picks will be scored automatically after confirming.'}
         </p>
 
         <div className="flex gap-4 mb-6">
@@ -78,7 +78,7 @@ export function EnterResultModal({ open, matchId, matchLabel, onConfirm, onCance
             onClick={() => onConfirm(Number(homeScore), Number(awayScore))}
             disabled={!isValid || isPending}
           >
-            {isPending ? 'Saving...' : settlePoolsAfter ? 'Save & Settle Pools' : 'Save Result'}
+            {isPending ? 'Saving...' : scorePredictionsAfter ? 'Save & Score Picks' : 'Save Result'}
           </button>
         </div>
       </div>

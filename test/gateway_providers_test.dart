@@ -5,21 +5,14 @@ import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/core/cache/cache_service.dart';
 import 'package:fanzone/core/supabase/supabase_connection.dart';
 import 'package:fanzone/features/auth/data/auth_gateway.dart';
-import 'package:fanzone/features/predict/data/prediction_pool_gateway.dart';
-import 'package:fanzone/features/predict/data/leaderboard_gateway.dart';
-import 'package:fanzone/features/predict/data/daily_challenge_gateway.dart';
-import 'package:fanzone/features/predict/data/prediction_slip_gateway.dart';
-import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
-import 'package:fanzone/features/community/data/team_support_gateway.dart';
-import 'package:fanzone/features/community/data/team_news_gateway.dart';
-import 'package:fanzone/features/community/data/feed_gateway.dart';
-import 'package:fanzone/features/home/data/match_listing_gateway.dart';
-import 'package:fanzone/features/home/data/match_detail_gateway.dart';
 import 'package:fanzone/features/home/data/competition_catalog_gateway.dart';
-import 'package:fanzone/features/home/data/team_catalog_gateway.dart';
 import 'package:fanzone/features/home/data/event_catalog_gateway.dart';
+import 'package:fanzone/features/home/data/match_listing_gateway.dart';
+import 'package:fanzone/features/home/data/team_catalog_gateway.dart';
+import 'package:fanzone/features/predict/data/leaderboard_gateway.dart';
 import 'package:fanzone/features/settings/data/account_settings_gateway.dart';
 import 'package:fanzone/features/settings/data/notification_settings_gateway.dart';
+import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Verifies that the Riverpod DI graph resolves all providers without errors.
@@ -89,59 +82,14 @@ void main() {
         isA<MatchListingGateway>(),
       );
     });
-
-    test('matchDetailGatewayProvider', () {
-      expect(
-        container.read(matchDetailGatewayProvider),
-        isA<MatchDetailGateway>(),
-      );
-    });
   });
 
   group('Predict providers resolve', () {
-    test('predictionPoolGatewayProvider', () {
-      expect(
-        container.read(predictionPoolGatewayProvider),
-        isA<PredictionPoolGateway>(),
-      );
-    });
-
     test('leaderboardGatewayProvider', () {
       expect(
         container.read(leaderboardGatewayProvider),
         isA<LeaderboardGateway>(),
       );
-    });
-
-    test('dailyChallengeGatewayProvider', () {
-      expect(
-        container.read(dailyChallengeGatewayProvider),
-        isA<DailyChallengeGateway>(),
-      );
-    });
-
-    test('predictionSlipGatewayProvider', () {
-      expect(
-        container.read(predictionSlipGatewayProvider),
-        isA<PredictionSlipGateway>(),
-      );
-    });
-  });
-
-  group('Community providers resolve', () {
-    test('teamSupportGatewayProvider', () {
-      expect(
-        container.read(teamSupportGatewayProvider),
-        isA<TeamSupportGateway>(),
-      );
-    });
-
-    test('teamNewsGatewayProvider', () {
-      expect(container.read(teamNewsGatewayProvider), isA<TeamNewsGateway>());
-    });
-
-    test('feedGatewayProvider', () {
-      expect(container.read(feedGatewayProvider), isA<FeedGateway>());
     });
   });
 

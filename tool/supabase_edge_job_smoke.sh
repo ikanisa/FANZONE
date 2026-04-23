@@ -7,8 +7,8 @@ if [[ -f ".env" ]]; then
   set +a
 fi
 
-if [[ -z "${SUPABASE_URL:-}" || -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
-  echo "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in the environment or .env."
+if [[ -z "${SUPABASE_URL:-}" ]]; then
+  echo "SUPABASE_URL must be set in the environment or .env."
   exit 1
 fi
 
@@ -62,8 +62,11 @@ expect_non_auth_error() {
 }
 
 echo "Verifying unauthorized access is rejected..."
-auto_settle_unauth="$(call_edge "auto-settle" "" '{}')"
-expect_status "auto-settle unauthorized" "${auto_settle_unauth}" "401"
+generate_predictions_unauth="$(call_edge "generate-predictions" "" '{}')"
+expect_status "generate-predictions unauthorized" "${generate_predictions_unauth}" "401"
+
+score_predictions_unauth="$(call_edge "score-predictions" "" '{}')"
+expect_status "score-predictions unauthorized" "${score_predictions_unauth}" "401"
 
 dispatch_match_alerts_unauth="$(call_edge "dispatch-match-alerts" "" '{}')"
 expect_status "dispatch-match-alerts unauthorized" "${dispatch_match_alerts_unauth}" "401"
@@ -71,18 +74,23 @@ expect_status "dispatch-match-alerts unauthorized" "${dispatch_match_alerts_unau
 push_notify_unauth="$(call_edge "push-notify" "" '{}')"
 expect_status "push-notify unauthorized" "${push_notify_unauth}" "401"
 
-team_news_unauth="$(call_edge "gemini-team-news" "" '{}')"
-expect_status "gemini-team-news unauthorized" "${team_news_unauth}" "401"
-
 currency_unauth="$(call_edge "gemini-currency-rates" "" '{}')"
 expect_status "gemini-currency-rates unauthorized" "${currency_unauth}" "401"
 
 echo "Verifying authorized requests pass the auth layer..."
-auto_settle_auth="$(call_edge "auto-settle" "" '{}' \
+generate_predictions_auth="$(call_edge "generate-predictions" "" '{}' \
   -H "x-cron-secret: ${CRON_SECRET}")"
-if [[ "${auto_settle_auth}" != "200" && "${auto_settle_auth}" != "207" ]]; then
-  echo "auto-settle authorized expected HTTP 200 or 207 but got ${auto_settle_auth}"
-  cat /tmp/auto-settle.body 2>/dev/null || true
+if [[ "${generate_predictions_auth}" != "200" ]]; then
+  echo "generate-predictions authorized expected HTTP 200 but got ${generate_predictions_auth}"
+  cat /tmp/generate-predictions.body 2>/dev/null || true
+  exit 1
+fi
+
+score_predictions_auth="$(call_edge "score-predictions" "" '{}' \
+  -H "x-cron-secret: ${CRON_SECRET}")"
+if [[ "${score_predictions_auth}" != "200" ]]; then
+  echo "score-predictions authorized expected HTTP 200 but got ${score_predictions_auth}"
+  cat /tmp/score-predictions.body 2>/dev/null || true
   exit 1
 fi
 
@@ -100,14 +108,6 @@ if [[ "${push_notify_auth}" != "400" ]]; then
   expect_non_auth_error "push-notify authorized" "${push_notify_auth}"
   echo "push-notify authorized expected validation HTTP 400 but got ${push_notify_auth}"
   cat /tmp/push-notify.body 2>/dev/null || true
-  exit 1
-fi
-
-team_news_auth="$(call_edge "gemini-team-news" "${SUPABASE_SERVICE_ROLE_KEY}" '{}')"
-if [[ "${team_news_auth}" != "400" ]]; then
-  expect_non_auth_error "gemini-team-news authorized" "${team_news_auth}"
-  echo "gemini-team-news authorized expected validation HTTP 400 but got ${team_news_auth}"
-  cat /tmp/gemini-team-news.body 2>/dev/null || true
   exit 1
 fi
 

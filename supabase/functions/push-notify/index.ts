@@ -6,7 +6,10 @@
 //
 // Auth: x-push-notify-secret only.
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import {
+  createClient,
+  type SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 import {
   buildCorsHeaders,
@@ -16,7 +19,8 @@ import {
 import { parsePushPayload } from "./payload.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("EDGE_SERVICE_ROLE_KEY")?.trim() ||
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
 const GOOGLE_SA_JSON = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
 const PUSH_NOTIFY_SECRET = Deno.env.get("PUSH_NOTIFY_SECRET")?.trim() || "";
 
@@ -36,9 +40,8 @@ interface DeviceToken {
 interface NotificationPreferenceRow {
   user_id: string;
   goal_alerts?: boolean | null;
-  pool_updates?: boolean | null;
-  daily_challenge?: boolean | null;
-  wallet_activity?: boolean | null;
+  prediction_updates?: boolean | null;
+  reward_updates?: boolean | null;
   community_news?: boolean | null;
   marketing?: boolean | null;
 }
@@ -47,6 +50,29 @@ type NotificationPreferenceKey = Exclude<
   keyof NotificationPreferenceRow,
   "user_id"
 >;
+
+async function loadNotificationPreferences(
+  supabase: SupabaseClient,
+  userIds: string[],
+) {
+  const columns =
+    "user_id, goal_alerts, prediction_updates, reward_updates, community_news, marketing";
+
+  const { data, error } = await supabase
+    .from("notification_preferences")
+    .select(columns)
+    .in("user_id", userIds);
+  if (error) throw error;
+  return (data || []) as NotificationPreferenceRow[];
+}
+
+function isPreferenceEnabled(
+  preference: NotificationPreferenceRow | undefined,
+  key: NotificationPreferenceKey,
+) {
+  if (!preference) return true;
+  return preference[key] !== false;
+}
 
 interface FirebaseMessage {
   token: string;
@@ -241,14 +267,7 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
     // Check notification preferences
-    const { data: prefs } = await supabase
-      .from("notification_preferences")
-      .select(
-        "user_id, goal_alerts, pool_updates, daily_challenge, wallet_activity, community_news, marketing",
-      )
-      .in("user_id", userIds);
-
-    const prefRows = (prefs || []) as NotificationPreferenceRow[];
+    const prefRows = await loadNotificationPreferences(supabase, userIds);
     const prefMap = new Map(
       prefRows.map((preference) => [preference.user_id, preference]),
     );
@@ -259,11 +278,11 @@ Deno.serve(async (req: Request) => {
       match_goal: "goal_alerts",
       match_kickoff: "goal_alerts",
       match_result: "goal_alerts",
-      pool_settled: "pool_updates",
-      pool_joined: "pool_updates",
-      daily_challenge: "daily_challenge",
-      wallet_credit: "wallet_activity",
-      wallet_debit: "wallet_activity",
+      prediction_update: "prediction_updates",
+      prediction_scored: "prediction_updates",
+      prediction_reward: "reward_updates",
+      wallet_credit: "reward_updates",
+      wallet_debit: "reward_updates",
       community: "community_news",
       marketing: "marketing",
     };
@@ -271,9 +290,7 @@ Deno.serve(async (req: Request) => {
     const prefColumn = typeToColumn[type];
     const eligibleUserIds = userIds.filter((uid) => {
       if (!prefColumn) return true; // unknown type → send
-      const userPref = prefMap.get(uid);
-      if (!userPref) return true; // no prefs → default on
-      return userPref[prefColumn] !== false;
+      return isPreferenceEnabled(prefMap.get(uid), prefColumn);
     });
 
     if (!eligibleUserIds.length) {

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'config/app_config.dart';
 import 'core/auth/runtime_auth_session_manager.dart';
 import 'core/accessibility/motion.dart';
+import 'core/config/runtime_bootstrap.dart';
 import 'core/navigation/analytics_route_observer.dart';
 import 'core/runtime/app_runtime_state.dart';
 import 'widgets/navigation/app_shell.dart';
@@ -11,24 +12,18 @@ import 'widgets/navigation/app_shell.dart';
 import 'features/auth/screens/guest_upgrade_screen.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/whatsapp_login_screen.dart';
-import 'features/community/screens/membership_hub_screen.dart';
 import 'features/fixtures/screens/fixtures_screen.dart';
 import 'features/home/screens/home_feed_screen.dart';
 import 'features/home/screens/league_hub_screen.dart';
 import 'features/home/screens/match_detail_screen.dart';
-import 'features/identity/screens/fan_id_screen.dart';
 import 'features/leaderboard/screens/leaderboard_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
-import 'features/pools/screens/pool_detail_screen.dart';
-import 'features/predict/screens/jackpot_challenge_screen.dart';
 import 'features/predict/screens/predict_screen.dart';
 import 'features/profile/screens/notifications_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
-import 'features/rewards/screens/rewards_screen.dart';
 import 'features/settings/screens/feature_unavailable_screen.dart';
 import 'features/settings/screens/privacy_settings_screen.dart';
 import 'features/settings/screens/settings_screen.dart';
-import 'features/social/screens/social_hub_screen.dart';
 import 'features/teams/screens/team_profile_canonical_screen.dart';
 import 'features/wallet/screens/wallet_screen.dart';
 
@@ -48,7 +43,10 @@ void setInitialRoute(String route) {
 
 final router = GoRouter(
   initialLocation: _initialRoute,
-  refreshListenable: appRuntime.authStateVersion,
+  refreshListenable: Listenable.merge([
+    appRuntime.authStateVersion,
+    runtimeBootstrapStore,
+  ]),
   observers: [AnalyticsRouteObserver()],
   redirect: (context, state) {
     final path = state.uri.path;
@@ -95,66 +93,6 @@ final router = GoRouter(
         ),
       ),
     ),
-    GoRoute(path: '/matches', redirect: (context, state) => '/fixtures'),
-    GoRoute(path: '/predict', redirect: (context, state) => '/pools'),
-    GoRoute(
-      path: '/predict/create',
-      redirect: (context, state) => '/pools/create',
-    ),
-    GoRoute(
-      path: '/predict/pool/:poolId',
-      redirect: (context, state) => '/pool/${state.pathParameters['poolId']}',
-    ),
-    GoRoute(path: '/predict/jackpot', redirect: (context, state) => '/jackpot'),
-    GoRoute(path: '/clubs', redirect: (context, state) => '/memberships'),
-    GoRoute(
-      path: '/clubs/membership',
-      redirect: (context, state) => '/memberships',
-    ),
-    GoRoute(path: '/clubs/social', redirect: (context, state) => '/social'),
-    GoRoute(path: '/clubs/fan-id', redirect: (context, state) => '/fan-id'),
-    GoRoute(path: '/clubs/teams', redirect: (context, state) => '/memberships'),
-    GoRoute(
-      path: '/clubs/team/:teamId',
-      redirect: (context, state) => '/team/${state.pathParameters['teamId']}',
-    ),
-    GoRoute(
-      path: '/profile/leaderboard',
-      redirect: (context, state) => '/leaderboard',
-    ),
-    GoRoute(
-      path: '/profile/notifications',
-      redirect: (context, state) => '/notifications',
-    ),
-    GoRoute(
-      path: '/profile/settings',
-      redirect: (context, state) => '/settings',
-    ),
-    GoRoute(
-      path: '/profile/settings/privacy',
-      redirect: (context, state) => '/privacy',
-    ),
-    GoRoute(path: '/profile/fan-id', redirect: (context, state) => '/fan-id'),
-    GoRoute(path: '/profile/rewards', redirect: (context, state) => '/rewards'),
-    GoRoute(
-      path: '/profile/daily-challenge',
-      redirect: (context, state) => '/profile',
-    ),
-    GoRoute(
-      path: '/profile/prediction-history',
-      redirect: (context, state) => '/profile',
-    ),
-    GoRoute(
-      path: '/profile/seasonal-leaderboard',
-      redirect: (context, state) => '/leaderboard',
-    ),
-    GoRoute(
-      path: '/profile/contests',
-      redirect: (context, state) => '/profile',
-    ),
-    GoRoute(path: '/profile/wallet', redirect: (context, state) => '/wallet'),
-    GoRoute(path: '/wallet/rewards', redirect: (context, state) => '/rewards'),
-    GoRoute(path: '/registry', redirect: (context, state) => '/fan-id'),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => AppShell(
         navigationShell: navigationShell,
@@ -204,41 +142,11 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              name: 'predict_pools',
-              path: '/pools',
+              name: 'predict',
+              path: '/predict',
               builder: (context, state) => AppConfig.enablePredictions
                   ? const PredictScreen()
                   : const FeatureUnavailableScreen(featureName: 'Predict'),
-              routes: [
-                GoRoute(
-                  name: 'predict_create',
-                  path: 'create',
-                  pageBuilder: (context, state) =>
-                      _fadeSlideTransition(state, const CreatePoolScreen()),
-                ),
-              ],
-            ),
-            GoRoute(
-              name: 'pool_detail',
-              path: '/pool/:poolId',
-              pageBuilder: (context, state) => _fadeSlideTransition(
-                state,
-                PoolDetailScreen(poolId: state.pathParameters['poolId']!),
-              ),
-            ),
-            GoRoute(
-              name: 'jackpot_challenge',
-              path: '/jackpot',
-              pageBuilder: (context, state) => _fadeSlideTransition(
-                state,
-                AppConfig.enableGlobalChallenges
-                    ? const JackpotChallengeScreen()
-                    : const FeatureUnavailableScreen(
-                        featureName: 'Jackpot Challenge',
-                        message:
-                            'Weekly jackpot entry stays disabled until the production challenge backend is live.',
-                      ),
-              ),
             ),
           ],
         ),
@@ -250,16 +158,6 @@ final router = GoRouter(
               builder: (context, state) => AppConfig.enableWallet
                   ? const WalletScreen()
                   : const FeatureUnavailableScreen(featureName: 'Wallet'),
-            ),
-            GoRoute(
-              name: 'rewards',
-              path: '/rewards',
-              pageBuilder: (context, state) => _fadeSlideTransition(
-                state,
-                AppConfig.enableRewards || AppConfig.enableMarketplace
-                    ? const RewardsScreen()
-                    : const FeatureUnavailableScreen(featureName: 'Rewards'),
-              ),
             ),
           ],
         ),
@@ -297,26 +195,14 @@ final router = GoRouter(
             GoRoute(
               name: 'notifications',
               path: '/notifications',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const NotificationsScreen()),
-            ),
-            GoRoute(
-              name: 'memberships',
-              path: '/memberships',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const MembershipHubScreen()),
-            ),
-            GoRoute(
-              name: 'social_hub',
-              path: '/social',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const SocialHubScreen()),
-            ),
-            GoRoute(
-              name: 'fan_id',
-              path: '/fan-id',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const FanIdScreen()),
+              pageBuilder: (context, state) => _fadeSlideTransition(
+                state,
+                AppConfig.enableNotifications
+                    ? const NotificationsScreen()
+                    : const FeatureUnavailableScreen(
+                        featureName: 'Notifications',
+                      ),
+              ),
             ),
             GoRoute(
               name: 'team_profile',

@@ -77,15 +77,15 @@ SELECT count(*) AS lb_count FROM public.public_leaderboard LIMIT 1;
 
 
 -- ============================================================================
--- 4) AUTH WRITE: Pool Creation (authenticated only)
+-- 4) AUTH WRITE: User Predictions (authenticated only)
 -- ============================================================================
 
--- POSITIVE: Authenticated user can create a pool (via RPC)
--- SELECT create_pool_rate_limited('match-test', 1, 0, 100);
--- Expected: Returns pool ID (or rate limit error after 5 calls)
+-- POSITIVE: Authenticated user can submit a prediction (via RPC)
+-- SELECT submit_user_prediction('match-test', 'H', true, true, 2, 1);
+-- Expected: Returns prediction id
 
--- NEGATIVE: Anon cannot call create_pool
--- SELECT create_pool_rate_limited('match-test', 1, 0, 100);
+-- NEGATIVE: Anon cannot submit a prediction
+-- SELECT submit_user_prediction('match-test', 'H', true, true, 2, 1);
 -- Expected: Permission denied
 
 
@@ -119,31 +119,21 @@ SELECT count(*) AS lb_count FROM public.public_leaderboard LIMIT 1;
 
 
 -- ============================================================================
--- 7) AUTH-ONLY: User Followed Teams/Competitions
+-- 7) AUTH-ONLY: User Favorite Teams / Followed Competitions
 -- ============================================================================
 
 -- POSITIVE: User A can follow a team
--- INSERT INTO public.user_followed_teams (user_id, team_id)
--- VALUES (:'TEST_USER_A', 'valletta-fc')
+-- INSERT INTO public.user_favorite_teams (user_id, team_id, team_name)
+-- VALUES (:'TEST_USER_A', 'valletta-fc', 'Valletta FC')
 -- ON CONFLICT DO NOTHING;
 
 -- NEGATIVE: User A cannot modify User B's follows
--- DELETE FROM public.user_followed_teams WHERE user_id = :'TEST_USER_B';
+-- DELETE FROM public.user_favorite_teams WHERE user_id = :'TEST_USER_B';
 -- Expected: 0 rows affected (filtered by RLS)
 
 
 -- ============================================================================
--- 8) RATE LIMITING: Pool Creation
--- ============================================================================
-
--- Test that rate limiting enforces 5 pools per hour
--- Run 6 times as the same user:
--- SELECT create_pool_rate_limited('match-test', 1, 0, 50);
--- Expected: First 5 succeed, 6th throws 'Rate limit exceeded'
-
-
--- ============================================================================
--- 9) RATE LIMITING: FET Transfers
+-- 8) RATE LIMITING: FET Transfers
 -- ============================================================================
 
 -- Test that transfer rate limiting enforces 10 per 24h
@@ -153,7 +143,16 @@ SELECT count(*) AS lb_count FROM public.public_leaderboard LIMIT 1;
 
 
 -- ============================================================================
--- 10) FET SUPPLY CAP
+-- 9) Prediction Rewards + FET Supply
+
+-- POSITIVE: Authenticated user can read own token rewards
+-- SELECT count(*) FROM public.token_rewards WHERE user_id = :'TEST_USER_A';
+-- Expected: >= 0
+
+-- NEGATIVE: User A cannot read User B's token rewards
+-- SELECT count(*) FROM public.token_rewards WHERE user_id = :'TEST_USER_B';
+-- Expected: 0 rows
+
 -- ============================================================================
 
 -- Verify supply cap is enforced
@@ -162,7 +161,7 @@ SELECT public.fet_supply_cap() AS supply_cap;
 
 -- Verify current supply is within cap
 SELECT
-  COALESCE(SUM(balance), 0) AS total_circulating
+  COALESCE(SUM(available_balance_fet + locked_balance_fet), 0) AS total_circulating
 FROM public.fet_wallets;
 -- Expected: Less than supply cap
 
@@ -175,7 +174,7 @@ FROM public.fet_wallets;
 --   ✅ Wallet data is isolated per user
 --   ✅ Notification log is isolated per user
 --   ✅ Match alerts are isolated per user
---   ✅ Pool creation requires auth
---   ✅ Rate limits prevent abuse (5 pools/hr, 10 transfers/24h)
+--   ✅ Prediction submission requires auth
+--   ✅ Rate limits prevent abuse on wallet transfers
 --   ✅ FET supply cap is enforced
 --   ❌ No cross-user data leakage on any auth-gated table

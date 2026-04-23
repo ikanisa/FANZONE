@@ -21,9 +21,9 @@ Deno.test('parsePushPayload normalizes single user_id and stringifies data', () 
 Deno.test('parsePushPayload deduplicates and trims user_ids', () => {
   const payload = parsePushPayload({
     user_ids: [' user-1 ', 'user-2', 'user-1'],
-    type: 'pool_settled',
-    title: 'Pool settled',
-    body: 'Winnings distributed.',
+    type: 'prediction_reward',
+    title: 'Prediction reward',
+    body: 'Your token reward is ready.',
   });
 
   if (payload.userIds.join(',') !== 'user-1,user-2') {
@@ -37,7 +37,7 @@ Deno.test('parsePushPayload rejects invalid payloads', () => {
   try {
     parsePushPayload({
       user_id: 'user-1',
-      type: 'pool_settled',
+      type: 'prediction_reward',
       body: 'Missing title should fail',
     });
   } catch (error) {

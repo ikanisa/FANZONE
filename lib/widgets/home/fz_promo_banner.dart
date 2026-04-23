@@ -142,7 +142,7 @@ class _FzPromoBannerState extends State<FzPromoBanner>
                           style: FzTypography.display(size: 14),
                         ),
                         Text(
-                          'Unmissable odds & exclusive pools open now!',
+                          'Fresh free picks are live now.',
                           style: FzTypography.metaLabel(size: 9),
                         ),
                       ],
@@ -177,20 +177,20 @@ class _FzPromoBannerState extends State<FzPromoBanner>
                       ),
                       const SizedBox(width: 6),
                       GestureDetector(
-                        onTap: () => context.go('/pools'),
+                        onTap: () => context.go('/predict'),
                         child: Container(
                           height: 24,
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: const BoxDecoration(
-                            color: FzColors.danger,
+                            color: FzColors.accent2,
                             borderRadius: FzRadii.fullRadius,
                           ),
                           child: Center(
                             child: Text(
-                              'ENTER POOL',
+                              'OPEN PICKS',
                               style: FzTypography.metaLabel(
                                 size: 9,
-                                color: FzColors.darkBg,
+                                color: FzColors.darkText,
                               ),
                             ),
                           ),

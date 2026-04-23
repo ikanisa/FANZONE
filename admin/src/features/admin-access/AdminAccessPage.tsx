@@ -118,7 +118,7 @@ export function AdminAccessPage() {
               <input
                 className="input"
                 type="tel"
-                placeholder="+356 99 123 456"
+                placeholder="+123 456 789 000"
                 value={invitePhone}
                 onChange={(e) => setInvitePhone(e.target.value)}
                 autoFocus
@@ -174,7 +174,7 @@ export function AdminAccessPage() {
             },
             {
               role: "Moderator",
-              desc: "Can moderate content, challenges, and handle reports. No financial ops.",
+              desc: "Can moderate content, prediction participation, and handle reports. No financial ops.",
               color: "var(--fz-secondary)",
             },
             {

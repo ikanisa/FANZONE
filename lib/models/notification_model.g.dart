@@ -14,10 +14,10 @@ _$NotificationItemImpl _$$NotificationItemImplFromJson(
   title: json['title'] as String,
   body: json['body'] as String? ?? '',
   data: json['data'] as Map<String, dynamic>? ?? const {},
-  sentAt: DateTime.parse(json['sentAt'] as String),
-  readAt: json['readAt'] == null
+  sentAt: DateTime.parse(json['sent_at'] as String),
+  readAt: json['read_at'] == null
       ? null
-      : DateTime.parse(json['readAt'] as String),
+      : DateTime.parse(json['read_at'] as String),
 );
 
 Map<String, dynamic> _$$NotificationItemImplToJson(
@@ -28,50 +28,44 @@ Map<String, dynamic> _$$NotificationItemImplToJson(
   'title': instance.title,
   'body': instance.body,
   'data': instance.data,
-  'sentAt': instance.sentAt.toIso8601String(),
-  'readAt': instance.readAt?.toIso8601String(),
+  'sent_at': instance.sentAt.toIso8601String(),
+  'read_at': instance.readAt?.toIso8601String(),
 };
 
 _$NotificationPreferencesImpl _$$NotificationPreferencesImplFromJson(
   Map<String, dynamic> json,
 ) => _$NotificationPreferencesImpl(
-  goalAlerts: json['goalAlerts'] as bool? ?? true,
-  poolUpdates: json['poolUpdates'] as bool? ?? true,
-  dailyChallenge: json['dailyChallenge'] as bool? ?? true,
-  walletActivity: json['walletActivity'] as bool? ?? true,
-  communityNews: json['communityNews'] as bool? ?? true,
+  goalAlerts: json['goal_alerts'] as bool? ?? true,
+  predictionUpdates: json['prediction_updates'] as bool? ?? true,
+  rewardUpdates: json['reward_updates'] as bool? ?? true,
   marketing: json['marketing'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$NotificationPreferencesImplToJson(
   _$NotificationPreferencesImpl instance,
 ) => <String, dynamic>{
-  'goalAlerts': instance.goalAlerts,
-  'poolUpdates': instance.poolUpdates,
-  'dailyChallenge': instance.dailyChallenge,
-  'walletActivity': instance.walletActivity,
-  'communityNews': instance.communityNews,
+  'goal_alerts': instance.goalAlerts,
+  'prediction_updates': instance.predictionUpdates,
+  'reward_updates': instance.rewardUpdates,
   'marketing': instance.marketing,
 };
 
 _$UserStatsImpl _$$UserStatsImplFromJson(Map<String, dynamic> json) =>
     _$UserStatsImpl(
-      predictionStreak: (json['predictionStreak'] as num?)?.toInt() ?? 0,
-      longestStreak: (json['longestStreak'] as num?)?.toInt() ?? 0,
-      totalPredictions: (json['totalPredictions'] as num?)?.toInt() ?? 0,
-      totalPoolsEntered: (json['totalPoolsEntered'] as num?)?.toInt() ?? 0,
-      totalPoolsWon: (json['totalPoolsWon'] as num?)?.toInt() ?? 0,
-      totalFetEarned: (json['totalFetEarned'] as num?)?.toInt() ?? 0,
-      totalFetSpent: (json['totalFetSpent'] as num?)?.toInt() ?? 0,
+      predictionStreak: (json['prediction_streak'] as num?)?.toInt() ?? 0,
+      longestStreak: (json['longest_streak'] as num?)?.toInt() ?? 0,
+      totalPredictions: (json['total_predictions'] as num?)?.toInt() ?? 0,
+      correctPredictions: (json['correct_predictions'] as num?)?.toInt() ?? 0,
+      totalFetEarned: (json['total_fet_earned'] as num?)?.toInt() ?? 0,
+      totalFetSpent: (json['total_fet_spent'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$$UserStatsImplToJson(_$UserStatsImpl instance) =>
     <String, dynamic>{
-      'predictionStreak': instance.predictionStreak,
-      'longestStreak': instance.longestStreak,
-      'totalPredictions': instance.totalPredictions,
-      'totalPoolsEntered': instance.totalPoolsEntered,
-      'totalPoolsWon': instance.totalPoolsWon,
-      'totalFetEarned': instance.totalFetEarned,
-      'totalFetSpent': instance.totalFetSpent,
+      'prediction_streak': instance.predictionStreak,
+      'longest_streak': instance.longestStreak,
+      'total_predictions': instance.totalPredictions,
+      'correct_predictions': instance.correctPredictions,
+      'total_fet_earned': instance.totalFetEarned,
+      'total_fet_spent': instance.totalFetSpent,
     };

@@ -1,6 +1,5 @@
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import 'predict_gateway_models.dart';
 
 abstract interface class LeaderboardGateway {
   Future<List<Map<String, dynamic>>> getGlobalLeaderboard();
@@ -25,20 +24,20 @@ class SupabaseLeaderboardGateway implements LeaderboardGateway {
           .order('total_fet', ascending: false)
           .limit(50);
 
-      final leaderboard = <GlobalLeaderboardEntryDto>[];
+      final leaderboard = <Map<String, dynamic>>[];
       for (var index = 0; index < (rows as List).length; index += 1) {
         final row = Map<String, dynamic>.from(rows[index] as Map);
         leaderboard.add(
-          GlobalLeaderboardEntryDto(
-            rank: index + 1,
-            name: row['display_name']?.toString() ?? 'Fan',
-            fet: (row['total_fet'] as num?)?.toInt() ?? 0,
-            level: 1,
-          ),
+          <String, dynamic>{
+            'rank': index + 1,
+            'name': row['display_name']?.toString() ?? 'Fan',
+            'fet': (row['total_fet'] as num?)?.toInt() ?? 0,
+            'level': 1,
+          },
         );
       }
 
-      return leaderboard.map((row) => row.toJson()).toList(growable: false);
+      return leaderboard;
     } catch (error) {
       AppLogger.d('Failed to load global leaderboard: $error');
       return const <Map<String, dynamic>>[];

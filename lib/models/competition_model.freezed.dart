@@ -27,26 +27,26 @@ mixin _$CompetitionModel {
   String get shortName => throw _privateConstructorUsedError;
   String get country => throw _privateConstructorUsedError;
   int get tier => throw _privateConstructorUsedError;
-  @JsonKey(name: 'data_source')
-  String get dataSource => throw _privateConstructorUsedError;
-  @JsonKey(name: 'source_file')
-  String? get sourceFile => throw _privateConstructorUsedError;
-  List<String> get seasons => throw _privateConstructorUsedError;
-  @JsonKey(name: 'team_count')
-  int? get teamCount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'logo_url')
-  String? get logoUrl => throw _privateConstructorUsedError; // ── Global launch fields (additive, nullable) ──
-  String? get region => throw _privateConstructorUsedError;
   @JsonKey(name: 'competition_type')
   String? get competitionType => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_featured')
   bool get isFeatured => throw _privateConstructorUsedError;
-  @JsonKey(name: 'event_tag')
-  String? get eventTag => throw _privateConstructorUsedError;
-  @JsonKey(name: 'start_date')
-  DateTime? get startDate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'end_date')
-  DateTime? get endDate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_international')
+  bool get isInternational => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_active')
+  bool get isActive => throw _privateConstructorUsedError;
+  @JsonKey(name: 'current_season_id')
+  String? get currentSeasonId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'current_season_label')
+  String? get currentSeasonLabel => throw _privateConstructorUsedError;
+  @JsonKey(name: 'future_match_count')
+  int get futureMatchCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'catalog_rank')
+  int? get catalogRank => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'updated_at')
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this CompetitionModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -71,17 +71,16 @@ abstract class $CompetitionModelCopyWith<$Res> {
     @JsonKey(name: 'short_name') String shortName,
     String country,
     int tier,
-    @JsonKey(name: 'data_source') String dataSource,
-    @JsonKey(name: 'source_file') String? sourceFile,
-    List<String> seasons,
-    @JsonKey(name: 'team_count') int? teamCount,
-    @JsonKey(name: 'logo_url') String? logoUrl,
-    String? region,
     @JsonKey(name: 'competition_type') String? competitionType,
     @JsonKey(name: 'is_featured') bool isFeatured,
-    @JsonKey(name: 'event_tag') String? eventTag,
-    @JsonKey(name: 'start_date') DateTime? startDate,
-    @JsonKey(name: 'end_date') DateTime? endDate,
+    @JsonKey(name: 'is_international') bool isInternational,
+    @JsonKey(name: 'is_active') bool isActive,
+    @JsonKey(name: 'current_season_id') String? currentSeasonId,
+    @JsonKey(name: 'current_season_label') String? currentSeasonLabel,
+    @JsonKey(name: 'future_match_count') int futureMatchCount,
+    @JsonKey(name: 'catalog_rank') int? catalogRank,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
   });
 }
 
@@ -105,17 +104,16 @@ class _$CompetitionModelCopyWithImpl<$Res, $Val extends CompetitionModel>
     Object? shortName = null,
     Object? country = null,
     Object? tier = null,
-    Object? dataSource = null,
-    Object? sourceFile = freezed,
-    Object? seasons = null,
-    Object? teamCount = freezed,
-    Object? logoUrl = freezed,
-    Object? region = freezed,
     Object? competitionType = freezed,
     Object? isFeatured = null,
-    Object? eventTag = freezed,
-    Object? startDate = freezed,
-    Object? endDate = freezed,
+    Object? isInternational = null,
+    Object? isActive = null,
+    Object? currentSeasonId = freezed,
+    Object? currentSeasonLabel = freezed,
+    Object? futureMatchCount = null,
+    Object? catalogRank = freezed,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -139,30 +137,6 @@ class _$CompetitionModelCopyWithImpl<$Res, $Val extends CompetitionModel>
                 ? _value.tier
                 : tier // ignore: cast_nullable_to_non_nullable
                       as int,
-            dataSource: null == dataSource
-                ? _value.dataSource
-                : dataSource // ignore: cast_nullable_to_non_nullable
-                      as String,
-            sourceFile: freezed == sourceFile
-                ? _value.sourceFile
-                : sourceFile // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            seasons: null == seasons
-                ? _value.seasons
-                : seasons // ignore: cast_nullable_to_non_nullable
-                      as List<String>,
-            teamCount: freezed == teamCount
-                ? _value.teamCount
-                : teamCount // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            logoUrl: freezed == logoUrl
-                ? _value.logoUrl
-                : logoUrl // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            region: freezed == region
-                ? _value.region
-                : region // ignore: cast_nullable_to_non_nullable
-                      as String?,
             competitionType: freezed == competitionType
                 ? _value.competitionType
                 : competitionType // ignore: cast_nullable_to_non_nullable
@@ -171,17 +145,37 @@ class _$CompetitionModelCopyWithImpl<$Res, $Val extends CompetitionModel>
                 ? _value.isFeatured
                 : isFeatured // ignore: cast_nullable_to_non_nullable
                       as bool,
-            eventTag: freezed == eventTag
-                ? _value.eventTag
-                : eventTag // ignore: cast_nullable_to_non_nullable
+            isInternational: null == isInternational
+                ? _value.isInternational
+                : isInternational // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            currentSeasonId: freezed == currentSeasonId
+                ? _value.currentSeasonId
+                : currentSeasonId // ignore: cast_nullable_to_non_nullable
                       as String?,
-            startDate: freezed == startDate
-                ? _value.startDate
-                : startDate // ignore: cast_nullable_to_non_nullable
+            currentSeasonLabel: freezed == currentSeasonLabel
+                ? _value.currentSeasonLabel
+                : currentSeasonLabel // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            futureMatchCount: null == futureMatchCount
+                ? _value.futureMatchCount
+                : futureMatchCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            catalogRank: freezed == catalogRank
+                ? _value.catalogRank
+                : catalogRank // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
-            endDate: freezed == endDate
-                ? _value.endDate
-                : endDate // ignore: cast_nullable_to_non_nullable
+            updatedAt: freezed == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
           )
           as $Val,
@@ -204,17 +198,16 @@ abstract class _$$CompetitionModelImplCopyWith<$Res>
     @JsonKey(name: 'short_name') String shortName,
     String country,
     int tier,
-    @JsonKey(name: 'data_source') String dataSource,
-    @JsonKey(name: 'source_file') String? sourceFile,
-    List<String> seasons,
-    @JsonKey(name: 'team_count') int? teamCount,
-    @JsonKey(name: 'logo_url') String? logoUrl,
-    String? region,
     @JsonKey(name: 'competition_type') String? competitionType,
     @JsonKey(name: 'is_featured') bool isFeatured,
-    @JsonKey(name: 'event_tag') String? eventTag,
-    @JsonKey(name: 'start_date') DateTime? startDate,
-    @JsonKey(name: 'end_date') DateTime? endDate,
+    @JsonKey(name: 'is_international') bool isInternational,
+    @JsonKey(name: 'is_active') bool isActive,
+    @JsonKey(name: 'current_season_id') String? currentSeasonId,
+    @JsonKey(name: 'current_season_label') String? currentSeasonLabel,
+    @JsonKey(name: 'future_match_count') int futureMatchCount,
+    @JsonKey(name: 'catalog_rank') int? catalogRank,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
   });
 }
 
@@ -237,17 +230,16 @@ class __$$CompetitionModelImplCopyWithImpl<$Res>
     Object? shortName = null,
     Object? country = null,
     Object? tier = null,
-    Object? dataSource = null,
-    Object? sourceFile = freezed,
-    Object? seasons = null,
-    Object? teamCount = freezed,
-    Object? logoUrl = freezed,
-    Object? region = freezed,
     Object? competitionType = freezed,
     Object? isFeatured = null,
-    Object? eventTag = freezed,
-    Object? startDate = freezed,
-    Object? endDate = freezed,
+    Object? isInternational = null,
+    Object? isActive = null,
+    Object? currentSeasonId = freezed,
+    Object? currentSeasonLabel = freezed,
+    Object? futureMatchCount = null,
+    Object? catalogRank = freezed,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
   }) {
     return _then(
       _$CompetitionModelImpl(
@@ -271,30 +263,6 @@ class __$$CompetitionModelImplCopyWithImpl<$Res>
             ? _value.tier
             : tier // ignore: cast_nullable_to_non_nullable
                   as int,
-        dataSource: null == dataSource
-            ? _value.dataSource
-            : dataSource // ignore: cast_nullable_to_non_nullable
-                  as String,
-        sourceFile: freezed == sourceFile
-            ? _value.sourceFile
-            : sourceFile // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        seasons: null == seasons
-            ? _value._seasons
-            : seasons // ignore: cast_nullable_to_non_nullable
-                  as List<String>,
-        teamCount: freezed == teamCount
-            ? _value.teamCount
-            : teamCount // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        logoUrl: freezed == logoUrl
-            ? _value.logoUrl
-            : logoUrl // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        region: freezed == region
-            ? _value.region
-            : region // ignore: cast_nullable_to_non_nullable
-                  as String?,
         competitionType: freezed == competitionType
             ? _value.competitionType
             : competitionType // ignore: cast_nullable_to_non_nullable
@@ -303,17 +271,37 @@ class __$$CompetitionModelImplCopyWithImpl<$Res>
             ? _value.isFeatured
             : isFeatured // ignore: cast_nullable_to_non_nullable
                   as bool,
-        eventTag: freezed == eventTag
-            ? _value.eventTag
-            : eventTag // ignore: cast_nullable_to_non_nullable
+        isInternational: null == isInternational
+            ? _value.isInternational
+            : isInternational // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        currentSeasonId: freezed == currentSeasonId
+            ? _value.currentSeasonId
+            : currentSeasonId // ignore: cast_nullable_to_non_nullable
                   as String?,
-        startDate: freezed == startDate
-            ? _value.startDate
-            : startDate // ignore: cast_nullable_to_non_nullable
+        currentSeasonLabel: freezed == currentSeasonLabel
+            ? _value.currentSeasonLabel
+            : currentSeasonLabel // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        futureMatchCount: null == futureMatchCount
+            ? _value.futureMatchCount
+            : futureMatchCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        catalogRank: freezed == catalogRank
+            ? _value.catalogRank
+            : catalogRank // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
-        endDate: freezed == endDate
-            ? _value.endDate
-            : endDate // ignore: cast_nullable_to_non_nullable
+        updatedAt: freezed == updatedAt
+            ? _value.updatedAt
+            : updatedAt // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
       ),
     );
@@ -322,25 +310,24 @@ class __$$CompetitionModelImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$CompetitionModelImpl implements _CompetitionModel {
+class _$CompetitionModelImpl extends _CompetitionModel {
   const _$CompetitionModelImpl({
     required this.id,
     required this.name,
-    @JsonKey(name: 'short_name') required this.shortName,
-    required this.country,
+    @JsonKey(name: 'short_name') this.shortName = '',
+    this.country = '',
     this.tier = 1,
-    @JsonKey(name: 'data_source') required this.dataSource,
-    @JsonKey(name: 'source_file') this.sourceFile,
-    final List<String> seasons = const [],
-    @JsonKey(name: 'team_count') this.teamCount,
-    @JsonKey(name: 'logo_url') this.logoUrl,
-    this.region,
     @JsonKey(name: 'competition_type') this.competitionType,
     @JsonKey(name: 'is_featured') this.isFeatured = false,
-    @JsonKey(name: 'event_tag') this.eventTag,
-    @JsonKey(name: 'start_date') this.startDate,
-    @JsonKey(name: 'end_date') this.endDate,
-  }) : _seasons = seasons;
+    @JsonKey(name: 'is_international') this.isInternational = false,
+    @JsonKey(name: 'is_active') this.isActive = true,
+    @JsonKey(name: 'current_season_id') this.currentSeasonId,
+    @JsonKey(name: 'current_season_label') this.currentSeasonLabel,
+    @JsonKey(name: 'future_match_count') this.futureMatchCount = 0,
+    @JsonKey(name: 'catalog_rank') this.catalogRank,
+    @JsonKey(name: 'created_at') this.createdAt,
+    @JsonKey(name: 'updated_at') this.updatedAt,
+  }) : super._();
 
   factory _$CompetitionModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$CompetitionModelImplFromJson(json);
@@ -353,34 +340,11 @@ class _$CompetitionModelImpl implements _CompetitionModel {
   @JsonKey(name: 'short_name')
   final String shortName;
   @override
+  @JsonKey()
   final String country;
   @override
   @JsonKey()
   final int tier;
-  @override
-  @JsonKey(name: 'data_source')
-  final String dataSource;
-  @override
-  @JsonKey(name: 'source_file')
-  final String? sourceFile;
-  final List<String> _seasons;
-  @override
-  @JsonKey()
-  List<String> get seasons {
-    if (_seasons is EqualUnmodifiableListView) return _seasons;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_seasons);
-  }
-
-  @override
-  @JsonKey(name: 'team_count')
-  final int? teamCount;
-  @override
-  @JsonKey(name: 'logo_url')
-  final String? logoUrl;
-  // ── Global launch fields (additive, nullable) ──
-  @override
-  final String? region;
   @override
   @JsonKey(name: 'competition_type')
   final String? competitionType;
@@ -388,18 +352,33 @@ class _$CompetitionModelImpl implements _CompetitionModel {
   @JsonKey(name: 'is_featured')
   final bool isFeatured;
   @override
-  @JsonKey(name: 'event_tag')
-  final String? eventTag;
+  @JsonKey(name: 'is_international')
+  final bool isInternational;
   @override
-  @JsonKey(name: 'start_date')
-  final DateTime? startDate;
+  @JsonKey(name: 'is_active')
+  final bool isActive;
   @override
-  @JsonKey(name: 'end_date')
-  final DateTime? endDate;
+  @JsonKey(name: 'current_season_id')
+  final String? currentSeasonId;
+  @override
+  @JsonKey(name: 'current_season_label')
+  final String? currentSeasonLabel;
+  @override
+  @JsonKey(name: 'future_match_count')
+  final int futureMatchCount;
+  @override
+  @JsonKey(name: 'catalog_rank')
+  final int? catalogRank;
+  @override
+  @JsonKey(name: 'created_at')
+  final DateTime? createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  final DateTime? updatedAt;
 
   @override
   String toString() {
-    return 'CompetitionModel(id: $id, name: $name, shortName: $shortName, country: $country, tier: $tier, dataSource: $dataSource, sourceFile: $sourceFile, seasons: $seasons, teamCount: $teamCount, logoUrl: $logoUrl, region: $region, competitionType: $competitionType, isFeatured: $isFeatured, eventTag: $eventTag, startDate: $startDate, endDate: $endDate)';
+    return 'CompetitionModel(id: $id, name: $name, shortName: $shortName, country: $country, tier: $tier, competitionType: $competitionType, isFeatured: $isFeatured, isInternational: $isInternational, isActive: $isActive, currentSeasonId: $currentSeasonId, currentSeasonLabel: $currentSeasonLabel, futureMatchCount: $futureMatchCount, catalogRank: $catalogRank, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -413,24 +392,26 @@ class _$CompetitionModelImpl implements _CompetitionModel {
                 other.shortName == shortName) &&
             (identical(other.country, country) || other.country == country) &&
             (identical(other.tier, tier) || other.tier == tier) &&
-            (identical(other.dataSource, dataSource) ||
-                other.dataSource == dataSource) &&
-            (identical(other.sourceFile, sourceFile) ||
-                other.sourceFile == sourceFile) &&
-            const DeepCollectionEquality().equals(other._seasons, _seasons) &&
-            (identical(other.teamCount, teamCount) ||
-                other.teamCount == teamCount) &&
-            (identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl) &&
-            (identical(other.region, region) || other.region == region) &&
             (identical(other.competitionType, competitionType) ||
                 other.competitionType == competitionType) &&
             (identical(other.isFeatured, isFeatured) ||
                 other.isFeatured == isFeatured) &&
-            (identical(other.eventTag, eventTag) ||
-                other.eventTag == eventTag) &&
-            (identical(other.startDate, startDate) ||
-                other.startDate == startDate) &&
-            (identical(other.endDate, endDate) || other.endDate == endDate));
+            (identical(other.isInternational, isInternational) ||
+                other.isInternational == isInternational) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive) &&
+            (identical(other.currentSeasonId, currentSeasonId) ||
+                other.currentSeasonId == currentSeasonId) &&
+            (identical(other.currentSeasonLabel, currentSeasonLabel) ||
+                other.currentSeasonLabel == currentSeasonLabel) &&
+            (identical(other.futureMatchCount, futureMatchCount) ||
+                other.futureMatchCount == futureMatchCount) &&
+            (identical(other.catalogRank, catalogRank) ||
+                other.catalogRank == catalogRank) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -442,17 +423,16 @@ class _$CompetitionModelImpl implements _CompetitionModel {
     shortName,
     country,
     tier,
-    dataSource,
-    sourceFile,
-    const DeepCollectionEquality().hash(_seasons),
-    teamCount,
-    logoUrl,
-    region,
     competitionType,
     isFeatured,
-    eventTag,
-    startDate,
-    endDate,
+    isInternational,
+    isActive,
+    currentSeasonId,
+    currentSeasonLabel,
+    futureMatchCount,
+    catalogRank,
+    createdAt,
+    updatedAt,
   );
 
   /// Create a copy of CompetitionModel
@@ -472,25 +452,25 @@ class _$CompetitionModelImpl implements _CompetitionModel {
   }
 }
 
-abstract class _CompetitionModel implements CompetitionModel {
+abstract class _CompetitionModel extends CompetitionModel {
   const factory _CompetitionModel({
     required final String id,
     required final String name,
-    @JsonKey(name: 'short_name') required final String shortName,
-    required final String country,
+    @JsonKey(name: 'short_name') final String shortName,
+    final String country,
     final int tier,
-    @JsonKey(name: 'data_source') required final String dataSource,
-    @JsonKey(name: 'source_file') final String? sourceFile,
-    final List<String> seasons,
-    @JsonKey(name: 'team_count') final int? teamCount,
-    @JsonKey(name: 'logo_url') final String? logoUrl,
-    final String? region,
     @JsonKey(name: 'competition_type') final String? competitionType,
     @JsonKey(name: 'is_featured') final bool isFeatured,
-    @JsonKey(name: 'event_tag') final String? eventTag,
-    @JsonKey(name: 'start_date') final DateTime? startDate,
-    @JsonKey(name: 'end_date') final DateTime? endDate,
+    @JsonKey(name: 'is_international') final bool isInternational,
+    @JsonKey(name: 'is_active') final bool isActive,
+    @JsonKey(name: 'current_season_id') final String? currentSeasonId,
+    @JsonKey(name: 'current_season_label') final String? currentSeasonLabel,
+    @JsonKey(name: 'future_match_count') final int futureMatchCount,
+    @JsonKey(name: 'catalog_rank') final int? catalogRank,
+    @JsonKey(name: 'created_at') final DateTime? createdAt,
+    @JsonKey(name: 'updated_at') final DateTime? updatedAt,
   }) = _$CompetitionModelImpl;
+  const _CompetitionModel._() : super._();
 
   factory _CompetitionModel.fromJson(Map<String, dynamic> json) =
       _$CompetitionModelImpl.fromJson;
@@ -507,36 +487,35 @@ abstract class _CompetitionModel implements CompetitionModel {
   @override
   int get tier;
   @override
-  @JsonKey(name: 'data_source')
-  String get dataSource;
-  @override
-  @JsonKey(name: 'source_file')
-  String? get sourceFile;
-  @override
-  List<String> get seasons;
-  @override
-  @JsonKey(name: 'team_count')
-  int? get teamCount;
-  @override
-  @JsonKey(name: 'logo_url')
-  String? get logoUrl; // ── Global launch fields (additive, nullable) ──
-  @override
-  String? get region;
-  @override
   @JsonKey(name: 'competition_type')
   String? get competitionType;
   @override
   @JsonKey(name: 'is_featured')
   bool get isFeatured;
   @override
-  @JsonKey(name: 'event_tag')
-  String? get eventTag;
+  @JsonKey(name: 'is_international')
+  bool get isInternational;
   @override
-  @JsonKey(name: 'start_date')
-  DateTime? get startDate;
+  @JsonKey(name: 'is_active')
+  bool get isActive;
   @override
-  @JsonKey(name: 'end_date')
-  DateTime? get endDate;
+  @JsonKey(name: 'current_season_id')
+  String? get currentSeasonId;
+  @override
+  @JsonKey(name: 'current_season_label')
+  String? get currentSeasonLabel;
+  @override
+  @JsonKey(name: 'future_match_count')
+  int get futureMatchCount;
+  @override
+  @JsonKey(name: 'catalog_rank')
+  int? get catalogRank;
+  @override
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  DateTime? get updatedAt;
 
   /// Create a copy of CompetitionModel
   /// with the given fields replaced by the non-null parameter values.

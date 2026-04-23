@@ -7,46 +7,42 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:fanzone/core/config/bootstrap_config.dart';
 import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/data/team_search_database.dart';
 import 'package:fanzone/features/fixtures/screens/fixtures_screen.dart';
 import 'package:fanzone/features/home/screens/home_feed_screen.dart';
 import 'package:fanzone/features/home/screens/match_detail_screen.dart';
-import 'package:fanzone/features/identity/screens/fan_id_screen.dart';
 import 'package:fanzone/features/leaderboard/screens/leaderboard_screen.dart';
 import 'package:fanzone/features/predict/screens/predict_screen.dart';
 import 'package:fanzone/features/profile/providers/profile_identity_provider.dart';
 import 'package:fanzone/features/profile/screens/notifications_screen.dart';
 import 'package:fanzone/features/profile/screens/profile_screen.dart';
 import 'package:fanzone/features/settings/screens/privacy_settings_screen.dart';
-import 'package:fanzone/features/social/screens/social_hub_screen.dart';
 import 'package:fanzone/features/teams/screens/team_profile_canonical_screen.dart';
 import 'package:fanzone/models/featured_event_model.dart';
-import 'package:fanzone/models/match_advanced_stats_model.dart';
-import 'package:fanzone/models/match_odds_model.dart';
 import 'package:fanzone/models/notification_model.dart';
-import 'package:fanzone/models/pool.dart';
+import 'package:fanzone/models/prediction_engine_output_model.dart';
+import 'package:fanzone/models/standing_row_model.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
-import 'package:fanzone/models/match_model.dart';
-import 'package:fanzone/models/match_player_stats_model.dart';
-import 'package:fanzone/models/team_contribution_model.dart';
+import 'package:fanzone/models/team_form_feature_model.dart';
 import 'package:fanzone/models/team_model.dart';
-import 'package:fanzone/models/team_supporter_model.dart';
+import 'package:fanzone/models/user_prediction_model.dart';
 import 'package:fanzone/providers/auth_provider.dart';
 import 'package:fanzone/providers/competitions_provider.dart';
+import 'package:fanzone/providers/crowd_prediction_provider.dart';
 import 'package:fanzone/providers/currency_provider.dart';
 import 'package:fanzone/providers/favorite_teams_provider.dart';
 import 'package:fanzone/providers/favourites_provider.dart';
 import 'package:fanzone/providers/featured_events_provider.dart';
-import 'package:fanzone/providers/match_detail_providers.dart';
+import 'package:fanzone/providers/home_feed_provider.dart';
 import 'package:fanzone/providers/market_preferences_provider.dart';
 import 'package:fanzone/providers/matches_provider.dart';
 import 'package:fanzone/providers/standings_provider.dart';
 import 'package:fanzone/providers/teams_provider.dart';
 import 'package:fanzone/services/leaderboard_service.dart';
 import 'package:fanzone/services/notification_service.dart';
-import 'package:fanzone/services/pool_service.dart';
-import 'package:fanzone/services/team_community_service.dart';
+import 'package:fanzone/services/prediction_service.dart';
 import 'package:fanzone/services/wallet_service.dart';
 import 'package:fanzone/theme/app_theme.dart';
 
@@ -71,30 +67,115 @@ void main() {
           id: 'home_live',
           date: selectedDate,
           status: 'live',
+          homeTeamId: 'test-club-a',
+          awayTeamId: 'test-club-b',
           ftHome: 1,
           ftAway: 0,
         );
         final upcomingMatch = sampleMatch(
           id: 'home_upcoming',
           date: selectedDate,
-          homeTeam: 'Barcelona',
-          awayTeam: 'Real Madrid',
+          homeTeamId: 'test-club-c',
+          awayTeamId: 'test-club-d',
+          homeTeam: 'Test Club C',
+          awayTeam: 'Test Club D',
         );
+        final filteredOutMatch = sampleMatch(
+          id: 'home_filtered_out',
+          date: selectedDate,
+          homeTeamId: 'test-club-e',
+          awayTeamId: 'test-club-f',
+          homeTeam: 'Test Club E',
+          awayTeam: 'Test Club F',
+        );
+        const favoriteTeam = FavoriteTeamRecordDto(
+          teamId: 'test-club-c',
+          teamName: 'Test Club C',
+          teamShortName: 'Club C',
+          source: 'local',
+        );
+        initTeamSearchDatabase(
+          catalog: TeamSearchCatalog(
+            const [
+              OnboardingTeam(
+                id: 'test-club-a',
+                name: 'Test Club A',
+                country: 'Test Country',
+                shortNameOverride: 'TCA',
+              ),
+              OnboardingTeam(
+                id: 'test-club-b',
+                name: 'Test Club B',
+                country: 'Test Country',
+                shortNameOverride: 'TCB',
+              ),
+              OnboardingTeam(
+                id: 'test-club-c',
+                name: 'Test Club C',
+                country: 'Test Country',
+                shortNameOverride: 'TCC',
+              ),
+              OnboardingTeam(
+                id: 'test-club-e',
+                name: 'Test Club E',
+                country: 'Test Country',
+              ),
+              OnboardingTeam(
+                id: 'test-club-f',
+                name: 'Test Club F',
+                country: 'Test Country',
+              ),
+            ],
+            popularTeams: const [
+              OnboardingTeam(
+                id: 'test-club-a',
+                name: 'Test Club A',
+                country: 'Test Country',
+                shortNameOverride: 'TCA',
+              ),
+              OnboardingTeam(
+                id: 'test-club-b',
+                name: 'Test Club B',
+                country: 'Test Country',
+                shortNameOverride: 'TCB',
+              ),
+            ],
+          ),
+        );
+        addTearDown(() {
+          initTeamSearchDatabase(catalog: TeamSearchCatalog.defaults());
+        });
 
         await pumpAppScreen(
           tester,
           const HomeFeedScreen(),
           overrides: [
-            matchesProvider(
-              feedFilter,
-            ).overrideWith((ref) async => [liveMatch, upcomingMatch]),
-            supportedTeamsServiceProvider.overrideWith(
-              () => _StaticSupportedTeamsController(const <String>{}),
+            matchesProvider(feedFilter).overrideWith(
+              (ref) async => [liveMatch, upcomingMatch, filteredOutMatch],
             ),
-            teamNewsProvider(
-              'liverpool',
-              limit: 1,
-            ).overrideWith((ref) async => const []),
+            favoriteTeamRecordsProvider.overrideWith(
+              (ref) async => const [favoriteTeam],
+            ),
+            homeDefaultTeamsProvider.overrideWith(
+              (ref) async => const [
+                OnboardingTeam(
+                  id: 'test-club-a',
+                  name: 'Test Club A',
+                  country: 'Test Country',
+                  shortNameOverride: 'TCA',
+                  aliases: ['Test Club A FC', 'Alpha Side'],
+                  popularRank: 6,
+                ),
+                OnboardingTeam(
+                  id: 'test-club-b',
+                  name: 'Test Club B',
+                  country: 'Test Country',
+                  shortNameOverride: 'TCB',
+                  aliases: ['Test Club B FC', 'Bravo Side'],
+                  popularRank: 3,
+                ),
+              ],
+            ),
             profileIdentityProvider.overrideWith(
               () => _StaticProfileIdentityController(null),
             ),
@@ -106,7 +187,6 @@ void main() {
         expect(find.text('Predictions'), findsNothing);
         expect(find.text('Live Action'), findsOneWidget);
         expect(find.text('Upcoming'), findsOneWidget);
-        expect(find.byTooltip('Create pool'), findsNothing);
         expect(
           find.byKey(const ValueKey('home-match-card-home_live')),
           findsOneWidget,
@@ -115,20 +195,24 @@ void main() {
           find.byKey(const ValueKey('home-match-card-home_upcoming')),
           findsOneWidget,
         );
+        expect(
+          find.byKey(const ValueKey('home-match-card-home_filtered_out')),
+          findsNothing,
+        );
         expect(find.text('PREDICT'), findsNWidgets(2));
-        expect(find.text('POOL'), findsNWidgets(2));
+        expect(find.text('MATCH'), findsNWidgets(2));
         expect(find.text('FREE ENTRY'), findsNothing);
         expect(find.text('MATCHDAY HUB'), findsNothing);
       },
     );
 
     testWidgets(
-      'leaderboard keeps the canonical 4-tab layout with podium and fan clubs view',
+      'leaderboard renders the lean global podium and pinned user card',
       (tester) async {
         final entries = <Map<String, dynamic>>[
           {'rank': 1, 'name': 'SpartanKing', 'fet': 15200},
-          {'rank': 2, 'name': 'MaltaFan', 'fet': 12400},
-          {'rank': 3, 'name': 'PacevillePro', 'fet': 10100},
+          {'rank': 2, 'name': 'LeagueFan', 'fet': 12400},
+          {'rank': 3, 'name': 'NorthCurve', 'fet': 10100},
           {'rank': 4, 'name': 'User_4', 'fet': 6500},
           {'rank': 5, 'name': 'User_5', 'fet': 5500},
         ];
@@ -146,92 +230,42 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Global'), findsOneWidget);
-        expect(find.text('Weekly'), findsOneWidget);
-        expect(find.text('Friends'), findsOneWidget);
-        expect(find.text('Fan Clubs'), findsOneWidget);
+        expect(find.text('Leaderboard'), findsOneWidget);
         expect(find.byIcon(LucideIcons.trophy), findsNWidgets(3));
         expect(find.text('You'), findsOneWidget);
         expect(find.text('Accuracy 68%'), findsOneWidget);
         expect(find.text('SpartanKing'), findsOneWidget);
-
-        await tester.tap(find.text('Fan Clubs'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Hamrun S.'), findsOneWidget);
-        expect(find.text('Floriana'), findsOneWidget);
-        expect(find.byIcon(LucideIcons.trendingUp), findsWidgets);
-        expect(find.text('Accuracy 68%'), findsNothing);
       },
     );
 
-    testWidgets('predict screen renders pools and tabs', (tester) async {
+    testWidgets('predict screen renders the lean picks workflow', (
+      tester,
+    ) async {
+      final match = sampleMatch();
+      final competition = sampleCompetition();
+
       await pumpAppScreen(
         tester,
         const PredictScreen(),
         overrides: [
-          poolServiceProvider.overrideWith(
-            () => FakePoolService([samplePool()]),
+          upcomingMatchesProvider.overrideWith((ref) => Stream.value([match])),
+          myPredictionsProvider.overrideWith(
+            (ref) async => const <UserPredictionModel>[],
           ),
-          myEntriesProvider.overrideWith(() => FakeMyEntries([])),
-          currentUserProvider.overrideWith((ref) => null),
-          isAuthenticatedProvider.overrideWith((ref) => false),
-          userCurrencyProvider.overrideWith((ref) async => 'EUR'),
+          competitionProvider(
+            competition.id,
+          ).overrideWith((ref) async => competition),
         ],
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('FEATURED'), findsOneWidget);
-      expect(find.text('OPEN'), findsAtLeastNWidgets(1));
-      expect(find.text('Liverpool'), findsAtLeastNWidgets(1));
-      expect(find.text('Arsenal'), findsAtLeastNWidgets(1));
-      expect(find.text('JOIN'), findsOneWidget);
-      expect(find.byTooltip('Create pool'), findsWidgets);
-    });
-
-    testWidgets('create pool screen renders the live route entry state', (
-      tester,
-    ) async {
-      final now = DateTime.now();
-      final start = DateTime(now.year, now.month, now.day);
-      final end = start.add(const Duration(days: 14));
-      final createPoolFilter = MatchesFilter(
-        dateFrom:
-            '${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}',
-        dateTo:
-            '${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}',
-        limit: 24,
-        ascending: true,
-      );
-      final poolMatch = sampleMatch(
-        homeTeam: 'Girona FC',
-        awayTeam: 'Real Betis Balompié',
-        date: start,
-        kickoffTime: '21:30',
-      );
-
-      await pumpAppScreen(
-        tester,
-        const CreatePoolScreen(),
-        overrides: [
-          poolServiceProvider.overrideWith(
-            () => FakePoolService([samplePool()]),
-          ),
-          matchesProvider(
-            createPoolFilter,
-          ).overrideWith((ref) async => [poolMatch]),
-          myEntriesProvider.overrideWith(() => FakeMyEntries([])),
-          currentUserProvider.overrideWith((ref) => null),
-          isAuthenticatedProvider.overrideWith((ref) => false),
-          userCurrencyProvider.overrideWith((ref) async => 'EUR'),
-        ],
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Create'), findsOneWidget);
-      expect(find.text('New Pool'), findsOneWidget);
-      expect(find.text('Select a Match'), findsOneWidget);
-      expect(find.text('Girona FC vs Real Betis Balompié'), findsOneWidget);
+      expect(find.text('Predict'), findsOneWidget);
+      expect(find.text('Upcoming'), findsOneWidget);
+      expect(find.text('My picks'), findsOneWidget);
+      expect(find.text('Test Club A'), findsAtLeastNWidgets(1));
+      expect(find.text('Test Club B'), findsAtLeastNWidgets(1));
+      expect(find.text('Details'), findsOneWidget);
+      expect(find.text('Make pick'), findsOneWidget);
     });
 
     testWidgets('wallet screen renders balance and history', (tester) async {
@@ -266,20 +300,20 @@ void main() {
       expect(find.text('Total Balance'), findsOneWidget);
       expect(find.text('SEND'), findsOneWidget);
       await tester.scrollUntilVisible(
-        find.text('Challenge payout'),
+        find.text('Prediction reward'),
         300,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Challenge payout'), findsOneWidget);
+      expect(find.text('Prediction reward'), findsOneWidget);
     });
 
     testWidgets('profile screen renders account sections for signed-in users', (
       tester,
     ) async {
       const selectedTeam = FavoriteTeamRecordDto(
-        teamId: 'liverpool',
-        teamName: 'Liverpool',
-        teamShortName: 'LIV',
+        teamId: 'test-club-a',
+        teamName: 'Test Club A',
+        teamShortName: 'TCA',
         source: 'local',
       );
 
@@ -298,44 +332,37 @@ void main() {
           profileIdentityProvider.overrideWith(
             () => _StaticProfileIdentityController(selectedTeam),
           ),
+          bootstrapConfigProvider.overrideWithValue(
+            BootstrapConfig(
+              regions: const {},
+              phonePresets: const {},
+              currencyDisplay: const {},
+              featureFlags: const {
+                'predictions': true,
+                'wallet': true,
+                'leaderboard': true,
+                'notifications': true,
+              },
+              appConfig: const {},
+              launchMoments: const [],
+            ),
+          ),
         ],
       );
       await tester.pumpAndSettle();
 
       expect(find.text('Profile'), findsOneWidget);
       expect(find.text('Fan ID 123456'), findsOneWidget);
-      expect(find.text('Activity'), findsOneWidget);
-      expect(find.text('Clubs'), findsOneWidget);
+      expect(find.text('Play'), findsOneWidget);
       expect(find.text('Account'), findsOneWidget);
+      expect(find.text('Predictions'), findsOneWidget);
+      expect(find.text('Leaderboard'), findsOneWidget);
+      expect(find.text('Wallet'), findsOneWidget);
       expect(find.text('Select Identity'), findsNothing);
       await tester.tap(find.byKey(const ValueKey('profile-identity-trigger')));
       await tester.pumpAndSettle();
       expect(find.text('Select Identity'), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.text('Memberships'),
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Memberships'), findsOneWidget);
       expect(find.text('Preferences'), findsOneWidget);
-    });
-
-    testWidgets('fan id screen follows the canonical identity layout', (
-      tester,
-    ) async {
-      await pumpAppScreen(
-        tester,
-        const FanIdScreen(),
-        overrides: [userFanIdProvider.overrideWith((ref) async => '123456')],
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('My Fan ID'), findsOneWidget);
-      expect(find.text('FAN ID SPECIFICATION'), findsOneWidget);
-      expect(find.text('123456'), findsOneWidget);
-      expect(find.text('Auto-assigned on first app open'), findsOneWidget);
-      expect(find.text('IDENTITY RULES'), findsOneWidget);
-      expect(find.text('Anonymous'), findsOneWidget);
     });
 
     testWidgets('privacy settings screen matches the source sections', (
@@ -350,7 +377,7 @@ void main() {
 
       expect(find.text('Privacy'), findsOneWidget);
       expect(find.text('Phone Number Hidden'), findsOneWidget);
-      expect(find.text('Anonymous Contributions'), findsOneWidget);
+      expect(find.text('Anonymous Rewards'), findsOneWidget);
       expect(find.text('Display Name on Leaderboards'), findsOneWidget);
       expect(find.text('Allow Friends to Find Me'), findsOneWidget);
       expect(
@@ -359,87 +386,23 @@ void main() {
       );
     });
 
-    testWidgets('social hub screen keeps the original tabs and fan-zone hero', (
-      tester,
-    ) async {
-      const team = TeamModel(
-        id: 'hamrun',
-        name: 'Hamrun Spartans',
-        shortName: 'Hamrun',
-        country: 'Malta',
-        fanCount: 1240,
-      );
-
-      await pumpAppScreen(
-        tester,
-        const SocialHubScreen(),
-        overrides: [
-          poolServiceProvider.overrideWith(
-            () => FakePoolService([
-              samplePool(),
-              ScorePool(
-                id: 'pool_2',
-                matchId: 'match_1',
-                matchName: 'Hamrun Spartans vs Valletta FC',
-                creatorId: 'creator_2',
-                creatorName: 'GozitanFan',
-                creatorPrediction: 'Hamrun Spartans 1 - 0 Valletta FC',
-                stake: 100,
-                totalPool: 900,
-                participantsCount: 10,
-                status: 'open',
-                lockAt: DateTime(2026, 4, 19, 20),
-              ),
-            ]),
-          ),
-          teamsProvider.overrideWith((ref) async => const [team]),
-          supportedTeamsServiceProvider.overrideWith(
-            () => _StaticSupportedTeamsController(const {'hamrun'}),
-          ),
-          userFanIdProvider.overrideWith((ref) async => '123456'),
-          teamAnonymousFansProvider(team.id).overrideWith(
-            (ref) async => [
-              AnonymousFanRecord(
-                anonymousFanId: 'Hamrun_Ultra',
-                joinedAt: DateTime(2026, 4, 1),
-              ),
-              AnonymousFanRecord(
-                anonymousFanId: '123456',
-                joinedAt: DateTime(2026, 4, 2),
-              ),
-            ],
-          ),
-        ],
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Social Hub'), findsOneWidget);
-      expect(find.text('Friends'), findsOneWidget);
-      expect(find.text('Club Fan Zone'), findsOneWidget);
-      await tester.tap(find.text('Club Fan Zone'));
-      await tester.pumpAndSettle();
-      expect(find.text('HAMRUN FANS'), findsOneWidget);
-      expect(find.text('FAN LEADERBOARD'), findsOneWidget);
-    });
-
     testWidgets('team profile screen restores the original tab contract', (
       tester,
     ) async {
       const team = TeamModel(
-        id: 'hamrun',
-        name: 'Hamrun Spartans',
-        shortName: 'Hamrun',
-        country: 'Malta',
-        leagueName: 'Malta Premier League',
-        competitionIds: ['mpl'],
+        id: 'test-club-c',
+        name: 'Test Club C',
+        shortName: 'TCC',
+        country: 'Test Country',
+        leagueName: 'Test Competition Regional',
+        competitionIds: ['competition_regional'],
         fanCount: 1240,
-        fetContributionsEnabled: true,
       );
       final match = sampleMatch(
-        id: 'hamrun_match',
-        competitionId: 'mpl',
-        homeTeam: 'Hamrun Spartans',
-        awayTeam: 'Valletta FC',
+        id: 'regional_match',
+        competitionId: 'competition_regional',
+        homeTeam: 'Test Club C',
+        awayTeam: 'Test Club E FC',
         status: 'finished',
         ftHome: 2,
         ftAway: 0,
@@ -447,77 +410,33 @@ void main() {
 
       await pumpAppScreen(
         tester,
-        const TeamProfileScreen(teamId: 'hamrun'),
+        const TeamProfileScreen(teamId: 'test-club-c'),
         overrides: [
           teamProvider(team.id).overrideWith((ref) async => team),
           teamsProvider.overrideWith((ref) async => const [team]),
           competitionsProvider.overrideWith(
             (ref) async => [
               sampleCompetition(
-                id: 'mpl',
-                name: 'Malta Premier League',
-                shortName: 'MPL',
-                country: 'Malta',
+                id: 'competition_regional',
+                name: 'Test Competition Regional',
+                shortName: 'TCR',
+                country: 'Test Country',
               ),
             ],
           ),
           teamMatchesProvider(
             team.id,
           ).overrideWith((ref) => Stream.value([match])),
-          teamCommunityStatsProvider(team.id).overrideWith(
-            (ref) async => const TeamCommunityStats(
-              teamId: 'hamrun',
-              teamName: 'Hamrun Spartans',
-              fanCount: 1240,
-              totalFetContributed: 48200,
-              contributionCount: 84,
-              supportersLast30d: 42,
-            ),
-          ),
-          teamAnonymousFansProvider(team.id).overrideWith(
-            (ref) async => [
-              AnonymousFanRecord(
-                anonymousFanId: '102948',
-                joinedAt: DateTime(2026, 4, 1),
-              ),
-              AnonymousFanRecord(
-                anonymousFanId: '483291',
-                joinedAt: DateTime(2026, 4, 2),
-              ),
-            ],
-          ),
-          supportedTeamsServiceProvider.overrideWith(
-            () => _StaticSupportedTeamsController(const {'hamrun'}),
-          ),
           isAuthenticatedProvider.overrideWith((ref) => true),
         ],
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Team Profile'), findsOneWidget);
-      expect(find.text('Hamrun Spartans'), findsOneWidget);
-      expect(find.text('Overview'), findsOneWidget);
-      expect(find.text('Members'), findsOneWidget);
-      expect(find.text('Fixtures'), findsOneWidget);
-      expect(find.text('Contribute'), findsOneWidget);
-      expect(find.text('About'), findsOneWidget);
-      expect(find.text('LATEST MATCH'), findsOneWidget);
-    });
-
-    testWidgets('social hub shows a visible error state when teams fail', (
-      tester,
-    ) async {
-      await pumpAppScreen(
-        tester,
-        const SocialHubScreen(),
-        overrides: [
-          teamsProvider.overrideWith((ref) async => throw StateError('boom')),
-        ],
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Could not load social hub'), findsOneWidget);
-      expect(find.text('Retry'), findsOneWidget);
+      expect(find.text('Test Club C'), findsWidgets);
+      expect(find.text('Team Snapshot'), findsOneWidget);
+      expect(find.text('Recent Fixtures'), findsOneWidget);
+      expect(find.text('Test Competition Regional'), findsWidgets);
+      expect(find.text('Test Club E FC'), findsOneWidget);
     });
 
     testWidgets('team profile keeps the shell visible on load failure', (
@@ -534,7 +453,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Team Profile'), findsOneWidget);
+      expect(find.text('Team'), findsOneWidget);
       expect(find.text('Could not load team profile'), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
     });
@@ -550,9 +469,9 @@ void main() {
             (ref) async => [
               NotificationItem(
                 id: 'notif_1',
-                type: 'pool_settled',
-                title: 'Pool settled',
-                body: 'Your derby pool has been graded.',
+                type: 'prediction_scored',
+                title: 'Prediction scored',
+                body: 'Your derby pick has been graded.',
                 sentAt: DateTime(2026, 4, 19, 12),
               ),
             ],
@@ -562,10 +481,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Inbox'), findsOneWidget);
-      expect(find.text('Pool settled'), findsOneWidget);
+      expect(find.text('Prediction scored'), findsOneWidget);
     });
 
-    testWidgets('match detail screen renders scoreboard and tabs', (
+    testWidgets('match detail screen renders the lean prediction center', (
       tester,
     ) async {
       final match = sampleMatch(
@@ -575,6 +494,102 @@ void main() {
         ftAway: 1,
       );
       final competition = sampleCompetition();
+      final engine = PredictionEngineOutputModel(
+        id: 'engine_1',
+        matchId: match.id,
+        modelVersion: 'simple_form_v1',
+        homeWinScore: 0.54,
+        drawScore: 0.24,
+        awayWinScore: 0.22,
+        over25Score: 0.61,
+        bttsScore: 0.58,
+        predictedHomeGoals: 2,
+        predictedAwayGoals: 1,
+        confidenceLabel: 'medium',
+        generatedAt: DateTime(2026, 4, 19, 12),
+      );
+      final myPrediction = UserPredictionModel(
+        id: 'prediction_1',
+        userId: 'user_1',
+        matchId: match.id,
+        predictedResultCode: 'H',
+        predictedOver25: true,
+        predictedBtts: true,
+        predictedHomeGoals: 2,
+        predictedAwayGoals: 1,
+        pointsAwarded: 0,
+        rewardStatus: 'pending',
+        createdAt: DateTime(2026, 4, 19, 10),
+        updatedAt: DateTime(2026, 4, 19, 10),
+      );
+      final formRows = <TeamFormFeatureModel>[
+        const TeamFormFeatureModel(
+          id: 'form_home',
+          matchId: 'detail_match',
+          teamId: 'test-club-a',
+          last5Points: 10,
+          last5Wins: 3,
+          last5Draws: 1,
+          last5Losses: 1,
+          last5GoalsFor: 9,
+          last5GoalsAgainst: 4,
+          last5CleanSheets: 2,
+          last5FailedToScore: 1,
+          homeFormLast5: 10,
+          awayFormLast5: 0,
+          over25Last5: 3,
+          bttsLast5: 2,
+        ),
+        const TeamFormFeatureModel(
+          id: 'form_away',
+          matchId: 'detail_match',
+          teamId: 'test-club-b',
+          last5Points: 8,
+          last5Wins: 2,
+          last5Draws: 2,
+          last5Losses: 1,
+          last5GoalsFor: 7,
+          last5GoalsAgainst: 5,
+          last5CleanSheets: 1,
+          last5FailedToScore: 1,
+          homeFormLast5: 0,
+          awayFormLast5: 8,
+          over25Last5: 2,
+          bttsLast5: 3,
+        ),
+      ];
+      final standings = <StandingRowModel>[
+        const StandingRowModel(
+          competitionId: 'competition_alpha',
+          season: '2025/26',
+          teamId: 'test-club-a',
+          teamName: 'Test Club A',
+          position: 1,
+          played: 30,
+          won: 21,
+          drawn: 6,
+          lost: 3,
+          goalsFor: 68,
+          goalsAgainst: 28,
+          goalDifference: 40,
+          points: 69,
+        ),
+        const StandingRowModel(
+          competitionId: 'competition_alpha',
+          season: '2025/26',
+          teamId: 'test-club-b',
+          teamName: 'Test Club B',
+          position: 2,
+          played: 30,
+          won: 19,
+          drawn: 7,
+          lost: 4,
+          goalsFor: 62,
+          goalsAgainst: 30,
+          goalDifference: 32,
+          points: 64,
+        ),
+      ];
 
       await pumpAppScreen(
         tester,
@@ -586,41 +601,25 @@ void main() {
           competitionProvider(
             competition.id,
           ).overrideWith((ref) async => competition),
-          competitionMatchesProvider(
-            competition.id,
-          ).overrideWith((ref) => Stream.value(<MatchModel>[])),
+          predictionEngineOutputProvider(
+            match.id,
+          ).overrideWith((ref) async => engine),
+          myPredictionForMatchProvider(
+            match.id,
+          ).overrideWith((ref) async => myPrediction),
+          crowdPredictionProvider(match.id).overrideWith(
+            (ref) async =>
+                const CrowdPrediction(home: 52, draw: 24, away: 24, total: 180),
+          ),
+          matchFormFeaturesProvider(
+            match.id,
+          ).overrideWith((ref) async => formRows),
           competitionStandingsProvider(
             CompetitionStandingsFilter(
               competitionId: competition.id,
               season: match.season,
             ),
-          ).overrideWith((ref) async => []),
-          matchAdvancedStatsProvider(match.id).overrideWith(
-            (ref) => Stream.value(
-              MatchAdvancedStats(id: 'stats_1', matchId: match.id),
-            ),
-          ),
-          matchPlayerStatsProvider(
-            match.id,
-          ).overrideWith((ref) => Stream.value(<MatchPlayerStats>[])),
-          matchOddsProvider(match.id).overrideWith(
-            (ref) => Stream.value(
-              MatchOddsModel(
-                matchId: match.id,
-                homeMultiplier: 1.9,
-                drawMultiplier: 3.1,
-                awayMultiplier: 2.2,
-                provider: 'test',
-              ),
-            ),
-          ),
-          matchAiAnalysisProvider(match.id).overrideWith((ref) async => null),
-          matchAlertEnabledProvider(
-            match.id,
-          ).overrideWith((ref) async => false),
-          favouritesProvider.overrideWith(
-            () => _StaticFavouritesNotifier(const FavouritesState()),
-          ),
+          ).overrideWith((ref) async => standings),
         ],
       );
       // Use explicit pump() instead of pumpAndSettle() because stream-based
@@ -630,11 +629,12 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pump(const Duration(milliseconds: 100));
 
-      expect(find.text('Liverpool'), findsAtLeastNWidgets(1));
-      expect(find.text('Arsenal'), findsAtLeastNWidgets(1));
-      expect(find.text('Predict'), findsOneWidget);
-      expect(find.text('Comments'), findsOneWidget);
-      expect(find.byTooltip('Share match'), findsOneWidget);
+      expect(find.text('Test Club A'), findsAtLeastNWidgets(1));
+      expect(find.text('Test Club B'), findsAtLeastNWidgets(1));
+      expect(find.text('Prediction engine'), findsOneWidget);
+      expect(find.text('Community picks'), findsOneWidget);
+      expect(find.text('Your prediction'), findsOneWidget);
+      expect(find.text('Recent form'), findsOneWidget);
     });
 
     testWidgets(
@@ -651,11 +651,11 @@ void main() {
           endDate: DateTime(2026, 6, 1),
         );
         final premierLeague = sampleCompetition(country: 'England');
-        final maltaLeague = sampleCompetition(
-          id: 'mpl',
-          name: 'Maltese Premier League',
-          shortName: 'MPL',
-          country: 'Malta',
+        final regionalLeague = sampleCompetition(
+          id: 'competition_regional',
+          name: 'Test Competition Regional',
+          shortName: 'TCR',
+          country: 'Test Country',
         );
 
         await pumpAppScreen(
@@ -664,7 +664,7 @@ void main() {
           overrides: [
             primaryMarketRegionProvider.overrideWith((ref) => 'europe'),
             competitionsProvider.overrideWith(
-              (ref) async => [premierLeague, maltaLeague],
+              (ref) async => [premierLeague, regionalLeague],
             ),
             top5EuropeanLeaguesProvider.overrideWith(
               (ref) async => [premierLeague],
@@ -672,7 +672,7 @@ void main() {
             majorCompetitionsProvider.overrideWith((ref) async => [majorEvent]),
             localLeaguesProvider(
               'europe',
-            ).overrideWith((ref) async => [maltaLeague]),
+            ).overrideWith((ref) async => [regionalLeague]),
             favoriteTeamRecordsProvider.overrideWith((ref) async => const []),
             teamsProvider.overrideWith((ref) async => const []),
             matchesByDateProvider(selectedDate).overrideWith(
@@ -698,7 +698,7 @@ void main() {
     );
 
     testWidgets(
-      'fixtures open pools action switches to the pools shell branch',
+      'fixtures open predictions action switches to the prediction branch',
       (tester) async {
         SharedPreferences.setMockInitialValues({});
         final sharedPreferences = await SharedPreferences.getInstance();
@@ -713,10 +713,10 @@ void main() {
         final today = DateTime.now();
         final selectedDate = DateTime(today.year, today.month, today.day);
         final sampleLeague = sampleCompetition(
-          id: 'la_liga',
-          name: 'La Liga',
-          shortName: 'LL',
-          country: 'Spain',
+          id: 'competition_elite',
+          name: 'Test Competition Elite',
+          shortName: 'TCE',
+          country: 'Test Country',
         );
 
         final router = GoRouter(
@@ -745,9 +745,9 @@ void main() {
                 StatefulShellBranch(
                   routes: [
                     GoRoute(
-                      path: '/pools',
+                      path: '/predict',
                       builder: (context, state) => const Scaffold(
-                        body: Center(child: Text('Pools destination')),
+                        body: Center(child: Text('Predict destination')),
                       ),
                     ),
                   ],
@@ -766,7 +766,7 @@ void main() {
                 (ref) async => [sampleLeague],
               ),
               localLeaguesProvider(
-                'malta',
+                'europe',
               ).overrideWith((ref) async => const []),
               favoriteTeamRecordsProvider.overrideWith((ref) async => const []),
               teamsProvider.overrideWith((ref) async => const []),
@@ -775,9 +775,9 @@ void main() {
                   sampleMatch(
                     id: 'fixture_match',
                     date: selectedDate,
-                    competitionId: 'la_liga',
-                    homeTeam: 'Girona FC',
-                    awayTeam: 'Real Betis Balompié',
+                    competitionId: 'competition_elite',
+                    homeTeam: 'Test Club G',
+                    awayTeam: 'Test Club H',
                   ),
                 ]),
               ),
@@ -798,10 +798,10 @@ void main() {
 
         expect(find.text('Fixtures'), findsOneWidget);
 
-        await tester.tap(find.byTooltip('Open pools').first);
+        await tester.tap(find.byTooltip('Open predict').first);
         await tester.pumpAndSettle();
 
-        expect(find.text('Pools destination'), findsOneWidget);
+        expect(find.text('Predict destination'), findsOneWidget);
       },
     );
 
@@ -811,10 +811,10 @@ void main() {
       final today = DateTime.now();
       final selectedDate = DateTime(today.year, today.month, today.day);
       final sampleLeague = sampleCompetition(
-        id: 'la_liga',
-        name: 'La Liga',
-        shortName: 'LL',
-        country: 'Spain',
+        id: 'competition_elite',
+        name: 'Test Competition Elite',
+        shortName: 'TCE',
+        country: 'Test Country',
       );
 
       await pumpAppScreen(
@@ -825,7 +825,7 @@ void main() {
           top5EuropeanLeaguesProvider.overrideWith(
             (ref) async => [sampleLeague],
           ),
-          localLeaguesProvider('malta').overrideWith((ref) async => const []),
+          localLeaguesProvider('europe').overrideWith((ref) async => const []),
           favoriteTeamRecordsProvider.overrideWith((ref) async => const []),
           teamsProvider.overrideWith((ref) async => const []),
           matchesByDateProvider(selectedDate).overrideWith(
@@ -833,9 +833,9 @@ void main() {
               sampleMatch(
                 id: 'fixture_match',
                 date: selectedDate,
-                competitionId: 'la_liga',
-                homeTeam: 'Girona FC',
-                awayTeam: 'Real Betis Balompié',
+                competitionId: 'competition_elite',
+                homeTeam: 'Test Club G',
+                awayTeam: 'Test Club H',
               ),
             ]),
           ),
@@ -855,9 +855,9 @@ void main() {
         ),
       );
       expect(
-        tester.getSemantics(find.byTooltip('Open pools').first),
+        tester.getSemantics(find.byTooltip('Open predict').first),
         matchesSemantics(
-          label: 'Open pools',
+          label: 'Open predict',
           isButton: true,
           hasTapAction: true,
         ),
@@ -882,15 +882,6 @@ class _StaticFavouritesNotifier extends FavouritesNotifier {
 
   @override
   Future<FavouritesState> build() async => _state;
-}
-
-class _StaticSupportedTeamsController extends SupportedTeamsService {
-  _StaticSupportedTeamsController(this._teamIds);
-
-  final Set<String> _teamIds;
-
-  @override
-  FutureOr<Set<String>> build() async => _teamIds;
 }
 
 class _StaticGlobalLeaderboard extends GlobalLeaderboard {

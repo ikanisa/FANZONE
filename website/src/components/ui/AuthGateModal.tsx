@@ -92,7 +92,7 @@ export function AuthGateModal() {
                 </div>
                 
                 <p className="text-sm text-muted">
-                  Verify your number to start earning FET tokens and join fan clubs. It's 100% free.
+                  Verify your number to secure wallet activity and unlock the full prediction flow. It's 100% free.
                 </p>
 
                 <div className="flex gap-3">

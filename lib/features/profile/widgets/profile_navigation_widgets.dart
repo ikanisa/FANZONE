@@ -10,12 +10,12 @@ import '../../../widgets/common/fz_card.dart';
 class ProfileQuickLinksCard extends StatelessWidget {
   const ProfileQuickLinksCard({
     super.key,
-    required this.showClubs,
+    required this.showLeaderboard,
     required this.showWallet,
     required this.showPredictions,
   });
 
-  final bool showClubs;
+  final bool showLeaderboard;
   final bool showWallet;
   final bool showPredictions;
 
@@ -24,7 +24,7 @@ class ProfileQuickLinksCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const ProfileSectionTitle(title: 'Activity'),
+        const ProfileSectionTitle(title: 'Play'),
         const SizedBox(height: 8),
         ProfileSectionCard(
           children: [
@@ -32,9 +32,17 @@ class ProfileQuickLinksCard extends StatelessWidget {
               ProfileLinkRow(
                 icon: LucideIcons.target,
                 label: 'Predictions',
-                onTap: () => context.go('/pools'),
+                onTap: () => context.go('/predict'),
               ),
-            if (showPredictions && showWallet)
+            if (showPredictions && showLeaderboard)
+              const Divider(height: 0.5, indent: 56),
+            if (showLeaderboard)
+              ProfileLinkRow(
+                icon: LucideIcons.trophy,
+                label: 'Leaderboard',
+                onTap: () => context.push('/leaderboard'),
+              ),
+            if ((showPredictions || showLeaderboard) && showWallet)
               const Divider(height: 0.5, indent: 56),
             if (showWallet)
               ProfileLinkRow(
@@ -42,36 +50,9 @@ class ProfileQuickLinksCard extends StatelessWidget {
                 label: 'Wallet',
                 onTap: () => context.push('/wallet'),
               ),
-            if (showPredictions || showWallet)
-              const Divider(height: 0.5, indent: 56),
-            ProfileLinkRow(
-              icon: LucideIcons.award,
-              label: 'Badges',
-              onTap: () => context.go('/profile'),
-            ),
           ],
         ),
         const SizedBox(height: 20),
-        if (showClubs) ...[
-          const ProfileSectionTitle(title: 'Clubs'),
-          const SizedBox(height: 8),
-          ProfileSectionCard(
-            children: [
-              ProfileLinkRow(
-                icon: LucideIcons.shield,
-                label: 'Memberships',
-                onTap: () => context.push('/memberships'),
-              ),
-              const Divider(height: 0.5, indent: 56),
-              ProfileLinkRow(
-                icon: LucideIcons.fingerprint,
-                label: 'Fan ID',
-                onTap: () => context.push('/fan-id'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-        ],
       ],
     );
   }
@@ -81,6 +62,7 @@ class ProfileAccountLinksCard extends StatelessWidget {
   const ProfileAccountLinksCard({
     super.key,
     required this.onHelp,
+    required this.showInbox,
     required this.showVerifyAction,
     required this.onVerifyPhone,
     required this.showSignOut,
@@ -88,6 +70,7 @@ class ProfileAccountLinksCard extends StatelessWidget {
   });
 
   final VoidCallback onHelp;
+  final bool showInbox;
   final bool showVerifyAction;
   final VoidCallback onVerifyPhone;
   final bool showSignOut;
@@ -110,12 +93,13 @@ class ProfileAccountLinksCard extends StatelessWidget {
               onTap: () => context.push('/privacy'),
             ),
             const Divider(height: 0.5, indent: 56),
-            ProfileLinkRow(
-              icon: LucideIcons.bell,
-              label: 'Inbox',
-              onTap: () => context.push('/notifications'),
-            ),
-            const Divider(height: 0.5, indent: 56),
+            if (showInbox)
+              ProfileLinkRow(
+                icon: LucideIcons.bell,
+                label: 'Inbox',
+                onTap: () => context.push('/notifications'),
+              ),
+            if (showInbox) const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(
               icon: LucideIcons.settings,
               label: 'Preferences',

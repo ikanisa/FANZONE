@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../core/config/feature_flags.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/currency_provider.dart';
@@ -21,38 +19,6 @@ import '../widgets/wallet_transfer_sheets.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
 /// Wallet screen aligned to the primary reference wallet hub.
-const _walletPromos = <WalletPromoOffer>[
-  WalletPromoOffer(
-    id: 'mobio',
-    title: 'Pay Mobio Rides',
-    description: 'Use FET balance directly.',
-    actionLabel: 'Link App',
-    gradientColors: [Color(0xFF2563EB), Color(0xFF4338CA)],
-    emoji: '🚗',
-    cost: 0,
-    flexible: true,
-  ),
-  WalletPromoOffer(
-    id: 'rayon',
-    title: 'Rayon Sports Tickets',
-    description: 'VIP section available.',
-    actionLabel: 'Buy Now',
-    gradientColors: [Color(0xFF0F7B6C), Color(0xFF115E59)],
-    emoji: '🎟️',
-    cost: 250,
-  ),
-  WalletPromoOffer(
-    id: 'kigali',
-    title: 'Bar Tab: Kigali Lounge',
-    description: 'Pay with FET via QR.',
-    actionLabel: 'Show Code',
-    gradientColors: [Color(0xFFFF7F50), Color(0xFFEA580C)],
-    emoji: '🍹',
-    cost: 0,
-    flexible: true,
-  ),
-];
-
 class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
 
@@ -89,11 +55,6 @@ class WalletScreen extends ConsumerWidget {
           _WalletHero(
             balanceAsync: balanceAsync,
             currency: currency,
-            onRedeem:
-                ref.watch(featureFlagsProvider).rewards ||
-                    ref.watch(featureFlagsProvider).marketplace
-                ? () => context.push('/rewards')
-                : null,
             onSend: () {
               if (!isAuthenticated) {
                 showSignInRequiredSheet(
@@ -113,44 +74,6 @@ class WalletScreen extends ConsumerWidget {
                 builder: (_) => const TransferFetSheet(),
               );
             },
-          ),
-          const SizedBox(height: 18),
-          const Row(
-            children: [
-              Icon(LucideIcons.gift, size: 16, color: FzColors.accent2),
-              SizedBox(width: 8),
-              Text(
-                'Spend FET',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: FzColors.darkText,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 162,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                final offer = _walletPromos[index];
-                return WalletPromoCard(
-                  offer: offer,
-                  onTap: () {
-                    showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (_) => PartnerSpendSheet(offer: offer),
-                    );
-                  },
-                );
-              },
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
-              itemCount: _walletPromos.length,
-            ),
           ),
           const SizedBox(height: 18),
           balanceAsync.when(
@@ -195,15 +118,36 @@ class WalletScreen extends ConsumerWidget {
                 );
               },
               loading: () => const _WalletStatsSkeleton(),
-              error: (_, _) => const _WalletStatsSkeleton(),
+              error: (_, _) => _WalletStatsUnavailable(
+                onRetry: () => ref.invalidate(transactionServiceProvider),
+              ),
             ),
             loading: () => const _WalletStatsSkeleton(),
-            error: (_, _) => const _WalletStatsSkeleton(),
+            error: (_, _) => _WalletStatsUnavailable(
+              onRetry: () {
+                ref.invalidate(walletServiceProvider);
+                ref.invalidate(transactionServiceProvider);
+              },
+            ),
           ),
           const SizedBox(height: 24),
-          const WalletFetSplitModelCard(
-            isDark: true,
-            muted: FzColors.darkMuted,
+          const FzCard(
+            child: Row(
+              children: [
+                Icon(LucideIcons.shieldCheck, size: 18, color: FzColors.success),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Wallet activity now covers transfers and lean prediction rewards only.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: FzColors.darkText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
           const _HistoryHeader(),
@@ -265,13 +209,11 @@ class _WalletHero extends StatelessWidget {
     required this.balanceAsync,
     required this.currency,
     required this.onSend,
-    this.onRedeem,
   });
 
   final AsyncValue<int> balanceAsync;
   final String currency;
   final VoidCallback onSend;
-  final VoidCallback? onRedeem;
 
   @override
   Widget build(BuildContext context) {
@@ -359,27 +301,12 @@ class _WalletHero extends StatelessWidget {
               const SizedBox(height: 18),
               Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 300),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _HeroActionButton(
-                          label: 'REDEEM',
-                          icon: LucideIcons.gift,
-                          filled: true,
-                          enabled: onRedeem != null,
-                          onTap: onRedeem ?? () {},
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _HeroActionButton(
-                          label: 'SEND',
-                          icon: LucideIcons.send,
-                          onTap: onSend,
-                        ),
-                      ),
-                    ],
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: _HeroActionButton(
+                    label: 'SEND',
+                    icon: LucideIcons.send,
+                    filled: true,
+                    onTap: onSend,
                   ),
                 ),
               ),
@@ -396,26 +323,24 @@ class _HeroActionButton extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
-    this.enabled = true,
     this.filled = false,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onTap;
-  final bool enabled;
   final bool filled;
 
   @override
   Widget build(BuildContext context) {
     final background = filled
         ? Colors.white
-        : Colors.white.withValues(alpha: enabled ? 0.1 : 0.05);
+        : Colors.white.withValues(alpha: 0.1);
     final labelColor = filled ? FzColors.darkBg : Colors.white;
     final iconColor = filled ? FzColors.primary : Colors.white;
 
     return InkWell(
-      onTap: enabled ? onTap : null,
+      onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         height: 48,
@@ -425,7 +350,7 @@ class _HeroActionButton extends StatelessWidget {
           border: Border.all(
             color: filled
                 ? Colors.transparent
-                : Colors.white.withValues(alpha: enabled ? 0.2 : 0.08),
+                : Colors.white.withValues(alpha: 0.2),
           ),
         ),
         child: Column(
@@ -439,7 +364,7 @@ class _HeroActionButton extends StatelessWidget {
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.8,
-                color: labelColor.withValues(alpha: enabled ? 1 : 0.45),
+                color: labelColor,
               ),
             ),
           ],
@@ -459,6 +384,64 @@ class _WalletStatsSkeleton extends StatelessWidget {
         Expanded(child: _StatCardPlaceholder()),
         SizedBox(width: 10),
         Expanded(child: _StatCardPlaceholder()),
+      ],
+    );
+  }
+}
+
+class _WalletStatsUnavailable extends StatelessWidget {
+  const _WalletStatsUnavailable({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Expanded(child: _StatUnavailableCard(label: 'Earned')),
+            SizedBox(width: 10),
+            Expanded(child: _StatUnavailableCard(label: 'Spent')),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(
+              LucideIcons.alertTriangle,
+              size: 14,
+              color: FzColors.accent2,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Earned and spent totals are unavailable right now.',
+                style: TextStyle(fontSize: 11, color: muted, height: 1.4),
+              ),
+            ),
+            TextButton(
+              onPressed: onRetry,
+              style: TextButton.styleFrom(
+                foregroundColor: FzColors.primary,
+                side: BorderSide(color: border),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -484,6 +467,44 @@ class _StatCardPlaceholder extends StatelessWidget {
             width: 96,
             height: 14,
             child: ColoredBox(color: FzColors.darkSurface3),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatUnavailableCard extends StatelessWidget {
+  const _StatUnavailableCard({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    return FzCard(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: muted.withValues(alpha: 0.8),
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Unavailable',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: FzColors.accent2,
+            ),
           ),
         ],
       ),

@@ -84,7 +84,7 @@ export function SearchPalette({
             ref={inputRef}
             type="text"
             className="search-palette-input"
-            placeholder="Search users, fixtures, pools, partners..."
+            placeholder="Search users, competitions, fixtures, predictions, wallets..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleKeyDown}
@@ -164,16 +164,14 @@ export function SearchPalette({
           <div className="search-palette-results">
             <div className="search-palette-empty">
               <p className="text-sm text-muted">
-                Start typing to search across users, fixtures, pools, rewards, and
-                campaigns.
+                Start typing to search across users, competitions, fixtures, predictions, and wallets.
               </p>
               <div className="flex gap-4 mt-3 justify-center">
                 <span className="text-xs text-muted">👤 Users</span>
+                <span className="text-xs text-muted">🏆 Competitions</span>
                 <span className="text-xs text-muted">⚽ Fixtures</span>
-                <span className="text-xs text-muted">🎯 Pools</span>
-                <span className="text-xs text-muted">🤝 Partners</span>
-                <span className="text-xs text-muted">🎁 Rewards</span>
-                <span className="text-xs text-muted">📢 Campaigns</span>
+                <span className="text-xs text-muted">🎯 Predictions</span>
+                <span className="text-xs text-muted">👛 Wallets</span>
               </div>
             </div>
           </div>

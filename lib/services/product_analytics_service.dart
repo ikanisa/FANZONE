@@ -81,28 +81,8 @@ class ProductAnalytics {
     });
   }
 
-  static void poolJoined({required String poolId}) {
-    _enqueue('pool_joined', {'pool_id': poolId});
-  }
-
-  static void poolCreated({required String poolId}) {
-    _enqueue('pool_created', {'pool_id': poolId});
-  }
-
-  static void dailyChallengeEntered({required String challengeId}) {
-    _enqueue('daily_challenge_entered', {'challenge_id': challengeId});
-  }
-
   static void walletAction({required String action, required int amountFet}) {
     _enqueue('wallet_action', {'action': action, 'amount_fet': amountFet});
-  }
-
-  static void fanIdViewed() {
-    _enqueue('fan_id_viewed', {});
-  }
-
-  static void teamSupported({required String teamId}) {
-    _enqueue('team_supported', {'team_id': teamId});
   }
 
   static void searchPerformed({required String query}) {

@@ -65,10 +65,10 @@ adb install -r -g build/app/outputs/flutter-apk/app-release.apk
 ## Recommended UAT smoke flow
 
 1. Launch the app and confirm splash-to-home startup is stable.
-2. Verify onboarding and WhatsApp OTP flow.
-3. Verify home, fixtures, match detail, predict, wallet, profile, and social hub.
+2. Verify onboarding and WhatsApp OTP flow using `+35699711145`, tap `SEND OTP`, then verify with `123456`.
+3. Verify home, fixtures, match detail, predict, wallet, profile, and leaderboard.
 4. Verify notifications permission prompt behavior on Android 13+.
-5. Verify deep links for `https://fanzone.ikanisa.com/pool/...` and `fanzone://pool`.
+5. Verify deep links for `https://fanzone.ikanisa.com/predict` and `fanzone://predict`.
 6. Verify production Supabase data loads correctly in release mode.
 
 ## Google Play next steps
@@ -77,5 +77,5 @@ adb install -r -g build/app/outputs/flutter-apk/app-release.apk
 - Complete Play App Signing enrollment if not already configured.
 - Complete Play Console App content declarations, including Data safety.
 - Upload final screenshots, feature graphic, and store listing copy.
-- Provide reviewer app-access instructions for WhatsApp OTP login.
+- Provide reviewer app-access instructions for WhatsApp OTP login: `+35699711145` with OTP `123456`.
 - Prepare release notes for Internal and Closed testing tracks.

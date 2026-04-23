@@ -6,8 +6,8 @@ import path from "node:path";
 import process from "node:process";
 
 const repoRoot = "/Volumes/PRO-G40/FANZONE";
-const sourceRoot = "/Users/jeanbosco/Downloads/FANZONE";
-const sourceSrc = path.join(sourceRoot, "src");
+const sourceRoot = process.env.FANZONE_CANONICAL_SOURCE?.trim() || "";
+const sourceSrc = sourceRoot ? path.join(sourceRoot, "src") : "";
 const targetRoot = path.join(repoRoot, "website");
 const targetSrc = path.join(targetRoot, "src");
 const manifestPath = path.join(targetRoot, "canonical-source-manifest.json");
@@ -127,7 +127,7 @@ function assertEqualManifests(left, right, message) {
 }
 
 async function syncCanonicalSource() {
-  if (!await exists(sourceSrc)) {
+  if (!sourceSrc || !await exists(sourceSrc)) {
     throw new Error(`Canonical source not found at ${sourceSrc}`);
   }
 
@@ -144,10 +144,16 @@ async function syncCanonicalSource() {
   console.log(`Wrote manifest to ${manifestPath}`);
 }
 
+async function snapshotCanonicalSource() {
+  const manifest = await buildManifest(targetRoot, targetRoot);
+  await fs.writeFile(`${manifestPath}`, `${JSON.stringify(manifest, null, 2)}\n`);
+  console.log(`Wrote canonical snapshot to ${manifestPath}`);
+}
+
 async function checkCanonicalSource() {
   const websiteManifest = await buildManifest(targetRoot, targetSrc);
 
-  if (await exists(sourceSrc)) {
+  if (sourceSrc && await exists(sourceSrc)) {
     const sourceManifest = await buildManifest(sourceRoot, sourceRoot);
     assertEqualManifests(
       sourceManifest,
@@ -179,11 +185,14 @@ async function main() {
     case "sync":
       await syncCanonicalSource();
       return;
+    case "snapshot":
+      await snapshotCanonicalSource();
+      return;
     case "check":
       await checkCanonicalSource();
       return;
     default:
-      console.error("Usage: node tool/canonical_web_source.mjs <sync|check>");
+      console.error("Usage: node tool/canonical_web_source.mjs <sync|snapshot|check>");
       process.exitCode = 1;
   }
 }

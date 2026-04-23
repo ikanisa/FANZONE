@@ -1,6 +1,3 @@
-import { motion } from 'motion/react';
-import { Share2 } from 'lucide-react';
-
 interface DigitalMembershipCardProps {
   clubName: string;
   tier: string;
@@ -41,7 +38,7 @@ export function DigitalMembershipCard({ clubName, tier, fanId, crest, color, mem
             </div>
             <div>
               <h3 className="font-display text-xl text-text tracking-widest leading-none">{clubName}</h3>
-              <div className="text-[9px] text-text/60 uppercase tracking-widest mt-1">Official Fan Club</div>
+              <div className="text-[9px] text-text/60 uppercase tracking-widest mt-1">Verified Fan Identity</div>
             </div>
           </div>
           <div 

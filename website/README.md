@@ -34,7 +34,7 @@ Available checks:
 
 ## Current route map
 
-The current route map is derived from the canonical source app and includes:
+The current route map is derived from the canonical source app.
 
 | Route | Surface |
 | --- | --- |
@@ -45,20 +45,21 @@ The current route map is derived from the canonical source app and includes:
 | `/leaderboard` | Leaderboard |
 | `/wallet` | Wallet |
 | `/profile` | Profile |
-| `/pools` | Pools hub |
-| `/pools/create` | Pool creation |
-| `/pool/:id` | Pool detail |
-| `/social` | Social hub |
 | `/settings` | Settings |
-| `/memberships` | Membership hub |
 | `/team/:id` | Team profile |
-| `/fan-id` | Fan ID |
 | `/privacy` | Privacy settings |
 | `/fixtures` | Fixtures |
 | `/notifications` | Notifications |
-| `/rewards` | Rewards store |
-| `/jackpot` | Jackpot pool |
 | `/error` | Empty / error states |
+
+Legacy compatibility redirects still exist:
+
+| Route | Redirect |
+| --- | --- |
+| `/social` | `/leaderboard` |
+| `/memberships` | `/profile` |
+| `/fan-id` | `/profile` |
+| `/rewards` | `/wallet` |
 
 ## Build and preview
 

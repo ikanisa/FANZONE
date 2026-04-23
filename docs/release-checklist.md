@@ -13,7 +13,7 @@
 
 - Audit Supabase auth, RLS, storage rules, edge functions, migrations, backups, and rollback paths in the production project.
 - Review `ios/Flutter/AppConfig.xcconfig` and confirm the bundle ID, team ID, and APNs environment are correct for release signing.
-- Create a local `env/production.json` from `env/production.example.json` and keep `ENABLE_GLOBAL_CHALLENGES=false` until the weekly jackpot backend is live.
+- Create a local `env/production.json` from `env/production.example.json` and keep `/predict` as the only live prediction entry surface.
 - Replace all placeholder values in your local `env/production.json` and the platform signing/Firebase files before promoting a build.
 
 ## Android release
@@ -36,7 +36,7 @@
 ## Backend validation
 
 - Verify production credentials point to the correct Supabase project.
-- Confirm feature flags match the live backend, especially notifications, deep linking, and jackpot/global challenge rollout.
+- Confirm feature flags match the live backend, especially notifications, deep linking, and the lean prediction rollout.
 - Validate `fet_wallets`, `fet_wallet_transactions`, and `public_leaderboard` exist and are covered by policy.
 - Confirm built-in Supabase email, phone OTP, magic link/OAuth, and third-party auth providers are disabled for the production project. Anonymous sign-in may remain enabled only for the mobile guest flow.
 - Run `./tool/supabase_rls_audit.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
@@ -45,6 +45,15 @@
 - Check `public.fet_supply_overview.remaining_mintable` before any manual grant, promo credit, or reward backfill.
 - Validate WhatsApp OTP delivery, expiry, and rate-limit behaviour in the production `whatsapp-otp` function.
 - Confirm `WABA_ACCESS_TOKEN`, `WABA_PHONE_NUMBER_ID`, and `SUPABASE_JWT_SECRET` are present in the deployed Edge Function secrets.
+- For store submission builds, also confirm `WHATSAPP_AUTH_TEST_PHONE=+35699711145` and `WHATSAPP_AUTH_TEST_OTP=123456` are present in the deployed `whatsapp-otp` secrets.
+- Run `WHATSAPP_AUTH_TEST_PHONE=+35699711145 WHATSAPP_AUTH_TEST_OTP=123456 ./tool/supabase_whatsapp_auth_smoke.sh` and keep the successful output with the release ticket.
+
+## Reviewer app access
+
+- Dedicated review/test phone number: `+35699711145`
+- Dedicated review/test OTP: `123456`
+- Reviewer flow: launch the submitted build, enter `+35699711145`, tap `SEND OTP`, then enter `123456`.
+- This path is powered by the deployed `whatsapp-otp` function secrets above. If those secrets are missing, reviewer login will fail even if the app build is correct.
 
 ## Operational readiness
 

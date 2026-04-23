@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
-import { motion } from 'motion/react';
-import { Bell, Trophy, Zap, AlertCircle, Swords, CheckCircle2 } from 'lucide-react';
+import { useEffect, type ReactNode } from 'react';
+import { Bell, Trophy, Zap, Swords, CheckCircle2 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
-import { Badge } from './ui/Badge';
+import { api } from '../services/api';
 
 export default function Notifications() {
   const { notifications, markAllAsRead, markAsRead } = useAppStore();
@@ -10,15 +9,26 @@ export default function Notifications() {
   useEffect(() => {
     // Mark all as read when the component unmounts
     return () => {
+      void api.markAllNotificationsRead();
       markAllAsRead();
     };
   }, [markAllAsRead]);
 
+  const handleMarkAllRead = () => {
+    void api.markAllNotificationsRead();
+    markAllAsRead();
+  };
+
+  const handleMarkRead = (notificationId: string) => {
+    void api.markNotificationRead(notificationId);
+    markAsRead(notificationId);
+  };
+
   const getIconForType = (type: string) => {
     switch (type) {
-      case 'pool_received':
+      case 'prediction_update':
         return <Swords className="text-accent" size={16} />;
-      case 'pool_settled':
+      case 'prediction_reward':
         return <Trophy className="text-accent3" size={16} />;
       case 'system':
       default:
@@ -45,7 +55,7 @@ export default function Notifications() {
           Inbox
         </h1>
         <button 
-          onClick={markAllAsRead}
+          onClick={handleMarkAllRead}
           className="w-10 h-10 rounded-full bg-surface2 border border-border text-muted hover:text-text flex items-center justify-center transition-colors"
         >
           <CheckCircle2 size={18} />
@@ -67,7 +77,7 @@ export default function Notifications() {
               desc={notification.message} 
               time={formatTime(notification.timestamp)} 
               unread={!notification.read} 
-              onClick={() => markAsRead(notification.id)}
+              onClick={() => handleMarkRead(notification.id)}
             />
           ))
         )}
@@ -76,7 +86,7 @@ export default function Notifications() {
   );
 }
 
-function NotificationItem({ icon, title, desc, time, unread = false, onClick }: { icon: React.ReactNode; title: string; desc: string; time: string; unread?: boolean; onClick?: () => void }) {
+function NotificationItem({ icon, title, desc, time, unread = false, onClick }: { icon: ReactNode; title: string; desc: string; time: string; unread?: boolean; onClick?: () => void }) {
   return (
     <div 
       onClick={onClick}

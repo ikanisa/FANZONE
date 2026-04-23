@@ -18,19 +18,3 @@ class WalletTransaction with _$WalletTransaction {
   factory WalletTransaction.fromJson(Map<String, dynamic> json) =>
       _$WalletTransactionFromJson(json);
 }
-
-@freezed
-class FanClub with _$FanClub {
-  const factory FanClub({
-    required String id,
-    required String name,
-    required int members,
-    required int totalPool,
-    required String crest,
-    required String league,
-    required int rank,
-  }) = _FanClub;
-
-  factory FanClub.fromJson(Map<String, dynamic> json) =>
-      _$FanClubFromJson(json);
-}

@@ -1,40 +1,76 @@
-import { ReactNode } from 'react';
-import { Home, Trophy, Calendar, User, Zap, Wallet, Swords } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { ReactNode, useEffect } from 'react';
+import { Home, Trophy, Calendar, User, Wallet } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { AuthGateModal } from './ui/AuthGateModal';
 import { NotificationToast } from './ui/NotificationToast';
 import { useAppStore } from '../store/useAppStore';
 import { useScrollDirection } from '../hooks/useScrollDirection';
+import { api } from '../services/api';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { unreadCount, fetBalance } = useAppStore();
+  const { unreadCount, fetBalance, hydrateViewerState } = useAppStore();
   const scrollDirection = useScrollDirection();
+  const location = useLocation();
+
+  const isHome = location.pathname === '/';
+
+  useEffect(() => {
+    let active = true;
+
+    api.getViewerState().then((viewerState) => {
+      if (!active || !viewerState) return;
+      hydrateViewerState({
+        fanId: viewerState.profile?.fanId,
+        isVerified: viewerState.profile
+          ? !viewerState.profile.isAnonymous
+          : undefined,
+        favoriteTeams: viewerState.favoriteTeams,
+        profileTeam:
+          viewerState.profile?.favoriteTeamName ??
+          viewerState.favoriteTeams[0] ??
+          null,
+        fetBalance: viewerState.wallet?.availableBalanceFet,
+        walletTransactions: viewerState.walletTransactions,
+        notifications: viewerState.notifications,
+      });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [hydrateViewerState]);
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-bg">
       <NotificationToast />
       
-      {/* Mobile Top Bar - Auto-hiding */}
-      <div 
-        className={`lg:hidden fixed top-0 w-full bg-surface/90 backdrop-blur-xl border-b border-border flex justify-between items-center px-6 py-3 z-50 transition-transform duration-300 ease-in-out ${
-          scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
-        }`}
-      >
-        <div className="flex items-center gap-2 font-display text-2xl text-text tracking-tight cursor-pointer">
-          <span className="w-6 h-6 rounded bg-accent flex items-center justify-center text-surface text-xs font-sans font-black">F</span>
-          <div><span className="text-success">FAN</span><span className="text-accent3">ZONE</span></div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-surface2 px-3 py-1.5 rounded-full border border-border flex items-center gap-1.5">
-             <Wallet size={12} className="text-accent3" />
-             <span className="font-mono text-xs font-bold text-text">{fetBalance}</span>
+      {/* Mobile Top Bar - Auto-hiding - ONLY ON HOME */}
+      {isHome && (
+        <div 
+          className={`lg:hidden fixed top-0 w-full bg-surface/80 backdrop-blur-2xl border-b border-border flex justify-between items-center px-5 py-4 z-50 transition-transform duration-300 ease-in-out ${
+            scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
+          }`}
+        >
+          <div className="flex items-center gap-2 cursor-pointer group">
+            <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-accent to-accent/80 flex items-center justify-center shadow-inner border border-white/10">
+              <span className="text-surface text-sm font-sans font-black tracking-tighter">FZ</span>
+            </div>
+            <div className="font-display text-xl tracking-tight leading-none group-hover:opacity-80 transition-opacity">
+              <span className="text-text">FAN</span><span className="text-accent3 opacity-90">ZONE</span>
+            </div>
           </div>
+          <NavLink to="/wallet" className="bg-surface_container_lowest hover:bg-surface2 transition-colors px-3 py-1.5 rounded-full border border-border flex items-center gap-2 shadow-sm">
+             <div className="w-4 h-4 rounded-full bg-accent3/20 flex items-center justify-center border border-accent3/30">
+               <Wallet size={10} className="text-accent3" />
+             </div>
+             <span className="font-mono text-xs font-bold text-text">{fetBalance}</span>
+          </NavLink>
         </div>
-      </div>
+      )}
 
       {/* Sidebar - Desktop */}
       <nav className="hidden lg:flex w-64 flex-col bg-surface border-r border-border p-6 fixed h-full z-40">
@@ -48,8 +84,6 @@ export default function Layout({ children }: LayoutProps) {
         <div className="flex flex-col gap-2">
           <NavItem to="/" icon={<Home size={20} />} label="Home" />
           <NavItem to="/fixtures" icon={<Calendar size={20} />} label="Fixtures" />
-          <NavItem to="/pools" icon={<Swords size={20} />} label="Pools" />
-          <NavItem to="/jackpot" icon={<Zap size={20} />} label="Jackpots" />
           <NavItem to="/leaderboard" icon={<Trophy size={20} />} label="Leaderboard" />
           <NavItem to="/wallet" icon={<Wallet size={20} />} label="Wallet" />
           <NavItem to="/profile" icon={<User size={20} />} label="Profile" badge={unreadCount} />
@@ -57,7 +91,7 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 w-full lg:w-auto lg:ml-64 pt-16 lg:pt-0 pb-20 lg:pb-0 overflow-x-hidden">
+      <main className={`flex-1 min-w-0 w-full lg:w-auto lg:ml-64 lg:pt-0 pb-20 lg:pb-0 overflow-x-hidden ${isHome ? 'pt-16' : 'pt-0'}`}>
         {children}
       </main>
 
@@ -69,7 +103,6 @@ export default function Layout({ children }: LayoutProps) {
       >
         <NavItem to="/" icon={<Home size={22} />} label="Home" mobile />
         <NavItem to="/fixtures" icon={<Calendar size={22} />} label="Matches" mobile />
-        <NavItem to="/pools" icon={<Swords size={22} />} label="Pools" mobile />
         <NavItem to="/profile" icon={<User size={22} />} label="Profile" mobile badge={unreadCount} />
       </div>
 

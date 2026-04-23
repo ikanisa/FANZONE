@@ -6,6 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/constants/phone_presets.dart';
+import '../../../core/di/gateway_providers.dart';
+import '../../../core/utils/phone_country_catalog.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
@@ -46,8 +49,6 @@ class _SignInRequiredSheet extends ConsumerStatefulWidget {
 }
 
 class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
-  static const _dialCode = '+250';
-
   final _phoneController = TextEditingController();
   final _otpControllers = List.generate(6, (_) => TextEditingController());
   final _otpFocusNodes = List.generate(6, (_) => FocusNode());
@@ -80,10 +81,13 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
     super.dispose();
   }
 
+  PhonePreset get _phonePreset =>
+      preferredPhoneCountry(config: ref.read(bootstrapConfigProvider)).preset;
+
   String get _fullPhone {
     final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
     if (digits.isEmpty) return '';
-    return '$_dialCode$digits';
+    return '${_phonePreset.dialCode}$digits';
   }
 
   int get _phoneLength =>
@@ -130,7 +134,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
   }
 
   Future<void> _sendOtp() async {
-    if (_phoneLength < 8) {
+    if (_phoneLength < _phonePreset.minDigits) {
       setState(() => _error = 'Enter your WhatsApp number.');
       return;
     }
@@ -203,13 +207,14 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(bootstrapConfigProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
     final surface = isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
     final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final canSend = !_loading && _phoneLength >= 8;
+    final canSend = !_loading && _phoneLength >= _phonePreset.minDigits;
     final canVerify = !_loading && _otpLength == 6;
 
     return Container(
@@ -293,7 +298,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
             _step == _AuthSheetStep.phone
                 ? (widget.message.isNotEmpty
                       ? widget.message
-                      : 'Verify your number to start earning FET tokens and join fan clubs. It\'s 100% free.')
+                      : 'Verify your number to save picks, earn FET rewards, and track your record. It\'s 100% free.')
                 : 'Enter the 6-digit code sent to your WhatsApp.',
             style: TextStyle(fontSize: 14, color: muted, height: 1.5),
           ),
@@ -342,7 +347,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                               border: Border.all(color: border),
                             ),
                             child: Text(
-                              _dialCode,
+                              _phonePreset.dialCode,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -360,23 +365,45 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                               controller: _phoneController,
                               autofocus: true,
                               keyboardType: TextInputType.phone,
-                              onChanged: (_) {
-                                if (_error != null) {
-                                  setState(() => _error = null);
-                                } else {
-                                  setState(() {});
+                              onChanged: (value) {
+                                var digits = value.replaceAll(
+                                  RegExp(r'\D'),
+                                  '',
+                                );
+                                final maxDigits = maxPhoneDigitsForHint(
+                                  _phonePreset.hint,
+                                  minDigits: _phonePreset.minDigits,
+                                );
+                                if (digits.length > maxDigits) {
+                                  digits = digits.substring(0, maxDigits);
                                 }
+
+                                final formatted = formatPhoneDigits(
+                                  digits,
+                                  _phonePreset.hint,
+                                );
+                                if (_phoneController.text != formatted) {
+                                  _phoneController.value = TextEditingValue(
+                                    text: formatted,
+                                    selection: TextSelection.collapsed(
+                                      offset: formatted.length,
+                                    ),
+                                  );
+                                }
+
+                                setState(() => _error = null);
                               },
                               inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(9),
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[0-9\s]'),
+                                ),
                               ],
                               style: FzTypography.score(
                                 size: 16,
                                 color: textColor,
                               ),
                               decoration: InputDecoration(
-                                hintText: '78X XXX XXX',
+                                hintText: _phonePreset.hint,
                                 hintStyle: TextStyle(color: muted),
                                 filled: true,
                                 fillColor: surface,

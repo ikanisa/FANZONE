@@ -23,8 +23,8 @@ void main() {
 
   test('writes and reads structured list payloads', () async {
     await StructuredCacheStore.writeList('teams', [
-      {'id': 'ars', 'name': 'Arsenal'},
-      {'id': 'hsp', 'name': 'Hamrun Spartans'},
+      {'id': 'team_a', 'name': 'Test Team A'},
+      {'id': 'team_b', 'name': 'Test Team B'},
     ], ttl: const Duration(minutes: 10));
 
     final snapshot = await StructuredCacheStore.readList('teams');
@@ -32,7 +32,7 @@ void main() {
     expect(snapshot, isNotNull);
     expect(snapshot!.isExpired, isFalse);
     expect(snapshot.payload, hasLength(2));
-    expect(snapshot.payload.first['name'], 'Arsenal');
+    expect(snapshot.payload.first['name'], 'Test Team A');
   });
 
   test('expired payloads are hidden when allowExpired is false', () async {

@@ -1,6 +1,5 @@
 import '../../../models/competition_model.dart';
 import '../../../models/featured_event_model.dart';
-import '../../../models/global_challenge_model.dart';
 import '../../../models/team_model.dart';
 
 /// Filters and sorts competitions by tier and featured status.
@@ -68,42 +67,6 @@ List<FeaturedEventModel> filterEvents(
           })
           .toList(growable: false)
         ..sort((left, right) => left.startDate.compareTo(right.startDate));
-
-  if (limit != null && filtered.length > limit) {
-    filtered = filtered.take(limit).toList(growable: false);
-  }
-  return filtered;
-}
-
-/// Filters and sorts global challenges.
-List<GlobalChallengeModel> filterChallenges(
-  List<GlobalChallengeModel> challenges, {
-  String? eventTag,
-  List<String>? regionValues,
-  int? limit,
-}) {
-  final normalizedRegions = (regionValues ?? const <String>[])
-      .map((value) => value.trim().toLowerCase())
-      .where((value) => value.isNotEmpty)
-      .toSet();
-
-  var filtered =
-      challenges
-          .where((challenge) {
-            if (eventTag != null &&
-                eventTag.isNotEmpty &&
-                challenge.eventTag != eventTag) {
-              return false;
-            }
-            if (normalizedRegions.isNotEmpty &&
-                !normalizedRegions.contains(challenge.region.toLowerCase()) &&
-                challenge.region.toLowerCase() != 'global') {
-              return false;
-            }
-            return true;
-          })
-          .toList(growable: false)
-        ..sort((left, right) => left.name.compareTo(right.name));
 
   if (limit != null && filtered.length > limit) {
     filtered = filtered.take(limit).toList(growable: false);

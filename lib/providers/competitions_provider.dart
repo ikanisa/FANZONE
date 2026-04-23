@@ -33,9 +33,10 @@ final top5EuropeanLeaguesProvider =
       final result = all
           .where(
             (competition) =>
-                competitionCatalogRankByIdName(
-                  competition.id,
-                  competition.name,
+                competitionCatalogRank(
+                  id: competition.id,
+                  name: competition.name,
+                  catalogRank: competition.catalogRank,
                 ) <
                 kRestOfWorldCompetitionRank,
           )
@@ -51,11 +52,12 @@ final otherLeaguesProvider = FutureProvider.autoDispose<List<CompetitionModel>>(
         .where(
           (competition) =>
               competition.tier == 1 &&
-              !isPriorityCompetitionByIdName(
-                competition.id,
-                competition.name,
-              ) &&
-              !isTop5Country(competition.country),
+              competitionCatalogRank(
+                    id: competition.id,
+                    name: competition.name,
+                    catalogRank: competition.catalogRank,
+                  ) ==
+                  kRestOfWorldCompetitionRank,
         )
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
@@ -76,7 +78,12 @@ final localLeaguesProvider = FutureProvider.family
           .where(
             (c) =>
                 c.tier == 1 &&
-                !isTop5Country(c.country) &&
+                competitionCatalogRank(
+                      id: c.id,
+                      name: c.name,
+                      catalogRank: c.catalogRank,
+                    ) ==
+                    kRestOfWorldCompetitionRank &&
                 localCountryNames.contains(c.country),
           )
           .toList()

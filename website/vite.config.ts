@@ -67,8 +67,7 @@ export default defineConfig({
           if (
             normalized.includes('/website/src/components/Layout') ||
             normalized.includes('/website/src/components/Splash') ||
-            normalized.includes('/website/src/components/Onboarding') ||
-            normalized.includes('/website/src/components/PredictionSlip')
+            normalized.includes('/website/src/components/Onboarding')
           ) {
             return 'app-shell'
           }
@@ -87,21 +86,13 @@ export default defineConfig({
             normalized.includes('/website/src/components/WalletHub') ||
             normalized.includes('/website/src/components/Profile') ||
             normalized.includes('/website/src/components/Settings') ||
-            normalized.includes('/website/src/components/MembershipHub') ||
-            normalized.includes('/website/src/components/FanIdScreen') ||
-            normalized.includes('/website/src/components/PrivacySettings') ||
-            normalized.includes('/website/src/components/RewardsStore')
+            normalized.includes('/website/src/components/PrivacySettings')
           ) {
             return 'account-experience'
           }
 
           if (
-            normalized.includes('/website/src/components/PoolsHub') ||
-            normalized.includes('/website/src/components/PoolCreation') ||
-            normalized.includes('/website/src/components/PoolDetail') ||
-            normalized.includes('/website/src/components/JackpotPool') ||
             normalized.includes('/website/src/components/Leaderboard') ||
-            normalized.includes('/website/src/components/SocialHub') ||
             normalized.includes('/website/src/components/TeamProfile') ||
             normalized.includes('/website/src/components/EmptyErrorStates')
           ) {

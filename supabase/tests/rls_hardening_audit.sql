@@ -45,7 +45,6 @@ SELECT set_config('rls.audit.user_a_tx_count', :'user_a_tx_count', false);
 DO $$
 DECLARE
   missing_policies text[];
-  stale_policies text[];
 BEGIN
   SELECT array_agg(required_policy)
   INTO missing_policies
@@ -53,17 +52,18 @@ BEGIN
     VALUES
       ('fet_wallets', 'Users read own wallet'),
       ('fet_wallet_transactions', 'Users read own transactions'),
-      ('prediction_challenges', 'Public read challenges'),
-      ('prediction_challenge_entries', 'Users read own entries'),
-      ('prediction_slips', 'Users read own slips'),
-      ('prediction_slip_selections', 'Users read own slip selections'),
-      ('user_followed_teams', 'Users manage own team follows'),
+      ('competitions', 'Public read access for competitions'),
+      ('teams', 'Public read access for teams'),
+      ('matches', 'Public read access for matches'),
+      ('standings', 'standings_public_read'),
+      ('team_form_features', 'team_form_features_public_read'),
+      ('predictions_engine_outputs', 'engine_outputs_public_read'),
+      ('user_predictions', 'Users read own predictions'),
+      ('token_rewards', 'Users read own token rewards'),
+      ('user_favorite_teams', 'Users can read own favorite teams'),
       ('user_followed_competitions', 'Users manage own competition follows'),
-      ('team_supporters', 'Users read own team supporters'),
-      ('team_contributions', 'Users read own contributions'),
-      ('team_news', 'Public read published team news'),
-      ('daily_challenges', 'Public read daily challenges'),
-      ('daily_challenge_entries', 'Users read own daily entries'),
+      ('match_alert_subscriptions', 'Users manage own match alerts'),
+      ('app_config_remote', 'Public read app config remote'),
       ('device_tokens', 'Users manage own device tokens'),
       ('notification_preferences', 'Users manage own notification prefs'),
       ('notification_log', 'Users read own notifications'),
@@ -85,27 +85,6 @@ BEGIN
 
   IF missing_policies IS NOT NULL THEN
     RAISE EXCEPTION 'Missing required RLS policies: %', array_to_string(missing_policies, ', ');
-  END IF;
-
-  SELECT array_agg(policyname)
-  INTO stale_policies
-  FROM pg_policies
-  WHERE schemaname = 'public'
-    AND (
-      (tablename = 'prediction_challenge_entries' AND policyname IN (
-        'Authenticated can view entries',
-        'Users can add own challenge entries'
-      ))
-      OR
-      (tablename = 'prediction_challenges' AND policyname = 'Users can create own challenges')
-      OR
-      (tablename = 'prediction_slips' AND policyname = 'Users insert own slips')
-      OR
-      (tablename = 'prediction_slip_selections' AND policyname = 'Users insert own slip selections')
-    );
-
-  IF stale_policies IS NOT NULL THEN
-    RAISE EXCEPTION 'Stale permissive policies still present: %', array_to_string(stale_policies, ', ');
   END IF;
 END;
 $$;
@@ -132,8 +111,11 @@ BEGIN
   END IF;
 
   PERFORM 1 FROM public.matches LIMIT 1;
-  PERFORM 1 FROM public.prediction_challenges LIMIT 1;
-  PERFORM 1 FROM public.daily_challenges LIMIT 1;
+  PERFORM 1 FROM public.competition_standings LIMIT 1;
+  PERFORM 1 FROM public.public_leaderboard LIMIT 1;
+  IF (SELECT count(*) FROM public.user_predictions) <> 0 THEN
+    RAISE EXCEPTION 'Anon role can read user predictions';
+  END IF;
 END;
 $$;
 
@@ -194,27 +176,51 @@ END;
 $$;
 
 \echo 'Testing own-row write policies...'
-INSERT INTO public.user_followed_teams (user_id, team_id)
-VALUES (:'user_a'::uuid, :'team_id')
+INSERT INTO public.user_favorite_teams (user_id, team_id, team_name)
+VALUES (:'user_a'::uuid, :'team_id', 'Audit Team')
 ON CONFLICT (user_id, team_id) DO NOTHING;
 
-DELETE FROM public.user_followed_teams
+DELETE FROM public.user_favorite_teams
 WHERE user_id = :'user_a'::uuid
   AND team_id = :'team_id';
 
 DO $$
 BEGIN
   BEGIN
-    INSERT INTO public.user_followed_teams (user_id, team_id)
+    INSERT INTO public.user_favorite_teams (user_id, team_id, team_name)
     VALUES (
       current_setting('rls.audit.user_b')::uuid,
-      current_setting('rls.audit.team_id')
+      current_setting('rls.audit.team_id'),
+      'Audit Team'
     );
     RAISE EXCEPTION 'Cross-user team follow insert unexpectedly succeeded';
   EXCEPTION
     WHEN insufficient_privilege THEN NULL;
     WHEN SQLSTATE '42501' THEN NULL;
   END;
+END;
+$$;
+
+DO $$
+DECLARE
+  own_prediction_count integer;
+BEGIN
+  SELECT count(*)
+  INTO own_prediction_count
+  FROM public.user_predictions
+  WHERE user_id = current_setting('rls.audit.user_a')::uuid;
+
+  IF own_prediction_count < 0 THEN
+    RAISE EXCEPTION 'Unexpected negative own prediction count';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM public.user_predictions
+    WHERE user_id = current_setting('rls.audit.user_b')::uuid
+  ) THEN
+    RAISE EXCEPTION 'Authenticated user can read another user prediction rows';
+  END IF;
 END;
 $$;
 

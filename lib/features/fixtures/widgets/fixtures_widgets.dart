@@ -201,12 +201,12 @@ class FixtureGroupCard extends StatelessWidget {
     super.key,
     required this.matches,
     required this.onOpenMatch,
-    required this.onOpenPools,
+    required this.onOpenPredict,
   });
 
   final List<MatchModel> matches;
   final ValueChanged<MatchModel> onOpenMatch;
-  final VoidCallback onOpenPools;
+  final VoidCallback onOpenPredict;
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +225,7 @@ class FixtureGroupCard extends StatelessWidget {
             FixtureListItem(
               match: matches[index],
               onOpenMatch: () => onOpenMatch(matches[index]),
-              onOpenPools: onOpenPools,
+              onOpenPredict: onOpenPredict,
             ),
             if (index < matches.length - 1)
               Divider(
@@ -245,12 +245,12 @@ class FixtureListItem extends StatelessWidget {
     super.key,
     required this.match,
     required this.onOpenMatch,
-    required this.onOpenPools,
+    required this.onOpenPredict,
   });
 
   final MatchModel match;
   final VoidCallback onOpenMatch;
-  final VoidCallback onOpenPools;
+  final VoidCallback onOpenPredict;
 
   @override
   Widget build(BuildContext context) {
@@ -302,10 +302,10 @@ class FixtureListItem extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               FixtureActionButton(
-                tooltip: 'Open pools',
+                tooltip: 'Open predict',
                 icon: LucideIcons.swords,
                 color: FzColors.primary,
-                onTap: onOpenPools,
+                onTap: onOpenPredict,
               ),
             ],
           ),
@@ -374,23 +374,25 @@ class FixtureActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      excludeSemantics: true,
       label: tooltip,
       onTap: onTap,
-      child: Tooltip(
-        message: tooltip,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(999),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-              border: Border.all(color: color.withValues(alpha: 0.22)),
+      child: ExcludeSemantics(
+        child: Tooltip(
+          message: tooltip,
+          child: IconButton(
+            onPressed: onTap,
+            tooltip: tooltip,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+            style: IconButton.styleFrom(
+              backgroundColor: color.withValues(alpha: 0.1),
+              foregroundColor: color,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+                side: BorderSide(color: color.withValues(alpha: 0.22)),
+              ),
             ),
-            child: Icon(icon, size: 18, color: color),
+            icon: Icon(icon, size: 18),
           ),
         ),
       ),

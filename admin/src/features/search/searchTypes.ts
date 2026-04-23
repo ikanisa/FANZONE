@@ -1,10 +1,9 @@
 export type SearchResultType =
   | 'user'
+  | 'competition'
   | 'fixture'
-  | 'pool'
-  | 'partner'
-  | 'reward'
-  | 'campaign';
+  | 'prediction'
+  | 'wallet';
 
 export interface SearchResult {
   id: string;
@@ -16,9 +15,8 @@ export interface SearchResult {
 
 export const TYPE_ICONS: Record<SearchResultType, string> = {
   user: '👤',
+  competition: '🏆',
   fixture: '⚽',
-  pool: '🎯',
-  partner: '🤝',
-  reward: '🎁',
-  campaign: '📢',
+  prediction: '🎯',
+  wallet: '👛',
 };

@@ -35,7 +35,8 @@ class ProfileScreen extends ConsumerWidget {
     final flags = ref.watch(featureFlagsProvider);
     final showWallet = isAuthenticated && flags.wallet;
     final showPredictions = isAuthenticated && flags.predictions;
-    const showClubs = true;
+    final showLeaderboard = flags.leaderboard;
+    final showInbox = isAuthenticated && flags.notifications;
 
     return Scaffold(
       body: SafeArea(
@@ -110,7 +111,7 @@ class ProfileScreen extends ConsumerWidget {
                 context,
                 title: 'Verify WhatsApp',
                 message:
-                    'Verify your number to unlock your FANZONE profile, fan ID, and club features.',
+                    'Verify your number to unlock wallet transfers, notifications, and saved predictions.',
                 from: '/profile',
               ),
             ),
@@ -118,7 +119,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 12),
 
             ProfileQuickLinksCard(
-              showClubs: showClubs,
+              showLeaderboard: showLeaderboard,
               showWallet: showWallet,
               showPredictions: showPredictions,
             ),
@@ -128,12 +129,13 @@ class ProfileScreen extends ConsumerWidget {
             ProfileAccountLinksCard(
               onHelp: () =>
                   _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
+              showInbox: showInbox,
               showVerifyAction: !isAuthenticated,
               onVerifyPhone: () => showSignInRequiredSheet(
                 context,
                 title: 'Verify WhatsApp',
                 message:
-                    'Verify your number to unlock your FANZONE profile, fan ID, and club features.',
+                    'Verify your number to unlock wallet transfers, notifications, and saved predictions.',
                 from: '/profile',
               ),
               showSignOut: isAuthenticated,

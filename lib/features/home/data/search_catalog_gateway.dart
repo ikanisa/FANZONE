@@ -62,34 +62,19 @@ class SupabaseSearchCatalogGateway implements SearchCatalogGateway {
         }
       }
 
-      dynamic teamRows;
-      try {
-        teamRows = await client
-            .from('team_catalog_entries')
-            .select(
-              'id, name, short_name, country, league_name, is_featured, fan_count',
-            )
-            .eq('is_active', true)
-            .or(
-              'name.ilike.$pattern,short_name.ilike.$pattern,country.ilike.$pattern,league_name.ilike.$pattern',
-            )
-            .order('is_featured', ascending: false)
-            .order('fan_count', ascending: false)
-            .order('name', ascending: true)
-            .limit(12);
-      } catch (error) {
-        AppLogger.d('Failed to search team catalog view: $error');
-        teamRows = await client
-            .from('teams')
-            .select('id, name, short_name, country, league_name, is_featured')
-            .eq('is_active', true)
-            .or(
-              'name.ilike.$pattern,short_name.ilike.$pattern,country.ilike.$pattern,league_name.ilike.$pattern',
-            )
-            .order('is_featured', ascending: false)
-            .order('name', ascending: true)
-            .limit(24);
-      }
+      final teamRows = await client
+          .from('teams')
+          .select(
+            'id, name, short_name, country, league_name, is_featured, fan_count',
+          )
+          .eq('is_active', true)
+          .or(
+            'name.ilike.$pattern,short_name.ilike.$pattern,country.ilike.$pattern,league_name.ilike.$pattern',
+          )
+          .order('is_featured', ascending: false)
+          .order('fan_count', ascending: false)
+          .order('name', ascending: true)
+          .limit(24);
 
       final competitionResults = (competitionRows as List)
           .whereType<Map>()

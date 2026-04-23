@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/di/gateway_providers.dart';
 import '../models/competition_model.dart';
 import '../models/featured_event_model.dart';
-import '../models/global_challenge_model.dart';
-import '../providers/region_provider.dart';
 
 final featuredEventsProvider =
     FutureProvider.autoDispose<List<FeaturedEventModel>>((ref) async {
@@ -33,21 +31,6 @@ final featuredEventByTagProvider = FutureProvider.family
       return ref
           .read(eventCatalogGatewayProvider)
           .getFeaturedEventByTag(eventTag);
-    });
-
-final globalChallengesProvider = FutureProvider.family
-    .autoDispose<List<GlobalChallengeModel>, String?>((ref, eventTag) async {
-      return ref
-          .read(eventCatalogGatewayProvider)
-          .getGlobalChallenges(eventTag: eventTag);
-    });
-
-final homeChallengesProvider =
-    FutureProvider.autoDispose<List<GlobalChallengeModel>>((ref) async {
-      final regionValues = ref.watch(userRegionQueryValuesProvider);
-      return ref
-          .read(eventCatalogGatewayProvider)
-          .getGlobalChallenges(regionValues: regionValues, limit: 5);
     });
 
 final featuredCompetitionsProvider =

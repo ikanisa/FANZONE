@@ -11,8 +11,6 @@ import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
-enum _OddsFormat { decimal, fractional, american }
-
 /// Release-facing settings screen aligned to the source reference.
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -22,8 +20,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  _OddsFormat _oddsFormat = _OddsFormat.decimal;
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -77,18 +73,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     muted: muted,
                     textColor: textColor,
                   ),
-                  const _Divider(),
-                  _SettingsSelect(
-                    icon: LucideIcons.globe2,
-                    label: 'Odds Format',
-                    muted: muted,
-                    textColor: textColor,
-                    value: _oddsFormat,
-                    onChanged: (value) {
-                      if (value == null) return;
-                      setState(() => _oddsFormat = value);
-                    },
-                  ),
                 ],
               ),
             ),
@@ -112,22 +96,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const _Divider(),
                     _SettingsToggle(
                       icon: LucideIcons.shield,
-                      label: 'Pool Settlement',
-                      value: prefs.poolUpdates,
+                      label: 'Prediction Updates',
+                      value: prefs.predictionUpdates,
                       muted: muted,
                       textColor: textColor,
                       onChanged: (value) =>
-                          _updatePrefs(prefs.copyWith(poolUpdates: value)),
+                          _updatePrefs(
+                            prefs.copyWith(predictionUpdates: value),
+                          ),
                     ),
                     const _Divider(),
                     _SettingsToggle(
-                      icon: LucideIcons.users,
-                      label: 'Friend Pools',
-                      value: prefs.communityNews,
+                      icon: LucideIcons.trophy,
+                      label: 'Reward Updates',
+                      value: prefs.rewardUpdates,
                       muted: muted,
                       textColor: textColor,
                       onChanged: (value) =>
-                          _updatePrefs(prefs.copyWith(communityNews: value)),
+                          _updatePrefs(prefs.copyWith(rewardUpdates: value)),
+                    ),
+                    const _Divider(),
+                    _SettingsToggle(
+                      icon: LucideIcons.megaphone,
+                      label: 'Marketing',
+                      value: prefs.marketing,
+                      muted: muted,
+                      textColor: textColor,
+                      onChanged: (value) =>
+                          _updatePrefs(prefs.copyWith(marketing: value)),
                     ),
                   ],
                 ),
@@ -305,66 +301,6 @@ class _SettingsPreviewToggle extends StatelessWidget {
         onChanged: null,
         activeThumbColor: FzColors.accent,
         activeTrackColor: FzColors.accent.withValues(alpha: 0.35),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    );
-  }
-}
-
-class _SettingsSelect extends StatelessWidget {
-  const _SettingsSelect({
-    required this.icon,
-    required this.label,
-    required this.muted,
-    required this.textColor,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color muted;
-  final Color textColor;
-  final _OddsFormat value;
-  final ValueChanged<_OddsFormat?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: _LeadingIcon(icon: icon, color: muted),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          color: textColor,
-        ),
-      ),
-      trailing: DropdownButtonHideUnderline(
-        child: DropdownButton<_OddsFormat>(
-          value: value,
-          onChanged: onChanged,
-          dropdownColor: FzColors.darkSurface2,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: textColor,
-          ),
-          items: const [
-            DropdownMenuItem(
-              value: _OddsFormat.decimal,
-              child: Text('Decimal (1.85)'),
-            ),
-            DropdownMenuItem(
-              value: _OddsFormat.fractional,
-              child: Text('Fractional (17/20)'),
-            ),
-            DropdownMenuItem(
-              value: _OddsFormat.american,
-              child: Text('American (-118)'),
-            ),
-          ],
-        ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
     );

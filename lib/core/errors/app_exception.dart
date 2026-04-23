@@ -17,7 +17,6 @@ Failure mapExceptionToFailure(Object error, [StackTrace? stack]) {
   // Supabase RPC business-rule exceptions (RAISE EXCEPTION in plpgsql)
   if (message.contains('Insufficient FET') ||
       message.contains('Insufficient balance') ||
-      message.contains('Minimum stake') ||
       message.contains('Amount must be greater than zero') ||
       message.contains('exactly 6 digits') ||
       message.contains('Fan ID not found') ||
@@ -25,6 +24,7 @@ Failure mapExceptionToFailure(Object error, [StackTrace? stack]) {
       message.contains('not found or inactive') ||
       message.contains('no longer open') ||
       message.contains('already joined') ||
+      message.contains('already submitted a prediction') ||
       message.contains('out of stock')) {
     return BusinessRuleFailure(message: _extractRpcMessage(message));
   }

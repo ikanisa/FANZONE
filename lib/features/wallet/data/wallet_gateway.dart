@@ -1,6 +1,5 @@
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/marketplace_model.dart';
 import '../../../models/wallet.dart';
 
 abstract interface class WalletGateway {
@@ -10,19 +9,11 @@ abstract interface class WalletGateway {
 
   Future<List<WalletTransaction>> getTransactions(String userId);
 
-  Future<List<FanClub>> getFanClubs();
-
   Future<List<CurrencyRateDto>> getCurrencyRates({String baseCurrency});
 
   Future<String?> guessUserCurrency(String userId);
 
   Future<String?> getFanId(String userId);
-
-  Future<List<MarketplaceOffer>> getMarketplaceOffers();
-
-  Future<List<MarketplaceRedemption>> getMarketplaceRedemptions(String userId);
-
-  Future<MarketplaceRedeemResult> redeemOffer(String offerId);
 
   Future<List<FetExchangeRateDto>> getFetExchangeRates();
 }
@@ -91,8 +82,6 @@ class SupabaseWalletGateway implements WalletGateway {
   final Map<String, int> _localBalances = <String, int>{};
   final Map<String, List<WalletTransaction>> _localTransactions =
       <String, List<WalletTransaction>>{};
-  final Map<String, List<MarketplaceRedemption>> _localRedemptions =
-      <String, List<MarketplaceRedemption>>{};
 
   @override
   Future<int> getAvailableBalance(String userId) async {
@@ -182,39 +171,6 @@ class SupabaseWalletGateway implements WalletGateway {
   }
 
   @override
-  Future<List<FanClub>> getFanClubs() async {
-    final client = _connection.client;
-    if (client != null) {
-      try {
-        final rows = await client
-            .from('fan_clubs')
-            .select()
-            .eq('is_active', true)
-            .order('rank');
-        final clubs = (rows as List)
-            .whereType<Map>()
-            .map(
-              (row) => FanClub(
-                id: row['id']?.toString() ?? '',
-                name: row['name']?.toString() ?? '',
-                members: (row['member_count'] as num?)?.toInt() ?? 0,
-                totalPool: (row['total_pool_fet'] as num?)?.toInt() ?? 0,
-                crest: row['crest_url']?.toString() ?? '',
-                league: row['league']?.toString() ?? '',
-                rank: (row['rank'] as num?)?.toInt() ?? 0,
-              ),
-            )
-            .toList(growable: false);
-        return clubs;
-      } catch (error) {
-        AppLogger.d('Failed to load fan clubs: $error');
-      }
-    }
-
-    return const <FanClub>[];
-  }
-
-  @override
   Future<List<CurrencyRateDto>> getCurrencyRates({
     String baseCurrency = 'EUR',
   }) async {
@@ -280,90 +236,6 @@ class SupabaseWalletGateway implements WalletGateway {
     }
 
     return null;
-  }
-
-  @override
-  Future<List<MarketplaceOffer>> getMarketplaceOffers() async {
-    final client = _connection.client;
-    if (client != null) {
-      try {
-        final rows = await client
-            .from('marketplace_offers')
-            .select('*, partner:marketplace_partners(*)')
-            .eq('is_active', true)
-            .order('sort_order');
-        final offers = (rows as List)
-            .whereType<Map>()
-            .map(
-              (row) => MarketplaceOffer.fromRow(Map<String, dynamic>.from(row)),
-            )
-            .toList(growable: false);
-        return offers;
-      } catch (error) {
-        AppLogger.d('Failed to load marketplace offers: $error');
-      }
-    }
-
-    return const <MarketplaceOffer>[];
-  }
-
-  @override
-  Future<List<MarketplaceRedemption>> getMarketplaceRedemptions(
-    String userId,
-  ) async {
-    final client = _connection.client;
-    if (client != null) {
-      try {
-        final rows = await client
-            .from('marketplace_redemptions')
-            .select(
-              '*, offer:marketplace_offers(*, partner:marketplace_partners(*))',
-            )
-            .eq('user_id', userId)
-            .order('redeemed_at', ascending: false);
-        final redemptions = (rows as List)
-            .whereType<Map>()
-            .map(
-              (row) =>
-                  MarketplaceRedemption.fromRow(Map<String, dynamic>.from(row)),
-            )
-            .toList(growable: false);
-        _localRedemptions[userId] = redemptions;
-        return redemptions;
-      } catch (error) {
-        AppLogger.d('Failed to load redemptions: $error');
-      }
-    }
-
-    return [...(_localRedemptions[userId] ?? const <MarketplaceRedemption>[])];
-  }
-
-  @override
-  Future<MarketplaceRedeemResult> redeemOffer(String offerId) async {
-    final client = _connection.client;
-    if (client == null) {
-      _throwUnavailable('Reward redemption');
-    }
-
-    try {
-      final response = await client.rpc(
-        'redeem_offer',
-        params: {'p_offer_id': offerId},
-      );
-      if (response is Map<String, dynamic>) {
-        return MarketplaceRedeemResult.fromJson(response);
-      }
-      if (response is Map) {
-        return MarketplaceRedeemResult.fromJson(
-          Map<String, dynamic>.from(response),
-        );
-      }
-    } catch (error) {
-      AppLogger.d('Failed to redeem offer remotely: $error');
-      rethrow;
-    }
-
-    throw StateError('Reward redemption did not return a redemption result.');
   }
 
   @override

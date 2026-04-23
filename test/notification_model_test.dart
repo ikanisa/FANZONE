@@ -5,18 +5,18 @@ void main() {
   group('NotificationItem', () {
     final json = {
       'id': 'n1',
-      'type': 'pool_settled',
+      'type': 'prediction_reward',
       'title': '🎉 You won!',
       'body': 'Your prediction for Valletta vs Birkirkara was correct!',
       'data': {'match_id': 'm1', 'screen': '/predict'},
-      'sentAt': '2026-04-18T14:00:00.000Z',
-      'readAt': null,
+      'sent_at': '2026-04-18T14:00:00.000Z',
+      'read_at': null,
     };
 
     test('fromJson parses all fields', () {
       final notif = NotificationItem.fromJson(json);
       expect(notif.id, 'n1');
-      expect(notif.type, 'pool_settled');
+      expect(notif.type, 'prediction_reward');
       expect(notif.title, '🎉 You won!');
       expect(notif.body, contains('Valletta'));
       expect(notif.data['match_id'], 'm1');
@@ -24,7 +24,7 @@ void main() {
     });
 
     test('fromJson with readAt', () {
-      final readJson = {...json, 'readAt': '2026-04-18T15:00:00.000Z'};
+      final readJson = {...json, 'read_at': '2026-04-18T15:00:00.000Z'};
       final notif = NotificationItem.fromJson(readJson);
       expect(notif.readAt, isNotNull);
     });
@@ -34,7 +34,7 @@ void main() {
         'id': 'n2',
         'type': 'goal_alert',
         'title': 'Goal!',
-        'sentAt': '2026-04-18T14:00:00.000Z',
+        'sent_at': '2026-04-18T14:00:00.000Z',
       });
       expect(minimal.body, '');
       expect(minimal.data, isEmpty);
@@ -66,27 +66,24 @@ void main() {
     test('defaults are sensible', () {
       const prefs = NotificationPreferences();
       expect(prefs.goalAlerts, true);
-      expect(prefs.poolUpdates, true);
-      expect(prefs.dailyChallenge, true);
-      expect(prefs.walletActivity, true);
-      expect(prefs.communityNews, true);
+      expect(prefs.predictionUpdates, true);
+      expect(prefs.rewardUpdates, true);
       expect(prefs.marketing, false); // marketing OFF by default
     });
 
     test('fromJson round-trip', () {
       final json = {
-        'goalAlerts': false,
-        'poolUpdates': true,
-        'dailyChallenge': false,
-        'walletActivity': true,
-        'communityNews': true,
+        'goal_alerts': false,
+        'prediction_updates': true,
+        'reward_updates': false,
         'marketing': true,
       };
       final prefs = NotificationPreferences.fromJson(json);
       expect(prefs.goalAlerts, false);
+      expect(prefs.rewardUpdates, false);
       expect(prefs.marketing, true);
       final encoded = prefs.toJson();
-      expect(encoded['goalAlerts'], false);
+      expect(encoded['goal_alerts'], false);
     });
 
     test('copyWith toggles individual preferences', () {
@@ -94,7 +91,7 @@ void main() {
       final updated = prefs.copyWith(goalAlerts: false, marketing: true);
       expect(updated.goalAlerts, false);
       expect(updated.marketing, true);
-      expect(updated.poolUpdates, true); // unchanged
+      expect(updated.predictionUpdates, true); // unchanged
     });
   });
 
@@ -104,28 +101,27 @@ void main() {
       expect(stats.predictionStreak, 0);
       expect(stats.longestStreak, 0);
       expect(stats.totalPredictions, 0);
-      expect(stats.totalPoolsEntered, 0);
-      expect(stats.totalPoolsWon, 0);
+      expect(stats.correctPredictions, 0);
       expect(stats.totalFetEarned, 0);
       expect(stats.totalFetSpent, 0);
     });
 
     test('fromJson round-trip', () {
       final json = {
-        'predictionStreak': 5,
-        'longestStreak': 12,
-        'totalPredictions': 30,
-        'totalPoolsEntered': 8,
-        'totalPoolsWon': 3,
-        'totalFetEarned': 2500,
-        'totalFetSpent': 1200,
+        'prediction_streak': 5,
+        'longest_streak': 12,
+        'total_predictions': 30,
+        'correct_predictions': 3,
+        'total_fet_earned': 2500,
+        'total_fet_spent': 1200,
       };
       final stats = UserStats.fromJson(json);
       expect(stats.predictionStreak, 5);
       expect(stats.longestStreak, 12);
+      expect(stats.correctPredictions, 3);
       expect(stats.totalFetEarned, 2500);
       final encoded = stats.toJson();
-      expect(encoded['totalPoolsWon'], 3);
+      expect(encoded['correct_predictions'], 3);
     });
 
     test('equality', () {

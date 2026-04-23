@@ -1,10 +1,4 @@
-/// Runtime feature flags service that layers DB-driven flags over
-/// compile-time [AppConfig] defaults.
-///
-/// Load order:
-///   1. Compile-time `--dart-define` defaults (always available)
-///   2. DB-driven flags from `feature_flags` table via [BootstrapConfig]
-///   3. DB flags override compile-time flags when present
+/// Runtime feature flags service sourced from Supabase bootstrap data.
 ///
 /// Usage:
 ///   ```dart
@@ -15,7 +9,6 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../config/app_config.dart';
 import '../config/bootstrap_config.dart';
 import '../di/gateway_providers.dart';
 
@@ -24,53 +17,32 @@ class FeatureFlags {
 
   final BootstrapConfig _bootstrapConfig;
 
-  /// Check a DB flag first, fall back to compile-time default.
-  bool _flag(String key, bool compileTimeDefault) =>
-      _bootstrapConfig.featureFlags[key] ?? compileTimeDefault;
+  bool _flag(String key) => _bootstrapConfig.featureFlags[key] == true;
 
   // ── Core Features ──
 
-  bool get predictions => _flag('predictions', AppConfig.enablePredictions);
-  bool get wallet => _flag('wallet', AppConfig.enableWallet);
-  bool get leaderboard => _flag('leaderboard', AppConfig.enableLeaderboard);
-  bool get rewards => _flag('rewards', AppConfig.enableRewards);
-  bool get membership => _flag('membership', AppConfig.enableMembership);
-  bool get notifications =>
-      _flag('notifications', AppConfig.enableNotifications);
-  bool get teamCommunities =>
-      _flag('team_communities', AppConfig.enableTeamCommunities);
+  bool get predictions => _flag('predictions');
+  bool get wallet => _flag('wallet');
+  bool get leaderboard => _flag('leaderboard');
+  bool get rewards => _flag('rewards');
+  bool get notifications => _flag('notifications');
 
-  // ── V2 Features ──
+  // ── Platform Features ──
 
-  bool get socialFeed => _flag('social_feed', AppConfig.enableSocialFeed);
-  bool get fanIdentity => _flag('fan_identity', AppConfig.enableFanIdentity);
-  bool get marketplace => _flag('marketplace', AppConfig.enableMarketplace);
-  bool get aiAnalysis => _flag('ai_analysis', AppConfig.enableAiAnalysis);
-  bool get advancedStats =>
-      _flag('advanced_stats', AppConfig.enableAdvancedStats);
-  bool get communityContests =>
-      _flag('community_contests', AppConfig.enableCommunityContests);
-  bool get seasonalLeaderboards =>
-      _flag('seasonal_leaderboards', AppConfig.enableSeasonalLeaderboards);
-  bool get deepLinking => _flag('deep_linking', AppConfig.enableDeepLinking);
+  bool get deepLinking => _flag('deep_linking');
 
   // ── Global Launch Features ──
 
-  bool get featuredEvents =>
-      _flag('featured_events', AppConfig.enableFeaturedEvents);
-  bool get globalChallenges =>
-      _flag('global_challenges', AppConfig.enableGlobalChallenges);
-  bool get regionDiscovery =>
-      _flag('region_discovery', AppConfig.enableRegionDiscovery);
+  bool get featuredEvents => _flag('featured_events');
+  bool get regionDiscovery => _flag('region_discovery');
 
   /// Check any flag by name (for dynamic/generic use).
-  bool isEnabled(String key, {bool defaultValue = false}) =>
-      _flag(key, defaultValue);
+  bool isEnabled(String key) => _flag(key);
 }
 
 /// Riverpod provider for typed feature flags.
 ///
-/// This gives a compile-safe API while allowing runtime overrides from the DB.
+/// This gives a compile-safe API backed by the Supabase runtime bootstrap.
 final featureFlagsProvider = Provider<FeatureFlags>((ref) {
   return FeatureFlags(ref.watch(bootstrapConfigProvider));
 });

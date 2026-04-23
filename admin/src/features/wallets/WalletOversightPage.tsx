@@ -229,7 +229,7 @@ export function WalletOversightPage() {
               <div>
                 <h3 className="text-md font-semibold mb-1">Freeze Wallet</h3>
                 <p className="text-sm text-muted">
-                  Freeze {freezeTarget.display_name}'s wallet. They won't be able to transfer, stake, or redeem FET.
+                  Freeze {freezeTarget.display_name}'s wallet. They won't be able to transfer, spend, or redeem FET.
                 </p>
               </div>
             </div>

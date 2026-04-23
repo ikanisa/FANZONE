@@ -2,14 +2,5 @@
   "name": "fanzone-scripts",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
-  "scripts": {
-    "capture-odds": "node capture-odds.mjs",
-    "capture-odds:custom": "node capture-odds.mjs"
-  },
-  "dependencies": {
-    "puppeteer": "^24.42.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2"
-  }
+  "type": "module"
 }

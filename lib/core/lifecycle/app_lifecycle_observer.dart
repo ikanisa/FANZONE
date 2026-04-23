@@ -96,7 +96,7 @@ class _AppLifecycleObserverWidgetState
     super.dispose();
   }
 
-  /// Default foreground behavior: invalidate all match/pool related
+  /// Default foreground behavior: invalidate all match/prediction related
   /// Riverpod providers to trigger fresh fetches.
   void _defaultForegroundRefresh() {
     // Invalidate match-related providers so Riverpod refetches

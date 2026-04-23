@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:fanzone/core/constants/phone_presets.dart';
 import 'package:fanzone/features/onboarding/widgets/country_code_picker.dart';
 import 'package:fanzone/features/onboarding/widgets/onboarding_phone_verification_steps.dart';
 
@@ -21,12 +22,14 @@ void main() {
             onBack: () {},
             onNext: () {},
             selectedCountry: const CountryEntry(
-              code: 'RW',
-              dialCode: '+250',
-              name: 'Rwanda',
-              flag: '🇷🇼',
-              hint: '7XX XXX XXX',
-              minDigits: 9,
+              countryCode: 'AA',
+              countryName: 'Test Country',
+              flagEmoji: '🏳️',
+              preset: PhonePreset(
+                dialCode: '+111',
+                hint: '9XX XXX XXX',
+                minDigits: 9,
+              ),
             ),
             buttonLabel: 'SEND OTP TO WHATSAPP',
           ),
@@ -44,7 +47,7 @@ void main() {
     expect(find.text('SEND OTP TO WHATSAPP'), findsOneWidget);
   });
 
-  testWidgets('onboarding phone step uses the locked +250 country slot', (
+  testWidgets('onboarding phone step shows the selected country dial code', (
     tester,
   ) async {
     final controller = TextEditingController(text: '7718 6193');
@@ -62,12 +65,14 @@ void main() {
             onBack: () {},
             onNext: () {},
             selectedCountry: const CountryEntry(
-              code: 'RW',
-              dialCode: '+250',
-              name: 'Rwanda',
-              flag: '🇷🇼',
-              hint: '7XX XXX XXX',
-              minDigits: 9,
+              countryCode: 'AA',
+              countryName: 'Test Country',
+              flagEmoji: '🏳️',
+              preset: PhonePreset(
+                dialCode: '+111',
+                hint: '9XX XXX XXX',
+                minDigits: 9,
+              ),
             ),
             buttonLabel: 'SEND OTP TO WHATSAPP',
           ),
@@ -75,6 +80,6 @@ void main() {
       ),
     );
 
-    expect(find.text('+250'), findsOneWidget);
+    expect(find.text('+111'), findsOneWidget);
   });
 }

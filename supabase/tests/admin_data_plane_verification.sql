@@ -13,6 +13,7 @@ BEGIN
   INTO missing_views
   FROM (
     VALUES
+      ('public.admin_feature_flags'),
       ('public.fet_supply_overview_admin'),
       ('public.fet_transactions_admin')
   ) AS expected(required_name)
@@ -31,7 +32,12 @@ BEGIN
       ('matches', 'Admins manage matches'),
       ('notification_log', 'Admins read notifications'),
       ('notification_log', 'Users update own notifications'),
-      ('prediction_challenge_entries', 'Admins read challenge entries')
+      ('predictions_engine_outputs', 'Admins manage prediction engine outputs'),
+      ('standings', 'Admins manage standings'),
+      ('team_aliases', 'Admins manage team aliases'),
+      ('team_form_features', 'Admins manage team form features'),
+      ('token_rewards', 'Admins manage token rewards'),
+      ('user_predictions', 'Admins read user predictions')
   ) AS expected(tablename, required_policy)
   WHERE NOT EXISTS (
     SELECT 1
@@ -49,22 +55,19 @@ BEGIN
   INTO missing_rpcs
   FROM (
     VALUES
-      ('public.admin_approve_partner(uuid)'),
-      ('public.admin_auto_settle_match(text,integer,integer)'),
       ('public.admin_change_admin_role(uuid,text)'),
+      ('public.admin_dashboard_kpis()'),
       ('public.admin_global_search(text,integer)'),
       ('public.admin_grant_access(text,text)'),
+      ('public.admin_set_feature_flag(text,boolean)'),
+      ('public.generate_predictions_for_upcoming_matches(integer)'),
       ('public.get_admin_me()'),
-      ('public.admin_publish_team_news(uuid)'),
-      ('public.admin_reject_partner(uuid,text)'),
       ('public.admin_revoke_access(uuid)'),
       ('public.admin_set_competition_featured(text,boolean)'),
-      ('public.admin_set_featured_event_active(uuid,boolean)'),
-      ('public.admin_set_partner_featured(uuid,boolean)'),
       ('public.admin_trigger_currency_rate_refresh()'),
-      ('public.admin_trigger_team_news_ingestion(text,text,text[],integer)'),
       ('public.admin_update_account_deletion_request(uuid,text,text)'),
-      ('public.admin_update_match_result(text,integer,integer)')
+      ('public.admin_update_match_result(text,integer,integer)'),
+      ('public.score_finished_matches_with_pending_predictions(integer)')
   ) AS expected(required_signature)
   WHERE to_regprocedure(expected.required_signature) IS NULL;
 

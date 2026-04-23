@@ -19,7 +19,7 @@ abstract interface class MatchListingGateway {
 
   Stream<List<MatchModel>> watchUpcomingMatches();
 
-  /// Watches currently live matches via the `get_live_matches()` RPC.
+  /// Watches currently live matches from the lean `app_matches` projection.
   Stream<List<MatchModel>> watchLiveMatches();
 }
 
@@ -106,23 +106,85 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
         filter.dateTo == null;
   }
 
-  String? _singleDayFilterValue(MatchesFilter filter) {
-    final from = filter.dateFrom;
-    final to = filter.dateTo;
-    if (from == null || to == null) return null;
-
-    final fromDay = from.split('T').first;
-    final toDay = to.split('T').first;
-    if (fromDay != toDay || fromDay.isEmpty) return null;
-
-    return fromDay;
-  }
-
   List<MatchModel> _parseMatchRows(dynamic rows) {
     return (rows as List)
         .whereType<Map>()
-        .map((row) => MatchModel.fromJson(Map<String, dynamic>.from(row)))
+        .map(
+          (row) => MatchModel.fromJson(
+            _normalizeMatchRow(Map<String, dynamic>.from(row)),
+          ),
+        )
         .toList(growable: false);
+  }
+
+  Map<String, dynamic> _normalizeMatchRow(Map<String, dynamic> row) {
+    final normalized = Map<String, dynamic>.from(row);
+    final rawStatus =
+        row['status']?.toString() ?? row['match_status']?.toString() ?? '';
+    normalized['competition_name'] = row['competition_name']?.toString();
+    normalized['season_id'] = row['season_id']?.toString();
+    normalized['season_label'] =
+        row['season_label']?.toString() ?? row['season']?.toString() ?? '';
+    normalized['match_date'] = row['match_date'] ?? row['date'];
+    normalized['round'] =
+        row['round']?.toString() ?? row['matchday_or_round']?.toString();
+    normalized['matchday_or_round'] =
+        row['matchday_or_round']?.toString() ?? row['round']?.toString();
+    normalized['live_minute'] = (row['live_minute'] as num?)?.toInt();
+    normalized['stage'] = row['stage']?.toString();
+    normalized['result_code'] = row['result_code']?.toString();
+    normalized['is_neutral'] = row['is_neutral'] == true;
+    normalized['notes'] = row['notes']?.toString();
+    normalized['status'] = _normalizeStatus(rawStatus);
+    normalized['data_source'] =
+        row['data_source']?.toString() ??
+        row['source_name']?.toString() ??
+        'manual';
+    normalized['ft_home'] =
+        row['live_home_score'] ?? row['ft_home'] ?? row['home_goals'];
+    normalized['ft_away'] =
+        row['live_away_score'] ?? row['ft_away'] ?? row['away_goals'];
+    normalized['home_logo_url'] =
+        row['home_logo_url']?.toString() ?? row['home_crest_url']?.toString();
+    normalized['away_logo_url'] =
+        row['away_logo_url']?.toString() ?? row['away_crest_url']?.toString();
+    return normalized;
+  }
+
+  String _normalizeStatus(String status) {
+    final value = status.trim().toLowerCase();
+    switch (value) {
+      case 'scheduled':
+      case 'not_started':
+      case 'pending':
+        return 'upcoming';
+      case 'in_play':
+      case 'in_progress':
+        return 'live';
+      case 'complete':
+      case 'completed':
+      case 'full_time':
+        return 'finished';
+      default:
+        return value.isEmpty ? 'upcoming' : value;
+    }
+  }
+
+  List<String>? _statusValues(String? status) {
+    final value = status?.trim().toLowerCase();
+    if (value == null || value.isEmpty) return null;
+
+    switch (value) {
+      case 'live':
+        return const ['live', 'in_play', 'in_progress', 'playing'];
+      case 'finished':
+        return const ['finished', 'complete', 'completed', 'full_time', 'ft'];
+      case 'upcoming':
+      case 'scheduled':
+        return const ['scheduled', 'not_started', 'pending', 'upcoming'];
+      default:
+        return [value];
+    }
   }
 
   Future<List<MatchModel>> _fetchCompetitionMatches(
@@ -135,30 +197,19 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     }
 
     try {
-      final rows = await client.rpc(
-        'app_competition_matches',
-        params: {'p_competition_id': competitionId, 'p_limit': limit},
-      );
+      final rows = await client
+          .from('app_matches')
+          .select()
+          .eq('competition_id', competitionId)
+          .order('date', ascending: false)
+          .limit(limit);
       return _parseMatchRows(rows);
     } catch (error) {
-      AppLogger.d('Failed to load competition matches via RPC: $error');
-      try {
-        final rows = await client
-            .from('matches_live_view')
-            .select()
-            .eq('competition_id', competitionId)
-            .order('date', ascending: false)
-            .limit(limit);
-        return _parseMatchRows(rows);
-      } catch (fallbackError) {
-        AppLogger.d(
-          'Failed to load competition matches via fallback query: $fallbackError',
-        );
-        throw SportsDataQueryException(
-          'Failed to load competition fixtures for $competitionId.',
-          cause: fallbackError,
-        );
-      }
+      AppLogger.d('Failed to load competition matches: $error');
+      throw SportsDataQueryException(
+        'Failed to load competition fixtures for $competitionId.',
+        cause: error,
+      );
     }
   }
 
@@ -172,30 +223,19 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     }
 
     try {
-      final rows = await client.rpc(
-        'app_team_matches',
-        params: {'p_team_id': teamId, 'p_limit': limit},
-      );
+      final rows = await client
+          .from('app_matches')
+          .select()
+          .or('home_team_id.eq.$teamId,away_team_id.eq.$teamId')
+          .order('date', ascending: false)
+          .limit(limit);
       return _parseMatchRows(rows);
     } catch (error) {
-      AppLogger.d('Failed to load team matches via RPC: $error');
-      try {
-        final rows = await client
-            .from('matches_live_view')
-            .select()
-            .or('home_team_id.eq.$teamId,away_team_id.eq.$teamId')
-            .order('date', ascending: false)
-            .limit(limit);
-        return _parseMatchRows(rows);
-      } catch (fallbackError) {
-        AppLogger.d(
-          'Failed to load team matches via fallback query: $fallbackError',
-        );
-        throw SportsDataQueryException(
-          'Failed to load team fixtures for $teamId.',
-          cause: fallbackError,
-        );
-      }
+      AppLogger.d('Failed to load team matches: $error');
+      throw SportsDataQueryException(
+        'Failed to load team fixtures for $teamId.',
+        cause: error,
+      );
     }
   }
 
@@ -204,27 +244,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     MatchesFilter filter,
   ) async {
     final client = _connection.client!;
-    final singleDay = _singleDayFilterValue(filter);
-
-    if (singleDay != null &&
-        filter.teamId == null &&
-        filter.status == null &&
-        filter.competitionId == null) {
-      try {
-        final rows = await client.rpc(
-          'app_matches_by_date',
-          params: {'p_date': singleDay},
-        );
-        return (rows as List)
-            .whereType<Map>()
-            .map(Map<String, dynamic>.from)
-            .toList(growable: false);
-      } catch (error) {
-        AppLogger.d('Failed to load matches by date via RPC: $error');
-      }
-    }
-
-    var query = client.from('matches_live_view').select();
+    var query = client.from('app_matches').select();
     if (filter.competitionId != null && filter.competitionId!.isNotEmpty) {
       query = query.eq('competition_id', filter.competitionId!);
     }
@@ -233,8 +253,9 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
         'home_team_id.eq.${filter.teamId},away_team_id.eq.${filter.teamId}',
       );
     }
-    if (filter.status != null && filter.status!.isNotEmpty) {
-      query = query.eq('status', filter.status!);
+    final statusValues = _statusValues(filter.status);
+    if (statusValues != null) {
+      query = query.inFilter('status', statusValues);
     }
     if (filter.dateFrom != null && filter.dateFrom!.isNotEmpty) {
       query = query.gte('date', filter.dateFrom!);
@@ -264,13 +285,13 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
       try {
         final row = await client
-            .from('matches_live_view')
+            .from('app_matches')
             .select()
             .eq('id', matchId)
             .maybeSingle();
         if (row == null) return null;
         return MatchModel.fromJson(
-          Map<String, dynamic>.from(row as Map<dynamic, dynamic>),
+          _normalizeMatchRow(Map<String, dynamic>.from(row as Map)),
         );
       } catch (error) {
         AppLogger.d('Failed to load match $matchId: $error');
@@ -376,22 +397,10 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
   @override
   Stream<List<MatchModel>> watchLiveMatches() {
-    return pollMatchStream<List<MatchModel>>(() async {
-      final client = _connection.client;
-      if (client == null) {
-        _throwUnavailable('live matches');
-      }
-
-      try {
-        final rows = await client.rpc('get_live_matches');
-        return _parseMatchRows(rows);
-      } catch (error) {
-        AppLogger.d('Failed to load live matches via RPC: $error');
-        // Fallback to view-based query
-        return getMatches(
-          const MatchesFilter(status: 'live', limit: 100, ascending: true),
-        );
-      }
-    });
+    return pollMatchStream<List<MatchModel>>(
+      () => getMatches(
+        const MatchesFilter(status: 'live', limit: 100, ascending: true),
+      ),
+    );
   }
 }

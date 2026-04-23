@@ -14,7 +14,6 @@ import '../../theme/colors.dart';
 import '../../theme/typography.dart';
 import '../common/fz_brand_logo.dart';
 import '../common/fz_wordmark.dart';
-import '../predict/prediction_slip_dock.dart';
 
 /// FANZONE shell aligned to the primary reference UI:
 /// - mobile auto-hiding top bar + glass bottom nav
@@ -79,8 +78,6 @@ class _AppShellState extends ConsumerState<AppShell> {
                 )
               : widget.navigationShell;
 
-          final showPredictionSlip = _showsPredictionSlip(location);
-
           return Scaffold(
             extendBody: !isDesktop,
             extendBodyBehindAppBar: false,
@@ -91,26 +88,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                     onHomeTap: () => context.go('/'),
                     onWalletTap: () => context.go('/wallet'),
                   ),
-            body: Stack(
-              children: [
-                body,
-                if (showPredictionSlip)
-                  Positioned(
-                    left: isDesktop ? 280 : 0,
-                    right: isDesktop ? 24 : 0,
-                    bottom: isDesktop ? 24 : 90,
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: isDesktop ? 520 : double.infinity,
-                        ),
-                        child: const SafeArea(child: PredictionSlipDock()),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            body: body,
             bottomNavigationBar: isDesktop
                 ? null
                 : _MobileBottomNav(
@@ -249,16 +227,10 @@ class _DesktopSidebar extends StatelessWidget {
         matcher: _isFixturesPath,
       ),
       const _DesktopNavItem(
-        label: 'Pools',
-        icon: LucideIcons.swords,
-        route: '/pools',
+        label: 'Predict',
+        icon: LucideIcons.target,
+        route: '/predict',
         matcher: _isPredictPath,
-      ),
-      const _DesktopNavItem(
-        label: 'Jackpots',
-        icon: LucideIcons.zap,
-        route: '/jackpot',
-        matcher: _isJackpotPath,
       ),
       const _DesktopNavItem(
         label: 'Leaderboard',
@@ -415,10 +387,10 @@ class _MobileBottomNav extends StatelessWidget {
         route: '/fixtures',
       ),
       _MobileNavItem(
-        keyName: 'pools',
-        label: 'Pools',
-        icon: LucideIcons.swords,
-        route: '/pools',
+        keyName: 'predict',
+        label: 'Predict',
+        icon: LucideIcons.target,
+        route: '/predict',
       ),
       _MobileNavItem(
         keyName: 'profile',
@@ -589,50 +561,30 @@ class _MobileNavItem {
 String? _mobileNavKey(String path) {
   if (_isHomePath(path)) return 'home';
   if (_isFixturesPath(path)) return 'matches';
-  if (_isPredictPath(path) || _isJackpotPath(path)) return 'pools';
+  if (_isPredictPath(path)) return 'predict';
   if (_isProfilePath(path)) return 'profile';
   return null;
 }
-
-bool _showsPredictionSlip(String path) =>
-    _isHomePath(path) ||
-    _isFixturesPath(path) ||
-    _isPredictPath(path) ||
-    _isJackpotPath(path);
 
 bool _isHomePath(String path) => path == '/';
 
 bool _isFixturesPath(String path) =>
     path == '/fixtures' ||
     path.startsWith('/match/') ||
-    path.startsWith('/league/');
+    path.startsWith('/league/') ||
+    path.startsWith('/team/');
 
 bool _isPredictPath(String path) =>
-    (path == '/pools' ||
-        path.startsWith('/pools/') ||
-        path == '/predict' ||
-        path.startsWith('/predict/') ||
-        path.startsWith('/pool/')) &&
-    !_isJackpotPath(path);
-
-bool _isJackpotPath(String path) =>
-    path == '/jackpot' || path == '/predict/jackpot';
+    path == '/predict' || path.startsWith('/predict/');
 
 bool _isWalletPath(String path) =>
     path == '/wallet' || path.startsWith('/wallet/');
 
-bool _isLeaderboardPath(String path) =>
-    path == '/leaderboard' ||
-    path.startsWith('/profile/leaderboard') ||
-    path.startsWith('/profile/seasonal-leaderboard');
+bool _isLeaderboardPath(String path) => path == '/leaderboard';
 
 bool _isProfilePath(String path) =>
     path == '/profile' ||
     path.startsWith('/profile/') ||
     path.startsWith('/notifications') ||
     path.startsWith('/settings') ||
-    path.startsWith('/privacy') ||
-    path.startsWith('/fan-id') ||
-    path.startsWith('/memberships') ||
-    path.startsWith('/social') ||
-    path.startsWith('/team/');
+    path.startsWith('/privacy');

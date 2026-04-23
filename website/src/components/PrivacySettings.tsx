@@ -36,7 +36,7 @@ export default function PrivacySettings() {
               <div>
                 <div className="font-bold text-sm text-text mb-1">Phone Number Hidden</div>
                 <div className="text-xs text-muted leading-relaxed">
-                  Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users, club admins, or in public leaderboards.
+                  Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users or public leaderboards.
                 </div>
               </div>
             </div>
@@ -45,9 +45,9 @@ export default function PrivacySettings() {
                 <Shield size={20} />
               </div>
               <div>
-                <div className="font-bold text-sm text-text mb-1">Anonymous Contributions</div>
+                <div className="font-bold text-sm text-text mb-1">Protected Wallet Activity</div>
                 <div className="text-xs text-muted leading-relaxed">
-                  MoMo contributions to fan clubs are logged using your Fan ID and amount bracket only. Exact amounts and phone numbers are not recorded.
+                  Wallet transfers and prediction rewards are tied to your Fan ID and secure wallet ledger only. Exact phone numbers are never exposed.
                 </div>
               </div>
             </div>

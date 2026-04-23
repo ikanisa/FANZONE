@@ -12,7 +12,7 @@ import {
 import { formatRelativeTime, formatFET } from "../../lib/formatters";
 import {
   Users,
-  Swords,
+  Target,
   Coins,
   Wallet,
   ShoppingBag,
@@ -47,9 +47,9 @@ export function DashboardPage() {
               icon={<Users size={18} />}
             />
             <KpiCard
-              label="Active Pools"
-              value={kpis.activePools}
-              icon={<Swords size={18} />}
+              label="Open Prediction Matches"
+              value={kpis.openPredictionMatches}
+              icon={<Target size={18} />}
             />
             <KpiCard
               label="FET Issued"
@@ -64,8 +64,8 @@ export function DashboardPage() {
               icon={<Wallet size={18} />}
             />
             <KpiCard
-              label="Pending Redemptions"
-              value={kpis.pendingRedemptions}
+              label="Pending Rewards"
+              value={kpis.pendingRewards}
               icon={<ShoppingBag size={18} />}
             />
             <KpiCard
@@ -215,12 +215,14 @@ export function DashboardPage() {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted">Active Pools</span>
-                  <span className="font-medium">{kpis.activePools}</span>
+                  <span className="text-muted">Open Prediction Matches</span>
+                  <span className="font-medium">
+                    {kpis.openPredictionMatches}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted">Pending Redemptions</span>
-                  <span className="font-medium">{kpis.pendingRedemptions}</span>
+                  <span className="text-muted">Pending Rewards</span>
+                  <span className="font-medium">{kpis.pendingRewards}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted">Moderation Queue</span>

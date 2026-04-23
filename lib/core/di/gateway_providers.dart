@@ -8,7 +8,6 @@ import 'dart:ui' show PlatformDispatcher;
 
 import '../config/bootstrap_config.dart';
 import '../config/runtime_bootstrap.dart';
-import '../../config/app_config.dart';
 import '../utils/currency_utils.dart' as currency_utils;
 
 import 'package:flutter/foundation.dart'
@@ -20,24 +19,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 // ── Core layer ─────────────────────────────────────────────
 import '../cache/cache_service.dart';
 import '../cache/shared_preferences_cache_service.dart';
-import '../logging/app_logger.dart';
 import '../supabase/supabase_connection.dart';
 import '../utils/team_name_cleanup.dart';
 
 // ── Feature gateways ───────────────────────────────────────
 import '../../features/auth/data/auth_gateway.dart';
-import '../../features/community/data/community_gateway.dart';
+import '../../data/team_search_database.dart';
 import '../../features/home/data/catalog_gateway.dart';
-import '../../features/home/data/match_detail_gateway.dart';
 import '../../features/home/data/match_listing_gateway.dart';
-import '../../features/home/data/matches_gateway.dart';
 import '../../features/onboarding/data/onboarding_gateway.dart';
-import '../../features/onboarding/data/team_search_catalog.dart';
-import '../../features/predict/data/predict_gateway.dart';
-import '../../features/profile/data/contest_gateway.dart';
-import '../../features/profile/data/engagement_gateway.dart';
-import '../../features/profile/data/fan_profile_gateway.dart';
-import '../../features/profile/data/season_leaderboard_gateway.dart';
+import '../../features/predict/data/leaderboard_gateway.dart';
 import '../../features/settings/data/account_settings_gateway.dart';
 import '../../features/settings/data/competition_preferences_gateway.dart';
 import '../../features/settings/data/market_preferences_gateway.dart';
@@ -67,11 +58,6 @@ const _teamCatalogSelectColumns =
     'id, name, short_name, country, country_code, league_name, region, '
     'logo_url, crest_url, aliases, search_terms, is_popular_pick, '
     'is_featured, is_active, popular_pick_rank';
-const _teamCatalogLegacySelectColumns =
-    'id, name, short_name, country, country_code, league_name, region, '
-    'crest_url, search_terms, is_popular_pick, is_featured, is_active, '
-    'popular_pick_rank';
-
 String _bootstrapMarketKey() {
   final countryCode = PlatformDispatcher.instance.locale.countryCode;
   final normalized = countryCode?.trim().toLowerCase();
@@ -259,64 +245,7 @@ Future<List<Map<String, dynamic>>> _fetchAllActiveTeamRows(
     return rows;
   }
 
-  try {
-    return await fetchPageSet(
-      'team_catalog_entries',
-      _teamCatalogSelectColumns,
-    );
-  } catch (error) {
-    AppLogger.d(
-      'Startup: app team catalog view unavailable, retrying raw teams: $error',
-    );
-  }
-
-  try {
-    return await fetchPageSet('teams', _teamCatalogSelectColumns);
-  } catch (error) {
-    AppLogger.d(
-      'Startup: primary team catalog select failed, retrying legacy columns: $error',
-    );
-  }
-
-  return fetchPageSet('teams', _teamCatalogLegacySelectColumns);
-}
-
-List<String> _popularTableCandidates() {
-  final configured = AppConfig.onboardingPopularTeamsTable.trim();
-  final candidates = <String>[
-    if (configured.isNotEmpty) configured,
-    'onboarding_popular_teams',
-    'popular_teams',
-    'popular_team_picks',
-  ];
-  return candidates.toSet().toList(growable: false);
-}
-
-Future<List<OnboardingTeam>> _loadDedicatedPopularTeams(
-  SupabaseClient client,
-  BootstrapConfig config,
-) async {
-  for (final table in _popularTableCandidates()) {
-    try {
-      final rows = await client.from(table).select('*');
-      final teams = (rows as List)
-          .whereType<Map>()
-          .map(Map<String, dynamic>.from)
-          .where((row) => row['is_active'] != false)
-          .map((row) => _mapTeamRow(row, config))
-          .whereType<OnboardingTeam>()
-          .toList(growable: false);
-      if (teams.isNotEmpty) {
-        return teams;
-      }
-    } catch (error) {
-      AppLogger.d(
-        'Startup: popular teams table "$table" unavailable, falling back: $error',
-      );
-    }
-  }
-
-  return const <OnboardingTeam>[];
+  return fetchPageSet('teams', _teamCatalogSelectColumns);
 }
 
 Future<TeamSearchCatalog?> _buildRemoteTeamSearchCatalog(
@@ -331,7 +260,23 @@ Future<TeamSearchCatalog?> _buildRemoteTeamSearchCatalog(
 
   if (teams.isEmpty) return null;
 
-  final popularTeams = await _loadDedicatedPopularTeams(client, config);
+  final popularTeams =
+      rows
+          .where(
+            (row) =>
+                row['is_popular_pick'] == true || row['is_featured'] == true,
+          )
+          .map((row) => _mapTeamRow(row, config))
+          .whereType<OnboardingTeam>()
+          .toList(growable: false)
+        ..sort((left, right) {
+          final leftRank = left.popularRank ?? 9999;
+          final rightRank = right.popularRank ?? 9999;
+          if (leftRank != rightRank) {
+            return leftRank.compareTo(rightRank);
+          }
+          return left.name.compareTo(right.name);
+        });
   return TeamSearchCatalog(teams, popularTeams: popularTeams);
 }
 
@@ -371,11 +316,10 @@ Future<void> refreshRuntimeBootstrapData({
       config,
     );
     if (remoteCatalog != null) {
-      // Catalog refreshed; the teamSearchCatalogProvider will pick it up
-      // on next read through the bootstrap flow.
+      initTeamSearchDatabase(catalog: remoteCatalog);
     }
   } catch (_) {
-    // Keep the asset-backed catalog when the live data plane is unavailable.
+    // Keep the current runtime catalog when the live data plane is unavailable.
   }
 }
 
@@ -468,17 +412,6 @@ final matchListingGatewayProvider = Provider<MatchListingGateway>((ref) {
   return SupabaseMatchListingGateway(ref.watch(supabaseConnectionProvider));
 });
 
-final matchDetailGatewayProvider = Provider<MatchDetailGateway>((ref) {
-  return SupabaseMatchDetailGateway(ref.watch(supabaseConnectionProvider));
-});
-
-final matchesGatewayProvider = Provider<MatchesGateway>((ref) {
-  return SupabaseMatchesGateway(
-    ref.watch(matchListingGatewayProvider),
-    ref.watch(matchDetailGatewayProvider),
-  );
-});
-
 // ═══════════════════════════════════════════════════════════
 // ONBOARDING
 // ═══════════════════════════════════════════════════════════
@@ -495,87 +428,8 @@ final onboardingGatewayProvider = Provider<OnboardingGateway>((ref) {
 // PREDICT
 // ═══════════════════════════════════════════════════════════
 
-final predictionPoolGatewayProvider = Provider<PredictionPoolGateway>((ref) {
-  return SupabasePredictionPoolGateway(ref.watch(supabaseConnectionProvider));
-});
-
 final leaderboardGatewayProvider = Provider<LeaderboardGateway>((ref) {
   return SupabaseLeaderboardGateway(ref.watch(supabaseConnectionProvider));
-});
-
-final dailyChallengeGatewayProvider = Provider<DailyChallengeGateway>((ref) {
-  return SupabaseDailyChallengeGateway(ref.watch(supabaseConnectionProvider));
-});
-
-final predictionSlipGatewayProvider = Provider<PredictionSlipGateway>((ref) {
-  return SupabasePredictionSlipGateway(ref.watch(supabaseConnectionProvider));
-});
-
-final predictGatewayProvider = Provider<PredictGateway>((ref) {
-  return SupabasePredictGateway(
-    ref.watch(predictionPoolGatewayProvider),
-    ref.watch(leaderboardGatewayProvider),
-    ref.watch(dailyChallengeGatewayProvider),
-    ref.watch(predictionSlipGatewayProvider),
-  );
-});
-
-// ═══════════════════════════════════════════════════════════
-// PROFILE
-// ═══════════════════════════════════════════════════════════
-
-final contestGatewayProvider = Provider<ContestGateway>((ref) {
-  return SupabaseContestGateway(ref.watch(supabaseConnectionProvider));
-});
-
-final seasonLeaderboardGatewayProvider = Provider<SeasonLeaderboardGateway>((
-  ref,
-) {
-  return SupabaseSeasonLeaderboardGateway(
-    ref.watch(supabaseConnectionProvider),
-  );
-});
-
-final fanProfileGatewayProvider = Provider<FanProfileGateway>((ref) {
-  return SupabaseFanProfileGateway(ref.watch(supabaseConnectionProvider));
-});
-
-final engagementGatewayProvider = Provider<EngagementGateway>((ref) {
-  return SupabaseEngagementGateway(
-    ref.watch(contestGatewayProvider),
-    ref.watch(seasonLeaderboardGatewayProvider),
-    ref.watch(fanProfileGatewayProvider),
-  );
-});
-
-// ═══════════════════════════════════════════════════════════
-// COMMUNITY
-// ═══════════════════════════════════════════════════════════
-
-final teamSupportGatewayProvider = Provider<TeamSupportGateway>((ref) {
-  return SupabaseTeamSupportGateway(
-    ref.watch(cacheServiceProvider),
-    ref.watch(supabaseConnectionProvider),
-  );
-});
-
-final teamNewsGatewayProvider = Provider<TeamNewsGateway>((ref) {
-  return SupabaseTeamNewsGateway(ref.watch(supabaseConnectionProvider));
-});
-
-final feedGatewayProvider = Provider<FeedGateway>((ref) {
-  return SupabaseFeedGateway(
-    ref.watch(cacheServiceProvider),
-    ref.watch(supabaseConnectionProvider),
-  );
-});
-
-final communityGatewayProvider = Provider<CommunityGateway>((ref) {
-  return SupabaseCommunityGateway(
-    ref.watch(teamSupportGatewayProvider),
-    ref.watch(teamNewsGatewayProvider),
-    ref.watch(feedGatewayProvider),
-  );
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -624,8 +478,9 @@ Future<List<Override>> resolveAsyncOverrides() async {
 
   _applyRuntimeBootstrap(config);
 
-  // Team search catalog loaded from Supabase — no bundled JSON asset.
-  final catalog = TeamSearchCatalog.defaults();
+  // Team search catalog starts empty and hydrates from Supabase after startup.
+  final catalog = TeamSearchCatalog.empty();
+  initTeamSearchDatabase(catalog: catalog);
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),

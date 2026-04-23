@@ -24,10 +24,11 @@ auth_status="$(curl -s -o /dev/null -w '%{http_code}' \
   "${SUPABASE_URL}/auth/v1/settings" \
   -H "apikey: ${SUPABASE_ANON_KEY}")"
 matches_status="$(api_get_status 'matches?select=id&limit=1')"
+app_matches_status="$(api_get_status 'app_matches?select=id&limit=1')"
 leaderboard_status="$(api_get_status 'public_leaderboard?select=*')"
-challenge_feed_status="$(api_get_status 'challenge_feed?select=id&limit=1')"
-fan_clubs_status="$(api_get_status 'fan_clubs?select=*&limit=1')"
-standings_status="$(api_get_status 'competition_standings?select=competition_id&limit=1')"
+standings_status="$(api_get_status 'standings?select=id&limit=1')"
+team_aliases_status="$(api_get_status 'team_aliases?select=id&limit=1')"
+prediction_output_status="$(api_get_status 'predictions_engine_outputs?select=id&limit=1')"
 wallet_status="$(api_get_status 'fet_wallets?select=user_id&limit=1')"
 transactions_status="$(api_get_status 'fet_wallet_transactions?select=id&limit=1')"
 profiles_status="$(api_get_status 'profiles?select=id&limit=1')"
@@ -44,12 +45,12 @@ profiles_body="$(curl -s \
   -H "apikey: ${SUPABASE_ANON_KEY}" \
   -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")"
 
-follow_write_status="$(curl -s -o /dev/null -w '%{http_code}' \
-  -X POST "${SUPABASE_URL}/rest/v1/user_followed_teams" \
+favorite_team_write_status="$(curl -s -o /dev/null -w '%{http_code}' \
+  -X POST "${SUPABASE_URL}/rest/v1/user_favorite_teams" \
   -H "apikey: ${SUPABASE_ANON_KEY}" \
   -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
   -H 'Content-Type: application/json' \
-  -d '{"user_id":"00000000-0000-0000-0000-000000000000","team_id":"release-probe"}')"
+  -d '{"user_id":"00000000-0000-0000-0000-000000000000","team_id":"release-probe","team_name":"Release Probe"}')"
 competition_follow_write_status="$(curl -s -o /dev/null -w '%{http_code}' \
   -X POST "${SUPABASE_URL}/rest/v1/user_followed_competitions" \
   -H "apikey: ${SUPABASE_ANON_KEY}" \
@@ -59,14 +60,15 @@ competition_follow_write_status="$(curl -s -o /dev/null -w '%{http_code}' \
 
 echo "auth.settings                ${auth_status}"
 echo "matches.read                 ${matches_status}"
+echo "app_matches.read             ${app_matches_status}"
 echo "public_leaderboard.read      ${leaderboard_status}"
-echo "challenge_feed.read          ${challenge_feed_status}"
-echo "fan_clubs.read               ${fan_clubs_status}"
-echo "competition_standings.read   ${standings_status}"
+echo "standings.read               ${standings_status}"
+echo "team_aliases.read            ${team_aliases_status}"
+echo "predictions_engine_outputs.read ${prediction_output_status}"
 echo "fet_wallets.read             ${wallet_status}"
 echo "fet_wallet_transactions.read ${transactions_status}"
 echo "profiles.read                ${profiles_status}"
-echo "user_followed_teams.write    ${follow_write_status}"
+echo "user_favorite_teams.write    ${favorite_team_write_status}"
 echo "user_followed_competitions.write ${competition_follow_write_status}"
 
 [[ "${auth_status}" == "200" ]] || {
@@ -77,24 +79,28 @@ echo "user_followed_competitions.write ${competition_follow_write_status}"
   echo "Public matches read failed."
   exit 1
 }
+[[ "${app_matches_status}" == "200" ]] || {
+  echo "app_matches is not readable."
+  exit 1
+}
 [[ "${leaderboard_status}" == "200" ]] || {
   echo "public_leaderboard is not readable."
   exit 1
 }
-[[ "${challenge_feed_status}" == "200" ]] || {
-  echo "challenge_feed is not readable."
-  exit 1
-}
-[[ "${fan_clubs_status}" == "200" ]] || {
-  echo "fan_clubs is not readable."
+[[ "${team_aliases_status}" == "200" ]] || {
+  echo "team_aliases is not readable."
   exit 1
 }
 [[ "${standings_status}" == "200" ]] || {
-  echo "competition_standings is not readable."
+  echo "standings is not readable."
   exit 1
 }
-[[ "${follow_write_status}" != "201" ]] || {
-  echo "Protected follow table accepted anon writes."
+[[ "${prediction_output_status}" == "200" ]] || {
+  echo "predictions_engine_outputs is not readable."
+  exit 1
+}
+[[ "${favorite_team_write_status}" != "201" ]] || {
+  echo "Protected favorite-team table accepted anon writes."
   exit 1
 }
 [[ "${competition_follow_write_status}" != "201" ]] || {

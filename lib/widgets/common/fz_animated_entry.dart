@@ -4,7 +4,7 @@ import '../../core/accessibility/motion.dart';
 
 /// Wraps a child widget with a staggered fade + slide-up entrance animation.
 ///
-/// Used for list items (match cards, pool cards, etc.) to create the
+/// Used for list items (match cards, reward cards, etc.) to create the
 /// Framer Motion-style `initial={{ opacity: 0, y: 10 }}` effect from the
 /// original design.
 class FzAnimatedEntry extends StatefulWidget {

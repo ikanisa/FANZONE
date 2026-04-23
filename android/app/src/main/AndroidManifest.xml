@@ -36,7 +36,7 @@
                 <data
                     android:scheme="https"
                     android:host="fanzone.ikanisa.com"
-                    android:pathPrefix="/pool/" />
+                    android:pathPrefix="/predict" />
             </intent-filter>
 
             <!-- Deep linking: custom scheme fallback -->
@@ -46,7 +46,7 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data
                     android:scheme="fanzone"
-                    android:host="pool" />
+                    android:host="predict" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

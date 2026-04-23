@@ -76,11 +76,3 @@ class TransactionService extends _$TransactionService {
     return ref.read(walletGatewayProvider).getTransactions(userId);
   }
 }
-
-@riverpod
-class FanClubService extends _$FanClubService {
-  @override
-  FutureOr<List<FanClub>> build() async {
-    return ref.read(walletGatewayProvider).getFanClubs();
-  }
-}

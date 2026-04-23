@@ -18,19 +18,7 @@ class LeaderboardScreen extends ConsumerStatefulWidget {
   ConsumerState<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
-enum _LeaderboardTab {
-  global('Global'),
-  weekly('Weekly'),
-  friends('Friends'),
-  fanClubs('Fan Clubs');
-
-  const _LeaderboardTab(this.label);
-  final String label;
-}
-
 class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
-  _LeaderboardTab _activeTab = _LeaderboardTab.global;
-
   @override
   Widget build(BuildContext context) {
     final leaderboardAsync = ref.watch(globalLeaderboardProvider);
@@ -65,27 +53,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             letterSpacing: 0.4,
           ),
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(54),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (final tab in _LeaderboardTab.values) ...[
-                    LeaderboardTabChip(
-                      label: tab.label,
-                      active: _activeTab == tab,
-                      onPressed: () => setState(() => _activeTab = tab),
-                    ),
-                    if (tab != _LeaderboardTab.values.last)
-                      const SizedBox(width: 8),
-                  ],
-                ],
-              ),
-            ),
-          ),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(18),
+          child: SizedBox(height: 18),
         ),
       ),
       body: leaderboardAsync.when(
@@ -95,22 +65,12 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           onRetry: () => ref.invalidate(globalLeaderboardProvider),
         ),
         data: (rankings) {
-          final standardEntries = _resolveStandardEntries(rankings, _activeTab);
+          final standardEntries = _resolveEntries(rankings);
           final pinnedCard = PinnedUserCard(
             rankAsync: userRankAsync,
             balanceAsync: balanceAsync,
             bottomOffset: pinnedBottomOffset,
           );
-
-          if (_activeTab == _LeaderboardTab.fanClubs) {
-            return const AnimatedSwitcher(
-              duration: Duration(milliseconds: 220),
-              child: FanClubLeaderboardView(
-                key: ValueKey('fan-clubs-leaderboard'),
-                entries: fanClubEntries,
-              ),
-            );
-          }
 
           if (standardEntries.isEmpty) {
             return StateView.empty(
@@ -126,7 +86,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           return AnimatedSwitcher(
             duration: const Duration(milliseconds: 220),
             child: Stack(
-              key: ValueKey<String>(_activeTab.label),
+              key: const ValueKey<String>('global'),
               children: [
                 ListView(
                   padding: const EdgeInsets.only(bottom: 188),
@@ -190,30 +150,20 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     );
   }
 
-  List<StandardLeaderboardEntry> _resolveStandardEntries(
+  List<StandardLeaderboardEntry> _resolveEntries(
     List<Map<String, dynamic>> rankings,
-    _LeaderboardTab tab,
   ) {
-    switch (tab) {
-      case _LeaderboardTab.global:
-        final resolved = <StandardLeaderboardEntry>[];
-        for (final row in rankings) {
-          resolved.add(
-            StandardLeaderboardEntry(
-              rank: (row['rank'] as num?)?.toInt() ?? resolved.length + 1,
-              name: row['name']?.toString() ?? 'Fan',
-              fetValue: _coerceInt(row['fet']),
-            ),
-          );
-        }
-        return resolved;
-      case _LeaderboardTab.weekly:
-        return weeklyEntries;
-      case _LeaderboardTab.friends:
-        return friendsEntries;
-      case _LeaderboardTab.fanClubs:
-        return const <StandardLeaderboardEntry>[];
+    final resolved = <StandardLeaderboardEntry>[];
+    for (final row in rankings) {
+      resolved.add(
+        StandardLeaderboardEntry(
+          rank: (row['rank'] as num?)?.toInt() ?? resolved.length + 1,
+          name: row['name']?.toString() ?? 'Fan',
+          fetValue: _coerceInt(row['fet']),
+        ),
+      );
     }
+    return resolved;
   }
 
   int _coerceInt(Object? value) {

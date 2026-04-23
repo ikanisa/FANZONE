@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { motion } from 'motion/react';
-import { useAppStore } from '../store/useAppStore';
+import { useEffect } from "react";
+import { motion } from "motion/react";
+import { useAppStore } from "../store/useAppStore";
 
 export function Splash() {
   const { setHasSeenSplash } = useAppStore();
@@ -17,7 +17,7 @@ export function Splash() {
     <div className="fixed inset-0 bg-bg z-[100] flex flex-col items-center justify-center overflow-hidden">
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vw] bg-accent/10 rounded-full blur-[100px]" />
-      
+
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -25,10 +25,11 @@ export function Splash() {
         className="relative z-10 flex flex-col items-center"
       >
         <h1 className="font-display text-6xl text-text tracking-[0.2em] mb-4">
-          <span className="text-success">FAN</span><span className="text-accent3">ZONE</span>
+          <span className="text-success">FAN</span>
+          <span className="text-accent3">ZONE</span>
         </h1>
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
@@ -36,7 +37,7 @@ export function Splash() {
         >
           <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
           <span className="text-[10px] font-bold text-muted uppercase tracking-widest">
-            Malta's Football Fan Network
+            Free Football Predictions
           </span>
         </motion.div>
       </motion.div>

@@ -27,25 +27,3 @@ Map<String, dynamic> _$$WalletTransactionImplToJson(
   'date': instance.date.toIso8601String(),
   'dateStr': instance.dateStr,
 };
-
-_$FanClubImpl _$$FanClubImplFromJson(Map<String, dynamic> json) =>
-    _$FanClubImpl(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      members: (json['members'] as num).toInt(),
-      totalPool: (json['totalPool'] as num).toInt(),
-      crest: json['crest'] as String,
-      league: json['league'] as String,
-      rank: (json['rank'] as num).toInt(),
-    );
-
-Map<String, dynamic> _$$FanClubImplToJson(_$FanClubImpl instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-      'members': instance.members,
-      'totalPool': instance.totalPool,
-      'crest': instance.crest,
-      'league': instance.league,
-      'rank': instance.rank,
-    };

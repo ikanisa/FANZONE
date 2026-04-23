@@ -1,14 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { Trophy, Calendar, Sparkles, Activity, ChevronRight, X, Flame } from 'lucide-react';
 import { MatchCard } from './ui/MatchCard';
-import { mockMatches } from '../lib/mockData';
 import { EmptyState } from './ui/EmptyState';
-import { Trophy, Calendar, Sparkles, Loader2, Play, Activity, PlusCircle, Shield, ChevronRight, X, Flame } from 'lucide-react';
 import { Badge } from './ui/Badge';
-import { useScrollDirection } from '../hooks/useScrollDirection';
 import { useAppStore } from '../store/useAppStore';
-import Markdown from 'react-markdown';
+import { api } from '../services/api';
+import type { Match } from '../types';
 
 function PromoBanner() {
   const [hidden, setHidden] = useState(false);
@@ -18,7 +17,7 @@ function PromoBanner() {
   return (
     <AnimatePresence>
       {!hidden && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -34,21 +33,39 @@ function PromoBanner() {
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                   <Badge variant="danger" pulse className="px-1 py-0.5 text-[8px] leading-none">DERBY DAY</Badge>
-                   <span className="text-[9px] font-bold text-muted uppercase tracking-widest truncate">Global</span>
+                  <Badge
+                    variant="danger"
+                    pulse
+                    className="px-1 py-0.5 text-[8px] leading-none"
+                  >
+                    DERBY DAY
+                  </Badge>
+                  <span className="text-[9px] font-bold text-muted uppercase tracking-widest truncate">
+                    Global
+                  </span>
                 </div>
-                <h3 className="font-display text-sm text-text leading-tight truncate">Manchester Is RED</h3>
-                <p className="text-[9px] text-muted truncate">Unmissable odds & exclusive pools open now!</p>
+                <h3 className="font-display text-sm text-text leading-tight truncate">
+                  Lean Matchday Window
+                </h3>
+                <p className="text-[9px] text-muted truncate">
+                  Live fixtures, free picks, and leaderboard movement are synced now.
+                </p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-1.5 relative z-10 shrink-0">
-               <button onClick={() => setHidden(true)} className="w-6 h-6 rounded-full bg-surface2 flex items-center justify-center text-muted hover:text-text hover:bg-surface3 transition-colors border border-border">
-                 <X size={12} />
-               </button>
-               <button className="h-6 px-2.5 rounded-full bg-[#EF4444] text-bg font-bold text-[9px] uppercase tracking-widest hover:bg-[#EF4444]/90 transition-colors shadow-sm whitespace-nowrap">
-                 ENTER POOL
-               </button>
+              <button
+                onClick={() => setHidden(true)}
+                className="w-6 h-6 rounded-full bg-surface2 flex items-center justify-center text-muted hover:text-text hover:bg-surface3 transition-colors border border-border"
+              >
+                <X size={12} />
+              </button>
+              <Link
+                to="/fixtures"
+                className="h-6 px-2.5 rounded-full bg-[#EF4444] text-bg font-bold text-[9px] uppercase tracking-widest hover:bg-[#EF4444]/90 transition-colors shadow-sm whitespace-nowrap flex items-center"
+              >
+                MAKE PICKS
+              </Link>
             </div>
           </div>
         </motion.div>
@@ -58,37 +75,7 @@ function PromoBanner() {
 }
 
 function DailyInsight({ team }: { team: string | null }) {
-  const [insight, setInsight] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!team) {
-      setLoading(false);
-      return;
-    }
-    
-    async function fetchInsights() {
-      try {
-        const response = await fetch('/api/insights', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: `Provide a 2-sentence breaking news update regarding ${team}. Keep it punchy.`
-          })
-        });
-        const data = await response.json();
-        if (data.text) setInsight(data.text);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    fetchInsights();
-  }, [team]);
-
-  if (!team || (!loading && !insight)) return null;
+  if (!team) return null;
 
   return (
     <div className="bg-gradient-to-br from-surface to-surface2 border border-success/20 rounded-[24px] p-4 mb-6 shadow-[0_10px_30px_-10px_rgba(152,255,152,0.1)] relative overflow-hidden">
@@ -98,113 +85,152 @@ function DailyInsight({ team }: { team: string | null }) {
           <Sparkles size={16} />
         </div>
         <div className="flex-1 min-w-0">
-          {loading ? (
-            <div className="flex items-center gap-2 text-muted">
-              <Loader2 size={14} className="animate-spin text-success" />
-              <span className="text-[10px] uppercase font-bold tracking-widest animate-pulse">Syncing Insights...</span>
-            </div>
-          ) : (
-            <div className="text-xs leading-snug text-text prose prose-invert prose-p:my-0.5 prose-strong:text-success max-w-none line-clamp-2">
-              <Markdown>{insight}</Markdown>
-            </div>
-          )}
+          <p className="text-xs leading-snug text-text line-clamp-2">
+            {team} is pinned to your lean prediction feed. Track live fixtures,
+            lock free picks, and follow the leaderboard from one place.
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
+function FeedSection({
+  title,
+  icon,
+  trailing,
+  matches,
+  emptyTitle,
+  emptyDesc,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  trailing?: React.ReactNode;
+  matches: Match[];
+  emptyTitle: string;
+  emptyDesc: string;
+}) {
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-2">
+          {icon}
+          <h2 className="font-sans font-bold text-sm text-text">{title}</h2>
+        </div>
+        {trailing}
+      </div>
+
+      {matches.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {matches.map((match) => (
+            <MatchCard
+              key={match.id}
+              matchId={match.id}
+              home={match.homeTeam}
+              away={match.awayTeam}
+              homeLogoUrl={match.homeLogoUrl}
+              awayLogoUrl={match.awayLogoUrl}
+              live={match.isLive}
+              score={match.score ?? undefined}
+              time={match.isLive ? match.timeLabel : match.kickoffLabel}
+              league={match.competitionLabel}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState title={emptyTitle} desc={emptyDesc} icon={icon} />
+      )}
+    </section>
+  );
+}
+
 export default function HomeFeed() {
-  const liveMatches = mockMatches.filter(m => m.status === 'live');
-  const upcomingMatches = mockMatches.filter(m => m.status === 'upcoming');
-  const scrollDirection = useScrollDirection();
-  const profileTeam = useAppStore(state => state.profileTeam);
+  const profileTeam = useAppStore((state) => state.profileTeam);
+  const [liveMatches, setLiveMatches] = useState<Match[]>([]);
+  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    Promise.all([api.getLiveMatches(8), api.getUpcomingMatches(8)])
+      .then(([live, upcoming]) => {
+        if (!active) return;
+        setLiveMatches(live);
+        setUpcomingMatches(upcoming);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
-    <div className={`p-4 lg:p-12 space-y-10 pb-32 transition-all duration-300 ${scrollDirection === 'down' ? 'pt-4 lg:pt-12' : 'pt-20 lg:pt-12'}`}>
-      <header className="mb-2 flex items-center justify-between">
+    <div className="p-4 lg:p-12 space-y-10 pb-32 transition-all duration-300 pt-4 lg:pt-12">
+      <header className="mb-2 hidden lg:flex items-center justify-between">
         <h1 className="font-display text-4xl text-text tracking-tight flex items-center gap-2">
           Predictions
         </h1>
         <div className="flex gap-2">
-           <Link to="/pools/create" className="bg-[var(--accent2)] text-bg w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(255,127,80,0.3)]">
-             <PlusCircle size={20} />
-           </Link>
-           <Link to="/memberships" className="bg-surface2 text-text w-10 h-10 rounded-full flex items-center justify-center border border-border hover:bg-surface3 transition-colors">
-             <Shield size={20} />
-           </Link>
+          <Link
+            to="/fixtures"
+            className="bg-[var(--accent2)] text-bg w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+          >
+            <Calendar size={18} />
+          </Link>
+          <Link
+            to="/leaderboard"
+            className="bg-surface2 text-text w-10 h-10 rounded-full flex items-center justify-center border border-border hover:bg-surface3 transition-colors"
+          >
+            <Trophy size={18} />
+          </Link>
         </div>
       </header>
 
       <PromoBanner />
 
-      <DailyInsight team={profileTeam || 'Liverpool'} />
+      <DailyInsight team={profileTeam} />
 
-      <section>
-        <div className="flex items-center justify-between mb-4 px-1">
-          <div className="flex items-center gap-2">
-             <Activity size={16} className="text-danger" />
-             <h2 className="font-sans font-bold text-sm text-text">Live Action</h2>
-          </div>
-          <Badge variant="danger" pulse>{liveMatches.length}</Badge>
-        </div>
-        
-        {liveMatches.length > 0 ? (
+      {isLoading ? (
+        <div className="space-y-6">
+          <div className="bg-surface2 rounded-[24px] border border-border h-32 animate-pulse" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {liveMatches.map(match => (
-              <MatchCard 
-                key={match.id}
-                matchId={match.id} 
-                home={match.homeTeam} 
-                away={match.awayTeam} 
-                live={true} 
-                score={match.score} 
-                time={match.time || ''} 
-                league={match.league}
-              />
-            ))}
+            <div className="bg-surface2 rounded-[24px] border border-border h-48 animate-pulse" />
+            <div className="bg-surface2 rounded-[24px] border border-border h-48 animate-pulse" />
           </div>
-        ) : (
-          <EmptyState 
-            title="No Live Matches"
-            desc="Check upcoming."
-            icon={<Trophy size={20} />}
+        </div>
+      ) : (
+        <>
+          <FeedSection
+            title="Live Action"
+            icon={<Activity size={16} className="text-danger" />}
+            trailing={
+              <Badge variant="danger" pulse={liveMatches.length > 0}>
+                {liveMatches.length}
+              </Badge>
+            }
+            matches={liveMatches}
+            emptyTitle="No Live Matches"
+            emptyDesc="Check upcoming."
           />
-        )}
-      </section>
 
-      <section className="pb-32">
-        <div className="flex items-center justify-between mb-4 px-1">
-          <div className="flex items-center gap-2">
-             <Calendar size={16} className="text-muted" />
-             <h2 className="font-sans font-bold text-sm text-text">Upcoming</h2>
-          </div>
-          <Link to="/fixtures" className="text-muted hover:text-accent transition-colors">
-             <ChevronRight size={20} />
-          </Link>
-        </div>
-        
-        {upcomingMatches.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {upcomingMatches.map(match => (
-              <MatchCard 
-                key={match.id}
-                matchId={match.id} 
-                home={match.homeTeam} 
-                away={match.awayTeam} 
-                time={match.time || ''} 
-                league={match.league}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState 
-            title="No Upcoming"
-            desc="None left."
-            icon={<Calendar size={20} />}
+          <FeedSection
+            title="Upcoming"
+            icon={<Calendar size={16} className="text-muted" />}
+            trailing={
+              <Link to="/fixtures" className="text-muted hover:text-accent transition-colors">
+                <ChevronRight size={20} />
+              </Link>
+            }
+            matches={upcomingMatches}
+            emptyTitle="No Upcoming"
+            emptyDesc="None left."
           />
-        )}
-      </section>
+        </>
+      )}
     </div>
   );
 }

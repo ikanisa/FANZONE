@@ -1,9 +1,9 @@
 // FANZONE Admin — Supabase Clients
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { env } from '../config/env';
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { env } from "../config/env";
 
 export const adminEnvError =
-  'Admin environment is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable WhatsApp OTP sign-in.';
+  "Admin environment is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable WhatsApp OTP sign-in.";
 
 type AdminSupabaseClient = SupabaseClient;
 
@@ -16,32 +16,36 @@ export interface AdminSessionSnapshot {
   phone?: string | null;
 }
 
-export const isSupabaseConfigured = Boolean(env.supabaseUrl && env.supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(
+  env.supabaseUrl && env.supabaseAnonKey,
+);
 
-const ADMIN_SESSION_STORAGE_KEY = 'fanzone-admin-session';
+const ADMIN_SESSION_STORAGE_KEY = "fanzone-admin-session";
 
 let supabaseClient: AdminSupabaseClient | null = null;
 let supabaseAuthClient: AdminSupabaseClient | null = null;
 
 function canUseLocalStorage() {
-  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+  return (
+    typeof window !== "undefined" && typeof window.localStorage !== "undefined"
+  );
 }
 
 function isAdminSessionSnapshot(value: unknown): value is AdminSessionSnapshot {
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== "object") {
     return false;
   }
 
   const candidate = value as Record<string, unknown>;
   return (
-    typeof candidate.accessToken === 'string' &&
+    typeof candidate.accessToken === "string" &&
     candidate.accessToken.length > 0 &&
-    typeof candidate.refreshToken === 'string' &&
+    typeof candidate.refreshToken === "string" &&
     candidate.refreshToken.length > 0 &&
-    typeof candidate.userId === 'string' &&
+    typeof candidate.userId === "string" &&
     candidate.userId.length > 0 &&
-    typeof candidate.expiresAt === 'number' &&
-    typeof candidate.refreshExpiresAt === 'number'
+    typeof candidate.expiresAt === "number" &&
+    typeof candidate.refreshExpiresAt === "number"
   );
 }
 
@@ -86,7 +90,10 @@ export function persistAdminSession(session: AdminSessionSnapshot) {
   if (!canUseLocalStorage()) {
     return;
   }
-  window.localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, JSON.stringify(session));
+  window.localStorage.setItem(
+    ADMIN_SESSION_STORAGE_KEY,
+    JSON.stringify(session),
+  );
 }
 
 export function clearStoredAdminSession() {
@@ -96,33 +103,32 @@ export function clearStoredAdminSession() {
   window.localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
 }
 
-function createSupabaseBrowserClient(): AdminSupabaseClient {
-  return createClient(
-    env.supabaseUrl,
-    env.supabaseAnonKey,
-    {
-      accessToken: async () => readStoredAdminSession()?.accessToken ?? null,
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
+export function createScopedSupabaseClient(
+  accessToken?: string | null,
+): AdminSupabaseClient {
+  return createClient(env.supabaseUrl, env.supabaseAnonKey, {
+    accessToken: async () =>
+      accessToken ?? readStoredAdminSession()?.accessToken ?? null,
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
     },
-  );
+  });
+}
+
+function createSupabaseBrowserClient(): AdminSupabaseClient {
+  return createScopedSupabaseClient();
 }
 
 function createSupabaseAuthClient(): AdminSupabaseClient {
-  return createClient(
-    env.supabaseUrl,
-    env.supabaseAnonKey,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-        detectSessionInUrl: false,
-      },
+  return createClient(env.supabaseUrl, env.supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
     },
-  );
+  });
 }
 
 export function getSupabaseClient(): AdminSupabaseClient {
@@ -149,7 +155,7 @@ export const supabase: AdminSupabaseClient = new Proxy(
     get(_target, property, receiver) {
       const client = getSupabaseClient();
       const value = Reflect.get(client, property, receiver);
-      return typeof value === 'function' ? value.bind(client) : value;
+      return typeof value === "function" ? value.bind(client) : value;
     },
   },
 );
@@ -160,7 +166,7 @@ export const supabaseAuth: AdminSupabaseClient = new Proxy(
     get(_target, property, receiver) {
       const client = getSupabaseAuthClient();
       const value = Reflect.get(client, property, receiver);
-      return typeof value === 'function' ? value.bind(client) : value;
+      return typeof value === "function" ? value.bind(client) : value;
     },
   },
 );

@@ -4,32 +4,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:fanzone/core/config/bootstrap_config.dart';
 import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/features/auth/data/auth_gateway.dart';
 import 'package:fanzone/features/auth/screens/whatsapp_login_screen.dart';
-import 'package:fanzone/features/pools/widgets/pool_join_sheet.dart';
-import 'package:fanzone/features/predict/data/predict_gateway.dart';
+import 'package:fanzone/features/predict/data/prediction_hub_gateway.dart';
+import 'package:fanzone/features/predict/widgets/prediction_entry_sheet.dart';
 import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
-import 'package:fanzone/models/daily_challenge_model.dart';
-import 'package:fanzone/models/pool.dart';
-import 'package:fanzone/models/prediction_slip_model.dart';
+import 'package:fanzone/models/match_model.dart';
+import 'package:fanzone/models/prediction_engine_output_model.dart';
+import 'package:fanzone/models/team_form_feature_model.dart';
+import 'package:fanzone/models/user_prediction_model.dart';
 import 'package:fanzone/providers/auth_provider.dart';
 import 'package:fanzone/providers/currency_provider.dart';
 import 'package:fanzone/providers/market_preferences_provider.dart';
-import 'package:fanzone/providers/prediction_slip_provider.dart';
 import 'package:fanzone/services/auth_service.dart';
-import 'package:fanzone/services/pool_service.dart';
-import 'package:fanzone/services/prediction_slip_service.dart';
-import 'package:fanzone/services/team_community_service.dart';
+import 'package:fanzone/services/prediction_service.dart';
 import 'package:fanzone/services/wallet_service.dart';
 import 'package:fanzone/theme/app_theme.dart';
-import 'package:fanzone/theme/colors.dart';
-import 'package:fanzone/widgets/predict/prediction_slip_dock.dart';
 
 import 'support/test_app.dart';
 import 'support/test_fakes.dart';
@@ -47,7 +43,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
-      expect(gateway.sentPhones, ['+35699112233']);
+      expect(gateway.sentPhones, ['+11199112233']);
       expect(find.text('VERIFY CODE'), findsOneWidget);
 
       final otpFields = find.byType(TextField);
@@ -59,7 +55,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
-      expect(gateway.verifiedCodes, [('+35699112233', '123456')]);
+      expect(gateway.verifiedCodes, [('+11199112233', '123456')]);
       expect(find.text('Wallet destination'), findsOneWidget);
 
       // Dispose the login widget tree so the resend cooldown timer is cleaned
@@ -68,46 +64,78 @@ void main() {
       await tester.pump();
     });
 
-    testWidgets('prediction submission locks slip and clears selections', (
+    testWidgets('prediction entry flow submits a free pick and shows success', (
       tester,
     ) async {
-      final gateway = _RecordingPredictGateway();
+      final gateway = _RecordingPredictionHubGateway();
+      final match = sampleMatch();
+      final engine = PredictionEngineOutputModel(
+        id: 'engine_1',
+        matchId: match.id,
+        modelVersion: 'simple_form_v1',
+        homeWinScore: 0.56,
+        drawScore: 0.24,
+        awayWinScore: 0.20,
+        over25Score: 0.61,
+        bttsScore: 0.57,
+        predictedHomeGoals: 2,
+        predictedAwayGoals: 1,
+        confidenceLabel: 'medium',
+        generatedAt: DateTime(2026, 4, 19, 12),
+      );
 
       await pumpAppScreen(
         tester,
-        const Scaffold(
-          body: Stack(children: [SizedBox.expand(), PredictionSlipDock()]),
+        Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => showPredictionEntrySheet(
+                  context,
+                  match: match,
+                  engineOutput: engine,
+                ),
+                child: const Text('Open prediction entry'),
+              ),
+            ),
+          ),
         ),
         overrides: [
-          predictionSlipServiceProvider.overrideWith(
-            (ref) => PredictionSlipService(gateway),
+          predictionServiceProvider.overrideWithValue(
+            PredictionService(gateway),
           ),
-          myPredictionSlipsProvider.overrideWith(
-            (ref) async => <PredictionSlipModel>[],
-          ),
+          isFullyAuthenticatedProvider.overrideWith((ref) => true),
         ],
       );
+      await tester.pumpAndSettle();
 
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(PredictionSlipDock)),
-      );
-      container
-          .read(predictionSlipProvider.notifier)
-          .toggleMatchResult(sampleMatch(), '1', multiplier: 1.7);
+      await tester.tap(find.text('Open prediction entry'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Your Pick'), findsOneWidget);
+      expect(find.text('Test Club A vs Test Club B'), findsOneWidget);
+
+      await tester.tap(find.text('Draw'));
+      await tester.pump();
+      await tester.tap(find.byType(Switch).at(0));
+      await tester.tap(find.byType(Switch).at(1));
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.add_rounded).first);
+      await tester.tap(find.byIcon(Icons.add_rounded).last);
       await tester.pump();
 
-      await tester.tap(find.text('Free Prediction Slip'));
+      await tester.tap(find.text('Save prediction'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
-      await tester.tap(find.text('Lock Free Prediction'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(gateway.lastSlipSubmission, isNotNull);
-      expect(gateway.lastSlipSubmission!.selections, hasLength(1));
-      expect(container.read(predictionSlipProvider), isEmpty);
-      expect(find.text('Predictions Locked! 🔒'), findsOneWidget);
+      expect(gateway.submissions, hasLength(1));
+      expect(gateway.submissions.single.matchId, match.id);
+      expect(gateway.submissions.single.predictedResultCode, 'D');
+      expect(gateway.submissions.single.predictedOver25, true);
+      expect(gateway.submissions.single.predictedBtts, true);
+      expect(gateway.submissions.single.predictedHomeGoals, 3);
+      expect(gateway.submissions.single.predictedAwayGoals, 2);
+      expect(find.text('Prediction saved.'), findsOneWidget);
     });
 
     testWidgets('wallet transfer flow submits recipient and amount', (
@@ -123,9 +151,6 @@ void main() {
           transactionServiceProvider.overrideWith(
             () => FakeTransactionService([sampleWalletTransaction()]),
           ),
-          supportedTeamsServiceProvider.overrideWith(
-            () => _FakeSupportedTeamsService(<String>{'liverpool'}),
-          ),
           isAuthenticatedProvider.overrideWith((ref) => true),
           userFanIdProvider.overrideWith((ref) async => '123456'),
           userCurrencyProvider.overrideWith((ref) async => 'EUR'),
@@ -137,13 +162,12 @@ void main() {
 
       expect(find.text('Earned'), findsOneWidget);
       expect(find.text('Spent'), findsOneWidget);
-      expect(find.text('Club Earnings Split'), findsOneWidget);
-      expect(find.text('80% YOU'), findsOneWidget);
-      expect(find.text('20% CLUB'), findsOneWidget);
-      expect(find.text('Supporter'), findsOneWidget);
-      expect(find.text('Member'), findsOneWidget);
-      expect(find.text('Ultra'), findsOneWidget);
-      expect(find.text('Legend'), findsOneWidget);
+      expect(
+        find.text(
+          'Wallet activity now covers transfers and lean prediction rewards only.',
+        ),
+        findsOneWidget,
+      );
 
       await tester.tap(find.text('SEND').first);
       await tester.pump();
@@ -168,11 +192,10 @@ void main() {
       expect(find.text('You sent 150 FET to Fan #654321'), findsOneWidget);
     });
 
-    testWidgets('pool join flow submits score prediction and shows success', (
+    testWidgets('guest prediction entry routes to the sign-in requirement', (
       tester,
     ) async {
-      final poolService = _RecordingPoolService([samplePool()]);
-      final pool = samplePool();
+      final match = sampleMatch();
 
       await pumpAppScreen(
         tester,
@@ -180,46 +203,48 @@ void main() {
           builder: (context) => Scaffold(
             body: Center(
               child: ElevatedButton(
-                onPressed: () => showModalBottomSheet<void>(
-                  context: context,
-                  builder: (_) => PoolJoinSheet(
-                    pool: pool,
-                    isDark: true,
-                    textColor: FzColors.darkText,
-                    muted: FzColors.darkMuted,
+                onPressed: () => showPredictionEntrySheet(
+                  context,
+                  match: match,
+                  engineOutput: PredictionEngineOutputModel(
+                    id: 'engine_guest',
+                    matchId: match.id,
+                    modelVersion: 'simple_form_v1',
+                    homeWinScore: 0.48,
+                    drawScore: 0.27,
+                    awayWinScore: 0.25,
+                    over25Score: 0.52,
+                    bttsScore: 0.51,
+                    predictedHomeGoals: 1,
+                    predictedAwayGoals: 1,
+                    confidenceLabel: 'low',
+                    generatedAt: DateTime(2026, 4, 19, 12),
                   ),
                 ),
-                child: const Text('Open pool join'),
+                child: const Text('Open prediction entry'),
               ),
             ),
           ),
         ),
-        overrides: [
-          poolServiceProvider.overrideWith(() => poolService),
-          isAuthenticatedProvider.overrideWith((ref) => true),
-          userCurrencyProvider.overrideWith((ref) async => 'EUR'),
-        ],
+        overrides: [isFullyAuthenticatedProvider.overrideWith((ref) => false)],
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Open pool join'));
+      await tester.tap(find.text('Open prediction entry'));
       await tester.pumpAndSettle();
 
-      expect(find.text('JOIN POOL'), findsOneWidget);
-
-      await tester.tap(find.byIcon(LucideIcons.plus).at(0));
-      await tester.tap(find.byIcon(LucideIcons.plus).at(0));
-      await tester.tap(find.byIcon(LucideIcons.plus).at(1));
+      await tester.ensureVisible(find.text('Save prediction'));
+      await tester.tap(find.text('Save prediction'));
       await tester.pump();
+      await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Confirm & Stake'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(poolService.joinRequests, [
-        const (poolId: 'pool_1', homeScore: 2, awayScore: 1, stake: 150),
-      ]);
-      expect(find.text('Pool joined successfully.'), findsOneWidget);
+      expect(find.text('Sign in to save your pick'), findsOneWidget);
+      expect(
+        find.text(
+          'Create a free account to lock predictions, earn rewards, and track your record.',
+        ),
+        findsOneWidget,
+      );
     });
   });
 }
@@ -263,6 +288,7 @@ Future<void> _pumpLoginFlow(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
         authServiceProvider.overrideWith((ref) => AuthService(gateway)),
+        bootstrapConfigProvider.overrideWithValue(_testBootstrapConfig),
         primaryMarketRegionProvider.overrideWith((ref) => 'europe'),
       ],
       child: MaterialApp.router(
@@ -276,6 +302,27 @@ Future<void> _pumpLoginFlow(
   );
   await tester.pump();
 }
+
+final _testBootstrapConfig = BootstrapConfig(
+  regions: const {
+    'AA': RegionInfo(
+      countryCode: 'AA',
+      region: 'europe',
+      countryName: 'Test Country',
+      flagEmoji: '🏳️',
+    ),
+  },
+  phonePresets: const {
+    'AA': PhonePresetInfo(dialCode: '+111', hint: '99XX XXXX', minDigits: 8),
+  },
+  currencyDisplay: const {},
+  featureFlags: const {},
+  appConfig: const {
+    'default_phone_country_code': 'AA',
+    'priority_phone_country_codes': ['AA'],
+  },
+  launchMoments: const [],
+);
 
 User _testUser({String id = 'user_1', String? phone}) {
   return User(
@@ -356,64 +403,40 @@ class _FakeAuthGateway implements AuthGateway {
   ) async {}
 }
 
-class _RecordingPredictGateway implements PredictGateway {
-  PredictionSlipSubmissionDto? lastSlipSubmission;
+class _RecordingPredictionHubGateway implements PredictionHubGateway {
+  final List<PredictionSubmissionRequest> submissions =
+      <PredictionSubmissionRequest>[];
 
   @override
-  Future<String> createPool(PoolCreateRequestDto request) async => 'pool_1';
+  Future<PredictionEngineOutputModel?> getEngineOutput(String matchId) async =>
+      null;
 
   @override
-  Future<List<DailyChallengeEntry>> getDailyChallengeHistory(
+  Future<List<TeamFormFeatureModel>> getMatchFormFeatures(
+    String matchId,
+  ) async => const <TeamFormFeatureModel>[];
+
+  @override
+  Future<UserPredictionModel?> getMyPredictionForMatch(
     String userId,
-  ) async => const [];
+    String matchId,
+  ) async => null;
 
   @override
-  Future<List<Map<String, dynamic>>> getGlobalLeaderboard() async => const [];
-
-  @override
-  Future<List<PoolEntry>> getMyEntries(String userId) async => const [];
-
-  @override
-  Future<List<PredictionSlipModel>> getMyPredictionSlips(
+  Future<List<UserPredictionModel>> getMyPredictions(
     String userId, {
-    int limit = 30,
-  }) async => const [];
+    int limit = 100,
+  }) async => const <UserPredictionModel>[];
 
   @override
-  Future<DailyChallengeEntry?> getMyDailyEntry({
-    required String challengeId,
-    required String userId,
-  }) async => null;
+  Future<Map<String, MatchModel>> getMatchesByIds(
+    Iterable<String> matchIds,
+  ) async => const <String, MatchModel>{};
 
   @override
-  Future<ScorePool?> getPoolDetail(String id) async => null;
-
-  @override
-  Future<List<ScorePool>> getPools() async => [samplePool()];
-
-  @override
-  Future<DailyChallenge?> getTodaysDailyChallenge() async => null;
-
-  @override
-  Future<int?> getUserRank(String userId) async => null;
-
-  @override
-  Future<void> joinPool(PoolJoinRequestDto request) async {}
-
-  @override
-  Future<String> submitPredictionSlip(
-    PredictionSlipSubmissionDto request,
-  ) async {
-    lastSlipSubmission = request;
-    return 'slip_test_1';
+  Future<void> submitPrediction(PredictionSubmissionRequest request) async {
+    submissions.add(request);
   }
-
-  @override
-  Future<void> submitDailyPrediction({
-    required String challengeId,
-    required int homeScore,
-    required int awayScore,
-  }) async {}
 }
 
 class _RecordingWalletService extends FakeWalletService {
@@ -428,35 +451,4 @@ class _RecordingWalletService extends FakeWalletService {
       WalletTransferByFanIdDto(fanId: fanId, amount: amount),
     );
   }
-}
-
-class _RecordingPoolService extends FakePoolService {
-  _RecordingPoolService(super.pools);
-
-  final List<({String poolId, int homeScore, int awayScore, int stake})>
-  joinRequests = <({String poolId, int homeScore, int awayScore, int stake})>[];
-
-  @override
-  Future<void> joinPool({
-    required String poolId,
-    required int homeScore,
-    required int awayScore,
-    required int stake,
-  }) async {
-    joinRequests.add((
-      poolId: poolId,
-      homeScore: homeScore,
-      awayScore: awayScore,
-      stake: stake,
-    ));
-  }
-}
-
-class _FakeSupportedTeamsService extends SupportedTeamsService {
-  _FakeSupportedTeamsService(this.teamIds);
-
-  final Set<String> teamIds;
-
-  @override
-  FutureOr<Set<String>> build() => teamIds;
 }

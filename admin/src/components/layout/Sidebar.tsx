@@ -8,14 +8,8 @@ import {
   Trophy,
   Calendar,
   Target,
-  Swords,
-  Sparkles,
   Coins,
   Wallet,
-  Handshake,
-  Gift,
-  ShoppingBag,
-  FileText,
   Shield,
   BarChart3,
   Settings,
@@ -23,7 +17,6 @@ import {
   ScrollText,
   ChevronLeft,
   ChevronRight,
-  Bell,
   UserX,
 } from "lucide-react";
 import { useState } from "react";
@@ -79,18 +72,6 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
         icon: <Target size={18} />,
         minRole: "admin",
       },
-      {
-        label: "Pools",
-        path: "/challenges",
-        icon: <Swords size={18} />,
-        minRole: "moderator",
-      },
-      {
-        label: "Events",
-        path: "/events",
-        icon: <Sparkles size={18} />,
-        minRole: "admin",
-      },
     ],
   },
   {
@@ -108,35 +89,11 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
         icon: <Wallet size={18} />,
         minRole: "admin",
       },
-      {
-        label: "Partners",
-        path: "/partners",
-        icon: <Handshake size={18} />,
-        minRole: "admin",
-      },
-      {
-        label: "Rewards",
-        path: "/rewards",
-        icon: <Gift size={18} />,
-        minRole: "admin",
-      },
-      {
-        label: "Redemptions",
-        path: "/redemptions",
-        icon: <ShoppingBag size={18} />,
-        minRole: "moderator",
-      },
     ],
   },
   {
     title: "Operations",
     items: [
-      {
-        label: "Content",
-        path: "/content",
-        icon: <FileText size={18} />,
-        minRole: "admin",
-      },
       {
         label: "Moderation",
         path: "/moderation",
@@ -148,12 +105,6 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
         path: "/analytics",
         icon: <BarChart3 size={18} />,
         minRole: "viewer",
-      },
-      {
-        label: "Notifications",
-        path: "/notifications",
-        icon: <Bell size={18} />,
-        minRole: "admin",
       },
       {
         label: "Account Deletions",

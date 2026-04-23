@@ -100,22 +100,24 @@ jobs:
         run: |
           deno fmt --check \
             supabase/functions/whatsapp-otp/index.ts \
-            supabase/functions/auto-settle/index.ts \
+            supabase/functions/generate-predictions/index.ts \
+            supabase/functions/score-predictions/index.ts \
+            supabase/functions/import-football-data/index.ts \
             supabase/functions/push-notify/index.ts \
             supabase/functions/dispatch-match-alerts/index.ts \
             supabase/functions/dispatch-match-alerts/dispatch.ts \
             supabase/functions/dispatch-match-alerts/dispatch_test.ts \
-            supabase/functions/gemini-team-news/index.ts \
             supabase/functions/gemini-currency-rates/index.ts
 
       - name: Type-check Edge Functions
         run: |
           deno check \
             supabase/functions/whatsapp-otp/index.ts \
-            supabase/functions/auto-settle/index.ts \
+            supabase/functions/generate-predictions/index.ts \
+            supabase/functions/score-predictions/index.ts \
+            supabase/functions/import-football-data/index.ts \
             supabase/functions/push-notify/index.ts \
             supabase/functions/dispatch-match-alerts/index.ts \
-            supabase/functions/gemini-team-news/index.ts \
             supabase/functions/gemini-currency-rates/index.ts
 
       - name: Run Edge Function tests
@@ -377,5 +379,36 @@ jobs:
 
       - name: Build iOS (no codesign)
         run: |
-          flutter build ios --release --no-codesign \
-            --dart-define-from-file=env/ci.production.json
+          DART_DEFINES=$(python3 - <<'PY'
+          import base64
+          import json
+
+          with open("env/ci.production.json", "r", encoding="utf-8") as handle:
+              data = json.load(handle)
+
+          def encode_value(value):
+              if isinstance(value, bool):
+                  return "true" if value else "false"
+              return str(value)
+
+          print(
+              ",".join(
+                  base64.b64encode(f"{key}={encode_value(value)}".encode("utf-8")).decode("utf-8")
+                  for key, value in data.items()
+              )
+          )
+          PY
+          )
+
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            DART_DEFINES="$DART_DEFINES" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            archive \
+            -archivePath build/ios/archive/Runner.xcarchive

@@ -1,13 +1,13 @@
-FANZONE is the ultimate football engagement platform where fans predict match outcomes, earn Fan Engagement Tokens (FET), and compete in social prediction pools — all for free.
+FANZONE is a free football engagement platform where fans predict match outcomes, earn Fan Engagement Tokens (FET), and follow key competitions with friends.
 
 🏟️ PREDICT MATCHES
 Browse live and upcoming fixtures from Malta Premier League, Champions League, Premier League, La Liga, Serie A, and more. Make your predictions on match results, correct scores, and other markets to earn FET tokens.
 
 ⚡ FAN ENGAGEMENT TOKENS (FET)
-Earn FET tokens for every correct prediction. FET is your fan engagement currency — use it to join prediction pools, redeem exclusive partner rewards, and climb the leaderboard. Every 1 FET = €0.01 equivalent.
+Earn FET tokens for every correct prediction. FET is your fan engagement currency for rewards, community features, and leaderboard progress.
 
 ⚔️ PREDICTION POOLS
-Create or join social prediction pools where fans stake FET tokens on match outcomes. Compete against friends and the community. Winners take the pool!
+Save free match picks, compare them with friends, and track your progress across the season. No staking, no bookmaker odds, no gambling.
 
 📊 LIVE SCORES & INSIGHTS
 Real-time match updates, live scores, AI-powered match insights, head-to-head statistics, and prediction markets — everything you need to make informed predictions.
@@ -26,7 +26,7 @@ KEY FEATURES:
 • Malta Premier League focus with all major European leagues
 • Live match updates and real-time scores
 • FET token economy with real partner rewards
-• Social prediction pools and challenges
+• Free football picks and prediction history
 • AI-powered match insights
 • Fan ID and anonymous community engagement
 • Dark mode interface optimized for match-day viewing

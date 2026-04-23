@@ -39,33 +39,14 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
     }
 
     try {
-      dynamic rows;
+      var query = client.from('teams').select().eq('is_active', true);
       if (competitionId != null && competitionId.trim().isNotEmpty) {
-        try {
-          rows = await client.rpc(
-            'app_competition_teams',
-            params: {'p_competition_id': competitionId.trim()},
-          );
-        } catch (error) {
-          AppLogger.d('Failed to load competition teams via RPC: $error');
-          rows = await client
-              .from('team_catalog_entries')
-              .select()
-              .contains('competition_ids', [competitionId.trim()])
-              .eq('is_active', true)
-              .order('name', ascending: true)
-              .range(0, 999);
-        }
-      } else {
-        var query = client
-            .from('team_catalog_entries')
-            .select()
-            .eq('is_active', true);
-        if (featuredOnly) {
-          query = query.eq('is_featured', true);
-        }
-        rows = await query.order('name', ascending: true).range(0, 2999);
+        query = query.contains('competition_ids', [competitionId.trim()]);
       }
+      if (featuredOnly) {
+        query = query.eq('is_featured', true);
+      }
+      final rows = await query.order('name', ascending: true).range(0, 2999);
       final teams = (rows as List)
           .whereType<Map>()
           .map((row) => TeamModel.fromJson(Map<String, dynamic>.from(row)))
@@ -88,7 +69,7 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
 
     try {
       final row = await client
-          .from('team_catalog_entries')
+          .from('teams')
           .select()
           .eq('id', canonicalId)
           .maybeSingle();
@@ -118,16 +99,31 @@ class SupabaseTeamCatalogGateway implements TeamCatalogGateway {
     try {
       final row = await client
           .from('team_aliases')
-          .select('canonical_id')
-          .eq('alias_id', teamId)
+          .select('team_id')
+          .eq('alias_name', teamId)
           .maybeSingle();
       if (row != null) {
-        final canonical = row['canonical_id']?.toString() ?? teamId;
+        final canonical = row['team_id']?.toString() ?? teamId;
         _aliasCache[teamId] = canonical;
         return canonical;
       }
     } catch (error) {
       AppLogger.d('Failed to resolve team alias: $error');
+    }
+
+    try {
+      final row = await client
+          .from('team_aliases')
+          .select('team_id')
+          .ilike('alias_name', teamId)
+          .maybeSingle();
+      if (row != null) {
+        final canonical = row['team_id']?.toString() ?? teamId;
+        _aliasCache[teamId] = canonical;
+        return canonical;
+      }
+    } catch (error) {
+      AppLogger.d('Failed to resolve team alias by name: $error');
     }
 
     _aliasCache[teamId] = teamId;

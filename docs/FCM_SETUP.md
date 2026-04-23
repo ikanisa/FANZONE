@@ -17,7 +17,7 @@ Estimated time: 20-30 minutes for a new Firebase and APNs production setup.
 | Flutter notification service | Ready | `lib/services/notification_service.dart` |
 | Flutter push service | Ready | `lib/services/push_notification_service.dart` |
 | Notification preferences screen | Ready | `lib/features/profile/screens/notifications_screen.dart` |
-| Auto-settle winner notification | Ready | `supabase/functions/auto-settle/index.ts` |
+| Prediction result notification | Ready | `supabase/functions/score-predictions/index.ts` |
 | Firebase bootstrap | Ready | `lib/main.dart`, `lib/firebase_options.dart` |
 
 ## Firebase project setup
@@ -136,13 +136,13 @@ Expected backend result:
 
 ### 10. Verify push delivery and tap routing
 
-1. Send a test push via the `push-notify` edge function or a targeted campaign.
+1. Send a test push via the `push-notify` edge function or an admin-triggered notification flow.
 2. Confirm foreground delivery.
 3. Confirm background delivery.
 4. Confirm terminated-app delivery.
 5. Tap the push and verify the app lands on the expected route:
    - `/match/:id`
-   - `/predict/pools/:id`
+   - `/predict`
    - `/notifications`
 
 ## What the live flow does
@@ -150,7 +150,7 @@ Expected backend result:
 1. User opens the app and signs in.
 2. The device token is registered in `device_tokens`.
 3. User notification preferences are stored in `notification_preferences`.
-4. `auto-settle` or admin-triggered flows call `push-notify`.
+4. Lean scoring jobs or admin-triggered flows call `push-notify`.
 5. The notification is logged in `notification_log`.
 6. Tapping the notification routes the user into the correct app screen.
 

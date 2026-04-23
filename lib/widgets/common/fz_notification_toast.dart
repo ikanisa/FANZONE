@@ -11,9 +11,14 @@ import '../../theme/colors.dart';
 ///
 /// Usage:
 /// ```dart
-/// FzNotificationToast.show(context, title: 'Pool Settled!', message: '…', type: FzToastType.poolSettled);
+/// FzNotificationToast.show(
+///   context,
+///   title: 'Prediction scored',
+///   message: 'Your picks have been graded.',
+///   type: FzToastType.predictionReward,
+/// );
 /// ```
-enum FzToastType { poolReceived, poolSettled, system }
+enum FzToastType { predictionUpdate, predictionReward, system }
 
 class FzNotificationToast extends StatefulWidget {
   const FzNotificationToast({
@@ -120,9 +125,9 @@ class _FzNotificationToastState extends State<FzNotificationToast>
 
   IconData _icon() {
     switch (widget.type) {
-      case FzToastType.poolReceived:
+      case FzToastType.predictionUpdate:
         return LucideIcons.swords;
-      case FzToastType.poolSettled:
+      case FzToastType.predictionReward:
         return LucideIcons.trophy;
       case FzToastType.system:
         return LucideIcons.bell;
@@ -131,9 +136,9 @@ class _FzNotificationToastState extends State<FzNotificationToast>
 
   Color _iconColor() {
     switch (widget.type) {
-      case FzToastType.poolReceived:
+      case FzToastType.predictionUpdate:
         return FzColors.primary;
-      case FzToastType.poolSettled:
+      case FzToastType.predictionReward:
         return FzColors.coral;
       case FzToastType.system:
         return FzColors.darkMuted;

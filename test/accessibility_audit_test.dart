@@ -4,18 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:fanzone/widgets/common/fz_animated_entry.dart';
+import 'package:fanzone/data/team_search_database.dart';
 import 'package:fanzone/features/home/screens/home_feed_screen.dart';
 import 'package:fanzone/features/home/screens/match_detail_screen.dart';
 import 'package:fanzone/features/predict/screens/predict_screen.dart';
 import 'package:fanzone/features/profile/screens/profile_screen.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
 import 'package:fanzone/models/match_model.dart';
+import 'package:fanzone/models/user_prediction_model.dart';
 import 'package:fanzone/providers/auth_provider.dart';
 import 'package:fanzone/providers/competitions_provider.dart';
 import 'package:fanzone/providers/currency_provider.dart';
+import 'package:fanzone/providers/favorite_teams_provider.dart';
+import 'package:fanzone/providers/home_feed_provider.dart';
 import 'package:fanzone/providers/matches_provider.dart';
 import 'package:fanzone/services/notification_service.dart';
-import 'package:fanzone/services/pool_service.dart';
+import 'package:fanzone/services/prediction_service.dart';
 import 'package:fanzone/services/wallet_service.dart';
 
 import 'support/test_app.dart';
@@ -34,18 +38,62 @@ void main() {
       limit: 200,
       ascending: true,
     );
+    initTeamSearchDatabase(
+      catalog: TeamSearchCatalog(
+        const [
+          OnboardingTeam(
+            id: 'test-club-a',
+            name: 'Test Club A',
+            country: 'Test Country',
+            shortNameOverride: 'TCA',
+          ),
+        ],
+        popularTeams: const [
+          OnboardingTeam(
+            id: 'test-club-a',
+            name: 'Test Club A',
+            country: 'Test Country',
+            shortNameOverride: 'TCA',
+          ),
+        ],
+      ),
+    );
+    addTearDown(() {
+      initTeamSearchDatabase(catalog: TeamSearchCatalog.defaults());
+    });
 
     await pumpAppScreen(
       tester,
       const HomeFeedScreen(),
       overrides: [
-        matchesProvider(
-          feedFilter,
-        ).overrideWith((ref) async => [sampleMatch(date: today)]),
+        matchesProvider(feedFilter).overrideWith(
+          (ref) async => [
+            sampleMatch(
+              date: today,
+              homeTeamId: 'test-club-a',
+              awayTeamId: 'test-club-b',
+              homeTeam: 'Test Club A FC',
+            ),
+          ],
+        ),
         competitionsProvider.overrideWith((ref) async => [sampleCompetition()]),
+        favoriteTeamRecordsProvider.overrideWith((ref) async => const []),
+        homeDefaultTeamsProvider.overrideWith(
+          (ref) async => const [
+            OnboardingTeam(
+              id: 'test-club-a',
+              name: 'Test Club A',
+              country: 'Test Country',
+              shortNameOverride: 'TCA',
+              aliases: ['Test Club A FC', 'Alpha Side'],
+              popularRank: 6,
+            ),
+          ],
+        ),
       ],
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     final semantics = tester.ensureSemantics();
     try {
@@ -59,13 +107,18 @@ void main() {
   testWidgets('predict screen meets labeled tap target guideline', (
     tester,
   ) async {
+    final match = sampleMatch();
     await pumpAppScreen(
       tester,
       const PredictScreen(),
       overrides: [
-        poolServiceProvider.overrideWith(() => FakePoolService([samplePool()])),
-        myEntriesProvider.overrideWith(() => FakeMyEntries([])),
-        userCurrencyProvider.overrideWith((ref) async => 'EUR'),
+        upcomingMatchesProvider.overrideWith((ref) => Stream.value([match])),
+        competitionProvider(
+          match.competitionId,
+        ).overrideWith((ref) async => sampleCompetition()),
+        myPredictionsProvider.overrideWith(
+          (ref) async => const <UserPredictionModel>[],
+        ),
       ],
     );
     await tester.pumpAndSettle();

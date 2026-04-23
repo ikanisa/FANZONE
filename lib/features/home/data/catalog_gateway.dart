@@ -1,6 +1,5 @@
 import '../../../models/competition_model.dart';
 import '../../../models/featured_event_model.dart';
-import '../../../models/global_challenge_model.dart';
 import '../../../models/search_result_model.dart';
 import '../../../models/standing_row_model.dart';
 import '../../../models/team_model.dart';
@@ -72,19 +71,6 @@ class SupabaseCatalogGateway implements CatalogGateway {
     return _events.getFeaturedEvents(
       activeOnly: activeOnly,
       upcomingOnly: upcomingOnly,
-      limit: limit,
-    );
-  }
-
-  @override
-  Future<List<GlobalChallengeModel>> getGlobalChallenges({
-    String? eventTag,
-    List<String>? regionValues,
-    int? limit,
-  }) {
-    return _events.getGlobalChallenges(
-      eventTag: eventTag,
-      regionValues: regionValues,
       limit: limit,
     );
   }

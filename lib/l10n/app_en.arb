@@ -54,7 +54,6 @@
   "standingsPts": "Pts",
 
   "predictTitle": "Predict",
-  "predictSlip": "Prediction Slip",
   "predictMatchResult": "Match Result",
   "predictExactScore": "Exact Score",
   "predictStake": "Stake",
@@ -69,35 +68,6 @@
   "predictMarketAway": "{team} to Win",
   "@predictMarketAway": {
     "placeholders": { "team": { "type": "String" } }
-  },
-
-  "poolTitle": "POOL",
-  "poolStatus": "Status",
-  "poolLockTime": "LOCK TIME",
-  "poolStake": "STAKE",
-  "poolTotalPool": "TOTAL POOL",
-  "poolParticipants": "PARTICIPANTS",
-  "poolCreatedBy": "CREATED BY",
-  "poolPrediction": "PREDICTION",
-  "poolJoinFor": "Join for {stake} FET",
-  "@poolJoinFor": {
-    "placeholders": { "stake": { "type": "int" } }
-  },
-  "poolJoinTitle": "JOIN POOL",
-  "poolConfirmStake": "Confirm & Stake",
-  "poolRequiredStake": "REQUIRED STAKE",
-  "poolShareMessage": "Join my prediction pool on FANZONE! 🏆⚽\n{url}",
-  "@poolShareMessage": {
-    "placeholders": { "url": { "type": "String" } }
-  },
-  "poolShareSubject": "FANZONE Pool Invite",
-  "poolStatusOpen": "OPEN",
-  "poolStatusLocked": "LOCKED",
-  "poolStatusSettled": "SETTLED",
-  "poolStatusVoid": "VOID",
-  "poolIsClosed": "Pool is {status}",
-  "@poolIsClosed": {
-    "placeholders": { "status": { "type": "String" } }
   },
 
   "walletTitle": "FET Wallet",
@@ -148,10 +118,7 @@
   "@teamFans": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "teamSupport": "Support",
-  "teamNews": "News",
   "teamFixtures": "Fixtures",
-  "teamCommunity": "Community",
 
   "followingTitle": "Following",
   "followingEmpty": "You haven't followed any teams or leagues yet.",

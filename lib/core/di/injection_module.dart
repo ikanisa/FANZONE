@@ -11,5 +11,5 @@ abstract class InjectionModule {
   }
 
   /// Team search catalog — starts empty, populated from Supabase teams table.
-  TeamSearchCatalog get teamSearchCatalog => TeamSearchCatalog.defaults();
+  TeamSearchCatalog get teamSearchCatalog => TeamSearchCatalog.empty();
 }

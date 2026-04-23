@@ -103,7 +103,7 @@ export default function FETExchange() {
       {/* Sticky Header */}
       <header 
         className={`sticky z-30 transition-all duration-300 bg-surface/80 backdrop-blur-md border-b border-border p-4 flex items-center justify-between ${
-          scrollDirection === 'down' ? 'top-0' : 'top-[60px] lg:top-0'
+          scrollDirection === 'down' ? '-top-20 lg:top-0' : 'top-0'
         }`}
       >
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full text-muted hover:text-text transition-colors">

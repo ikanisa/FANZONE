@@ -36,8 +36,8 @@ class ProfileStatsRow extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: ProfileStatCard(
-            label: 'Pools Won',
-            value: '${stats.totalPoolsWon}',
+            label: 'Wins',
+            value: '${stats.correctPredictions}',
             accent: FzColors.success,
           ),
         ),

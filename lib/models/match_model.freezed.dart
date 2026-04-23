@@ -24,11 +24,19 @@ mixin _$MatchModel {
   String get id => throw _privateConstructorUsedError;
   @JsonKey(name: 'competition_id')
   String get competitionId => throw _privateConstructorUsedError;
-  String get season => throw _privateConstructorUsedError;
+  @JsonKey(name: 'competition_name')
+  String? get competitionName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'season_id')
+  String? get seasonId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'season_label')
+  String? get seasonLabel => throw _privateConstructorUsedError;
+  String? get stage => throw _privateConstructorUsedError;
   String? get round => throw _privateConstructorUsedError;
-  @JsonKey(name: 'match_group')
-  String? get matchGroup => throw _privateConstructorUsedError;
+  @JsonKey(name: 'matchday_or_round')
+  String? get matchdayOrRound => throw _privateConstructorUsedError;
   DateTime get date => throw _privateConstructorUsedError;
+  @JsonKey(name: 'match_date')
+  DateTime? get matchDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'kickoff_time')
   String? get kickoffTime => throw _privateConstructorUsedError;
   @JsonKey(name: 'home_team_id')
@@ -43,22 +51,18 @@ mixin _$MatchModel {
   int? get ftHome => throw _privateConstructorUsedError;
   @JsonKey(name: 'ft_away')
   int? get ftAway => throw _privateConstructorUsedError;
-  @JsonKey(name: 'ht_home')
-  int? get htHome => throw _privateConstructorUsedError;
-  @JsonKey(name: 'ht_away')
-  int? get htAway => throw _privateConstructorUsedError;
-  @JsonKey(name: 'et_home')
-  int? get etHome => throw _privateConstructorUsedError;
-  @JsonKey(name: 'et_away')
-  int? get etAway => throw _privateConstructorUsedError;
+  String get status => throw _privateConstructorUsedError;
   @JsonKey(name: 'live_minute')
   int? get liveMinute => throw _privateConstructorUsedError;
-  String get status => throw _privateConstructorUsedError;
-  String? get venue => throw _privateConstructorUsedError;
+  @JsonKey(name: 'result_code')
+  String? get resultCode => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_neutral')
+  bool get isNeutral => throw _privateConstructorUsedError;
   @JsonKey(name: 'data_source')
   String get dataSource => throw _privateConstructorUsedError;
   @JsonKey(name: 'source_url')
   String? get sourceUrl => throw _privateConstructorUsedError;
+  String? get notes => throw _privateConstructorUsedError;
   @JsonKey(name: 'home_logo_url')
   String? get homeLogoUrl => throw _privateConstructorUsedError;
   @JsonKey(name: 'away_logo_url')
@@ -84,10 +88,14 @@ abstract class $MatchModelCopyWith<$Res> {
   $Res call({
     String id,
     @JsonKey(name: 'competition_id') String competitionId,
-    String season,
+    @JsonKey(name: 'competition_name') String? competitionName,
+    @JsonKey(name: 'season_id') String? seasonId,
+    @JsonKey(name: 'season_label') String? seasonLabel,
+    String? stage,
     String? round,
-    @JsonKey(name: 'match_group') String? matchGroup,
+    @JsonKey(name: 'matchday_or_round') String? matchdayOrRound,
     DateTime date,
+    @JsonKey(name: 'match_date') DateTime? matchDate,
     @JsonKey(name: 'kickoff_time') String? kickoffTime,
     @JsonKey(name: 'home_team_id') String? homeTeamId,
     @JsonKey(name: 'away_team_id') String? awayTeamId,
@@ -95,15 +103,13 @@ abstract class $MatchModelCopyWith<$Res> {
     @JsonKey(name: 'away_team') String awayTeam,
     @JsonKey(name: 'ft_home') int? ftHome,
     @JsonKey(name: 'ft_away') int? ftAway,
-    @JsonKey(name: 'ht_home') int? htHome,
-    @JsonKey(name: 'ht_away') int? htAway,
-    @JsonKey(name: 'et_home') int? etHome,
-    @JsonKey(name: 'et_away') int? etAway,
-    @JsonKey(name: 'live_minute') int? liveMinute,
     String status,
-    String? venue,
+    @JsonKey(name: 'live_minute') int? liveMinute,
+    @JsonKey(name: 'result_code') String? resultCode,
+    @JsonKey(name: 'is_neutral') bool isNeutral,
     @JsonKey(name: 'data_source') String dataSource,
     @JsonKey(name: 'source_url') String? sourceUrl,
+    String? notes,
     @JsonKey(name: 'home_logo_url') String? homeLogoUrl,
     @JsonKey(name: 'away_logo_url') String? awayLogoUrl,
   });
@@ -126,10 +132,14 @@ class _$MatchModelCopyWithImpl<$Res, $Val extends MatchModel>
   $Res call({
     Object? id = null,
     Object? competitionId = null,
-    Object? season = null,
+    Object? competitionName = freezed,
+    Object? seasonId = freezed,
+    Object? seasonLabel = freezed,
+    Object? stage = freezed,
     Object? round = freezed,
-    Object? matchGroup = freezed,
+    Object? matchdayOrRound = freezed,
     Object? date = null,
+    Object? matchDate = freezed,
     Object? kickoffTime = freezed,
     Object? homeTeamId = freezed,
     Object? awayTeamId = freezed,
@@ -137,15 +147,13 @@ class _$MatchModelCopyWithImpl<$Res, $Val extends MatchModel>
     Object? awayTeam = null,
     Object? ftHome = freezed,
     Object? ftAway = freezed,
-    Object? htHome = freezed,
-    Object? htAway = freezed,
-    Object? etHome = freezed,
-    Object? etAway = freezed,
-    Object? liveMinute = freezed,
     Object? status = null,
-    Object? venue = freezed,
+    Object? liveMinute = freezed,
+    Object? resultCode = freezed,
+    Object? isNeutral = null,
     Object? dataSource = null,
     Object? sourceUrl = freezed,
+    Object? notes = freezed,
     Object? homeLogoUrl = freezed,
     Object? awayLogoUrl = freezed,
   }) {
@@ -159,22 +167,38 @@ class _$MatchModelCopyWithImpl<$Res, $Val extends MatchModel>
                 ? _value.competitionId
                 : competitionId // ignore: cast_nullable_to_non_nullable
                       as String,
-            season: null == season
-                ? _value.season
-                : season // ignore: cast_nullable_to_non_nullable
-                      as String,
+            competitionName: freezed == competitionName
+                ? _value.competitionName
+                : competitionName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            seasonId: freezed == seasonId
+                ? _value.seasonId
+                : seasonId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            seasonLabel: freezed == seasonLabel
+                ? _value.seasonLabel
+                : seasonLabel // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            stage: freezed == stage
+                ? _value.stage
+                : stage // ignore: cast_nullable_to_non_nullable
+                      as String?,
             round: freezed == round
                 ? _value.round
                 : round // ignore: cast_nullable_to_non_nullable
                       as String?,
-            matchGroup: freezed == matchGroup
-                ? _value.matchGroup
-                : matchGroup // ignore: cast_nullable_to_non_nullable
+            matchdayOrRound: freezed == matchdayOrRound
+                ? _value.matchdayOrRound
+                : matchdayOrRound // ignore: cast_nullable_to_non_nullable
                       as String?,
             date: null == date
                 ? _value.date
                 : date // ignore: cast_nullable_to_non_nullable
                       as DateTime,
+            matchDate: freezed == matchDate
+                ? _value.matchDate
+                : matchDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
             kickoffTime: freezed == kickoffTime
                 ? _value.kickoffTime
                 : kickoffTime // ignore: cast_nullable_to_non_nullable
@@ -203,34 +227,22 @@ class _$MatchModelCopyWithImpl<$Res, $Val extends MatchModel>
                 ? _value.ftAway
                 : ftAway // ignore: cast_nullable_to_non_nullable
                       as int?,
-            htHome: freezed == htHome
-                ? _value.htHome
-                : htHome // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            htAway: freezed == htAway
-                ? _value.htAway
-                : htAway // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            etHome: freezed == etHome
-                ? _value.etHome
-                : etHome // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            etAway: freezed == etAway
-                ? _value.etAway
-                : etAway // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            liveMinute: freezed == liveMinute
-                ? _value.liveMinute
-                : liveMinute // ignore: cast_nullable_to_non_nullable
-                      as int?,
             status: null == status
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
                       as String,
-            venue: freezed == venue
-                ? _value.venue
-                : venue // ignore: cast_nullable_to_non_nullable
+            liveMinute: freezed == liveMinute
+                ? _value.liveMinute
+                : liveMinute // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            resultCode: freezed == resultCode
+                ? _value.resultCode
+                : resultCode // ignore: cast_nullable_to_non_nullable
                       as String?,
+            isNeutral: null == isNeutral
+                ? _value.isNeutral
+                : isNeutral // ignore: cast_nullable_to_non_nullable
+                      as bool,
             dataSource: null == dataSource
                 ? _value.dataSource
                 : dataSource // ignore: cast_nullable_to_non_nullable
@@ -238,6 +250,10 @@ class _$MatchModelCopyWithImpl<$Res, $Val extends MatchModel>
             sourceUrl: freezed == sourceUrl
                 ? _value.sourceUrl
                 : sourceUrl // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            notes: freezed == notes
+                ? _value.notes
+                : notes // ignore: cast_nullable_to_non_nullable
                       as String?,
             homeLogoUrl: freezed == homeLogoUrl
                 ? _value.homeLogoUrl
@@ -265,10 +281,14 @@ abstract class _$$MatchModelImplCopyWith<$Res>
   $Res call({
     String id,
     @JsonKey(name: 'competition_id') String competitionId,
-    String season,
+    @JsonKey(name: 'competition_name') String? competitionName,
+    @JsonKey(name: 'season_id') String? seasonId,
+    @JsonKey(name: 'season_label') String? seasonLabel,
+    String? stage,
     String? round,
-    @JsonKey(name: 'match_group') String? matchGroup,
+    @JsonKey(name: 'matchday_or_round') String? matchdayOrRound,
     DateTime date,
+    @JsonKey(name: 'match_date') DateTime? matchDate,
     @JsonKey(name: 'kickoff_time') String? kickoffTime,
     @JsonKey(name: 'home_team_id') String? homeTeamId,
     @JsonKey(name: 'away_team_id') String? awayTeamId,
@@ -276,15 +296,13 @@ abstract class _$$MatchModelImplCopyWith<$Res>
     @JsonKey(name: 'away_team') String awayTeam,
     @JsonKey(name: 'ft_home') int? ftHome,
     @JsonKey(name: 'ft_away') int? ftAway,
-    @JsonKey(name: 'ht_home') int? htHome,
-    @JsonKey(name: 'ht_away') int? htAway,
-    @JsonKey(name: 'et_home') int? etHome,
-    @JsonKey(name: 'et_away') int? etAway,
-    @JsonKey(name: 'live_minute') int? liveMinute,
     String status,
-    String? venue,
+    @JsonKey(name: 'live_minute') int? liveMinute,
+    @JsonKey(name: 'result_code') String? resultCode,
+    @JsonKey(name: 'is_neutral') bool isNeutral,
     @JsonKey(name: 'data_source') String dataSource,
     @JsonKey(name: 'source_url') String? sourceUrl,
+    String? notes,
     @JsonKey(name: 'home_logo_url') String? homeLogoUrl,
     @JsonKey(name: 'away_logo_url') String? awayLogoUrl,
   });
@@ -306,10 +324,14 @@ class __$$MatchModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? competitionId = null,
-    Object? season = null,
+    Object? competitionName = freezed,
+    Object? seasonId = freezed,
+    Object? seasonLabel = freezed,
+    Object? stage = freezed,
     Object? round = freezed,
-    Object? matchGroup = freezed,
+    Object? matchdayOrRound = freezed,
     Object? date = null,
+    Object? matchDate = freezed,
     Object? kickoffTime = freezed,
     Object? homeTeamId = freezed,
     Object? awayTeamId = freezed,
@@ -317,15 +339,13 @@ class __$$MatchModelImplCopyWithImpl<$Res>
     Object? awayTeam = null,
     Object? ftHome = freezed,
     Object? ftAway = freezed,
-    Object? htHome = freezed,
-    Object? htAway = freezed,
-    Object? etHome = freezed,
-    Object? etAway = freezed,
-    Object? liveMinute = freezed,
     Object? status = null,
-    Object? venue = freezed,
+    Object? liveMinute = freezed,
+    Object? resultCode = freezed,
+    Object? isNeutral = null,
     Object? dataSource = null,
     Object? sourceUrl = freezed,
+    Object? notes = freezed,
     Object? homeLogoUrl = freezed,
     Object? awayLogoUrl = freezed,
   }) {
@@ -339,22 +359,38 @@ class __$$MatchModelImplCopyWithImpl<$Res>
             ? _value.competitionId
             : competitionId // ignore: cast_nullable_to_non_nullable
                   as String,
-        season: null == season
-            ? _value.season
-            : season // ignore: cast_nullable_to_non_nullable
-                  as String,
+        competitionName: freezed == competitionName
+            ? _value.competitionName
+            : competitionName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        seasonId: freezed == seasonId
+            ? _value.seasonId
+            : seasonId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        seasonLabel: freezed == seasonLabel
+            ? _value.seasonLabel
+            : seasonLabel // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        stage: freezed == stage
+            ? _value.stage
+            : stage // ignore: cast_nullable_to_non_nullable
+                  as String?,
         round: freezed == round
             ? _value.round
             : round // ignore: cast_nullable_to_non_nullable
                   as String?,
-        matchGroup: freezed == matchGroup
-            ? _value.matchGroup
-            : matchGroup // ignore: cast_nullable_to_non_nullable
+        matchdayOrRound: freezed == matchdayOrRound
+            ? _value.matchdayOrRound
+            : matchdayOrRound // ignore: cast_nullable_to_non_nullable
                   as String?,
         date: null == date
             ? _value.date
             : date // ignore: cast_nullable_to_non_nullable
                   as DateTime,
+        matchDate: freezed == matchDate
+            ? _value.matchDate
+            : matchDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
         kickoffTime: freezed == kickoffTime
             ? _value.kickoffTime
             : kickoffTime // ignore: cast_nullable_to_non_nullable
@@ -383,34 +419,22 @@ class __$$MatchModelImplCopyWithImpl<$Res>
             ? _value.ftAway
             : ftAway // ignore: cast_nullable_to_non_nullable
                   as int?,
-        htHome: freezed == htHome
-            ? _value.htHome
-            : htHome // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        htAway: freezed == htAway
-            ? _value.htAway
-            : htAway // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        etHome: freezed == etHome
-            ? _value.etHome
-            : etHome // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        etAway: freezed == etAway
-            ? _value.etAway
-            : etAway // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        liveMinute: freezed == liveMinute
-            ? _value.liveMinute
-            : liveMinute // ignore: cast_nullable_to_non_nullable
-                  as int?,
         status: null == status
             ? _value.status
             : status // ignore: cast_nullable_to_non_nullable
                   as String,
-        venue: freezed == venue
-            ? _value.venue
-            : venue // ignore: cast_nullable_to_non_nullable
+        liveMinute: freezed == liveMinute
+            ? _value.liveMinute
+            : liveMinute // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        resultCode: freezed == resultCode
+            ? _value.resultCode
+            : resultCode // ignore: cast_nullable_to_non_nullable
                   as String?,
+        isNeutral: null == isNeutral
+            ? _value.isNeutral
+            : isNeutral // ignore: cast_nullable_to_non_nullable
+                  as bool,
         dataSource: null == dataSource
             ? _value.dataSource
             : dataSource // ignore: cast_nullable_to_non_nullable
@@ -418,6 +442,10 @@ class __$$MatchModelImplCopyWithImpl<$Res>
         sourceUrl: freezed == sourceUrl
             ? _value.sourceUrl
             : sourceUrl // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        notes: freezed == notes
+            ? _value.notes
+            : notes // ignore: cast_nullable_to_non_nullable
                   as String?,
         homeLogoUrl: freezed == homeLogoUrl
             ? _value.homeLogoUrl
@@ -438,10 +466,14 @@ class _$MatchModelImpl extends _MatchModel {
   const _$MatchModelImpl({
     required this.id,
     @JsonKey(name: 'competition_id') required this.competitionId,
-    required this.season,
+    @JsonKey(name: 'competition_name') this.competitionName,
+    @JsonKey(name: 'season_id') this.seasonId,
+    @JsonKey(name: 'season_label') this.seasonLabel,
+    this.stage,
     this.round,
-    @JsonKey(name: 'match_group') this.matchGroup,
+    @JsonKey(name: 'matchday_or_round') this.matchdayOrRound,
     required this.date,
+    @JsonKey(name: 'match_date') this.matchDate,
     @JsonKey(name: 'kickoff_time') this.kickoffTime,
     @JsonKey(name: 'home_team_id') this.homeTeamId,
     @JsonKey(name: 'away_team_id') this.awayTeamId,
@@ -449,15 +481,13 @@ class _$MatchModelImpl extends _MatchModel {
     @JsonKey(name: 'away_team') required this.awayTeam,
     @JsonKey(name: 'ft_home') this.ftHome,
     @JsonKey(name: 'ft_away') this.ftAway,
-    @JsonKey(name: 'ht_home') this.htHome,
-    @JsonKey(name: 'ht_away') this.htAway,
-    @JsonKey(name: 'et_home') this.etHome,
-    @JsonKey(name: 'et_away') this.etAway,
-    @JsonKey(name: 'live_minute') this.liveMinute,
     this.status = 'upcoming',
-    this.venue,
-    @JsonKey(name: 'data_source') required this.dataSource,
+    @JsonKey(name: 'live_minute') this.liveMinute,
+    @JsonKey(name: 'result_code') this.resultCode,
+    @JsonKey(name: 'is_neutral') this.isNeutral = false,
+    @JsonKey(name: 'data_source') this.dataSource = 'manual',
     @JsonKey(name: 'source_url') this.sourceUrl,
+    this.notes,
     @JsonKey(name: 'home_logo_url') this.homeLogoUrl,
     @JsonKey(name: 'away_logo_url') this.awayLogoUrl,
   }) : super._();
@@ -471,14 +501,26 @@ class _$MatchModelImpl extends _MatchModel {
   @JsonKey(name: 'competition_id')
   final String competitionId;
   @override
-  final String season;
+  @JsonKey(name: 'competition_name')
+  final String? competitionName;
+  @override
+  @JsonKey(name: 'season_id')
+  final String? seasonId;
+  @override
+  @JsonKey(name: 'season_label')
+  final String? seasonLabel;
+  @override
+  final String? stage;
   @override
   final String? round;
   @override
-  @JsonKey(name: 'match_group')
-  final String? matchGroup;
+  @JsonKey(name: 'matchday_or_round')
+  final String? matchdayOrRound;
   @override
   final DateTime date;
+  @override
+  @JsonKey(name: 'match_date')
+  final DateTime? matchDate;
   @override
   @JsonKey(name: 'kickoff_time')
   final String? kickoffTime;
@@ -501,31 +543,25 @@ class _$MatchModelImpl extends _MatchModel {
   @JsonKey(name: 'ft_away')
   final int? ftAway;
   @override
-  @JsonKey(name: 'ht_home')
-  final int? htHome;
-  @override
-  @JsonKey(name: 'ht_away')
-  final int? htAway;
-  @override
-  @JsonKey(name: 'et_home')
-  final int? etHome;
-  @override
-  @JsonKey(name: 'et_away')
-  final int? etAway;
+  @JsonKey()
+  final String status;
   @override
   @JsonKey(name: 'live_minute')
   final int? liveMinute;
   @override
-  @JsonKey()
-  final String status;
+  @JsonKey(name: 'result_code')
+  final String? resultCode;
   @override
-  final String? venue;
+  @JsonKey(name: 'is_neutral')
+  final bool isNeutral;
   @override
   @JsonKey(name: 'data_source')
   final String dataSource;
   @override
   @JsonKey(name: 'source_url')
   final String? sourceUrl;
+  @override
+  final String? notes;
   @override
   @JsonKey(name: 'home_logo_url')
   final String? homeLogoUrl;
@@ -535,7 +571,7 @@ class _$MatchModelImpl extends _MatchModel {
 
   @override
   String toString() {
-    return 'MatchModel(id: $id, competitionId: $competitionId, season: $season, round: $round, matchGroup: $matchGroup, date: $date, kickoffTime: $kickoffTime, homeTeamId: $homeTeamId, awayTeamId: $awayTeamId, homeTeam: $homeTeam, awayTeam: $awayTeam, ftHome: $ftHome, ftAway: $ftAway, htHome: $htHome, htAway: $htAway, etHome: $etHome, etAway: $etAway, liveMinute: $liveMinute, status: $status, venue: $venue, dataSource: $dataSource, sourceUrl: $sourceUrl, homeLogoUrl: $homeLogoUrl, awayLogoUrl: $awayLogoUrl)';
+    return 'MatchModel(id: $id, competitionId: $competitionId, competitionName: $competitionName, seasonId: $seasonId, seasonLabel: $seasonLabel, stage: $stage, round: $round, matchdayOrRound: $matchdayOrRound, date: $date, matchDate: $matchDate, kickoffTime: $kickoffTime, homeTeamId: $homeTeamId, awayTeamId: $awayTeamId, homeTeam: $homeTeam, awayTeam: $awayTeam, ftHome: $ftHome, ftAway: $ftAway, status: $status, liveMinute: $liveMinute, resultCode: $resultCode, isNeutral: $isNeutral, dataSource: $dataSource, sourceUrl: $sourceUrl, notes: $notes, homeLogoUrl: $homeLogoUrl, awayLogoUrl: $awayLogoUrl)';
   }
 
   @override
@@ -546,11 +582,19 @@ class _$MatchModelImpl extends _MatchModel {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.competitionId, competitionId) ||
                 other.competitionId == competitionId) &&
-            (identical(other.season, season) || other.season == season) &&
+            (identical(other.competitionName, competitionName) ||
+                other.competitionName == competitionName) &&
+            (identical(other.seasonId, seasonId) ||
+                other.seasonId == seasonId) &&
+            (identical(other.seasonLabel, seasonLabel) ||
+                other.seasonLabel == seasonLabel) &&
+            (identical(other.stage, stage) || other.stage == stage) &&
             (identical(other.round, round) || other.round == round) &&
-            (identical(other.matchGroup, matchGroup) ||
-                other.matchGroup == matchGroup) &&
+            (identical(other.matchdayOrRound, matchdayOrRound) ||
+                other.matchdayOrRound == matchdayOrRound) &&
             (identical(other.date, date) || other.date == date) &&
+            (identical(other.matchDate, matchDate) ||
+                other.matchDate == matchDate) &&
             (identical(other.kickoffTime, kickoffTime) ||
                 other.kickoffTime == kickoffTime) &&
             (identical(other.homeTeamId, homeTeamId) ||
@@ -563,18 +607,18 @@ class _$MatchModelImpl extends _MatchModel {
                 other.awayTeam == awayTeam) &&
             (identical(other.ftHome, ftHome) || other.ftHome == ftHome) &&
             (identical(other.ftAway, ftAway) || other.ftAway == ftAway) &&
-            (identical(other.htHome, htHome) || other.htHome == htHome) &&
-            (identical(other.htAway, htAway) || other.htAway == htAway) &&
-            (identical(other.etHome, etHome) || other.etHome == etHome) &&
-            (identical(other.etAway, etAway) || other.etAway == etAway) &&
+            (identical(other.status, status) || other.status == status) &&
             (identical(other.liveMinute, liveMinute) ||
                 other.liveMinute == liveMinute) &&
-            (identical(other.status, status) || other.status == status) &&
-            (identical(other.venue, venue) || other.venue == venue) &&
+            (identical(other.resultCode, resultCode) ||
+                other.resultCode == resultCode) &&
+            (identical(other.isNeutral, isNeutral) ||
+                other.isNeutral == isNeutral) &&
             (identical(other.dataSource, dataSource) ||
                 other.dataSource == dataSource) &&
             (identical(other.sourceUrl, sourceUrl) ||
                 other.sourceUrl == sourceUrl) &&
+            (identical(other.notes, notes) || other.notes == notes) &&
             (identical(other.homeLogoUrl, homeLogoUrl) ||
                 other.homeLogoUrl == homeLogoUrl) &&
             (identical(other.awayLogoUrl, awayLogoUrl) ||
@@ -587,10 +631,14 @@ class _$MatchModelImpl extends _MatchModel {
     runtimeType,
     id,
     competitionId,
-    season,
+    competitionName,
+    seasonId,
+    seasonLabel,
+    stage,
     round,
-    matchGroup,
+    matchdayOrRound,
     date,
+    matchDate,
     kickoffTime,
     homeTeamId,
     awayTeamId,
@@ -598,15 +646,13 @@ class _$MatchModelImpl extends _MatchModel {
     awayTeam,
     ftHome,
     ftAway,
-    htHome,
-    htAway,
-    etHome,
-    etAway,
-    liveMinute,
     status,
-    venue,
+    liveMinute,
+    resultCode,
+    isNeutral,
     dataSource,
     sourceUrl,
+    notes,
     homeLogoUrl,
     awayLogoUrl,
   ]);
@@ -629,10 +675,14 @@ abstract class _MatchModel extends MatchModel {
   const factory _MatchModel({
     required final String id,
     @JsonKey(name: 'competition_id') required final String competitionId,
-    required final String season,
+    @JsonKey(name: 'competition_name') final String? competitionName,
+    @JsonKey(name: 'season_id') final String? seasonId,
+    @JsonKey(name: 'season_label') final String? seasonLabel,
+    final String? stage,
     final String? round,
-    @JsonKey(name: 'match_group') final String? matchGroup,
+    @JsonKey(name: 'matchday_or_round') final String? matchdayOrRound,
     required final DateTime date,
+    @JsonKey(name: 'match_date') final DateTime? matchDate,
     @JsonKey(name: 'kickoff_time') final String? kickoffTime,
     @JsonKey(name: 'home_team_id') final String? homeTeamId,
     @JsonKey(name: 'away_team_id') final String? awayTeamId,
@@ -640,15 +690,13 @@ abstract class _MatchModel extends MatchModel {
     @JsonKey(name: 'away_team') required final String awayTeam,
     @JsonKey(name: 'ft_home') final int? ftHome,
     @JsonKey(name: 'ft_away') final int? ftAway,
-    @JsonKey(name: 'ht_home') final int? htHome,
-    @JsonKey(name: 'ht_away') final int? htAway,
-    @JsonKey(name: 'et_home') final int? etHome,
-    @JsonKey(name: 'et_away') final int? etAway,
-    @JsonKey(name: 'live_minute') final int? liveMinute,
     final String status,
-    final String? venue,
-    @JsonKey(name: 'data_source') required final String dataSource,
+    @JsonKey(name: 'live_minute') final int? liveMinute,
+    @JsonKey(name: 'result_code') final String? resultCode,
+    @JsonKey(name: 'is_neutral') final bool isNeutral,
+    @JsonKey(name: 'data_source') final String dataSource,
     @JsonKey(name: 'source_url') final String? sourceUrl,
+    final String? notes,
     @JsonKey(name: 'home_logo_url') final String? homeLogoUrl,
     @JsonKey(name: 'away_logo_url') final String? awayLogoUrl,
   }) = _$MatchModelImpl;
@@ -663,14 +711,26 @@ abstract class _MatchModel extends MatchModel {
   @JsonKey(name: 'competition_id')
   String get competitionId;
   @override
-  String get season;
+  @JsonKey(name: 'competition_name')
+  String? get competitionName;
+  @override
+  @JsonKey(name: 'season_id')
+  String? get seasonId;
+  @override
+  @JsonKey(name: 'season_label')
+  String? get seasonLabel;
+  @override
+  String? get stage;
   @override
   String? get round;
   @override
-  @JsonKey(name: 'match_group')
-  String? get matchGroup;
+  @JsonKey(name: 'matchday_or_round')
+  String? get matchdayOrRound;
   @override
   DateTime get date;
+  @override
+  @JsonKey(name: 'match_date')
+  DateTime? get matchDate;
   @override
   @JsonKey(name: 'kickoff_time')
   String? get kickoffTime;
@@ -693,30 +753,24 @@ abstract class _MatchModel extends MatchModel {
   @JsonKey(name: 'ft_away')
   int? get ftAway;
   @override
-  @JsonKey(name: 'ht_home')
-  int? get htHome;
-  @override
-  @JsonKey(name: 'ht_away')
-  int? get htAway;
-  @override
-  @JsonKey(name: 'et_home')
-  int? get etHome;
-  @override
-  @JsonKey(name: 'et_away')
-  int? get etAway;
+  String get status;
   @override
   @JsonKey(name: 'live_minute')
   int? get liveMinute;
   @override
-  String get status;
+  @JsonKey(name: 'result_code')
+  String? get resultCode;
   @override
-  String? get venue;
+  @JsonKey(name: 'is_neutral')
+  bool get isNeutral;
   @override
   @JsonKey(name: 'data_source')
   String get dataSource;
   @override
   @JsonKey(name: 'source_url')
   String? get sourceUrl;
+  @override
+  String? get notes;
   @override
   @JsonKey(name: 'home_logo_url')
   String? get homeLogoUrl;

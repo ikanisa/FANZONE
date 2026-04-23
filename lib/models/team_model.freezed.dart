@@ -25,14 +25,20 @@ mixin _$TeamModel {
   String get name => throw _privateConstructorUsedError;
   @JsonKey(name: 'short_name')
   String? get shortName => throw _privateConstructorUsedError;
-  String? get slug => throw _privateConstructorUsedError;
   String? get country => throw _privateConstructorUsedError;
+  @JsonKey(name: 'country_code')
+  String? get countryCode => throw _privateConstructorUsedError;
+  @JsonKey(name: 'team_type')
+  String get teamType => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   @JsonKey(name: 'league_name')
   String? get leagueName => throw _privateConstructorUsedError;
+  String? get region => throw _privateConstructorUsedError;
   @JsonKey(name: 'competition_ids')
   List<String> get competitionIds => throw _privateConstructorUsedError;
   List<String> get aliases => throw _privateConstructorUsedError;
+  @JsonKey(name: 'search_terms')
+  List<String> get searchTerms => throw _privateConstructorUsedError;
   @JsonKey(name: 'logo_url')
   String? get logoUrl => throw _privateConstructorUsedError;
   @JsonKey(name: 'crest_url')
@@ -43,16 +49,16 @@ mixin _$TeamModel {
   bool get isActive => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_featured')
   bool get isFeatured => throw _privateConstructorUsedError;
-  @JsonKey(name: 'fet_contributions_enabled')
-  bool get fetContributionsEnabled => throw _privateConstructorUsedError;
-  @JsonKey(name: 'fiat_contributions_enabled')
-  bool get fiatContributionsEnabled => throw _privateConstructorUsedError;
-  @JsonKey(name: 'fiat_contribution_mode')
-  String? get fiatContributionMode => throw _privateConstructorUsedError;
-  @JsonKey(name: 'fiat_contribution_link')
-  String? get fiatContributionLink => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_popular_pick')
+  bool get isPopularPick => throw _privateConstructorUsedError;
+  @JsonKey(name: 'popular_pick_rank')
+  int? get popularPickRank => throw _privateConstructorUsedError;
   @JsonKey(name: 'fan_count')
   int get fanCount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'updated_at')
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this TeamModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -73,22 +79,25 @@ abstract class $TeamModelCopyWith<$Res> {
     String id,
     String name,
     @JsonKey(name: 'short_name') String? shortName,
-    String? slug,
     String? country,
+    @JsonKey(name: 'country_code') String? countryCode,
+    @JsonKey(name: 'team_type') String teamType,
     String? description,
     @JsonKey(name: 'league_name') String? leagueName,
+    String? region,
     @JsonKey(name: 'competition_ids') List<String> competitionIds,
     List<String> aliases,
+    @JsonKey(name: 'search_terms') List<String> searchTerms,
     @JsonKey(name: 'logo_url') String? logoUrl,
     @JsonKey(name: 'crest_url') String? crestUrl,
     @JsonKey(name: 'cover_image_url') String? coverImageUrl,
     @JsonKey(name: 'is_active') bool isActive,
     @JsonKey(name: 'is_featured') bool isFeatured,
-    @JsonKey(name: 'fet_contributions_enabled') bool fetContributionsEnabled,
-    @JsonKey(name: 'fiat_contributions_enabled') bool fiatContributionsEnabled,
-    @JsonKey(name: 'fiat_contribution_mode') String? fiatContributionMode,
-    @JsonKey(name: 'fiat_contribution_link') String? fiatContributionLink,
+    @JsonKey(name: 'is_popular_pick') bool isPopularPick,
+    @JsonKey(name: 'popular_pick_rank') int? popularPickRank,
     @JsonKey(name: 'fan_count') int fanCount,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
   });
 }
 
@@ -110,22 +119,25 @@ class _$TeamModelCopyWithImpl<$Res, $Val extends TeamModel>
     Object? id = null,
     Object? name = null,
     Object? shortName = freezed,
-    Object? slug = freezed,
     Object? country = freezed,
+    Object? countryCode = freezed,
+    Object? teamType = null,
     Object? description = freezed,
     Object? leagueName = freezed,
+    Object? region = freezed,
     Object? competitionIds = null,
     Object? aliases = null,
+    Object? searchTerms = null,
     Object? logoUrl = freezed,
     Object? crestUrl = freezed,
     Object? coverImageUrl = freezed,
     Object? isActive = null,
     Object? isFeatured = null,
-    Object? fetContributionsEnabled = null,
-    Object? fiatContributionsEnabled = null,
-    Object? fiatContributionMode = freezed,
-    Object? fiatContributionLink = freezed,
+    Object? isPopularPick = null,
+    Object? popularPickRank = freezed,
     Object? fanCount = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -141,14 +153,18 @@ class _$TeamModelCopyWithImpl<$Res, $Val extends TeamModel>
                 ? _value.shortName
                 : shortName // ignore: cast_nullable_to_non_nullable
                       as String?,
-            slug: freezed == slug
-                ? _value.slug
-                : slug // ignore: cast_nullable_to_non_nullable
-                      as String?,
             country: freezed == country
                 ? _value.country
                 : country // ignore: cast_nullable_to_non_nullable
                       as String?,
+            countryCode: freezed == countryCode
+                ? _value.countryCode
+                : countryCode // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            teamType: null == teamType
+                ? _value.teamType
+                : teamType // ignore: cast_nullable_to_non_nullable
+                      as String,
             description: freezed == description
                 ? _value.description
                 : description // ignore: cast_nullable_to_non_nullable
@@ -157,6 +173,10 @@ class _$TeamModelCopyWithImpl<$Res, $Val extends TeamModel>
                 ? _value.leagueName
                 : leagueName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            region: freezed == region
+                ? _value.region
+                : region // ignore: cast_nullable_to_non_nullable
+                      as String?,
             competitionIds: null == competitionIds
                 ? _value.competitionIds
                 : competitionIds // ignore: cast_nullable_to_non_nullable
@@ -164,6 +184,10 @@ class _$TeamModelCopyWithImpl<$Res, $Val extends TeamModel>
             aliases: null == aliases
                 ? _value.aliases
                 : aliases // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            searchTerms: null == searchTerms
+                ? _value.searchTerms
+                : searchTerms // ignore: cast_nullable_to_non_nullable
                       as List<String>,
             logoUrl: freezed == logoUrl
                 ? _value.logoUrl
@@ -185,26 +209,26 @@ class _$TeamModelCopyWithImpl<$Res, $Val extends TeamModel>
                 ? _value.isFeatured
                 : isFeatured // ignore: cast_nullable_to_non_nullable
                       as bool,
-            fetContributionsEnabled: null == fetContributionsEnabled
-                ? _value.fetContributionsEnabled
-                : fetContributionsEnabled // ignore: cast_nullable_to_non_nullable
+            isPopularPick: null == isPopularPick
+                ? _value.isPopularPick
+                : isPopularPick // ignore: cast_nullable_to_non_nullable
                       as bool,
-            fiatContributionsEnabled: null == fiatContributionsEnabled
-                ? _value.fiatContributionsEnabled
-                : fiatContributionsEnabled // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            fiatContributionMode: freezed == fiatContributionMode
-                ? _value.fiatContributionMode
-                : fiatContributionMode // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            fiatContributionLink: freezed == fiatContributionLink
-                ? _value.fiatContributionLink
-                : fiatContributionLink // ignore: cast_nullable_to_non_nullable
-                      as String?,
+            popularPickRank: freezed == popularPickRank
+                ? _value.popularPickRank
+                : popularPickRank // ignore: cast_nullable_to_non_nullable
+                      as int?,
             fanCount: null == fanCount
                 ? _value.fanCount
                 : fanCount // ignore: cast_nullable_to_non_nullable
                       as int,
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            updatedAt: freezed == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
           )
           as $Val,
     );
@@ -224,22 +248,25 @@ abstract class _$$TeamModelImplCopyWith<$Res>
     String id,
     String name,
     @JsonKey(name: 'short_name') String? shortName,
-    String? slug,
     String? country,
+    @JsonKey(name: 'country_code') String? countryCode,
+    @JsonKey(name: 'team_type') String teamType,
     String? description,
     @JsonKey(name: 'league_name') String? leagueName,
+    String? region,
     @JsonKey(name: 'competition_ids') List<String> competitionIds,
     List<String> aliases,
+    @JsonKey(name: 'search_terms') List<String> searchTerms,
     @JsonKey(name: 'logo_url') String? logoUrl,
     @JsonKey(name: 'crest_url') String? crestUrl,
     @JsonKey(name: 'cover_image_url') String? coverImageUrl,
     @JsonKey(name: 'is_active') bool isActive,
     @JsonKey(name: 'is_featured') bool isFeatured,
-    @JsonKey(name: 'fet_contributions_enabled') bool fetContributionsEnabled,
-    @JsonKey(name: 'fiat_contributions_enabled') bool fiatContributionsEnabled,
-    @JsonKey(name: 'fiat_contribution_mode') String? fiatContributionMode,
-    @JsonKey(name: 'fiat_contribution_link') String? fiatContributionLink,
+    @JsonKey(name: 'is_popular_pick') bool isPopularPick,
+    @JsonKey(name: 'popular_pick_rank') int? popularPickRank,
     @JsonKey(name: 'fan_count') int fanCount,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
   });
 }
 
@@ -260,22 +287,25 @@ class __$$TeamModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? name = null,
     Object? shortName = freezed,
-    Object? slug = freezed,
     Object? country = freezed,
+    Object? countryCode = freezed,
+    Object? teamType = null,
     Object? description = freezed,
     Object? leagueName = freezed,
+    Object? region = freezed,
     Object? competitionIds = null,
     Object? aliases = null,
+    Object? searchTerms = null,
     Object? logoUrl = freezed,
     Object? crestUrl = freezed,
     Object? coverImageUrl = freezed,
     Object? isActive = null,
     Object? isFeatured = null,
-    Object? fetContributionsEnabled = null,
-    Object? fiatContributionsEnabled = null,
-    Object? fiatContributionMode = freezed,
-    Object? fiatContributionLink = freezed,
+    Object? isPopularPick = null,
+    Object? popularPickRank = freezed,
     Object? fanCount = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
   }) {
     return _then(
       _$TeamModelImpl(
@@ -291,14 +321,18 @@ class __$$TeamModelImplCopyWithImpl<$Res>
             ? _value.shortName
             : shortName // ignore: cast_nullable_to_non_nullable
                   as String?,
-        slug: freezed == slug
-            ? _value.slug
-            : slug // ignore: cast_nullable_to_non_nullable
-                  as String?,
         country: freezed == country
             ? _value.country
             : country // ignore: cast_nullable_to_non_nullable
                   as String?,
+        countryCode: freezed == countryCode
+            ? _value.countryCode
+            : countryCode // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        teamType: null == teamType
+            ? _value.teamType
+            : teamType // ignore: cast_nullable_to_non_nullable
+                  as String,
         description: freezed == description
             ? _value.description
             : description // ignore: cast_nullable_to_non_nullable
@@ -307,6 +341,10 @@ class __$$TeamModelImplCopyWithImpl<$Res>
             ? _value.leagueName
             : leagueName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        region: freezed == region
+            ? _value.region
+            : region // ignore: cast_nullable_to_non_nullable
+                  as String?,
         competitionIds: null == competitionIds
             ? _value._competitionIds
             : competitionIds // ignore: cast_nullable_to_non_nullable
@@ -314,6 +352,10 @@ class __$$TeamModelImplCopyWithImpl<$Res>
         aliases: null == aliases
             ? _value._aliases
             : aliases // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        searchTerms: null == searchTerms
+            ? _value._searchTerms
+            : searchTerms // ignore: cast_nullable_to_non_nullable
                   as List<String>,
         logoUrl: freezed == logoUrl
             ? _value.logoUrl
@@ -335,26 +377,26 @@ class __$$TeamModelImplCopyWithImpl<$Res>
             ? _value.isFeatured
             : isFeatured // ignore: cast_nullable_to_non_nullable
                   as bool,
-        fetContributionsEnabled: null == fetContributionsEnabled
-            ? _value.fetContributionsEnabled
-            : fetContributionsEnabled // ignore: cast_nullable_to_non_nullable
+        isPopularPick: null == isPopularPick
+            ? _value.isPopularPick
+            : isPopularPick // ignore: cast_nullable_to_non_nullable
                   as bool,
-        fiatContributionsEnabled: null == fiatContributionsEnabled
-            ? _value.fiatContributionsEnabled
-            : fiatContributionsEnabled // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        fiatContributionMode: freezed == fiatContributionMode
-            ? _value.fiatContributionMode
-            : fiatContributionMode // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        fiatContributionLink: freezed == fiatContributionLink
-            ? _value.fiatContributionLink
-            : fiatContributionLink // ignore: cast_nullable_to_non_nullable
-                  as String?,
+        popularPickRank: freezed == popularPickRank
+            ? _value.popularPickRank
+            : popularPickRank // ignore: cast_nullable_to_non_nullable
+                  as int?,
         fanCount: null == fanCount
             ? _value.fanCount
             : fanCount // ignore: cast_nullable_to_non_nullable
                   as int,
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        updatedAt: freezed == updatedAt
+            ? _value.updatedAt
+            : updatedAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
       ),
     );
   }
@@ -367,27 +409,29 @@ class _$TeamModelImpl implements _TeamModel {
     required this.id,
     required this.name,
     @JsonKey(name: 'short_name') this.shortName,
-    this.slug,
     this.country,
+    @JsonKey(name: 'country_code') this.countryCode,
+    @JsonKey(name: 'team_type') this.teamType = 'club',
     this.description,
     @JsonKey(name: 'league_name') this.leagueName,
+    this.region,
     @JsonKey(name: 'competition_ids')
     final List<String> competitionIds = const [],
     final List<String> aliases = const [],
+    @JsonKey(name: 'search_terms') final List<String> searchTerms = const [],
     @JsonKey(name: 'logo_url') this.logoUrl,
     @JsonKey(name: 'crest_url') this.crestUrl,
     @JsonKey(name: 'cover_image_url') this.coverImageUrl,
     @JsonKey(name: 'is_active') this.isActive = true,
     @JsonKey(name: 'is_featured') this.isFeatured = false,
-    @JsonKey(name: 'fet_contributions_enabled')
-    this.fetContributionsEnabled = false,
-    @JsonKey(name: 'fiat_contributions_enabled')
-    this.fiatContributionsEnabled = false,
-    @JsonKey(name: 'fiat_contribution_mode') this.fiatContributionMode,
-    @JsonKey(name: 'fiat_contribution_link') this.fiatContributionLink,
+    @JsonKey(name: 'is_popular_pick') this.isPopularPick = false,
+    @JsonKey(name: 'popular_pick_rank') this.popularPickRank,
     @JsonKey(name: 'fan_count') this.fanCount = 0,
+    @JsonKey(name: 'created_at') this.createdAt,
+    @JsonKey(name: 'updated_at') this.updatedAt,
   }) : _competitionIds = competitionIds,
-       _aliases = aliases;
+       _aliases = aliases,
+       _searchTerms = searchTerms;
 
   factory _$TeamModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$TeamModelImplFromJson(json);
@@ -400,14 +444,20 @@ class _$TeamModelImpl implements _TeamModel {
   @JsonKey(name: 'short_name')
   final String? shortName;
   @override
-  final String? slug;
-  @override
   final String? country;
+  @override
+  @JsonKey(name: 'country_code')
+  final String? countryCode;
+  @override
+  @JsonKey(name: 'team_type')
+  final String teamType;
   @override
   final String? description;
   @override
   @JsonKey(name: 'league_name')
   final String? leagueName;
+  @override
+  final String? region;
   final List<String> _competitionIds;
   @override
   @JsonKey(name: 'competition_ids')
@@ -426,6 +476,15 @@ class _$TeamModelImpl implements _TeamModel {
     return EqualUnmodifiableListView(_aliases);
   }
 
+  final List<String> _searchTerms;
+  @override
+  @JsonKey(name: 'search_terms')
+  List<String> get searchTerms {
+    if (_searchTerms is EqualUnmodifiableListView) return _searchTerms;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_searchTerms);
+  }
+
   @override
   @JsonKey(name: 'logo_url')
   final String? logoUrl;
@@ -442,24 +501,24 @@ class _$TeamModelImpl implements _TeamModel {
   @JsonKey(name: 'is_featured')
   final bool isFeatured;
   @override
-  @JsonKey(name: 'fet_contributions_enabled')
-  final bool fetContributionsEnabled;
+  @JsonKey(name: 'is_popular_pick')
+  final bool isPopularPick;
   @override
-  @JsonKey(name: 'fiat_contributions_enabled')
-  final bool fiatContributionsEnabled;
-  @override
-  @JsonKey(name: 'fiat_contribution_mode')
-  final String? fiatContributionMode;
-  @override
-  @JsonKey(name: 'fiat_contribution_link')
-  final String? fiatContributionLink;
+  @JsonKey(name: 'popular_pick_rank')
+  final int? popularPickRank;
   @override
   @JsonKey(name: 'fan_count')
   final int fanCount;
+  @override
+  @JsonKey(name: 'created_at')
+  final DateTime? createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  final DateTime? updatedAt;
 
   @override
   String toString() {
-    return 'TeamModel(id: $id, name: $name, shortName: $shortName, slug: $slug, country: $country, description: $description, leagueName: $leagueName, competitionIds: $competitionIds, aliases: $aliases, logoUrl: $logoUrl, crestUrl: $crestUrl, coverImageUrl: $coverImageUrl, isActive: $isActive, isFeatured: $isFeatured, fetContributionsEnabled: $fetContributionsEnabled, fiatContributionsEnabled: $fiatContributionsEnabled, fiatContributionMode: $fiatContributionMode, fiatContributionLink: $fiatContributionLink, fanCount: $fanCount)';
+    return 'TeamModel(id: $id, name: $name, shortName: $shortName, country: $country, countryCode: $countryCode, teamType: $teamType, description: $description, leagueName: $leagueName, region: $region, competitionIds: $competitionIds, aliases: $aliases, searchTerms: $searchTerms, logoUrl: $logoUrl, crestUrl: $crestUrl, coverImageUrl: $coverImageUrl, isActive: $isActive, isFeatured: $isFeatured, isPopularPick: $isPopularPick, popularPickRank: $popularPickRank, fanCount: $fanCount, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -471,17 +530,25 @@ class _$TeamModelImpl implements _TeamModel {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.shortName, shortName) ||
                 other.shortName == shortName) &&
-            (identical(other.slug, slug) || other.slug == slug) &&
             (identical(other.country, country) || other.country == country) &&
+            (identical(other.countryCode, countryCode) ||
+                other.countryCode == countryCode) &&
+            (identical(other.teamType, teamType) ||
+                other.teamType == teamType) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.leagueName, leagueName) ||
                 other.leagueName == leagueName) &&
+            (identical(other.region, region) || other.region == region) &&
             const DeepCollectionEquality().equals(
               other._competitionIds,
               _competitionIds,
             ) &&
             const DeepCollectionEquality().equals(other._aliases, _aliases) &&
+            const DeepCollectionEquality().equals(
+              other._searchTerms,
+              _searchTerms,
+            ) &&
             (identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl) &&
             (identical(other.crestUrl, crestUrl) ||
                 other.crestUrl == crestUrl) &&
@@ -491,22 +558,16 @@ class _$TeamModelImpl implements _TeamModel {
                 other.isActive == isActive) &&
             (identical(other.isFeatured, isFeatured) ||
                 other.isFeatured == isFeatured) &&
-            (identical(
-                  other.fetContributionsEnabled,
-                  fetContributionsEnabled,
-                ) ||
-                other.fetContributionsEnabled == fetContributionsEnabled) &&
-            (identical(
-                  other.fiatContributionsEnabled,
-                  fiatContributionsEnabled,
-                ) ||
-                other.fiatContributionsEnabled == fiatContributionsEnabled) &&
-            (identical(other.fiatContributionMode, fiatContributionMode) ||
-                other.fiatContributionMode == fiatContributionMode) &&
-            (identical(other.fiatContributionLink, fiatContributionLink) ||
-                other.fiatContributionLink == fiatContributionLink) &&
+            (identical(other.isPopularPick, isPopularPick) ||
+                other.isPopularPick == isPopularPick) &&
+            (identical(other.popularPickRank, popularPickRank) ||
+                other.popularPickRank == popularPickRank) &&
             (identical(other.fanCount, fanCount) ||
-                other.fanCount == fanCount));
+                other.fanCount == fanCount) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -516,22 +577,25 @@ class _$TeamModelImpl implements _TeamModel {
     id,
     name,
     shortName,
-    slug,
     country,
+    countryCode,
+    teamType,
     description,
     leagueName,
+    region,
     const DeepCollectionEquality().hash(_competitionIds),
     const DeepCollectionEquality().hash(_aliases),
+    const DeepCollectionEquality().hash(_searchTerms),
     logoUrl,
     crestUrl,
     coverImageUrl,
     isActive,
     isFeatured,
-    fetContributionsEnabled,
-    fiatContributionsEnabled,
-    fiatContributionMode,
-    fiatContributionLink,
+    isPopularPick,
+    popularPickRank,
     fanCount,
+    createdAt,
+    updatedAt,
   ]);
 
   /// Create a copy of TeamModel
@@ -553,24 +617,25 @@ abstract class _TeamModel implements TeamModel {
     required final String id,
     required final String name,
     @JsonKey(name: 'short_name') final String? shortName,
-    final String? slug,
     final String? country,
+    @JsonKey(name: 'country_code') final String? countryCode,
+    @JsonKey(name: 'team_type') final String teamType,
     final String? description,
     @JsonKey(name: 'league_name') final String? leagueName,
+    final String? region,
     @JsonKey(name: 'competition_ids') final List<String> competitionIds,
     final List<String> aliases,
+    @JsonKey(name: 'search_terms') final List<String> searchTerms,
     @JsonKey(name: 'logo_url') final String? logoUrl,
     @JsonKey(name: 'crest_url') final String? crestUrl,
     @JsonKey(name: 'cover_image_url') final String? coverImageUrl,
     @JsonKey(name: 'is_active') final bool isActive,
     @JsonKey(name: 'is_featured') final bool isFeatured,
-    @JsonKey(name: 'fet_contributions_enabled')
-    final bool fetContributionsEnabled,
-    @JsonKey(name: 'fiat_contributions_enabled')
-    final bool fiatContributionsEnabled,
-    @JsonKey(name: 'fiat_contribution_mode') final String? fiatContributionMode,
-    @JsonKey(name: 'fiat_contribution_link') final String? fiatContributionLink,
+    @JsonKey(name: 'is_popular_pick') final bool isPopularPick,
+    @JsonKey(name: 'popular_pick_rank') final int? popularPickRank,
     @JsonKey(name: 'fan_count') final int fanCount,
+    @JsonKey(name: 'created_at') final DateTime? createdAt,
+    @JsonKey(name: 'updated_at') final DateTime? updatedAt,
   }) = _$TeamModelImpl;
 
   factory _TeamModel.fromJson(Map<String, dynamic> json) =
@@ -584,19 +649,28 @@ abstract class _TeamModel implements TeamModel {
   @JsonKey(name: 'short_name')
   String? get shortName;
   @override
-  String? get slug;
-  @override
   String? get country;
+  @override
+  @JsonKey(name: 'country_code')
+  String? get countryCode;
+  @override
+  @JsonKey(name: 'team_type')
+  String get teamType;
   @override
   String? get description;
   @override
   @JsonKey(name: 'league_name')
   String? get leagueName;
   @override
+  String? get region;
+  @override
   @JsonKey(name: 'competition_ids')
   List<String> get competitionIds;
   @override
   List<String> get aliases;
+  @override
+  @JsonKey(name: 'search_terms')
+  List<String> get searchTerms;
   @override
   @JsonKey(name: 'logo_url')
   String? get logoUrl;
@@ -613,20 +687,20 @@ abstract class _TeamModel implements TeamModel {
   @JsonKey(name: 'is_featured')
   bool get isFeatured;
   @override
-  @JsonKey(name: 'fet_contributions_enabled')
-  bool get fetContributionsEnabled;
+  @JsonKey(name: 'is_popular_pick')
+  bool get isPopularPick;
   @override
-  @JsonKey(name: 'fiat_contributions_enabled')
-  bool get fiatContributionsEnabled;
-  @override
-  @JsonKey(name: 'fiat_contribution_mode')
-  String? get fiatContributionMode;
-  @override
-  @JsonKey(name: 'fiat_contribution_link')
-  String? get fiatContributionLink;
+  @JsonKey(name: 'popular_pick_rank')
+  int? get popularPickRank;
   @override
   @JsonKey(name: 'fan_count')
   int get fanCount;
+  @override
+  @JsonKey(name: 'created_at')
+  DateTime? get createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  DateTime? get updatedAt;
 
   /// Create a copy of TeamModel
   /// with the given fields replaced by the non-null parameter values.

@@ -6,11 +6,11 @@ export '../features/onboarding/data/team_search_catalog.dart'
 
 /// Global team search singleton — resolved once at startup.
 /// The onboarding gateway uses the injected catalog internally.
-TeamSearchCatalog? _catalog = TeamSearchCatalog.defaults();
+TeamSearchCatalog? _catalog = TeamSearchCatalog.empty();
 OnboardingGateway? _gateway;
 
 TeamSearchCatalog get activeTeamSearchCatalog =>
-    _catalog ?? TeamSearchCatalog.defaults();
+    _catalog ?? TeamSearchCatalog.empty();
 
 /// Called during app startup (from gateway_providers.dart resolveAsyncOverrides).
 void initTeamSearchDatabase({

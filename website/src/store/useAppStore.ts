@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ScorePool, PoolEntry } from '../types';
-import { mockScorePools, mockPoolEntries } from '../lib/mockData';
 
 export interface Prediction {
   id: string;
@@ -14,7 +12,7 @@ export interface Prediction {
 
 export interface AppNotification {
   id: string;
-  type: 'pool_received' | 'pool_settled' | 'system' | 'transfer';
+  type: 'prediction_update' | 'prediction_reward' | 'system' | 'transfer';
   title: string;
   message: string;
   timestamp: number;
@@ -49,7 +47,17 @@ interface AppState {
   setHasSeenSplash: () => void;
   completeOnboarding: () => void;
   addFavoriteTeam: (team: string) => void;
+  setFavoriteTeams: (teams: string[]) => void;
   setProfileTeam: (team: string | null) => void;
+  hydrateViewerState: (payload: {
+    fanId?: string;
+    isVerified?: boolean;
+    favoriteTeams?: string[];
+    profileTeam?: string | null;
+    fetBalance?: number;
+    walletTransactions?: WalletTransaction[];
+    notifications?: AppNotification[];
+  }) => void;
 
   // User State
   fetBalance: number;
@@ -58,16 +66,6 @@ interface AppState {
   deductFet: (amount: number) => void;
   transferFET: (recipient: string, amount: number) => { success: boolean; error?: string };
 
-  // Prediction Slip State
-  slip: Prediction[];
-  isSlipOpen: boolean;
-  toggleSlip: () => void;
-  openSlip: () => void;
-  closeSlip: () => void;
-  addPrediction: (prediction: Prediction) => void;
-  removePrediction: (id: string) => void;
-  clearSlip: () => void;
-
   // Notifications State
   notifications: AppNotification[];
   unreadCount: number;
@@ -75,11 +73,6 @@ interface AppState {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
 
-  // Pools State
-  scorePools: ScorePool[];
-  poolEntries: PoolEntry[];
-  createPool: (pool: ScorePool, entry: PoolEntry) => void;
-  joinPool: (entry: PoolEntry) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -112,7 +105,42 @@ export const useAppStore = create<AppState>()(
         }
         return state;
       }),
+      setFavoriteTeams: (teams) => set((state) => {
+        const uniqueTeams = [...new Set(teams.map((team) => team.trim()).filter(Boolean))];
+        return {
+          favoriteTeams: uniqueTeams,
+          profileTeam:
+            state.profileTeam && uniqueTeams.includes(state.profileTeam)
+              ? state.profileTeam
+              : uniqueTeams[0] ?? state.profileTeam,
+        };
+      }),
       setProfileTeam: (team) => set({ profileTeam: team }),
+      hydrateViewerState: (payload) =>
+        set((state) => {
+          const nextNotifications = payload.notifications ?? state.notifications;
+          const nextFavoriteTeams =
+            payload.favoriteTeams && payload.favoriteTeams.length > 0
+              ? [...new Set(payload.favoriteTeams)]
+              : state.favoriteTeams;
+
+          return {
+            fanId: payload.fanId ?? state.fanId,
+            isVerified: payload.isVerified ?? state.isVerified,
+            favoriteTeams: nextFavoriteTeams,
+            profileTeam:
+              payload.profileTeam ??
+              state.profileTeam ??
+              nextFavoriteTeams[0] ??
+              null,
+            fetBalance: payload.fetBalance ?? state.fetBalance,
+            walletTransactions:
+              payload.walletTransactions ?? state.walletTransactions,
+            notifications: nextNotifications,
+            unreadCount: nextNotifications.filter((notification) => !notification.read)
+              .length,
+          };
+        }),
 
       // Initial User State
       fetBalance: 4205, // Adjusted to account for new mock transactions calculations
@@ -188,27 +216,6 @@ export const useAppStore = create<AppState>()(
         return { success: true };
       },
 
-      // Initial Slip State
-      slip: [],
-      isSlipOpen: false,
-      toggleSlip: () => set((state) => ({ isSlipOpen: !state.isSlipOpen })),
-      openSlip: () => set({ isSlipOpen: true }),
-      closeSlip: () => set({ isSlipOpen: false }),
-      addPrediction: (prediction) => set((state) => {
-        const existingIndex = state.slip.findIndex(p => p.matchId === prediction.matchId && p.market === prediction.market);
-        if (existingIndex >= 0) {
-          const newSlip = [...state.slip];
-          newSlip[existingIndex] = prediction;
-          return { slip: newSlip, isSlipOpen: true };
-        }
-        return { slip: [...state.slip, prediction], isSlipOpen: true };
-      }),
-      removePrediction: (id) => set((state) => ({
-        slip: state.slip.filter((p) => p.id !== id),
-        isSlipOpen: state.slip.length - 1 > 0 ? state.isSlipOpen : false
-      })),
-      clearSlip: () => set({ slip: [], isSlipOpen: false }),
-
       // Notifications State
       notifications: [
         {
@@ -247,54 +254,6 @@ export const useAppStore = create<AppState>()(
         unreadCount: 0
       })),
 
-      // Pool State
-      scorePools: mockScorePools,
-      poolEntries: mockPoolEntries,
-      createPool: (pool, entry) => set((state) => {
-        const newTx: WalletTransaction = {
-          id: Math.random().toString(36).substring(7),
-          title: `Stake: ${pool.matchName}`,
-          amount: pool.stake,
-          type: 'spend',
-          timestamp: Date.now(),
-          dateStr: 'Just now'
-        };
-        return {
-          scorePools: [pool, ...state.scorePools],
-          poolEntries: [entry, ...state.poolEntries],
-          fetBalance: state.fetBalance - pool.stake,
-          walletTransactions: [newTx, ...state.walletTransactions]
-        };
-      }),
-      joinPool: (entry) => set((state) => {
-        const poolIndex = state.scorePools.findIndex(c => c.id === entry.poolId);
-        if (poolIndex === -1) return state;
-
-        const newPools = [...state.scorePools];
-        const pool = newPools[poolIndex];
-        
-        newPools[poolIndex] = {
-          ...pool,
-          totalPool: pool.totalPool + entry.stake,
-          participantsCount: pool.participantsCount + 1
-        };
-
-        const newTx: WalletTransaction = {
-          id: Math.random().toString(36).substring(7),
-          title: `Pool Joined: ${pool.matchName}`,
-          amount: entry.stake,
-          type: 'spend',
-          timestamp: Date.now(),
-          dateStr: 'Just now'
-        };
-
-        return {
-          scorePools: newPools,
-          poolEntries: [...state.poolEntries, entry],
-          fetBalance: state.fetBalance - entry.stake,
-          walletTransactions: [newTx, ...state.walletTransactions]
-        };
-      }),
     }),
     {
       name: 'fanzone-storage',
@@ -305,8 +264,6 @@ export const useAppStore = create<AppState>()(
         isVerified: state.isVerified,
         fetBalance: state.fetBalance,
         walletTransactions: state.walletTransactions,
-        scorePools: state.scorePools,
-        poolEntries: state.poolEntries,
       }),
     }
   )

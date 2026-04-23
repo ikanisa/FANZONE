@@ -26,7 +26,9 @@ mixin _$NotificationItem {
   String get title => throw _privateConstructorUsedError;
   String get body => throw _privateConstructorUsedError;
   Map<String, dynamic> get data => throw _privateConstructorUsedError;
+  @JsonKey(name: 'sent_at')
   DateTime get sentAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'read_at')
   DateTime? get readAt => throw _privateConstructorUsedError;
 
   /// Serializes this NotificationItem to a JSON map.
@@ -52,8 +54,8 @@ abstract class $NotificationItemCopyWith<$Res> {
     String title,
     String body,
     Map<String, dynamic> data,
-    DateTime sentAt,
-    DateTime? readAt,
+    @JsonKey(name: 'sent_at') DateTime sentAt,
+    @JsonKey(name: 'read_at') DateTime? readAt,
   });
 }
 
@@ -131,8 +133,8 @@ abstract class _$$NotificationItemImplCopyWith<$Res>
     String title,
     String body,
     Map<String, dynamic> data,
-    DateTime sentAt,
-    DateTime? readAt,
+    @JsonKey(name: 'sent_at') DateTime sentAt,
+    @JsonKey(name: 'read_at') DateTime? readAt,
   });
 }
 
@@ -202,8 +204,8 @@ class _$NotificationItemImpl implements _NotificationItem {
     required this.title,
     this.body = '',
     final Map<String, dynamic> data = const {},
-    required this.sentAt,
-    this.readAt,
+    @JsonKey(name: 'sent_at') required this.sentAt,
+    @JsonKey(name: 'read_at') this.readAt,
   }) : _data = data;
 
   factory _$NotificationItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -228,8 +230,10 @@ class _$NotificationItemImpl implements _NotificationItem {
   }
 
   @override
+  @JsonKey(name: 'sent_at')
   final DateTime sentAt;
   @override
+  @JsonKey(name: 'read_at')
   final DateTime? readAt;
 
   @override
@@ -288,8 +292,8 @@ abstract class _NotificationItem implements NotificationItem {
     required final String title,
     final String body,
     final Map<String, dynamic> data,
-    required final DateTime sentAt,
-    final DateTime? readAt,
+    @JsonKey(name: 'sent_at') required final DateTime sentAt,
+    @JsonKey(name: 'read_at') final DateTime? readAt,
   }) = _$NotificationItemImpl;
 
   factory _NotificationItem.fromJson(Map<String, dynamic> json) =
@@ -306,8 +310,10 @@ abstract class _NotificationItem implements NotificationItem {
   @override
   Map<String, dynamic> get data;
   @override
+  @JsonKey(name: 'sent_at')
   DateTime get sentAt;
   @override
+  @JsonKey(name: 'read_at')
   DateTime? get readAt;
 
   /// Create a copy of NotificationItem
@@ -326,11 +332,13 @@ NotificationPreferences _$NotificationPreferencesFromJson(
 
 /// @nodoc
 mixin _$NotificationPreferences {
+  @JsonKey(name: 'goal_alerts')
   bool get goalAlerts => throw _privateConstructorUsedError;
-  bool get poolUpdates => throw _privateConstructorUsedError;
-  bool get dailyChallenge => throw _privateConstructorUsedError;
-  bool get walletActivity => throw _privateConstructorUsedError;
-  bool get communityNews => throw _privateConstructorUsedError;
+  @JsonKey(name: 'prediction_updates')
+  bool get predictionUpdates => throw _privateConstructorUsedError;
+  @JsonKey(name: 'reward_updates')
+  bool get rewardUpdates => throw _privateConstructorUsedError;
+  @JsonKey(name: 'marketing')
   bool get marketing => throw _privateConstructorUsedError;
 
   /// Serializes this NotificationPreferences to a JSON map.
@@ -351,12 +359,10 @@ abstract class $NotificationPreferencesCopyWith<$Res> {
   ) = _$NotificationPreferencesCopyWithImpl<$Res, NotificationPreferences>;
   @useResult
   $Res call({
-    bool goalAlerts,
-    bool poolUpdates,
-    bool dailyChallenge,
-    bool walletActivity,
-    bool communityNews,
-    bool marketing,
+    @JsonKey(name: 'goal_alerts') bool goalAlerts,
+    @JsonKey(name: 'prediction_updates') bool predictionUpdates,
+    @JsonKey(name: 'reward_updates') bool rewardUpdates,
+    @JsonKey(name: 'marketing') bool marketing,
   });
 }
 
@@ -379,10 +385,8 @@ class _$NotificationPreferencesCopyWithImpl<
   @override
   $Res call({
     Object? goalAlerts = null,
-    Object? poolUpdates = null,
-    Object? dailyChallenge = null,
-    Object? walletActivity = null,
-    Object? communityNews = null,
+    Object? predictionUpdates = null,
+    Object? rewardUpdates = null,
     Object? marketing = null,
   }) {
     return _then(
@@ -391,21 +395,13 @@ class _$NotificationPreferencesCopyWithImpl<
                 ? _value.goalAlerts
                 : goalAlerts // ignore: cast_nullable_to_non_nullable
                       as bool,
-            poolUpdates: null == poolUpdates
-                ? _value.poolUpdates
-                : poolUpdates // ignore: cast_nullable_to_non_nullable
+            predictionUpdates: null == predictionUpdates
+                ? _value.predictionUpdates
+                : predictionUpdates // ignore: cast_nullable_to_non_nullable
                       as bool,
-            dailyChallenge: null == dailyChallenge
-                ? _value.dailyChallenge
-                : dailyChallenge // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            walletActivity: null == walletActivity
-                ? _value.walletActivity
-                : walletActivity // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            communityNews: null == communityNews
-                ? _value.communityNews
-                : communityNews // ignore: cast_nullable_to_non_nullable
+            rewardUpdates: null == rewardUpdates
+                ? _value.rewardUpdates
+                : rewardUpdates // ignore: cast_nullable_to_non_nullable
                       as bool,
             marketing: null == marketing
                 ? _value.marketing
@@ -427,12 +423,10 @@ abstract class _$$NotificationPreferencesImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    bool goalAlerts,
-    bool poolUpdates,
-    bool dailyChallenge,
-    bool walletActivity,
-    bool communityNews,
-    bool marketing,
+    @JsonKey(name: 'goal_alerts') bool goalAlerts,
+    @JsonKey(name: 'prediction_updates') bool predictionUpdates,
+    @JsonKey(name: 'reward_updates') bool rewardUpdates,
+    @JsonKey(name: 'marketing') bool marketing,
   });
 }
 
@@ -455,10 +449,8 @@ class __$$NotificationPreferencesImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? goalAlerts = null,
-    Object? poolUpdates = null,
-    Object? dailyChallenge = null,
-    Object? walletActivity = null,
-    Object? communityNews = null,
+    Object? predictionUpdates = null,
+    Object? rewardUpdates = null,
     Object? marketing = null,
   }) {
     return _then(
@@ -467,21 +459,13 @@ class __$$NotificationPreferencesImplCopyWithImpl<$Res>
             ? _value.goalAlerts
             : goalAlerts // ignore: cast_nullable_to_non_nullable
                   as bool,
-        poolUpdates: null == poolUpdates
-            ? _value.poolUpdates
-            : poolUpdates // ignore: cast_nullable_to_non_nullable
+        predictionUpdates: null == predictionUpdates
+            ? _value.predictionUpdates
+            : predictionUpdates // ignore: cast_nullable_to_non_nullable
                   as bool,
-        dailyChallenge: null == dailyChallenge
-            ? _value.dailyChallenge
-            : dailyChallenge // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        walletActivity: null == walletActivity
-            ? _value.walletActivity
-            : walletActivity // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        communityNews: null == communityNews
-            ? _value.communityNews
-            : communityNews // ignore: cast_nullable_to_non_nullable
+        rewardUpdates: null == rewardUpdates
+            ? _value.rewardUpdates
+            : rewardUpdates // ignore: cast_nullable_to_non_nullable
                   as bool,
         marketing: null == marketing
             ? _value.marketing
@@ -496,39 +480,31 @@ class __$$NotificationPreferencesImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$NotificationPreferencesImpl implements _NotificationPreferences {
   const _$NotificationPreferencesImpl({
-    this.goalAlerts = true,
-    this.poolUpdates = true,
-    this.dailyChallenge = true,
-    this.walletActivity = true,
-    this.communityNews = true,
-    this.marketing = false,
+    @JsonKey(name: 'goal_alerts') this.goalAlerts = true,
+    @JsonKey(name: 'prediction_updates') this.predictionUpdates = true,
+    @JsonKey(name: 'reward_updates') this.rewardUpdates = true,
+    @JsonKey(name: 'marketing') this.marketing = false,
   });
 
   factory _$NotificationPreferencesImpl.fromJson(Map<String, dynamic> json) =>
       _$$NotificationPreferencesImplFromJson(json);
 
   @override
-  @JsonKey()
+  @JsonKey(name: 'goal_alerts')
   final bool goalAlerts;
   @override
-  @JsonKey()
-  final bool poolUpdates;
+  @JsonKey(name: 'prediction_updates')
+  final bool predictionUpdates;
   @override
-  @JsonKey()
-  final bool dailyChallenge;
+  @JsonKey(name: 'reward_updates')
+  final bool rewardUpdates;
   @override
-  @JsonKey()
-  final bool walletActivity;
-  @override
-  @JsonKey()
-  final bool communityNews;
-  @override
-  @JsonKey()
+  @JsonKey(name: 'marketing')
   final bool marketing;
 
   @override
   String toString() {
-    return 'NotificationPreferences(goalAlerts: $goalAlerts, poolUpdates: $poolUpdates, dailyChallenge: $dailyChallenge, walletActivity: $walletActivity, communityNews: $communityNews, marketing: $marketing)';
+    return 'NotificationPreferences(goalAlerts: $goalAlerts, predictionUpdates: $predictionUpdates, rewardUpdates: $rewardUpdates, marketing: $marketing)';
   }
 
   @override
@@ -538,14 +514,10 @@ class _$NotificationPreferencesImpl implements _NotificationPreferences {
             other is _$NotificationPreferencesImpl &&
             (identical(other.goalAlerts, goalAlerts) ||
                 other.goalAlerts == goalAlerts) &&
-            (identical(other.poolUpdates, poolUpdates) ||
-                other.poolUpdates == poolUpdates) &&
-            (identical(other.dailyChallenge, dailyChallenge) ||
-                other.dailyChallenge == dailyChallenge) &&
-            (identical(other.walletActivity, walletActivity) ||
-                other.walletActivity == walletActivity) &&
-            (identical(other.communityNews, communityNews) ||
-                other.communityNews == communityNews) &&
+            (identical(other.predictionUpdates, predictionUpdates) ||
+                other.predictionUpdates == predictionUpdates) &&
+            (identical(other.rewardUpdates, rewardUpdates) ||
+                other.rewardUpdates == rewardUpdates) &&
             (identical(other.marketing, marketing) ||
                 other.marketing == marketing));
   }
@@ -555,10 +527,8 @@ class _$NotificationPreferencesImpl implements _NotificationPreferences {
   int get hashCode => Object.hash(
     runtimeType,
     goalAlerts,
-    poolUpdates,
-    dailyChallenge,
-    walletActivity,
-    communityNews,
+    predictionUpdates,
+    rewardUpdates,
     marketing,
   );
 
@@ -581,28 +551,26 @@ class _$NotificationPreferencesImpl implements _NotificationPreferences {
 
 abstract class _NotificationPreferences implements NotificationPreferences {
   const factory _NotificationPreferences({
-    final bool goalAlerts,
-    final bool poolUpdates,
-    final bool dailyChallenge,
-    final bool walletActivity,
-    final bool communityNews,
-    final bool marketing,
+    @JsonKey(name: 'goal_alerts') final bool goalAlerts,
+    @JsonKey(name: 'prediction_updates') final bool predictionUpdates,
+    @JsonKey(name: 'reward_updates') final bool rewardUpdates,
+    @JsonKey(name: 'marketing') final bool marketing,
   }) = _$NotificationPreferencesImpl;
 
   factory _NotificationPreferences.fromJson(Map<String, dynamic> json) =
       _$NotificationPreferencesImpl.fromJson;
 
   @override
+  @JsonKey(name: 'goal_alerts')
   bool get goalAlerts;
   @override
-  bool get poolUpdates;
+  @JsonKey(name: 'prediction_updates')
+  bool get predictionUpdates;
   @override
-  bool get dailyChallenge;
+  @JsonKey(name: 'reward_updates')
+  bool get rewardUpdates;
   @override
-  bool get walletActivity;
-  @override
-  bool get communityNews;
-  @override
+  @JsonKey(name: 'marketing')
   bool get marketing;
 
   /// Create a copy of NotificationPreferences
@@ -619,12 +587,17 @@ UserStats _$UserStatsFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$UserStats {
+  @JsonKey(name: 'prediction_streak')
   int get predictionStreak => throw _privateConstructorUsedError;
+  @JsonKey(name: 'longest_streak')
   int get longestStreak => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_predictions')
   int get totalPredictions => throw _privateConstructorUsedError;
-  int get totalPoolsEntered => throw _privateConstructorUsedError;
-  int get totalPoolsWon => throw _privateConstructorUsedError;
+  @JsonKey(name: 'correct_predictions')
+  int get correctPredictions => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_fet_earned')
   int get totalFetEarned => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_fet_spent')
   int get totalFetSpent => throw _privateConstructorUsedError;
 
   /// Serializes this UserStats to a JSON map.
@@ -643,13 +616,12 @@ abstract class $UserStatsCopyWith<$Res> {
       _$UserStatsCopyWithImpl<$Res, UserStats>;
   @useResult
   $Res call({
-    int predictionStreak,
-    int longestStreak,
-    int totalPredictions,
-    int totalPoolsEntered,
-    int totalPoolsWon,
-    int totalFetEarned,
-    int totalFetSpent,
+    @JsonKey(name: 'prediction_streak') int predictionStreak,
+    @JsonKey(name: 'longest_streak') int longestStreak,
+    @JsonKey(name: 'total_predictions') int totalPredictions,
+    @JsonKey(name: 'correct_predictions') int correctPredictions,
+    @JsonKey(name: 'total_fet_earned') int totalFetEarned,
+    @JsonKey(name: 'total_fet_spent') int totalFetSpent,
   });
 }
 
@@ -671,8 +643,7 @@ class _$UserStatsCopyWithImpl<$Res, $Val extends UserStats>
     Object? predictionStreak = null,
     Object? longestStreak = null,
     Object? totalPredictions = null,
-    Object? totalPoolsEntered = null,
-    Object? totalPoolsWon = null,
+    Object? correctPredictions = null,
     Object? totalFetEarned = null,
     Object? totalFetSpent = null,
   }) {
@@ -690,13 +661,9 @@ class _$UserStatsCopyWithImpl<$Res, $Val extends UserStats>
                 ? _value.totalPredictions
                 : totalPredictions // ignore: cast_nullable_to_non_nullable
                       as int,
-            totalPoolsEntered: null == totalPoolsEntered
-                ? _value.totalPoolsEntered
-                : totalPoolsEntered // ignore: cast_nullable_to_non_nullable
-                      as int,
-            totalPoolsWon: null == totalPoolsWon
-                ? _value.totalPoolsWon
-                : totalPoolsWon // ignore: cast_nullable_to_non_nullable
+            correctPredictions: null == correctPredictions
+                ? _value.correctPredictions
+                : correctPredictions // ignore: cast_nullable_to_non_nullable
                       as int,
             totalFetEarned: null == totalFetEarned
                 ? _value.totalFetEarned
@@ -722,13 +689,12 @@ abstract class _$$UserStatsImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    int predictionStreak,
-    int longestStreak,
-    int totalPredictions,
-    int totalPoolsEntered,
-    int totalPoolsWon,
-    int totalFetEarned,
-    int totalFetSpent,
+    @JsonKey(name: 'prediction_streak') int predictionStreak,
+    @JsonKey(name: 'longest_streak') int longestStreak,
+    @JsonKey(name: 'total_predictions') int totalPredictions,
+    @JsonKey(name: 'correct_predictions') int correctPredictions,
+    @JsonKey(name: 'total_fet_earned') int totalFetEarned,
+    @JsonKey(name: 'total_fet_spent') int totalFetSpent,
   });
 }
 
@@ -749,8 +715,7 @@ class __$$UserStatsImplCopyWithImpl<$Res>
     Object? predictionStreak = null,
     Object? longestStreak = null,
     Object? totalPredictions = null,
-    Object? totalPoolsEntered = null,
-    Object? totalPoolsWon = null,
+    Object? correctPredictions = null,
     Object? totalFetEarned = null,
     Object? totalFetSpent = null,
   }) {
@@ -768,13 +733,9 @@ class __$$UserStatsImplCopyWithImpl<$Res>
             ? _value.totalPredictions
             : totalPredictions // ignore: cast_nullable_to_non_nullable
                   as int,
-        totalPoolsEntered: null == totalPoolsEntered
-            ? _value.totalPoolsEntered
-            : totalPoolsEntered // ignore: cast_nullable_to_non_nullable
-                  as int,
-        totalPoolsWon: null == totalPoolsWon
-            ? _value.totalPoolsWon
-            : totalPoolsWon // ignore: cast_nullable_to_non_nullable
+        correctPredictions: null == correctPredictions
+            ? _value.correctPredictions
+            : correctPredictions // ignore: cast_nullable_to_non_nullable
                   as int,
         totalFetEarned: null == totalFetEarned
             ? _value.totalFetEarned
@@ -793,43 +754,39 @@ class __$$UserStatsImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$UserStatsImpl implements _UserStats {
   const _$UserStatsImpl({
-    this.predictionStreak = 0,
-    this.longestStreak = 0,
-    this.totalPredictions = 0,
-    this.totalPoolsEntered = 0,
-    this.totalPoolsWon = 0,
-    this.totalFetEarned = 0,
-    this.totalFetSpent = 0,
+    @JsonKey(name: 'prediction_streak') this.predictionStreak = 0,
+    @JsonKey(name: 'longest_streak') this.longestStreak = 0,
+    @JsonKey(name: 'total_predictions') this.totalPredictions = 0,
+    @JsonKey(name: 'correct_predictions') this.correctPredictions = 0,
+    @JsonKey(name: 'total_fet_earned') this.totalFetEarned = 0,
+    @JsonKey(name: 'total_fet_spent') this.totalFetSpent = 0,
   });
 
   factory _$UserStatsImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserStatsImplFromJson(json);
 
   @override
-  @JsonKey()
+  @JsonKey(name: 'prediction_streak')
   final int predictionStreak;
   @override
-  @JsonKey()
+  @JsonKey(name: 'longest_streak')
   final int longestStreak;
   @override
-  @JsonKey()
+  @JsonKey(name: 'total_predictions')
   final int totalPredictions;
   @override
-  @JsonKey()
-  final int totalPoolsEntered;
+  @JsonKey(name: 'correct_predictions')
+  final int correctPredictions;
   @override
-  @JsonKey()
-  final int totalPoolsWon;
-  @override
-  @JsonKey()
+  @JsonKey(name: 'total_fet_earned')
   final int totalFetEarned;
   @override
-  @JsonKey()
+  @JsonKey(name: 'total_fet_spent')
   final int totalFetSpent;
 
   @override
   String toString() {
-    return 'UserStats(predictionStreak: $predictionStreak, longestStreak: $longestStreak, totalPredictions: $totalPredictions, totalPoolsEntered: $totalPoolsEntered, totalPoolsWon: $totalPoolsWon, totalFetEarned: $totalFetEarned, totalFetSpent: $totalFetSpent)';
+    return 'UserStats(predictionStreak: $predictionStreak, longestStreak: $longestStreak, totalPredictions: $totalPredictions, correctPredictions: $correctPredictions, totalFetEarned: $totalFetEarned, totalFetSpent: $totalFetSpent)';
   }
 
   @override
@@ -843,10 +800,8 @@ class _$UserStatsImpl implements _UserStats {
                 other.longestStreak == longestStreak) &&
             (identical(other.totalPredictions, totalPredictions) ||
                 other.totalPredictions == totalPredictions) &&
-            (identical(other.totalPoolsEntered, totalPoolsEntered) ||
-                other.totalPoolsEntered == totalPoolsEntered) &&
-            (identical(other.totalPoolsWon, totalPoolsWon) ||
-                other.totalPoolsWon == totalPoolsWon) &&
+            (identical(other.correctPredictions, correctPredictions) ||
+                other.correctPredictions == correctPredictions) &&
             (identical(other.totalFetEarned, totalFetEarned) ||
                 other.totalFetEarned == totalFetEarned) &&
             (identical(other.totalFetSpent, totalFetSpent) ||
@@ -860,8 +815,7 @@ class _$UserStatsImpl implements _UserStats {
     predictionStreak,
     longestStreak,
     totalPredictions,
-    totalPoolsEntered,
-    totalPoolsWon,
+    correctPredictions,
     totalFetEarned,
     totalFetSpent,
   );
@@ -882,31 +836,34 @@ class _$UserStatsImpl implements _UserStats {
 
 abstract class _UserStats implements UserStats {
   const factory _UserStats({
-    final int predictionStreak,
-    final int longestStreak,
-    final int totalPredictions,
-    final int totalPoolsEntered,
-    final int totalPoolsWon,
-    final int totalFetEarned,
-    final int totalFetSpent,
+    @JsonKey(name: 'prediction_streak') final int predictionStreak,
+    @JsonKey(name: 'longest_streak') final int longestStreak,
+    @JsonKey(name: 'total_predictions') final int totalPredictions,
+    @JsonKey(name: 'correct_predictions') final int correctPredictions,
+    @JsonKey(name: 'total_fet_earned') final int totalFetEarned,
+    @JsonKey(name: 'total_fet_spent') final int totalFetSpent,
   }) = _$UserStatsImpl;
 
   factory _UserStats.fromJson(Map<String, dynamic> json) =
       _$UserStatsImpl.fromJson;
 
   @override
+  @JsonKey(name: 'prediction_streak')
   int get predictionStreak;
   @override
+  @JsonKey(name: 'longest_streak')
   int get longestStreak;
   @override
+  @JsonKey(name: 'total_predictions')
   int get totalPredictions;
   @override
-  int get totalPoolsEntered;
+  @JsonKey(name: 'correct_predictions')
+  int get correctPredictions;
   @override
-  int get totalPoolsWon;
-  @override
+  @JsonKey(name: 'total_fet_earned')
   int get totalFetEarned;
   @override
+  @JsonKey(name: 'total_fet_spent')
   int get totalFetSpent;
 
   /// Create a copy of UserStats

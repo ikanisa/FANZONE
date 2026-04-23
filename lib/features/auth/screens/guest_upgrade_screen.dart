@@ -9,6 +9,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/constants/phone_presets.dart';
+import '../../../core/utils/phone_country_catalog.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
@@ -62,15 +63,7 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
   }
 
   PhonePreset get _phonePreset {
-    final localeCountry = WidgetsBinding
-        .instance
-        .platformDispatcher
-        .locale
-        .countryCode
-        ?.toUpperCase();
-    final preset = phonePresetForCountry(localeCountry);
-    if (preset != null) return preset;
-    return phonePresetForRegion('europe');
+    return preferredPhoneCountry().preset;
   }
 
   String get _dialCode => _phonePreset.dialCode;

@@ -107,9 +107,6 @@ class SEn extends S {
   String get predictTitle => 'Predict';
 
   @override
-  String get predictSlip => 'Prediction Slip';
-
-  @override
   String get predictMatchResult => 'Match Result';
 
   @override
@@ -138,69 +135,6 @@ class SEn extends S {
   @override
   String predictMarketAway(String team) {
     return '$team to Win';
-  }
-
-  @override
-  String get poolTitle => 'POOL';
-
-  @override
-  String get poolStatus => 'Status';
-
-  @override
-  String get poolLockTime => 'LOCK TIME';
-
-  @override
-  String get poolStake => 'STAKE';
-
-  @override
-  String get poolTotalPool => 'TOTAL POOL';
-
-  @override
-  String get poolParticipants => 'PARTICIPANTS';
-
-  @override
-  String get poolCreatedBy => 'CREATED BY';
-
-  @override
-  String get poolPrediction => 'PREDICTION';
-
-  @override
-  String poolJoinFor(int stake) {
-    return 'Join for $stake FET';
-  }
-
-  @override
-  String get poolJoinTitle => 'JOIN POOL';
-
-  @override
-  String get poolConfirmStake => 'Confirm & Stake';
-
-  @override
-  String get poolRequiredStake => 'REQUIRED STAKE';
-
-  @override
-  String poolShareMessage(String url) {
-    return 'Join my prediction pool on FANZONE! 🏆⚽\n$url';
-  }
-
-  @override
-  String get poolShareSubject => 'FANZONE Pool Invite';
-
-  @override
-  String get poolStatusOpen => 'OPEN';
-
-  @override
-  String get poolStatusLocked => 'LOCKED';
-
-  @override
-  String get poolStatusSettled => 'SETTLED';
-
-  @override
-  String get poolStatusVoid => 'VOID';
-
-  @override
-  String poolIsClosed(String status) {
-    return 'Pool is $status';
   }
 
   @override
@@ -319,16 +253,7 @@ class SEn extends S {
   }
 
   @override
-  String get teamSupport => 'Support';
-
-  @override
-  String get teamNews => 'News';
-
-  @override
   String get teamFixtures => 'Fixtures';
-
-  @override
-  String get teamCommunity => 'Community';
 
   @override
   String get followingTitle => 'Following';

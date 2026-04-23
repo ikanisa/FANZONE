@@ -62,13 +62,16 @@ void main() {
       
       // Ensure there are no error widgets. Our StateView handles errors. 
       // We can check that the screen rendered fully.
-      final noSettledPools = find.textContaining('No settled pools');
-      final noFeaturedPools = find.textContaining('featured pools');
+      final noOpenMatches = find.textContaining('No matches open for picks');
+      final noFixturesImported = find.textContaining(
+        'Upcoming fixtures will appear here once they are imported.',
+      );
       
-      if (noSettledPools.evaluate().isNotEmpty || noFeaturedPools.evaluate().isNotEmpty) {
-        debugPrint('Predict empty states are active (Expected if no live pools).');
+      if (noOpenMatches.evaluate().isNotEmpty ||
+          noFixturesImported.evaluate().isNotEmpty) {
+        debugPrint('Predict empty states are active (Expected if no fixtures are ready).');
       } else {
-        debugPrint('Predict pools found and rendered.');
+        debugPrint('Predict fixtures found and rendered.');
       }
 
       // Navigate to Hub
