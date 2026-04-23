@@ -40,9 +40,39 @@ void main() {
           },
           phonePresets: const {},
           currencyDisplay: const {},
+          countryCurrencies: const {},
           featureFlags: const {},
           appConfig: const {},
-          launchMoments: const [],
+          launchMoments: const [
+            LaunchMomentInfo(
+              tag: 'global-focus',
+              title: 'Global Focus',
+              subtitle: 'Global launch moment',
+              kicker: 'Global',
+              regionKey: 'global',
+            ),
+            LaunchMomentInfo(
+              tag: 'africa-focus',
+              title: 'Africa Focus',
+              subtitle: 'Africa launch moment',
+              kicker: 'Africa',
+              regionKey: 'africa',
+            ),
+            LaunchMomentInfo(
+              tag: 'europe-focus',
+              title: 'Europe Focus',
+              subtitle: 'Europe launch moment',
+              kicker: 'Europe',
+              regionKey: 'europe',
+            ),
+            LaunchMomentInfo(
+              tag: 'na-focus',
+              title: 'North America Focus',
+              subtitle: 'North America launch moment',
+              kicker: 'North America',
+              regionKey: 'north_america',
+            ),
+          ],
         ),
       );
 
@@ -52,16 +82,60 @@ void main() {
       expect(regionFromCountryName('Country Delta'), isNull);
     });
 
-    test('returns sensible default focus tags per region', () {
-      expect(
-        defaultFocusTagsForRegion('africa'),
-        contains('africa-fan-momentum-2026'),
+    test('derives focus tags from runtime launch moments only', () {
+      runtimeBootstrapStore.update(
+        BootstrapConfig(
+          regions: const {},
+          phonePresets: const {},
+          currencyDisplay: const {},
+          countryCurrencies: const {},
+          featureFlags: const {},
+          appConfig: const {},
+          launchMoments: const [
+            LaunchMomentInfo(
+              tag: 'global-focus',
+              title: 'Global Focus',
+              subtitle: 'Global launch moment',
+              kicker: 'Global',
+              regionKey: 'global',
+            ),
+            LaunchMomentInfo(
+              tag: 'africa-focus',
+              title: 'Africa Focus',
+              subtitle: 'Africa launch moment',
+              kicker: 'Africa',
+              regionKey: 'africa',
+            ),
+            LaunchMomentInfo(
+              tag: 'europe-focus',
+              title: 'Europe Focus',
+              subtitle: 'Europe launch moment',
+              kicker: 'Europe',
+              regionKey: 'europe',
+            ),
+            LaunchMomentInfo(
+              tag: 'na-focus',
+              title: 'North America Focus',
+              subtitle: 'North America launch moment',
+              kicker: 'North America',
+              regionKey: 'north_america',
+            ),
+          ],
+        ),
       );
-      expect(defaultFocusTagsForRegion('europe'), contains('ucl-final-2026'));
-      expect(
-        defaultFocusTagsForRegion('north_america'),
-        contains('worldcup2026'),
-      );
+
+      expect(defaultFocusTagsForRegion('africa'), [
+        'global-focus',
+        'africa-focus',
+      ]);
+      expect(defaultFocusTagsForRegion('europe'), [
+        'global-focus',
+        'europe-focus',
+      ]);
+      expect(defaultFocusTagsForRegion('north_america'), [
+        'global-focus',
+        'na-focus',
+      ]);
     });
   });
 }

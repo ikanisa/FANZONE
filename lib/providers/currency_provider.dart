@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/runtime_bootstrap.dart';
 import '../core/di/gateway_providers.dart';
 import '../core/logging/app_logger.dart';
 import '../core/utils/currency_utils.dart';
@@ -20,6 +21,7 @@ final liveRatesProvider = FutureProvider<void>((ref) async {
 final userCurrencyProvider = FutureProvider<String>((ref) async {
   ref.watch(liveRatesProvider);
   ref.watch(authStateProvider);
+  ref.watch(runtimeBootstrapProvider);
 
   final cache = ref.read(cacheServiceProvider);
   final cached = await cache.getString('user_currency');

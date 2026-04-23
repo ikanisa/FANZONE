@@ -13,7 +13,7 @@ export interface FetFlowWeek {
   week: string;
   issued: number;
   transferred: number;
-  redeemed: number;
+  adjusted: number;
   rewarded: number;
 }
 

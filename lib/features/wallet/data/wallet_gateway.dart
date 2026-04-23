@@ -210,6 +210,17 @@ class SupabaseWalletGateway implements WalletGateway {
             .maybeSingle();
         final code = row?['currency_code']?.toString();
         if (code != null && code.isNotEmpty) return code;
+
+        final guess = await client.rpc(
+          'guess_user_currency',
+          params: {'p_user_id': userId},
+        );
+        final guessedCode = (guess is Map)
+            ? guess['currency_code']?.toString()
+            : null;
+        if (guessedCode != null && guessedCode.isNotEmpty) {
+          return guessedCode;
+        }
       } catch (error) {
         AppLogger.d('Failed to load user currency: $error');
       }
@@ -243,18 +254,35 @@ class SupabaseWalletGateway implements WalletGateway {
     final client = _connection.client;
     if (client != null) {
       try {
-        // Base peg: 100 FET = 1 EUR. Derive other rates from currency_rates.
-        const fetPerEur = 0.01; // 1 FET = 0.01 EUR
+        final pegRow = await client
+            .from('app_config_remote')
+            .select('value')
+            .eq('key', 'fet_per_eur')
+            .maybeSingle();
+        final fetPerEur = _parsePositiveNumber(pegRow?['value']);
+        if (fetPerEur == null) {
+          return const <FetExchangeRateDto>[];
+        }
+
+        final fetToEurRate = 1 / fetPerEur;
         final rows = await client
             .from('currency_rates')
             .select('target_currency, rate')
             .eq('base_currency', 'EUR')
             .order('target_currency');
+        final metadataRows = await client
+            .from('currency_display_metadata')
+            .select('currency_code, symbol');
+        final symbols = <String, String>{
+          for (final row in (metadataRows as List).whereType<Map>())
+            row['currency_code']?.toString().toUpperCase() ?? '':
+                row['symbol']?.toString() ?? '',
+        }..remove('');
         final rates = <FetExchangeRateDto>[
-          const FetExchangeRateDto(
+          FetExchangeRateDto(
             currency: 'EUR',
-            symbol: '€',
-            rate: fetPerEur,
+            symbol: symbols['EUR'] ?? 'EUR',
+            rate: fetToEurRate,
           ),
         ];
         for (final row in (rows as List).whereType<Map>()) {
@@ -264,8 +292,8 @@ class SupabaseWalletGateway implements WalletGateway {
           rates.add(
             FetExchangeRateDto(
               currency: target,
-              symbol: _currencySymbol(target),
-              rate: fetPerEur * eurRate,
+              symbol: symbols[target.toUpperCase()] ?? target,
+              rate: fetToEurRate * eurRate,
             ),
           );
         }
@@ -278,21 +306,17 @@ class SupabaseWalletGateway implements WalletGateway {
     return const <FetExchangeRateDto>[];
   }
 
-  String _currencySymbol(String code) {
-    switch (code) {
-      case 'USD':
-        return '\$';
-      case 'GBP':
-        return '£';
-      case 'RWF':
-        return 'FRw';
-      case 'EUR':
-        return '€';
-      default:
-        return code;
+  double? _parsePositiveNumber(dynamic rawValue) {
+    if (rawValue is num) {
+      final value = rawValue.toDouble();
+      if (value > 0) return value;
     }
+    if (rawValue is String) {
+      final parsed = double.tryParse(rawValue.trim());
+      if (parsed != null && parsed > 0) return parsed;
+    }
+    return null;
   }
-
 
   int _cachedBalance(String userId) {
     return _localBalances[userId] ?? 0;
@@ -306,7 +330,7 @@ class SupabaseWalletGateway implements WalletGateway {
   }
 
   List<WalletTransaction> _cachedTransactions(String userId) {
-    return [...(_localTransactions[userId] ?? const <WalletTransaction>[])]; 
+    return [...(_localTransactions[userId] ?? const <WalletTransaction>[])];
   }
 
   List<WalletTransaction> _cachedTransactionsOrThrow(String userId) {

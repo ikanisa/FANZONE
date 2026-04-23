@@ -292,6 +292,8 @@ Future<TeamSearchCatalog?> _loadRemoteTeamSearchCatalog(
 void _applyRuntimeBootstrap(BootstrapConfig config) {
   runtimeBootstrapStore.update(config);
   currency_utils.hydrateCurrencyDisplay(config.currencyDisplay);
+  currency_utils.hydrateCountryCurrencies(config.countryCurrencies);
+  currency_utils.hydrateFetPeg(config.appConfig['fet_per_eur']);
 }
 
 Future<void> refreshRuntimeBootstrapData({

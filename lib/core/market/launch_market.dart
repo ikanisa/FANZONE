@@ -1,9 +1,8 @@
 /// LaunchMarket — region and marketing moment utilities.
 ///
-/// Pure utility functions that do NOT depend on any hardcoded static data.
-/// Country-to-region resolution is now delegated to [BootstrapConfig]
-/// (backed by the `country_region_map` Supabase table).
-/// Launch moment options are loaded from the `launch_moments` table.
+/// Country-to-region resolution is delegated to [BootstrapConfig]
+/// (backed by the `country_region_map` table), and launch moments are loaded
+/// from the `launch_moments` table. There is no bundled marketing fallback.
 library;
 
 import '../config/runtime_bootstrap.dart';
@@ -128,10 +127,7 @@ String? regionFromCountryName(String? country) {
   return null;
 }
 
-/// LaunchMomentOption — kept for backward compatibility.
-///
-/// New code should use [LaunchMomentInfo] from bootstrap_config.dart
-/// (backed by the `launch_moments` Supabase table).
+/// Lightweight launch moment adapter for existing UI consumers.
 class LaunchMomentOption {
   const LaunchMomentOption({
     required this.tag,
@@ -148,56 +144,9 @@ class LaunchMomentOption {
   final String regionKey;
 }
 
-/// DEPRECATED — Use BootstrapConfig.launchMoments instead.
-///
-/// This list is kept as an emergency offline fallback only.
-/// The canonical source of truth is now the `launch_moments` Supabase table.
-const launchMomentOptions = <LaunchMomentOption>[
-  LaunchMomentOption(
-    tag: 'road-to-world-cup-2026',
-    title: 'Road to World Cup 2026',
-    subtitle:
-        'Track the build-up across host markets, qualification stories, and global supporter momentum.',
-    kicker: 'World Cup lead-up',
-    regionKey: 'global',
-  ),
-  LaunchMomentOption(
-    tag: 'worldcup2026',
-    title: 'World Cup 2026',
-    subtitle:
-        'Follow the tournament itself with featured fixtures, prediction windows, and host-market relevance.',
-    kicker: 'Tournament proper',
-    regionKey: 'global',
-  ),
-  LaunchMomentOption(
-    tag: 'ucl-final-2026',
-    title: 'UEFA Champions League Final',
-    subtitle:
-        'Keep Europe\u2019s biggest club night central during the run-in and final-week conversion window.',
-    kicker: 'European club peak',
-    regionKey: 'europe',
-  ),
-  LaunchMomentOption(
-    tag: 'africa-fan-momentum-2026',
-    title: 'Africa Fan Momentum',
-    subtitle:
-        'Grow supporter communities, club discovery, and prediction participation around African football audiences.',
-    kicker: 'Africa growth',
-    regionKey: 'africa',
-  ),
-  LaunchMomentOption(
-    tag: 'north-america-host-cities-2026',
-    title: 'North America Host Cities',
-    subtitle:
-        'Surface USA, Canada, and Mexico interest as host-city football attention accelerates.',
-    kicker: 'Host-market growth',
-    regionKey: 'north_america',
-  ),
-];
-
 List<LaunchMomentOption> launchMomentOptionsForRuntime() {
   final runtimeMoments = runtimeBootstrapStore.config.launchMoments;
-  if (runtimeMoments.isEmpty) return launchMomentOptions;
+  if (runtimeMoments.isEmpty) return const <LaunchMomentOption>[];
   return runtimeMoments
       .map(
         (moment) => LaunchMomentOption(
@@ -220,31 +169,15 @@ LaunchMomentOption? launchMomentByTag(String tag) {
 
 List<String> defaultFocusTagsForRegion(String region) {
   final options = launchMomentOptionsForRuntime();
-  if (runtimeBootstrapStore.config.launchMoments.isNotEmpty) {
-    final normalizedRegion = normalizeRegionKey(region);
-    final scoped = options
-        .where(
-          (option) =>
-              option.regionKey == 'global' ||
-              option.regionKey == normalizedRegion,
-        )
-        .map((option) => option.tag)
-        .toList(growable: false);
-    if (scoped.isNotEmpty) return scoped;
-  }
+  if (options.isEmpty) return const <String>[];
 
-  switch (normalizeRegionKey(region)) {
-    case 'africa':
-      return const ['road-to-world-cup-2026', 'africa-fan-momentum-2026'];
-    case 'europe':
-      return const ['road-to-world-cup-2026', 'ucl-final-2026'];
-    case 'north_america':
-      return const [
-        'road-to-world-cup-2026',
-        'north-america-host-cities-2026',
-        'worldcup2026',
-      ];
-    default:
-      return const ['road-to-world-cup-2026', 'worldcup2026', 'ucl-final-2026'];
-  }
+  final normalizedRegion = normalizeRegionKey(region);
+  return options
+      .where(
+        (option) =>
+            option.regionKey == 'global' ||
+            option.regionKey == normalizedRegion,
+      )
+      .map((option) => option.tag)
+      .toList(growable: false);
 }

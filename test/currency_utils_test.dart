@@ -2,8 +2,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fanzone/core/utils/currency_utils.dart';
 
 void main() {
+  setUp(() {
+    hydrateFetPeg(100);
+    hydrateCountryCurrencies(const {
+      'MT': 'EUR',
+      'RW': 'RWF',
+      'GB': 'GBP',
+      'US': 'USD',
+      'NG': 'NGN',
+      'KE': 'KES',
+    });
+  });
+
   group('FET ↔ EUR peg', () {
-    test('100 FET = 1 EUR', () {
+    test('configured peg converts FET to EUR', () {
       expect(fetToEur(100), 1.0);
     });
 
@@ -15,12 +27,23 @@ void main() {
       expect(fetToEur(50), 0.5);
     });
 
-    test('1 FET = 0.01 EUR', () {
+    test('configured peg handles single-token values', () {
       expect(fetToEur(1), 0.01);
     });
 
     test('large amounts', () {
       expect(fetToEur(100000), 1000.0);
+    });
+
+    test('admin-managed peg updates conversion', () {
+      hydrateFetPeg(200);
+      expect(fetToEur(100), 0.5);
+    });
+
+    test('missing peg disables fiat conversion', () {
+      hydrateFetPeg(null);
+      expect(fetToEur(100), isNull);
+      expect(formatFET(100, 'EUR'), 'FET 100');
     });
   });
 
@@ -159,25 +182,13 @@ void main() {
     });
   });
 
-  group('countryToCurrency', () {
-    test('MT maps to EUR', () {
-      expect(countryToCurrency['MT'], 'EUR');
-    });
-
-    test('RW maps to RWF', () {
-      expect(countryToCurrency['RW'], 'RWF');
-    });
-
-    test('GB maps to GBP', () {
-      expect(countryToCurrency['GB'], 'GBP');
-    });
-
-    test('US maps to USD', () {
-      expect(countryToCurrency['US'], 'USD');
-    });
-
-    test('NG maps to NGN', () {
-      expect(countryToCurrency['NG'], 'NGN');
+  group('countryCurrencies', () {
+    test('hydrates DB-driven country mappings', () {
+      expect(countryCurrencies['MT'], 'EUR');
+      expect(countryCurrencies['RW'], 'RWF');
+      expect(countryCurrencies['GB'], 'GBP');
+      expect(countryCurrencies['US'], 'USD');
+      expect(countryCurrencies['NG'], 'NGN');
     });
   });
 

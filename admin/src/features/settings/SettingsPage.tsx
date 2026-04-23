@@ -136,6 +136,19 @@ function jsonPreview(value: unknown) {
   return text.length > 84 ? `${text.slice(0, 84)}…` : text;
 }
 
+function positiveNumberFromValue(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value.trim());
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
 function SectionCard({
   title,
   description,
@@ -173,6 +186,8 @@ export function SettingsPage() {
   const [runtimeConfigError, setRuntimeConfigError] = useState<string | null>(
     null,
   );
+  const [fetPegInput, setFetPegInput] = useState("");
+  const [fetPegError, setFetPegError] = useState<string | null>(null);
 
   const [launchMomentForm, setLaunchMomentForm] = useState(
     emptyLaunchMomentForm,
@@ -267,6 +282,14 @@ export function SettingsPage() {
     };
   });
 
+  const fetPerEurEntry = runtimeConfig.find(
+    (entry) => entry.key === "fet_per_eur",
+  );
+  const currentFetPerEur = positiveNumberFromValue(fetPerEurEntry?.value);
+
+  const fetPegInputValue =
+    fetPegInput.length > 0 ? fetPegInput : (currentFetPerEur?.toString() ?? "");
+
   const handleToggle = async (flag: FeatureFlag) => {
     await toggleMutation.mutateAsync({
       p_flag_id: flag.id,
@@ -326,6 +349,22 @@ export function SettingsPage() {
       setRuntimeConfigForm(emptyRuntimeConfigForm);
       setRuntimeConfigEditingKey(null);
     }
+  };
+
+  const handleFetPegSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFetPegError(null);
+
+    const parsed = Number(fetPegInputValue.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setFetPegError("FET per 1 EUR must be a positive number.");
+      return;
+    }
+
+    await upsertRuntimeConfigMutation.mutateAsync({
+      key: "fet_per_eur",
+      value: parsed,
+    });
   };
 
   const handleLaunchMomentSubmit = async (
@@ -840,6 +879,72 @@ export function SettingsPage() {
           </table>
         </div>
       )}
+
+      <SectionCard
+        title="FET Peg"
+        description="Controls the global FET:EUR peg used for all local-currency wallet displays. Example: 100 means 100 FET = 1 EUR."
+      >
+        <form onSubmit={handleFetPegSubmit}>
+          <div className="grid grid-2 gap-4 mb-4">
+            <label>
+              <div className="text-xs text-muted mb-1">Current Peg</div>
+              <div
+                className="input"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  minHeight: 44,
+                  background: "var(--fz-surface-2)",
+                }}
+              >
+                {currentFetPerEur != null
+                  ? `${currentFetPerEur} FET = 1 EUR`
+                  : "Not configured"}
+              </div>
+            </label>
+            <label>
+              <div className="text-xs text-muted mb-1">FET per 1 EUR</div>
+              <input
+                className="input"
+                inputMode="numeric"
+                value={fetPegInputValue}
+                onChange={(event) => setFetPegInput(event.target.value)}
+                placeholder="100"
+                required
+              />
+            </label>
+          </div>
+          <div className="text-xs text-muted mb-4">
+            {fetPerEurEntry
+              ? `Last updated ${formatDateTime(fetPerEurEntry.updated_at)}`
+              : "This key will be created in app_config_remote if it does not exist."}
+          </div>
+          {fetPegError && (
+            <div className="text-sm text-error mb-4">{fetPegError}</div>
+          )}
+          <div className="flex gap-2">
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={upsertRuntimeConfigMutation.isPending}
+            >
+              Save FET Peg
+            </button>
+            {currentFetPerEur != null && (
+              <button
+                className="btn btn-secondary"
+                type="button"
+                onClick={() => {
+                  setFetPegInput("");
+                  setFetPegError(null);
+                }}
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </form>
+      </SectionCard>
 
       <SectionCard
         title="App Config Remote"

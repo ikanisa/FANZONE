@@ -14,19 +14,13 @@ class FetExchangeRate {
   final double rate;
 }
 
-const _defaultRates = [
-  FetExchangeRate(currency: 'EUR', symbol: '€', rate: 0.01),
-  FetExchangeRate(currency: 'USD', symbol: '\$', rate: 0.011),
-  FetExchangeRate(currency: 'RWF', symbol: 'FRw', rate: 14.50),
-];
-
 final fetExchangeRatesProvider =
     FutureProvider.autoDispose<List<FetExchangeRate>>((ref) async {
       try {
         final response = await ref
             .read(walletGatewayProvider)
             .getFetExchangeRates();
-        if (response.isEmpty) return _defaultRates;
+        if (response.isEmpty) return const <FetExchangeRate>[];
 
         return response
             .map(
@@ -38,7 +32,7 @@ final fetExchangeRatesProvider =
             )
             .toList(growable: false);
       } catch (_) {
-        return _defaultRates;
+        return const <FetExchangeRate>[];
       }
     });
 

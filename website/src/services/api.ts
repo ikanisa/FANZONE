@@ -405,6 +405,7 @@ export interface CurrencyDisplayPreference {
   decimals: number;
   spaceSeparated: boolean;
   rate: number;
+  fetPerEur: number | null;
 }
 
 export interface PredictionSubmission {
@@ -1079,6 +1080,7 @@ export const api = {
         decimals: 2,
         spaceSeparated: false,
         rate: 1,
+        fetPerEur: null,
       };
     }
 
@@ -1096,7 +1098,14 @@ export const api = {
         currencyCode = asString(countryCurrencyRow?.currency_code, "EUR");
       }
 
-      const [displayRow, rateRow] = await Promise.all([
+      const [pegRow, displayRow, rateRow] = await Promise.all([
+        maybeSingle<JsonRecord>(
+          client
+            .from("app_config_remote")
+            .select("value")
+            .eq("key", "fet_per_eur")
+            .maybeSingle(),
+        ),
         maybeSingle<JsonRecord>(
           client
             .from("currency_display_metadata")
@@ -1116,6 +1125,9 @@ export const api = {
             ),
       ]);
 
+      const fetPerEurCandidate = asNumber(pegRow?.value, 0);
+      const fetPerEur = fetPerEurCandidate > 0 ? fetPerEurCandidate : null;
+
       if (displayRow) {
         return {
           code: asString(displayRow.currency_code, currencyCode),
@@ -1123,6 +1135,7 @@ export const api = {
           decimals: asNumber(displayRow.decimals, 2),
           spaceSeparated: displayRow.space_separated === true,
           rate: asNumber(rateRow?.rate, 1),
+          fetPerEur,
         };
       }
     } catch (error) {
@@ -1135,6 +1148,7 @@ export const api = {
       decimals: 2,
       spaceSeparated: false,
       rate: 1,
+      fetPerEur: null,
     };
   },
 

@@ -485,24 +485,24 @@ def choose_existing_team_match(
     names_to_try = {normalized_text(candidate.preferred_display_name())}
     names_to_try.update(normalized_text(name) for name in candidate.display_names)
 
-    pool: list[dict[str, Any]] = []
+    candidates: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
     for name in names_to_try:
         for row in existing_by_name.get(name, []):
             if row["id"] not in seen_ids:
-                pool.append(row)
+                candidates.append(row)
                 seen_ids.add(row["id"])
         for row in existing_by_alias.get(name, []):
             if row["id"] not in seen_ids:
-                pool.append(row)
+                candidates.append(row)
                 seen_ids.add(row["id"])
 
-    if not pool:
+    if not candidates:
         return None
 
-    filtered = [row for row in pool if row["id"] not in used_ids]
+    filtered = [row for row in candidates if row["id"] not in used_ids]
     if not filtered:
-        filtered = pool
+        filtered = candidates
 
     if candidate.team_type == "national_team":
         national = [

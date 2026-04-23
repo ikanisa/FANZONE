@@ -106,8 +106,7 @@ jobs:
             supabase/functions/push-notify/index.ts \
             supabase/functions/dispatch-match-alerts/index.ts \
             supabase/functions/dispatch-match-alerts/dispatch.ts \
-            supabase/functions/dispatch-match-alerts/dispatch_test.ts \
-            supabase/functions/gemini-currency-rates/index.ts
+            supabase/functions/dispatch-match-alerts/dispatch_test.ts
 
       - name: Type-check Edge Functions
         run: |
@@ -117,8 +116,7 @@ jobs:
             supabase/functions/score-predictions/index.ts \
             supabase/functions/import-football-data/index.ts \
             supabase/functions/push-notify/index.ts \
-            supabase/functions/dispatch-match-alerts/index.ts \
-            supabase/functions/gemini-currency-rates/index.ts
+            supabase/functions/dispatch-match-alerts/index.ts
 
       - name: Run Edge Function tests
         run: deno test --allow-env supabase/functions

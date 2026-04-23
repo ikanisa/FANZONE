@@ -116,7 +116,7 @@ export function AnalyticsCharts({
                 />
                 <Line
                   type="monotone"
-                  dataKey="redeemed"
+                  dataKey="adjusted"
                   stroke="var(--fz-error)"
                   strokeWidth={2}
                   dot={false}
@@ -192,8 +192,8 @@ export function AnalyticsCharts({
                 color: "success",
               },
               {
-                label: "Redemption rate healthy",
-                detail: "3.2% of earned FET redeemed",
+                label: "Reward flow is settling cleanly",
+                detail: "Weekly FET awards are landing without legacy redemption debt",
                 color: "info",
               },
               {

@@ -16,6 +16,7 @@ class BootstrapConfig {
     required this.regions,
     required this.phonePresets,
     required this.currencyDisplay,
+    required this.countryCurrencies,
     required this.featureFlags,
     required this.appConfig,
     required this.launchMoments,
@@ -26,6 +27,9 @@ class BootstrapConfig {
       regions: _parseRegions(json['regions']),
       phonePresets: _parsePhonePresets(json['phone_presets']),
       currencyDisplay: _parseCurrencyDisplay(json['currency_display']),
+      countryCurrencies: _parseCountryCurrencies(
+        json['country_currency_map'] ?? json['country_currencies'],
+      ),
       featureFlags: _parseFeatureFlags(json['feature_flags']),
       appConfig: Map<String, dynamic>.from(json['app_config'] ?? {}),
       launchMoments: _parseLaunchMoments(json['launch_moments']),
@@ -38,6 +42,7 @@ class BootstrapConfig {
       regions: const {},
       phonePresets: const {},
       currencyDisplay: const {},
+      countryCurrencies: const {},
       featureFlags: const {},
       appConfig: const {},
       launchMoments: const [],
@@ -52,6 +57,9 @@ class BootstrapConfig {
 
   /// Currency code → display metadata.
   final Map<String, CurrencyDisplayInfo> currencyDisplay;
+
+  /// Country code → preferred currency code.
+  final Map<String, String> countryCurrencies;
 
   /// Feature flag key → enabled.
   final Map<String, bool> featureFlags;
@@ -104,6 +112,11 @@ class BootstrapConfig {
         .map((entry) => entry.value.countryName)
         .toList(growable: false)
       ..sort();
+  }
+
+  String? currencyForCountryCode(String? code) {
+    if (code == null || code.isEmpty) return null;
+    return countryCurrencies[code.toUpperCase()];
   }
 
   // ── Phone helpers ──
@@ -177,6 +190,14 @@ class BootstrapConfig {
       'currency_display': currencyDisplay.entries
           .map((entry) => entry.value.toJson()..['currency_code'] = entry.key)
           .toList(growable: false),
+      'country_currency_map': countryCurrencies.entries
+          .map(
+            (entry) => {
+              'country_code': entry.key,
+              'currency_code': entry.value,
+            },
+          )
+          .toList(growable: false),
       'feature_flags': featureFlags,
       'app_config': appConfig,
       'launch_moments': launchMoments
@@ -238,6 +259,24 @@ class BootstrapConfig {
         final code = item['currency_code']?.toString().toUpperCase();
         if (code != null && code.isNotEmpty) {
           result[code] = CurrencyDisplayInfo.fromJson(item);
+        }
+      }
+    }
+    return result;
+  }
+
+  static Map<String, String> _parseCountryCurrencies(dynamic data) {
+    if (data is! List) return const {};
+    final result = <String, String>{};
+    for (final item in data) {
+      if (item is Map<String, dynamic>) {
+        final countryCode = item['country_code']?.toString().toUpperCase();
+        final currencyCode = item['currency_code']?.toString().toUpperCase();
+        if (countryCode != null &&
+            countryCode.isNotEmpty &&
+            currencyCode != null &&
+            currencyCode.isNotEmpty) {
+          result[countryCode] = currencyCode;
         }
       }
     }

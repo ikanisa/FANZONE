@@ -13,8 +13,8 @@ import type { PaginationOpts } from '../../hooks/useSupabaseQuery';
 export interface FetSupply {
   totalIssued: number;
   totalCirculating: number;
-  totalRedeemed: number;
-  totalStaked: number;
+  totalRewarded: number;
+  totalLocked: number;
   totalTransferred7d: number;
 }
 
@@ -54,12 +54,12 @@ export function useFetSupply() {
     queryFn: async () => {
       if (!isSupabaseConfigured) throw new Error(adminEnvError);
 
-      const [overviewRes, redeemedRes, transferredRes] = await Promise.all([
+      const [overviewRes, rewardedRes, transferredRes] = await Promise.all([
         supabase.from('fet_supply_overview_admin').select('*').single(),
         supabase
-          .from('fet_transactions_admin')
-          .select('amount_fet')
-          .or('tx_type.eq.redemption,reference_type.eq.marketplace_redemption'),
+          .from('token_rewards')
+          .select('token_amount')
+          .eq('status', 'awarded'),
         supabase
           .from('fet_transactions_admin')
           .select('amount_fet')
@@ -71,9 +71,11 @@ export function useFetSupply() {
       if (overviewRes.error) throw new Error(overviewRes.error.message);
 
       const overview = overviewRes.data as FetSupplyOverviewRow;
-      const redeemedRows = (redeemedRes.data ?? []) as AmountRow[];
+      const rewardedRows = ((rewardedRes.data ?? []) as Array<{
+        token_amount?: number | null;
+      }>).map((row) => ({ amount_fet: row.token_amount ?? 0 }));
       const transferredRows = (transferredRes.data ?? []) as AmountRow[];
-      const totalRedeemed = redeemedRows.reduce(
+      const totalRewarded = rewardedRows.reduce(
         (sum, row) => sum + (row.amount_fet ?? 0),
         0,
       );
@@ -85,8 +87,8 @@ export function useFetSupply() {
       return {
         totalIssued: overview.total_supply ?? 0,
         totalCirculating: overview.total_available ?? 0,
-        totalRedeemed,
-        totalStaked: overview.total_locked ?? 0,
+        totalRewarded,
+        totalLocked: overview.total_locked ?? 0,
         totalTransferred7d,
       };
     },

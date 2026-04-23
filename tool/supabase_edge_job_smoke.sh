@@ -74,9 +74,6 @@ expect_status "dispatch-match-alerts unauthorized" "${dispatch_match_alerts_unau
 push_notify_unauth="$(call_edge "push-notify" "" '{}')"
 expect_status "push-notify unauthorized" "${push_notify_unauth}" "401"
 
-currency_unauth="$(call_edge "gemini-currency-rates" "" '{}')"
-expect_status "gemini-currency-rates unauthorized" "${currency_unauth}" "401"
-
 echo "Verifying authorized requests pass the auth layer..."
 generate_predictions_auth="$(call_edge "generate-predictions" "" '{}' \
   -H "x-cron-secret: ${CRON_SECRET}")"

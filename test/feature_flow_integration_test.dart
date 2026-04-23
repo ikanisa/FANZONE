@@ -316,6 +316,7 @@ final _testBootstrapConfig = BootstrapConfig(
     'AA': PhonePresetInfo(dialCode: '+111', hint: '99XX XXXX', minDigits: 8),
   },
   currencyDisplay: const {},
+  countryCurrencies: const {'AA': 'EUR'},
   featureFlags: const {},
   appConfig: const {
     'default_phone_country_code': 'AA',

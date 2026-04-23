@@ -249,8 +249,10 @@ class TeamSearchCatalog {
   }
 
   List<OnboardingTeam> searchPopular(String query, {int limit = 10}) {
-    final pool = popularTeams.isNotEmpty ? popularTeams : _popularSearchPool;
-    return _searchIn(pool, query, limit: limit);
+    final sourceTeams = popularTeams.isNotEmpty
+        ? popularTeams
+        : _popularSearchFallback;
+    return _searchIn(sourceTeams, query, limit: limit);
   }
 
   List<OnboardingTeam> popularForRegion(String region) {
@@ -288,7 +290,7 @@ class TeamSearchCatalog {
     return padded.take(20).toList(growable: false);
   }
 
-  List<OnboardingTeam> get _popularSearchPool {
+  List<OnboardingTeam> get _popularSearchFallback {
     final rankedPopular = popularForRegion('europe');
     if (rankedPopular.isNotEmpty) return rankedPopular;
     return allTeams;

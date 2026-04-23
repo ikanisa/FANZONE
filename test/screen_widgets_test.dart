@@ -279,7 +279,7 @@ void main() {
               sampleWalletTransaction(),
               sampleWalletTransaction(
                 id: 'tx_2',
-                title: 'Reward redeemed',
+                title: 'Wallet transfer',
                 amount: 120,
                 type: 'spend',
                 dateStr: '1d ago',
@@ -337,6 +337,7 @@ void main() {
               regions: const {},
               phonePresets: const {},
               currencyDisplay: const {},
+              countryCurrencies: const {},
               featureFlags: const {
                 'predictions': true,
                 'wallet': true,

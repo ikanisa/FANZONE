@@ -44,6 +44,7 @@ BootstrapConfig _bootstrapConfig() {
       ),
     },
     currencyDisplay: const {},
+    countryCurrencies: const {},
     featureFlags: const {},
     appConfig: const {},
     launchMoments: const [],

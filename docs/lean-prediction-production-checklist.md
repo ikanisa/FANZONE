@@ -2,7 +2,7 @@
 
 ## Schema
 
-- [ ] all lean migrations through `20260423023000_drop_unused_news_table.sql` applied
+- [ ] the single baseline migration `20260423050000_lean_prediction_baseline.sql` is applied
 - [ ] legacy pool, slip, market, odds, and advanced-stat tables absent from production
 - [ ] `app_matches` is the only active fixture projection
 - [ ] legacy team/match compatibility views and RPCs absent from production

@@ -1,10 +1,10 @@
 /// FET currency utility — backend-fed exchange rates and local formatting.
 ///
-/// Base peg: 100 FET = 1 EUR (hardcoded, never changes).
+/// The FET:EUR peg is sourced from runtime config (`app_config_remote.fet_per_eur`).
 /// Numeric exchange rates are sourced from the backend `currency_rates` table.
 /// Currency display metadata (symbol, decimals, space-separated) is now
 /// loaded from the `currency_display_metadata` Supabase table via
-/// [BootstrapConfig].  The hardcoded fallback is used only on first cold start.
+/// [BootstrapConfig].
 library;
 
 import 'package:intl/intl.dart';
@@ -23,6 +23,12 @@ class CurrencyInfo {
     this.decimals = 2,
     this.spaceSeparated = false,
   });
+}
+
+class FetPegInfo {
+  const FetPegInfo({required this.fetPerEur});
+
+  final int fetPerEur;
 }
 
 /// Offline fallback — used only when bootstrap config is empty.
@@ -116,6 +122,12 @@ const Map<String, CurrencyInfo> _defaultCurrencyMetadata = {
 /// Live currency display metadata — hydrated from [BootstrapConfig].
 Map<String, CurrencyInfo> _liveCurrencyMetadata = {};
 
+/// Live FET peg — hydrated from runtime bootstrap config.
+FetPegInfo? _liveFetPeg;
+
+/// Live country → currency map — hydrated from runtime bootstrap config.
+Map<String, String> _liveCountryCurrencies = {};
+
 /// Hydrate currency display metadata from BootstrapConfig (DB-driven).
 ///
 /// Call this once after BootstrapConfig loads at startup.
@@ -133,10 +145,32 @@ void hydrateCurrencyDisplay(Map<String, CurrencyDisplayInfo> dbData) {
   _liveCurrencyMetadata = next;
 }
 
+void hydrateCountryCurrencies(Map<String, String> dbData) {
+  _liveCountryCurrencies = Map<String, String>.fromEntries(
+    dbData.entries.map(
+      (entry) => MapEntry(
+        entry.key.trim().toUpperCase(),
+        entry.value.trim().toUpperCase(),
+      ),
+    ),
+  );
+}
+
+void hydrateFetPeg(dynamic rawValue) {
+  final parsed = _parsePositiveInt(rawValue);
+  _liveFetPeg = parsed == null ? null : FetPegInfo(fetPerEur: parsed);
+}
+
 /// Returns currency metadata: DB-driven if available, else hardcoded fallback.
 Map<String, CurrencyInfo> get currencies => _liveCurrencyMetadata.isNotEmpty
     ? _liveCurrencyMetadata
     : _defaultCurrencyMetadata;
+
+FetPegInfo? get fetPeg => _liveFetPeg;
+
+bool get hasFetPeg => _liveFetPeg != null;
+
+Map<String, String> get countryCurrencies => _liveCountryCurrencies;
 
 /// DEPRECATED — use [currencies] getter instead.
 Map<String, CurrencyInfo> get currencyMetadata => currencies;
@@ -163,43 +197,6 @@ double? rateFor(String currencyCode) {
   return _liveRates[normalized];
 }
 
-const Map<String, String> countryToCurrency = {
-  // ── Europe (Eurozone) ──
-  'MT': 'EUR', 'ES': 'EUR', 'DE': 'EUR', 'FR': 'EUR', 'IT': 'EUR',
-  'NL': 'EUR', 'PT': 'EUR', 'AT': 'EUR', 'BE': 'EUR', 'FI': 'EUR',
-  'IE': 'EUR', 'GR': 'EUR', 'CY': 'EUR', 'LU': 'EUR', 'EE': 'EUR',
-  'LV': 'EUR', 'LT': 'EUR', 'SI': 'EUR', 'SK': 'EUR', 'HR': 'EUR',
-  'ME': 'EUR', 'XK': 'EUR',
-  // ── Europe (Non-euro) ──
-  'GB': 'GBP', 'XS': 'GBP', 'XW': 'GBP', 'XI': 'GBP',
-  'CH': 'CHF', 'SE': 'SEK', 'NO': 'NOK', 'DK': 'DKK', 'PL': 'PLN',
-  'TR': 'TRY', 'CZ': 'EUR', 'HU': 'EUR', 'RO': 'EUR', 'BG': 'EUR',
-  'RS': 'EUR', 'UA': 'EUR', 'IS': 'EUR', 'RU': 'EUR', 'BY': 'BYN',
-  'GE': 'GEL', 'AM': 'AMD', 'AZ': 'AZN', 'KZ': 'KZT',
-  'AL': 'ALL', 'BA': 'BAM', 'MK': 'MKD', 'MD': 'MDL',
-  // ── Americas ──
-  'US': 'USD', 'CA': 'CAD', 'MX': 'MXN', 'BR': 'BRL', 'AR': 'ARS',
-  'CO': 'COP', 'CL': 'CLP', 'PE': 'PEN', 'EC': 'USD', 'UY': 'UYU',
-  'PY': 'PYG', 'BO': 'BOB', 'VE': 'VES',
-  'CR': 'CRC', 'PA': 'USD', 'HN': 'HNL', 'SV': 'USD', 'GT': 'GTQ',
-  'NI': 'NIO', 'JM': 'JMD', 'TT': 'TTD', 'DO': 'DOP', 'HT': 'HTG',
-  'CU': 'CUP',
-  // ── Africa ──
-  'RW': 'RWF', 'NG': 'NGN', 'KE': 'KES', 'ZA': 'ZAR', 'EG': 'EGP',
-  'TZ': 'TZS', 'UG': 'UGX', 'GH': 'GHS', 'TN': 'TND', 'DZ': 'DZD',
-  'MA': 'MAD', 'CD': 'CDF', 'ET': 'ETB',
-  'SN': 'XOF', 'CI': 'XOF', 'ML': 'XOF', 'BF': 'XOF', 'NE': 'XOF',
-  'TG': 'XOF', 'BJ': 'XOF', 'GW': 'XOF', 'GN': 'XOF', 'GA': 'XAF',
-  'CG': 'XAF', 'GQ': 'XAF', 'CM': 'XAF', 'AO': 'EUR', 'MZ': 'EUR',
-  'ZW': 'USD', 'ZM': 'EUR', 'BW': 'EUR', 'NA': 'EUR', 'MW': 'EUR',
-  'SD': 'EUR', 'LY': 'EUR', 'SO': 'EUR', 'SL': 'EUR', 'LR': 'USD',
-  'MG': 'EUR', 'BI': 'EUR', 'GM': 'EUR', 'LS': 'ZAR', 'SZ': 'ZAR',
-  'CV': 'EUR', 'DJ': 'EUR', 'ER': 'EUR', 'MU': 'EUR', 'SC': 'EUR',
-  // ── Asia / Global ──
-  'IN': 'INR', 'JP': 'JPY', 'CN': 'CNY', 'AE': 'AED', 'SA': 'SAR',
-  'AU': 'AUD', 'NZ': 'NZD',
-};
-
 class FavoriteTeamEntry {
   final String teamId;
   final String? countryCode;
@@ -217,7 +214,8 @@ String guessUserCurrency(List<FavoriteTeamEntry> teams) {
 
   final localTeam = teams.where((team) => team.source == 'local').firstOrNull;
   if (localTeam?.countryCode != null) {
-    final mapped = countryToCurrency[localTeam!.countryCode!.toUpperCase()];
+    final mapped =
+        _liveCountryCurrencies[localTeam!.countryCode!.toUpperCase()];
     if (mapped != null) return mapped;
   }
 
@@ -227,25 +225,31 @@ String guessUserCurrency(List<FavoriteTeamEntry> teams) {
     return code != null && !bigLeagueCountries.contains(code);
   }).firstOrNull;
   if (localSignal?.countryCode != null) {
-    final mapped = countryToCurrency[localSignal!.countryCode!.toUpperCase()];
+    final mapped =
+        _liveCountryCurrencies[localSignal!.countryCode!.toUpperCase()];
     if (mapped != null) return mapped;
   }
 
   for (final team in teams) {
     final code = team.countryCode?.toUpperCase();
     if (code == null) continue;
-    final mapped = countryToCurrency[code];
+    final mapped = _liveCountryCurrencies[code];
     if (mapped != null) return mapped;
   }
 
   return 'EUR';
 }
 
-double fetToEur(int fetAmount) => fetAmount / 100.0;
+double? fetToEur(int fetAmount) {
+  final peg = _liveFetPeg;
+  if (peg == null || peg.fetPerEur <= 0) return null;
+  return fetAmount / peg.fetPerEur;
+}
 
-double fetToLocal(int fetAmount, String currencyCode) {
+double? fetToLocal(int fetAmount, String currencyCode) {
   final normalized = currencyCode.trim().toUpperCase();
   final eurAmount = fetToEur(fetAmount);
+  if (eurAmount == null) return null;
   final rate = rateFor(normalized);
   if (normalized == 'EUR' || rate == null) return eurAmount;
   return eurAmount * rate;
@@ -253,15 +257,19 @@ double fetToLocal(int fetAmount, String currencyCode) {
 
 String formatFET(int fetAmount, String currencyCode) {
   final eurAmount = fetToEur(fetAmount);
+  if (eurAmount == null) {
+    return 'FET ${_formatNumber(fetAmount)}';
+  }
+  final double safeEurAmount = eurAmount;
   final normalized = currencyCode.trim().toUpperCase();
   final preferredInfo = currencies[normalized];
   final canUsePreferred = normalized == 'EUR' || rateFor(normalized) != null;
   final info = canUsePreferred
       ? (preferredInfo ?? const CurrencyInfo(code: 'EUR', symbol: '€'))
       : const CurrencyInfo(code: 'EUR', symbol: '€');
-  final localAmount = canUsePreferred
-      ? fetToLocal(fetAmount, normalized)
-      : eurAmount;
+  final localAmount =
+      (canUsePreferred ? fetToLocal(fetAmount, normalized) : safeEurAmount) ??
+      safeEurAmount;
 
   return 'FET ${_formatNumber(fetAmount)} (${_formatCurrency(localAmount, info)})';
 }
@@ -297,4 +305,16 @@ String _formatCurrency(double amount, CurrencyInfo info) {
 
 String _formatNumber(int value) {
   return NumberFormat('#,###').format(value);
+}
+
+int? _parsePositiveInt(dynamic rawValue) {
+  if (rawValue is int && rawValue > 0) return rawValue;
+  if (rawValue is double && rawValue.isFinite && rawValue > 0) {
+    return rawValue.round();
+  }
+  if (rawValue is String) {
+    final parsed = int.tryParse(rawValue.trim());
+    if (parsed != null && parsed > 0) return parsed;
+  }
+  return null;
 }

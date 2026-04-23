@@ -38,6 +38,7 @@ void main() {
           regions: const {},
           phonePresets: const {},
           currencyDisplay: const {},
+          countryCurrencies: const {},
           featureFlags: const {
             'predictions': true,
             'wallet': true,

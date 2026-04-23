@@ -53,7 +53,7 @@ The repository has been refactored to a single lean prediction model:
 - simple feature generation and prediction generation jobs added
 - user prediction scoring and reward issuance moved to lean match-result based flows
 
-Residual legacy files that still exist outside the live path are treated as archival or compatibility shims and are not the active product contract. Use the docs below as the current source of truth.
+The retained runtime path is now aligned to the lean prediction model end to end. Historical migration files may still describe superseded structures, but the active app, admin, website, and Supabase contracts follow the lean model documented below.
 
 ## Architecture Summary
 
@@ -129,6 +129,14 @@ Edge runtime notes:
 
 - `generate-predictions`, `score-predictions`, and `import-football-data` are designed for shared-secret job execution via `x-cron-secret`.
 - these jobs are internal runtime surfaces, not external bearer-triggered endpoints
+
+Runtime config notes:
+
+- the FET:EUR peg is controlled by `app_config_remote.fet_per_eur`
+- the welcome wallet balance is controlled by `app_config_remote.foundation_grant_fet`
+- the daily wallet transfer limit is controlled by `app_config_remote.wallet_transfer_daily_limit`
+- local currency display derives from that peg plus `currency_rates`, `country_currency_map`, and `currency_display_metadata`
+- `currency_rates` are now treated as database-managed data, not an external AI refresh job
 
 For the consolidated historical fixtures export, use the local loader instead of hand-pushing raw rows:
 

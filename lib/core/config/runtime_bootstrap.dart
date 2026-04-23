@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'bootstrap_config.dart';
 
@@ -20,3 +21,9 @@ class RuntimeBootstrapStore extends ChangeNotifier {
 }
 
 final runtimeBootstrapStore = RuntimeBootstrapStore();
+
+final runtimeBootstrapProvider = ChangeNotifierProvider<RuntimeBootstrapStore>((
+  ref,
+) {
+  return runtimeBootstrapStore;
+});

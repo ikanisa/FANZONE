@@ -87,6 +87,8 @@ Runtime bootstrap tables:
 
 The Flutter app bootstraps runtime config through `get_app_bootstrap_config`. The admin panel now reads the same runtime records and manages feature flags directly against `feature_flags`.
 Phone-country selection and onboarding dial-code behavior now derive from the same bootstrap tables instead of static market lists.
+The FET fiat display peg is also runtime-managed through `app_config_remote.fet_per_eur`, so admin can change `100 FET = 1 EUR` to another ratio without app code changes.
+The wallet welcome balance and daily transfer cap are also runtime-managed through `app_config_remote.foundation_grant_fet` and `app_config_remote.wallet_transfer_daily_limit`.
 
 ## Flutter Architecture
 
@@ -118,7 +120,7 @@ Current module map:
 - `lib/features/teams/`
   - canonical team profile with fixtures and competition context from `teams` and `app_matches`
 - `lib/features/wallet/`
-  - wallet balance, rewards, and transfers preserved as a separate subsystem
+  - wallet balance, prediction rewards, and fan-to-fan transfers preserved as a separate subsystem
 - `lib/features/profile/` and `lib/features/settings/`
   - profile shell, notifications, privacy, and account settings
 
@@ -158,6 +160,7 @@ Removed Flutter legacy domains:
 - social feed
 - pools, jackpot, and prediction-slip betting abstractions
 - seasonal contests and community leaderboard variants
+- reward marketplace and redemption flows
 
 ## Admin Architecture
 
@@ -175,7 +178,8 @@ Runtime settings surface:
 - feature flags are read from `admin_feature_flags` and written to `feature_flags`
 - `app_config_remote`, `launch_moments`, `country_region_map`, `country_currency_map`, `phone_presets`, and `currency_display_metadata` are editable from the settings surface and feed the Flutter bootstrap contract directly
 - Flutter routing refreshes when runtime bootstrap changes, so DB-driven feature state is no longer trapped behind startup-only route guards
-- bootstrap supporting tables stay in Supabase as the source of truth for app config, launch moments, phone presets, currency formatting, and region/currency mapping
+- bootstrap supporting tables stay in Supabase as the source of truth for app config, launch moments, phone presets, currency formatting, region mapping, and country-to-currency mapping
+- admin wallet/token views now monitor issuance, rewards, transfers, and admin adjustments only; marketplace redemption operations are not part of the retained product
 
 ## Non-Goals
 

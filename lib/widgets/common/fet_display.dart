@@ -86,14 +86,18 @@ class FETDisplaySpan extends ConsumerWidget {
     final localAmount = fetToLocal(amount, currency);
     final info = currencies[currency] ?? currencies['EUR']!;
 
-    String localStr;
-    if (info.decimals == 0) {
-      localStr = '${info.symbol} ${_formatNumber(localAmount.round())}';
-    } else {
-      localStr = '${info.symbol}${localAmount.toStringAsFixed(info.decimals)}';
-    }
-
     final sign = showSign ? (positive ? '+ ' : '- ') : '';
+    final showLocal = localAmount != null;
+
+    String? localStr;
+    if (showLocal) {
+      if (info.decimals == 0) {
+        localStr = '${info.symbol} ${_formatNumber(localAmount.round())}';
+      } else {
+        localStr =
+            '${info.symbol}${localAmount.toStringAsFixed(info.decimals)}';
+      }
+    }
 
     return RichText(
       text: TextSpan(
@@ -107,14 +111,15 @@ class FETDisplaySpan extends ConsumerWidget {
                   fetColor ?? (isDark ? FzColors.darkText : FzColors.lightText),
             ),
           ),
-          TextSpan(
-            text: '($localStr)',
-            style: TextStyle(
-              fontSize: fontSize * 0.85,
-              fontWeight: FontWeight.w500,
-              color: localColor ?? muted,
+          if (showLocal)
+            TextSpan(
+              text: '($localStr)',
+              style: TextStyle(
+                fontSize: fontSize * 0.85,
+                fontWeight: FontWeight.w500,
+                color: localColor ?? muted,
+              ),
             ),
-          ),
         ],
       ),
     );
