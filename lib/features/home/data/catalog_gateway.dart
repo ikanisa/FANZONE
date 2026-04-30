@@ -1,8 +1,8 @@
-import '../../../models/competition_model.dart';
-import '../../../models/featured_event_model.dart';
-import '../../../models/search_result_model.dart';
-import '../../../models/standing_row_model.dart';
-import '../../../models/team_model.dart';
+import '../../../models/sports/competition_model.dart';
+import '../../../models/sports/featured_event_model.dart';
+import '../../../models/platform/search_result_model.dart';
+import '../../../models/sports/standing_row_model.dart';
+import '../../../models/sports/team_model.dart';
 import 'competition_catalog_gateway.dart';
 import 'event_catalog_gateway.dart';
 import 'home_dtos.dart';

@@ -18,6 +18,7 @@ import 'core/runtime/app_runtime_state.dart';
 import 'core/storage/structured_cache_store.dart';
 import 'firebase_options.dart';
 import 'services/app_telemetry.dart';
+import 'services/deep_link_service.dart';
 import 'services/product_analytics_service.dart';
 import 'theme/colors.dart';
 
@@ -71,8 +72,8 @@ Future<void> main() async {
 
   await startup.prepare();
 
-  // The canonical product flow always opens with the in-app splash first.
-  setInitialRoute('/splash');
+  initializeRouter(initialRoute: '/splash');
+  await DeepLinkService.instance.initialize();
 
   runApp(
     ProviderScope(overrides: _providerOverrides, child: const FanzoneApp()),
@@ -121,7 +122,7 @@ Future<void> _initializeSupabase() async {
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
       anonKey: AppConfig.supabaseAnonKey,
-    );
+    ).timeout(const Duration(seconds: 15));
     appRuntime.supabaseInitialized = true;
     await RuntimeAuthSessionManager.instance.initialize();
     appStartupProfiler.mark('supabase_ready');
@@ -130,10 +131,11 @@ Future<void> _initializeSupabase() async {
     _authStateSubscription = RuntimeAuthSessionManager.instance.authStateChanges
         .listen((_) {
           appRuntime.notifyAuthStateChanged();
+          unawaited(refreshRuntimeBootstrapData());
           unawaited(ProductAnalytics.flush());
           unawaited(AppTelemetry.flush());
         });
-    unawaited(refreshRuntimeBootstrapData());
+    await refreshRuntimeBootstrapData();
   } catch (error, stackTrace) {
     appRuntime.supabaseInitError = 'Could not connect to server.';
     await AppTelemetry.captureException(

@@ -122,7 +122,18 @@ do $$
 declare
   job_name text;
   job_id bigint;
+  has_cron boolean;
 begin
+  -- Only attempt cron cleanup if pg_cron extension is installed
+  select exists(
+    select 1 from pg_extension where extname = 'pg_cron'
+  ) into has_cron;
+
+  if not has_cron then
+    raise notice 'pg_cron not enabled, skipping cron job cleanup';
+    return;
+  end if;
+
   foreach job_name in array array[
     'market-sync-openfootball',
     'fanzone-currency-rates-daily',
@@ -132,11 +143,10 @@ begin
     'daily-screenshot-odds'
   ]
   loop
-    select jobid
-    into job_id
-    from cron.job
-    where cron.job.jobname = job_name
-    limit 1;
+    execute format(
+      'select jobid from cron.job where jobname = %L limit 1',
+      job_name
+    ) into job_id;
 
     if job_id is not null then
       perform cron.unschedule(job_id);

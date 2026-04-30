@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../models/match_model.dart';
-import '../../../models/prediction_engine_output_model.dart';
-import '../../../models/user_prediction_model.dart';
+import '../../../models/sports/match_model.dart';
+import '../../../models/sports/prediction_engine_output_model.dart';
+import '../../../models/auth_and_user/user_prediction_model.dart';
 import '../data/prediction_hub_gateway.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/crowd_prediction_provider.dart';

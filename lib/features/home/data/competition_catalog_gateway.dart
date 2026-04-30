@@ -1,8 +1,8 @@
 import '../../../core/constants/league_constants.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/competition_model.dart';
-import '../../../models/standing_row_model.dart';
+import '../../../models/sports/competition_model.dart';
+import '../../../models/sports/standing_row_model.dart';
 import 'home_dtos.dart';
 import 'sports_data_exception.dart';
 

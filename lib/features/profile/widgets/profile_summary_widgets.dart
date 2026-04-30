@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../core/utils/currency_utils.dart';
-import '../../../models/notification_model.dart';
+import '../../../models/platform/notification_model.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';

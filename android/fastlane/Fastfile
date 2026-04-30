@@ -1,14 +1,28 @@
 default_platform(:android)
 
 platform :android do
+  desc "Upload store listing metadata, graphics, and AAB to internal track"
+  lane :metadata do
+    upload_to_play_store(
+      track: "internal",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      skip_upload_changelogs: true,
+      release_status: "draft",
+      changes_not_sent_for_review: true
+    )
+  end
+
   desc "Deploy to Google Play Internal Testing track"
   lane :internal do
     upload_to_play_store(
       track: "internal",
       aab: "../build/app/outputs/bundle/release/app-release.aab",
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
       release_status: "draft"
     )
   end
@@ -18,9 +32,9 @@ platform :android do
     upload_to_play_store(
       track: "beta",
       aab: "../build/app/outputs/bundle/release/app-release.aab",
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
       release_status: "draft"
     )
   end

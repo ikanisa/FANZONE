@@ -62,10 +62,13 @@ BEGIN
       ('public.admin_global_search(text,integer)'),
       ('public.admin_grant_access(text,text)'),
       ('public.admin_set_feature_flag(text,boolean)'),
+      ('public.admin_upsert_feature_flag(text,text,text,boolean,text,integer)'),
       ('public.generate_predictions_for_upcoming_matches(integer)'),
       ('public.get_admin_me()'),
       ('public.admin_revoke_access(uuid)'),
       ('public.admin_set_competition_featured(text,boolean)'),
+      ('public.admin_upsert_platform_content_block(jsonb)'),
+      ('public.admin_upsert_platform_feature(jsonb)'),
       ('public.admin_trigger_currency_rate_refresh()'),
       ('public.admin_update_account_deletion_request(uuid,text,text)'),
       ('public.admin_update_match_result(text,integer,integer)'),
@@ -75,6 +78,31 @@ BEGIN
 
   IF missing_rpcs IS NOT NULL THEN
     RAISE EXCEPTION 'Missing admin RPCs: %', array_to_string(missing_rpcs, ', ');
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF pg_get_viewdef('public.admin_feature_flags'::regclass, true) NOT ILIKE '%platform_features%' THEN
+    RAISE EXCEPTION 'admin_feature_flags is not filtering platform-managed features';
+  END IF;
+
+  IF has_table_privilege('authenticated', 'public.feature_flags', 'INSERT')
+    OR has_table_privilege('authenticated', 'public.feature_flags', 'UPDATE')
+    OR has_table_privilege('authenticated', 'public.feature_flags', 'DELETE')
+  THEN
+    RAISE EXCEPTION 'authenticated role still has direct write access to public.feature_flags';
+  END IF;
+
+  IF has_table_privilege('authenticated', 'public.platform_features', 'INSERT')
+    OR has_table_privilege('authenticated', 'public.platform_features', 'UPDATE')
+    OR has_table_privilege('authenticated', 'public.platform_features', 'DELETE')
+    OR has_table_privilege('authenticated', 'public.platform_content_blocks', 'INSERT')
+    OR has_table_privilege('authenticated', 'public.platform_content_blocks', 'UPDATE')
+    OR has_table_privilege('authenticated', 'public.platform_content_blocks', 'DELETE')
+  THEN
+    RAISE EXCEPTION 'authenticated role still has direct write access to platform control tables';
   END IF;
 END;
 $$;

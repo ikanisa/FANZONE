@@ -46,29 +46,50 @@ DO $$
 DECLARE
   missing_policies text[];
 BEGIN
-  SELECT array_agg(required_policy)
+  SELECT array_agg(
+    format(
+      '%s [%s]',
+      tablename,
+      array_to_string(accepted_policies, ' OR ')
+    )
+  )
   INTO missing_policies
   FROM (
     VALUES
-      ('fet_wallets', 'Users read own wallet'),
-      ('fet_wallet_transactions', 'Users read own transactions'),
-      ('competitions', 'Public read access for competitions'),
-      ('teams', 'Public read access for teams'),
-      ('matches', 'Public read access for matches'),
-      ('standings', 'standings_public_read'),
-      ('team_form_features', 'team_form_features_public_read'),
-      ('predictions_engine_outputs', 'engine_outputs_public_read'),
-      ('user_predictions', 'Users read own predictions'),
-      ('token_rewards', 'Users read own token rewards'),
-      ('user_favorite_teams', 'Users can read own favorite teams'),
-      ('user_followed_competitions', 'Users manage own competition follows'),
-      ('match_alert_subscriptions', 'Users manage own match alerts'),
-      ('app_config_remote', 'Public read app config remote'),
-      ('device_tokens', 'Users manage own device tokens'),
-      ('notification_preferences', 'Users manage own notification prefs'),
-      ('notification_log', 'Users read own notifications'),
-      ('user_status', 'Users read own status')
-  ) AS expected(tablename, required_policy)
+      ('fet_wallets', ARRAY['Users read own wallet']),
+      ('fet_wallet_transactions', ARRAY['Users read own transactions']),
+      (
+        'competitions',
+        ARRAY['Public read competitions', 'Public read access for competitions']
+      ),
+      (
+        'teams',
+        ARRAY['Public read teams', 'Public read access for teams']
+      ),
+      (
+        'matches',
+        ARRAY['Public read matches', 'Public read access for matches']
+      ),
+      ('standings', ARRAY['standings_public_read']),
+      ('team_form_features', ARRAY['team_form_features_public_read']),
+      ('predictions_engine_outputs', ARRAY['engine_outputs_public_read']),
+      ('user_predictions', ARRAY['Users read own predictions']),
+      ('token_rewards', ARRAY['Users read own token rewards']),
+      ('user_favorite_teams', ARRAY['Users can read own favorite teams']),
+      (
+        'user_followed_competitions',
+        ARRAY['Users manage own competition follows']
+      ),
+      ('match_alert_subscriptions', ARRAY['Users manage own match alerts']),
+      ('app_config_remote', ARRAY['Public read app config remote']),
+      ('device_tokens', ARRAY['Users manage own device tokens']),
+      (
+        'notification_preferences',
+        ARRAY['Users manage own notification prefs']
+      ),
+      ('notification_log', ARRAY['Users read own notifications']),
+      ('user_status', ARRAY['Users read own status'])
+  ) AS expected(tablename, accepted_policies)
   WHERE EXISTS (
       SELECT 1
       FROM information_schema.tables t
@@ -80,7 +101,7 @@ BEGIN
     FROM pg_policies
     WHERE schemaname = 'public'
       AND tablename = expected.tablename
-      AND policyname = expected.required_policy
+      AND policyname = ANY(expected.accepted_policies)
   );
 
   IF missing_policies IS NOT NULL THEN

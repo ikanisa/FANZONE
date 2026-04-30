@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/di/gateway_providers.dart';
 import '../data/team_search_database.dart';
 import '../features/home/data/home_match_curator.dart';
-import '../models/match_model.dart';
+import '../models/sports/match_model.dart';
 import 'favorite_teams_provider.dart';
 import 'matches_provider.dart';
 

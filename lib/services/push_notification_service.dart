@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../app_router.dart' show router;
-import '../core/config/feature_flags.dart';
+import '../app_router.dart' show governedAppRouteForPath, router;
+import '../core/config/platform_feature_access.dart';
 import '../core/di/gateway_providers.dart';
 import '../core/logging/app_logger.dart';
 import '../core/runtime/app_runtime_state.dart';
@@ -27,12 +27,25 @@ class PushNotificationService {
   bool _initialized = false;
   String? _currentToken;
 
+  bool get _isFullyAuthenticated =>
+      _authGateway.isAuthenticated &&
+      !(_authGateway.currentUser?.isAnonymous ?? false);
+
   Future<void> initialize() async {
-    if (_initialized || !appRuntime.supabaseInitialized) return;
-    if (!_authGateway.isAuthenticated) return;
+    if (!appRuntime.supabaseInitialized) return;
+    if (!_isFullyAuthenticated) return;
+
+    final messaging = FirebaseMessaging.instance;
+    if (_initialized) {
+      final token = _currentToken ?? await messaging.getToken();
+      if (token != null) {
+        _currentToken = token;
+        await registerToken(token);
+      }
+      return;
+    }
 
     try {
-      final messaging = FirebaseMessaging.instance;
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
       final settings = await messaging.requestPermission(
@@ -116,14 +129,14 @@ class PushNotificationService {
 
     final matchId = data['match_id']?.toString();
     if (matchId != null && matchId.isNotEmpty) {
-      router.go('/match/$matchId');
+      router.go(governedAppRouteForPath('/match/$matchId'));
       return;
     }
 
     final screen = data['screen']?.toString();
     final normalizedScreen = _normalizeRoute(screen);
     if (normalizedScreen != null) {
-      router.go(normalizedScreen);
+      router.go(governedAppRouteForPath(normalizedScreen));
       return;
     }
 
@@ -132,14 +145,16 @@ class PushNotificationService {
       case 'prediction_update':
       case 'prediction_scored':
       case 'prediction_reward':
-        router.go('/predict');
+        router.go(governedAppRouteForPath('/predict', fallback: '/fixtures'));
         return;
       case 'wallet_credit':
       case 'wallet_debit':
-        router.go('/wallet');
+        router.go(governedAppRouteForPath('/wallet', fallback: '/profile'));
         return;
       default:
-        router.go('/notifications');
+        router.go(
+          governedAppRouteForPath('/notifications', fallback: '/profile'),
+        );
         return;
     }
   }
@@ -152,6 +167,7 @@ class PushNotificationService {
   }
 
   Future<void> registerToken(String token) async {
+    if (!_isFullyAuthenticated) return;
     final userId = _authGateway.currentUser?.id;
     if (userId == null) return;
 
@@ -184,6 +200,7 @@ class PushNotificationService {
   }
 
   Future<void> ensureDefaultPreferences() async {
+    if (!_isFullyAuthenticated) return;
     final userId = _authGateway.currentUser?.id;
     if (userId == null) return;
 
@@ -195,6 +212,7 @@ class PushNotificationService {
   }
 
   Future<int> getUnreadCount() async {
+    if (!_isFullyAuthenticated) return 0;
     final userId = _authGateway.currentUser?.id;
     if (userId == null) return 0;
 
@@ -217,7 +235,9 @@ final pushNotificationServiceProvider = Provider<PushNotificationService>((
 });
 
 final pushNotificationInitProvider = FutureProvider<void>((ref) async {
-  if (!ref.watch(featureFlagsProvider).notifications ||
+  if (!ref
+          .watch(platformFeatureAccessProvider)
+          .isVisible('notifications', surface: PlatformSurface.route) ||
       !appRuntime.supabaseInitialized) {
     return;
   }
@@ -225,10 +245,10 @@ final pushNotificationInitProvider = FutureProvider<void>((ref) async {
   await appRuntime.firebaseReady;
   if (!appRuntime.firebaseInitialized) return;
 
-  final currentUser = ref.watch(currentUserProvider);
+  final isFullyAuthenticated = ref.watch(isFullyAuthenticatedProvider);
   final service = ref.read(pushNotificationServiceProvider);
 
-  if (currentUser == null) {
+  if (!isFullyAuthenticated) {
     await service.unregisterCurrentToken();
     return;
   }

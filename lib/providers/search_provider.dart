@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/di/gateway_providers.dart';
 import '../core/utils/extensions.dart';
 import '../features/home/data/home_dtos.dart';
-import '../models/search_result_model.dart';
+import '../models/platform/search_result_model.dart';
 
 final searchProvider = FutureProvider.family.autoDispose<SearchResults, String>(
   (ref, rawQuery) async {

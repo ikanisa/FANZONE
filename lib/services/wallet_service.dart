@@ -5,7 +5,7 @@ import '../core/errors/app_exception.dart';
 import '../core/errors/failures.dart';
 import '../core/logging/app_logger.dart';
 import '../features/wallet/data/wallet_gateway.dart';
-import '../models/wallet.dart';
+import '../models/auth_and_user/wallet.dart';
 import '../providers/auth_provider.dart';
 import 'product_analytics_service.dart';
 

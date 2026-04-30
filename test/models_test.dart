@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fanzone/models/competition_model.dart';
-import 'package:fanzone/models/match_model.dart';
-import 'package:fanzone/models/team_model.dart';
-import 'package:fanzone/models/wallet.dart';
+import 'package:fanzone/models/sports/competition_model.dart';
+import 'package:fanzone/models/sports/match_model.dart';
+import 'package:fanzone/models/sports/team_model.dart';
+import 'package:fanzone/models/auth_and_user/wallet.dart';
 import 'package:intl/intl.dart';
 
 void main() {

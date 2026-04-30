@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/standing_row_model.dart';
+import '../../models/sports/standing_row_model.dart';
 import '../../theme/colors.dart';
 import '../../theme/typography.dart';
 import '../common/fz_card.dart';

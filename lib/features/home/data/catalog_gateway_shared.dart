@@ -1,6 +1,6 @@
-import '../../../models/competition_model.dart';
-import '../../../models/featured_event_model.dart';
-import '../../../models/team_model.dart';
+import '../../../models/sports/competition_model.dart';
+import '../../../models/sports/featured_event_model.dart';
+import '../../../models/sports/team_model.dart';
 
 /// Filters and sorts competitions by tier and featured status.
 List<CompetitionModel> filterCompetitions(

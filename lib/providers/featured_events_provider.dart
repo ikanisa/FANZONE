@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/di/gateway_providers.dart';
-import '../models/competition_model.dart';
-import '../models/featured_event_model.dart';
+import '../models/sports/competition_model.dart';
+import '../models/sports/featured_event_model.dart';
 
 final featuredEventsProvider =
     FutureProvider.autoDispose<List<FeaturedEventModel>>((ref) async {

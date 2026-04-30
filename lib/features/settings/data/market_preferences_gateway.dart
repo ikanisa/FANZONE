@@ -1,7 +1,7 @@
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/user_market_preferences_model.dart';
+import '../../../models/auth_and_user/user_market_preferences_model.dart';
 
 abstract interface class MarketPreferencesGateway {
   Future<UserMarketPreferences> getCachedMarketPreferences();

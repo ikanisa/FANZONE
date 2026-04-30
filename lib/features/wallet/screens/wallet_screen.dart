@@ -26,7 +26,7 @@ class WalletScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final balanceAsync = ref.watch(walletServiceProvider);
     final transactionsAsync = ref.watch(transactionServiceProvider);
-    final isAuthenticated = ref.watch(isAuthenticatedProvider);
+    final isVerified = ref.watch(isFullyAuthenticatedProvider);
     final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
 
     return Scaffold(
@@ -56,12 +56,12 @@ class WalletScreen extends ConsumerWidget {
             balanceAsync: balanceAsync,
             currency: currency,
             onSend: () {
-              if (!isAuthenticated) {
+              if (!isVerified) {
                 showSignInRequiredSheet(
                   context,
-                  title: 'Sign in to transfer FET',
+                  title: 'Verify WhatsApp to transfer FET',
                   message:
-                      'Phone verification is only required when you want to send FET to another fan.',
+                      'Verify your WhatsApp number before sending FET to another fan.',
                   from: '/wallet',
                 );
                 return;

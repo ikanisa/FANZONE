@@ -13,6 +13,7 @@ enum FzBadgeVariant {
   secondary,
   success,
   danger,
+  warning,
   outline,
   ghost,
 }
@@ -166,6 +167,8 @@ class FzBadge extends StatelessWidget {
         return _tinted(FzColors.success);
       case FzBadgeVariant.danger:
         return _tinted(FzColors.danger);
+      case FzBadgeVariant.warning:
+        return _tinted(FzColors.coral);
       case FzBadgeVariant.outline:
         return _FzBadgePalette(
           background: Colors.transparent,

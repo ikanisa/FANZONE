@@ -1,6 +1,6 @@
 import '../../../core/constants/league_constants.dart';
 import '../../../data/team_search_database.dart';
-import '../../../models/match_model.dart';
+import '../../../models/sports/match_model.dart';
 
 const kDefaultHomeFeaturedClubLimit = 20;
 

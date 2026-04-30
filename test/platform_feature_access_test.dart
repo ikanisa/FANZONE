@@ -9,6 +9,7 @@ void main() {
       'uses registry visibility for channel-aware navigation and routes',
       () {
         final config = BootstrapConfig(
+          platformConfigVersion: 'cfg-v0',
           regions: const {},
           phonePresets: const {},
           currencyDisplay: const {},
@@ -87,25 +88,158 @@ void main() {
       },
     );
 
-    test('falls back to legacy defaults when registry is unavailable', () {
-      final config = BootstrapConfig.empty();
+    test(
+      'does not fabricate mobile defaults when the registry is unavailable',
+      () {
+        final config = BootstrapConfig.empty();
+        final access = PlatformFeatureAccess(config, channel: 'mobile');
+
+        expect(
+          access.isVisible('fixtures', surface: PlatformSurface.navigation),
+          isFalse,
+        );
+        expect(access.routeFor('wallet'), '/');
+        expect(access.navigationFeatures(), isEmpty);
+        expect(access.homeBlocks(), isEmpty);
+      },
+    );
+
+    test('missing registry features are unavailable for guarded actions', () {
+      final access = PlatformFeatureAccess(
+        BootstrapConfig.empty(),
+        channel: 'mobile',
+      );
+
+      expect(
+        access.isActionAvailable('wallet', isAuthenticated: false),
+        isFalse,
+      );
+      expect(
+        access.isActionAvailable('wallet', isAuthenticated: true),
+        isFalse,
+      );
+      expect(
+        access.isActionAvailable('predictions', isAuthenticated: false),
+        isFalse,
+      );
+    });
+
+    test('home blocks respect resolved feature visibility and ordering', () {
+      final config = BootstrapConfig(
+        platformConfigVersion: 'cfg-v1',
+        regions: const {},
+        phonePresets: const {},
+        currencyDisplay: const {},
+        countryCurrencies: const {},
+        featureFlags: const {},
+        appConfig: const {},
+        launchMoments: const [],
+        platformFeatures: [
+          PlatformFeatureInfo.fromJson({
+            'feature_key': 'predictions',
+            'display_name': 'Predictions',
+            'status': 'active',
+            'is_enabled': true,
+            'channels': {
+              'mobile': {
+                'channel': 'mobile',
+                'is_visible': true,
+                'is_enabled': true,
+                'show_in_navigation': true,
+                'show_on_home': false,
+                'sort_order': 30,
+                'route_key': '/predict',
+                'navigation_label': 'Predict',
+              },
+              'web': {
+                'channel': 'web',
+                'is_visible': true,
+                'is_enabled': true,
+                'show_in_navigation': false,
+                'show_on_home': false,
+                'sort_order': 30,
+                'route_key': '/fixtures',
+              },
+            },
+            'resolved_state': {
+              'is_operational': true,
+              'is_visible': true,
+              'is_available': true,
+              'show_in_navigation': true,
+              'show_on_home': false,
+              'route_key': '/predict',
+              'sort_order': 30,
+            },
+          }),
+          PlatformFeatureInfo.fromJson({
+            'feature_key': 'fixtures',
+            'display_name': 'Fixtures',
+            'status': 'active',
+            'is_enabled': true,
+            'channels': {
+              'mobile': {
+                'channel': 'mobile',
+                'is_visible': true,
+                'is_enabled': true,
+                'show_in_navigation': true,
+                'show_on_home': true,
+                'sort_order': 20,
+                'route_key': '/fixtures',
+                'navigation_label': 'Fixtures',
+              },
+              'web': {
+                'channel': 'web',
+                'is_visible': true,
+                'is_enabled': true,
+                'show_in_navigation': true,
+                'show_on_home': true,
+                'sort_order': 20,
+                'route_key': '/fixtures',
+              },
+            },
+            'resolved_state': {
+              'is_operational': true,
+              'is_visible': true,
+              'is_available': true,
+              'show_in_navigation': true,
+              'show_on_home': true,
+              'route_key': '/fixtures',
+              'sort_order': 20,
+            },
+          }),
+        ],
+        platformContentBlocks: [
+          PlatformContentBlockInfo.fromJson({
+            'block_key': 'hidden_prediction_banner',
+            'block_type': 'promo_banner',
+            'title': 'Prediction Push',
+            'content': {'cta_route': '/predict'},
+            'target_channel': 'mobile',
+            'is_active': true,
+            'sort_order': 10,
+            'feature_key': 'predictions',
+            'placement_key': 'home.primary',
+          }),
+          PlatformContentBlockInfo.fromJson({
+            'block_key': 'fixtures_live_matches',
+            'block_type': 'live_matches',
+            'title': 'Live Now',
+            'content': const {},
+            'target_channel': 'mobile',
+            'is_active': true,
+            'sort_order': 20,
+            'feature_key': 'fixtures',
+            'placement_key': 'home.primary',
+          }),
+        ],
+      );
+
       final access = PlatformFeatureAccess(config, channel: 'mobile');
 
       expect(
-        access.isVisible('fixtures', surface: PlatformSurface.navigation),
-        isTrue,
+        access.homeBlocks().map((block) => block.blockKey),
+        equals(<String>['fixtures_live_matches']),
       );
-      expect(access.routeFor('wallet'), '/wallet');
-      expect(
-        access.navigationFeatures().map((item) => item.featureKey),
-        containsAll(<String>[
-          'home_feed',
-          'fixtures',
-          'predictions',
-          'profile',
-        ]),
-      );
-      expect(access.homeBlocks(), isNotEmpty);
     });
   });
 }

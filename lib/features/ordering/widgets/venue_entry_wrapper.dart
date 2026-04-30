@@ -1,0 +1,65 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/venue_context_provider.dart';
+import '../screens/venue_menu_screen.dart';
+
+class VenueEntryWrapper extends ConsumerStatefulWidget {
+  const VenueEntryWrapper({
+    super.key,
+    required this.venueSlug,
+    this.tableNumber,
+  });
+
+  final String venueSlug;
+  final String? tableNumber;
+
+  @override
+  ConsumerState<VenueEntryWrapper> createState() => _VenueEntryWrapperState();
+}
+
+class _VenueEntryWrapperState extends ConsumerState<VenueEntryWrapper> {
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initContext();
+  }
+
+  Future<void> _initContext() async {
+    try {
+      final success = await ref.read(venueContextProvider.notifier).setVenueBySlug(
+            widget.venueSlug,
+            tableNumber: widget.tableNumber,
+          );
+      if (!success) {
+        setState(() => _error = 'Venue not found');
+      }
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text(_error!)),
+      );
+    }
+
+    return VenueMenuScreen(venueSlug: widget.venueSlug);
+  }
+}

@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../models/match_model.dart';
-import '../../../models/team_model.dart';
+import '../../../core/config/platform_feature_access.dart';
+import '../../../models/sports/match_model.dart';
+import '../../../models/sports/team_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/matches_provider.dart';
 import '../../../providers/teams_provider.dart';
@@ -26,6 +27,18 @@ class LeagueHubScreen extends ConsumerWidget {
     final competitionAsync = ref.watch(competitionProvider(leagueId));
     final matchesAsync = ref.watch(competitionMatchesProvider(leagueId));
     final teamsAsync = ref.watch(teamsByCompetitionProvider(leagueId));
+    final featureAccess = ref.watch(platformFeatureAccessProvider);
+    final canOpenPredict = featureAccess.isVisible(
+      'predictions',
+      surface: PlatformSurface.action,
+    );
+    final canOpenLeaderboard = featureAccess.isVisible(
+      'leaderboard',
+      surface: PlatformSurface.route,
+    );
+    final fixturesRoute = featureAccess.routeFor('fixtures');
+    final predictionRoute = featureAccess.routeFor('predictions');
+    final leaderboardRoute = featureAccess.routeFor('leaderboard');
 
     return competitionAsync.when(
       data: (competition) {
@@ -59,7 +72,7 @@ class LeagueHubScreen extends ConsumerWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        onPressed: () => context.go('/fixtures'),
+                        onPressed: () => context.go(fixturesRoute),
                         icon: Icon(
                           LucideIcons.chevronLeft,
                           size: 24,
@@ -110,6 +123,10 @@ class LeagueHubScreen extends ConsumerWidget {
                     openPredictionCount: _spotlightMatches(
                       matchesAsync.valueOrNull ?? const <MatchModel>[],
                     ).length,
+                    canOpenPredictions: canOpenPredict,
+                    canOpenLeaderboard: canOpenLeaderboard,
+                    onOpenPredictions: () => context.push(predictionRoute),
+                    onOpenLeaderboard: () => context.push(leaderboardRoute),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -123,7 +140,7 @@ class LeagueHubScreen extends ConsumerWidget {
                       variant: FzBadgeVariant.danger,
                       pulse: true,
                     ),
-                    onTap: () => context.go('/fixtures'),
+                    onTap: () => context.go(fixturesRoute),
                   ),
                 ),
                 Padding(
@@ -159,51 +176,53 @@ class LeagueHubScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 28),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _SectionHeader(
-                    title: 'Prediction Flow',
-                    icon: LucideIcons.target,
-                    actionLabel: 'OPEN PREDICT',
-                    onTap: () => context.go('/predict'),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: FzCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'This competition now uses one simple free-picks flow.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: textColor,
-                            height: 1.45,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Users save one prediction per match, earn points after results settle, and track progress in the leaderboard.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: muted,
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        FilledButton.icon(
-                          onPressed: () => context.go('/predict'),
-                          icon: const Icon(LucideIcons.target, size: 16),
-                          label: const Text('Open predict'),
-                        ),
-                      ],
+                if (canOpenPredict) ...[
+                  const SizedBox(height: 28),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _SectionHeader(
+                      title: 'Prediction Flow',
+                      icon: LucideIcons.target,
+                      actionLabel: 'OPEN PREDICT',
+                      onTap: () => context.go(predictionRoute),
                     ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: FzCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'This competition now uses one simple free-picks flow.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: textColor,
+                              height: 1.45,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Users save one prediction per match, earn points after results settle, and keep the rest of the match journey in sync.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: muted,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          FilledButton.icon(
+                            onPressed: () => context.go(predictionRoute),
+                            icon: const Icon(LucideIcons.target, size: 16),
+                            label: const Text('Open predict'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 28),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
@@ -306,6 +325,10 @@ class _LeagueHero extends StatelessWidget {
     required this.seasonLabel,
     required this.liveCount,
     required this.openPredictionCount,
+    required this.canOpenPredictions,
+    required this.canOpenLeaderboard,
+    required this.onOpenPredictions,
+    required this.onOpenLeaderboard,
   });
 
   final String emoji;
@@ -313,6 +336,10 @@ class _LeagueHero extends StatelessWidget {
   final String? seasonLabel;
   final int liveCount;
   final int openPredictionCount;
+  final bool canOpenPredictions;
+  final bool canOpenLeaderboard;
+  final VoidCallback onOpenPredictions;
+  final VoidCallback onOpenLeaderboard;
 
   @override
   Widget build(BuildContext context) {
@@ -321,6 +348,54 @@ class _LeagueHero extends StatelessWidget {
     final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final actionButtons = <Widget>[
+      if (canOpenPredictions)
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: onOpenPredictions,
+            style: FilledButton.styleFrom(
+              backgroundColor: FzColors.primary,
+              foregroundColor: FzColors.darkBg,
+              minimumSize: const Size.fromHeight(48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            icon: const Icon(LucideIcons.target, size: 16),
+            label: const Text(
+              'MAKE PICK',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
+      if (canOpenLeaderboard)
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onOpenLeaderboard,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: textColor,
+              side: BorderSide(color: border),
+              minimumSize: const Size.fromHeight(48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            icon: const Icon(LucideIcons.trophy, size: 16),
+            label: const Text(
+              'LEADERBOARD',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
+    ];
 
     return Container(
       decoration: BoxDecoration(
@@ -411,56 +486,21 @@ class _LeagueHero extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 22),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => context.push('/predict'),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: FzColors.primary,
-                          foregroundColor: FzColors.darkBg,
-                          minimumSize: const Size.fromHeight(48),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        icon: const Icon(LucideIcons.target, size: 16),
-                        label: const Text(
-                          'MAKE PICK',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => context.push('/leaderboard'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: textColor,
-                          side: BorderSide(color: border),
-                          minimumSize: const Size.fromHeight(48),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        icon: const Icon(LucideIcons.trophy, size: 16),
-                        label: const Text(
-                          'LEADERBOARD',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                if (actionButtons.isNotEmpty) ...[
+                  const SizedBox(height: 22),
+                  Row(
+                    children: [
+                      for (
+                        int index = 0;
+                        index < actionButtons.length;
+                        index++
+                      ) ...[
+                        if (index > 0) const SizedBox(width: 12),
+                        actionButtons[index],
+                      ],
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

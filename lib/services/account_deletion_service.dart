@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/cache/shared_preferences_cache_service.dart';
 import '../core/supabase/supabase_connection.dart';
 import '../features/settings/data/account_settings_gateway.dart';
-import '../models/account_deletion_request_model.dart';
+import '../models/auth_and_user/account_deletion_request_model.dart';
 
 /// Static account deletion service.
 /// Uses Supabase directly for auth and creates its own gateway instance,

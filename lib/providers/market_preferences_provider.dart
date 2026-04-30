@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/di/gateway_providers.dart';
 import '../core/market/launch_market.dart';
-import '../models/featured_event_model.dart';
-import '../models/user_market_preferences_model.dart';
+import '../models/sports/featured_event_model.dart';
+import '../models/auth_and_user/user_market_preferences_model.dart';
 import 'featured_events_provider.dart';
 
 final userMarketPreferencesProvider =

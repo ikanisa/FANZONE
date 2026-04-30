@@ -1,0 +1,21 @@
+{
+  "name": "fanzone-monorepo",
+  "private": true,
+  "description": "FANZONE Super-App Monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:admin": "npm run dev -w @fanzone/admin",
+    "dev:website": "npm run dev -w @fanzone/website",
+    "dev:venue": "npm run dev -w @fanzone/venue-portal",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2"
+  }
+}

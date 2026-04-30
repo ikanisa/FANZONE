@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../config/app_config.dart';
 import '../../../core/config/platform_feature_access.dart';
 import '../../../features/profile/providers/profile_identity_provider.dart';
+import '../../../features/venue_dashboard/providers/venue_dashboard_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../providers/favorite_teams_provider.dart';
@@ -25,30 +26,40 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final balanceAsync = ref.watch(walletServiceProvider);
-    final isAuthenticated = ref.watch(isAuthenticatedProvider);
+    final hasSession = ref.watch(isAuthenticatedProvider);
+    final isVerified = ref.watch(isFullyAuthenticatedProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     final fanId = ref.watch(userFanIdProvider).valueOrNull;
     final favoriteTeamsAsync = ref.watch(favoriteTeamRecordsProvider);
+    final isVenueOwner = ref.watch(isVenueOwnerProvider);
     final profileIdentity = ref.watch(profileIdentityProvider).valueOrNull;
     final featureAccess = ref.watch(platformFeatureAccessProvider);
     final showWallet =
-        isAuthenticated &&
+        hasSession &&
         featureAccess.isVisible('wallet', surface: PlatformSurface.route);
     final showPredictions =
-        isAuthenticated &&
         featureAccess.isVisible('predictions', surface: PlatformSurface.route);
     final showLeaderboard = featureAccess.isVisible(
       'leaderboard',
       surface: PlatformSurface.route,
     );
+    final showSettings = featureAccess.isVisible(
+      'settings',
+      surface: PlatformSurface.route,
+    );
     final showInbox =
-        isAuthenticated &&
+        isVerified &&
         featureAccess.isVisible(
           'notifications',
           surface: PlatformSurface.route,
         );
+    final predictionRoute = featureAccess.routeFor('predictions');
+    final leaderboardRoute = featureAccess.routeFor('leaderboard');
+    final walletRoute = featureAccess.routeFor('wallet');
+    final settingsRoute = featureAccess.routeFor('settings');
+    final notificationsRoute = featureAccess.routeFor('notifications');
 
     return Scaffold(
       body: SafeArea(
@@ -72,39 +83,41 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  Tooltip(
-                    message: 'Open settings',
-                    child: InkWell(
-                      onTap: () => context.push('/settings'),
-                      borderRadius: FzRadii.fullRadius,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? FzColors.darkSurface2
-                              : FzColors.lightSurface2,
-                          shape: BoxShape.circle,
-                          border: Border.all(
+                  if (showSettings)
+                    Tooltip(
+                      message: 'Open settings',
+                      child: InkWell(
+                        onTap: () => context.push(settingsRoute),
+                        borderRadius: FzRadii.fullRadius,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
                             color: isDark
-                                ? FzColors.darkBorder
-                                : FzColors.lightBorder,
+                                ? FzColors.darkSurface2
+                                : FzColors.lightSurface2,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark
+                                  ? FzColors.darkBorder
+                                  : FzColors.lightBorder,
+                            ),
                           ),
-                        ),
-                        child: Icon(
-                          LucideIcons.settings,
-                          size: 18,
-                          color: muted,
+                          child: Icon(
+                            LucideIcons.settings,
+                            size: 18,
+                            color: muted,
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
 
             ProfileHeaderCard(
-              isAuthenticated: isAuthenticated,
+              hasSession: hasSession,
+              isVerified: isVerified,
               fanId: fanId,
               favoriteTeamsAsync: favoriteTeamsAsync,
               profileIdentity: profileIdentity,
@@ -118,7 +131,7 @@ class ProfileScreen extends ConsumerWidget {
                 teams: favoriteTeamsAsync.valueOrNull ?? const [],
                 selectedTeamId: profileIdentity?.teamId,
               ),
-              onWalletTap: () => context.push('/wallet'),
+              onWalletTap: () => context.push(walletRoute),
               onVerifyPhone: () => showSignInRequiredSheet(
                 context,
                 title: 'Verify WhatsApp',
@@ -134,6 +147,11 @@ class ProfileScreen extends ConsumerWidget {
               showLeaderboard: showLeaderboard,
               showWallet: showWallet,
               showPredictions: showPredictions,
+              isVenueOwner: isVenueOwner,
+              onPredictionsTap: () => context.go(predictionRoute),
+              onLeaderboardTap: () => context.push(leaderboardRoute),
+              onWalletTap: () => context.push(walletRoute),
+              onVenueDashboardTap: () => context.push('/venue-dashboard'),
             ),
 
             const SizedBox(height: 16),
@@ -142,7 +160,8 @@ class ProfileScreen extends ConsumerWidget {
               onHelp: () =>
                   _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
               showInbox: showInbox,
-              showVerifyAction: !isAuthenticated,
+              showSettings: showSettings,
+              showVerifyAction: !isVerified,
               onVerifyPhone: () => showSignInRequiredSheet(
                 context,
                 title: 'Verify WhatsApp',
@@ -150,7 +169,9 @@ class ProfileScreen extends ConsumerWidget {
                     'Verify your number to unlock wallet transfers, notifications, and saved predictions.',
                 from: '/profile',
               ),
-              showSignOut: isAuthenticated,
+              showSignOut: hasSession,
+              onInboxTap: () => context.push(notificationsRoute),
+              onSettingsTap: () => context.push(settingsRoute),
               onSignOut: () async {
                 final authService = ref.read(authServiceProvider);
                 final pushService = ref.read(pushNotificationServiceProvider);

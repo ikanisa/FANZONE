@@ -4,7 +4,7 @@ export '../features/home/data/home_dtos.dart' show MatchesFilter;
 
 import '../core/di/gateway_providers.dart';
 import '../features/home/data/home_dtos.dart';
-import '../models/match_model.dart';
+import '../models/sports/match_model.dart';
 
 final matchesProvider = FutureProvider.family
     .autoDispose<List<MatchModel>, MatchesFilter>((ref, filter) async {

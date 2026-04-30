@@ -1,9 +1,10 @@
 import '../../../core/logging/app_logger.dart';
+import '../../../core/config/platform_feature_access.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/match_model.dart';
-import '../../../models/prediction_engine_output_model.dart';
-import '../../../models/team_form_feature_model.dart';
-import '../../../models/user_prediction_model.dart';
+import '../../../models/sports/match_model.dart';
+import '../../../models/sports/prediction_engine_output_model.dart';
+import '../../../models/sports/team_form_feature_model.dart';
+import '../../../models/auth_and_user/user_prediction_model.dart';
 
 class PredictionSubmissionRequest {
   const PredictionSubmissionRequest({
@@ -25,6 +26,10 @@ class PredictionSubmissionRequest {
 
 abstract interface class PredictionHubGateway {
   Future<PredictionEngineOutputModel?> getEngineOutput(String matchId);
+
+  Future<Map<String, PredictionEngineOutputModel>> getEngineOutputsForMatches(
+    Iterable<String> matchIds,
+  );
 
   Future<List<TeamFormFeatureModel>> getMatchFormFeatures(String matchId);
 
@@ -66,6 +71,43 @@ class SupabasePredictionHubGateway implements PredictionHubGateway {
     } catch (error) {
       AppLogger.d('Failed to load engine output for $matchId: $error');
       return null;
+    }
+  }
+
+  @override
+  Future<Map<String, PredictionEngineOutputModel>> getEngineOutputsForMatches(
+    Iterable<String> matchIds,
+  ) async {
+    final client = _connection.client;
+    if (client == null) {
+      return const <String, PredictionEngineOutputModel>{};
+    }
+
+    final ids = matchIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    if (ids.isEmpty) {
+      return const <String, PredictionEngineOutputModel>{};
+    }
+
+    try {
+      final rows = await client
+          .from('predictions_engine_outputs')
+          .select()
+          .inFilter('match_id', ids);
+      final outputs = <String, PredictionEngineOutputModel>{};
+      for (final row in (rows as List).whereType<Map>()) {
+        final output = PredictionEngineOutputModel.fromJson(
+          Map<String, dynamic>.from(row),
+        );
+        outputs[output.matchId] = output;
+      }
+      return outputs;
+    } catch (error) {
+      AppLogger.d('Failed to load bulk engine outputs: $error');
+      return const <String, PredictionEngineOutputModel>{};
     }
   }
 
@@ -181,6 +223,16 @@ class SupabasePredictionHubGateway implements PredictionHubGateway {
     if (client == null) {
       throw StateError('Supabase not connected');
     }
+    if (_connection.currentUser?.isAnonymous ?? false) {
+      throw StateError(
+        'Verify your WhatsApp number before locking predictions.',
+      );
+    }
+
+    assertRuntimePlatformFeatureActionAvailable(
+      'predictions',
+      fallbackMessage: 'Prediction entry is currently unavailable.',
+    );
 
     final response = await client.rpc(
       'submit_user_prediction',

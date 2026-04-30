@@ -682,24 +682,41 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
           textColor: const Color(0xFF061514),
         ),
         const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Column(
           children: [
-            TextButton(
-              onPressed: _loading ? null : _goBackToPhone,
-              child: Text(
-                'Use a different number',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: mutedColor,
-                  fontWeight: FontWeight.w700,
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: TextButton(
+                onPressed: (_resendCooldown > 0 || _loading) ? null : _sendOtp,
+                child: Text(
+                  _resendCooldown > 0
+                      ? 'RESEND CODE IN ${_resendCooldown}S'
+                      : 'RESEND OTP',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.1,
+                    color: _resendCooldown > 0
+                        ? mutedColor.withValues(alpha: 0.5)
+                        : _verificationAccent,
+                  ),
                 ),
               ),
             ),
-            Text(
-              _resendCooldown > 0 ? 'Resend in ${_resendCooldown}s' : '',
-              style: Theme.of(
-                context,
-              ).textTheme.labelMedium?.copyWith(color: mutedColor),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: _loading ? null : _goBackToPhone,
+                  child: Text(
+                    'Use a different number',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: mutedColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

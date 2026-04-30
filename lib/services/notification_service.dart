@@ -4,8 +4,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../core/di/gateway_providers.dart';
 import '../core/supabase/supabase_connection.dart';
 import '../features/settings/data/preferences_gateway.dart';
-import '../models/notification_model.dart';
-import '../providers/auth_provider.dart' show authStateProvider;
+import '../models/platform/notification_model.dart';
+import '../providers/auth_provider.dart'
+    show authStateProvider, isFullyAuthenticatedProvider;
 
 part 'notification_service.g.dart';
 
@@ -23,6 +24,10 @@ class NotificationService extends _$NotificationService {
   @override
   FutureOr<NotificationPreferences> build() async {
     ref.watch(authStateProvider);
+    final isFullyAuthenticated = ref.watch(isFullyAuthenticatedProvider);
+    if (!isFullyAuthenticated) {
+      return const NotificationPreferences();
+    }
 
     final userId = _currentUserId;
     if (userId == null) return const NotificationPreferences();
@@ -142,9 +147,10 @@ class NotificationService extends _$NotificationService {
 FutureOr<List<NotificationItem>> notificationLog(Ref ref) async {
   ref.watch(authStateProvider);
   final debugNotifications = ref.watch(debugNotificationLogProvider);
+  final isFullyAuthenticated = ref.watch(isFullyAuthenticatedProvider);
 
   final userId = SupabaseConnectionImpl().currentUser?.id;
-  if (userId == null) return debugNotifications;
+  if (userId == null || !isFullyAuthenticated) return debugNotifications;
 
   try {
     final remote = await ref
@@ -174,6 +180,9 @@ FutureOr<int> unreadNotificationCount(Ref ref) async {
 final matchAlertEnabledProvider = FutureProvider.autoDispose
     .family<bool, String>((ref, matchId) async {
       ref.watch(authStateProvider);
+      if (!ref.watch(isFullyAuthenticatedProvider)) {
+        return false;
+      }
       return ref
           .read(notificationSettingsGatewayProvider)
           .isMatchAlertEnabled(
@@ -185,6 +194,9 @@ final matchAlertEnabledProvider = FutureProvider.autoDispose
 @riverpod
 FutureOr<UserStats> userStats(Ref ref) async {
   ref.watch(authStateProvider);
+  if (!ref.watch(isFullyAuthenticatedProvider)) {
+    return const UserStats();
+  }
 
   final userId = SupabaseConnectionImpl().currentUser?.id;
   if (userId == null) return const UserStats();

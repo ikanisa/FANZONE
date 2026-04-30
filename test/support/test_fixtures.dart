@@ -1,6 +1,6 @@
-import 'package:fanzone/models/competition_model.dart';
-import 'package:fanzone/models/match_model.dart';
-import 'package:fanzone/models/wallet.dart';
+import 'package:fanzone/models/sports/competition_model.dart';
+import 'package:fanzone/models/sports/match_model.dart';
+import 'package:fanzone/models/auth_and_user/wallet.dart';
 
 CompetitionModel sampleCompetition({
   String id = 'competition_alpha',

@@ -10,7 +10,7 @@ import '../../../core/runtime/app_runtime_state.dart';
 import '../../../core/utils/phone_country_catalog.dart';
 import '../widgets/country_code_picker.dart';
 import '../../../data/team_search_database.dart';
-import '../../../models/user_market_preferences_model.dart';
+import '../../../models/auth_and_user/user_market_preferences_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/market_preferences_provider.dart';
 import '../../../providers/region_provider.dart';
@@ -288,7 +288,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     await ref.read(cacheServiceProvider).setBool('onboarding_complete', true);
     if (!mounted) return;
-    context.go('/');
+    context.go(appRuntime.consumePendingAppRoute() ?? '/');
   }
 
   @override

@@ -1,7 +1,7 @@
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../core/utils/team_name_cleanup.dart';
-import '../../../models/search_result_model.dart';
+import '../../../models/platform/search_result_model.dart';
 import 'home_dtos.dart';
 
 abstract interface class SearchCatalogGateway {

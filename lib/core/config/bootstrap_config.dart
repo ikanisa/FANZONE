@@ -13,19 +13,21 @@ import '../supabase/supabase_connection.dart';
 /// when offline, and to compiled defaults only on first-ever cold start.
 class BootstrapConfig {
   BootstrapConfig({
-    required this.regions,
-    required this.phonePresets,
-    required this.currencyDisplay,
-    required this.countryCurrencies,
-    required this.featureFlags,
-    required this.appConfig,
-    required this.launchMoments,
-    required this.platformFeatures,
-    required this.platformContentBlocks,
+    this.platformConfigVersion,
+    this.regions = const {},
+    this.phonePresets = const {},
+    this.currencyDisplay = const {},
+    this.countryCurrencies = const {},
+    this.featureFlags = const {},
+    this.appConfig = const {},
+    this.launchMoments = const [],
+    this.platformFeatures = const [],
+    this.platformContentBlocks = const [],
   });
 
   factory BootstrapConfig.fromJson(Map<String, dynamic> json) {
     return BootstrapConfig(
+      platformConfigVersion: json['platform_config_version']?.toString(),
       regions: _parseRegions(json['regions']),
       phonePresets: _parsePhonePresets(json['phone_presets']),
       currencyDisplay: _parseCurrencyDisplay(json['currency_display']),
@@ -45,6 +47,7 @@ class BootstrapConfig {
   /// Empty config used when no data is available.
   factory BootstrapConfig.empty() {
     return BootstrapConfig(
+      platformConfigVersion: null,
       regions: const {},
       phonePresets: const {},
       currencyDisplay: const {},
@@ -56,6 +59,9 @@ class BootstrapConfig {
       platformContentBlocks: const [],
     );
   }
+
+  /// Country code → region info.
+  final String? platformConfigVersion;
 
   /// Country code → region info.
   final Map<String, RegionInfo> regions;
@@ -232,6 +238,7 @@ class BootstrapConfig {
       'regions': regions.entries
           .map((entry) => entry.value.toJson())
           .toList(growable: false),
+      'platform_config_version': platformConfigVersion,
       'phone_presets': phonePresets.entries
           .map((entry) => entry.value.toJson()..['country_code'] = entry.key)
           .toList(growable: false),

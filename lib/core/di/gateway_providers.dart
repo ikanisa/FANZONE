@@ -35,6 +35,12 @@ import '../../features/settings/data/market_preferences_gateway.dart';
 import '../../features/settings/data/notification_settings_gateway.dart';
 import '../../features/wallet/data/wallet_gateway.dart';
 
+// ── Ordering / DineIn gateways ─────────────────────────────
+import '../../features/ordering/data/bell_gateway.dart';
+import '../../features/ordering/data/order_gateway.dart';
+import '../../features/ordering/data/venue_gateway.dart';
+import '../../features/venue_dashboard/data/venue_stake_gateway.dart';
+
 // ═══════════════════════════════════════════════════════════
 // CORE SINGLETONS
 // ═══════════════════════════════════════════════════════════
@@ -443,6 +449,26 @@ final walletGatewayProvider = Provider<WalletGateway>((ref) {
 });
 
 // ═══════════════════════════════════════════════════════════
+// ORDERING / DINEIN
+// ═══════════════════════════════════════════════════════════
+
+final venueGatewayProvider = Provider<VenueGateway>((ref) {
+  return SupabaseVenueGateway(ref.watch(supabaseConnectionProvider));
+});
+
+final orderGatewayProvider = Provider<OrderGateway>((ref) {
+  return SupabaseOrderGateway(ref.watch(supabaseConnectionProvider));
+});
+
+final bellGatewayProvider = Provider<BellGateway>((ref) {
+  return SupabaseBellGateway(ref.watch(supabaseConnectionProvider));
+});
+
+final venueStakeGatewayProvider = Provider<VenueStakeGateway>((ref) {
+  return SupabaseVenueStakeGateway(ref.watch(supabaseConnectionProvider));
+});
+
+// ═══════════════════════════════════════════════════════════
 // BOOTSTRAP CONFIG (replaces all hardcoded constants)
 // ═══════════════════════════════════════════════════════════
 
@@ -488,5 +514,16 @@ Future<List<Override>> resolveAsyncOverrides() async {
     sharedPreferencesProvider.overrideWithValue(prefs),
     teamSearchCatalogProvider.overrideWithValue(catalog),
     bootstrapConfigServiceProvider.overrideWith((ref) => bootstrapService),
+  ];
+}
+
+/// Helper for Integration Tests to inject mocks easily.
+Future<List<Override>> resolveIntegrationOverrides({
+  List<Override> customOverrides = const [],
+}) async {
+  final baseOverrides = await resolveAsyncOverrides();
+  return [
+    ...baseOverrides,
+    ...customOverrides,
   ];
 }

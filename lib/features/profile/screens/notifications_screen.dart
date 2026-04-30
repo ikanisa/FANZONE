@@ -1,11 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../models/notification_model.dart';
+import '../../../models/platform/notification_model.dart';
 import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
@@ -23,19 +21,6 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   NotificationService? _notificationController;
-
-  @override
-  void dispose() {
-    final controller = _notificationController;
-    if (controller != null) {
-      try {
-        unawaited(controller.markAllRead().catchError((_) {}));
-      } catch (_) {
-        // Ignore teardown-time failures when Supabase/auth is unavailable.
-      }
-    }
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

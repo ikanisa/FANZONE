@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fanzone/models/wallet.dart';
+import 'package:fanzone/models/auth_and_user/wallet.dart';
 
 void main() {
   group('WalletTransaction', () {

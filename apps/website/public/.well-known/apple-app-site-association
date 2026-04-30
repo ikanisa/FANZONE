@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "KL8NM5C2.app.fanzone.football",
+        "paths": [
+          "/predict",
+          "/predict/*"
+        ]
+      }
+    ]
+  }
+}

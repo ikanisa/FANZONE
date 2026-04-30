@@ -14,7 +14,8 @@ import '../../../widgets/common/fz_glass_loader.dart';
 class ProfileHeaderCard extends ConsumerWidget {
   const ProfileHeaderCard({
     super.key,
-    required this.isAuthenticated,
+    required this.hasSession,
+    required this.isVerified,
     required this.fanId,
     required this.favoriteTeamsAsync,
     required this.profileIdentity,
@@ -27,7 +28,8 @@ class ProfileHeaderCard extends ConsumerWidget {
     required this.onVerifyPhone,
   });
 
-  final bool isAuthenticated;
+  final bool hasSession;
+  final bool isVerified;
   final String? fanId;
   final AsyncValue<List<FavoriteTeamRecordDto>> favoriteTeamsAsync;
   final FavoriteTeamRecordDto? profileIdentity;
@@ -51,13 +53,13 @@ class ProfileHeaderCard extends ConsumerWidget {
             children: [
               Semantics(
                 container: true,
-                button: isAuthenticated,
-                label: isAuthenticated
+                button: hasSession,
+                label: hasSession
                     ? 'Select profile identity'
                     : 'Profile identity avatar',
                 child: GestureDetector(
                   key: const ValueKey('profile-identity-trigger'),
-                  onTap: isAuthenticated ? onSelectIdentity : null,
+                  onTap: hasSession ? onSelectIdentity : null,
                   child: ExcludeSemantics(
                     child: Stack(
                       children: [
@@ -88,7 +90,7 @@ class ProfileHeaderCard extends ConsumerWidget {
                                   ),
                           ),
                         ),
-                        if (isAuthenticated)
+                        if (hasSession)
                           Positioned.fill(
                             child: AnimatedOpacity(
                               duration: const Duration(milliseconds: 180),
@@ -124,7 +126,7 @@ class ProfileHeaderCard extends ConsumerWidget {
                                     fontFamily: 'monospace',
                                   ),
                                 )
-                              : isAuthenticated
+                              : hasSession
                               ? Text.rich(
                                   TextSpan(
                                     children: FzWordmark.spansForText(
@@ -201,7 +203,7 @@ class ProfileHeaderCard extends ConsumerWidget {
               ),
             ],
           ),
-          if (!isAuthenticated) ...[
+          if (!isVerified) ...[
             const SizedBox(height: 14),
             Semantics(
               button: true,

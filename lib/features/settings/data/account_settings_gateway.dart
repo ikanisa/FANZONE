@@ -2,8 +2,8 @@ import 'preferences_gateway_shared.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/account_deletion_request_model.dart';
-import '../../../models/privacy_settings_model.dart';
+import '../../../models/auth_and_user/account_deletion_request_model.dart';
+import '../../../models/auth_and_user/privacy_settings_model.dart';
 
 abstract interface class AccountSettingsGateway {
   Future<AccountDeletionRequestModel?> getAccountDeletionRequest(String userId);

@@ -1,6 +1,6 @@
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/team_model.dart';
+import '../../../models/sports/team_model.dart';
 import 'sports_data_exception.dart';
 
 abstract interface class TeamCatalogGateway {

@@ -2,10 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/di/gateway_providers.dart';
 import '../features/predict/data/prediction_hub_gateway.dart';
-import '../models/match_model.dart';
-import '../models/prediction_engine_output_model.dart';
-import '../models/team_form_feature_model.dart';
-import '../models/user_prediction_model.dart';
+import '../models/sports/match_model.dart';
+import '../models/sports/prediction_engine_output_model.dart';
+import '../models/sports/team_form_feature_model.dart';
+import '../models/auth_and_user/user_prediction_model.dart';
 import '../providers/auth_provider.dart';
 
 class PredictionService {
@@ -15,6 +15,12 @@ class PredictionService {
 
   Future<PredictionEngineOutputModel?> getEngineOutput(String matchId) {
     return _gateway.getEngineOutput(matchId);
+  }
+
+  Future<Map<String, PredictionEngineOutputModel>> getEngineOutputsForMatches(
+    Iterable<String> matchIds,
+  ) {
+    return _gateway.getEngineOutputsForMatches(matchIds);
   }
 
   Future<List<TeamFormFeatureModel>> getMatchFormFeatures(String matchId) {
@@ -53,6 +59,22 @@ final predictionServiceProvider = Provider<PredictionService>((ref) {
 final predictionEngineOutputProvider = FutureProvider.family
     .autoDispose<PredictionEngineOutputModel?, String>((ref, matchId) async {
       return ref.read(predictionServiceProvider).getEngineOutput(matchId);
+    });
+
+final predictionEngineOutputMapProvider = FutureProvider.family
+    .autoDispose<Map<String, PredictionEngineOutputModel>, String>((
+      ref,
+      key,
+    ) async {
+      final ids = key
+          .split(',')
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .toList(growable: false);
+      if (ids.isEmpty) return const <String, PredictionEngineOutputModel>{};
+      return ref
+          .read(predictionServiceProvider)
+          .getEngineOutputsForMatches(ids);
     });
 
 final matchFormFeaturesProvider = FutureProvider.family

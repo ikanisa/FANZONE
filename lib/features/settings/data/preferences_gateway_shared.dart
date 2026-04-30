@@ -1,4 +1,4 @@
-import '../../../models/account_deletion_request_model.dart';
+import '../../../models/auth_and_user/account_deletion_request_model.dart';
 
 /// Cache key constants for settings gateways.
 const marketPreferencesCacheKey = 'preferences.market';

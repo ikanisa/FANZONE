@@ -1,7 +1,8 @@
 import '../../../core/cache/cache_service.dart';
+import '../../../core/config/platform_feature_access.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/notification_model.dart';
+import '../../../models/platform/notification_model.dart';
 
 abstract interface class NotificationSettingsGateway {
   Future<NotificationPreferences> getNotificationPreferences(String userId);
@@ -52,11 +53,18 @@ class SupabaseNotificationSettingsGateway
   static const notificationPreferencesCachePrefix = 'settings.notification_prefs.';
   static const notificationLogCachePrefix = 'settings.notification_log.';
 
+  bool get _hasVerifiedSession =>
+      _connection.isAuthenticated &&
+      !(_connection.currentUser?.isAnonymous ?? false);
+
   @override
   Future<NotificationPreferences> getNotificationPreferences(
     String userId,
   ) async {
     final cached = await _cachedNotificationPreferences(userId);
+    if (!_hasVerifiedSession) {
+      return cached ?? const NotificationPreferences();
+    }
     final client = _connection.client;
     if (client == null) return cached ?? const NotificationPreferences();
 
@@ -88,6 +96,11 @@ class SupabaseNotificationSettingsGateway
     String userId,
     NotificationPreferences preferences,
   ) async {
+    if (!_hasVerifiedSession) {
+      throw StateError(
+        'Verify your WhatsApp number before managing notification preferences.',
+      );
+    }
     final client = _connection.client;
     if (client == null) {
       throw StateError(
@@ -112,6 +125,7 @@ class SupabaseNotificationSettingsGateway
 
   @override
   Future<void> ensureDefaultNotificationPreferences(String userId) async {
+    if (!_hasVerifiedSession) return;
     final current = await getNotificationPreferences(userId);
     if (current != const NotificationPreferences()) return;
     await saveNotificationPreferences(userId, const NotificationPreferences());
@@ -131,6 +145,7 @@ class SupabaseNotificationSettingsGateway
 
     final client = _connection.client;
     if (client == null || userId == null) return;
+    if (!runtimePlatformFeatureActionAvailable('notifications')) return;
 
     try {
       await client.from('device_tokens').upsert({
@@ -158,6 +173,7 @@ class SupabaseNotificationSettingsGateway
 
     final client = _connection.client;
     if (client == null || userId == null) return;
+    if (!runtimePlatformFeatureActionAvailable('notifications')) return;
 
     try {
       await client
@@ -179,10 +195,14 @@ class SupabaseNotificationSettingsGateway
     }
 
     try {
-      await client
-          .from('notification_log')
-          .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-          .eq('id', notificationId);
+      assertRuntimePlatformFeatureActionAvailable(
+        'notifications',
+        fallbackMessage: 'Notifications are unavailable right now.',
+      );
+      await client.rpc(
+        'mark_notification_read',
+        params: {'p_notification_id': notificationId},
+      );
     } catch (error) {
       AppLogger.d('Failed to mark notification as read: $error');
       rethrow;
@@ -207,10 +227,11 @@ class SupabaseNotificationSettingsGateway
     }
 
     try {
-      await client
-          .from('notification_log')
-          .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-          .eq('user_id', userId);
+      assertRuntimePlatformFeatureActionAvailable(
+        'notifications',
+        fallbackMessage: 'Notifications are unavailable right now.',
+      );
+      await client.rpc('mark_all_notifications_read');
     } catch (error) {
       AppLogger.d('Failed to mark all notifications read: $error');
       rethrow;
@@ -233,6 +254,15 @@ class SupabaseNotificationSettingsGateway
     final key = '$matchAlertsCachePrefix$scopedUser';
     final client = _connection.client;
 
+    if (userId != null && !runtimePlatformFeatureActionAvailable('notifications')) {
+      throw StateError('Match alerts are unavailable right now.');
+    }
+    if (userId != null && !_hasVerifiedSession) {
+      throw StateError(
+        'Verify your WhatsApp number before enabling match alerts.',
+      );
+    }
+
     if (client != null && userId != null) {
       try {
         if (enabled) {
@@ -240,7 +270,7 @@ class SupabaseNotificationSettingsGateway
             'user_id': userId,
             'match_id': matchId,
             'alert_kickoff': true,
-            'alert_goals': true,
+            'alert_goals': false,
             'alert_result': true,
             'updated_at': DateTime.now().toUtc().toIso8601String(),
           }, onConflict: 'user_id,match_id');
@@ -269,6 +299,10 @@ class SupabaseNotificationSettingsGateway
   @override
   Future<List<NotificationItem>> getNotificationLog(String userId) async {
     final cached = await _cachedNotificationLog(userId);
+    if (!_hasVerifiedSession) {
+      if (cached.isNotEmpty) return cached;
+      return const <NotificationItem>[];
+    }
     final client = _connection.client;
     if (client == null) {
       if (cached.isNotEmpty) return cached;
@@ -304,6 +338,9 @@ class SupabaseNotificationSettingsGateway
     final scopedUser = userId ?? 'guest';
     final cacheKey = '$matchAlertsCachePrefix$scopedUser';
     final client = _connection.client;
+    if (userId != null && !_hasVerifiedSession) {
+      return false;
+    }
 
     if (client != null && userId != null) {
       try {
@@ -339,6 +376,9 @@ class SupabaseNotificationSettingsGateway
 
   @override
   Future<UserStats> getUserStats(String userId) async {
+    if (!_hasVerifiedSession) {
+      return const UserStats();
+    }
     final client = _connection.client;
     if (client == null) {
       return const UserStats();

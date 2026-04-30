@@ -7,7 +7,7 @@ import 'typography.dart';
 /// FANZONE theme aligned to the original design reference.
 abstract final class FzTheme {
   // ════════════════════════════════════════════
-  // DARK THEME (default)
+  // DARK THEME (only supported app appearance)
   // ════════════════════════════════════════════
   static ThemeData dark() {
     final textTheme = FzTypography.textTheme(Brightness.dark);
@@ -177,8 +177,8 @@ abstract final class FzTheme {
   }
 
   // ════════════════════════════════════════════
-  // Legacy light-theme entry point
-  // Any caller that still requests a light theme gets the supported dark theme.
+  // Compatibility guard
+  // Any caller that still requests a light theme is forced onto dark.
   // ════════════════════════════════════════════
   static ThemeData light() => dark();
 }

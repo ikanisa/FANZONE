@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../models/match_model.dart';
-import '../../../models/prediction_engine_output_model.dart';
-import '../../../models/user_prediction_model.dart';
+import '../../../models/sports/competition_model.dart';
+import '../../../models/sports/match_model.dart';
+import '../../../models/sports/prediction_engine_output_model.dart';
+import '../../../models/auth_and_user/user_prediction_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/crowd_prediction_provider.dart';
 import '../../../providers/matches_provider.dart';
@@ -33,6 +34,16 @@ class _PredictScreenState extends ConsumerState<PredictScreen> {
   Widget build(BuildContext context) {
     final upcomingAsync = ref.watch(upcomingMatchesProvider);
     final myPredictionsAsync = ref.watch(myPredictionsProvider);
+    final competitionsAsync = ref.watch(competitionsProvider);
+    final upcomingMatchIdsKey = (upcomingAsync.valueOrNull ?? const <MatchModel>[])
+        .map((match) => match.id)
+        .join(',');
+    final engineOutputsAsync = ref.watch(
+      predictionEngineOutputMapProvider(upcomingMatchIdsKey),
+    );
+    final crowdPredictionsAsync = ref.watch(
+      crowdPredictionMapProvider(upcomingMatchIdsKey),
+    );
     final muted = Theme.of(context).brightness == Brightness.dark
         ? FzColors.darkMuted
         : FzColors.lightMuted;
@@ -42,97 +53,142 @@ class _PredictScreenState extends ConsumerState<PredictScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Predict',
-                        style: FzTypography.display(
-                          size: 36,
-                          color: textColor,
-                          letterSpacing: 0.8,
-                        ),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Predict',
+                      style: FzTypography.display(
+                        size: 36,
+                        color: textColor,
+                        letterSpacing: 0.8,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Free football picks powered by simple historical form.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: muted,
-                          height: 1.45,
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Free football picks powered by simple historical form.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: muted,
+                        height: 1.45,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 18),
+                    FzCard(
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _PredictTabChip(
+                              label: 'Upcoming',
+                              selected: _activeTab == _PredictTab.upcoming,
+                              trailingCount: upcomingAsync.valueOrNull?.length,
+                              onTap: () =>
+                                  setState(() => _activeTab = _PredictTab.upcoming),
+                            ),
+                          ),
+                          Expanded(
+                            child: _PredictTabChip(
+                              label: 'My picks',
+                              selected: _activeTab == _PredictTab.myPicks,
+                              trailingCount: myPredictionsAsync.valueOrNull?.length,
+                              onTap: () =>
+                                  setState(() => _activeTab = _PredictTab.myPicks),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            FzCard(
-              padding: const EdgeInsets.all(4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _PredictTabChip(
-                      label: 'Upcoming',
-                      selected: _activeTab == _PredictTab.upcoming,
-                      trailingCount: upcomingAsync.valueOrNull?.length,
-                      onTap: () =>
-                          setState(() => _activeTab = _PredictTab.upcoming),
-                    ),
-                  ),
-                  Expanded(
-                    child: _PredictTabChip(
-                      label: 'My picks',
-                      selected: _activeTab == _PredictTab.myPicks,
-                      trailingCount: myPredictionsAsync.valueOrNull?.length,
-                      onTap: () =>
-                          setState(() => _activeTab = _PredictTab.myPicks),
-                    ),
-                  ),
-                ],
               ),
             ),
-            const SizedBox(height: 18),
             if (_activeTab == _PredictTab.upcoming)
               upcomingAsync.when(
                 data: (matches) {
                   if (matches.isEmpty) {
-                    return StateView.empty(
-                      title: 'No matches open for picks',
-                      subtitle:
-                          'Upcoming fixtures will appear here once they are imported.',
-                      icon: LucideIcons.calendar,
+                    return SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: StateView.empty(
+                          title: 'No matches open for picks',
+                          subtitle:
+                              'Upcoming fixtures will appear here once they are imported.',
+                          icon: LucideIcons.calendar,
+                        ),
+                      ),
                     );
                   }
 
-                  return Column(
-                    children: [
-                      for (var index = 0; index < matches.length; index++) ...[
-                        _PredictionMatchCard(match: matches[index]),
-                        if (index < matches.length - 1)
-                          const SizedBox(height: 12),
-                      ],
-                    ],
+                  final competitions =
+                      competitionsAsync.valueOrNull ??
+                      const <CompetitionModel>[];
+                  final competitionLabels = <String, String>{
+                    for (final competition in competitions)
+                      competition.id: competition.shortName.isNotEmpty
+                          ? competition.shortName
+                          : competition.name,
+                  };
+                  final engineOutputs = engineOutputsAsync.valueOrNull ??
+                      const <String, PredictionEngineOutputModel>{};
+                  final crowdPredictions = crowdPredictionsAsync.valueOrNull ??
+                      const <String, CrowdPrediction>{};
+                  final myPredictionsByMatch = <String, UserPredictionModel>{
+                    for (final prediction in myPredictionsAsync.valueOrNull ??
+                        const <UserPredictionModel>[])
+                      prediction.matchId: prediction,
+                  };
+
+                  return SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                    sliver: SliverList.separated(
+                      itemCount: matches.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        return _PredictionMatchCard(
+                          match: matches[index],
+                          competitionLabel:
+                              competitionLabels[matches[index].competitionId] ??
+                              matches[index].competitionId.toUpperCase(),
+                          engineOutput: engineOutputs[matches[index].id],
+                          existingPrediction:
+                              myPredictionsByMatch[matches[index].id],
+                          crowdPrediction: crowdPredictions[matches[index].id],
+                        );
+                      },
+                    ),
                   );
                 },
-                loading: () => const _PredictionListSkeleton(),
-                error: (_, _) => StateView.error(
-                  title: 'Could not load prediction fixtures',
-                  subtitle: 'Try again in a moment.',
-                  onRetry: () => ref.invalidate(upcomingMatchesProvider),
+                loading: () => const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: _PredictionListSkeleton(),
+                  ),
+                ),
+                error: (_, _) => SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: StateView.error(
+                      title: 'Could not load prediction fixtures',
+                      subtitle: 'Try again in a moment.',
+                      onRetry: () => ref.invalidate(upcomingMatchesProvider),
+                    ),
+                  ),
                 ),
               )
             else
-              _MyPredictionsPanel(
-                predictionsAsync: myPredictionsAsync,
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                  child: _MyPredictionsPanel(
+                    predictionsAsync: myPredictionsAsync,
+                  ),
+                ),
               ),
           ],
         ),
@@ -205,25 +261,26 @@ class _PredictTabChip extends StatelessWidget {
   }
 }
 
-class _PredictionMatchCard extends ConsumerWidget {
-  const _PredictionMatchCard({required this.match});
+class _PredictionMatchCard extends StatelessWidget {
+  const _PredictionMatchCard({
+    required this.match,
+    required this.competitionLabel,
+    required this.engineOutput,
+    required this.existingPrediction,
+    required this.crowdPrediction,
+  });
 
   final MatchModel match;
+  final String competitionLabel;
+  final PredictionEngineOutputModel? engineOutput;
+  final UserPredictionModel? existingPrediction;
+  final CrowdPrediction? crowdPrediction;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final competition = ref.watch(competitionProvider(match.competitionId));
-    final engineOutput = ref.watch(predictionEngineOutputProvider(match.id));
-    final myPrediction = ref.watch(myPredictionForMatchProvider(match.id));
-    final crowd = ref.watch(crowdPredictionProvider(match.id));
-
-    final competitionLabel =
-        competition.valueOrNull?.shortName.isNotEmpty == true
-        ? competition.valueOrNull!.shortName
-        : competition.valueOrNull?.name ?? match.competitionId.toUpperCase();
-    final engine = engineOutput.valueOrNull;
-    final prediction = myPrediction.valueOrNull;
-    final crowdData = crowd.valueOrNull;
+  Widget build(BuildContext context) {
+    final engine = engineOutput;
+    final prediction = existingPrediction;
+    final crowdData = crowdPrediction;
 
     return FzCard(
       padding: const EdgeInsets.all(16),
@@ -581,9 +638,27 @@ class _MyPredictionsPanel extends ConsumerWidget {
         final matchesLookupAsync = ref.watch(
           predictionMatchLookupProvider(lookupKey.join(',')),
         );
+        final competitionsAsync = ref.watch(competitionsProvider);
+        final engineOutputsAsync = ref.watch(
+          predictionEngineOutputMapProvider(lookupKey.join(',')),
+        );
+        final crowdPredictionsAsync = ref.watch(
+          crowdPredictionMapProvider(lookupKey.join(',')),
+        );
 
         return matchesLookupAsync.when(
           data: (matchById) {
+            final competitionLabels = <String, String>{
+              for (final competition
+                  in competitionsAsync.valueOrNull ?? const <CompetitionModel>[])
+                competition.id: competition.shortName.isNotEmpty
+                    ? competition.shortName
+                    : competition.name,
+            };
+            final engineOutputs = engineOutputsAsync.valueOrNull ??
+                const <String, PredictionEngineOutputModel>{};
+            final crowdPredictions = crowdPredictionsAsync.valueOrNull ??
+                const <String, CrowdPrediction>{};
             final activePredictions = predictions
                 .where((prediction) {
                   final match = matchById[prediction.matchId];
@@ -617,6 +692,17 @@ class _MyPredictionsPanel extends ConsumerWidget {
                   ) ...[
                     _PredictionMatchCard(
                       match: matchById[activePredictions[index].matchId]!,
+                      competitionLabel: competitionLabels[
+                              matchById[activePredictions[index].matchId]!
+                                  .competitionId] ??
+                          matchById[activePredictions[index].matchId]!
+                              .competitionId
+                              .toUpperCase(),
+                      engineOutput:
+                          engineOutputs[activePredictions[index].matchId],
+                      existingPrediction: activePredictions[index],
+                      crowdPrediction:
+                          crowdPredictions[activePredictions[index].matchId],
                     ),
                     if (index < activePredictions.length - 1)
                       const SizedBox(height: 12),

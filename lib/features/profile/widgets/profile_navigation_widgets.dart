@@ -13,11 +13,21 @@ class ProfileQuickLinksCard extends StatelessWidget {
     required this.showLeaderboard,
     required this.showWallet,
     required this.showPredictions,
+    this.isVenueOwner = false,
+    required this.onPredictionsTap,
+    required this.onLeaderboardTap,
+    required this.onWalletTap,
+    this.onVenueDashboardTap,
   });
 
   final bool showLeaderboard;
   final bool showWallet;
   final bool showPredictions;
+  final bool isVenueOwner;
+  final VoidCallback onPredictionsTap;
+  final VoidCallback onLeaderboardTap;
+  final VoidCallback onWalletTap;
+  final VoidCallback? onVenueDashboardTap;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +42,7 @@ class ProfileQuickLinksCard extends StatelessWidget {
               ProfileLinkRow(
                 icon: LucideIcons.target,
                 label: 'Predictions',
-                onTap: () => context.go('/predict'),
+                onTap: onPredictionsTap,
               ),
             if (showPredictions && showLeaderboard)
               const Divider(height: 0.5, indent: 56),
@@ -40,7 +50,7 @@ class ProfileQuickLinksCard extends StatelessWidget {
               ProfileLinkRow(
                 icon: LucideIcons.trophy,
                 label: 'Leaderboard',
-                onTap: () => context.push('/leaderboard'),
+                onTap: onLeaderboardTap,
               ),
             if ((showPredictions || showLeaderboard) && showWallet)
               const Divider(height: 0.5, indent: 56),
@@ -48,8 +58,16 @@ class ProfileQuickLinksCard extends StatelessWidget {
               ProfileLinkRow(
                 icon: LucideIcons.wallet,
                 label: 'Wallet',
-                onTap: () => context.push('/wallet'),
+                onTap: onWalletTap,
               ),
+            if (isVenueOwner) ...[
+              const Divider(height: 0.5, indent: 56),
+              ProfileLinkRow(
+                icon: LucideIcons.building,
+                label: 'Venue Dashboard',
+                onTap: onVenueDashboardTap,
+              ),
+            ],
           ],
         ),
         const SizedBox(height: 20),
@@ -63,18 +81,24 @@ class ProfileAccountLinksCard extends StatelessWidget {
     super.key,
     required this.onHelp,
     required this.showInbox,
+    required this.showSettings,
     required this.showVerifyAction,
     required this.onVerifyPhone,
     required this.showSignOut,
     required this.onSignOut,
+    required this.onInboxTap,
+    required this.onSettingsTap,
   });
 
   final VoidCallback onHelp;
   final bool showInbox;
+  final bool showSettings;
   final bool showVerifyAction;
   final VoidCallback onVerifyPhone;
   final bool showSignOut;
   final VoidCallback onSignOut;
+  final VoidCallback onInboxTap;
+  final VoidCallback onSettingsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -97,20 +121,22 @@ class ProfileAccountLinksCard extends StatelessWidget {
               ProfileLinkRow(
                 icon: LucideIcons.bell,
                 label: 'Inbox',
-                onTap: () => context.push('/notifications'),
+                onTap: onInboxTap,
               ),
             if (showInbox) const Divider(height: 0.5, indent: 56),
-            ProfileLinkRow(
-              icon: LucideIcons.settings,
-              label: 'Preferences',
-              onTap: () => context.push('/settings'),
-            ),
-            const Divider(height: 0.5, indent: 56),
-            ProfileLinkRow(
-              icon: LucideIcons.helpCircle,
-              label: 'Help',
-              onTap: onHelp,
-            ),
+            if (showSettings)
+              ProfileLinkRow(
+                icon: LucideIcons.settings,
+                label: 'Preferences',
+                onTap: onSettingsTap,
+              ),
+            if (showSettings) const Divider(height: 0.5, indent: 56),
+            if (showSettings)
+              ProfileLinkRow(
+                icon: LucideIcons.helpCircle,
+                label: 'Help',
+                onTap: onHelp,
+              ),
             if (showSignOut) const Divider(height: 0.5, indent: 56),
             if (showSignOut)
               ProfileLinkRow(

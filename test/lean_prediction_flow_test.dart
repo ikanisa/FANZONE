@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:fanzone/models/prediction_engine_output_model.dart';
-import 'package:fanzone/models/team_form_feature_model.dart';
-import 'package:fanzone/models/user_prediction_model.dart';
+import 'package:fanzone/models/sports/prediction_engine_output_model.dart';
+import 'package:fanzone/models/sports/team_form_feature_model.dart';
+import 'package:fanzone/models/auth_and_user/user_prediction_model.dart';
 import 'package:fanzone/providers/crowd_prediction_provider.dart';
 
 void main() {

@@ -1,7 +1,7 @@
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
 
-import '../../../models/match_model.dart';
+import '../../../models/sports/match_model.dart';
 import '../../../theme/colors.dart';
 import '../../../widgets/match/match_list_widgets.dart';
 
@@ -201,12 +201,12 @@ class FixtureGroupCard extends StatelessWidget {
     super.key,
     required this.matches,
     required this.onOpenMatch,
-    required this.onOpenPredict,
+    this.onOpenPredict,
   });
 
   final List<MatchModel> matches;
   final ValueChanged<MatchModel> onOpenMatch;
-  final VoidCallback onOpenPredict;
+  final VoidCallback? onOpenPredict;
 
   @override
   Widget build(BuildContext context) {
@@ -245,12 +245,12 @@ class FixtureListItem extends StatelessWidget {
     super.key,
     required this.match,
     required this.onOpenMatch,
-    required this.onOpenPredict,
+    this.onOpenPredict,
   });
 
   final MatchModel match;
   final VoidCallback onOpenMatch;
-  final VoidCallback onOpenPredict;
+  final VoidCallback? onOpenPredict;
 
   @override
   Widget build(BuildContext context) {
@@ -300,13 +300,15 @@ class FixtureListItem extends StatelessWidget {
                 color: FzColors.accent2,
                 onTap: onOpenMatch,
               ),
-              const SizedBox(width: 8),
-              FixtureActionButton(
-                tooltip: 'Open predict',
-                icon: LucideIcons.swords,
-                color: FzColors.primary,
-                onTap: onOpenPredict,
-              ),
+              if (onOpenPredict != null) ...[
+                const SizedBox(width: 8),
+                FixtureActionButton(
+                  tooltip: 'Open predict',
+                  icon: LucideIcons.swords,
+                  color: FzColors.primary,
+                  onTap: onOpenPredict!,
+                ),
+              ],
             ],
           ),
         ],

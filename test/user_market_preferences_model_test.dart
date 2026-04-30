@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fanzone/models/user_market_preferences_model.dart';
+import 'package:fanzone/models/auth_and_user/user_market_preferences_model.dart';
 
 void main() {
   group('UserMarketPreferences', () {

@@ -20,14 +20,14 @@ import 'package:fanzone/features/profile/screens/notifications_screen.dart';
 import 'package:fanzone/features/profile/screens/profile_screen.dart';
 import 'package:fanzone/features/settings/screens/privacy_settings_screen.dart';
 import 'package:fanzone/features/teams/screens/team_profile_canonical_screen.dart';
-import 'package:fanzone/models/featured_event_model.dart';
-import 'package:fanzone/models/notification_model.dart';
-import 'package:fanzone/models/prediction_engine_output_model.dart';
-import 'package:fanzone/models/standing_row_model.dart';
+import 'package:fanzone/models/sports/featured_event_model.dart';
+import 'package:fanzone/models/platform/notification_model.dart';
+import 'package:fanzone/models/sports/prediction_engine_output_model.dart';
+import 'package:fanzone/models/sports/standing_row_model.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
-import 'package:fanzone/models/team_form_feature_model.dart';
-import 'package:fanzone/models/team_model.dart';
-import 'package:fanzone/models/user_prediction_model.dart';
+import 'package:fanzone/models/sports/team_form_feature_model.dart';
+import 'package:fanzone/models/sports/team_model.dart';
+import 'package:fanzone/models/auth_and_user/user_prediction_model.dart';
 import 'package:fanzone/providers/auth_provider.dart';
 import 'package:fanzone/providers/competitions_provider.dart';
 import 'package:fanzone/providers/crowd_prediction_provider.dart';
@@ -60,7 +60,6 @@ void main() {
         final feedFilter = MatchesFilter(
           dateFrom: selectedDate.toIso8601String(),
           dateTo: selectedDate.add(const Duration(days: 7)).toIso8601String(),
-          limit: 200,
           ascending: true,
         );
         final liveMatch = sampleMatch(
@@ -150,6 +149,14 @@ void main() {
           tester,
           const HomeFeedScreen(),
           overrides: [
+            bootstrapConfigProvider.overrideWithValue(
+              _screenBootstrapConfig(
+                showPredictions: true,
+                showFixtures: true,
+                showLeaderboard: true,
+                includeHomeBlocks: true,
+              ),
+            ),
             matchesProvider(feedFilter).overrideWith(
               (ref) async => [liveMatch, upcomingMatch, filteredOutMatch],
             ),
@@ -185,8 +192,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 150));
 
         expect(find.text('Predictions'), findsNothing);
-        expect(find.text('Live Action'), findsOneWidget);
-        expect(find.text('Upcoming'), findsOneWidget);
+        expect(find.text('Live Matches'), findsOneWidget);
+        expect(find.text('Upcoming Matches'), findsOneWidget);
         expect(
           find.byKey(const ValueKey('home-match-card-home_live')),
           findsOneWidget,
@@ -333,19 +340,12 @@ void main() {
             () => _StaticProfileIdentityController(selectedTeam),
           ),
           bootstrapConfigProvider.overrideWithValue(
-            BootstrapConfig(
-              regions: const {},
-              phonePresets: const {},
-              currencyDisplay: const {},
-              countryCurrencies: const {},
-              featureFlags: const {
-                'predictions': true,
-                'wallet': true,
-                'leaderboard': true,
-                'notifications': true,
-              },
-              appConfig: const {},
-              launchMoments: const [],
+            _screenBootstrapConfig(
+              showPredictions: true,
+              showLeaderboard: true,
+              showWallet: true,
+              showNotifications: true,
+              showSettings: true,
             ),
           ),
         ],
@@ -380,7 +380,7 @@ void main() {
       expect(find.text('Phone Number Hidden'), findsOneWidget);
       expect(find.text('Anonymous Rewards'), findsOneWidget);
       expect(find.text('Display Name on Leaderboards'), findsOneWidget);
-      expect(find.text('Allow Friends to Find Me'), findsOneWidget);
+      expect(find.text('Allow Friends to Find Me'), findsNothing);
       expect(
         find.text('* Verification required to change visibility settings.'),
         findsOneWidget,
@@ -595,6 +595,7 @@ void main() {
       await pumpAppScreen(
         tester,
         MatchDetailScreen(matchId: match.id),
+        surfaceSize: const Size(390, 2000), // Massive height to avoid scrolling
         overrides: [
           matchDetailProvider(
             match.id,
@@ -614,21 +615,21 @@ void main() {
           ),
           matchFormFeaturesProvider(
             match.id,
-          ).overrideWith((ref) async => formRows),
+          ).overrideWith((ref) => formRows),
           competitionStandingsProvider(
             CompetitionStandingsFilter(
               competitionId: competition.id,
-              season: match.season,
+              season: match.season.isEmpty ? null : match.season,
             ),
-          ).overrideWith((ref) async => standings),
+          ).overrideWith((ref) => standings),
         ],
       );
       // Use explicit pump() instead of pumpAndSettle() because stream-based
       // providers (matchDetailProvider, competitionMatchesProvider) leave a
       // polling timer that triggers 'Timer still pending' assertions.
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Test Club A'), findsAtLeastNWidgets(1));
       expect(find.text('Test Club B'), findsAtLeastNWidgets(1));
@@ -785,12 +786,16 @@ void main() {
               favouritesProvider.overrideWith(
                 () => _StaticFavouritesNotifier(const FavouritesState()),
               ),
+              bootstrapConfigProvider.overrideWithValue(
+                _screenBootstrapConfig(
+                  showPredictions: true,
+                  showFixtures: true,
+                ),
+              ),
             ],
             child: MaterialApp.router(
               debugShowCheckedModeBanner: false,
               theme: FzTheme.dark(),
-              darkTheme: FzTheme.dark(),
-              themeMode: ThemeMode.dark,
               routerConfig: router,
             ),
           ),
@@ -843,6 +848,9 @@ void main() {
           favouritesProvider.overrideWith(
             () => _StaticFavouritesNotifier(const FavouritesState()),
           ),
+          bootstrapConfigProvider.overrideWithValue(
+            _screenBootstrapConfig(showPredictions: true, showFixtures: true),
+          ),
         ],
       );
       await tester.pumpAndSettle();
@@ -865,6 +873,171 @@ void main() {
       );
     });
   });
+}
+
+PlatformFeatureInfo _screenFeature(
+  String featureKey, {
+  required String displayName,
+  required String routeKey,
+  bool authRequired = false,
+  bool showInNavigation = false,
+  bool showOnHome = false,
+  int sortOrder = 100,
+}) {
+  return PlatformFeatureInfo.fromJson({
+    'feature_key': featureKey,
+    'display_name': displayName,
+    'status': 'active',
+    'is_enabled': true,
+    'default_route_key': routeKey,
+    'auth_required': authRequired,
+    'channels': {
+      'mobile': {
+        'channel': 'mobile',
+        'is_visible': true,
+        'is_enabled': true,
+        'show_in_navigation': showInNavigation,
+        'show_on_home': showOnHome,
+        'sort_order': sortOrder,
+        'route_key': routeKey,
+        'navigation_label': displayName,
+      },
+      'web': {
+        'channel': 'web',
+        'is_visible': true,
+        'is_enabled': true,
+        'show_in_navigation': showInNavigation,
+        'show_on_home': showOnHome,
+        'sort_order': sortOrder,
+        'route_key': routeKey,
+        'navigation_label': displayName,
+      },
+    },
+    'resolved_state': {
+      'is_operational': true,
+      'is_visible': true,
+      'is_available': true,
+      'show_in_navigation': showInNavigation,
+      'show_on_home': showOnHome,
+      'route_key': routeKey,
+      'sort_order': sortOrder,
+    },
+  });
+}
+
+PlatformContentBlockInfo _screenHomeBlock(
+  String blockKey, {
+  required String blockType,
+  required String title,
+  required String featureKey,
+  required int sortOrder,
+  Map<String, dynamic> content = const {},
+}) {
+  return PlatformContentBlockInfo.fromJson({
+    'block_key': blockKey,
+    'block_type': blockType,
+    'title': title,
+    'content': content,
+    'target_channel': 'mobile',
+    'is_active': true,
+    'sort_order': sortOrder,
+    'feature_key': featureKey,
+    'placement_key': 'home.primary',
+  });
+}
+
+BootstrapConfig _screenBootstrapConfig({
+  bool showFixtures = false,
+  bool showPredictions = false,
+  bool showLeaderboard = false,
+  bool showWallet = false,
+  bool showNotifications = false,
+  bool showSettings = false,
+  bool includeHomeBlocks = false,
+}) {
+  final features = <PlatformFeatureInfo>[
+    if (showFixtures)
+      _screenFeature(
+        'fixtures',
+        displayName: 'Fixtures',
+        routeKey: '/fixtures',
+        showInNavigation: true,
+        showOnHome: true,
+        sortOrder: 20,
+      ),
+    if (showPredictions)
+      _screenFeature(
+        'predictions',
+        displayName: 'Predictions',
+        routeKey: '/predict',
+        authRequired: true,
+        showInNavigation: true,
+        showOnHome: true,
+        sortOrder: 30,
+      ),
+    if (showLeaderboard)
+      _screenFeature(
+        'leaderboard',
+        displayName: 'Leaderboard',
+        routeKey: '/leaderboard',
+        sortOrder: 40,
+      ),
+    if (showWallet)
+      _screenFeature(
+        'wallet',
+        displayName: 'Wallet',
+        routeKey: '/wallet',
+        authRequired: true,
+        sortOrder: 50,
+      ),
+    if (showNotifications)
+      _screenFeature(
+        'notifications',
+        displayName: 'Notifications',
+        routeKey: '/notifications',
+        authRequired: true,
+        sortOrder: 60,
+      ),
+    if (showSettings)
+      _screenFeature(
+        'settings',
+        displayName: 'Settings',
+        routeKey: '/settings',
+        sortOrder: 70,
+      ),
+  ];
+
+  final blocks = <PlatformContentBlockInfo>[
+    if (includeHomeBlocks)
+      _screenHomeBlock(
+        'home_live_matches',
+        blockType: 'live_matches',
+        title: 'Live Matches',
+        featureKey: 'fixtures',
+        sortOrder: 20,
+      ),
+    if (includeHomeBlocks)
+      _screenHomeBlock(
+        'home_upcoming_matches',
+        blockType: 'upcoming_matches',
+        title: 'Upcoming Matches',
+        featureKey: 'fixtures',
+        sortOrder: 30,
+      ),
+  ];
+
+  return BootstrapConfig(
+    platformConfigVersion: 'cfg-screen-tests',
+    regions: const {},
+    phonePresets: const {},
+    currencyDisplay: const {},
+    countryCurrencies: const {},
+    featureFlags: const {},
+    appConfig: const {},
+    launchMoments: const [],
+    platformFeatures: features,
+    platformContentBlocks: blocks,
+  );
 }
 
 class _StaticProfileIdentityController extends ProfileIdentityController {

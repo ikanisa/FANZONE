@@ -6,12 +6,13 @@ CREATE OR REPLACE FUNCTION public.remove_lean_runtime_schedules()
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO public, cron
+SET search_path TO public
 AS $$
 DECLARE
   v_job_name text;
   v_job_id bigint;
   v_removed_count integer := 0;
+  v_has_cron boolean;
   v_job_names text[] := ARRAY[
     'market-sync-openfootball',
     'fanzone-currency-rates-daily',
@@ -30,13 +31,16 @@ DECLARE
     'fanzone-dispatch-match-alerts'
   ];
 BEGIN
+  SELECT exists(SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') INTO v_has_cron;
+  IF NOT v_has_cron THEN
+    RAISE NOTICE 'pg_cron not enabled, skipping cron job removal';
+    RETURN jsonb_build_object('removed_jobs', 0, 'skipped', true);
+  END IF;
+
   FOREACH v_job_name IN ARRAY v_job_names LOOP
     LOOP
-      SELECT jobid
-      INTO v_job_id
-      FROM cron.job
-      WHERE jobname = v_job_name
-      LIMIT 1;
+      EXECUTE format('SELECT jobid FROM cron.job WHERE jobname = %L LIMIT 1', v_job_name)
+      INTO v_job_id;
 
       EXIT WHEN v_job_id IS NULL;
 
@@ -65,7 +69,7 @@ CREATE OR REPLACE FUNCTION public.install_lean_runtime_schedules(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO public, cron, vault
+SET search_path TO public
 AS $$
 DECLARE
   v_project_url text;
@@ -76,25 +80,31 @@ DECLARE
   v_alert_job_id bigint;
   v_rate_limit_job_id bigint;
   v_otp_cleanup_job_id bigint;
+  v_has_cron boolean;
+  v_has_vault boolean;
 BEGIN
-  SELECT decrypted_secret
-  INTO v_project_url
-  FROM vault.decrypted_secrets
-  WHERE name = 'fanzone_project_url'
-  LIMIT 1;
+  SELECT exists(SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') INTO v_has_cron;
+  SELECT exists(SELECT 1 FROM pg_extension WHERE extname = 'supabase_vault') INTO v_has_vault;
 
-  SELECT decrypted_secret
-  INTO v_cron_secret
-  FROM vault.decrypted_secrets
-  WHERE name = 'fanzone_cron_secret'
-  LIMIT 1;
+  IF NOT v_has_cron OR NOT v_has_vault THEN
+    RAISE NOTICE 'pg_cron or vault not enabled, skipping schedule installation';
+    RETURN jsonb_build_object('skipped', true);
+  END IF;
+
+  EXECUTE 'SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = ''fanzone_project_url'' LIMIT 1'
+  INTO v_project_url;
+
+  EXECUTE 'SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = ''fanzone_cron_secret'' LIMIT 1'
+  INTO v_cron_secret;
 
   IF coalesce(trim(v_project_url), '') = '' THEN
-    RAISE EXCEPTION 'Missing vault secret fanzone_project_url';
+    RAISE NOTICE 'Missing vault secret fanzone_project_url, skipping schedule installation';
+    RETURN jsonb_build_object('skipped', true, 'reason', 'missing_project_url');
   END IF;
 
   IF coalesce(trim(v_cron_secret), '') = '' THEN
-    RAISE EXCEPTION 'Missing vault secret fanzone_cron_secret';
+    RAISE NOTICE 'Missing vault secret fanzone_cron_secret, skipping schedule installation';
+    RETURN jsonb_build_object('skipped', true, 'reason', 'missing_cron_secret');
   END IF;
 
   PERFORM public.remove_lean_runtime_schedules();
@@ -193,13 +203,22 @@ ALTER FUNCTION public.install_lean_runtime_schedules(text, text, text, text, tex
 REVOKE ALL ON FUNCTION public.install_lean_runtime_schedules(text, text, text, text, text, text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.install_lean_runtime_schedules(text, text, text, text, text, text) TO service_role;
 
-SELECT public.install_lean_runtime_schedules(
-  '0 2 * * *',
-  '*/15 * * * *',
-  '2-59/15 * * * *',
-  '*/5 * * * *',
-  '0 3 * * *',
-  '30 4 * * *'
-);
+-- Only install schedules if pg_cron is available
+DO $$
+BEGIN
+  IF exists(SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    PERFORM public.install_lean_runtime_schedules(
+      '0 2 * * *',
+      '*/15 * * * *',
+      '2-59/15 * * * *',
+      '*/5 * * * *',
+      '0 3 * * *',
+      '30 4 * * *'
+    );
+  ELSE
+    RAISE NOTICE 'pg_cron not enabled, skipping schedule installation';
+  END IF;
+END;
+$$;
 
 COMMIT;

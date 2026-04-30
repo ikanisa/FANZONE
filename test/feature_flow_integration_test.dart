@@ -15,10 +15,10 @@ import 'package:fanzone/features/predict/data/prediction_hub_gateway.dart';
 import 'package:fanzone/features/predict/widgets/prediction_entry_sheet.dart';
 import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
-import 'package:fanzone/models/match_model.dart';
-import 'package:fanzone/models/prediction_engine_output_model.dart';
-import 'package:fanzone/models/team_form_feature_model.dart';
-import 'package:fanzone/models/user_prediction_model.dart';
+import 'package:fanzone/models/sports/match_model.dart';
+import 'package:fanzone/models/sports/prediction_engine_output_model.dart';
+import 'package:fanzone/models/sports/team_form_feature_model.dart';
+import 'package:fanzone/models/auth_and_user/user_prediction_model.dart';
 import 'package:fanzone/providers/auth_provider.dart';
 import 'package:fanzone/providers/currency_provider.dart';
 import 'package:fanzone/providers/market_preferences_provider.dart';
@@ -192,6 +192,39 @@ void main() {
       expect(find.text('You sent 150 FET to Fan #654321'), findsOneWidget);
     });
 
+    testWidgets('guest wallet transfer routes to the sign-in requirement', (
+      tester,
+    ) async {
+      await pumpAppScreen(
+        tester,
+        const WalletScreen(),
+        overrides: [
+          walletServiceProvider.overrideWith(() => FakeWalletService(980)),
+          transactionServiceProvider.overrideWith(
+            () => FakeTransactionService([sampleWalletTransaction()]),
+          ),
+          isFullyAuthenticatedProvider.overrideWith((ref) => false),
+          userCurrencyProvider.overrideWith((ref) async => 'EUR'),
+          primaryMarketRegionProvider.overrideWith((ref) => 'europe'),
+          marketFocusTagsProvider.overrideWith((ref) => <String>{}),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('SEND').first);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Verify WhatsApp to transfer FET'), findsOneWidget);
+      expect(
+        find.text(
+          'Verify your WhatsApp number before sending FET to another fan.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Confirm Transfer'), findsNothing);
+    });
+
     testWidgets('guest prediction entry routes to the sign-in requirement', (
       tester,
     ) async {
@@ -294,8 +327,6 @@ Future<void> _pumpLoginFlow(
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
         theme: FzTheme.dark(),
-        darkTheme: FzTheme.dark(),
-        themeMode: ThemeMode.dark,
         routerConfig: router,
       ),
     ),
@@ -411,6 +442,11 @@ class _RecordingPredictionHubGateway implements PredictionHubGateway {
   @override
   Future<PredictionEngineOutputModel?> getEngineOutput(String matchId) async =>
       null;
+
+  @override
+  Future<Map<String, PredictionEngineOutputModel>> getEngineOutputsForMatches(
+    Iterable<String> matchIds,
+  ) async => const <String, PredictionEngineOutputModel>{};
 
   @override
   Future<List<TeamFormFeatureModel>> getMatchFormFeatures(

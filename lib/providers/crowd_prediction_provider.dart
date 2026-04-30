@@ -36,6 +36,47 @@ final crowdPredictionProvider = FutureProvider.family
       }
     });
 
+final crowdPredictionMapProvider =
+    FutureProvider.family.autoDispose<Map<String, CrowdPrediction>, String>((
+      ref,
+      key,
+    ) async {
+      final ids = key
+          .split(',')
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .toList(growable: false);
+      if (ids.isEmpty) return const <String, CrowdPrediction>{};
+
+      final connection = ref.read(supabaseConnectionProvider);
+      final client = connection.client;
+      if (client == null) return const <String, CrowdPrediction>{};
+
+      try {
+        final rows = await client
+            .from('match_prediction_consensus')
+            .select()
+            .inFilter('match_id', ids);
+        final predictions = <String, CrowdPrediction>{};
+        for (final row in (rows as List).whereType<Map>()) {
+          final data = Map<String, dynamic>.from(row);
+          final matchId = data['match_id']?.toString();
+          if (matchId == null || matchId.isEmpty) continue;
+          predictions[matchId] = CrowdPrediction(
+            home: (data['home_pct'] as num?)?.toInt() ?? 34,
+            draw: (data['draw_pct'] as num?)?.toInt() ?? 33,
+            away: (data['away_pct'] as num?)?.toInt() ?? 33,
+            total: (data['total_predictions'] as num?)?.toInt() ?? 0,
+          );
+        }
+        return predictions;
+      } catch (error) {
+        AppLogger.d('Bulk crowd prediction query failed: $error');
+        return const <String, CrowdPrediction>{};
+      }
+    });
+
 /// Crowd prediction distribution percentages.
 class CrowdPrediction {
   const CrowdPrediction({

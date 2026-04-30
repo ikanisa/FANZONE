@@ -7,7 +7,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/utils/currency_utils.dart';
-import '../../../models/wallet.dart';
+import '../../../models/auth_and_user/wallet.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../services/wallet_service.dart';
 import '../../../theme/colors.dart';

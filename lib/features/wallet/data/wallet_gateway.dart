@@ -1,6 +1,7 @@
 import '../../../core/logging/app_logger.dart';
+import '../../../core/config/platform_feature_access.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/wallet.dart';
+import '../../../models/auth_and_user/wallet.dart';
 
 abstract interface class WalletGateway {
   Future<int> getAvailableBalance(String userId);
@@ -114,6 +115,16 @@ class SupabaseWalletGateway implements WalletGateway {
     if (client == null) {
       _throwUnavailable('FET transfer');
     }
+    if (_connection.currentUser?.isAnonymous ?? false) {
+      throw StateError(
+        'Verify your WhatsApp number before sending FET to another fan.',
+      );
+    }
+
+    assertRuntimePlatformFeatureActionAvailable(
+      'wallet',
+      fallbackMessage: 'Wallet transfers are unavailable right now.',
+    );
 
     try {
       await client.rpc(

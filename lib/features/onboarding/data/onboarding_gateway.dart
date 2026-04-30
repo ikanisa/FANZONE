@@ -340,43 +340,30 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
   }
 
   Future<String> _inferRegion(SupabaseClient client, String countryCode) async {
+    final normalizedCode = countryCode.trim().toUpperCase();
+
     try {
       final result = await client
           .rpc('get_country_region', params: {'p_country_code': countryCode})
           .timeout(const Duration(seconds: 5));
       if (result is String && result.isNotEmpty) return result;
     } catch (_) {
-      // Fallback: use simple inline check
+      // Fall through to direct table lookup.
     }
-    final code = countryCode.toUpperCase();
-    const african = {
-      'RW',
-      'NG',
-      'KE',
-      'ZA',
-      'EG',
-      'TZ',
-      'UG',
-      'GH',
-      'TN',
-      'DZ',
-      'MA',
-      'CD',
-      'SN',
-      'CI',
-      'ML',
-      'BF',
-      'NE',
-      'TG',
-      'BJ',
-      'GW',
-      'ET',
-      'CM',
-    };
-    const northAmerican = {'US', 'CA', 'MX'};
 
-    if (african.contains(code)) return 'africa';
-    if (northAmerican.contains(code)) return 'north_america';
-    return 'europe';
+    try {
+      final row = await client
+          .from('country_region_map')
+          .select('region')
+          .eq('country_code', normalizedCode)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 5));
+      final region = row?['region']?.toString();
+      if (region != null && region.isNotEmpty) return region;
+    } catch (_) {
+      // Ignore and fall back to the neutral region below.
+    }
+
+    return 'global';
   }
 }

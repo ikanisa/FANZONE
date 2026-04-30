@@ -1,7 +1,7 @@
 import '../../../core/cache/stale_while_revalidate.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/match_model.dart';
+import '../../../models/sports/match_model.dart';
 import 'home_dtos.dart';
 import 'matches_gateway_shared.dart';
 import 'sports_data_exception.dart';

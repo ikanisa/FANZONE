@@ -59,7 +59,10 @@ class _SplashScreenState extends State<SplashScreen>
     final onboardingDone = await _resolveOnboardingState();
 
     if (!mounted) return;
-    context.go(onboardingDone ? '/' : '/onboarding');
+    final nextRoute = onboardingDone
+        ? (appRuntime.consumePendingAppRoute() ?? '/')
+        : '/onboarding';
+    context.go(nextRoute);
     markAppInteractive();
   }
 

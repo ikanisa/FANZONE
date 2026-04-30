@@ -104,6 +104,9 @@ flutter run --dart-define-from-file=env/development.json
 ```
 
 Use a real local env file, not the tracked example file, for live backend access.
+Production `env/*.json`, keystores, `google-services.json`, `GoogleService-Info.plist`,
+and Play/App Store service credentials must stay out of git and be supplied by
+your CI/CD or local secure secret store.
 
 ### Admin app
 
@@ -137,6 +140,19 @@ Runtime config notes:
 - the daily wallet transfer limit is controlled by `app_config_remote.wallet_transfer_daily_limit`
 - local currency display derives from that peg plus `currency_rates`, `country_currency_map`, and `currency_display_metadata`
 - `currency_rates` are now treated as database-managed data, not an external AI refresh job
+
+## Release Checklist
+
+- Run `flutter analyze` and the targeted Flutter tests before cutting a build.
+- Run `cd admin && npm run lint && npm test && npm run build`.
+- Apply the latest Supabase migrations before deploying app builds or Edge Functions.
+- Run the SQL verification scripts against a migrated database:
+  `psql -f supabase/tests/admin_data_plane_verification.sql` and
+  `psql -f supabase/tests/release_readiness_hardening.sql`.
+- Verify anonymous users cannot submit predictions, manage notification settings, or transfer FET.
+- Validate deep links on Android and iOS from a cold start and a warm start.
+- Confirm FCM token registration, kickoff/result notifications, and session-expiry handling on real devices.
+- Supply production secrets from secure local or CI-managed files only; do not commit them.
 
 For the consolidated historical fixtures export, use the local loader instead of hand-pushing raw rows:
 

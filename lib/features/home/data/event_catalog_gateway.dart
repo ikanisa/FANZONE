@@ -1,6 +1,6 @@
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
-import '../../../models/featured_event_model.dart';
+import '../../../models/sports/featured_event_model.dart';
 
 abstract interface class EventCatalogGateway {
   Future<List<FeaturedEventModel>> getFeaturedEvents({

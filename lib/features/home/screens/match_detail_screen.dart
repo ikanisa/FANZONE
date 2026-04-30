@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../features/predict/widgets/prediction_entry_sheet.dart';
-import '../../../models/match_model.dart';
-import '../../../models/prediction_engine_output_model.dart';
-import '../../../models/team_form_feature_model.dart';
-import '../../../models/user_prediction_model.dart';
+import '../../../features/venue_dashboard/widgets/venue_match_pool_card.dart';
+import '../../../models/sports/match_model.dart';
+import '../../../models/sports/prediction_engine_output_model.dart';
+import '../../../models/sports/team_form_feature_model.dart';
+import '../../../models/auth_and_user/user_prediction_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/crowd_prediction_provider.dart';
 import '../../../providers/matches_provider.dart';
@@ -105,6 +106,11 @@ class MatchDetailScreen extends ConsumerWidget {
                   engine: engine,
                   prediction: myPrediction,
                 ),
+              ),
+              const SizedBox(height: 14),
+              VenueMatchPoolCard(
+                match: match,
+                userPrediction: myPrediction,
               ),
               if (formFeatures.isNotEmpty) ...[
                 const SizedBox(height: 14),

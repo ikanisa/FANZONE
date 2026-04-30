@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fanzone/models/wallet.dart';
+import 'package:fanzone/models/auth_and_user/wallet.dart';
 import 'package:fanzone/services/wallet_service.dart';
 
 class FakeWalletService extends WalletService {

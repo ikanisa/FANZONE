@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/media/cdn_url_resolver.dart';
 import '../../core/media/fz_image_cache_manager.dart';
-import '../../models/match_model.dart';
+import '../../models/sports/match_model.dart';
 import '../../theme/colors.dart';
 import '../../theme/typography.dart';
 import '../common/fz_badge.dart';

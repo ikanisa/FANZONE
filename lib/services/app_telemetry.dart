@@ -9,15 +9,12 @@ import '../core/runtime/app_runtime_state.dart';
 import '../core/storage/structured_cache_store.dart';
 import '../core/supabase/supabase_connection.dart';
 
-/// Supabase-backed runtime error capture with offline queueing.
-///
-/// This keeps a production-visible error trail without changing the user
-/// experience or requiring a separate third-party crash provider.
+/// Supabase-backed runtime telemetry and error capture with offline queueing.
 class AppTelemetry {
   AppTelemetry._();
 
-  static const String _queueCacheKey = 'app_runtime_error_queue_v1';
-  static const int _maxQueueLength = 50;
+  static const String _queueCacheKey = 'app_runtime_telemetry_queue_v2';
+  static const int _maxQueueLength = 100;
   static final String _sessionId = const Uuid().v4();
   static final SupabaseConnection _connection = SupabaseConnectionImpl();
 
@@ -38,6 +35,7 @@ class AppTelemetry {
     String? reason,
   }) async {
     final event = _TelemetryEvent(
+      type: 'exception',
       reason: (reason ?? 'app_exception').trim(),
       message: error.toString().trim(),
       stackTrace: stackTrace.toString().trim(),
@@ -51,6 +49,29 @@ class AppTelemetry {
     _trimQueue();
     await _persistQueue();
     AppLogger.e(reason ?? 'Captured error', error, stackTrace);
+    unawaited(flush());
+  }
+
+  static Future<void> trackEvent(
+    String name, {
+    Map<String, dynamic>? metadata,
+  }) async {
+    final event = _TelemetryEvent(
+      type: 'event',
+      reason: name,
+      message: metadata != null ? metadata.toString() : '',
+      stackTrace: '',
+      sessionId: _sessionId,
+      platform: defaultTargetPlatform.name,
+      appVersion: AppConfig.appVersion,
+      capturedAt: DateTime.now().toUtc(),
+      metadata: metadata,
+    );
+
+    _queue.add(event);
+    _trimQueue();
+    await _persistQueue();
+    AppLogger.d('Tracked event: $name');
     unawaited(flush());
   }
 
@@ -68,19 +89,19 @@ class AppTelemetry {
         await _persistQueue();
         return;
       }
-      final payload = batch
-          .map((event) => event.toJson())
-          .toList(growable: false);
+      final payload =
+          batch.map((event) => event.toJson()).toList(growable: false);
+
       await client.rpc(
-        'log_app_runtime_errors_batch',
-        params: {'p_errors': payload},
+        'log_app_telemetry_batch',
+        params: {'p_events': payload},
       );
       await _persistQueue();
     } catch (error, stackTrace) {
       _queue.insertAll(0, batch);
       _trimQueue();
       await _persistQueue();
-      AppLogger.e('Failed to flush runtime errors', error, stackTrace);
+      AppLogger.e('Failed to flush telemetry events', error, stackTrace);
     }
   }
 
@@ -103,7 +124,7 @@ class AppTelemetry {
         ..addAll(restored);
       _trimQueue();
     } catch (error, stackTrace) {
-      AppLogger.e('Failed to restore runtime error queue', error, stackTrace);
+      AppLogger.e('Failed to restore telemetry queue', error, stackTrace);
     }
   }
 
@@ -119,7 +140,7 @@ class AppTelemetry {
         _queue.map((event) => event.toJson()).toList(growable: false),
       );
     } catch (error, stackTrace) {
-      AppLogger.e('Failed to persist runtime error queue', error, stackTrace);
+      AppLogger.e('Failed to persist telemetry queue', error, stackTrace);
     }
   }
 
@@ -131,6 +152,7 @@ class AppTelemetry {
 
 class _TelemetryEvent {
   const _TelemetryEvent({
+    required this.type,
     required this.reason,
     required this.message,
     required this.stackTrace,
@@ -138,8 +160,10 @@ class _TelemetryEvent {
     required this.platform,
     required this.appVersion,
     required this.capturedAt,
+    this.metadata,
   });
 
+  final String type;
   final String reason;
   final String message;
   final String stackTrace;
@@ -147,25 +171,30 @@ class _TelemetryEvent {
   final String platform;
   final String appVersion;
   final DateTime capturedAt;
+  final Map<String, dynamic>? metadata;
 
   Map<String, dynamic> toJson() => {
+    'type': type,
     'reason': reason,
-    'error_message': message,
+    'message': message,
     'stack_trace': stackTrace,
     'session_id': sessionId,
     'platform': platform,
     'app_version': appVersion,
     'captured_at': capturedAt.toIso8601String(),
+    'metadata': metadata,
   };
 
   static _TelemetryEvent? fromJson(Map<String, dynamic> json) {
+    final type = json['type']?.toString() ?? 'exception';
     final reason = json['reason']?.toString().trim();
-    final message = json['error_message']?.toString().trim();
+    final message = json['message']?.toString().trim() ?? json['error_message']?.toString().trim();
     final stackTrace = json['stack_trace']?.toString().trim() ?? '';
     final sessionId = json['session_id']?.toString().trim();
     final platform = json['platform']?.toString().trim();
     final appVersion = json['app_version']?.toString().trim();
     final capturedAtRaw = json['captured_at']?.toString();
+    final metadata = json['metadata'] as Map<String, dynamic>?;
 
     if (reason == null ||
         reason.isEmpty ||
@@ -185,6 +214,7 @@ class _TelemetryEvent {
     if (capturedAt == null) return null;
 
     return _TelemetryEvent(
+      type: type,
       reason: reason,
       message: message,
       stackTrace: stackTrace,
@@ -192,6 +222,7 @@ class _TelemetryEvent {
       platform: platform,
       appVersion: appVersion,
       capturedAt: capturedAt,
+      metadata: metadata,
     );
   }
 }

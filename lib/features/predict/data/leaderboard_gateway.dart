@@ -50,17 +50,11 @@ class SupabaseLeaderboardGateway implements LeaderboardGateway {
     if (client == null) return null;
 
     try {
-      final rows = await client
-          .from('public_leaderboard')
-          .select('user_id')
-          .order('total_fet', ascending: false);
-      for (var index = 0; index < (rows as List).length; index += 1) {
-        final row = rows[index] as Map;
-        if (row['user_id']?.toString() == userId) {
-          return index + 1;
-        }
-      }
-      return null;
+      final result = await client.rpc(
+        'get_public_leaderboard_rank',
+        params: {'p_user_id': userId},
+      );
+      return (result as num?)?.toInt();
     } catch (error) {
       AppLogger.d('Failed to resolve user rank: $error');
       return null;

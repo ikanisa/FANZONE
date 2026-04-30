@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../core/utils/currency_utils.dart';
-import '../../../models/wallet.dart';
+import '../../../models/auth_and_user/wallet.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';

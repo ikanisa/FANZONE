@@ -104,3 +104,33 @@ export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   return typeof error === "string" ? error : "Unknown error";
 }
+
+/**
+ * Standardized Response Helpers
+ */
+
+export const responses = {
+  ok: (data: any = { success: true }) => 
+    Response.json(data, { 
+      headers: buildCorsHeaders("content-type"),
+      status: 200 
+    }),
+    
+  badRequest: (message: string) => 
+    Response.json({ error: message }, { 
+      headers: buildCorsHeaders("content-type"),
+      status: 400 
+    }),
+    
+  unauthorized: () => 
+    Response.json({ error: "Unauthorized" }, { 
+      headers: buildCorsHeaders("content-type"),
+      status: 401 
+    }),
+    
+  error: (err: unknown) => 
+    Response.json({ error: getErrorMessage(err) }, { 
+      headers: buildCorsHeaders("content-type"),
+      status: 500 
+    }),
+};

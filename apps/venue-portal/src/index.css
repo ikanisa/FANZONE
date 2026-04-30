@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #000000;
+  --color-primary-text: #ffffff;
+  --color-accent: #88ff88;
+  --color-accent2: #ff88ff;
+  --color-surface1: #ffffff;
+  --color-surface2: #f8f8f8;
+  --color-surface3: #eeeeee;
+  --color-border: #e5e5e5;
+  --color-text: #000000;
+  --color-text-secondary: #666666;
+  --color-success: #00c853;
+  --color-warning: #ffd600;
+  --color-danger: #ff1744;
+
+  --font-display: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-surface2 text-text font-sans antialiased;
+  }
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-xl;
+}
+
+.btn-primary {
+  @apply bg-primary text-primaryText font-black px-6 py-3 rounded-xl transition-all active:scale-95 disabled:opacity-50 hover:opacity-90;
+}
+
+.input-field {
+  @apply w-full bg-white border border-border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all;
+}

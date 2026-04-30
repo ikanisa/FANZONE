@@ -40,8 +40,6 @@ Future<void> pumpAppScreen(
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: FzTheme.dark(),
-          darkTheme: FzTheme.dark(),
-          themeMode: ThemeMode.dark,
           home: child,
         ),
       ),

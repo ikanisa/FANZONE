@@ -37,8 +37,8 @@ import {
 import { buildCorsHeaders, getErrorMessage } from "../_shared/http.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("EDGE_SERVICE_ROLE_KEY")?.trim() ||
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ||
+  Deno.env.get("EDGE_SERVICE_ROLE_KEY")?.trim() || "";
 const SUPABASE_JWT_SECRET = Deno.env.get("FANZONE_JWT_SECRET")?.trim() || "";
 
 const WABA_ACCESS_TOKEN = Deno.env.get("WABA_ACCESS_TOKEN")?.trim() || "";
@@ -48,6 +48,8 @@ const WABA_TEMPLATE_NAME = Deno.env.get("WABA_OTP_TEMPLATE_NAME")?.trim() ||
 const WHATSAPP_AUTH_TEST_PHONE = Deno.env.get("WHATSAPP_AUTH_TEST_PHONE") ||
   "";
 const WHATSAPP_AUTH_TEST_OTP = Deno.env.get("WHATSAPP_AUTH_TEST_OTP") || "";
+const WHATSAPP_AUTH_TEST_EXPIRY = Deno.env.get("WHATSAPP_AUTH_TEST_EXPIRY") ||
+  "";
 const OTP_EXPIRY_SECONDS = parseInt(
   Deno.env.get("OTP_EXPIRY_SECONDS") || "600",
   10,
@@ -115,6 +117,18 @@ export function resolveConfiguredTestOtp(
   configuredPhone: string | null | undefined,
   configuredOtp: string | null | undefined,
 ): string | null {
+  // Check if test mode has expired
+  if (WHATSAPP_AUTH_TEST_EXPIRY) {
+    try {
+      const expiryDate = new Date(WHATSAPP_AUTH_TEST_EXPIRY);
+      if (isNaN(expiryDate.getTime()) || expiryDate.getTime() < Date.now()) {
+        return null;
+      }
+    } catch (_e) {
+      return null;
+    }
+  }
+
   const reviewerPhone = configuredPhone?.trim()
     ? normalizePhone(configuredPhone)
     : "";
@@ -473,31 +487,36 @@ async function handleSend(req: Request, phone: string): Promise<Response> {
   const ipAddress = requesterIp(req);
   const userAgent = requesterUserAgent(req);
 
-  const { count } = await supabase
-    .from("otp_verifications")
-    .select("id", { count: "exact", head: true })
-    .eq("phone", normalized)
-    .gte("created_at", windowStart);
+  // Bypass rate limits for the configured test/reviewer phone (Google Play review)
+  const isTestPhone = configuredTestOtp != null;
 
-  if ((count ?? 0) >= 3) {
-    return Response.json(
-      { error: "Too many OTP requests. Please wait a minute." },
-      { status: 429, headers: CORS_HEADERS },
-    );
-  }
-
-  if (ipAddress != null) {
-    const { count: ipCount } = await supabase
+  if (!isTestPhone) {
+    const { count } = await supabase
       .from("otp_verifications")
       .select("id", { count: "exact", head: true })
-      .eq("request_ip", ipAddress)
+      .eq("phone", normalized)
       .gte("created_at", windowStart);
 
-    if ((ipCount ?? 0) >= MAX_OTP_REQUESTS_PER_IP) {
+    if ((count ?? 0) >= 3) {
       return Response.json(
-        { error: "Too many OTP requests from this network. Please wait." },
+        { error: "Too many OTP requests. Please wait a minute." },
         { status: 429, headers: CORS_HEADERS },
       );
+    }
+
+    if (ipAddress != null) {
+      const { count: ipCount } = await supabase
+        .from("otp_verifications")
+        .select("id", { count: "exact", head: true })
+        .eq("request_ip", ipAddress)
+        .gte("created_at", windowStart);
+
+      if ((ipCount ?? 0) >= MAX_OTP_REQUESTS_PER_IP) {
+        return Response.json(
+          { error: "Too many OTP requests from this network. Please wait." },
+          { status: 429, headers: CORS_HEADERS },
+        );
+      }
     }
   }
 
@@ -618,14 +637,38 @@ async function handleVerify(phone: string, otp: string): Promise<Response> {
       });
 
     if (createError) {
-      console.error("User creation error:", createError);
-      return Response.json(
-        { error: "Failed to create user account" },
-        { status: 500, headers: CORS_HEADERS },
-      );
-    }
+      // The user might already exist but find_auth_user_by_phone missed it
+      // (e.g., phone format mismatch). Retry the lookup before failing.
+      console.error("User creation error (will retry lookup):", createError.message);
 
-    userId = newUser.user.id;
+      // Try resolving again with the improved phone normalization
+      try {
+        const retryUserId = await resolveUserIdForPhone(supabase, normalized);
+        if (retryUserId) {
+          userId = retryUserId;
+          await supabase.auth.admin.updateUserById(retryUserId, {
+            phone_confirm: true,
+          });
+        } else {
+          console.error(
+            "User creation failed and retry lookup also failed:",
+            createError.message,
+          );
+          return Response.json(
+            { error: "Failed to create user account" },
+            { status: 500, headers: CORS_HEADERS },
+          );
+        }
+      } catch (retryError) {
+        console.error("Retry lookup error:", retryError);
+        return Response.json(
+          { error: "Failed to create user account" },
+          { status: 500, headers: CORS_HEADERS },
+        );
+      }
+    } else {
+      userId = newUser.user.id;
+    }
   }
 
   if (!userId) {

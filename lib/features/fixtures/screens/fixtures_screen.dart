@@ -6,12 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/league_constants.dart';
-import '../../../models/competition_model.dart';
-import '../../../models/match_model.dart';
+import '../../../models/sports/competition_model.dart';
+import '../../../models/sports/match_model.dart';
 import '../../../features/home/data/home_match_curator.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/favourites_provider.dart';
 import '../../../providers/matches_provider.dart';
+import '../../../core/config/platform_feature_access.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_shimmer.dart';
@@ -79,8 +80,8 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     }
   }
 
-  void _openPredict(BuildContext context) {
-    context.go('/predict');
+  void _openPredict(BuildContext context, String route) {
+    context.go(route);
   }
 
   @override
@@ -94,6 +95,12 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     final localAsync = ref.watch(localLeaguesProvider('africa'));
     final favourites =
         ref.watch(favouritesProvider).valueOrNull ?? const FavouritesState();
+    final featureAccess = ref.watch(platformFeatureAccessProvider);
+    final canOpenPredict = featureAccess.isVisible(
+      'predictions',
+      surface: PlatformSurface.action,
+    );
+    final predictionRoute = featureAccess.routeFor('predictions');
 
     return Scaffold(
       body: SafeArea(
@@ -143,6 +150,8 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                           matchesAsync: matchesAsync,
                           competitionsAsync: competitionsAsync,
                           favourites: favourites,
+                          canOpenPredict: canOpenPredict,
+                          predictionRoute: predictionRoute,
                         ),
                       ),
               ),
@@ -160,6 +169,8 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
     required AsyncValue<List<MatchModel>> matchesAsync,
     required AsyncValue<List<CompetitionModel>> competitionsAsync,
     required FavouritesState favourites,
+    required bool canOpenPredict,
+    required String predictionRoute,
   }) {
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
 
@@ -249,7 +260,9 @@ class _FixturesScreenState extends ConsumerState<FixturesScreen> {
                         matches: filtered,
                         onOpenMatch: (match) =>
                             context.push('/match/${match.id}'),
-                        onOpenPredict: () => _openPredict(context),
+                        onOpenPredict: canOpenPredict
+                            ? () => _openPredict(context, predictionRoute)
+                            : null,
                       ),
                     ],
                   ),

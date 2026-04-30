@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:fanzone/features/predict/widgets/prediction_entry_sheet.dart';
-import 'package:fanzone/models/prediction_engine_output_model.dart';
+import 'package:fanzone/models/sports/prediction_engine_output_model.dart';
 
 import 'support/test_app.dart';
 import 'support/test_fixtures.dart';

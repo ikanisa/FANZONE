@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../core/config/platform_feature_access.dart';
-import '../../../models/match_model.dart';
+import '../../../models/sports/match_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/home_feed_provider.dart';
 import '../../../providers/matches_provider.dart';
@@ -48,6 +48,9 @@ class HomeFeedScreen extends ConsumerWidget {
       'leaderboard',
       surface: PlatformSurface.route,
     );
+    final predictionRoute = featureAccess.routeFor('predictions');
+    final fixturesRoute = featureAccess.routeFor('fixtures');
+    final leaderboardRoute = featureAccess.routeFor('leaderboard');
 
     // Fetch a 7-day window: today through today + 6 days
     final feedFilter = MatchesFilter(
@@ -55,7 +58,6 @@ class HomeFeedScreen extends ConsumerWidget {
       dateTo: _today
           .add(const Duration(days: _feedWindowDays))
           .toIso8601String(),
-      limit: 200,
       ascending: true,
     );
     final matchesAsync = ref.watch(homeFeedMatchesProvider(feedFilter));
@@ -99,8 +101,8 @@ class HomeFeedScreen extends ConsumerWidget {
                       foregroundColor: FzColors.darkBg,
                       icon: LucideIcons.target,
                       onTap: canOpenPredictions
-                          ? () => context.go('/predict')
-                          : () => context.go('/fixtures'),
+                          ? () => context.go(predictionRoute)
+                          : () => context.go(fixturesRoute),
                     ),
                   ],
                 ),
@@ -132,8 +134,8 @@ class HomeFeedScreen extends ConsumerWidget {
                                   'OPEN',
                               ctaRoute: canOpenPredictions
                                   ? block.content['cta_route']?.toString() ??
-                                        '/predict'
-                                  : '/fixtures',
+                                        predictionRoute
+                                  : fixturesRoute,
                             );
                           }
 
@@ -183,7 +185,7 @@ class HomeFeedScreen extends ConsumerWidget {
                                     onOpenMatch: (match) =>
                                         context.push('/match/${match.id}'),
                                     onOpenPredict: canOpenPredictions
-                                        ? () => context.push('/predict')
+                                        ? () => context.push(predictionRoute)
                                         : null,
                                   ),
                                 const SizedBox(height: 24),
@@ -235,7 +237,7 @@ class HomeFeedScreen extends ConsumerWidget {
                                     onOpenMatch: (match) =>
                                         context.push('/match/${match.id}'),
                                     onOpenPredict: canOpenPredictions
-                                        ? () => context.push('/predict')
+                                        ? () => context.push(predictionRoute)
                                         : null,
                                   ),
                                 if (canOpenLeaderboard)
@@ -243,7 +245,7 @@ class HomeFeedScreen extends ConsumerWidget {
                                     padding: const EdgeInsets.only(top: 4),
                                     child: TextButton.icon(
                                       onPressed: () =>
-                                          context.push('/leaderboard'),
+                                          context.push(leaderboardRoute),
                                       icon: const Icon(
                                         LucideIcons.trophy,
                                         size: 14,
@@ -300,9 +302,10 @@ class _MatchGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         const gap = 12.0;
-        final columns = constraints.maxWidth >= 720 ? 2 : 1;
+        final maxAvailable = constraints.maxWidth.isFinite ? constraints.maxWidth : MediaQuery.sizeOf(context).width;
+        final columns = maxAvailable >= 720 ? 2 : 1;
         final cardWidth =
-            (constraints.maxWidth - (gap * (columns - 1))) / columns;
+            ((maxAvailable - (gap * (columns - 1))) / columns).clamp(0.0, double.infinity);
 
         return Wrap(
           spacing: gap,

@@ -1,0 +1,23 @@
+// FANZONE Admin — Route Constants
+export const ROUTES = {
+  LOGIN: '/login',
+  DASHBOARD: '/',
+  USERS: '/users',
+  USER_DETAIL: '/users/:id',
+  COMPETITIONS: '/competitions',
+  COMPETITION_DETAIL: '/competitions/:id',
+  FIXTURES: '/fixtures',
+  FIXTURE_DETAIL: '/fixtures/:id',
+  PREDICTIONS: '/predictions',
+  TOKENS: '/tokens',
+  WALLETS: '/wallets',
+  WALLET_DETAIL: '/wallets/:userId',
+  MODERATION: '/moderation',
+  ANALYTICS: '/analytics',
+  ACCOUNT_DELETIONS: '/account-deletions',
+  PLATFORM_CONTROL: '/platform-control',
+  HOSPITALITY_AUDIT: '/hospitality-audit',
+  SETTINGS: '/settings',
+  ADMIN_ACCESS: '/admin-access',
+  AUDIT_LOGS: '/audit-logs',
+} as const;

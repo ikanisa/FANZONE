@@ -134,10 +134,22 @@ class RuntimeAuthSessionManager {
       }
 
       await applyVerifiedSession(data);
+      appRuntime.isOffline.value = false;
       completer.complete(true);
-    } catch (error) {
-      AppLogger.d('Custom WhatsApp session refresh failed: $error');
+    } on AuthException catch (error) {
+      AppLogger.d('Custom WhatsApp session refresh failed (Auth): ${error.message}');
       await clearCustomSession(emitEvent: true);
+      appRuntime.isOffline.value = false;
+      completer.complete(false);
+    } on FunctionException catch (error) {
+      AppLogger.d('Custom WhatsApp session refresh failed (Function): ${error.details}');
+      await clearCustomSession(emitEvent: true);
+      appRuntime.isOffline.value = false;
+      completer.complete(false);
+    } catch (error) {
+      AppLogger.d('Custom WhatsApp session refresh failed (Network): $error');
+      // Do not clear the session on network errors to support offline mode.
+      appRuntime.isOffline.value = true;
       completer.complete(false);
     } finally {
       _refreshCompleter = null;

@@ -31,8 +31,6 @@ class FanzoneApp extends ConsumerWidget {
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       theme: FzTheme.dark(),
-      darkTheme: FzTheme.dark(),
-      themeMode: ThemeMode.dark,
       routerConfig: router,
 
       // ── i18n ──

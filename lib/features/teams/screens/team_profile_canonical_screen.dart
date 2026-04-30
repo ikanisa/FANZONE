@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../models/match_model.dart';
-import '../../../models/team_model.dart';
+import '../../../models/sports/match_model.dart';
+import '../../../models/sports/team_model.dart';
 import '../../../providers/competitions_provider.dart';
 import '../../../providers/matches_provider.dart';
 import '../../../providers/teams_provider.dart';

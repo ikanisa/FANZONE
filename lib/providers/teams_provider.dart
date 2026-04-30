@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/di/gateway_providers.dart';
-import '../models/team_model.dart';
+import '../models/sports/team_model.dart';
 
 final teamsProvider = FutureProvider.autoDispose<List<TeamModel>>((ref) async {
   ref.keepAlive();

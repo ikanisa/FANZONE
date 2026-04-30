@@ -198,17 +198,20 @@ class _FzPromoBannerState extends State<FzPromoBanner>
                         GestureDetector(
                           onTap: () => context.go(widget.ctaRoute!),
                           child: Container(
-                            height: 24,
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            decoration: const BoxDecoration(
-                              color: FzColors.accent2,
+                            height: 28,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: FzColors.darkBg,
                               borderRadius: FzRadii.fullRadius,
+                              border: Border.all(
+                                color: FzColors.accent2.withValues(alpha: 0.35),
+                              ),
                             ),
                             child: Center(
                               child: Text(
                                 widget.ctaLabel,
                                 style: FzTypography.metaLabel(
-                                  size: 9,
+                                  size: 12,
                                   color: FzColors.darkText,
                                 ),
                               ),

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/config/feature_flags.dart';
 import '../../core/market/launch_market.dart';
-import '../../models/featured_event_model.dart';
+import '../../models/sports/featured_event_model.dart';
 import '../../providers/market_preferences_provider.dart';
 import '../../theme/colors.dart';
 import '../common/fz_card.dart';
