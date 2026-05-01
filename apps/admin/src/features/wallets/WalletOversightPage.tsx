@@ -10,13 +10,13 @@ import { CreditDebitModal } from './CreditDebitModal';
 import {
   useWallets, useWalletTransactions,
   useFreezeWallet, useUnfreezeWallet,
-  useCreditFet, useDebitFet,
+  useCreditFet, useDebitFet, useReconcileWallet,
   type WalletRow,
 } from './useWallets';
 import { formatFET, formatDateTime } from '../../lib/formatters';
 import {
-  Wallet, AlertTriangle, Search, TrendingUp,
-  Lock, Unlock, ArrowDownLeft, ArrowUpRight, Eye,
+  Wallet, Search, TrendingUp,
+  Lock, Unlock, ArrowDownLeft, ArrowUpRight, Eye, RefreshCw,
 } from 'lucide-react';
 
 export function WalletOversightPage() {
@@ -40,6 +40,7 @@ export function WalletOversightPage() {
   const unfreezeMutation = useUnfreezeWallet();
   const creditMutation = useCreditFet();
   const debitMutation = useDebitFet();
+  const reconcileMutation = useReconcileWallet();
 
   const wallets = result?.data ?? [];
 
@@ -67,20 +68,26 @@ export function WalletOversightPage() {
     setDebitTarget(null);
   };
 
+  const handleReconcile = async (wallet: WalletRow) => {
+    await reconcileMutation.mutateAsync({ p_user_id: wallet.user_id });
+    await refetch();
+  };
+
   // KPIs
-  const totalHeld = wallets.reduce((s, w) => s + w.available_balance_fet + w.locked_balance_fet, 0);
-  const totalLocked = wallets.reduce((s, w) => s + w.locked_balance_fet, 0);
-  const frozenCount = wallets.filter(w => w.status === 'frozen').length;
+  const totalAvailable = wallets.reduce((s, w) => s + w.available_balance_fet, 0);
+  const totalStaked = wallets.reduce((s, w) => s + (w.staked_balance_fet ?? 0), 0);
+  const totalPending = wallets.reduce((s, w) => s + (w.pending_balance_fet ?? 0), 0);
+  const totalEarned = wallets.reduce((s, w) => s + (w.earned_fet ?? 0), 0);
 
   return (
     <div>
-      <PageHeader title="Wallet Oversight" subtitle="User balances, freeze controls, and token adjustments" />
+      <PageHeader title="FET Wallets" subtitle="User balances, freeze controls, and token adjustments" />
 
       <div className="grid grid-4 gap-4 mb-6">
         <KpiCard label="Total Wallets" value={result?.count ?? wallets.length} icon={<Wallet size={18} />} />
-        <KpiCard label="Total FET Held" value={totalHeld} format="fet" icon={<TrendingUp size={18} />} />
-        <KpiCard label="Locked FET" value={totalLocked} format="fet" />
-        <KpiCard label="Frozen Wallets" value={frozenCount} icon={<AlertTriangle size={18} />} />
+        <KpiCard label="Available FET" value={totalAvailable} format="fet" icon={<TrendingUp size={18} />} />
+        <KpiCard label="Staked / Pending" value={totalStaked + totalPending} format="fet" />
+        <KpiCard label="Earned FET" value={totalEarned} format="fet" />
       </div>
 
       {/* Filters */}
@@ -106,8 +113,10 @@ export function WalletOversightPage() {
               <tr>
                 <th>User</th>
                 <th>Available</th>
-                <th>Locked</th>
-                <th>Total</th>
+                <th>Staked</th>
+                <th>Pending</th>
+                <th>Earned</th>
+                <th>Spent</th>
                 <th>Status</th>
                 <th className="cell-actions">Actions</th>
               </tr>
@@ -120,8 +129,10 @@ export function WalletOversightPage() {
                     <div className="text-xs text-muted mono">{w.user_id}</div>
                   </td>
                   <td className="mono">{formatFET(w.available_balance_fet)}</td>
-                  <td className="mono text-muted">{formatFET(w.locked_balance_fet)}</td>
-                  <td className="mono font-semibold">{formatFET(w.available_balance_fet + w.locked_balance_fet)}</td>
+                  <td className="mono text-muted">{formatFET(w.staked_balance_fet ?? 0)}</td>
+                  <td className="mono text-muted">{formatFET(w.pending_balance_fet ?? 0)}</td>
+                  <td className="mono text-success">{formatFET(w.earned_fet ?? 0)}</td>
+                  <td className="mono text-error">{formatFET(w.spent_fet ?? 0)}</td>
                   <td><StatusBadge status={w.status} /></td>
                   <td className="cell-actions">
                     <div className="flex gap-1">
@@ -169,6 +180,9 @@ export function WalletOversightPage() {
         actions={
           selectedWallet ? (
             <>
+              <button className="btn btn-ghost btn-sm" onClick={() => handleReconcile(selectedWallet)} disabled={reconcileMutation.isPending}>
+                <RefreshCw size={14} /> Reconcile
+              </button>
               <button className="btn btn-ghost btn-sm text-success" onClick={() => setCreditTarget(selectedWallet)}>
                 <ArrowDownLeft size={14} /> Credit
               </button>
@@ -192,8 +206,11 @@ export function WalletOversightPage() {
           <>
             <DrawerSection title="Balance">
               <DrawerField label="Available" value={formatFET(selectedWallet.available_balance_fet)} />
-              <DrawerField label="Locked" value={formatFET(selectedWallet.locked_balance_fet)} />
-              <DrawerField label="Total" value={formatFET(selectedWallet.available_balance_fet + selectedWallet.locked_balance_fet)} />
+              <DrawerField label="Staked" value={formatFET(selectedWallet.staked_balance_fet ?? 0)} />
+              <DrawerField label="Pending settlements" value={formatFET(selectedWallet.pending_balance_fet ?? 0)} />
+              <DrawerField label="Spent history" value={formatFET(selectedWallet.spent_fet ?? 0)} />
+              <DrawerField label="Earned history" value={formatFET(selectedWallet.earned_fet ?? 0)} />
+              <DrawerField label="Total held" value={formatFET(selectedWallet.available_balance_fet + (selectedWallet.staked_balance_fet ?? 0) + (selectedWallet.pending_balance_fet ?? 0))} />
               <DrawerField label="Status" value={<StatusBadge status={selectedWallet.status} />} />
             </DrawerSection>
 
@@ -203,8 +220,13 @@ export function WalletOversightPage() {
                   {transactions.map(tx => (
                     <div key={tx.id} className="flex items-center justify-between py-2 border-b" style={{ borderColor: 'var(--fz-border)' }}>
                       <div>
-                        <div className="text-sm font-medium">{tx.title || tx.tx_type}</div>
-                        <div className="text-xs text-muted">{formatDateTime(tx.created_at)}</div>
+                        <div className="text-sm font-medium">{tx.title || tx.transaction_type || tx.tx_type}</div>
+                        <div className="text-xs text-muted">
+                          {formatDateTime(tx.created_at)} · {tx.transaction_type || tx.tx_type} · {tx.balance_bucket || 'available'}
+                        </div>
+                        {tx.idempotency_key && (
+                          <div className="text-xs text-muted mono">{tx.idempotency_key}</div>
+                        )}
                       </div>
                       <span className={`mono text-sm font-semibold ${tx.direction === 'credit' ? 'text-success' : 'text-error'}`}>
                         {tx.direction === 'credit' ? '+' : '-'}{formatFET(tx.amount_fet)}
@@ -239,7 +261,7 @@ export function WalletOversightPage() {
             </div>
             <div className="flex justify-end gap-3">
               <button className="btn btn-secondary" onClick={() => { setFreezeTarget(null); setFreezeReason(''); }} disabled={freezeMutation.isPending}>Cancel</button>
-              <button className="btn btn-danger" onClick={handleFreeze} disabled={freezeReason.trim().length < 3 || freezeMutation.isPending}>
+              <button className="btn btn-danger" onClick={handleFreeze} disabled={freezeReason.trim().length < 8 || freezeMutation.isPending}>
                 {freezeMutation.isPending ? 'Freezing...' : 'Freeze Wallet'}
               </button>
             </div>

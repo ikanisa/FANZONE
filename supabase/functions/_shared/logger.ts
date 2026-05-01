@@ -1,6 +1,5 @@
 /**
- * Structured logger for Edge Functions
- * Ported from DineIn _lib/logger.ts
+ * Structured logger for Edge Functions.
  */
 
 export type LogLevel = "debug" | "info" | "warn" | "error";

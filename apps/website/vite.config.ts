@@ -75,8 +75,9 @@ export default defineConfig({
           if (
             normalized.includes('/website/src/components/HomeFeed') ||
             normalized.includes('/website/src/components/MatchDetail') ||
-            normalized.includes('/website/src/components/LeagueHub') ||
-            normalized.includes('/website/src/components/Fixtures') ||
+            normalized.includes('/website/src/components/MatchPools') ||
+            normalized.includes('/website/src/components/Pools') ||
+            normalized.includes('/website/src/components/Ordering') ||
             normalized.includes('/website/src/components/Notifications')
           ) {
             return 'match-experience'
@@ -89,14 +90,6 @@ export default defineConfig({
             normalized.includes('/website/src/components/PrivacySettings')
           ) {
             return 'account-experience'
-          }
-
-          if (
-            normalized.includes('/website/src/components/Leaderboard') ||
-            normalized.includes('/website/src/components/TeamProfile') ||
-            normalized.includes('/website/src/components/EmptyErrorStates')
-          ) {
-            return 'community-experience'
           }
 
           return undefined

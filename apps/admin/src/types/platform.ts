@@ -12,12 +12,20 @@ export interface PlatformUser {
   wallet_freeze_reason?: string | null;
   available_balance_fet?: number;
   locked_balance_fet?: number;
+  staked_balance_fet?: number;
+  pending_balance_fet?: number;
+  spent_fet?: number;
+  earned_fet?: number;
 }
 
 export interface Wallet {
   user_id: string;
   available_balance_fet: number;
   locked_balance_fet: number;
+  staked_balance_fet: number;
+  pending_balance_fet: number;
+  spent_fet: number;
+  earned_fet: number;
   updated_at: string;
   created_at: string;
 }
@@ -26,12 +34,24 @@ export interface WalletTransaction {
   id: string;
   user_id: string;
   tx_type: string;
+  transaction_type?: string;
   direction: string;
   amount_fet: number;
   balance_before_fet: number;
   balance_after_fet: number;
+  balance_bucket?: 'available' | 'staked' | 'pending' | string;
+  status?: 'posted' | 'pending' | 'voided' | string;
+  idempotency_key?: string | null;
   reference_type: string | null;
   reference_id: string | null;
+  source?: string | null;
+  match_id?: string | null;
+  pool_id?: string | null;
+  order_id?: string | null;
+  entry_id?: string | null;
+  settlement_id?: string | null;
+  venue_id?: string | null;
+  created_by?: string | null;
   metadata: Record<string, unknown> | null;
   title: string | null;
   created_at: string;

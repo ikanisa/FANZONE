@@ -1,6 +1,5 @@
 /**
- * Shared types for Edge Functions
- * Ported from DineIn _lib/types.ts
+ * Shared types for Edge Functions.
  */
 
 // Auth context after successful authentication

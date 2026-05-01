@@ -155,14 +155,14 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
     try {
       final row = await client
           .from('profiles')
-          .select('show_name_on_leaderboards, allow_fan_discovery')
+          .select('show_name_in_pool_activity, allow_fan_discovery')
           .eq('id', userId)
           .maybeSingle();
       if (row == null) return cached ?? PrivacySettingsModel.defaults;
 
       final settings = PrivacySettingsModel(
-        showNameOnLeaderboards:
-            row['show_name_on_leaderboards'] as bool? ?? false,
+        showNameInPoolActivity:
+            row['show_name_in_pool_activity'] as bool? ?? false,
         allowFanDiscovery: row['allow_fan_discovery'] as bool? ?? false,
       );
       await _cachePrivacySettings(userId, settings);
@@ -187,7 +187,7 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
       await client
           .from('profiles')
           .update({
-            'show_name_on_leaderboards': settings.showNameOnLeaderboards,
+            'show_name_in_pool_activity': settings.showNameInPoolActivity,
             'allow_fan_discovery': settings.allowFanDiscovery,
           })
           .eq('id', userId);
@@ -223,8 +223,8 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
     );
     if (row == null) return null;
     return PrivacySettingsModel(
-      showNameOnLeaderboards:
-          row['show_name_on_leaderboards'] as bool? ?? false,
+      showNameInPoolActivity:
+          row['show_name_in_pool_activity'] as bool? ?? false,
       allowFanDiscovery: row['allow_fan_discovery'] as bool? ?? false,
     );
   }
@@ -234,7 +234,7 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
     PrivacySettingsModel settings,
   ) {
     return _cache.setJson('$_privacyPrefix$userId', {
-      'show_name_on_leaderboards': settings.showNameOnLeaderboards,
+      'show_name_in_pool_activity': settings.showNameInPoolActivity,
       'allow_fan_discovery': settings.allowFanDiscovery,
     });
   }

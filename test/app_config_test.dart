@@ -26,8 +26,7 @@ void main() {
 
     test('feature flags are disabled until bootstrap config is loaded', () {
       expect(AppConfig.enableWallet, false);
-      expect(AppConfig.enablePredictions, false);
-      expect(AppConfig.enableLeaderboard, false);
+      expect(AppConfig.enablePools, false);
       expect(AppConfig.enableRewards, false);
       expect(AppConfig.enableNotifications, false);
     });
@@ -40,9 +39,8 @@ void main() {
           currencyDisplay: const {},
           countryCurrencies: const {},
           featureFlags: const {
-            'predictions': true,
+            'pools': true,
             'wallet': true,
-            'leaderboard': false,
             'rewards': true,
             'notifications': true,
           },
@@ -51,9 +49,8 @@ void main() {
         ),
       );
 
-      expect(AppConfig.enablePredictions, true);
+      expect(AppConfig.enablePools, true);
       expect(AppConfig.enableWallet, true);
-      expect(AppConfig.enableLeaderboard, false);
       expect(AppConfig.enableRewards, true);
       expect(AppConfig.enableNotifications, true);
     });

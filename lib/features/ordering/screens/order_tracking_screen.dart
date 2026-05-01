@@ -20,9 +20,9 @@ class OrderTrackingScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Track Order'),
+        title: const Text('Order status'),
         leading: IconButton(
-          onPressed: () => context.go('/'),
+          onPressed: () => context.go('/bar'),
           icon: const Icon(LucideIcons.x),
         ),
       ),
@@ -54,61 +54,90 @@ class _TrackingContent extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       children: [
         _StatusTimeline(status: order.status),
-        const SizedBox(height: 40),
-        const Text('ORDER DETAILS',
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1)),
+        const SizedBox(height: 18),
+        _PaymentStatusCard(status: order.paymentStatus),
+        const SizedBox(height: 28),
+        const Text(
+          'ORDER DETAILS',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            letterSpacing: 1,
+          ),
+        ),
         const SizedBox(height: 16),
         FzCard(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Order #${order.orderCode}',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+              Text(
+                'Order #${order.orderCode}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
+              ),
               const Divider(height: 32),
               ...order.items
-                      ?.map((item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                    color: FzColors.accent.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Center(
-                                      child: Text('${item.quantity}',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12,
-                                              color: FzColors.accent))),
+                      ?.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: FzColors.accent.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                    child: Text(item.itemNameSnapshot,
-                                        style: const TextStyle(fontSize: 15))),
-                                Text(item.lineTotalDisplay,
+                                child: Center(
+                                  child: Text(
+                                    '${item.quantity}',
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ))
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      color: FzColors.accent,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  item.itemNameSnapshot,
+                                  style: const TextStyle(fontSize: 15),
+                                ),
+                              ),
+                              Text(
+                                item.lineTotalDisplay,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
                       .toList() ??
                   [],
               const Divider(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Total Paid',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(order.totalDisplay,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                          color: FzColors.accent)),
+                  const Text(
+                    'Total',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    order.totalDisplay,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      color: FzColors.accent,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -129,31 +158,87 @@ class _StatusTimeline extends StatelessWidget {
     return Column(
       children: [
         _TimelineItem(
-          label: 'Order Placed',
-          subtitle: 'Your order has been sent to the kitchen',
+          label: 'Received',
+          subtitle: 'The venue has the order request',
           icon: LucideIcons.checkCircle2,
           isActive: true,
-          isCompleted: status != OrderStatus.placed,
-        ),
-        _TimelineConnector(isActive: status != OrderStatus.placed),
-        _TimelineItem(
-          label: 'Preparing',
-          subtitle: 'The chef is preparing your meal',
-          icon: LucideIcons.utensils,
-          isActive:
+          isCompleted:
               status == OrderStatus.received || status == OrderStatus.served,
-          isCompleted: status == OrderStatus.served,
         ),
         _TimelineConnector(isActive: status == OrderStatus.served),
         _TimelineItem(
           label: 'Served',
-          subtitle: 'Your order has arrived at your table',
-          icon: LucideIcons.partyPopper,
+          subtitle: 'Venue staff marked the order served',
+          icon: LucideIcons.badgeCheck,
           isActive: status == OrderStatus.served,
           isCompleted: status == OrderStatus.served,
-          isLast: true,
+          isLast: status != OrderStatus.cancelled,
         ),
+        if (status == OrderStatus.cancelled) ...[
+          const _TimelineConnector(isActive: true),
+          const _TimelineItem(
+            label: 'Cancelled',
+            subtitle: 'The venue cancelled this order',
+            icon: LucideIcons.xCircle,
+            isActive: true,
+            isCompleted: true,
+            isLast: true,
+          ),
+        ],
       ],
+    );
+  }
+}
+
+class _PaymentStatusCard extends StatelessWidget {
+  const _PaymentStatusCard({required this.status});
+
+  final PaymentStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (status) {
+      PaymentStatus.paid => FzColors.success,
+      PaymentStatus.partiallyPaid => FzColors.warning,
+      PaymentStatus.refunded => FzColors.accent2,
+      PaymentStatus.disputed || PaymentStatus.failed => FzColors.danger,
+      PaymentStatus.pending ||
+      PaymentStatus.unpaid ||
+      PaymentStatus.cancelled => FzColors.darkMuted,
+    };
+
+    return FzCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Icon(LucideIcons.creditCard, color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Payment status',
+                  style: TextStyle(fontSize: 12, color: FzColors.darkMuted),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  status.label,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: color,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Text(
+            'Manual confirmation',
+            style: TextStyle(fontSize: 11, color: FzColors.darkMuted),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -194,8 +279,11 @@ class _TimelineItem extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: color.withValues(alpha: 0.3)),
               ),
-              child: Icon(isCompleted ? LucideIcons.check : icon,
-                  color: color, size: 20),
+              child: Icon(
+                isCompleted ? LucideIcons.check : icon,
+                color: color,
+                size: 20,
+              ),
             ),
           ],
         ),
@@ -204,14 +292,21 @@ class _TimelineItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      color: isActive ? null : FzColors.lightMuted)),
-              Text(subtitle,
-                  style:
-                      const TextStyle(fontSize: 13, color: FzColors.lightMuted)),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  color: isActive ? null : FzColors.lightMuted,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: FzColors.lightMuted,
+                ),
+              ),
               if (!isLast) const SizedBox(height: 12),
             ],
           ),

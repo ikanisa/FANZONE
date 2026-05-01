@@ -1,110 +1,64 @@
 \pset tuples_only on
 \pset pager off
 
-\echo 'Verifying admin data-plane views, policies, and RPCs...'
+\echo 'Verifying admin data plane...'
 
 DO $$
 DECLARE
-  missing_views text[];
-  missing_policies text[];
-  missing_rpcs text[];
+  missing_relations text[];
+  missing_functions text[];
 BEGIN
   SELECT array_agg(required_name ORDER BY required_name)
-  INTO missing_views
+  INTO missing_relations
   FROM (
     VALUES
-      ('public.admin_feature_flags'),
-      ('public.admin_platform_content_blocks'),
       ('public.admin_platform_features'),
-      ('public.fet_supply_overview_admin'),
-      ('public.fet_transactions_admin')
+      ('public.admin_platform_content_blocks'),
+      ('public.curated_matches'),
+      ('public.fet_transactions_admin'),
+      ('public.match_pool_stats'),
+      ('public.match_pools'),
+      ('public.pool_operation_audit_logs'),
+      ('public.venues')
   ) AS expected(required_name)
   WHERE to_regclass(expected.required_name) IS NULL;
 
-  IF missing_views IS NOT NULL THEN
-    RAISE EXCEPTION 'Missing admin views: %', array_to_string(missing_views, ', ');
-  END IF;
-
-  SELECT array_agg(required_policy ORDER BY required_policy)
-  INTO missing_policies
-  FROM (
-    VALUES
-      ('competitions', 'Admins manage competitions'),
-      ('fet_wallet_transactions', 'Admins read wallet transactions'),
-      ('matches', 'Admins manage matches'),
-      ('notification_log', 'Admins read notifications'),
-      ('notification_log', 'Users update own notifications'),
-      ('predictions_engine_outputs', 'Admins manage prediction engine outputs'),
-      ('standings', 'Admins manage standings'),
-      ('team_aliases', 'Admins manage team aliases'),
-      ('team_form_features', 'Admins manage team form features'),
-      ('token_rewards', 'Admins manage token rewards'),
-      ('user_predictions', 'Admins read user predictions')
-  ) AS expected(tablename, required_policy)
-  WHERE NOT EXISTS (
-    SELECT 1
-    FROM pg_policies
-    WHERE schemaname = 'public'
-      AND tablename = expected.tablename
-      AND policyname = expected.required_policy
-  );
-
-  IF missing_policies IS NOT NULL THEN
-    RAISE EXCEPTION 'Missing admin policies: %', array_to_string(missing_policies, ', ');
+  IF missing_relations IS NOT NULL THEN
+    RAISE EXCEPTION 'Missing admin relations: %', array_to_string(missing_relations, ', ');
   END IF;
 
   SELECT array_agg(required_signature ORDER BY required_signature)
-  INTO missing_rpcs
+  INTO missing_functions
   FROM (
     VALUES
-      ('public.admin_change_admin_role(uuid,text)'),
       ('public.admin_dashboard_kpis()'),
+      ('public.admin_pool_engagement_daily(integer)'),
+      ('public.admin_pool_engagement_kpis()'),
+      ('public.admin_fet_flow_weekly(integer)'),
       ('public.admin_global_search(text,integer)'),
-      ('public.admin_grant_access(text,text)'),
-      ('public.admin_set_feature_flag(text,boolean)'),
-      ('public.admin_upsert_feature_flag(text,text,text,boolean,text,integer)'),
-      ('public.generate_predictions_for_upcoming_matches(integer)'),
-      ('public.get_admin_me()'),
-      ('public.admin_revoke_access(uuid)'),
-      ('public.admin_set_competition_featured(text,boolean)'),
-      ('public.admin_upsert_platform_content_block(jsonb)'),
+      ('public.admin_pool_operations_kpis()'),
+      ('public.admin_pool_operations_queue(integer)'),
+      ('public.admin_run_pool_settlement(integer)'),
       ('public.admin_upsert_platform_feature(jsonb)'),
-      ('public.admin_trigger_currency_rate_refresh()'),
-      ('public.admin_update_account_deletion_request(uuid,text,text)'),
-      ('public.admin_update_match_result(text,integer,integer)'),
-      ('public.score_finished_matches_with_pending_predictions(integer)')
+      ('public.admin_upsert_platform_content_block(jsonb)')
   ) AS expected(required_signature)
   WHERE to_regprocedure(expected.required_signature) IS NULL;
 
-  IF missing_rpcs IS NOT NULL THEN
-    RAISE EXCEPTION 'Missing admin RPCs: %', array_to_string(missing_rpcs, ', ');
+  IF missing_functions IS NOT NULL THEN
+    RAISE EXCEPTION 'Missing admin functions: %', array_to_string(missing_functions, ', ');
   END IF;
 END;
 $$;
 
 DO $$
 BEGIN
-  IF pg_get_viewdef('public.admin_feature_flags'::regclass, true) NOT ILIKE '%platform_features%' THEN
-    RAISE EXCEPTION 'admin_feature_flags is not filtering platform-managed features';
-  END IF;
-
-  IF has_table_privilege('authenticated', 'public.feature_flags', 'INSERT')
-    OR has_table_privilege('authenticated', 'public.feature_flags', 'UPDATE')
-    OR has_table_privilege('authenticated', 'public.feature_flags', 'DELETE')
+  IF has_table_privilege('anon', 'public.pool_operation_audit_logs', 'SELECT')
+     OR has_table_privilege('anon', 'public.fet_transactions_admin', 'SELECT')
+     OR has_table_privilege('anon', 'public.admin_platform_features', 'SELECT')
   THEN
-    RAISE EXCEPTION 'authenticated role still has direct write access to public.feature_flags';
-  END IF;
-
-  IF has_table_privilege('authenticated', 'public.platform_features', 'INSERT')
-    OR has_table_privilege('authenticated', 'public.platform_features', 'UPDATE')
-    OR has_table_privilege('authenticated', 'public.platform_features', 'DELETE')
-    OR has_table_privilege('authenticated', 'public.platform_content_blocks', 'INSERT')
-    OR has_table_privilege('authenticated', 'public.platform_content_blocks', 'UPDATE')
-    OR has_table_privilege('authenticated', 'public.platform_content_blocks', 'DELETE')
-  THEN
-    RAISE EXCEPTION 'authenticated role still has direct write access to platform control tables';
+    RAISE EXCEPTION 'Anonymous role can read admin-only data plane objects';
   END IF;
 END;
 $$;
 
-\echo 'Admin data-plane verification passed'
+\echo 'Admin data plane verified'

@@ -33,15 +33,13 @@ export default function WalletHub() {
     hydrateViewerState({
       fanId: viewerState.profile?.fanId,
       isVerified: viewerState.profile ? !viewerState.profile.isAnonymous : undefined,
-      favoriteTeams: viewerState.favoriteTeams,
-      profileTeam: viewerState.profile?.favoriteTeamName ?? viewerState.favoriteTeams[0] ?? null,
       fetBalance: viewerState.wallet?.availableBalanceFet,
       walletTransactions: viewerState.walletTransactions,
       notifications: viewerState.notifications.map((notification) => ({
         id: notification.id,
         type:
-          notification.type === 'prediction_reward' ||
-          notification.type === 'prediction_update' ||
+          notification.type === 'pool_reward' ||
+          notification.type === 'pool_update' ||
           notification.type === 'transfer'
             ? notification.type
             : 'system',
@@ -120,10 +118,9 @@ export default function WalletHub() {
             <ShieldCheck size={18} />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-text mb-1">Lean Wallet Flow</h3>
+            <h3 className="font-bold text-sm text-text mb-1">Wallet Flow</h3>
             <p className="text-sm text-muted leading-relaxed">
-              Wallet activity now focuses on transfers and lean prediction rewards.
-              The old marketplace and club-split logic is no longer part of the retained product flow.
+              Wallet activity focuses on transfers, venue-order rewards, FET spent on orders, and audited pool settlements.
             </p>
           </div>
         </section>

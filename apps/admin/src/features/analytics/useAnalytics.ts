@@ -6,7 +6,7 @@ import { runAdminRpc } from '../../lib/adminData';
 export interface EngagementDay {
   day: string;
   dau: number;
-  predictions: number;
+  poolEntries: number;
 }
 
 export interface FetFlowWeek {
@@ -27,7 +27,7 @@ export interface EngagementKpis {
   dau: number;
   wau: number;
   mau: number;
-  predictions7d: number;
+  poolEntries7d: number;
   fetVolume7d: number;
 }
 
@@ -35,7 +35,7 @@ export interface EngagementKpis {
 export function useEngagementKpis() {
   return useQuery<EngagementKpis>({
     queryKey: ['analytics-kpis'],
-    queryFn: async () => runAdminRpc<EngagementKpis>('admin_engagement_kpis'),
+    queryFn: async () => runAdminRpc<EngagementKpis>('admin_pool_engagement_kpis'),
     refetchInterval: 300_000,
   });
 }
@@ -44,7 +44,7 @@ export function useEngagementChart() {
   return useQuery<EngagementDay[]>({
     queryKey: ['analytics-engagement'],
     queryFn: async () =>
-      (await runAdminRpc<EngagementDay[]>('admin_engagement_daily', {
+      (await runAdminRpc<EngagementDay[]>('admin_pool_engagement_daily', {
         p_days: 7,
       })) ?? [],
   });

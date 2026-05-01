@@ -23,7 +23,7 @@ abstract final class FzColors {
   static const darkMuted = Color(0xFF8B8E99);
 
   // ════════════════════════════════════════════
-  // Legacy light-theme aliases
+  // Compatibility light-theme aliases
   // FANZONE is dark-only, so these names resolve to the dark palette to
   // collapse any stray light-mode code paths back onto the supported colors.
   // ════════════════════════════════════════════
@@ -47,7 +47,7 @@ abstract final class FzColors {
   static const warning = Color(0xFFEAB308);
   static const whatsapp = Color(0xFF25D366);
 
-  // Legacy aliases still used across the Flutter codebase.
+  // Compatibility aliases still used across the Flutter codebase.
   static const primary = accent;
   static const onPrimary = darkBg;
   static const secondary = accent3;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +11,6 @@ import '../../../core/market/launch_market.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../core/utils/phone_country_catalog.dart';
 import '../widgets/country_code_picker.dart';
-import '../../../data/team_search_database.dart';
 import '../../../models/auth_and_user/user_market_preferences_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/market_preferences_provider.dart';
@@ -17,15 +18,13 @@ import '../../../providers/region_provider.dart';
 import '../../../theme/colors.dart';
 import '../providers/onboarding_provider.dart';
 import '../widgets/onboarding_phone_verification_steps.dart';
-import '../widgets/onboarding_team_selection_steps.dart';
 import '../widgets/onboarding_welcome_step.dart';
 
-/// Production onboarding flow — matches the reference Onboarding.tsx exactly:
+/// Production onboarding flow for the sports-bar product:
 ///
-/// Step 1: Welcome — FANZONE branding + GET STARTED
-/// Step 2: Enter Phone — phone input + SEND OTP
-/// Step 3: Verify OTP — 6-digit code + VERIFY
-/// Step 4: Favorite Team — anonymous Fan ID + optional team + enter app
+/// Step 1: Welcome
+/// Step 2: Enter WhatsApp phone
+/// Step 3: Verify OTP and enter the app
 ///
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -35,14 +34,11 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  // Reference-aligned step indices (matches Onboarding.tsx steps 1–4)
-  static const _welcomeStep = 0; // Step 1
-  static const _phoneStep = 1; // Step 2
-  static const _otpStep = 2; // Step 3
-  static const _favoriteTeamStep = 3; // Step 4
+  static const _welcomeStep = 0;
+  static const _phoneStep = 1;
+  static const _otpStep = 2;
 
   final _phoneController = TextEditingController();
-  final _favoriteSearchController = TextEditingController();
   final _otpControllers = List.generate(6, (_) => TextEditingController());
   final _otpFocusNodes = List.generate(6, (_) => FocusNode());
 
@@ -57,14 +53,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _selectedCountry = findCountryByCode(null);
     ref.read(selectedLaunchRegionProvider.notifier).state = 'global';
     ref.read(selectedLaunchFocusTagsProvider.notifier).replaceAll({});
-    ref.read(localTeamSearchQueryProvider.notifier).state = '';
-    ref.read(selectedLocalTeamProvider.notifier).state = null;
   }
 
   @override
   void dispose() {
     _phoneController.dispose();
-    _favoriteSearchController.dispose();
     for (final controller in _otpControllers) {
       controller.dispose();
     }
@@ -136,11 +129,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _handleWelcomeContinue() {
     if (_isAlreadyAuthenticated) {
-      // Already authenticated — skip to team selection (step 4)
-      _setStep(_favoriteTeamStep);
+      unawaited(_completeOnboarding());
       return;
     }
-    // Go to phone input (step 2) — matches reference Step1 → Step2
     _setStep(_phoneStep);
   }
 
@@ -215,7 +206,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             _otpControllers.map((controller) => controller.text).join(),
           );
       if (!mounted) return;
-      _setStep(_favoriteTeamStep);
+      await _completeOnboarding();
     } on AuthException catch (error) {
       if (!mounted) return;
       setState(() => _error = error.message);
@@ -231,42 +222,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
-  void _handleFavoriteSearchChanged(String value) {
-    ref.read(localTeamSearchQueryProvider.notifier).state = value;
-    if (_error != null) {
-      setState(() => _error = null);
-    }
-  }
-
-  void _handleFavoriteTeamSelected(OnboardingTeam team) {
-    HapticFeedback.selectionClick();
-    ref.read(selectedLocalTeamProvider.notifier).state = team;
-    _favoriteSearchController.clear();
-    ref.read(localTeamSearchQueryProvider.notifier).state = '';
-  }
-
-  void _goBackFromFavoriteTeam() {
-    if (_isAlreadyAuthenticated) {
-      _setStep(_welcomeStep);
-      return;
-    }
-    _setStep(_otpStep);
-  }
-
   Future<void> _completeOnboarding() async {
-    final localTeam = ref.read(selectedLocalTeamProvider);
     final launchRegion = ref.read(selectedLaunchRegionProvider);
     final selectedTags = ref.read(selectedLaunchFocusTagsProvider);
     final focusTags = selectedTags.isEmpty
         ? defaultFocusTagsForRegion(launchRegion)
         : selectedTags.toList();
 
-    await ref
-        .read(onboardingGatewayProvider)
-        .saveOnboardingTeams(
-          localTeam: localTeam,
-          popularTeamIds: const <String>{},
-        );
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
     await ref
         .read(marketPreferencesGatewayProvider)
         .saveUserMarketPreferences(
@@ -296,60 +263,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final selectedRegion = ref.watch(selectedLaunchRegionProvider);
-    final regionalSuggestions = popularTeamsForRegion(selectedRegion);
-    final globalSuggestions = popularTeamsForRegion('global');
-    final suggestedTeams = <OnboardingTeam>[
-      ...regionalSuggestions,
-      ...globalSuggestions.where(
-        (team) =>
-            !regionalSuggestions.any((existing) => existing.id == team.id),
-      ),
-      ...allTeams.where(
-        (team) =>
-            !regionalSuggestions.any((existing) => existing.id == team.id),
-      ),
-    ].take(4).toList(growable: false);
 
     return Scaffold(
       backgroundColor: isDark ? FzColors.darkBg : FzColors.lightBg,
       body: Stack(
         children: [
-          // Background glow — matches reference
-          Positioned(
-            top: -120,
-            left: -80,
-            child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    FzColors.primary.withValues(alpha: 0.18),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -140,
-            right: -90,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    FzColors.coral.withValues(alpha: 0.14),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
           SafeArea(
             child: Center(
               child: ConstrainedBox(
@@ -379,7 +297,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             textColor: textColor,
                             muted: muted,
                             isDark: isDark,
-                            suggestedTeams: suggestedTeams,
                           ),
                         ),
                       ),
@@ -420,7 +337,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     required Color textColor,
     required Color muted,
     required bool isDark,
-    required List<OnboardingTeam> suggestedTeams,
   }) {
     switch (_currentStep) {
       // Step 1: Welcome (ref: Step1)
@@ -470,22 +386,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           },
           onNext: _handleOtpContinue,
           buttonLabel: _loading ? 'VERIFYING...' : 'VERIFY CODE',
-        );
-      // Step 4: Favorite Team (ref: Step4)
-      case _favoriteTeamStep:
-        return OnboardingFavoriteTeamStep(
-          textColor: textColor,
-          muted: muted,
-          isDark: isDark,
-          searchController: _favoriteSearchController,
-          results: ref.watch(localTeamSearchResultsProvider),
-          selectedTeam: ref.watch(selectedLocalTeamProvider),
-          query: ref.watch(localTeamSearchQueryProvider),
-          suggestedTeams: suggestedTeams,
-          onSearchChanged: _handleFavoriteSearchChanged,
-          onTeamSelected: _handleFavoriteTeamSelected,
-          onBack: _goBackFromFavoriteTeam,
-          onNext: _completeOnboarding,
         );
       default:
         return const SizedBox.shrink();

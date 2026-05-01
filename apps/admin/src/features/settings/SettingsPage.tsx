@@ -520,14 +520,14 @@ export function SettingsPage() {
     <div>
       <PageHeader
         title="Runtime Settings & Feature Flags"
-        subtitle="Flutter and web bootstrap read these records live from Supabase. Platform surfaces now live under Platform Control; this page is for standalone legacy runtime flags and shared bootstrap data."
+        subtitle="Flutter and web bootstrap read these records live from Supabase. Platform surfaces live under Platform Control; this page is for standalone runtime flags and shared bootstrap data."
         actions={
           <button
             className="btn btn-primary"
             type="button"
             onClick={() => setShowCreateForm((value) => !value)}
           >
-            <Plus size={16} /> {showCreateForm ? "Close" : "Add Legacy Flag"}
+            <Plus size={16} /> {showCreateForm ? "Close" : "Add Runtime Flag"}
           </button>
         }
       />
@@ -597,14 +597,14 @@ export function SettingsPage() {
 
       {showCreateForm && (
         <form className="card mb-6" onSubmit={handleCreateFlag}>
-          <h3 className="text-md font-semibold mb-2">Create Legacy Runtime Flag</h3>
+          <h3 className="text-md font-semibold mb-2">Create Runtime Flag</h3>
           <p className="text-sm text-muted mb-4">
             Use this only for non-platform bootstrap flags such as
             <span className="mono"> deep_linking </span>
             or
             <span className="mono"> featured_events</span>. Core app surfaces
             like
-            <span className="mono"> predictions </span>
+            <span className="mono"> pools </span>
             and
             <span className="mono"> wallet </span>
             are managed from Platform Control.
@@ -668,7 +668,7 @@ export function SettingsPage() {
               <div className="text-xs text-muted mb-1">Description</div>
               <input
                 className="input"
-                placeholder="Controls prediction entry visibility"
+                placeholder="Controls a non-core operational flag"
                 value={newFlag.description}
                 onChange={(event) =>
                   setNewFlag((current) => ({
@@ -819,7 +819,7 @@ export function SettingsPage() {
         <ErrorState onRetry={() => refetch()} />
       ) : filteredFlags.length === 0 ? (
         <EmptyState
-          title="No legacy runtime flags found"
+          title="No runtime flags found"
           description="Adjust the filters or create a standalone runtime flag."
           icon={<Shield size={48} />}
         />

@@ -10,6 +10,18 @@ import 'runtime_bootstrap.dart';
 
 enum PlatformSurface { navigation, home, route, action }
 
+const _guestFeatureKeys = {
+  'home',
+  'pools',
+  'ordering',
+  'venues',
+  'wallet',
+  'profile',
+  'notifications',
+  'settings',
+  'rewards',
+};
+
 class PlatformFeatureAccess {
   const PlatformFeatureAccess(this._config, {required this.channel});
 
@@ -40,6 +52,10 @@ class PlatformFeatureAccess {
     String key, {
     PlatformSurface surface = PlatformSurface.route,
   }) {
+    if (!_guestFeatureKeys.contains(key)) {
+      return false;
+    }
+
     final feature = this.feature(key);
     if (feature == null) {
       return false;
@@ -78,7 +94,8 @@ class PlatformFeatureAccess {
 
   String? routeKeyForPath(String path) {
     for (final feature in _config.platformFeatures) {
-      final featureRoute = feature.channel(channel).routeKey ??
+      final featureRoute =
+          feature.channel(channel).routeKey ??
           feature.resolvedState.routeKey ??
           feature.defaultRouteKey;
       if (featureRoute != null && path.startsWith(featureRoute)) {

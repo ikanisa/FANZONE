@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Card } from "./Card";
 import { Badge } from "./Badge";
 import { TeamLogo } from "./TeamLogo";
-import { ChevronRight, Target } from "lucide-react";
+import { ChevronRight, Trophy } from "lucide-react";
 
 interface MatchCardProps {
   matchId: string;
@@ -104,7 +104,7 @@ export function MatchCard({
               : "bg-[var(--accent2)]/10 text-[var(--accent2)] hover:bg-[var(--accent2)] hover:text-bg"
           }`}
         >
-          <Target size={14} /> PREDICT
+          <Trophy size={14} /> POOLS
         </button>
         <button
           onClick={(e) => {

@@ -15,13 +15,10 @@ class SEn extends S {
   String get navScores => 'Scores';
 
   @override
-  String get navFixtures => 'Fixtures';
+  String get navFixtures => 'Pools';
 
   @override
   String get navFollowing => 'Following';
-
-  @override
-  String get navPredict => 'Predict';
 
   @override
   String get navProfile => 'Profile';
@@ -32,7 +29,7 @@ class SEn extends S {
   }
 
   @override
-  String get homeSubtitle => 'Football Prediction Hub';
+  String get homeSubtitle => 'Sports-bar ordering and match pools';
 
   @override
   String get homeTabLive => 'Live';
@@ -71,7 +68,7 @@ class SEn extends S {
   String get leagueStandings => 'Standings';
 
   @override
-  String get leagueFixtures => 'Fixtures';
+  String get leagueFixtures => 'Matches';
 
   @override
   String get leagueResults => 'Results';
@@ -102,40 +99,6 @@ class SEn extends S {
 
   @override
   String get standingsPts => 'Pts';
-
-  @override
-  String get predictTitle => 'Predict';
-
-  @override
-  String get predictMatchResult => 'Match Result';
-
-  @override
-  String get predictExactScore => 'Exact Score';
-
-  @override
-  String get predictStake => 'Stake';
-
-  @override
-  String get predictProjectedEarn => 'Projected Earn';
-
-  @override
-  String get predictSubmit => 'Submit Prediction';
-
-  @override
-  String get predictClear => 'Clear All';
-
-  @override
-  String predictMarketHome(String team) {
-    return '$team to Win';
-  }
-
-  @override
-  String get predictMarketDraw => 'Draw';
-
-  @override
-  String predictMarketAway(String team) {
-    return '$team to Win';
-  }
 
   @override
   String get walletTitle => 'FET Wallet';
@@ -169,9 +132,6 @@ class SEn extends S {
 
   @override
   String get profileWallet => 'Wallet';
-
-  @override
-  String get profileLeaderboard => 'Leaderboard';
 
   @override
   String get profileNotifications => 'Notifications';
@@ -215,18 +175,6 @@ class SEn extends S {
   }
 
   @override
-  String get leaderboardTitle => 'Leaderboard';
-
-  @override
-  String get leaderboardRank => 'Rank';
-
-  @override
-  String get leaderboardPoints => 'Points';
-
-  @override
-  String get leaderboardPredictions => 'Predictions';
-
-  @override
   String get searchTitle => 'Search';
 
   @override
@@ -253,9 +201,6 @@ class SEn extends S {
   }
 
   @override
-  String get teamFixtures => 'Fixtures';
-
-  @override
   String get followingTitle => 'Following';
 
   @override
@@ -272,7 +217,8 @@ class SEn extends S {
   String get loginTitle => 'Welcome to FANZONE';
 
   @override
-  String get loginSubtitle => 'The Global Football Prediction Platform';
+  String get loginSubtitle =>
+      'Sports-bar ordering, match pools, and FET wallet';
 
   @override
   String get loginPhoneHint => 'WhatsApp number';
@@ -293,7 +239,7 @@ class SEn extends S {
   String get onboardingWelcome => 'Welcome to FANZONE';
 
   @override
-  String get onboardingSubtitle => 'Predict. Compete. Win.';
+  String get onboardingSubtitle => 'Order. Pool. Earn.';
 
   @override
   String get onboardingNext => 'Next';
@@ -355,12 +301,12 @@ class SEn extends S {
 
   @override
   String featureUnavailableTitle(String feature) {
-    return '$feature is coming soon';
+    return '$feature is unavailable';
   }
 
   @override
   String get featureUnavailableSubtitle =>
-      'This feature will be available in a future update.';
+      'This feature is not enabled for your account or market.';
 
   @override
   String get notificationsTitle => 'Notifications';
@@ -380,12 +326,6 @@ class SEn extends S {
   String get eventMatches => 'Event Matches';
 
   @override
-  String get eventChallenges => 'Event Challenges';
-
-  @override
-  String get eventLeaderboard => 'Event Leaderboard';
-
-  @override
   String get trendingGlobally => 'Trending Globally';
 
   @override
@@ -401,12 +341,5 @@ class SEn extends S {
   String get regionGlobal => 'Global';
 
   @override
-  String get popularTeamsTitle => 'Popular Teams';
-
-  @override
-  String get pickYourLocal => 'Pick your local favorite team';
-
-  @override
-  String get onboardingLocalHint =>
-      'Search your favorite team from any league worldwide';
+  String get popularTeamsTitle => 'Featured Teams';
 }

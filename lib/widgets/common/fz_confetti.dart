@@ -5,7 +5,7 @@ import '../../theme/colors.dart';
 
 /// FANZONE confetti celebration overlay.
 ///
-/// Matches the reference `confetti.ts` — fires on prediction wins and reward
+/// Matches the reference `confetti.ts` — fires on pool wins and reward
 /// completions, and achievements. Uses brand colors.
 class FzConfetti extends StatefulWidget {
   const FzConfetti({super.key, required this.child});

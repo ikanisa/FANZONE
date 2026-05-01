@@ -120,10 +120,10 @@ class CartState {
   double get subtotal =>
       items.fold<double>(0, (sum, item) => sum + item.lineTotal);
 
-  /// The discount amount in currency units derived from applied FET.
-  double get discountFromFet => appliedFet / fetConversionRate;
+  /// Token redemption is intentionally disabled for off-platform payments.
+  double get discountFromFet => 0;
 
-  double get total => subtotal + tipAmount - discountFromFet;
+  double get total => subtotal + tipAmount;
 
   /// Formatted total for display.
   String get totalDisplay {
@@ -142,7 +142,6 @@ class CartState {
   int get estimatedFet {
     if (items.isEmpty) return 0;
     final currency = items.first.currencyCode;
-    // We only earn FET on the remaining cash balance
     final cashAmount = total < 0 ? 0.0 : total;
     if (currency == 'EUR') return (cashAmount * 100).floor();
     if (currency == 'RWF') return ((cashAmount / 1500) * 100).floor();
@@ -191,7 +190,9 @@ class CartNotifier extends StateNotifier<CartState> {
       state = state.copyWith(items: updated);
     } else {
       // Add new item
-      state = state.copyWith(items: [...state.items, CartItem.fromMenuItem(menuItem)]);
+      state = state.copyWith(
+        items: [...state.items, CartItem.fromMenuItem(menuItem)],
+      );
     }
   }
 
@@ -245,9 +246,9 @@ class CartNotifier extends StateNotifier<CartState> {
     state = state.copyWith(tipAmount: tip);
   }
 
-  /// Apply FET tokens to the order.
+  /// Token redemption is not part of checkout while payments are off-platform.
   void applyFet(int amount) {
-    state = state.copyWith(appliedFet: amount);
+    state = state.copyWith(appliedFet: 0);
   }
 
   /// Set special instructions for the whole order.
@@ -258,9 +259,9 @@ class CartNotifier extends StateNotifier<CartState> {
   /// Get the quantity of a specific item in the cart.
   int getQuantity(String menuItemId) {
     final item = state.items.cast<CartItem?>().firstWhere(
-          (item) => item!.menuItemId == menuItemId,
-          orElse: () => null,
-        );
+      (item) => item!.menuItemId == menuItemId,
+      orElse: () => null,
+    );
     return item?.quantity ?? 0;
   }
 

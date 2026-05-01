@@ -12,11 +12,11 @@ void main() {
           platformConfigVersion: 'cfg-router-test',
           platformFeatures: [
             PlatformFeatureInfo.fromJson({
-              'feature_key': 'predictions',
-              'display_name': 'Predictions',
+              'feature_key': 'pools',
+              'display_name': 'Pools',
               'status': 'active',
               'is_enabled': true,
-              'default_route_key': '/predict',
+              'default_route_key': '/pools',
               'channels': {
                 'mobile': {
                   'channel': 'mobile',
@@ -25,8 +25,8 @@ void main() {
                   'show_in_navigation': true,
                   'show_on_home': true,
                   'sort_order': 10,
-                  'route_key': '/predict',
-                  'navigation_label': 'Predict',
+                  'route_key': '/pools',
+                  'navigation_label': 'Pools',
                 },
                 'web': {
                   'channel': 'web',
@@ -44,7 +44,7 @@ void main() {
                 'is_available': true,
                 'show_in_navigation': true,
                 'show_on_home': true,
-                'route_key': '/predict',
+                'route_key': '/pools',
                 'sort_order': 10,
               },
             }),
@@ -134,9 +134,9 @@ void main() {
     test('normalizes hosted deep links into in-app routes', () {
       expect(
         governedAppRouteForPath(
-          'https://fanzone.ikanisa.com/predict?source=push',
+          'https://fanzone.ikanisa.com/pools?source=push',
         ),
-        '/predict?source=push',
+        '/pools?source=push',
       );
       expect(
         governedAppRouteForPath(

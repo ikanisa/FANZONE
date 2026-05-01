@@ -25,7 +25,7 @@ MatchModel sampleMatch({
   String? homeTeamId,
   String? awayTeamId,
   DateTime? date,
-  String status = 'upcoming',
+  String status = 'scheduled',
   int? ftHome,
   int? ftAway,
   String kickoffTime = '18:00',
@@ -49,7 +49,7 @@ MatchModel sampleMatch({
 
 WalletTransaction sampleWalletTransaction({
   String id = 'tx_1',
-  String title = 'Prediction reward',
+  String title = 'Pool reward',
   int amount = 420,
   String type = 'earn',
   DateTime? date,

@@ -5,8 +5,7 @@ import {
   Wand2, 
   Upload, 
   CheckCircle2, 
-  AlertCircle,
-  Plus
+  AlertCircle
 } from 'lucide-react';
 import { useMenuMagic, ScannedMenuItem } from '../hooks/useMenuMagic';
 
@@ -116,9 +115,6 @@ export const MenuMagicModal: React.FC<MenuMagicModalProps> = ({ isOpen, onClose,
               <div className="space-y-4">
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-sm font-bold text-textSecondary uppercase tracking-widest">Extracted {scannedItems.length} Items</span>
-                  <button className="text-primary font-bold text-sm hover:underline flex items-center gap-1">
-                    <Plus size={14} /> Add Manual
-                  </button>
                 </div>
                 <div className="grid grid-cols-1 gap-3">
                   {scannedItems.map((item, i) => (

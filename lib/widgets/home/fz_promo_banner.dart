@@ -17,9 +17,9 @@ class FzPromoBanner extends StatefulWidget {
     this.badgeLabel = 'DERBY DAY',
     this.kickerLabel = 'GLOBAL',
     this.title = 'Manchester Is RED',
-    this.subtitle = 'Fresh free picks are live now.',
-    this.ctaLabel = 'OPEN PICKS',
-    this.ctaRoute = '/predict',
+    this.subtitle = 'Curated match pools are live now.',
+    this.ctaLabel = 'OPEN POOLS',
+    this.ctaRoute = '/pools',
   });
 
   final String badgeLabel;

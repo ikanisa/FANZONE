@@ -29,9 +29,9 @@ export function NotificationToast() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'prediction_update':
+      case 'pool_update':
         return <Swords className="text-accent" size={20} />;
-      case 'prediction_reward':
+      case 'pool_reward':
         return <Trophy className="text-accent3" size={20} />;
       case 'system':
       default:

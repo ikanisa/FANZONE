@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../core/config/platform_feature_access.dart';
 import '../../features/ordering/widgets/live_order_status_pill.dart';
 import '../../theme/colors.dart';
 import '../common/fz_offline_banner.dart';
@@ -24,6 +23,7 @@ class AppShell extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
+      extendBody: true,
       resizeToAvoidBottomInset: false,
       body: Column(
         children: [
@@ -35,10 +35,8 @@ class AppShell extends ConsumerWidget {
                 const Positioned(
                   left: 0,
                   right: 0,
-                  bottom: 80, // Above bottom nav
-                  child: Center(
-                    child: LiveOrderStatusPill(),
-                  ),
+                  bottom: 96,
+                  child: Center(child: LiveOrderStatusPill()),
                 ),
               ],
             ),
@@ -69,54 +67,85 @@ class _BottomNavBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final items = _getNavItems(ref);
 
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(
-        color: isDark ? FzColors.darkBg : FzColors.lightBg,
-        border: Border(
-          top: BorderSide(
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      child: Container(
+        height: 72,
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: (isDark ? FzColors.darkSurface : FzColors.lightSurface)
+              .withValues(alpha: 0.94),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
             color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-            width: 0.5,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.36),
+              blurRadius: 26,
+              offset: const Offset(0, 14),
+            ),
+          ],
         ),
-      ),
-      child: SafeArea(
-        top: false,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: items.map((item) {
-            final isSelected =
-                navigationShell.currentIndex == items.indexOf(item);
-
-            return InkWell(
-              onTap: () => navigationShell.goBranch(items.indexOf(item)),
-              child: SizedBox(
-                width: 70,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      item.icon,
+            final isSelected = navigationShell.currentIndex == item.branchIndex;
+            return Expanded(
+              child: Tooltip(
+                message: item.label,
+                child: InkWell(
+                  onTap: () => navigationShell.goBranch(item.branchIndex),
+                  borderRadius: BorderRadius.circular(22),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOut,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
                       color: isSelected
-                          ? FzColors.accent
-                          : (isDark ? FzColors.darkMuted : FzColors.lightMuted),
-                      size: 24,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.label,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight:
-                            isSelected ? FontWeight.w900 : FontWeight.w500,
+                          ? FzColors.accent.withValues(alpha: 0.14)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
                         color: isSelected
-                            ? FzColors.accent
-                            : (isDark
-                                ? FzColors.darkMuted
-                                : FzColors.lightMuted),
+                            ? FzColors.accent.withValues(alpha: 0.32)
+                            : Colors.transparent,
                       ),
                     ),
-                  ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          item.icon,
+                          color: isSelected
+                              ? FzColors.accent
+                              : (isDark
+                                    ? FzColors.darkMuted
+                                    : FzColors.lightMuted),
+                          size: 22,
+                        ),
+                        const SizedBox(height: 3),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            item.label,
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: isSelected
+                                  ? FontWeight.w900
+                                  : FontWeight.w700,
+                              color: isSelected
+                                  ? FzColors.accent
+                                  : (isDark
+                                        ? FzColors.darkMuted
+                                        : FzColors.lightMuted),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             );
@@ -133,45 +162,45 @@ class NavItem {
     required this.icon,
     required this.route,
     required this.keyName,
+    required this.branchIndex,
   });
 
   final String label;
   final IconData icon;
   final String route;
   final String keyName;
+  final int branchIndex;
 }
 
 List<NavItem> _getNavItems(WidgetRef ref) {
-  final access = ref.watch(platformFeatureAccessProvider);
-  final visibleFeatures =
-      access.visibleFeatures(surface: PlatformSurface.navigation);
-
-  IconData iconForRoute(String route) {
-    switch (route) {
-      case 'home':
-        return LucideIcons.home;
-      case 'predict':
-        return LucideIcons.target;
-      case 'fixtures':
-        return LucideIcons.calendar;
-      case 'profile':
-        return LucideIcons.user;
-      default:
-        return LucideIcons.helpCircle;
-    }
-  }
-
-  final items = visibleFeatures.map((feature) {
-    final route = feature.resolvedState.routeKey ??
-        feature.defaultRouteKey ??
-        feature.featureKey;
-    return NavItem(
-      keyName: feature.featureKey,
-      label: access.labelFor(feature.featureKey),
-      icon: iconForRoute(feature.featureKey),
-      route: route,
-    );
-  }).toList(growable: false);
-
-  return items.take(4).toList(growable: false);
+  return const [
+    NavItem(
+      keyName: 'bar',
+      label: 'Bar',
+      icon: LucideIcons.utensils,
+      route: '/bar',
+      branchIndex: 0,
+    ),
+    NavItem(
+      keyName: 'pools',
+      label: 'Pools',
+      icon: LucideIcons.trophy,
+      route: '/pools',
+      branchIndex: 1,
+    ),
+    NavItem(
+      keyName: 'wallet',
+      label: 'Wallet',
+      icon: LucideIcons.wallet,
+      route: '/wallet',
+      branchIndex: 2,
+    ),
+    NavItem(
+      keyName: 'profile',
+      label: 'Profile',
+      icon: LucideIcons.user,
+      route: '/profile',
+      branchIndex: 3,
+    ),
+  ];
 }

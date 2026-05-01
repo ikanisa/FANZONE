@@ -40,7 +40,7 @@ interface DeviceToken {
 interface NotificationPreferenceRow {
   user_id: string;
   goal_alerts?: boolean | null;
-  prediction_updates?: boolean | null;
+  pool_updates?: boolean | null;
   reward_updates?: boolean | null;
   community_news?: boolean | null;
   marketing?: boolean | null;
@@ -56,7 +56,7 @@ async function loadNotificationPreferences(
   userIds: string[],
 ) {
   const columns =
-    "user_id, goal_alerts, prediction_updates, reward_updates, community_news, marketing";
+    "user_id, goal_alerts, pool_updates, reward_updates, community_news, marketing";
 
   const { data, error } = await supabase
     .from("notification_preferences")
@@ -278,9 +278,9 @@ Deno.serve(async (req: Request) => {
       match_goal: "goal_alerts",
       match_kickoff: "goal_alerts",
       match_result: "goal_alerts",
-      prediction_update: "prediction_updates",
-      prediction_scored: "prediction_updates",
-      prediction_reward: "reward_updates",
+      pool_update: "pool_updates",
+      pool_settled: "pool_updates",
+      pool_reward: "reward_updates",
       wallet_credit: "reward_updates",
       wallet_debit: "reward_updates",
       community: "community_news",

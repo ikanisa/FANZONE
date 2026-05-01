@@ -10,21 +10,16 @@ import { Splash } from './components/Splash';
 import Layout from './components/Layout';
 import HomeFeed from './components/HomeFeed';
 import MatchDetail from './components/MatchDetail';
-import Leaderboard from './components/Leaderboard';
+import Pools from './components/Pools';
 import WalletHub from './components/WalletHub';
 import Profile from './components/Profile';
-import Fixtures from './components/Fixtures';
 import Notifications from './components/Notifications';
-import EmptyErrorStates from './components/EmptyErrorStates';
-import LeagueHub from './components/LeagueHub';
 import Settings from './components/Settings';
-import TeamProfile from './components/TeamProfile';
 import PrivacySettings from './components/PrivacySettings';
 import Onboarding from './components/Onboarding';
 import { Ordering } from './components/Ordering';
 import { AnimatePresence } from 'motion/react';
 import {
-  getPlatformFeatureRoute,
   hasPlatformBootstrapSnapshot,
   isPlatformFeatureVisible,
 } from './platform/access';
@@ -101,21 +96,6 @@ function FeatureRoute({
   return children;
 }
 
-function FeatureRedirect({
-  featureKey,
-  fallback = '/',
-}: {
-  featureKey: string;
-  fallback?: string;
-}) {
-  usePlatformBootstrap();
-  const destination = isPlatformFeatureVisible(featureKey, { surface: 'route' })
-    ? getPlatformFeatureRoute(featureKey, { fallback })
-    : fallback;
-
-  return <Navigate to={destination} replace />;
-}
-
 function RequireOnboarding({ children }: { children: ReactNode }) {
   const { hasCompletedOnboarding } = useAppStore();
   if (!hasCompletedOnboarding) {
@@ -159,6 +139,20 @@ export default function App() {
                     </FeatureRoute>
                   }
                 />
+                <Route
+                  path="/pools/:slug"
+                  element={
+                    <FeatureRoute
+                      featureKey="pools"
+                      title="Pools are unavailable"
+                      message="Match pools are currently turned off for the website."
+                    >
+                      <Layout>
+                        <Pools />
+                      </Layout>
+                    </FeatureRoute>
+                  }
+                />
 
                 {/* Routes with Layout */}
                 <Route path="/*" element={
@@ -190,26 +184,26 @@ export default function App() {
                           }
                         />
                         <Route
-                          path="/league/:id"
+                          path="/pools"
                           element={
                             <FeatureRoute
-                              featureKey="fixtures"
-                              title="Competition hub is unavailable"
-                              message="League and competition drill-down is currently disabled for the website."
+                              featureKey="pools"
+                              title="Pools are unavailable"
+                              message="Match pools are currently turned off for the website."
                             >
-                              <LeagueHub />
+                              <Pools />
                             </FeatureRoute>
                           }
                         />
                         <Route
-                          path="/leaderboard"
+                          path="/pools/:slug"
                           element={
                             <FeatureRoute
-                              featureKey="leaderboard"
-                              title="Leaderboard is unavailable"
-                              message="Leaderboard visibility is currently turned off for the website."
+                              featureKey="pools"
+                              title="Pools are unavailable"
+                              message="Match pools are currently turned off for the website."
                             >
-                              <Leaderboard />
+                              <Pools />
                             </FeatureRoute>
                           }
                         />
@@ -249,22 +243,9 @@ export default function App() {
                             </FeatureRoute>
                           }
                         />
-                        <Route path="/team/:id" element={<TeamProfile />} />
                         <Route path="/privacy" element={<PrivacySettings />} />
                         <Route path="/ordering" element={<Ordering />} />
                         <Route path="/v/:slug" element={<Ordering />} />
-                        <Route
-                          path="/fixtures"
-                          element={
-                            <FeatureRoute
-                              featureKey="fixtures"
-                              title="Fixtures are unavailable"
-                              message="Fixtures are currently hidden from the website."
-                            >
-                              <Fixtures />
-                            </FeatureRoute>
-                          }
-                        />
                         <Route
                           path="/notifications"
                           element={
@@ -277,23 +258,7 @@ export default function App() {
                             </FeatureRoute>
                           }
                         />
-                        <Route
-                          path="/social"
-                          element={<FeatureRedirect featureKey="leaderboard" />}
-                        />
-                        <Route
-                          path="/memberships"
-                          element={<FeatureRedirect featureKey="profile" />}
-                        />
-                        <Route
-                          path="/fan-id"
-                          element={<FeatureRedirect featureKey="profile" />}
-                        />
-                        <Route
-                          path="/rewards"
-                          element={<FeatureRedirect featureKey="wallet" />}
-                        />
-                        <Route path="/error" element={<EmptyErrorStates />} />
+                        <Route path="*" element={<Navigate to="/pools" replace />} />
                       </Routes>
                     </Layout>
                   </RequireOnboarding>

@@ -16,7 +16,7 @@ import '../core/supabase/supabase_connection.dart';
 /// Usage:
 /// ```dart
 /// ProductAnalytics.trackScreen('home_feed');
-/// ProductAnalytics.trackAction('prediction_submitted', {'match_id': '...'});
+/// ProductAnalytics.trackAction('pool_joined', {'match_id': '...'});
 /// ```
 class ProductAnalytics {
   ProductAnalytics._();
@@ -69,15 +69,15 @@ class ProductAnalytics {
 
   // ── Convenience Methods (typed, discoverable) ──
 
-  static void predictionSubmitted({
+  static void poolJoined({
     required String matchId,
-    required String market,
-    required String selection,
+    required String poolId,
+    required String campId,
   }) {
-    _enqueue('prediction_submitted', {
+    _enqueue('pool_joined', {
       'match_id': matchId,
-      'market': market,
-      'selection': selection,
+      'pool_id': poolId,
+      'camp_id': campId,
     });
   }
 

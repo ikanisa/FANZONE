@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Trophy, Calendar, Sparkles, Activity, ChevronRight, X, Flame } from 'lucide-react';
+import { Calendar, Activity, ChevronRight, X, Flame, Trophy } from 'lucide-react';
 import { MatchCard } from './ui/MatchCard';
 import { EmptyState } from './ui/EmptyState';
 import { Badge } from './ui/Badge';
-import { useAppStore } from '../store/useAppStore';
 import { api } from '../services/api';
 import {
   getPlatformFeatureRoute,
@@ -44,7 +43,6 @@ function PromoBanner({
           className="mb-4"
         >
           <div className="bg-gradient-to-r from-[#2563EB]/20 to-[#EF4444]/20 border border-border rounded-[20px] p-3 flex items-center justify-between gap-3 overflow-hidden relative shadow-sm">
-            <div className="absolute inset-0 bg-[url('https://picsum.photos/seed/derby/800/200')] opacity-5 mix-blend-overlay bg-cover bg-center pointer-events-none" />
             <div className="flex items-center gap-3 relative z-10 min-w-0">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2563EB] to-[#EF4444] p-[1px] shrink-0 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
                 <div className="w-full h-full bg-bg rounded-full flex items-center justify-center">
@@ -91,32 +89,6 @@ function PromoBanner({
         </motion.div>
       )}
     </AnimatePresence>
-  );
-}
-
-function DailyInsight({
-  team,
-  subtitle,
-}: {
-  team: string | null;
-  subtitle: string;
-}) {
-  if (!team) return null;
-
-  return (
-    <div className="bg-gradient-to-br from-surface to-surface2 border border-success/20 rounded-[24px] p-4 mb-6 shadow-[0_10px_30px_-10px_rgba(152,255,152,0.1)] relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-success/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-      <div className="relative z-10 flex gap-3 items-center">
-        <div className="w-10 h-10 rounded-full bg-success/10 border border-success/20 flex items-center justify-center text-success shrink-0 [text-shadow:0_0_10px_rgba(152,255,152,0.3)]">
-          <Sparkles size={16} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs leading-snug text-text line-clamp-2">
-            {team} is pinned to your lean prediction feed. {subtitle}
-          </p>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -170,7 +142,6 @@ function FeedSection({
 }
 
 export default function HomeFeed() {
-  const profileTeam = useAppStore((state) => state.profileTeam);
   const { bootstrap } = usePlatformBootstrap();
   const [liveMatches, setLiveMatches] = useState<Match[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
@@ -179,17 +150,11 @@ export default function HomeFeed() {
     () => getWebsiteHomeBlocks('home.primary'),
     [bootstrap],
   );
-  const showPredictions = isPlatformFeatureVisible('predictions', {
-    surface: 'action',
-  });
-  const showLeaderboard = isPlatformFeatureVisible('leaderboard', {
+  const showPools = isPlatformFeatureVisible('pools', {
     surface: 'route',
   });
-  const fixturesRoute = getPlatformFeatureRoute('fixtures', {
-    fallback: '/fixtures',
-  });
-  const leaderboardRoute = getPlatformFeatureRoute('leaderboard', {
-    fallback: '/leaderboard',
+  const poolsRoute = getPlatformFeatureRoute('pools', {
+    fallback: '/pools',
   });
 
   useEffect(() => {
@@ -214,19 +179,13 @@ export default function HomeFeed() {
     <div className="p-4 lg:p-12 space-y-10 pb-32 transition-all duration-300 pt-4 lg:pt-12">
       <header className="mb-2 hidden lg:flex items-center justify-between">
         <h1 className="font-display text-4xl text-text tracking-tight flex items-center gap-2">
-          Predictions
+          Matchday
         </h1>
         <div className="flex gap-2">
-          <Link
-            to={fixturesRoute}
-            className="bg-[var(--accent2)] text-bg w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(37,99,235,0.3)]"
-          >
-            <Calendar size={18} />
-          </Link>
-          {showLeaderboard && (
+          {showPools && (
             <Link
-              to={leaderboardRoute}
-              className="bg-surface2 text-text w-10 h-10 rounded-full flex items-center justify-center border border-border hover:bg-surface3 transition-colors"
+              to={poolsRoute}
+              className="bg-[var(--accent2)] text-bg w-10 h-10 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(37,99,235,0.3)]"
             >
               <Trophy size={18} />
             </Link>
@@ -249,30 +208,21 @@ export default function HomeFeed() {
               <PromoBanner
                 key={block.blockKey}
                 title={block.title}
-                subtitle={String(block.content.subtitle ?? 'Live fixtures are synced now.')}
+                subtitle={String(block.content.subtitle ?? 'Curated match pools are live now.')}
                 badge={String(block.content.badge ?? 'LIVE')}
                 kicker={String(block.content.kicker ?? 'Global')}
                 ctaLabel={String(block.content.cta_label ?? 'Open')}
                 ctaRoute={
-                  showPredictions
-                    ? String(block.content.cta_route ?? fixturesRoute)
-                    : fixturesRoute
+                  showPools
+                    ? String(block.content.cta_route ?? poolsRoute)
+                    : '/'
                 }
               />
             );
           }
 
           if (block.blockType === 'daily_insight') {
-            return (
-              <DailyInsight
-                key={block.blockKey}
-                team={profileTeam}
-                subtitle={String(
-                  block.content.subtitle ??
-                    'Track live fixtures, lock free picks, and follow the leaderboard from one place.',
-                )}
-              />
-            );
+            return null;
           }
 
           if (block.blockType === 'live_matches') {
@@ -300,7 +250,7 @@ export default function HomeFeed() {
                 title={block.title}
                 icon={<Calendar size={16} className="text-muted" />}
                 trailing={
-                  <Link to={String(block.content.cta_route ?? '/fixtures')} className="text-muted hover:text-accent transition-colors">
+                  <Link to={String(block.content.cta_route ?? poolsRoute)} className="text-muted hover:text-accent transition-colors">
                     <ChevronRight size={20} />
                   </Link>
                 }

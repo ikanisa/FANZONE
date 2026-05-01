@@ -18,6 +18,7 @@ class WalletSummaryCard extends ConsumerWidget {
     required this.positive,
     required this.icon,
     required this.color,
+    this.showSign = true,
   });
 
   final String label;
@@ -25,6 +26,7 @@ class WalletSummaryCard extends ConsumerWidget {
   final bool positive;
   final IconData icon;
   final Color color;
+  final bool showSign;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,7 +54,7 @@ class WalletSummaryCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${positive ? '+' : '-'}${NumberFormat.compact().format(amount).toLowerCase()}',
+                  '${showSign ? (positive ? '+' : '-') : ''}${NumberFormat.compact().format(amount).toLowerCase()}',
                   style: FzTypography.score(
                     size: 16,
                     weight: FontWeight.w700,
@@ -88,8 +90,13 @@ class WalletTransactionRow extends ConsumerWidget {
     ref.watch(userCurrencyProvider);
     final isEarn =
         transaction.type == 'earn' ||
+        transaction.type == 'order_earn' ||
+        transaction.type == 'welcome_credit' ||
+        transaction.type == 'pool_win' ||
+        transaction.type == 'creator_reward' ||
         transaction.type == 'transfer_received' ||
-        transaction.type == 'bonus';
+        transaction.type == 'bonus' ||
+        transaction.type == 'pending';
     final color = isEarn ? FzColors.success : FzColors.danger;
     final icon = _iconForType(transaction.type);
     final prefix = isEarn ? '+' : '-';
@@ -151,9 +158,20 @@ class WalletTransactionRow extends ConsumerWidget {
   IconData _iconForType(String type) {
     switch (type) {
       case 'earn':
+      case 'order_earn':
         return LucideIcons.target;
+      case 'welcome_credit':
+        return LucideIcons.gift;
+      case 'pool_win':
+      case 'creator_reward':
+        return LucideIcons.trophy;
       case 'spend':
+      case 'order_spend':
         return LucideIcons.swords;
+      case 'pool_stake':
+        return LucideIcons.lock;
+      case 'pending':
+        return LucideIcons.timer;
       case 'transfer_sent':
         return LucideIcons.arrowUpRight;
       case 'transfer_received':

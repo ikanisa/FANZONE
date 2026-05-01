@@ -49,7 +49,7 @@ Canonical generated inventory: [assets/brand/asset_inventory.json](/Volumes/PRO-
   `1200x630`
 - Admin transparent brand marks
   `64`, `128`, `256`, `512`
-- Legacy compatibility aliases
+- Compatibility aliases
   `assets/images/logo_128.png`, `assets/images/logo_256.png`, `website/public/logo-128.png`, `website/public/logo.png`, `admin/public/logo-192.png`, `admin/public/logo-512.png`, `admin/src/assets/logo.png`, `admin/src/assets/logo-64.png`, `admin/src/assets/logo-128.png`
 
 ## Usage mapping

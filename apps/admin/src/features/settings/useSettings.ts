@@ -77,7 +77,7 @@ export function useUpsertFeatureFlag() {
       return data;
     },
     invalidateKeys: [["feature-flags"]],
-    successMessage: "Legacy runtime flag saved.",
+    successMessage: "Runtime flag saved.",
   });
 }
 

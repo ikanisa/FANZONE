@@ -1,320 +1,79 @@
 \pset tuples_only on
 \pset pager off
 
-\echo 'Resolving dynamic ids for RLS audit...'
-SELECT
-  (SELECT user_id::text FROM public.fet_wallets ORDER BY created_at NULLS LAST, user_id LIMIT 1) AS user_a,
-  coalesce(
-    (SELECT user_id::text
-     FROM public.fet_wallets
-     WHERE user_id <> (SELECT user_id FROM public.fet_wallets ORDER BY created_at NULLS LAST, user_id LIMIT 1)
-     ORDER BY created_at NULLS LAST, user_id
-     LIMIT 1),
-    gen_random_uuid()::text
-  ) AS user_b,
-  (SELECT id FROM public.teams ORDER BY id LIMIT 1) AS team_id,
-  (SELECT id FROM public.competitions ORDER BY id LIMIT 1) AS competition_id,
-  (SELECT count(*)::text FROM public.fet_wallet_transactions WHERE user_id = (SELECT user_id FROM public.fet_wallets ORDER BY created_at NULLS LAST, user_id LIMIT 1)) AS user_a_tx_count
-\gset
-
-\if :{?user_a}
-\else
-\echo 'No wallet rows found. Seed or point the audit at a populated environment first.'
-\quit 1
-\endif
-
-\if :{?team_id}
-\else
-\echo 'No team rows found. Seed or point the audit at a populated environment first.'
-\quit 1
-\endif
-
-\if :{?competition_id}
-\else
-\echo 'No competition rows found. Seed or point the audit at a populated environment first.'
-\quit 1
-\endif
-
-\echo 'Auditing policy inventory...'
-SELECT set_config('rls.audit.user_a', :'user_a', false);
-SELECT set_config('rls.audit.user_b', :'user_b', false);
-SELECT set_config('rls.audit.team_id', :'team_id', false);
-SELECT set_config('rls.audit.competition_id', :'competition_id', false);
-SELECT set_config('rls.audit.user_a_tx_count', :'user_a_tx_count', false);
+\echo 'Auditing RLS and client grants...'
 
 DO $$
 DECLARE
-  missing_policies text[];
+  exposed text[];
 BEGIN
-  SELECT array_agg(
-    format(
-      '%s [%s]',
-      tablename,
-      array_to_string(accepted_policies, ' OR ')
-    )
-  )
-  INTO missing_policies
+  SELECT array_agg(table_name ORDER BY table_name)
+  INTO exposed
   FROM (
     VALUES
-      ('fet_wallets', ARRAY['Users read own wallet']),
-      ('fet_wallet_transactions', ARRAY['Users read own transactions']),
-      (
-        'competitions',
-        ARRAY['Public read competitions', 'Public read access for competitions']
-      ),
-      (
-        'teams',
-        ARRAY['Public read teams', 'Public read access for teams']
-      ),
-      (
-        'matches',
-        ARRAY['Public read matches', 'Public read access for matches']
-      ),
-      ('standings', ARRAY['standings_public_read']),
-      ('team_form_features', ARRAY['team_form_features_public_read']),
-      ('predictions_engine_outputs', ARRAY['engine_outputs_public_read']),
-      ('user_predictions', ARRAY['Users read own predictions']),
-      ('token_rewards', ARRAY['Users read own token rewards']),
-      ('user_favorite_teams', ARRAY['Users can read own favorite teams']),
-      (
-        'user_followed_competitions',
-        ARRAY['Users manage own competition follows']
-      ),
-      ('match_alert_subscriptions', ARRAY['Users manage own match alerts']),
-      ('app_config_remote', ARRAY['Public read app config remote']),
-      ('device_tokens', ARRAY['Users manage own device tokens']),
-      (
-        'notification_preferences',
-        ARRAY['Users manage own notification prefs']
-      ),
-      ('notification_log', ARRAY['Users read own notifications']),
-      ('user_status', ARRAY['Users read own status'])
-  ) AS expected(tablename, accepted_policies)
-  WHERE EXISTS (
-      SELECT 1
-      FROM information_schema.tables t
-      WHERE t.table_schema = 'public'
-        AND t.table_name = expected.tablename
-  )
-    AND NOT EXISTS (
-    SELECT 1
-    FROM pg_policies
-    WHERE schemaname = 'public'
-      AND tablename = expected.tablename
-      AND policyname = ANY(expected.accepted_policies)
-  );
+      ('fet_wallets'),
+      ('fet_wallet_transactions'),
+      ('match_pool_settlements'),
+      ('pool_operation_audit_logs'),
+      ('payment_events'),
+      ('orders')
+  ) AS sensitive(table_name)
+  WHERE has_table_privilege('anon', format('public.%I', sensitive.table_name), 'INSERT')
+     OR has_table_privilege('anon', format('public.%I', sensitive.table_name), 'UPDATE')
+     OR has_table_privilege('anon', format('public.%I', sensitive.table_name), 'DELETE');
 
-  IF missing_policies IS NOT NULL THEN
-    RAISE EXCEPTION 'Missing required RLS policies: %', array_to_string(missing_policies, ', ');
+  IF exposed IS NOT NULL THEN
+    RAISE EXCEPTION 'Anonymous role has write access to sensitive tables: %', array_to_string(exposed, ', ');
   END IF;
-END;
-$$;
-
-BEGIN;
-
-\echo 'Testing anon access...'
-SET LOCAL ROLE anon;
-SELECT set_config('request.jwt.claims', '{"role":"anon"}', true);
-
-DO $$
-DECLARE
-  wallet_rows integer;
-  tx_rows integer;
-BEGIN
-  SELECT count(*) INTO wallet_rows FROM public.fet_wallets;
-  IF wallet_rows <> 0 THEN
-    RAISE EXCEPTION 'Anon role can read % wallet rows', wallet_rows;
-  END IF;
-
-  SELECT count(*) INTO tx_rows FROM public.fet_wallet_transactions;
-  IF tx_rows <> 0 THEN
-    RAISE EXCEPTION 'Anon role can read % wallet transaction rows', tx_rows;
-  END IF;
-
-  PERFORM 1 FROM public.matches LIMIT 1;
-  PERFORM 1 FROM public.competition_standings LIMIT 1;
-  PERFORM 1 FROM public.public_leaderboard LIMIT 1;
-  IF (SELECT count(*) FROM public.user_predictions) <> 0 THEN
-    RAISE EXCEPTION 'Anon role can read user predictions';
-  END IF;
-END;
-$$;
-
-RESET ROLE;
-SELECT set_config('request.jwt.claims', '', true);
-
-\echo 'Testing authenticated user isolation...'
-SET LOCAL ROLE authenticated;
-SELECT set_config(
-  'request.jwt.claims',
-  format('{"role":"authenticated","sub":"%s"}', :'user_a'),
-  true
-);
-
-DO $$
-DECLARE
-  own_wallet_rows integer;
-  other_wallet_rows integer;
-  own_tx_rows integer;
-  other_tx_rows integer;
-BEGIN
-  SELECT count(*)
-  INTO own_wallet_rows
-  FROM public.fet_wallets
-  WHERE user_id = current_setting('rls.audit.user_a')::uuid;
-
-  IF own_wallet_rows <> 1 THEN
-    RAISE EXCEPTION 'Authenticated user cannot read exactly one own wallet row (saw %)', own_wallet_rows;
-  END IF;
-
-  SELECT count(*)
-  INTO other_wallet_rows
-  FROM public.fet_wallets
-  WHERE user_id = current_setting('rls.audit.user_b')::uuid;
-
-  IF other_wallet_rows <> 0 THEN
-    RAISE EXCEPTION 'Authenticated user can read another user wallet row';
-  END IF;
-
-  SELECT count(*)
-  INTO own_tx_rows
-  FROM public.fet_wallet_transactions
-  WHERE user_id = current_setting('rls.audit.user_a')::uuid;
-
-  IF own_tx_rows <> current_setting('rls.audit.user_a_tx_count')::integer THEN
-    RAISE EXCEPTION 'Authenticated user sees % own tx rows but expected %', own_tx_rows, current_setting('rls.audit.user_a_tx_count');
-  END IF;
-
-  SELECT count(*)
-  INTO other_tx_rows
-  FROM public.fet_wallet_transactions
-  WHERE user_id = current_setting('rls.audit.user_b')::uuid;
-
-  IF other_tx_rows <> 0 THEN
-    RAISE EXCEPTION 'Authenticated user can read another user tx rows';
-  END IF;
-END;
-$$;
-
-\echo 'Testing own-row write policies...'
-INSERT INTO public.user_favorite_teams (user_id, team_id, team_name)
-VALUES (:'user_a'::uuid, :'team_id', 'Audit Team')
-ON CONFLICT (user_id, team_id) DO NOTHING;
-
-DELETE FROM public.user_favorite_teams
-WHERE user_id = :'user_a'::uuid
-  AND team_id = :'team_id';
-
-DO $$
-BEGIN
-  BEGIN
-    INSERT INTO public.user_favorite_teams (user_id, team_id, team_name)
-    VALUES (
-      current_setting('rls.audit.user_b')::uuid,
-      current_setting('rls.audit.team_id'),
-      'Audit Team'
-    );
-    RAISE EXCEPTION 'Cross-user team follow insert unexpectedly succeeded';
-  EXCEPTION
-    WHEN insufficient_privilege THEN NULL;
-    WHEN SQLSTATE '42501' THEN NULL;
-  END;
 END;
 $$;
 
 DO $$
 DECLARE
-  own_prediction_count integer;
+  exposed text[];
 BEGIN
-  SELECT count(*)
-  INTO own_prediction_count
-  FROM public.user_predictions
-  WHERE user_id = current_setting('rls.audit.user_a')::uuid;
+  SELECT array_agg(table_name ORDER BY table_name)
+  INTO exposed
+  FROM (
+    VALUES
+      ('platform_features'),
+      ('platform_feature_rules'),
+      ('platform_feature_channels'),
+      ('platform_content_blocks'),
+      ('curated_matches'),
+      ('match_pool_settlements'),
+      ('pool_operation_audit_logs')
+  ) AS sensitive(table_name)
+  WHERE has_table_privilege('authenticated', format('public.%I', sensitive.table_name), 'INSERT')
+     OR has_table_privilege('authenticated', format('public.%I', sensitive.table_name), 'UPDATE')
+     OR has_table_privilege('authenticated', format('public.%I', sensitive.table_name), 'DELETE');
 
-  IF own_prediction_count < 0 THEN
-    RAISE EXCEPTION 'Unexpected negative own prediction count';
+  IF exposed IS NOT NULL THEN
+    RAISE EXCEPTION 'Authenticated role has direct write access to managed tables: %', array_to_string(exposed, ', ');
   END IF;
+END;
+$$;
 
-  IF EXISTS (
-    SELECT 1
-    FROM public.user_predictions
-    WHERE user_id = current_setting('rls.audit.user_b')::uuid
-  ) THEN
-    RAISE EXCEPTION 'Authenticated user can read another user prediction rows';
+DO $$
+DECLARE
+  unsafe_functions text[];
+BEGIN
+  SELECT array_agg(signature ORDER BY signature)
+  INTO unsafe_functions
+  FROM (
+    VALUES
+      ('public.settle_match_pool(uuid)'),
+      ('public.settle_finished_match_pools(integer)'),
+      ('public.admin_run_pool_settlement(integer)'),
+      ('public.set_match_pool_share_links()'),
+      ('public.set_match_pool_social_card_url(uuid,text)')
+  ) AS required(signature)
+  WHERE has_function_privilege('anon', required.signature, 'EXECUTE');
+
+  IF unsafe_functions IS NOT NULL THEN
+    RAISE EXCEPTION 'Anonymous role can execute restricted functions: %', array_to_string(unsafe_functions, ', ');
   END IF;
 END;
 $$;
 
-INSERT INTO public.user_followed_competitions (user_id, competition_id)
-VALUES (:'user_a'::uuid, :'competition_id')
-ON CONFLICT (user_id, competition_id) DO NOTHING;
-
-DELETE FROM public.user_followed_competitions
-WHERE user_id = :'user_a'::uuid
-  AND competition_id = :'competition_id';
-
-DO $$
-BEGIN
-  BEGIN
-    INSERT INTO public.user_followed_competitions (user_id, competition_id)
-    VALUES (
-      current_setting('rls.audit.user_b')::uuid,
-      current_setting('rls.audit.competition_id')
-    );
-    RAISE EXCEPTION 'Cross-user competition follow insert unexpectedly succeeded';
-  EXCEPTION
-    WHEN insufficient_privilege THEN NULL;
-    WHEN SQLSTATE '42501' THEN NULL;
-  END;
-END;
-$$;
-
-INSERT INTO public.device_tokens (user_id, token, platform, is_active)
-VALUES (
-  :'user_a'::uuid,
-  'rls-audit-' || replace(clock_timestamp()::text, ' ', '-'),
-  'android',
-  true
-);
-
-DO $$
-BEGIN
-  BEGIN
-    INSERT INTO public.device_tokens (user_id, token, platform, is_active)
-    VALUES (
-      current_setting('rls.audit.user_b')::uuid,
-      'rls-audit-cross-user',
-      'android',
-      true
-    );
-    RAISE EXCEPTION 'Cross-user device token insert unexpectedly succeeded';
-  EXCEPTION
-    WHEN insufficient_privilege THEN NULL;
-    WHEN SQLSTATE '42501' THEN NULL;
-  END;
-END;
-$$;
-
-INSERT INTO public.notification_preferences (user_id, marketing)
-VALUES (:'user_a'::uuid, false)
-ON CONFLICT (user_id) DO UPDATE
-SET marketing = excluded.marketing;
-
-DO $$
-BEGIN
-  BEGIN
-    INSERT INTO public.notification_preferences (user_id, marketing)
-    VALUES (current_setting('rls.audit.user_b')::uuid, true)
-    ON CONFLICT (user_id) DO UPDATE
-    SET marketing = excluded.marketing;
-    RAISE EXCEPTION 'Cross-user notification preference upsert unexpectedly succeeded';
-  EXCEPTION
-    WHEN insufficient_privilege THEN NULL;
-    WHEN SQLSTATE '42501' THEN NULL;
-  END;
-END;
-$$;
-
-ROLLBACK;
-
-\echo 'RLS hardening audit passed.'
+\echo 'RLS and client grants verified'

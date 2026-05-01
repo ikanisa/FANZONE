@@ -67,7 +67,9 @@ class _PillContent extends StatelessWidget {
                   children: [
                     Text(
                       'ORDER STATUS',
-                      style: FzTypography.metaLabel(color: FzColors.accent).copyWith(fontSize: 10),
+                      style: FzTypography.metaLabel(
+                        color: FzColors.accent,
+                      ).copyWith(fontSize: 10),
                     ),
                     Text(
                       _statusText(order.status),
@@ -80,7 +82,11 @@ class _PillContent extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(width: 24),
-                const Icon(LucideIcons.chevronUp, color: FzColors.darkMuted, size: 16),
+                const Icon(
+                  LucideIcons.chevronUp,
+                  color: FzColors.darkMuted,
+                  size: 16,
+                ),
               ],
             ),
           ),
@@ -104,7 +110,7 @@ class _PillContent extends StatelessWidget {
 
   void _showTrackingSheet(BuildContext context, String orderId) {
     // We can navigate or show a bottom sheet here
-    context.push('/order-tracking/$orderId');
+    context.push('/order/$orderId');
   }
 }
 

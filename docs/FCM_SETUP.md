@@ -17,7 +17,7 @@ Estimated time: 20-30 minutes for a new Firebase and APNs production setup.
 | Flutter notification service | Ready | `lib/services/notification_service.dart` |
 | Flutter push service | Ready | `lib/services/push_notification_service.dart` |
 | Notification preferences screen | Ready | `lib/features/profile/screens/notifications_screen.dart` |
-| Prediction result notification | Ready | `supabase/functions/score-predictions/index.ts` |
+| Pool and match notifications | Ready | `supabase/functions/dispatch-match-alerts/`, `supabase/functions/push-notify/` |
 | Firebase bootstrap | Ready | `lib/main.dart`, `lib/firebase_options.dart` |
 
 ## Firebase project setup
@@ -70,8 +70,8 @@ Do not remove it. Push registration depends on it.
 
 ### 5. Confirm notification boot is enabled
 
-1. Set `ENABLE_NOTIFICATIONS` to `"true"` in the active dart-define JSON file.
-2. Build or run with `--dart-define-from-file=...`.
+1. Enable the `notifications` runtime feature flag in Supabase Platform Control.
+2. Build or run with a valid `--dart-define-from-file=...` for Supabase credentials.
 3. App startup watches `pushNotificationInitProvider` from `lib/app.dart`.
 4. Signed-in users should register a token automatically.
 5. Signed-out users should unregister the token automatically.
@@ -159,7 +159,7 @@ Expected backend result:
 - [ ] `android/app/google-services.json` is the intended Firebase file
 - [ ] `ios/Runner/GoogleService-Info.plist` is the intended Firebase file
 - [ ] `lib/firebase_options.dart` matches the current Firebase project
-- [ ] `ENABLE_NOTIFICATIONS` is `true` in the active dart-define file
+- [ ] `notifications` is enabled in Platform Control for the target market
 - [ ] Signed-in users create rows in `device_tokens`
 - [ ] `GOOGLE_SERVICE_ACCOUNT_JSON` is set in Supabase edge-function secrets
 - [ ] APNs key is uploaded to Firebase

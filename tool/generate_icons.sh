@@ -100,8 +100,8 @@ resize "$LOGO_TRANSPARENT" 128 128 "$PROJECT/assets/images/logo_128.png"
 # ─── 8. Admin Panel Assets ────────────────────────────────────
 echo ""
 echo "▸ Admin Panel Assets (Vite/React)"
-ADMIN_PUBLIC="$PROJECT/admin/public"
-ADMIN_SRC_ASSETS="$PROJECT/admin/src/assets"
+ADMIN_PUBLIC="$PROJECT/apps/admin/public"
+ADMIN_SRC_ASSETS="$PROJECT/apps/admin/src/assets"
 mkdir -p "$ADMIN_PUBLIC" "$ADMIN_SRC_ASSETS"
 
 # Favicon (32x32 PNG)

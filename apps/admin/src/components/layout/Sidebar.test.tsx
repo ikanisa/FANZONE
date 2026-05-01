@@ -51,28 +51,32 @@ describe("Sidebar RBAC", () => {
   it("shows only viewer-safe navigation for viewer role", () => {
     renderSidebar("viewer");
 
-    expect(screen.getByRole("link", { name: "Dashboard" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Analytics" })).toBeTruthy();
-    expect(screen.queryByRole("link", { name: "Users" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "FET Tokens" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Settings" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Overview" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Countries" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "FET Wallets" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Feature Flags" })).toBeNull();
   });
 
   it("shows admin operations but hides super-admin controls for admin role", () => {
     renderSidebar("admin");
 
-    expect(screen.getByRole("link", { name: "Users" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Predictions" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Countries" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Venues" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Curated Matches" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Pools" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Settlements" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Feature Flags" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Audit Logs" })).toBeTruthy();
-    expect(screen.queryByRole("link", { name: "Settings" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Users" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Admin Access" })).toBeNull();
   });
 
-  it("shows system controls for super-admin role", () => {
+  it("keeps the same IA for super-admin role", () => {
     renderSidebar("super_admin");
 
-    expect(screen.getByRole("link", { name: "Settings" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Admin Access" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Users" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Overview" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Reward Rules" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Risk & Abuse" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Settings" })).toBeNull();
   });
 });

@@ -32,7 +32,7 @@ class OnboardingWelcomeStep extends StatelessWidget {
             FzWordmark(style: FzTypography.display(size: 64, letterSpacing: 4)),
             const SizedBox(height: 4),
             const Text(
-              'PREDICT. EARN. REPEAT.',
+              'ORDER. POOL. EARN.',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -43,8 +43,8 @@ class OnboardingWelcomeStep extends StatelessWidget {
             const SizedBox(height: 44),
             OnboardingFeatureRow(
               icon: LucideIcons.zap,
-              title: 'Live Predictions',
-              description: 'Predict match outcomes in real-time.',
+              title: 'Match Pools',
+              description: 'Join venue, country, and global FET pools.',
               textColor: textColor,
               muted: muted,
               isDark: isDark,
@@ -52,8 +52,8 @@ class OnboardingWelcomeStep extends StatelessWidget {
             const SizedBox(height: 22),
             OnboardingFeatureRow(
               icon: LucideIcons.trophy,
-              title: 'Earn FET Tokens',
-              description: 'Get rewarded for your football knowledge.',
+              title: 'Earn FET',
+              description: 'Earn from venue orders and settled pools.',
               textColor: textColor,
               muted: muted,
               isDark: isDark,

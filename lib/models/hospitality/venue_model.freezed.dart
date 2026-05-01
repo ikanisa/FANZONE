@@ -64,6 +64,8 @@ mixin _$VenueModel {
   OnboardingStatus get onboardingStatus => throw _privateConstructorUsedError;
   @JsonKey(name: 'revolut_link')
   String? get revolutLink => throw _privateConstructorUsedError;
+  @JsonKey(name: 'momo_code')
+  String? get momoCode => throw _privateConstructorUsedError;
   String? get whatsapp => throw _privateConstructorUsedError;
   @JsonKey(name: 'primary_category')
   String? get primaryCategory => throw _privateConstructorUsedError;
@@ -129,6 +131,7 @@ abstract class $VenueModelCopyWith<$Res> {
     @JsonKey(name: 'is_active') bool isActive,
     @JsonKey(name: 'onboarding_status') OnboardingStatus onboardingStatus,
     @JsonKey(name: 'revolut_link') String? revolutLink,
+    @JsonKey(name: 'momo_code') String? momoCode,
     String? whatsapp,
     @JsonKey(name: 'primary_category') String? primaryCategory,
     double? rating,
@@ -184,6 +187,7 @@ class _$VenueModelCopyWithImpl<$Res, $Val extends VenueModel>
     Object? isActive = null,
     Object? onboardingStatus = null,
     Object? revolutLink = freezed,
+    Object? momoCode = freezed,
     Object? whatsapp = freezed,
     Object? primaryCategory = freezed,
     Object? rating = freezed,
@@ -302,6 +306,10 @@ class _$VenueModelCopyWithImpl<$Res, $Val extends VenueModel>
                 ? _value.revolutLink
                 : revolutLink // ignore: cast_nullable_to_non_nullable
                       as String?,
+            momoCode: freezed == momoCode
+                ? _value.momoCode
+                : momoCode // ignore: cast_nullable_to_non_nullable
+                      as String?,
             whatsapp: freezed == whatsapp
                 ? _value.whatsapp
                 : whatsapp // ignore: cast_nullable_to_non_nullable
@@ -388,6 +396,7 @@ abstract class _$$VenueModelImplCopyWith<$Res>
     @JsonKey(name: 'is_active') bool isActive,
     @JsonKey(name: 'onboarding_status') OnboardingStatus onboardingStatus,
     @JsonKey(name: 'revolut_link') String? revolutLink,
+    @JsonKey(name: 'momo_code') String? momoCode,
     String? whatsapp,
     @JsonKey(name: 'primary_category') String? primaryCategory,
     double? rating,
@@ -442,6 +451,7 @@ class __$$VenueModelImplCopyWithImpl<$Res>
     Object? isActive = null,
     Object? onboardingStatus = null,
     Object? revolutLink = freezed,
+    Object? momoCode = freezed,
     Object? whatsapp = freezed,
     Object? primaryCategory = freezed,
     Object? rating = freezed,
@@ -560,6 +570,10 @@ class __$$VenueModelImplCopyWithImpl<$Res>
             ? _value.revolutLink
             : revolutLink // ignore: cast_nullable_to_non_nullable
                   as String?,
+        momoCode: freezed == momoCode
+            ? _value.momoCode
+            : momoCode // ignore: cast_nullable_to_non_nullable
+                  as String?,
         whatsapp: freezed == whatsapp
             ? _value.whatsapp
             : whatsapp // ignore: cast_nullable_to_non_nullable
@@ -640,6 +654,7 @@ class _$VenueModelImpl extends _VenueModel {
     @JsonKey(name: 'onboarding_status')
     this.onboardingStatus = OnboardingStatus.draft,
     @JsonKey(name: 'revolut_link') this.revolutLink,
+    @JsonKey(name: 'momo_code') this.momoCode,
     this.whatsapp,
     @JsonKey(name: 'primary_category') this.primaryCategory,
     this.rating,
@@ -730,6 +745,9 @@ class _$VenueModelImpl extends _VenueModel {
   @JsonKey(name: 'revolut_link')
   final String? revolutLink;
   @override
+  @JsonKey(name: 'momo_code')
+  final String? momoCode;
+  @override
   final String? whatsapp;
   @override
   @JsonKey(name: 'primary_category')
@@ -787,7 +805,7 @@ class _$VenueModelImpl extends _VenueModel {
 
   @override
   String toString() {
-    return 'VenueModel(id: $id, ownerId: $ownerId, name: $name, slug: $slug, countryCode: $countryCode, venueType: $venueType, currencyCode: $currencyCode, description: $description, contactEmail: $contactEmail, contactPhoneLast4: $contactPhoneLast4, websiteUrl: $websiteUrl, googlePlaceId: $googlePlaceId, addressLine1: $addressLine1, addressLine2: $addressLine2, city: $city, region: $region, postalCode: $postalCode, latitude: $latitude, longitude: $longitude, timezone: $timezone, logoUrl: $logoUrl, coverUrl: $coverUrl, isOpen: $isOpen, isActive: $isActive, onboardingStatus: $onboardingStatus, revolutLink: $revolutLink, whatsapp: $whatsapp, primaryCategory: $primaryCategory, rating: $rating, priceLevel: $priceLevel, priceBand: $priceBand, hoursJson: $hoursJson, photosJson: $photosJson, featuresJson: $featuresJson, verifiedAt: $verifiedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'VenueModel(id: $id, ownerId: $ownerId, name: $name, slug: $slug, countryCode: $countryCode, venueType: $venueType, currencyCode: $currencyCode, description: $description, contactEmail: $contactEmail, contactPhoneLast4: $contactPhoneLast4, websiteUrl: $websiteUrl, googlePlaceId: $googlePlaceId, addressLine1: $addressLine1, addressLine2: $addressLine2, city: $city, region: $region, postalCode: $postalCode, latitude: $latitude, longitude: $longitude, timezone: $timezone, logoUrl: $logoUrl, coverUrl: $coverUrl, isOpen: $isOpen, isActive: $isActive, onboardingStatus: $onboardingStatus, revolutLink: $revolutLink, momoCode: $momoCode, whatsapp: $whatsapp, primaryCategory: $primaryCategory, rating: $rating, priceLevel: $priceLevel, priceBand: $priceBand, hoursJson: $hoursJson, photosJson: $photosJson, featuresJson: $featuresJson, verifiedAt: $verifiedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -839,6 +857,8 @@ class _$VenueModelImpl extends _VenueModel {
                 other.onboardingStatus == onboardingStatus) &&
             (identical(other.revolutLink, revolutLink) ||
                 other.revolutLink == revolutLink) &&
+            (identical(other.momoCode, momoCode) ||
+                other.momoCode == momoCode) &&
             (identical(other.whatsapp, whatsapp) ||
                 other.whatsapp == whatsapp) &&
             (identical(other.primaryCategory, primaryCategory) ||
@@ -898,6 +918,7 @@ class _$VenueModelImpl extends _VenueModel {
     isActive,
     onboardingStatus,
     revolutLink,
+    momoCode,
     whatsapp,
     primaryCategory,
     rating,
@@ -953,6 +974,7 @@ abstract class _VenueModel extends VenueModel {
     @JsonKey(name: 'is_active') final bool isActive,
     @JsonKey(name: 'onboarding_status') final OnboardingStatus onboardingStatus,
     @JsonKey(name: 'revolut_link') final String? revolutLink,
+    @JsonKey(name: 'momo_code') final String? momoCode,
     final String? whatsapp,
     @JsonKey(name: 'primary_category') final String? primaryCategory,
     final double? rating,
@@ -1039,6 +1061,9 @@ abstract class _VenueModel extends VenueModel {
   @override
   @JsonKey(name: 'revolut_link')
   String? get revolutLink;
+  @override
+  @JsonKey(name: 'momo_code')
+  String? get momoCode;
   @override
   String? get whatsapp;
   @override

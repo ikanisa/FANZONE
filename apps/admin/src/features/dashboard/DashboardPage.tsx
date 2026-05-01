@@ -11,8 +11,6 @@ import {
 } from "./useDashboard";
 import { formatRelativeTime, formatFET } from "../../lib/formatters";
 import {
-  Users,
-  Target,
   Coins,
   Wallet,
   ShoppingBag,
@@ -20,7 +18,9 @@ import {
   Shield,
   Activity,
   Clock,
-  Calendar,
+  Globe2,
+  Building2,
+  AlertTriangle,
 } from "lucide-react";
 
 export function DashboardPage() {
@@ -31,8 +31,8 @@ export function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title="Dashboard"
-        subtitle={renderFanzoneText("FANZONE global platform overview")}
+        title="Overview"
+        subtitle={renderFanzoneText("Sports-bar FET pool platform control center")}
       />
 
       {/* KPI Grid */}
@@ -42,14 +42,19 @@ export function DashboardPage() {
         kpis && (
           <div className="grid grid-4 gap-4 mb-6">
             <KpiCard
-              label="Active Users"
-              value={kpis.activeUsers}
-              icon={<Users size={18} />}
+              label="Active Countries"
+              value={kpis.activeCountries}
+              icon={<Globe2 size={18} />}
             />
             <KpiCard
-              label="Open Prediction Matches"
-              value={kpis.openPredictionMatches}
-              icon={<Target size={18} />}
+              label="Active Venues"
+              value={kpis.activeVenues}
+              icon={<Building2 size={18} />}
+            />
+            <KpiCard
+              label="Active Pools"
+              value={kpis.activePools}
+              icon={<Trophy size={18} />}
             />
             <KpiCard
               label="FET Issued"
@@ -58,30 +63,30 @@ export function DashboardPage() {
               icon={<Coins size={18} />}
             />
             <KpiCard
-              label="FET Transferred (24h)"
-              value={kpis.fetTransferred24h}
+              label="FET Staked"
+              value={kpis.totalFetStaked}
               format="fet"
               icon={<Wallet size={18} />}
             />
             <KpiCard
-              label="Pending Rewards"
-              value={kpis.pendingRewards}
+              label="Pending Settlements"
+              value={kpis.pendingSettlements}
               icon={<ShoppingBag size={18} />}
             />
             <KpiCard
-              label="Moderation Alerts"
-              value={kpis.moderationAlerts}
+              label="Failed Settlements"
+              value={kpis.failedSettlements}
+              icon={<AlertTriangle size={18} />}
+            />
+            <KpiCard
+              label="Today's Orders"
+              value={kpis.todaysOrders}
+              icon={<ShoppingBag size={18} />}
+            />
+            <KpiCard
+              label="Risk Alerts"
+              value={kpis.riskAlerts}
               icon={<Shield size={18} />}
-            />
-            <KpiCard
-              label="Competitions"
-              value={kpis.competitionsCount}
-              icon={<Trophy size={18} />}
-            />
-            <KpiCard
-              label="Upcoming Fixtures"
-              value={kpis.upcomingFixtures}
-              icon={<Calendar size={18} />}
             />
           </div>
         )
@@ -215,21 +220,21 @@ export function DashboardPage() {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted">Open Prediction Matches</span>
+                  <span className="text-muted">Open Pools</span>
                   <span className="font-medium">
-                    {kpis.openPredictionMatches}
+                    {kpis.activePools}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted">Pending Rewards</span>
-                  <span className="font-medium">{kpis.pendingRewards}</span>
+                  <span className="text-muted">Pending Settlements</span>
+                  <span className="font-medium">{kpis.pendingSettlements}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted">Moderation Queue</span>
                   <span
-                    className={`font-medium ${kpis.moderationAlerts > 0 ? "text-warning" : "text-success"}`}
+                    className={`font-medium ${kpis.riskAlerts > 0 ? "text-warning" : "text-success"}`}
                   >
-                    {kpis.moderationAlerts}
+                    {kpis.riskAlerts}
                   </span>
                 </div>
               </div>

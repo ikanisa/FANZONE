@@ -2,15 +2,15 @@
 
 This package is the repo-hosted web build of the canonical FANZONE product UI.
 
-The non-negotiable source of truth is:
-- `/Users/jeanbosco/Downloads/FANZONE`
+The optional external source of truth can be supplied with `FANZONE_CANONICAL_SOURCE`.
+When it is not set, release checks compare `apps/website/src` with the committed canonical snapshot.
 
-`website/src` is not authored independently. It is synced from that canonical source and guarded against drift.
+`apps/website/src` is not authored independently when an external canonical source is configured. It is synced from that source and guarded against drift.
 
 ## Canonical workflow
 
 ```bash
-cd website
+cd apps/website
 npm ci
 npm run sync:canonical
 npm run lint
@@ -18,8 +18,8 @@ npm run build
 ```
 
 Available checks:
-- `npm run sync:canonical` copies the canonical `src/` tree into `website/src`.
-- `npm run check:canonical` fails if `website/src` has drifted from the canonical source.
+- `npm run sync:canonical` copies the canonical `src/` tree into `apps/website/src`.
+- `npm run check:canonical` fails if `apps/website/src` has drifted from the canonical source or committed snapshot.
 - `npm run validate:release-metadata` checks deep-link and manifest metadata before deployment.
 
 ## Tech stack
@@ -41,30 +41,21 @@ The current route map is derived from the canonical source app.
 | `/onboarding` | Onboarding |
 | `/` | Home feed |
 | `/match/:id` | Match detail |
-| `/league/:id` | League hub |
-| `/leaderboard` | Leaderboard |
+| `/pools` | Pool discovery |
+| `/pools/:slug` | Pool detail |
 | `/wallet` | Wallet |
 | `/profile` | Profile |
 | `/settings` | Settings |
-| `/team/:id` | Team profile |
 | `/privacy` | Privacy settings |
-| `/fixtures` | Fixtures |
+| `/ordering` | Venue ordering |
+| `/v/:slug` | Venue QR ordering |
 | `/notifications` | Notifications |
-| `/error` | Empty / error states |
-
-Legacy compatibility redirects still exist:
-
-| Route | Redirect |
-| --- | --- |
-| `/social` | `/leaderboard` |
-| `/memberships` | `/profile` |
-| `/fan-id` | `/profile` |
-| `/rewards` | `/wallet` |
+| `*` | Pool discovery fallback |
 
 ## Build and preview
 
 ```bash
-cd website
+cd apps/website
 npm run build
 npm run preview
 ```
@@ -73,12 +64,12 @@ The production build runs the canonical drift check before bundling.
 
 ## Release metadata
 
-Deep-link files live under `website/public/.well-known/`.
+Deep-link files live under `apps/website/public/.well-known/`.
 
 Before any production deploy, run:
 
 ```bash
-cd website
+cd apps/website
 npm run validate:release-metadata
 ```
 

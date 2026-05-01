@@ -7,7 +7,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'admin/**'
+      - 'apps/admin/**'
   workflow_dispatch:
 
 env:
@@ -28,27 +28,27 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
-          cache-dependency-path: admin/package-lock.json
+          cache-dependency-path: apps/admin/package-lock.json
 
       - name: Install dependencies
         run: npm ci
-        working-directory: admin
+        working-directory: apps/admin
 
       - name: Lint
         run: npm run lint
-        working-directory: admin
+        working-directory: apps/admin
 
       - name: Test
         run: npm run test
-        working-directory: admin
+        working-directory: apps/admin
 
       - name: Type check
         run: npx tsc --noEmit
-        working-directory: admin
+        working-directory: apps/admin
 
       - name: Build
         run: npm run build
-        working-directory: admin
+        working-directory: apps/admin
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -58,7 +58,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy admin/dist --project-name=fanzone-admin --branch=${{ github.ref_name }}
+          command: pages deploy apps/admin/dist --project-name=fanzone-admin --branch=${{ github.ref_name }}
 
       - name: Deployment summary
         run: |

@@ -109,11 +109,13 @@ class PushNotificationService {
 
   FzToastType _mapToastType(String? type) {
     switch (type) {
-      case 'prediction_update':
-        return FzToastType.predictionUpdate;
-      case 'prediction_scored':
-      case 'prediction_reward':
-        return FzToastType.predictionReward;
+      case 'pool_update':
+      case 'pool_created':
+      case 'pool_reminder':
+        return FzToastType.poolUpdate;
+      case 'pool_settled':
+      case 'pool_reward':
+        return FzToastType.poolReward;
       default:
         return FzToastType.system;
     }
@@ -142,14 +144,16 @@ class PushNotificationService {
 
     final type = data['type']?.toString();
     switch (type) {
-      case 'prediction_update':
-      case 'prediction_scored':
-      case 'prediction_reward':
-        router.go(governedAppRouteForPath('/predict', fallback: '/fixtures'));
+      case 'pool_update':
+      case 'pool_created':
+      case 'pool_reminder':
+      case 'pool_settled':
+      case 'pool_reward':
+        router.go(governedAppRouteForPath('/pools', fallback: '/pools'));
         return;
       case 'wallet_credit':
       case 'wallet_debit':
-        router.go(governedAppRouteForPath('/wallet', fallback: '/profile'));
+        router.go(governedAppRouteForPath('/wallet', fallback: '/wallet'));
         return;
       default:
         router.go(

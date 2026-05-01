@@ -74,22 +74,22 @@
       "usage": "native splash mark"
     },
     {
-      "group": "flutter_shared_legacy",
+      "group": "flutter_shared_alias",
       "path": "assets/images/logo_128.png",
       "format": "png",
       "width": 128,
       "height": 128,
       "source_variant": "light_source_rgb + dark_source_alpha",
-      "usage": "legacy transparent logo alias"
+      "usage": "transparent logo alias"
     },
     {
-      "group": "flutter_shared_legacy",
+      "group": "flutter_shared_alias",
       "path": "assets/images/logo_256.png",
       "format": "png",
       "width": 256,
       "height": 256,
       "source_variant": "light_source_rgb + dark_source_alpha",
-      "usage": "legacy transparent logo alias"
+      "usage": "transparent logo alias"
     },
     {
       "group": "android_launcher",
@@ -98,7 +98,7 @@
       "width": 48,
       "height": 48,
       "source_variant": "dark_source_rgb",
-      "usage": "android legacy launcher icon (mdpi)"
+      "usage": "android launcher icon (mdpi)"
     },
     {
       "group": "android_launcher",
@@ -107,7 +107,7 @@
       "width": 72,
       "height": 72,
       "source_variant": "dark_source_rgb",
-      "usage": "android legacy launcher icon (hdpi)"
+      "usage": "android launcher icon (hdpi)"
     },
     {
       "group": "android_launcher",
@@ -116,7 +116,7 @@
       "width": 96,
       "height": 96,
       "source_variant": "dark_source_rgb",
-      "usage": "android legacy launcher icon (xhdpi)"
+      "usage": "android launcher icon (xhdpi)"
     },
     {
       "group": "android_launcher",
@@ -125,7 +125,7 @@
       "width": 144,
       "height": 144,
       "source_variant": "dark_source_rgb",
-      "usage": "android legacy launcher icon (xxhdpi)"
+      "usage": "android launcher icon (xxhdpi)"
     },
     {
       "group": "android_launcher",
@@ -134,7 +134,7 @@
       "width": 192,
       "height": 192,
       "source_variant": "dark_source_rgb",
-      "usage": "android legacy launcher icon (xxxhdpi)"
+      "usage": "android launcher icon (xxxhdpi)"
     },
     {
       "group": "android_adaptive",
@@ -395,16 +395,16 @@
       "width": 64,
       "height": 64,
       "source_variant": "dark_source_rgb",
-      "usage": "legacy favicon png"
+      "usage": "favicon png"
     },
     {
-      "group": "website_icon_legacy",
+      "group": "website_icon_alias",
       "path": "website/public/favicon-16.png",
       "format": "png",
       "width": 16,
       "height": 16,
       "source_variant": "dark_source_rgb",
-      "usage": "legacy favicon 16"
+      "usage": "favicon 16"
     },
     {
       "group": "website_icon",
@@ -452,49 +452,49 @@
       "usage": "web app icon 512"
     },
     {
-      "group": "website_brand_legacy",
+      "group": "website_brand_alias",
       "path": "website/public/logo-128.png",
       "format": "png",
       "width": 128,
       "height": 128,
       "source_variant": "light_source_rgb + dark_source_alpha",
-      "usage": "legacy website logo alias"
+      "usage": "website logo alias"
     },
     {
-      "group": "website_brand_legacy",
+      "group": "website_brand_alias",
       "path": "website/public/logo-192.png",
       "format": "png",
       "width": 192,
       "height": 192,
       "source_variant": "dark_source_rgb",
-      "usage": "legacy website icon alias"
+      "usage": "website icon alias"
     },
     {
-      "group": "website_brand_legacy",
+      "group": "website_brand_alias",
       "path": "website/public/logo-512.png",
       "format": "png",
       "width": 512,
       "height": 512,
       "source_variant": "dark_source_rgb",
-      "usage": "legacy website icon alias"
+      "usage": "website icon alias"
     },
     {
-      "group": "website_brand_legacy",
+      "group": "website_brand_alias",
       "path": "website/public/logo.png",
       "format": "png",
       "width": 512,
       "height": 512,
       "source_variant": "light_source_rgb + dark_source_alpha",
-      "usage": "legacy website logo alias"
+      "usage": "website logo alias"
     },
     {
-      "group": "website_social_legacy",
+      "group": "website_social_alias",
       "path": "website/public/og-image.png",
       "format": "png",
       "width": 1200,
       "height": 630,
       "source_variant": "light_source_rgb + dark_source_alpha",
-      "usage": "legacy social preview alias"
+      "usage": "social preview alias"
     },
     {
       "group": "website_brand",
@@ -551,7 +551,7 @@
       "width": 64,
       "height": 64,
       "source_variant": "dark_source_rgb",
-      "usage": "legacy admin favicon png"
+      "usage": "admin favicon png"
     },
     {
       "group": "admin_icon",
@@ -599,22 +599,22 @@
       "usage": "admin web icon 512"
     },
     {
-      "group": "admin_icon_legacy",
+      "group": "admin_icon_alias",
       "path": "admin/public/logo-192.png",
       "format": "png",
       "width": 192,
       "height": 192,
       "source_variant": "dark_source_rgb",
-      "usage": "legacy admin icon alias"
+      "usage": "admin icon alias"
     },
     {
-      "group": "admin_icon_legacy",
+      "group": "admin_icon_alias",
       "path": "admin/public/logo-512.png",
       "format": "png",
       "width": 512,
       "height": 512,
       "source_variant": "dark_source_rgb",
-      "usage": "legacy admin icon alias"
+      "usage": "admin icon alias"
     },
     {
       "group": "admin_brand",
@@ -653,31 +653,31 @@
       "usage": "large admin brand mark"
     },
     {
-      "group": "admin_brand_legacy",
+      "group": "admin_brand_alias",
       "path": "admin/src/assets/logo.png",
       "format": "png",
       "width": 512,
       "height": 512,
       "source_variant": "light_source_rgb + dark_source_alpha",
-      "usage": "legacy admin import logo alias"
+      "usage": "admin import logo alias"
     },
     {
-      "group": "admin_brand_legacy",
+      "group": "admin_brand_alias",
       "path": "admin/src/assets/logo-64.png",
       "format": "png",
       "width": 64,
       "height": 64,
       "source_variant": "light_source_rgb + dark_source_alpha",
-      "usage": "legacy admin import logo alias"
+      "usage": "admin import logo alias"
     },
     {
-      "group": "admin_brand_legacy",
+      "group": "admin_brand_alias",
       "path": "admin/src/assets/logo-128.png",
       "format": "png",
       "width": 128,
       "height": 128,
       "source_variant": "light_source_rgb + dark_source_alpha",
-      "usage": "legacy admin import logo alias"
+      "usage": "admin import logo alias"
     },
     {
       "group": "admin_icon",

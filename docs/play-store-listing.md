@@ -7,14 +7,14 @@
 - **Current release version**: `1.1.0 (6)`
 - **Default language**: English (United States)
 - **Category**: Sports
-- **Tags**: Football, Predictions, Fan Engagement, Fantasy Sports
+- **Tags**: Football, Sports Bars, Fan Engagement, Venue Ordering
 
 ---
 
 ## Short Description (max 80 chars)
 
 ``` 
-Free football picks and FET wallet rewards. Play. Predict. Climb.
+Sports-bar match pools, venue ordering, and FET wallet rewards.
 ```
 
 ---
@@ -22,30 +22,30 @@ Free football picks and FET wallet rewards. Play. Predict. Climb.
 ## Full Description (max 4000 chars)
 
 ```
-FANZONE is a lean football prediction app built around free picks, selected competitions, and the FANZONE FET wallet.
+FANZONE is a sports-bar entertainment app built around venue ordering, curated football match pools, and the FANZONE FET wallet.
 
-🏟️ FREE PICKS & TOKEN REWARDS
-Make free football predictions, save your picks, and climb the leaderboard. Correct picks can earn FET (Fan Engagement Tokens) inside the app wallet.
+SPORTS-BAR MATCH POOLS
+Join FET match pools for curated fixtures at participating bars, fan zones, lounges, and hospitality venues.
 
-⚽ FIXTURES, RESULTS, AND STANDINGS
-Follow selected teams and competitions with clean match pages, standings, and prediction guidance built from historical form.
+VENUE MENU & ORDERING
+Scan a venue QR, browse the bar menu, order from your table, and earn FET where the venue has enabled rewards.
 
-🏆 LEADERBOARDS & WALLET
-Track your record on the leaderboard, receive FET rewards when applicable, and manage transfers directly from your wallet.
+FET WALLET
+Earn FET from welcome rewards, qualifying orders, creator invite rewards, and settled pool wins. Use FET on venue orders where allowed by the venue.
 
-💚 MALTA-FIRST, GLOBAL AMBITION
-Built for the Maltese football community and designed to scale. FANZONE brings Mediterranean passion to digital fan engagement.
+GLOBAL FOOTBALL MOMENTS
+Built for sports bars and fan zones across Africa, Europe, the UK, North America, and World Cup markets.
 
 KEY FEATURES:
-• Free football picks across selected competitions
-• Simple prediction engine powered by historical form
-• Fixtures, standings, and lean match detail screens
-• Leaderboard tracking for prediction performance
-• FET wallet — earn and transfer tokens
-• Anonymous fan identities for privacy-aware wallet transfers
-• Clean, fast, mobile-first design
+* Venue QR entry, bar menu browsing, and ordering
+* Curated football fixtures and official match pools
+* Venue, country, and global pool scopes
+* FET wallet for rewards, staking, and eligible venue redemption
+* Shareable pool links and social cards
+* Anonymous fan identities for privacy-aware participation
+* Clean, fast, mobile-first design
 
-FANZONE is free to download and use. In-app tokens (FET) are earned through engagement and cannot be purchased with real money.
+FANZONE is free to download and use. Payments happen off-platform through the venue's supported methods such as USSD, cash guidance, or Revolut links. FET tokens are not real currency and cannot be purchased in the app.
 ```
 
 ---
@@ -56,9 +56,9 @@ Google Play requires at minimum:
 - **2 phone screenshots** (16:9 or 9:16, min 320px, max 3840px)
 - Recommended: 4–8 screenshots showing key flows:
   1. Home screen with live matches
-  2. Match detail / prediction screen
-  3. Prediction hub
-  4. Leaderboard
+  2. Venue menu / QR ordering
+  3. Match pool detail
+  4. Pool discovery
   5. Team profile
   6. Wallet / FET balance
   7. Settings / profile
@@ -72,9 +72,9 @@ Google Play content rating questionnaire answers:
 
 | Question | Answer |
 |----------|--------|
-| Does the app contain user-generated content? | Yes (predictions only) |
+| Does the app contain user-generated content? | Yes (match pool participation and venue order notes where enabled) |
 | Does the app share user location? | No |
-| Does the app allow users to interact? | Limited (predictions and wallet transfer identifiers) |
+| Does the app allow users to interact? | Limited (match pools, share links, and wallet transfer identifiers) |
 | Does the app contain violence? | No |
 | Does the app contain sexual content? | No |
 | Does the app contain controlled substances? | No |

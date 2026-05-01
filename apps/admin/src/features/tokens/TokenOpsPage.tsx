@@ -23,8 +23,8 @@ export function TokenOpsPage() {
   return (
     <div>
       <PageHeader
-        title="FET Token Operations"
-        subtitle="Token supply, issuance, transfers, and analytics"
+        title="FET Earning Settings"
+        subtitle="FET wallet supply, venue-order rewards, pool settlements, and ledger monitoring"
         actions={
           <a className="btn btn-secondary" href="/wallets">Adjust User Balances</a>
         }
@@ -35,7 +35,7 @@ export function TokenOpsPage() {
         <KpiCard label="Total Issued" value={supply?.totalIssued ?? 0} format="fet" icon={<Coins size={18} />} />
         <KpiCard label="Circulating" value={supply?.totalCirculating ?? 0} format="fet" icon={<ArrowUpDown size={18} />} />
         <KpiCard label="Locked" value={supply?.totalLocked ?? 0} format="fet" />
-        <KpiCard label="Rewarded" value={supply?.totalRewarded ?? 0} format="fet" icon={<ArrowDownLeft size={18} />} />
+        <KpiCard label="Earned" value={supply?.totalRewarded ?? 0} format="fet" icon={<ArrowDownLeft size={18} />} />
         <KpiCard label="Flagged Tx" value={flaggedCount} icon={<AlertTriangle size={18} />} />
       </div>
 
@@ -49,7 +49,8 @@ export function TokenOpsPage() {
           <option value="all">All types</option>
           <option value="earn">Earn</option>
           <option value="transfer">Transfer</option>
-          <option value="prediction_reward">Prediction rewards</option>
+          <option value="match_pool_settlement">Pool settlements</option>
+          <option value="match_pool_refund">Pool refunds</option>
           <option value="foundation_grant">Foundation grants</option>
           <option value="admin_credit">Admin Credit</option>
           <option value="admin_debit">Admin Debit</option>

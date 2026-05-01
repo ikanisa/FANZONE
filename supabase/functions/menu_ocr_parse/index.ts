@@ -19,7 +19,7 @@ import type { RateLimitConfig } from "../_shared/mod.ts";
 // Menu OCR Parse
 // Stateless endpoint: upload image → Gemini OCR → return parsed items
 // Does NOT save to database (use menu_ingest_create for persistent pipeline)
-// Ported from DineIn, uses FANZONE _shared/ barrel
+// Uses FANZONE shared Edge Function helpers.
 // ============================================================================
 
 const ocrSchema = z.object({

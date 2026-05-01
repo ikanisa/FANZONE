@@ -5,9 +5,7 @@ import {
   Globe,
   Moon,
   Sun,
-  HelpCircle,
   ShieldAlert,
-  Bug,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppStore } from "../store/useAppStore";
@@ -16,28 +14,10 @@ import { usePlatformBootstrap } from "../platform/bootstrap";
 
 export default function Settings() {
   usePlatformBootstrap();
-  const { addNotification, theme, toggleTheme } = useAppStore();
+  const { theme, toggleTheme } = useAppStore();
   const profileRoute = getPlatformFeatureRoute("profile", {
     fallback: "/profile",
   });
-
-  const handleTestPredictionUpdate = () => {
-    addNotification({
-      type: "prediction_update",
-      title: "Prediction reminder",
-      message:
-        "An upcoming fixture locks soon. Update your free pick before kickoff.",
-    });
-  };
-
-  const handleTestPredictionReward = () => {
-    addNotification({
-      type: "prediction_reward",
-      title: "Prediction reward",
-      message:
-        "Your picks were scored and 50 FET has been added to your wallet.",
-    });
-  };
 
   return (
     <div className="min-h-screen bg-bg pb-24 transition-colors duration-300">
@@ -82,7 +62,7 @@ export default function Settings() {
             options={[
               "24-hour local time",
               "12-hour local time",
-              "Fixture default",
+              "Venue default",
             ]}
           />
         </SettingsSection>
@@ -95,7 +75,7 @@ export default function Settings() {
           />
           <SettingsToggle
             icon={<ShieldAlert size={16} />}
-            label="Prediction Updates"
+            label="Pool Updates"
             defaultChecked={true}
           />
           <SettingsToggle
@@ -105,48 +85,11 @@ export default function Settings() {
           />
         </SettingsSection>
 
-        <SettingsSection title="Developer">
-          <button
-            onClick={handleTestPredictionUpdate}
-            className="w-full flex items-center justify-between p-3 border-b border-border hover:bg-surface3 transition-colors text-left"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent">
-                <Bug size={16} />
-              </div>
-              <div>
-                <span className="font-bold text-sm text-text block leading-tight">
-                  Test: Prediction Update
-                </span>
-              </div>
-            </div>
-          </button>
-          <button
-            onClick={handleTestPredictionReward}
-            className="w-full flex items-center justify-between p-3 hover:bg-surface3 transition-colors text-left"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent3/10 border border-accent3/20 flex items-center justify-center text-accent3">
-                <Bug size={16} />
-              </div>
-              <div>
-                <span className="font-bold text-sm text-text block leading-tight">
-                  Test: Prediction Reward
-                </span>
-              </div>
-            </div>
-          </button>
-        </SettingsSection>
-
         <SettingsSection title="Support">
-          <SettingsLink icon={<HelpCircle size={16} />} label="Help & FAQ" />
           <SettingsLink
             icon={<ShieldAlert size={16} />}
             label="Privacy Policy"
-          />
-          <SettingsLink
-            icon={<ShieldAlert size={16} />}
-            label="Terms of Service"
+            to="/privacy"
           />
         </SettingsSection>
       </div>
@@ -228,9 +171,20 @@ function SettingsSelect({
   );
 }
 
-function SettingsLink({ icon, label }: { icon: ReactNode; label: string }) {
+function SettingsLink({
+  icon,
+  label,
+  to,
+}: {
+  icon: ReactNode;
+  label: string;
+  to: string;
+}) {
   return (
-    <button className="w-full flex items-center justify-between p-3 border-b border-border last:border-0 hover:bg-surface3 transition-colors">
+    <Link
+      to={to}
+      className="w-full flex items-center justify-between p-3 border-b border-border last:border-0 hover:bg-surface3 transition-colors"
+    >
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-surface3 flex items-center justify-center text-muted">
           {icon}
@@ -238,6 +192,6 @@ function SettingsLink({ icon, label }: { icon: ReactNode; label: string }) {
         <span className="font-bold text-sm text-text">{label}</span>
       </div>
       <ChevronLeft size={16} className="text-muted rotate-180" />
-    </button>
+    </Link>
   );
 }

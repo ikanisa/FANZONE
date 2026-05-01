@@ -23,9 +23,9 @@ class NotificationItem with _$NotificationItem {
 class NotificationPreferences with _$NotificationPreferences {
   const factory NotificationPreferences({
     @JsonKey(name: 'goal_alerts') @Default(true) bool goalAlerts,
-    @JsonKey(name: 'prediction_updates')
+    @JsonKey(name: 'pool_updates')
     @Default(true)
-    bool predictionUpdates,
+    bool poolUpdates,
     @JsonKey(name: 'reward_updates') @Default(true) bool rewardUpdates,
     @JsonKey(name: 'marketing') @Default(false) bool marketing,
   }) = _NotificationPreferences;
@@ -37,10 +37,10 @@ class NotificationPreferences with _$NotificationPreferences {
 @freezed
 class UserStats with _$UserStats {
   const factory UserStats({
-    @JsonKey(name: 'prediction_streak') @Default(0) int predictionStreak,
+    @JsonKey(name: 'pool_streak') @Default(0) int poolStreak,
     @JsonKey(name: 'longest_streak') @Default(0) int longestStreak,
-    @JsonKey(name: 'total_predictions') @Default(0) int totalPredictions,
-    @JsonKey(name: 'correct_predictions') @Default(0) int correctPredictions,
+    @JsonKey(name: 'total_pools') @Default(0) int totalPools,
+    @JsonKey(name: 'pool_wins') @Default(0) int poolWins,
     @JsonKey(name: 'total_fet_earned') @Default(0) int totalFetEarned,
     @JsonKey(name: 'total_fet_spent') @Default(0) int totalFetSpent,
   }) = _UserStats;

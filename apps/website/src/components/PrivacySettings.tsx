@@ -42,7 +42,7 @@ export default function PrivacySettings() {
               <div>
                 <div className="font-bold text-sm text-text mb-1">Phone Number Hidden</div>
                 <div className="text-xs text-muted leading-relaxed">
-                  Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users or public leaderboards.
+                  Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other guests or public pool views.
                 </div>
               </div>
             </div>
@@ -53,7 +53,7 @@ export default function PrivacySettings() {
               <div>
                 <div className="font-bold text-sm text-text mb-1">Protected Wallet Activity</div>
                 <div className="text-xs text-muted leading-relaxed">
-                  Wallet transfers and prediction rewards are tied to your Fan ID and secure wallet ledger only. Exact phone numbers are never exposed.
+                  Wallet transfers, venue-order rewards, and pool settlement rewards are tied to your Fan ID and secure wallet ledger only. Exact phone numbers are never exposed.
                 </div>
               </div>
             </div>
@@ -68,11 +68,11 @@ export default function PrivacySettings() {
             <div className="p-4 flex items-center justify-between border-b border-border">
               <div className="pr-4">
                 <div className="font-bold text-sm text-text mb-1 flex items-center gap-2">
-                  Display Name on Leaderboards
+                  Display Name in Pool Views
                   {!isVerified && <Lock size={12} className="text-muted" />}
                 </div>
                 <div className="text-xs text-muted">
-                  Show your custom display name instead of your anonymous Fan ID on public leaderboards.
+                  Show your custom display name instead of your anonymous Fan ID in public pool participant views.
                 </div>
               </div>
               <button 

@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 part 'match_model.freezed.dart';
 part 'match_model.g.dart';
 
-/// Core match model — maps directly to Supabase `matches` table.
+/// Core match model for the curated sports-bar match projection.
 @freezed
 class MatchModel with _$MatchModel {
   const factory MatchModel({
@@ -25,7 +25,7 @@ class MatchModel with _$MatchModel {
     @JsonKey(name: 'away_team') required String awayTeam,
     @JsonKey(name: 'ft_home') int? ftHome,
     @JsonKey(name: 'ft_away') int? ftAway,
-    @Default('upcoming') String status,
+    @Default('scheduled') String status,
     @JsonKey(name: 'live_minute') int? liveMinute,
     @JsonKey(name: 'result_code') String? resultCode,
     @JsonKey(name: 'is_neutral') @Default(false) bool isNeutral,
@@ -67,17 +67,21 @@ class MatchModel with _$MatchModel {
       case 'playing':
         return 'live';
       case 'finished':
+      case 'final':
       case 'complete':
       case 'completed':
       case 'full_time':
       case 'ft':
-        return 'finished';
+        return 'final';
       case 'scheduled':
       case 'not_started':
       case 'notstarted':
       case 'pending':
       case 'upcoming':
-        return 'upcoming';
+        return 'scheduled';
+      case 'cancelled':
+      case 'postponed':
+        return value;
       default:
         return value;
     }
@@ -87,10 +91,10 @@ class MatchModel with _$MatchModel {
   bool get isLive => normalizedStatus == 'live';
 
   /// Whether the match is finished.
-  bool get isFinished => normalizedStatus == 'finished';
+  bool get isFinished => normalizedStatus == 'final';
 
   /// Whether the match is upcoming.
-  bool get isUpcoming => normalizedStatus == 'upcoming';
+  bool get isUpcoming => normalizedStatus == 'scheduled';
 
   /// Kickoff parsed from the GMT-based match date + kickoff_time fields.
   DateTime? get kickoffAtUtc {

@@ -1,99 +1,88 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { VenueOperationalInsights } from '@fanzone/core';
 import { supabase } from '../lib/supabase';
+import { fetchVenueOperationalInsights } from '../services/venueOperations';
 
-export interface VenueStats {
+export type VenueStats = VenueOperationalInsights & {
   dailyRevenue: number;
-  fetRedeemed: number;
   activeOrders: number;
+  fetRedeemed: number;
   matchGuests: number;
+};
+
+const emptyInsights: VenueOperationalInsights = {
+  today_orders: 0,
+  fet_issued: 0,
+  fet_redeemed: 0,
+  active_pools: 0,
+  most_active_match: null,
+  top_menu_items: [],
+  pending_payment_count: 0,
+};
+
+function toStats(insights: VenueOperationalInsights): VenueStats {
+  return {
+    ...insights,
+    dailyRevenue: 0,
+    activeOrders: insights.today_orders,
+    fetRedeemed: insights.fet_redeemed,
+    matchGuests: insights.most_active_match?.total_members ?? 0,
+  };
 }
 
 export function useVenueStats(venueId: string) {
-  const [stats, setStats] = useState<VenueStats>({
-    dailyRevenue: 0,
-    fetRedeemed: 0,
-    activeOrders: 0,
-    matchGuests: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<VenueStats>(toStats(emptyInsights));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!venueId) {
+      setStats(toStats(emptyInsights));
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      setStats(toStats(await fetchVenueOperationalInsights(venueId)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch venue insights.');
+    } finally {
+      setLoading(false);
+    }
+  }, [venueId]);
 
   useEffect(() => {
     if (!venueId) return;
 
-    const fetchStats = async () => {
-      setLoading(true);
-      try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+    const timer = window.setTimeout(() => {
+      void refresh();
+    }, 0);
 
-        // Fetch daily revenue and FET redeemed
-        const { data: orders } = await supabase
-          .from('orders')
-          .select('total_amount, payment_fet_amount, status')
-          .eq('venue_id', venueId)
-          .gte('created_at', today.toISOString());
-
-        // Fetch active orders (not served or cancelled)
-        const { count: activeOrders } = await supabase
-          .from('orders')
-          .select('*', { count: 'exact', head: true })
-          .eq('venue_id', venueId)
-          .in('status', ['placed', 'received']);
-
-        // Fetch match guests (participants in active stakes)
-        const { data: stakes } = await supabase
-          .from('venue_match_stakes')
-          .select('id')
-          .eq('venue_id', venueId)
-          .eq('status', 'open');
-        
-        let guestCount = 0;
-        if (stakes && stakes.length > 0) {
-           const stakeIds = stakes.map(s => s.id);
-           const { count } = await supabase
-             .from('venue_match_stake_entries')
-             .select('*', { count: 'exact', head: true })
-             .in('stake_id', stakeIds);
-           guestCount = count || 0;
-        }
-
-        const dailyRevenue = (orders || [])
-          .filter(o => o.status !== 'cancelled')
-          .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
-        
-        const fetRedeemed = (orders || [])
-          .filter(o => o.status !== 'cancelled')
-          .reduce((sum, o) => sum + Number(o.payment_fet_amount || 0), 0);
-
-        setStats({
-          dailyRevenue,
-          fetRedeemed,
-          activeOrders: activeOrders || 0,
-          matchGuests: guestCount,
-        });
-      } catch (err) {
-        console.error('Failed to fetch stats:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-
-    // Subscribe to order changes to refresh stats
     const channel = supabase
       .channel(`venue-stats-${venueId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders', filter: `venue_id=eq.${venueId}` },
-        () => fetchStats()
+        () => refresh(),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'match_pools', filter: `venue_id=eq.${venueId}` },
+        () => refresh(),
       )
       .subscribe();
 
     return () => {
+      window.clearTimeout(timer);
       supabase.removeChannel(channel);
     };
-  }, [venueId]);
+  }, [refresh, venueId]);
 
-  return { stats, loading };
+  return {
+    stats,
+    loading: venueId ? loading : false,
+    error: venueId ? error : null,
+    refresh,
+  };
 }

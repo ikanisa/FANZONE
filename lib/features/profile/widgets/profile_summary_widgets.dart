@@ -21,15 +21,15 @@ class ProfileStatsRow extends StatelessWidget {
         Expanded(
           child: ProfileStatCard(
             label: 'Streak',
-            value: '${stats.predictionStreak}',
+            value: '${stats.poolStreak}',
             accent: FzColors.primary,
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: ProfileStatCard(
-            label: 'Predictions',
-            value: '${stats.totalPredictions}',
+            label: 'Pools',
+            value: '${stats.totalPools}',
             accent: FzColors.secondary,
           ),
         ),
@@ -37,7 +37,7 @@ class ProfileStatsRow extends StatelessWidget {
         Expanded(
           child: ProfileStatCard(
             label: 'Wins',
-            value: '${stats.correctPredictions}',
+            value: '${stats.poolWins}',
             accent: FzColors.success,
           ),
         ),

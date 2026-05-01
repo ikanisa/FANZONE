@@ -105,16 +105,16 @@ void main() {
       expect(failure, isA<BusinessRuleFailure>());
     });
 
-    test('maps no longer open to BusinessRuleFailure', () {
+    test('maps pool no longer open to BusinessRuleFailure', () {
       final failure = mapExceptionToFailure(
-        Exception('Prediction window is no longer open'),
+        Exception('Pool is no longer open'),
       );
       expect(failure, isA<BusinessRuleFailure>());
     });
 
     test('maps already joined to BusinessRuleFailure', () {
       final failure = mapExceptionToFailure(
-        Exception('User has already submitted a prediction for this match'),
+        Exception('User has already joined this pool'),
       );
       expect(failure, isA<BusinessRuleFailure>());
     });

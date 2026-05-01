@@ -19,7 +19,7 @@ export function CreditDebitModal({ open, mode, userId, userName, onConfirm, onCa
   if (!open) return null;
 
   const isCredit = mode === 'credit';
-  const isValid = amount !== '' && Number(amount) > 0 && reason.trim().length >= 3;
+  const isValid = amount !== '' && Number(amount) > 0 && reason.trim().length >= 8;
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
@@ -57,7 +57,7 @@ export function CreditDebitModal({ open, mode, userId, userName, onConfirm, onCa
             onChange={e => setReason(e.target.value)}
             style={{ resize: 'vertical', minHeight: 80 }}
           />
-          <span className="text-xs text-muted">Minimum 3 characters. This will be recorded in the audit log.</span>
+          <span className="text-xs text-muted">Minimum 8 characters. This will be recorded in the audit log.</span>
         </div>
 
         <div className="flex justify-end gap-3">

@@ -26,15 +26,22 @@ class OrderSuccessScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(LucideIcons.checkCircle2, size: 80, color: FzColors.success),
+              const Icon(
+                LucideIcons.checkCircle2,
+                size: 80,
+                color: FzColors.success,
+              ),
               const SizedBox(height: 24),
               Text(
-                'Order Placed!',
-                style: FzTypography.display(size: 32, color: isDark ? FzColors.darkText : FzColors.lightText),
+                'Order received',
+                style: FzTypography.display(
+                  size: 32,
+                  color: isDark ? FzColors.darkText : FzColors.lightText,
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
-                'Your order has been sent to the kitchen. You can see the status in your order history.',
+                'Your order has been sent to the venue. Payment remains pending until staff confirm it.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: FzColors.lightMuted),
               ),
@@ -45,13 +52,24 @@ class OrderSuccessScreen extends ConsumerWidget {
                   return FzCard(
                     child: Column(
                       children: [
-                        Text('ORDER #${order.orderCode}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+                        Text(
+                          'ORDER #${order.orderCode}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                          ),
+                        ),
                         const Divider(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Total Paid'),
-                            Text(order.totalDisplay, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const Text('Total'),
+                            Text(
+                              order.totalDisplay,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                         if (order.paymentFetAmount > 0) ...[
@@ -60,7 +78,13 @@ class OrderSuccessScreen extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               const Text('Tokens Used'),
-                              Text('${order.paymentFetAmount} FET', style: const TextStyle(color: FzColors.success, fontWeight: FontWeight.bold)),
+                              Text(
+                                '${order.paymentFetAmount} FET',
+                                style: const TextStyle(
+                                  color: FzColors.success,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -75,14 +99,19 @@ class OrderSuccessScreen extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => context.go('/'),
+                  onPressed: () => context.go('/bar'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: FzColors.accent,
                     foregroundColor: FzColors.darkBg,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
-                  child: const Text('BACK TO HOME', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'BACK TO BAR',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],

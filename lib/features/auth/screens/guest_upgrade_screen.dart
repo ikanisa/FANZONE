@@ -262,7 +262,7 @@ class _GuestUpgradeScreenState extends ConsumerState<GuestUpgradeScreen> {
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 420),
                         child: Text(
-                          'Verify via WhatsApp to secure your guest account, keep your picks, and unlock the full FANZONE experience.',
+                          'Verify via WhatsApp to secure your guest account, keep your wallet, and unlock the full FANZONE experience.',
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: muted,

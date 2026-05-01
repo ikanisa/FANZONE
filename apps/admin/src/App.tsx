@@ -1,5 +1,5 @@
 // FANZONE Admin — App Router (with lazy-loaded heavy routes)
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AppShell } from './components/layout/AppShell';
 import { AuthGuard } from './features/auth/AuthGuard';
@@ -23,45 +23,41 @@ const DashboardPage = lazyPage(
   () => import('./features/dashboard/DashboardPage'),
   'DashboardPage',
 );
-const UsersPage = lazyPage(
-  () => import('./features/users/UsersPage'),
-  'UsersPage',
+const CountriesPage = lazyPage(
+  () => import('./features/countries/CountriesPage'),
+  'CountriesPage',
+);
+const VenuesPage = lazyPage(
+  () => import('./features/venues/VenuesPage'),
+  'VenuesPage',
 );
 const CompetitionsPage = lazyPage(
   () => import('./features/competitions/CompetitionsPage'),
   'CompetitionsPage',
 );
-const FixturesPage = lazyPage(
-  () => import('./features/fixtures/FixturesPage'),
-  'FixturesPage',
+const TeamsPage = lazyPage(
+  () => import('./features/teams/TeamsPage'),
+  'TeamsPage',
 );
-const PredictionsPage = lazyPage(
-  () => import('./features/predictions/PredictionsPage'),
-  'PredictionsPage',
+const MatchCurationPage = lazyPage(
+  () => import('./features/match-curation/MatchCurationPage'),
+  'MatchCurationPage',
+);
+const PoolOperationsPage = lazyPage(
+  () => import('./features/pool-operations/PoolOperationsPage'),
+  'PoolOperationsPage',
 );
 const WalletOversightPage = lazyPage(
   () => import('./features/wallets/WalletOversightPage'),
   'WalletOversightPage',
 );
+const RewardRulesPage = lazyPage(
+  () => import('./features/reward-rules/RewardRulesPage'),
+  'RewardRulesPage',
+);
 const ModerationPage = lazyPage(
   () => import('./features/moderation/ModerationPage'),
   'ModerationPage',
-);
-const SettingsPage = lazyPage(
-  () => import('./features/settings/SettingsPage'),
-  'SettingsPage',
-);
-const AdminAccessPage = lazyPage(
-  () => import('./features/admin-access/AdminAccessPage'),
-  'AdminAccessPage',
-);
-const AccountDeletionRequestsPage = lazyPage(
-  () => import('./features/account-deletions/AccountDeletionRequestsPage'),
-  'AccountDeletionRequestsPage',
-);
-const AnalyticsPage = lazyPage(
-  () => import('./features/analytics/AnalyticsPage'),
-  'AnalyticsPage',
 );
 const PlatformControlPage = lazyPage(
   () => import('./features/platform-control/PlatformControlPage'),
@@ -70,14 +66,6 @@ const PlatformControlPage = lazyPage(
 const AuditLogsPage = lazyPage(
   () => import('./features/audit-logs/AuditLogsPage'),
   'AuditLogsPage',
-);
-const TokenOpsPage = lazyPage(
-  () => import('./features/tokens/TokenOpsPage'),
-  'TokenOpsPage',
-);
-const HospitalityAuditPage = lazyPage(
-  () => import('./features/hospitality-audit/HospitalityAuditPage'),
-  'HospitalityAuditPage',
 );
 
 function LazyRoute({ children }: { children: React.ReactNode }) {
@@ -89,33 +77,32 @@ function ProtectedRoutes() {
     <AuthGuard>
       <Routes>
         <Route element={<AppShell />}>
-          {/* Overview */}
-          <Route path={ROUTES.DASHBOARD} element={<LazyRoute><DashboardPage /></LazyRoute>} />
-
-          {/* Platform */}
-          <Route path={ROUTES.USERS} element={<RoleGuard minRole="admin"><LazyRoute><UsersPage /></LazyRoute></RoleGuard>} />
+          <Route path={ROUTES.OVERVIEW} element={<LazyRoute><DashboardPage /></LazyRoute>} />
+          <Route path={ROUTES.COUNTRIES} element={<RoleGuard minRole="admin"><LazyRoute><CountriesPage /></LazyRoute></RoleGuard>} />
+          <Route path={ROUTES.VENUES} element={<RoleGuard minRole="admin"><LazyRoute><VenuesPage /></LazyRoute></RoleGuard>} />
           <Route path={ROUTES.COMPETITIONS} element={<RoleGuard minRole="admin"><LazyRoute><CompetitionsPage /></LazyRoute></RoleGuard>} />
-          <Route path={ROUTES.FIXTURES} element={<RoleGuard minRole="moderator"><LazyRoute><FixturesPage /></LazyRoute></RoleGuard>} />
-          <Route path={ROUTES.PREDICTIONS} element={<RoleGuard minRole="admin"><LazyRoute><PredictionsPage /></LazyRoute></RoleGuard>} />
-
-          {/* Finance */}
-          <Route path={ROUTES.TOKENS} element={<RoleGuard minRole="admin"><LazyRoute><TokenOpsPage /></LazyRoute></RoleGuard>} />
-          <Route path={ROUTES.WALLETS} element={<RoleGuard minRole="admin"><LazyRoute><WalletOversightPage /></LazyRoute></RoleGuard>} />
-
-          {/* Operations */}
-          <Route path={ROUTES.MODERATION} element={<RoleGuard minRole="moderator"><LazyRoute><ModerationPage /></LazyRoute></RoleGuard>} />
-          <Route path={ROUTES.HOSPITALITY_AUDIT} element={<RoleGuard minRole="admin"><LazyRoute><HospitalityAuditPage /></LazyRoute></RoleGuard>} />
-          <Route path={ROUTES.ANALYTICS} element={<RoleGuard minRole="viewer"><LazyRoute><AnalyticsPage /></LazyRoute></RoleGuard>} />
-          <Route path={ROUTES.ACCOUNT_DELETIONS} element={<RoleGuard minRole="admin"><LazyRoute><AccountDeletionRequestsPage /></LazyRoute></RoleGuard>} />
-
-          {/* System */}
-          <Route path={ROUTES.PLATFORM_CONTROL} element={<RoleGuard minRole="admin"><LazyRoute><PlatformControlPage /></LazyRoute></RoleGuard>} />
-          <Route path={ROUTES.SETTINGS} element={<RoleGuard minRole="super_admin"><LazyRoute><SettingsPage /></LazyRoute></RoleGuard>} />
-          <Route path={ROUTES.ADMIN_ACCESS} element={<RoleGuard minRole="super_admin"><LazyRoute><AdminAccessPage /></LazyRoute></RoleGuard>} />
+          <Route path={ROUTES.TEAMS} element={<RoleGuard minRole="admin"><LazyRoute><TeamsPage /></LazyRoute></RoleGuard>} />
+          <Route path={ROUTES.CURATED_MATCHES} element={<RoleGuard minRole="admin"><LazyRoute><MatchCurationPage /></LazyRoute></RoleGuard>} />
+          <Route path={ROUTES.POOLS} element={<RoleGuard minRole="admin"><LazyRoute><PoolOperationsPage /></LazyRoute></RoleGuard>} />
+          <Route path={ROUTES.FET_WALLETS} element={<RoleGuard minRole="admin"><LazyRoute><WalletOversightPage /></LazyRoute></RoleGuard>} />
+          <Route
+            path={ROUTES.SETTLEMENTS}
+            element={
+              <RoleGuard minRole="admin">
+                <LazyRoute>
+                  <PoolOperationsPage
+                    title="Settlements"
+                    subtitle="Pool settlement queue, failed settlements, and final result processing."
+                  />
+                </LazyRoute>
+              </RoleGuard>
+            }
+          />
+          <Route path={ROUTES.REWARD_RULES} element={<RoleGuard minRole="admin"><LazyRoute><RewardRulesPage /></LazyRoute></RoleGuard>} />
+          <Route path={ROUTES.RISK_ABUSE} element={<RoleGuard minRole="moderator"><LazyRoute><ModerationPage /></LazyRoute></RoleGuard>} />
+          <Route path={ROUTES.FEATURE_FLAGS} element={<RoleGuard minRole="admin"><LazyRoute><PlatformControlPage /></LazyRoute></RoleGuard>} />
           <Route path={ROUTES.AUDIT_LOGS} element={<RoleGuard minRole="admin"><LazyRoute><AuditLogsPage /></LazyRoute></RoleGuard>} />
-
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+          <Route path="*" element={<Navigate to={ROUTES.OVERVIEW} replace />} />
         </Route>
       </Routes>
     </AuthGuard>
@@ -128,7 +115,7 @@ export function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path={ROUTES.LOGIN} element={admin ? <Navigate to={ROUTES.DASHBOARD} replace /> : <LoginPage />} />
+        <Route path={ROUTES.LOGIN} element={admin ? <Navigate to={ROUTES.OVERVIEW} replace /> : <LoginPage />} />
         <Route path="/*" element={<ProtectedRoutes />} />
       </Routes>
     </BrowserRouter>

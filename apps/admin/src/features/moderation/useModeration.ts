@@ -1,5 +1,6 @@
 // FANZONE Admin — Moderation Data Hooks
 import {
+  useSupabaseRpc,
   useSupabasePaginated,
   useRpcMutation,
   type AdminListQuery,
@@ -31,4 +32,22 @@ export function useUpdateReportStatus() {
     invalidateKeys: [['reports'], ['dashboard-kpis'], ['dashboard-alerts']],
     successMessage: 'Report status updated.',
   });
+}
+
+export interface AdminRiskSignal {
+  signal_type: string;
+  severity: 'critical' | 'warning' | 'info' | string;
+  entity_type: string;
+  entity_id: string;
+  message: string;
+  created_at: string;
+  metadata: Record<string, unknown>;
+}
+
+export function useAdminRiskSignals(limit = 50) {
+  return useSupabaseRpc<AdminRiskSignal[]>(
+    ['admin-risk-signals', limit],
+    'admin_risk_signals',
+    { p_limit: limit },
+  );
 }

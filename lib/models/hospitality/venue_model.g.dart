@@ -39,6 +39,7 @@ _$VenueModelImpl _$$VenueModelImplFromJson(Map<String, dynamic> json) =>
           ) ??
           OnboardingStatus.draft,
       revolutLink: json['revolut_link'] as String?,
+      momoCode: json['momo_code'] as String?,
       whatsapp: json['whatsapp'] as String?,
       primaryCategory: json['primary_category'] as String?,
       rating: (json['rating'] as num?)?.toDouble(),
@@ -87,6 +88,7 @@ Map<String, dynamic> _$$VenueModelImplToJson(
   'is_active': instance.isActive,
   'onboarding_status': _$OnboardingStatusEnumMap[instance.onboardingStatus]!,
   'revolut_link': instance.revolutLink,
+  'momo_code': instance.momoCode,
   'whatsapp': instance.whatsapp,
   'primary_category': instance.primaryCategory,
   'rating': instance.rating,

@@ -4,6 +4,8 @@ import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/auth_and_user/wallet.dart';
 
 abstract interface class WalletGateway {
+  Future<WalletBalance> getWalletBalance(String userId);
+
   Future<int> getAvailableBalance(String userId);
 
   Future<void> transferByFanId(WalletTransferByFanIdDto request);
@@ -24,6 +26,55 @@ class WalletTransferByFanIdDto {
 
   final String fanId;
   final int amount;
+}
+
+class WalletBalance {
+  const WalletBalance({
+    required this.availableFet,
+    required this.stakedFet,
+    required this.pendingFet,
+    required this.spentFet,
+    required this.earnedFet,
+  });
+
+  const WalletBalance.empty()
+    : availableFet = 0,
+      stakedFet = 0,
+      pendingFet = 0,
+      spentFet = 0,
+      earnedFet = 0;
+
+  factory WalletBalance.fromJson(Map<String, dynamic> json) {
+    return WalletBalance(
+      availableFet: _intFromJson(json, const [
+        'available_fet',
+        'available_balance_fet',
+      ]),
+      stakedFet: _intFromJson(json, const ['staked_fet', 'staked_balance_fet']),
+      pendingFet: _intFromJson(json, const [
+        'pending_fet',
+        'pending_balance_fet',
+      ]),
+      spentFet: _intFromJson(json, const ['spent_fet']),
+      earnedFet: _intFromJson(json, const ['earned_fet']),
+    );
+  }
+
+  final int availableFet;
+  final int stakedFet;
+  final int pendingFet;
+  final int spentFet;
+  final int earnedFet;
+
+  static int _intFromJson(Map<String, dynamic> json, List<String> keys) {
+    for (final key in keys) {
+      final value = json[key];
+      if (value is num) return value.toInt();
+      final parsed = int.tryParse(value?.toString() ?? '');
+      if (parsed != null) return parsed;
+    }
+    return 0;
+  }
 }
 
 class CurrencyRateDto {
@@ -81,32 +132,39 @@ class SupabaseWalletGateway implements WalletGateway {
 
   final SupabaseConnection _connection;
   final Map<String, int> _localBalances = <String, int>{};
+  final Map<String, WalletBalance> _localWalletBalances =
+      <String, WalletBalance>{};
   final Map<String, List<WalletTransaction>> _localTransactions =
       <String, List<WalletTransaction>>{};
 
   @override
-  Future<int> getAvailableBalance(String userId) async {
+  Future<WalletBalance> getWalletBalance(String userId) async {
     final client = _connection.client;
     if (client == null) {
-      return _cachedBalanceOrThrow(userId);
+      return _cachedWalletBalanceOrThrow(userId);
     }
 
     try {
-      final row = await client
-          .from('fet_wallets')
-          .select('available_balance_fet')
-          .eq('user_id', userId)
-          .maybeSingle();
-      final balance = (row?['available_balance_fet'] as num?)?.toInt();
-      if (balance != null) {
-        _localBalances[userId] = balance;
-        return balance;
-      }
+      final response = await client.rpc(
+        'get_wallet_balance',
+        params: {'p_user_id': userId},
+      );
+      final balance = WalletBalance.fromJson(
+        Map<String, dynamic>.from(response as Map),
+      );
+      _localWalletBalances[userId] = balance;
+      _localBalances[userId] = balance.availableFet;
+      return balance;
     } catch (error) {
-      AppLogger.d('Failed to load wallet balance: $error');
+      AppLogger.d('Failed to load wallet state: $error');
     }
 
-    return _cachedBalanceOrThrow(userId);
+    return _cachedWalletBalanceOrThrow(userId);
+  }
+
+  @override
+  Future<int> getAvailableBalance(String userId) async {
+    return getWalletBalance(userId).then((balance) => balance.availableFet);
   }
 
   @override
@@ -156,6 +214,7 @@ class SupabaseWalletGateway implements WalletGateway {
           .limit(50);
       final transactions = (rows as List)
           .whereType<Map>()
+          .where(_isUserVisibleTransaction)
           .map(
             (row) => WalletTransaction(
               id: row['id']?.toString() ?? '',
@@ -333,9 +392,21 @@ class SupabaseWalletGateway implements WalletGateway {
     return _localBalances[userId] ?? 0;
   }
 
-  int _cachedBalanceOrThrow(String userId) {
-    if (_localBalances.containsKey(userId)) {
-      return _cachedBalance(userId);
+  WalletBalance _cachedWalletBalance(String userId) {
+    return _localWalletBalances[userId] ??
+        WalletBalance(
+          availableFet: _cachedBalance(userId),
+          stakedFet: 0,
+          pendingFet: 0,
+          spentFet: 0,
+          earnedFet: 0,
+        );
+  }
+
+  WalletBalance _cachedWalletBalanceOrThrow(String userId) {
+    if (_localWalletBalances.containsKey(userId) ||
+        _localBalances.containsKey(userId)) {
+      return _cachedWalletBalance(userId);
     }
     _throwUnavailable('Wallet');
   }
@@ -355,11 +426,32 @@ class SupabaseWalletGateway implements WalletGateway {
     throw StateError('$action is unavailable right now. Please try again.');
   }
 
-  String _transactionTypeFromRow(Map<String, dynamic> row) {
-    final type = row['tx_type']?.toString() ?? '';
+  bool _isUserVisibleTransaction(Map<dynamic, dynamic> row) {
+    final type =
+        row['transaction_type']?.toString() ?? row['tx_type']?.toString() ?? '';
     final direction = row['direction']?.toString() ?? '';
+    final bucket = row['balance_bucket']?.toString() ?? 'available';
+    if (type == 'pool_stake' && direction == 'credit' && bucket == 'staked') {
+      return false;
+    }
+    if (type == 'pool_win' && direction == 'debit' && bucket == 'pending') {
+      return false;
+    }
+    return true;
+  }
+
+  String _transactionTypeFromRow(Map<String, dynamic> row) {
+    final type =
+        row['transaction_type']?.toString() ?? row['tx_type']?.toString() ?? '';
+    final direction = row['direction']?.toString() ?? '';
+    final bucket = row['balance_bucket']?.toString() ?? 'available';
     if (type == 'transfer' && direction == 'debit') return 'transfer_sent';
     if (type == 'transfer' && direction == 'credit') return 'transfer_received';
+    if (type == 'pool_stake') return 'pool_stake';
+    if (type == 'order_spend') return 'order_spend';
+    if (type == 'order_earn' || type == 'welcome_credit') return type;
+    if (type == 'creator_reward') return 'creator_reward';
+    if (type == 'pool_win') return bucket == 'pending' ? 'pending' : 'pool_win';
     if (direction == 'credit') return 'earn';
     return 'spend';
   }

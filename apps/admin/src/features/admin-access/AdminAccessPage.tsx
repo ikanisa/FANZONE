@@ -174,7 +174,7 @@ export function AdminAccessPage() {
             },
             {
               role: "Moderator",
-              desc: "Can moderate content, prediction participation, and handle reports. No financial ops.",
+              desc: "Can moderate content, pool participation, and handle reports. No financial ops.",
               color: "var(--fz-secondary)",
             },
             {

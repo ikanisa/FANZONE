@@ -1,105 +1,240 @@
-import React from 'react';
-import { 
-  Clock, 
+import React, { useMemo, useState } from 'react';
+import {
   AlertCircle,
-  BellRing,
-  Loader2
+  CheckCircle2,
+  Clock3,
+  Loader2,
+  ReceiptText,
+  RefreshCcw,
+  XCircle,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import type { Order, OrderStatus, PaymentMethod, PaymentStatus } from '@fanzone/core';
+import { EmptyState } from '../../components/console/EmptyState';
+import { StatusChip } from '../../components/console/StatusChip';
+import { readableStatus } from '../../components/console/status';
+import { useVenue } from '../../hooks/useVenueContext';
 import { useOrders } from '../../hooks/useOrders';
-import type { Order, OrderStatus } from '@fanzone/core';
 
-type ColumnProps = {
-  title: string;
-  status: OrderStatus;
-  icon: React.ReactNode;
-  color: string;
-  orders: Order[];
-  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+const serviceStatuses: OrderStatus[] = ['placed', 'received', 'served', 'cancelled'];
+const paymentStatuses: PaymentStatus[] = ['unpaid', 'paid', 'partially_paid', 'refunded', 'disputed'];
+const paymentMethods: PaymentMethod[] = ['cash', 'momo', 'revolut'];
+
+type PaymentDraft = {
+  status: PaymentStatus;
+  method: PaymentMethod;
+  note: string;
 };
 
-const OrderColumn = ({ title, status, icon, color, orders, updateOrderStatus }: ColumnProps) => (
-  <div className="flex-1 min-w-[350px] flex flex-col h-full bg-surface3/30 rounded-[32px] border border-border overflow-hidden">
-    <div className="p-6 border-b border-border bg-white flex justify-between items-center">
-      <div className="flex items-center gap-3">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color} text-white`}>
-          {icon}
+function formatMoney(order: Order) {
+  return `${order.currencyCode} ${order.totalAmount.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function tableLabel(order: Order) {
+  return order.tableNumber || order.tableId.slice(0, 6).toUpperCase();
+}
+
+function ageLabel(date: string) {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(date).getTime()) / 60000));
+  if (minutes < 1) return 'now';
+  if (minutes < 60) return `${minutes}m`;
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+}
+
+function initialDraft(order: Order): PaymentDraft {
+  const status = paymentStatuses.includes(order.paymentStatus)
+    ? order.paymentStatus
+    : order.paymentStatus === 'pending'
+      ? 'unpaid'
+      : 'disputed';
+
+  return {
+    status,
+    method: order.paymentMethod,
+    note: '',
+  };
+}
+
+function OrderCard({
+  order,
+  draft,
+  busy,
+  onDraftChange,
+  onServiceStatus,
+  onPaymentStatus,
+}: {
+  order: Order;
+  draft: PaymentDraft;
+  busy: boolean;
+  onDraftChange: (next: PaymentDraft) => void;
+  onServiceStatus: (status: OrderStatus) => Promise<void>;
+  onPaymentStatus: (status: PaymentStatus) => Promise<void>;
+}) {
+  const canCancel = order.status !== 'cancelled' && order.status !== 'served';
+  const canServe = order.status === 'placed' || order.status === 'received';
+  const canReceive = order.status === 'placed';
+
+  return (
+    <article className="bg-white border border-border rounded-[24px] shadow-sm overflow-hidden">
+      <div className="p-5 border-b border-border flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-start gap-4 min-w-0">
+          <div className="w-14 h-14 bg-primary text-primaryText rounded-2xl flex items-center justify-center font-black text-lg shrink-0">
+            {tableLabel(order)}
+          </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-2xl font-black tracking-tight">#{order.orderCode}</h2>
+              <StatusChip status={order.status} />
+              <StatusChip status={draft.status} />
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-textSecondary font-bold mt-2">
+              <span>Table {tableLabel(order)}</span>
+              <span>{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              <span>{ageLabel(order.createdAt)}</span>
+            </div>
+          </div>
         </div>
-        <h3 className="font-black text-lg uppercase tracking-tight">{title}</h3>
+
+        <div className="lg:text-right">
+          <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Total</p>
+          <p className="text-2xl font-black text-text">{formatMoney(order)}</p>
+          <p className="text-xs font-bold text-textSecondary mt-1">
+            +{order.fetEarned.toLocaleString()} FET earned · {order.fetSpent.toLocaleString()} FET spent
+          </p>
+        </div>
       </div>
-      <span className="bg-surface2 px-3 py-1 rounded-full text-xs font-black">
-        {orders.filter((order) => order.status === status).length}
-      </span>
-    </div>
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
-      <AnimatePresence mode="popLayout">
-        {orders.filter((order) => order.status === status).map((order) => (
-          <motion.div
-            layout
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, x: 20 }}
-            key={order.id}
-            className="bg-white p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow group"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary text-primaryText rounded-xl flex items-center justify-center font-black text-sm">
-                  {order.tableId}
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Order</p>
-                  <h4 className="font-black text-lg leading-none">#{order.orderCode}</h4>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] font-bold text-textSecondary uppercase">
-                  {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
-                <p className="font-black text-primary">€{order.totalAmount.toFixed(2)}</p>
-              </div>
-            </div>
 
-            <div className="space-y-2 mb-6">
-              {order.items?.map((item, i) => (
-                <p key={i} className="text-sm font-medium text-text flex gap-2">
-                  <span className="text-primary opacity-30">•</span>
-                  {item.quantity}x {item.itemNameSnapshot}
-                </p>
-              ))}
-            </div>
+      <div className="p-5 grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
+        <div>
+          <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest mb-3">Items</p>
+          <div className="space-y-2">
+            {order.items?.length ? (
+              order.items.map((item) => (
+                <div key={item.id} className="flex justify-between gap-4 rounded-2xl bg-surface2 px-4 py-3">
+                  <span className="font-bold text-text">
+                    {item.quantity}x {item.itemNameSnapshot}
+                  </span>
+                  <span className="font-black text-textSecondary">
+                    {order.currencyCode} {item.lineTotal.toFixed(2)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl bg-surface2 px-4 py-3 text-sm font-bold text-textSecondary">
+                No items attached to this order record.
+              </div>
+            )}
+          </div>
+          {order.specialInstructions && (
+            <p className="mt-4 rounded-2xl border border-warning/20 bg-warning/10 px-4 py-3 text-sm font-bold text-text">
+              {order.specialInstructions}
+            </p>
+          )}
+        </div>
 
-            <div className="flex gap-2">
-              {order.status === 'placed' && (
-                <button
-                  onClick={() => updateOrderStatus(order.id, 'received')}
-                  className="flex-1 h-12 bg-primary text-primaryText font-black rounded-xl text-xs hover:opacity-90 active:scale-95 transition-all uppercase tracking-widest"
-                >
-                  Accept Order
-                </button>
-              )}
-              {order.status === 'received' && (
-                <button
-                  onClick={() => updateOrderStatus(order.id, 'served')}
-                  className="flex-1 h-12 bg-success text-white font-black rounded-xl text-xs hover:opacity-90 active:scale-95 transition-all uppercase tracking-widest"
-                >
-                  Mark Served
-                </button>
-              )}
-            </div>
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </div>
-  </div>
-);
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="space-y-2">
+              <span className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Payment</span>
+              <select
+                className="input"
+                value={draft.status}
+                onChange={(event) => onDraftChange({ ...draft, status: event.target.value as PaymentStatus })}
+              >
+                {paymentStatuses.map((status) => (
+                  <option key={status} value={status}>{readableStatus(status)}</option>
+                ))}
+              </select>
+            </label>
+            <label className="space-y-2">
+              <span className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Method</span>
+              <select
+                className="input"
+                value={draft.method}
+                onChange={(event) => onDraftChange({ ...draft, method: event.target.value as PaymentMethod })}
+              >
+                {paymentMethods.map((method) => (
+                  <option key={method} value={method}>{readableStatus(method)}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className="space-y-2 block">
+            <span className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Payment note</span>
+            <input
+              className="input"
+              value={draft.note}
+              maxLength={180}
+              placeholder="Receipt, USSD ref, Revolut note"
+              onChange={(event) => onDraftChange({ ...draft, note: event.target.value })}
+            />
+          </label>
+
+          <div className="grid grid-cols-2 gap-3">
+            {canReceive && (
+              <button className="btn btn-secondary" disabled={busy} onClick={() => onServiceStatus('received')}>
+                <Clock3 size={16} /> Received
+              </button>
+            )}
+            {canServe && (
+              <button className="btn btn-secondary" disabled={busy} onClick={() => onServiceStatus('served')}>
+                <CheckCircle2 size={16} /> Served
+              </button>
+            )}
+            {canCancel && (
+              <button className="btn bg-danger/10 text-danger border border-danger/20" disabled={busy} onClick={() => onServiceStatus('cancelled')}>
+                <XCircle size={16} /> Cancel
+              </button>
+            )}
+            <button className="btn btn-primary" disabled={busy} onClick={() => onPaymentStatus('paid')}>
+              <ReceiptText size={16} /> Mark Paid
+            </button>
+            <button className="btn btn-secondary col-span-2" disabled={busy} onClick={() => onPaymentStatus(draft.status)}>
+              Apply Payment Status
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export const LiveOrderQueuePage: React.FC = () => {
-  // In a real app, venueId comes from auth context
-  const venueId = 'v1'; 
-  const { orders, loading, error, updateOrderStatus } = useOrders(venueId);
+  const { venue } = useVenue();
+  const { orders, loading, error, refresh, updateOrderStatus, updatePaymentStatus } = useOrders(venue?.id || '');
+  const [drafts, setDrafts] = useState<Record<string, PaymentDraft>>({});
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  if (loading) {
+  const orderDrafts = useMemo(() => {
+    const next = { ...drafts };
+    for (const order of orders) {
+      if (!next[order.id]) next[order.id] = initialDraft(order);
+    }
+    return next;
+  }, [drafts, orders]);
+
+  const activeOrders = orders.filter((order) => order.status === 'placed' || order.status === 'received');
+  const counts = serviceStatuses.map((status) => ({
+    status,
+    count: orders.filter((order) => order.status === status).length,
+  }));
+
+  async function runAction(orderId: string, action: () => Promise<void>) {
+    setBusyId(orderId);
+    setActionError(null);
+    try {
+      await action();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Action failed.');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  if (loading && orders.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
         <Loader2 className="animate-spin text-primary" size={48} />
@@ -111,61 +246,68 @@ export const LiveOrderQueuePage: React.FC = () => {
     return (
       <div className="h-full flex flex-col items-center justify-center text-danger">
         <AlertCircle size={48} />
-        <p className="mt-4 font-bold">Failed to load live queue: {error}</p>
+        <p className="mt-4 font-bold">Failed to load orders: {error}</p>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col gap-8 max-w-[1400px] mx-auto">
-      <div className="flex justify-between items-end shrink-0">
+    <div className="space-y-6 max-w-[1500px] mx-auto">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter">Live Order Queue</h1>
-          <p className="text-textSecondary font-medium mt-1">Real-time KDS for your venue kitchen and staff.</p>
+          <h1 className="text-4xl font-black tracking-tighter">Orders</h1>
+          <p className="text-textSecondary font-medium mt-1">
+            Live queue with service status, manual payment state, and FET movement.
+          </p>
         </div>
-        <div className="flex items-center gap-4">
-           <div className="bg-white border border-border p-4 rounded-[24px] flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
-                 <span className="text-xs font-black uppercase tracking-widest">Kitchen Live</span>
-              </div>
-           </div>
-        </div>
+        <button type="button" className="btn btn-secondary w-fit" onClick={refresh} disabled={loading}>
+          <RefreshCcw size={16} className={loading ? 'animate-spin' : ''} />
+          Refresh
+        </button>
       </div>
 
-      <div className="flex-1 flex gap-6 overflow-x-auto no-scrollbar pb-4 min-h-0">
-        <OrderColumn
-          title="New Arrivals"
-          status="placed"
-          icon={<AlertCircle size={18} />}
-          color="bg-primary"
-          orders={orders}
-          updateOrderStatus={updateOrderStatus}
-        />
-        <OrderColumn
-          title="Preparing"
-          status="received"
-          icon={<Clock size={18} />}
-          color="bg-warning"
-          orders={orders}
-          updateOrderStatus={updateOrderStatus}
-        />
-
-        {/* Table Assistance Sidebar */}
-        <div className="w-80 flex flex-col h-full bg-white rounded-[32px] border border-border overflow-hidden">
-           <div className="p-6 border-b border-border flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-accent2 flex items-center justify-center text-white">
-                 <BellRing size={18} />
-              </div>
-              <h3 className="font-black text-lg uppercase tracking-tight">Assistance</h3>
-           </div>
-           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              <div className="bg-surface2 border border-border p-4 rounded-2xl text-center text-textSecondary text-sm font-medium">
-                 No active assistance requests.
-              </div>
-           </div>
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {counts.map(({ status, count }) => (
+          <div key={status} className="bg-white border border-border rounded-2xl p-4">
+            <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">{readableStatus(status)}</p>
+            <p className="text-3xl font-black mt-1">{count}</p>
+          </div>
+        ))}
       </div>
+
+      {actionError && (
+        <div className="bg-danger/10 border border-danger/20 text-danger rounded-2xl px-5 py-4 font-bold">
+          {actionError}
+        </div>
+      )}
+
+      {activeOrders.length === 0 && orders.length === 0 ? (
+        <EmptyState
+          icon={<ReceiptText size={34} />}
+          title="No orders in the last 24 hours"
+          message="New bar orders will appear here as soon as guests place them."
+        />
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => {
+            const draft = orderDrafts[order.id] ?? initialDraft(order);
+            return (
+              <OrderCard
+                key={order.id}
+                order={order}
+                draft={draft}
+                busy={busyId === order.id}
+                onDraftChange={(next) => setDrafts((current) => ({ ...current, [order.id]: next }))}
+                onServiceStatus={(status) => runAction(order.id, () => updateOrderStatus(order.id, status))}
+                onPaymentStatus={(status) => runAction(
+                  order.id,
+                  () => updatePaymentStatus(order.id, status, draft.method, draft.note),
+                )}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

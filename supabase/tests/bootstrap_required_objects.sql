@@ -1,7 +1,7 @@
 \pset tuples_only on
 \pset pager off
 
-\echo 'Verifying required Supabase bootstrap objects...'
+\echo 'Verifying required sports-bar platform objects...'
 
 DO $$
 DECLARE
@@ -16,29 +16,37 @@ BEGIN
       ('public.app_competitions'),
       ('public.app_config_remote'),
       ('public.competition_standings'),
+      ('public.curated_matches'),
       ('public.fet_supply_overview_admin'),
       ('public.fet_transactions_admin'),
       ('public.fet_wallet_transactions'),
       ('public.fet_wallets'),
-      ('public.match_prediction_consensus'),
-      ('public.otp_verifications'),
+      ('public.match_pool_camps'),
+      ('public.match_pool_entries'),
+      ('public.match_pool_invites'),
+      ('public.match_pool_settlements'),
+      ('public.match_pool_stats'),
+      ('public.match_pools'),
+      ('public.menu_categories'),
+      ('public.menu_items'),
+      ('public.orders'),
+      ('public.payment_events'),
       ('public.platform_content_blocks'),
       ('public.platform_feature_channels'),
       ('public.platform_feature_rules'),
       ('public.platform_features'),
-      ('public.predictions_engine_outputs'),
+      ('public.pool_operation_audit_logs'),
       ('public.profiles'),
-      ('public.public_leaderboard'),
       ('public.seasons'),
       ('public.standings'),
       ('public.teams'),
       ('public.team_aliases'),
       ('public.team_form_features'),
-      ('public.token_rewards'),
       ('public.user_favorite_teams'),
-      ('public.user_predictions'),
-      ('public.whatsapp_auth_sessions'),
-      ('public.user_followed_competitions')
+      ('public.user_followed_competitions'),
+      ('public.venues'),
+      ('public.venue_users'),
+      ('public.whatsapp_auth_sessions')
   ) AS expected(required_name)
   WHERE to_regclass(expected.required_name) IS NULL;
 
@@ -50,22 +58,39 @@ BEGIN
   INTO missing_functions
   FROM (
     VALUES
-      ('public.admin_trigger_currency_rate_refresh()'),
-      ('public.generate_predictions_for_upcoming_matches(integer)'),
-      ('public.generate_predictions_for_matches(text[],integer,text,boolean)'),
-      ('public.generate_team_form_features_for_matches(text[],integer)'),
-      ('public.find_auth_user_by_phone(text)'),
+      ('public.create_pool(text,text,uuid,uuid,text,bigint,bigint,bigint,jsonb,boolean)'),
+      ('public.create_match_pool(text,public.match_pool_scope,text,uuid,text,bigint,bigint,bigint,boolean)'),
+      ('public.join_pool(uuid,uuid,bigint,text,text)'),
+      ('public.join_match_pool(uuid,uuid,bigint,text)'),
+      ('public.stake_fet(uuid,uuid,bigint,text,text)'),
+      ('public.settle_match_pool(uuid)'),
+      ('public.settle_finished_match_pools(integer)'),
+      ('public.create_match_pool_invite(uuid,timestamp with time zone)'),
+      ('public.get_public_pool_share(text,text,text)'),
+      ('public.create_venue_official_match_pool(uuid,text,text,bigint,bigint,bigint,bigint)'),
+      ('public.get_my_pools(integer)'),
+      ('public.get_match_pool_social_card_payload(uuid)'),
+      ('public.pool_state_transition_allowed(public.match_pool_status,public.match_pool_status)'),
+      ('public.venue_endorse_pool(uuid,uuid)'),
+      ('public.venue_reject_pool(uuid,uuid,text)'),
+      ('public.get_wallet_balance(uuid)'),
+      ('public.reconcile_fet_wallet(uuid)'),
+      ('public.credit_welcome_fet(uuid,text)'),
+      ('public.credit_fet_for_order(uuid,text)'),
+      ('public.spend_fet_on_order(uuid,bigint,text)'),
+      ('public.admin_adjust_fet(uuid,bigint,text,text,text)'),
+      ('public.get_venue_fet_reward_config(uuid)'),
+      ('public.get_venue_fet_reward_summary(uuid)'),
+      ('public.update_venue_fet_reward_config(uuid,numeric,text,boolean,numeric)'),
+      ('public.admin_pool_operations_kpis()'),
+      ('public.admin_pool_operations_queue(integer)'),
+      ('public.admin_run_pool_settlement(integer)'),
       ('public.get_app_bootstrap_config(text,text)'),
       ('public.assert_platform_feature_available(text,text)'),
       ('public.current_user_platform_roles()'),
-      ('public.is_service_role_request()'),
       ('public.platform_feature_config_version()'),
-      ('public.platform_roles_allow_access(jsonb,jsonb)'),
-      ('public.request_platform_channel()'),
       ('public.resolve_platform_feature(text,text,boolean,timestamp with time zone)'),
       ('public.require_active_admin_user()'),
-      ('public.score_finished_matches_with_pending_predictions(integer)'),
-      ('public.submit_user_prediction(text,text,boolean,boolean,integer,integer)'),
       ('public.resolve_auth_user_phone(uuid)')
   ) AS expected(required_signature)
   WHERE to_regprocedure(expected.required_signature) IS NULL;
@@ -76,4 +101,4 @@ BEGIN
 END;
 $$;
 
-\echo 'Required bootstrap objects verified'
+\echo 'Required sports-bar platform objects verified'

@@ -19,7 +19,7 @@ abstract interface class MatchListingGateway {
 
   Stream<List<MatchModel>> watchUpcomingMatches();
 
-  /// Watches currently live matches from the lean `app_matches` projection.
+  /// Watches currently live matches from the curated sports-bar projection.
   Stream<List<MatchModel>> watchLiveMatches();
 }
 
@@ -29,9 +29,16 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
   final SupabaseConnection _connection;
 
   static const _matchCacheTtl = Duration(minutes: 5);
+  static const _curatedMatchesView = 'curated_active_matches';
+  static const _curatedMatchesRpc = 'get_curated_matches';
 
-  String _dateCacheKey(String dateFrom, String dateTo) =>
-      'matches:$dateFrom:$dateTo';
+  String _dateCacheKey(
+    String dateFrom,
+    String dateTo, {
+    String? countryCode,
+    String? venueId,
+  }) =>
+      'matches|$dateFrom|$dateTo|${countryCode ?? 'global'}|${venueId ?? 'any'}';
 
   Never _throwUnavailable(String operation) {
     throw SportsDataUnavailableException(
@@ -66,7 +73,12 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
     if (useSWR) {
       try {
-        final cacheKey = _dateCacheKey(filter.dateFrom!, filter.dateTo!);
+        final cacheKey = _dateCacheKey(
+          filter.dateFrom!,
+          filter.dateTo!,
+          countryCode: filter.countryCode,
+          venueId: filter.venueId,
+        );
         final cachedRows = await StaleWhileRevalidateCache.list(
           cacheKey: cacheKey,
           ttl: _matchCacheTtl,
@@ -157,33 +169,19 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
       case 'scheduled':
       case 'not_started':
       case 'pending':
-        return 'upcoming';
+      case 'upcoming':
+        return 'scheduled';
       case 'in_play':
       case 'in_progress':
         return 'live';
+      case 'final':
       case 'complete':
       case 'completed':
       case 'full_time':
-        return 'finished';
-      default:
-        return value.isEmpty ? 'upcoming' : value;
-    }
-  }
-
-  List<String>? _statusValues(String? status) {
-    final value = status?.trim().toLowerCase();
-    if (value == null || value.isEmpty) return null;
-
-    switch (value) {
-      case 'live':
-        return const ['live', 'in_play', 'in_progress', 'playing'];
       case 'finished':
-        return const ['finished', 'complete', 'completed', 'full_time', 'ft'];
-      case 'upcoming':
-      case 'scheduled':
-        return const ['scheduled', 'not_started', 'pending', 'upcoming'];
+        return 'final';
       default:
-        return [value];
+        return value.isEmpty ? 'scheduled' : value;
     }
   }
 
@@ -198,7 +196,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
     try {
       final rows = await client
-          .from('app_matches')
+          .from(_curatedMatchesView)
           .select()
           .eq('competition_id', competitionId)
           .order('date', ascending: false)
@@ -224,7 +222,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
     try {
       final rows = await client
-          .from('app_matches')
+          .from(_curatedMatchesView)
           .select()
           .or('home_team_id.eq.$teamId,away_team_id.eq.$teamId')
           .order('date', ascending: false)
@@ -244,30 +242,17 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     MatchesFilter filter,
   ) async {
     final client = _connection.client!;
-    var query = client.from('app_matches').select();
-    if (filter.competitionId != null && filter.competitionId!.isNotEmpty) {
-      query = query.eq('competition_id', filter.competitionId!);
-    }
-    if (filter.teamId != null && filter.teamId!.isNotEmpty) {
-      query = query.or(
-        'home_team_id.eq.${filter.teamId},away_team_id.eq.${filter.teamId}',
-      );
-    }
-    final statusValues = _statusValues(filter.status);
-    if (statusValues != null) {
-      query = query.inFilter('status', statusValues);
-    }
-    if (filter.dateFrom != null && filter.dateFrom!.isNotEmpty) {
-      query = query.gte('date', filter.dateFrom!);
-    }
-    if (filter.dateTo != null && filter.dateTo!.isNotEmpty) {
-      query = query.lte('date', filter.dateTo!);
-    }
-
-    final rows = await query
-        .order('date', ascending: filter.ascending)
-        .order('kickoff_time', ascending: filter.ascending)
-        .limit(filter.limit);
+    final params = <String, dynamic>{
+      'p_country_code': filter.countryCode,
+      'p_venue_id': filter.venueId,
+      'p_date_from': filter.dateFrom,
+      'p_date_to': filter.dateTo,
+      'p_status': filter.status,
+      'p_competition_id': filter.competitionId,
+      'p_team_id': filter.teamId,
+      'p_limit': filter.limit,
+    };
+    final rows = await client.rpc(_curatedMatchesRpc, params: params);
 
     return (rows as List)
         .whereType<Map>()
@@ -285,7 +270,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
 
       try {
         final row = await client
-            .from('app_matches')
+            .from(_curatedMatchesView)
             .select()
             .eq('id', matchId)
             .maybeSingle();
@@ -353,7 +338,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
       ttl: _matchCacheTtl,
       fetch: (key) {
         // Parse dates back from the cache key
-        final parts = key.split(':');
+        final parts = key.split('|');
         if (parts.length < 3) return Future.value([]);
         return _fetchMatchRows(
           MatchesFilter(
@@ -386,7 +371,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     return pollMatchStream<List<MatchModel>>(
       () => getMatches(
         MatchesFilter(
-          status: 'upcoming',
+          status: 'scheduled',
           dateFrom: DateTime.now().toIso8601String(),
           limit: 200,
           ascending: true,

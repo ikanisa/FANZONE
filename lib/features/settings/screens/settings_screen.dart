@@ -99,7 +99,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         context,
                         title: 'Verify WhatsApp',
                         message:
-                            'Verify your number to manage notifications, save predictions, and send FET.',
+                            'Verify your number to manage notifications, join pools, and send FET.',
                         from: '/settings',
                       ),
                       child: const Text('Verify now'),
@@ -125,12 +125,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const _Divider(),
                       _SettingsToggle(
                         icon: LucideIcons.shield,
-                        label: 'Prediction Updates',
-                        value: prefs.predictionUpdates,
+                        label: 'Pool Updates',
+                        value: prefs.poolUpdates,
                         muted: muted,
                         textColor: textColor,
                         onChanged: (value) => _updatePrefs(
-                          prefs.copyWith(predictionUpdates: value),
+                          prefs.copyWith(poolUpdates: value),
                         ),
                       ),
                       const _Divider(),

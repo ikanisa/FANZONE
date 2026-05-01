@@ -1,10 +1,10 @@
 🎉 Welcome to FANZONE v1.0!
 
-• Live match predictions with FET token rewards
-• Free football picks with lean prediction flows
-• Malta Premier League + top European leagues
-• FET Wallet with transfer and redemption
-• Fan ID and team community features
-• Real-time scores and match insights
-• Partner marketplace for FET redemptions
+• Venue QR ordering and bar menu browsing
+• Match pools with FET wallet settlement
+• Major European competitions and curated football moments
+• FET wallet with transfer history
+• Fan ID and favorite-team setup
+• Real-time scores and match context
+• Off-platform payment handoff for venues
 • Dark premium UI built for match-day viewing

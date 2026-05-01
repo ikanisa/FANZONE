@@ -481,7 +481,7 @@ class _$MatchModelImpl extends _MatchModel {
     @JsonKey(name: 'away_team') required this.awayTeam,
     @JsonKey(name: 'ft_home') this.ftHome,
     @JsonKey(name: 'ft_away') this.ftAway,
-    this.status = 'upcoming',
+    this.status = 'scheduled',
     @JsonKey(name: 'live_minute') this.liveMinute,
     @JsonKey(name: 'result_code') this.resultCode,
     @JsonKey(name: 'is_neutral') this.isNeutral = false,

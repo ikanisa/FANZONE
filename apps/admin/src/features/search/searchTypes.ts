@@ -1,8 +1,11 @@
 export type SearchResultType =
   | 'user'
+  | 'venue'
+  | 'country'
   | 'competition'
+  | 'team'
   | 'fixture'
-  | 'prediction'
+  | 'pool'
   | 'wallet';
 
 export interface SearchResult {
@@ -14,9 +17,12 @@ export interface SearchResult {
 }
 
 export const TYPE_ICONS: Record<SearchResultType, string> = {
-  user: '👤',
-  competition: '🏆',
-  fixture: '⚽',
-  prediction: '🎯',
-  wallet: '👛',
+  user: 'Wallet User',
+  venue: 'Venue',
+  country: 'Country',
+  competition: 'Competition',
+  team: 'Team',
+  fixture: 'Match',
+  pool: 'Pool',
+  wallet: 'Wallet',
 };

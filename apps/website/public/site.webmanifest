@@ -1,7 +1,7 @@
 {
   "name": "FANZONE",
   "short_name": "FANZONE",
-  "description": "Free football predictions, competition tracking, and the FANZONE FET wallet.",
+  "description": "Sports-bar match pools, venue ordering, and the FANZONE FET wallet.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090B",

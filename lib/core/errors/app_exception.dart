@@ -24,7 +24,6 @@ Failure mapExceptionToFailure(Object error, [StackTrace? stack]) {
       message.contains('not found or inactive') ||
       message.contains('no longer open') ||
       message.contains('already joined') ||
-      message.contains('already submitted a prediction') ||
       message.contains('out of stock')) {
     return BusinessRuleFailure(message: _extractRpcMessage(message));
   }

@@ -11,19 +11,13 @@ import 'package:fanzone/core/config/bootstrap_config.dart';
 import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/features/auth/data/auth_gateway.dart';
 import 'package:fanzone/features/auth/screens/whatsapp_login_screen.dart';
-import 'package:fanzone/features/predict/data/prediction_hub_gateway.dart';
-import 'package:fanzone/features/predict/widgets/prediction_entry_sheet.dart';
+import 'package:fanzone/features/pools/screens/pools_screen.dart';
 import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
-import 'package:fanzone/models/sports/match_model.dart';
-import 'package:fanzone/models/sports/prediction_engine_output_model.dart';
-import 'package:fanzone/models/sports/team_form_feature_model.dart';
-import 'package:fanzone/models/auth_and_user/user_prediction_model.dart';
 import 'package:fanzone/providers/auth_provider.dart';
 import 'package:fanzone/providers/currency_provider.dart';
 import 'package:fanzone/providers/market_preferences_provider.dart';
 import 'package:fanzone/services/auth_service.dart';
-import 'package:fanzone/services/prediction_service.dart';
 import 'package:fanzone/services/wallet_service.dart';
 import 'package:fanzone/theme/app_theme.dart';
 
@@ -64,80 +58,6 @@ void main() {
       await tester.pump();
     });
 
-    testWidgets('prediction entry flow submits a free pick and shows success', (
-      tester,
-    ) async {
-      final gateway = _RecordingPredictionHubGateway();
-      final match = sampleMatch();
-      final engine = PredictionEngineOutputModel(
-        id: 'engine_1',
-        matchId: match.id,
-        modelVersion: 'simple_form_v1',
-        homeWinScore: 0.56,
-        drawScore: 0.24,
-        awayWinScore: 0.20,
-        over25Score: 0.61,
-        bttsScore: 0.57,
-        predictedHomeGoals: 2,
-        predictedAwayGoals: 1,
-        confidenceLabel: 'medium',
-        generatedAt: DateTime(2026, 4, 19, 12),
-      );
-
-      await pumpAppScreen(
-        tester,
-        Builder(
-          builder: (context) => Scaffold(
-            body: Center(
-              child: ElevatedButton(
-                onPressed: () => showPredictionEntrySheet(
-                  context,
-                  match: match,
-                  engineOutput: engine,
-                ),
-                child: const Text('Open prediction entry'),
-              ),
-            ),
-          ),
-        ),
-        overrides: [
-          predictionServiceProvider.overrideWithValue(
-            PredictionService(gateway),
-          ),
-          isFullyAuthenticatedProvider.overrideWith((ref) => true),
-        ],
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Open prediction entry'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Your Pick'), findsOneWidget);
-      expect(find.text('Test Club A vs Test Club B'), findsOneWidget);
-
-      await tester.tap(find.text('Draw'));
-      await tester.pump();
-      await tester.tap(find.byType(Switch).at(0));
-      await tester.tap(find.byType(Switch).at(1));
-      await tester.pump();
-      await tester.tap(find.byIcon(Icons.add_rounded).first);
-      await tester.tap(find.byIcon(Icons.add_rounded).last);
-      await tester.pump();
-
-      await tester.tap(find.text('Save prediction'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(gateway.submissions, hasLength(1));
-      expect(gateway.submissions.single.matchId, match.id);
-      expect(gateway.submissions.single.predictedResultCode, 'D');
-      expect(gateway.submissions.single.predictedOver25, true);
-      expect(gateway.submissions.single.predictedBtts, true);
-      expect(gateway.submissions.single.predictedHomeGoals, 3);
-      expect(gateway.submissions.single.predictedAwayGoals, 2);
-      expect(find.text('Prediction saved.'), findsOneWidget);
-    });
-
     testWidgets('wallet transfer flow submits recipient and amount', (
       tester,
     ) async {
@@ -164,7 +84,7 @@ void main() {
       expect(find.text('Spent'), findsOneWidget);
       expect(
         find.text(
-          'Wallet activity now covers transfers and lean prediction rewards only.',
+          'Wallet activity covers available FET, staked FET, spent FET, earned FET, and pending pool settlements.',
         ),
         findsOneWidget,
       );
@@ -225,56 +145,45 @@ void main() {
       expect(find.text('Confirm Transfer'), findsNothing);
     });
 
-    testWidgets('guest prediction entry routes to the sign-in requirement', (
+    testWidgets('guest pool join routes to the sign-in requirement', (
       tester,
     ) async {
-      final match = sampleMatch();
+      const pool = PoolSummary(
+        id: 'pool_1',
+        title: 'Derby pool',
+        status: 'open',
+        scope: 'venue',
+        isOfficial: true,
+        totalMembers: 12,
+        totalStakedFet: 120,
+        entryFeeFet: 10,
+        camps: [
+          PoolCamp(
+            id: 'camp_home',
+            label: 'Test Club A',
+            memberCount: 7,
+            totalStakedFet: 70,
+          ),
+        ],
+      );
 
       await pumpAppScreen(
         tester,
-        Builder(
-          builder: (context) => Scaffold(
-            body: Center(
-              child: ElevatedButton(
-                onPressed: () => showPredictionEntrySheet(
-                  context,
-                  match: match,
-                  engineOutput: PredictionEngineOutputModel(
-                    id: 'engine_guest',
-                    matchId: match.id,
-                    modelVersion: 'simple_form_v1',
-                    homeWinScore: 0.48,
-                    drawScore: 0.27,
-                    awayWinScore: 0.25,
-                    over25Score: 0.52,
-                    bttsScore: 0.51,
-                    predictedHomeGoals: 1,
-                    predictedAwayGoals: 1,
-                    confidenceLabel: 'low',
-                    generatedAt: DateTime(2026, 4, 19, 12),
-                  ),
-                ),
-                child: const Text('Open prediction entry'),
-              ),
-            ),
-          ),
-        ),
-        overrides: [isFullyAuthenticatedProvider.overrideWith((ref) => false)],
+        const PoolsScreen(),
+        overrides: [
+          poolsProvider.overrideWith((ref) async => const [pool]),
+          isFullyAuthenticatedProvider.overrideWith((ref) => false),
+        ],
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Open prediction entry'));
+      await tester.tap(find.text('Test Club A'));
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.text('Save prediction'));
-      await tester.tap(find.text('Save prediction'));
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      expect(find.text('Sign in to save your pick'), findsOneWidget);
+      expect(find.text('Verify WhatsApp to join pools'), findsOneWidget);
       expect(
         find.text(
-          'Create a free account to lock predictions, earn rewards, and track your record.',
+          'Verify your WhatsApp number before staking FET into a match pool.',
         ),
         findsOneWidget,
       );
@@ -433,47 +342,6 @@ class _FakeAuthGateway implements AuthGateway {
     String anonId,
     String claimToken,
   ) async {}
-}
-
-class _RecordingPredictionHubGateway implements PredictionHubGateway {
-  final List<PredictionSubmissionRequest> submissions =
-      <PredictionSubmissionRequest>[];
-
-  @override
-  Future<PredictionEngineOutputModel?> getEngineOutput(String matchId) async =>
-      null;
-
-  @override
-  Future<Map<String, PredictionEngineOutputModel>> getEngineOutputsForMatches(
-    Iterable<String> matchIds,
-  ) async => const <String, PredictionEngineOutputModel>{};
-
-  @override
-  Future<List<TeamFormFeatureModel>> getMatchFormFeatures(
-    String matchId,
-  ) async => const <TeamFormFeatureModel>[];
-
-  @override
-  Future<UserPredictionModel?> getMyPredictionForMatch(
-    String userId,
-    String matchId,
-  ) async => null;
-
-  @override
-  Future<List<UserPredictionModel>> getMyPredictions(
-    String userId, {
-    int limit = 100,
-  }) async => const <UserPredictionModel>[];
-
-  @override
-  Future<Map<String, MatchModel>> getMatchesByIds(
-    Iterable<String> matchIds,
-  ) async => const <String, MatchModel>{};
-
-  @override
-  Future<void> submitPrediction(PredictionSubmissionRequest request) async {
-    submissions.add(request);
-  }
 }
 
 class _RecordingWalletService extends FakeWalletService {

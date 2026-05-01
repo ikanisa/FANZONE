@@ -42,7 +42,7 @@ class OrderPlacementState {
 /// Manages the order placement lifecycle.
 class OrderPlacementNotifier extends StateNotifier<OrderPlacementState> {
   OrderPlacementNotifier(this._orderGateway, this._cartNotifier)
-      : super(OrderPlacementState.idle);
+    : super(OrderPlacementState.idle);
 
   final OrderGateway _orderGateway;
   final CartNotifier _cartNotifier;
@@ -74,20 +74,25 @@ class OrderPlacementNotifier extends StateNotifier<OrderPlacementState> {
         items: cart.items.map((item) => item.toOrderItemDto()).toList(),
         specialInstructions: cart.specialInstructions,
         tipAmount: cart.tipAmount,
-        paymentFetAmount: cart.appliedFet,
-        paymentFetConvertedAmount: cart.discountFromFet,
+        paymentFetAmount: 0,
+        paymentFetConvertedAmount: 0,
       );
 
       final order = await _orderGateway.placeOrder(dto);
 
       // Track telemetry
-      unawaited(AppTelemetry.trackEvent('order_placed', metadata: {
-        'order_id': order.id,
-        'venue_id': order.venueId,
-        'total_amount': order.totalAmount,
-        'currency': order.currencyCode,
-        'tokens_used': order.paymentFetAmount,
-      }));
+      unawaited(
+        AppTelemetry.trackEvent(
+          'order_placed',
+          metadata: {
+            'order_id': order.id,
+            'venue_id': order.venueId,
+            'total_amount': order.totalAmount,
+            'currency': order.currencyCode,
+            'tokens_used': order.paymentFetAmount,
+          },
+        ),
+      );
 
       // Clear the cart after successful order placement
       _cartNotifier.clear();
@@ -115,32 +120,32 @@ class OrderPlacementNotifier extends StateNotifier<OrderPlacementState> {
 
 final orderPlacementProvider =
     StateNotifierProvider<OrderPlacementNotifier, OrderPlacementState>((ref) {
-  return OrderPlacementNotifier(
-    ref.watch(orderGatewayProvider),
-    ref.watch(cartProvider.notifier),
-  );
-});
+      return OrderPlacementNotifier(
+        ref.watch(orderGatewayProvider),
+        ref.watch(cartProvider.notifier),
+      );
+    });
 
 // ═══════════════════════════════════════════════════════════
 // ORDER TRACKING
 // ═══════════════════════════════════════════════════════════
 
 /// Fetch a single order by ID (with items).
-final orderDetailProvider =
-    FutureProvider.autoDispose.family<OrderModel?, String>((ref, orderId) {
-  final gateway = ref.watch(orderGatewayProvider);
-  return gateway.getOrder(orderId);
-});
+final orderDetailProvider = FutureProvider.autoDispose
+    .family<OrderModel?, String>((ref, orderId) {
+      final gateway = ref.watch(orderGatewayProvider);
+      return gateway.getOrder(orderId);
+    });
 
 // ═══════════════════════════════════════════════════════════
 // ORDER HISTORY
 // ═══════════════════════════════════════════════════════════
 
 /// Fetch the current user's order history.
-final orderHistoryProvider =
-    FutureProvider.autoDispose<List<OrderModel>>((ref) async {
-  final client =
-      ref.watch(supabaseConnectionProvider).client;
+final orderHistoryProvider = FutureProvider.autoDispose<List<OrderModel>>((
+  ref,
+) async {
+  final client = ref.watch(supabaseConnectionProvider).client;
   if (client == null) return const [];
 
   final userId = client.auth.currentUser?.id;
@@ -155,8 +160,9 @@ final orderHistoryProvider =
 // ═══════════════════════════════════════════════════════════
 
 /// Active orders for the current user (placed or received, not yet served).
-final activeOrdersProvider =
-    FutureProvider.autoDispose<List<OrderModel>>((ref) async {
+final activeOrdersProvider = FutureProvider.autoDispose<List<OrderModel>>((
+  ref,
+) async {
   final orders = await ref.watch(orderHistoryProvider.future);
   return orders.where((o) => o.status.isActive).toList();
 });
@@ -169,7 +175,9 @@ Future<OrderModel?> placeOrderFromContext(
   final context = ref.read(venueContextProvider);
   if (!context.hasVenue || !context.hasTable) return Future.value(null);
 
-  return ref.read(orderPlacementProvider.notifier).placeOrder(
+  return ref
+      .read(orderPlacementProvider.notifier)
+      .placeOrder(
         venueId: context.venueId!,
         tableId: context.tableId!,
         paymentMethod: paymentMethod,

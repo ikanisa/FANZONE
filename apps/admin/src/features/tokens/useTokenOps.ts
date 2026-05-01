@@ -28,6 +28,14 @@ interface FetSupplyOverviewRow {
   total_supply: number | null;
 }
 
+const rewardCreditTypes = [
+  'wallet_welcome_bonus',
+  'foundation_grant',
+  'order_earn',
+  'match_pool_settlement',
+  'pool_creator_reward',
+] as const;
+
 /* ── Hooks ── */
 export function useTokenTransactions(pagination: PaginationOpts, filters?: { search?: string; type?: string }) {
   return useSupabasePaginated<WalletTransaction>(['token-transactions', filters], 'fet_transactions_admin', {
@@ -57,9 +65,10 @@ export function useFetSupply() {
       const [overviewRes, rewardedRes, transferredRes] = await Promise.all([
         supabase.from('fet_supply_overview_admin').select('*').single(),
         supabase
-          .from('token_rewards')
-          .select('token_amount')
-          .eq('status', 'awarded'),
+          .from('fet_transactions_admin')
+          .select('amount_fet')
+          .eq('direction', 'credit')
+          .in('tx_type', [...rewardCreditTypes]),
         supabase
           .from('fet_transactions_admin')
           .select('amount_fet')
@@ -69,11 +78,11 @@ export function useFetSupply() {
       ]);
 
       if (overviewRes.error) throw new Error(overviewRes.error.message);
+      if (rewardedRes.error) throw new Error(rewardedRes.error.message);
+      if (transferredRes.error) throw new Error(transferredRes.error.message);
 
       const overview = overviewRes.data as FetSupplyOverviewRow;
-      const rewardedRows = ((rewardedRes.data ?? []) as Array<{
-        token_amount?: number | null;
-      }>).map((row) => ({ amount_fet: row.token_amount ?? 0 }));
+      const rewardedRows = (rewardedRes.data ?? []) as AmountRow[];
       const transferredRows = (transferredRes.data ?? []) as AmountRow[];
       const totalRewarded = rewardedRows.reduce(
         (sum, row) => sum + (row.amount_fet ?? 0),

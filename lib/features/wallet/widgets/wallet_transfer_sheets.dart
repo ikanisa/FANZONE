@@ -64,7 +64,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
 
     final myFanId = ref.read(userFanIdProvider).valueOrNull;
     if (myFanId != null && myFanId == fanId) {
-      setState(() => _error = 'You cannot transfer tokens to yourself.');
+      setState(() => _error = 'You cannot transfer FET to yourself.');
       return;
     }
 
@@ -202,7 +202,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Send tokens to other fans instantly.',
+                            'Send FET to other fans instantly.',
                             style: TextStyle(fontSize: 14, color: muted),
                           ),
                         ],
@@ -504,7 +504,7 @@ class ReceiveFetSheet extends ConsumerWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Share your Fan ID so other fans can send you tokens.',
+                'Share your Fan ID so other fans can send you FET.',
                 style: TextStyle(fontSize: 12, color: muted),
               ),
               const SizedBox(height: 18),

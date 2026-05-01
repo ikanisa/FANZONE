@@ -24,6 +24,8 @@ final homeFeedMatchesProvider = FutureProvider.family
         defaultHomeTeams: defaultHomeTeams,
         favoriteTeams: favoriteTeams,
         overrides: overrides,
+        includeAllCurated: true,
+        preserveInputOrder: true,
       );
 
       if (primarySelection.liveMatches.isNotEmpty ||

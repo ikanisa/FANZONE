@@ -3,6 +3,8 @@ class MatchesFilter {
     this.competitionId,
     this.status,
     this.teamId,
+    this.countryCode,
+    this.venueId,
     this.dateFrom,
     this.dateTo,
     this.limit = 100,
@@ -12,6 +14,8 @@ class MatchesFilter {
   final String? competitionId;
   final String? status;
   final String? teamId;
+  final String? countryCode;
+  final String? venueId;
   final String? dateFrom;
   final String? dateTo;
   final int limit;
@@ -25,6 +29,8 @@ class MatchesFilter {
             competitionId == other.competitionId &&
             status == other.status &&
             teamId == other.teamId &&
+            countryCode == other.countryCode &&
+            venueId == other.venueId &&
             dateFrom == other.dateFrom &&
             dateTo == other.dateTo &&
             limit == other.limit &&
@@ -36,6 +42,8 @@ class MatchesFilter {
     competitionId,
     status,
     teamId,
+    countryCode,
+    venueId,
     dateFrom,
     dateTo,
     limit,

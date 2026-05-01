@@ -23,6 +23,18 @@ function getConfiguredBlocks() {
   return currentBootstrap.platformContentBlocks;
 }
 
+const WEBSITE_GUEST_FEATURES = new Set([
+  "home",
+  "pools",
+  "ordering",
+  "venues",
+  "wallet",
+  "profile",
+  "notifications",
+  "settings",
+  "rewards",
+]);
+
 export function setPlatformBootstrapSnapshot(bootstrap: PlatformBootstrap) {
   currentBootstrap = bootstrap;
 }
@@ -118,7 +130,8 @@ export function assertClientFeatureAvailable(
 export function getWebsiteNavigationFeatures() {
   return getConfiguredFeatures()
     .filter((feature) =>
-      isPlatformFeatureVisible(feature.featureKey, { surface: "navigation" }),
+      isPlatformFeatureVisible(feature.featureKey, { surface: "navigation" }) &&
+      WEBSITE_GUEST_FEATURES.has(normalizeFeatureKey(feature.featureKey)),
     )
     .sort(
       (left, right) => left.channels.web.sortOrder - right.channels.web.sortOrder,

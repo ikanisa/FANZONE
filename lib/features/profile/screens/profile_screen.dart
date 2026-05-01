@@ -6,8 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/config/platform_feature_access.dart';
-import '../../../features/profile/providers/profile_identity_provider.dart';
-import '../../../features/venue_dashboard/providers/venue_dashboard_provider.dart';
+import '../../../data/team_search_database.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../providers/favorite_teams_provider.dart';
@@ -15,36 +14,26 @@ import '../../../services/push_notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
-import '../../../services/wallet_service.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
+import '../../ordering/providers/venue_context_provider.dart';
 import '../widgets/profile_sections.dart';
 
-/// User profile screen with real auth data, FET balance, quick links, and logout.
+/// User profile screen with profile context, preferences, and logout.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final balanceAsync = ref.watch(walletServiceProvider);
     final hasSession = ref.watch(isAuthenticatedProvider);
     final isVerified = ref.watch(isFullyAuthenticatedProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
     final fanId = ref.watch(userFanIdProvider).valueOrNull;
-    final favoriteTeamsAsync = ref.watch(favoriteTeamRecordsProvider);
-    final isVenueOwner = ref.watch(isVenueOwnerProvider);
-    final profileIdentity = ref.watch(profileIdentityProvider).valueOrNull;
     final featureAccess = ref.watch(platformFeatureAccessProvider);
-    final showWallet =
-        hasSession &&
-        featureAccess.isVisible('wallet', surface: PlatformSurface.route);
-    final showPredictions =
-        featureAccess.isVisible('predictions', surface: PlatformSurface.route);
-    final showLeaderboard = featureAccess.isVisible(
-      'leaderboard',
-      surface: PlatformSurface.route,
-    );
+    final favoriteTeamsAsync = ref.watch(favoriteTeamRecordsProvider);
+    final favoriteTeams = favoriteTeamsAsync.valueOrNull ?? const [];
+    final venueContext = ref.watch(venueContextProvider);
     final showSettings = featureAccess.isVisible(
       'settings',
       surface: PlatformSurface.route,
@@ -55,9 +44,6 @@ class ProfileScreen extends ConsumerWidget {
           'notifications',
           surface: PlatformSurface.route,
         );
-    final predictionRoute = featureAccess.routeFor('predictions');
-    final leaderboardRoute = featureAccess.routeFor('leaderboard');
-    final walletRoute = featureAccess.routeFor('wallet');
     final settingsRoute = featureAccess.routeFor('settings');
     final notificationsRoute = featureAccess.routeFor('notifications');
 
@@ -119,42 +105,35 @@ class ProfileScreen extends ConsumerWidget {
               hasSession: hasSession,
               isVerified: isVerified,
               fanId: fanId,
-              favoriteTeamsAsync: favoriteTeamsAsync,
-              profileIdentity: profileIdentity,
               isDark: isDark,
               muted: muted,
-              balanceAsync: balanceAsync,
-              showWallet: showWallet,
-              onSelectIdentity: () => showProfileIdentityPicker(
-                context,
-                ref,
-                teams: favoriteTeamsAsync.valueOrNull ?? const [],
-                selectedTeamId: profileIdentity?.teamId,
-              ),
-              onWalletTap: () => context.push(walletRoute),
               onVerifyPhone: () => showSignInRequiredSheet(
                 context,
                 title: 'Verify WhatsApp',
                 message:
-                    'Verify your number to unlock wallet transfers, notifications, and saved predictions.',
+                    'Verify your number to unlock wallet transfers, notifications, and match pools.',
                 from: '/profile',
               ),
             ),
 
             const SizedBox(height: 12),
 
-            ProfileQuickLinksCard(
-              showLeaderboard: showLeaderboard,
-              showWallet: showWallet,
-              showPredictions: showPredictions,
-              isVenueOwner: isVenueOwner,
-              onPredictionsTap: () => context.go(predictionRoute),
-              onLeaderboardTap: () => context.push(leaderboardRoute),
-              onWalletTap: () => context.push(walletRoute),
-              onVenueDashboardTap: () => context.push('/venue-dashboard'),
+            ProfileDetailsCard(
+              countryLabel: 'Country',
+              countryDetail: _countryDetail(
+                favoriteTeams,
+                loading: favoriteTeamsAsync.isLoading,
+              ),
+              favoriteTeamsLabel: 'Favorite teams',
+              favoriteTeamsDetail: _favoriteTeamsDetail(
+                favoriteTeams,
+                loading: favoriteTeamsAsync.isLoading,
+              ),
+              linkedVenueLabel: 'Linked venues',
+              linkedVenueDetail: _linkedVenueDetail(venueContext),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             ProfileAccountLinksCard(
               onHelp: () =>
@@ -166,7 +145,7 @@ class ProfileScreen extends ConsumerWidget {
                 context,
                 title: 'Verify WhatsApp',
                 message:
-                    'Verify your number to unlock wallet transfers, notifications, and saved predictions.',
+                    'Verify your number to unlock wallet transfers, notifications, and match pools.',
                 from: '/profile',
               ),
               showSignOut: hasSession,
@@ -214,6 +193,68 @@ class ProfileScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  static String _countryDetail(
+    List<FavoriteTeamRecordDto> teams, {
+    required bool loading,
+  }) {
+    if (loading) return 'Loading country preference...';
+    final team = _firstTeamWithCountry(teams);
+    final country = team?.teamCountry?.trim();
+    final countryCode = team?.teamCountryCode?.trim().toUpperCase();
+    if (country != null && country.isNotEmpty) {
+      return 'Used for $country country pools and featured matches.';
+    }
+    if (countryCode != null && countryCode.isNotEmpty) {
+      return 'Used for $countryCode country pools and featured matches.';
+    }
+    return 'Not set. Pick favorite teams to personalize country pools.';
+  }
+
+  static String _favoriteTeamsDetail(
+    List<FavoriteTeamRecordDto> teams, {
+    required bool loading,
+  }) {
+    if (loading) return 'Loading favorite teams...';
+    if (teams.isEmpty) {
+      return 'No favorite teams yet. Add teams to improve featured matches.';
+    }
+
+    final visibleNames = teams
+        .map((team) => team.teamName.trim())
+        .where((name) => name.isNotEmpty)
+        .take(3)
+        .join(', ');
+    if (visibleNames.isEmpty) return 'Favorite teams saved.';
+    final extraCount = teams.length - 3;
+    return extraCount > 0 ? '$visibleNames, +$extraCount more' : visibleNames;
+  }
+
+  static String _linkedVenueDetail(VenueContext context) {
+    final venue = context.venue;
+    if (venue == null) {
+      return 'No linked venue. Scan a table QR at a FANZONE bar.';
+    }
+    final tableNumber = context.table?.tableNumber ?? context.tableNumber;
+    if (tableNumber != null && tableNumber.toString().trim().isNotEmpty) {
+      return '${venue.name}, table $tableNumber';
+    }
+    return '${venue.name} is your current bar.';
+  }
+
+  static FavoriteTeamRecordDto? _firstTeamWithCountry(
+    List<FavoriteTeamRecordDto> teams,
+  ) {
+    for (final team in teams) {
+      final country = team.teamCountry?.trim();
+      final countryCode = team.teamCountryCode?.trim();
+      if ((country != null && country.isNotEmpty) ||
+          (countryCode != null && countryCode.isNotEmpty)) {
+        return team;
+      }
+    }
+    return null;
   }
 
   static Future<void> _launchUrl(BuildContext context, String url) async {

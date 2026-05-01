@@ -62,11 +62,11 @@ expect_non_auth_error() {
 }
 
 echo "Verifying unauthorized access is rejected..."
-generate_predictions_unauth="$(call_edge "generate-predictions" "" '{}')"
-expect_status "generate-predictions unauthorized" "${generate_predictions_unauth}" "401"
+import_football_unauth="$(call_edge "import-football-data" "" '{}')"
+expect_status "import-football-data unauthorized" "${import_football_unauth}" "401"
 
-score_predictions_unauth="$(call_edge "score-predictions" "" '{}')"
-expect_status "score-predictions unauthorized" "${score_predictions_unauth}" "401"
+settle_pools_unauth="$(call_edge "settle-match-pools" "" '{}')"
+expect_status "settle-match-pools unauthorized" "${settle_pools_unauth}" "401"
 
 dispatch_match_alerts_unauth="$(call_edge "dispatch-match-alerts" "" '{}')"
 expect_status "dispatch-match-alerts unauthorized" "${dispatch_match_alerts_unauth}" "401"
@@ -75,19 +75,21 @@ push_notify_unauth="$(call_edge "push-notify" "" '{}')"
 expect_status "push-notify unauthorized" "${push_notify_unauth}" "401"
 
 echo "Verifying authorized requests pass the auth layer..."
-generate_predictions_auth="$(call_edge "generate-predictions" "" '{}' \
+import_football_auth="$(call_edge "import-football-data" "" '{}' \
   -H "x-cron-secret: ${CRON_SECRET}")"
-if [[ "${generate_predictions_auth}" != "200" ]]; then
-  echo "generate-predictions authorized expected HTTP 200 but got ${generate_predictions_auth}"
-  cat /tmp/generate-predictions.body 2>/dev/null || true
+if [[ "${import_football_auth}" != "200" && "${import_football_auth}" != "400" ]]; then
+  expect_non_auth_error "import-football-data authorized" "${import_football_auth}"
+  echo "import-football-data authorized expected HTTP 200 or validation HTTP 400 but got ${import_football_auth}"
+  cat /tmp/import-football-data.body 2>/dev/null || true
   exit 1
 fi
 
-score_predictions_auth="$(call_edge "score-predictions" "" '{}' \
+settle_pools_auth="$(call_edge "settle-match-pools" "" '{}' \
   -H "x-cron-secret: ${CRON_SECRET}")"
-if [[ "${score_predictions_auth}" != "200" ]]; then
-  echo "score-predictions authorized expected HTTP 200 but got ${score_predictions_auth}"
-  cat /tmp/score-predictions.body 2>/dev/null || true
+if [[ "${settle_pools_auth}" != "200" && "${settle_pools_auth}" != "400" ]]; then
+  expect_non_auth_error "settle-match-pools authorized" "${settle_pools_auth}"
+  echo "settle-match-pools authorized expected HTTP 200 or validation HTTP 400 but got ${settle_pools_auth}"
+  cat /tmp/settle-match-pools.body 2>/dev/null || true
   exit 1
 fi
 

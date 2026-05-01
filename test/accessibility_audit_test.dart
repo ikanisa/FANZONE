@@ -7,11 +7,10 @@ import 'package:fanzone/widgets/common/fz_animated_entry.dart';
 import 'package:fanzone/data/team_search_database.dart';
 import 'package:fanzone/features/home/screens/home_feed_screen.dart';
 import 'package:fanzone/features/home/screens/match_detail_screen.dart';
-import 'package:fanzone/features/predict/screens/predict_screen.dart';
+import 'package:fanzone/features/pools/screens/pools_screen.dart';
 import 'package:fanzone/features/profile/screens/profile_screen.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
 import 'package:fanzone/models/sports/match_model.dart';
-import 'package:fanzone/models/auth_and_user/user_prediction_model.dart';
 import 'package:fanzone/providers/auth_provider.dart';
 import 'package:fanzone/providers/competitions_provider.dart';
 import 'package:fanzone/providers/currency_provider.dart';
@@ -19,7 +18,6 @@ import 'package:fanzone/providers/favorite_teams_provider.dart';
 import 'package:fanzone/providers/home_feed_provider.dart';
 import 'package:fanzone/providers/matches_provider.dart';
 import 'package:fanzone/services/notification_service.dart';
-import 'package:fanzone/services/prediction_service.dart';
 import 'package:fanzone/services/wallet_service.dart';
 
 import 'support/test_app.dart';
@@ -104,21 +102,46 @@ void main() {
     }
   });
 
-  testWidgets('predict screen meets labeled tap target guideline', (
+  testWidgets('pools screen meets labeled tap target guideline', (
     tester,
   ) async {
-    final match = sampleMatch();
+    const pool = PoolSummary(
+      id: 'pool_1',
+      title: 'Derby pool',
+      status: 'open',
+      scope: 'venue',
+      isOfficial: true,
+      totalMembers: 18,
+      totalStakedFet: 180,
+      entryFeeFet: 10,
+      camps: [
+        PoolCamp(
+          id: 'camp_home',
+          label: 'Home win',
+          memberCount: 8,
+          totalStakedFet: 80,
+        ),
+        PoolCamp(
+          id: 'camp_draw',
+          label: 'Draw',
+          memberCount: 4,
+          totalStakedFet: 40,
+        ),
+        PoolCamp(
+          id: 'camp_away',
+          label: 'Away win',
+          memberCount: 6,
+          totalStakedFet: 60,
+        ),
+      ],
+    );
+
     await pumpAppScreen(
       tester,
-      const PredictScreen(),
+      const PoolsScreen(),
       overrides: [
-        upcomingMatchesProvider.overrideWith((ref) => Stream.value([match])),
-        competitionProvider(
-          match.competitionId,
-        ).overrideWith((ref) async => sampleCompetition()),
-        myPredictionsProvider.overrideWith(
-          (ref) async => const <UserPredictionModel>[],
-        ),
+        poolsProvider.overrideWith((ref) async => const [pool]),
+        isFullyAuthenticatedProvider.overrideWith((ref) => true),
       ],
     );
     await tester.pumpAndSettle();
@@ -168,6 +191,7 @@ void main() {
         currentUserProvider.overrideWith((ref) => null),
         userFanIdProvider.overrideWith((ref) async => '123456'),
         userCurrencyProvider.overrideWith((ref) async => 'EUR'),
+        favoriteTeamRecordsProvider.overrideWith((ref) async => const []),
       ],
     );
     await tester.pumpAndSettle();

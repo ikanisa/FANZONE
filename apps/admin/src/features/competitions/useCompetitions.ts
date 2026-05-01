@@ -9,6 +9,10 @@ export interface CompetitionRow extends Competition {
   matches_count?: number;
   is_featured?: boolean;
   status?: string;
+  is_active?: boolean;
+  type?: string | null;
+  priority?: number | null;
+  region?: string | null;
 }
 
 /* ── Hooks ── */
@@ -16,6 +20,11 @@ export function useCompetitions(pagination: PaginationOpts, filters?: { search?:
   return useSupabasePaginated<CompetitionRow>(['competitions', filters], 'competitions', {
     pagination,
     order: { column: 'name', ascending: true },
+    filters: (query) => {
+      if (!filters?.search?.trim()) return query;
+      const term = `%${filters.search.trim().replaceAll(',', '\\,')}%`;
+      return query.or(`name.ilike.${term},short_name.ilike.${term},country.ilike.${term},region.ilike.${term},type.ilike.${term}`);
+    },
   });
 }
 
@@ -24,5 +33,19 @@ export function useToggleCompetitionFeatured() {
     fnName: 'admin_set_competition_featured',
     invalidateKeys: [['competitions']],
     successMessage: 'Competition featured status updated.',
+  });
+}
+
+export function useUpdateCompetitionControl() {
+  return useRpcMutation<{
+    p_competition_id: string;
+    p_is_active: boolean | null;
+    p_priority: number | null;
+    p_type: string | null;
+    p_region: string | null;
+  }>({
+    fnName: 'admin_update_competition_control',
+    invalidateKeys: [['competitions'], ['dashboard-kpis']],
+    successMessage: 'Competition rollout updated.',
   });
 }

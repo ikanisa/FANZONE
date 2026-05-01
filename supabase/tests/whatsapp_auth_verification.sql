@@ -35,7 +35,7 @@ BEGIN
     WHERE schemaname = 'public'
       AND indexname = 'idx_admin_users_email'
   ) THEN
-    RAISE EXCEPTION 'Legacy admin email index still exists';
+    RAISE EXCEPTION 'Retired admin email index still exists';
   END IF;
 
   IF NOT EXISTS (

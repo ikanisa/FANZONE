@@ -1,40 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Utensils, 
-  ChevronRight, 
   Plus, 
   Minus, 
   ShoppingCart, 
   X, 
-  Coins, 
-  CreditCard, 
-  Smartphone, 
-  Banknote,
   CheckCircle2,
-  Clock,
   AlertCircle
 } from 'lucide-react';
-import { useAppStore } from '../store/useAppStore';
 import { api } from '../services/api';
 import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
-import { FETDisplay } from './ui/FETDisplay';
 import type {
   Venue,
   MenuItem,
   MenuCategory,
-  PaymentMethod,
   Order,
-  OrderStatus
 } from '../types';
 
 interface CartItem extends MenuItem {
   quantity: number;
 }
 
+const formatMoney = (amount: number, currencyCode: string) => {
+  if (currencyCode === 'RWF') return `${Math.round(amount).toLocaleString()} RWF`;
+  if (currencyCode === 'EUR') return `€${amount.toFixed(2)}`;
+  return `${currencyCode} ${amount.toFixed(2)}`;
+};
+
 export const Ordering: React.FC = () => {
-  const { fetBalance, deductFet } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [venue, setVenue] = useState<Venue | null>(null);
@@ -45,11 +39,10 @@ export const Ordering: React.FC = () => {
   const [isCheckoutOpen, setIsCheckoutSheetOpen] = useState(false);
   const [orderStatus, setOrderStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
-  const [useFet, setUseFet] = useState(false);
 
   // Extract slug from URL or default
   const venueSlug = window.location.pathname.split('/').pop() || 'stadium-sports-bar';
-  const tableNumber = new URLSearchParams(window.location.search).get('t') || '12';
+  const tableNumber = new URLSearchParams(window.location.search).get('t')?.trim() || '';
 
   useEffect(() => {
     const loadVenueData = async () => {
@@ -80,8 +73,7 @@ export const Ordering: React.FC = () => {
   }, [venueSlug]);
 
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const fetDiscount = useFet ? Math.min(fetBalance / 100, subtotal) : 0;
-  const total = Math.max(0, subtotal - fetDiscount);
+  const total = subtotal;
   const totalItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const addToCart = (item: MenuItem) => {
@@ -109,21 +101,16 @@ export const Ordering: React.FC = () => {
     setOrderStatus('submitting');
     
     try {
-      // Find table ID — in a real deep link flow we would resolve this
-      // For now we assume a placeholder UUID or similar if table logic is needed
-      const tableId = '00000000-0000-0000-0000-000000000000'; // Placeholder
+      if (!tableNumber.trim()) {
+        throw new Error('Missing table number. Scan the venue QR code again.');
+      }
 
       const order = await api.placeOrder({
         venueId: venue.id,
-        tableId: tableId,
+        tablePublicCode: tableNumber,
         paymentMethod: 'cash',
         items: cart.map(i => ({ menuItemId: i.id, quantity: i.quantity })),
-        useFet: useFet
       });
-
-      if (useFet) {
-        deductFet(Math.floor(fetDiscount * 100));
-      }
 
       setPlacedOrder(order);
       setOrderStatus('success');
@@ -170,7 +157,9 @@ export const Ordering: React.FC = () => {
         <Card className="w-full max-w-sm p-6 mb-8 text-left bg-surface2 border-border">
           <div className="flex justify-between mb-4">
             <span className="text-textSecondary">Amount to Pay</span>
-            <span className="font-bold text-text">€{placedOrder.totalAmount.toFixed(2)}</span>
+            <span className="font-bold text-text">
+              {formatMoney(placedOrder.totalAmount, placedOrder.currencyCode)}
+            </span>
           </div>
           {placedOrder.paymentFetAmount > 0 && (
             <div className="flex justify-between text-success">
@@ -200,7 +189,9 @@ export const Ordering: React.FC = () => {
           <h1 className="text-3xl font-black text-text drop-shadow-lg">{venue.name}</h1>
           <div className="flex items-center gap-2 mt-1">
             <Badge variant={venue.isOpen ? "success" : "secondary"}>{venue.isOpen ? "OPEN NOW" : "CLOSED"}</Badge>
-            <span className="text-sm text-textSecondary font-medium">Table {tableNumber}</span>
+            <span className="text-sm text-textSecondary font-medium">
+              {tableNumber ? `Table ${tableNumber}` : 'Scan a table QR to order'}
+            </span>
           </div>
         </div>
       </div>
@@ -320,33 +311,11 @@ export const Ordering: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Gamification Integration */}
                 <div className="bg-surface2 rounded-2xl border border-border p-4 mb-8">
-                   <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 bg-accent2/10 text-accent2 rounded-xl flex items-center justify-center">
-                         <Coins size={20} />
-                       </div>
-                       <div>
-                         <p className="text-xs font-bold text-accent2 uppercase tracking-wider">Pay with tokens</p>
-                         <p className="text-sm font-medium text-textSecondary">Balance: <FETDisplay amount={fetBalance} /></p>
-                       </div>
-                     </div>
-                     <input 
-                       type="checkbox" 
-                       checked={useFet} 
-                       onChange={(e) => setUseFet(e.target.checked)}
-                       className="w-6 h-6 rounded-lg border-border bg-surface3 text-primary focus:ring-primary"
-                     />
-                   </div>
-                   {useFet && (
-                     <div className="mt-4 pt-4 border-t border-border/50 text-success text-xs font-bold flex justify-between uppercase">
-                       <span>Applied Discount</span>
-                       <span>
-                         -{venue?.country === 'RW' ? '' : '€'}{fetDiscount.toLocaleString()} {venue?.country === 'RW' ? 'RWF' : ''}
-                       </span>
-                     </div>
-                   )}
+                  <p className="text-xs font-bold text-accent2 uppercase tracking-wider">FET rewards</p>
+                  <p className="text-sm font-medium text-textSecondary mt-1">
+                    Earn FET after venue staff manually confirms payment. Tokens are not redeemed as checkout payment.
+                  </p>
                 </div>
 
                 <div className="space-y-3 mb-8 pt-4 border-t border-border">
@@ -365,7 +334,7 @@ export const Ordering: React.FC = () => {
                 </div>
 
                 <button 
-                  disabled={orderStatus === 'submitting'}
+                  disabled={orderStatus === 'submitting' || !tableNumber}
                   onClick={handlePlaceOrder}
                   className="w-full h-16 bg-primary text-primaryText font-black text-lg rounded-2xl shadow-xl shadow-primary/20 disabled:opacity-50"
                 >

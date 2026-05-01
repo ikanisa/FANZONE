@@ -38,6 +38,12 @@ import {
   useUpsertPlatformFeature,
   type PlatformFeatureChannelInput,
 } from "./usePlatformControl";
+import {
+  useFeatureFlags,
+  useToggleFeatureFlag,
+  useUpsertFeatureFlag,
+} from "../settings/useSettings";
+import { SPORTS_BAR_FEATURE_FLAGS } from "./controlCenter";
 
 type FeatureStatus = "active" | "inactive" | "hidden" | "beta" | "scheduled";
 
@@ -455,9 +461,12 @@ export function PlatformControlPage() {
     refetch: refetchBlocks,
   } = usePlatformContentBlocks();
   const { data: auditLogs = [] } = usePlatformFeatureAuditLogs();
+  const { data: runtimeFlags = [] } = useFeatureFlags();
 
   const upsertFeature = useUpsertPlatformFeature();
   const upsertContentBlock = useUpsertPlatformContentBlock();
+  const upsertFeatureFlag = useUpsertFeatureFlag();
+  const toggleFeatureFlag = useToggleFeatureFlag();
 
   const filteredFeatures = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -512,6 +521,25 @@ export function PlatformControlPage() {
     (item) => item.web_channel.is_enabled && item.web_channel.is_visible,
   ).length;
   const activeBlocksCount = contentBlocks.filter((block) => block.is_active).length;
+  const sportsBarRuntimeFlags = SPORTS_BAR_FEATURE_FLAGS.map((definition) => ({
+    definition,
+    flag: runtimeFlags.find((flag) => flag.key === definition.key),
+  }));
+
+  async function ensureRuntimeFlag(
+    key: string,
+    description: string,
+    enabled: boolean,
+  ) {
+    await upsertFeatureFlag.mutateAsync({
+      key,
+      market: "global",
+      platform: "all",
+      enabled,
+      description,
+      rollout_pct: enabled ? 100 : 0,
+    });
+  }
 
   const handleFeatureSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -604,7 +632,7 @@ export function PlatformControlPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Platform Control"
+        title="Feature Flags"
         subtitle="Centrally manage feature rollout, channel visibility, navigation placement, homepage composition, and audit history."
         actions={
           <>
@@ -648,6 +676,81 @@ export function PlatformControlPage() {
           icon={<Globe size={16} />}
           format="raw"
         />
+      </div>
+
+      <div className="card">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-lg font-semibold">Sports-Bar Runtime Flags</h2>
+            <p className="text-sm text-muted">
+              Operational switches for FET spend, pool creation, endorsements,
+              rollout, social cards, and welcome FET.
+            </p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Flag</th>
+                <th>State</th>
+                <th>Market</th>
+                <th>Updated</th>
+                <th className="cell-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sportsBarRuntimeFlags.map(({ definition, flag }) => (
+                <tr key={definition.key}>
+                  <td>
+                    <div className="font-semibold">{definition.label}</div>
+                    <div className="text-xs text-muted">{definition.description}</div>
+                    <div className="text-xs text-muted font-mono">{definition.key}</div>
+                  </td>
+                  <td>
+                    <span className={`badge ${flag?.is_enabled ? "badge-success" : "badge-muted"}`}>
+                      {flag?.is_enabled ? "Enabled" : "Disabled"}
+                    </span>
+                  </td>
+                  <td>{flag?.market ?? "global"}</td>
+                  <td className="text-sm text-muted">
+                    {flag?.updated_at ? formatDateTime(flag.updated_at) : "Not created"}
+                  </td>
+                  <td className="cell-actions">
+                    {flag ? (
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        disabled={toggleFeatureFlag.isPending}
+                        onClick={() =>
+                          toggleFeatureFlag.mutateAsync({
+                            p_flag_id: flag.id,
+                            p_is_enabled: !flag.is_enabled,
+                          })
+                        }
+                      >
+                        {flag.is_enabled ? "Disable" : "Enable"}
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        disabled={upsertFeatureFlag.isPending}
+                        onClick={() =>
+                          ensureRuntimeFlag(
+                            definition.key,
+                            definition.description,
+                            false,
+                          )
+                        }
+                      >
+                        Create
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div className="card">

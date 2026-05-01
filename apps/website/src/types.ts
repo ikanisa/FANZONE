@@ -43,139 +43,76 @@ export interface Match {
   isUpcoming: boolean;
 }
 
-export interface Competition {
+export interface MatchPoolCamp {
   id: string;
-  name: string;
-  shortName: string;
-  country: string;
-  tier: number;
-  competitionType?: string | null;
-  isFeatured: boolean;
-  isInternational: boolean;
-  isActive: boolean;
-  currentSeasonId?: string | null;
-  currentSeasonLabel?: string | null;
-  futureMatchCount: number;
-  catalogRank?: number | null;
+  poolId: string;
+  code: string;
+  campKey?: 'home' | 'draw' | 'away' | 'custom' | string;
+  label: string;
+  resultCode?: string | null;
+  teamId?: string | null;
+  memberCount: number;
+  totalStakedFet: number;
+  displayOrder: number;
+  isWinningCamp?: boolean;
 }
 
-export interface Team {
+export interface MatchPoolSummary {
   id: string;
-  name: string;
-  shortName: string;
-  slug: string;
-  country?: string | null;
+  matchId: string;
+  scope: 'global' | 'country' | 'venue' | string;
   countryCode?: string | null;
-  teamType: string;
-  description?: string | null;
-  leagueName?: string | null;
-  region?: string | null;
-  competitionIds: string[];
-  aliases: string[];
-  searchTerms: string[];
-  logoUrl?: string | null;
-  crestUrl?: string | null;
-  coverImageUrl?: string | null;
-  isActive: boolean;
-  isFeatured: boolean;
-  isPopularPick: boolean;
-  popularPickRank?: number | null;
-  fanCount: number;
-}
-
-export interface StandingRow {
-  id: string;
-  competitionId: string;
-  seasonId: string;
-  season: string;
-  snapshotType: string;
-  snapshotDate: string;
-  teamId: string;
-  teamName: string;
-  position: number;
-  played: number;
-  won: number;
-  drawn: number;
-  lost: number;
-  goalsFor: number;
-  goalsAgainst: number;
-  goalDifference: number;
-  points: number;
-}
-
-export interface TeamFormFeature {
-  matchId: string;
-  teamId: string;
-  last5Points: number;
-  last5Wins: number;
-  last5Draws: number;
-  last5Losses: number;
-  last5GoalsFor: number;
-  last5GoalsAgainst: number;
-  last5CleanSheets: number;
-  last5FailedToScore: number;
-  homeFormLast5: number;
-  awayFormLast5: number;
-  over25Last5: number;
-  bttsLast5: number;
-}
-
-export interface PredictionEngineOutput {
-  id: string;
-  matchId: string;
-  modelVersion: string;
-  homeWinScore: number;
-  drawScore: number;
-  awayWinScore: number;
-  over25Score: number;
-  bttsScore: number;
-  predictedHomeGoals?: number | null;
-  predictedAwayGoals?: number | null;
-  confidenceLabel: string;
-  generatedAt: string;
-}
-
-export interface PredictionConsensus {
-  matchId: string;
-  totalPredictions: number;
-  homePickCount: number;
-  drawPickCount: number;
-  awayPickCount: number;
-  homePct: number;
-  drawPct: number;
-  awayPct: number;
-}
-
-export interface UserPrediction {
-  id: string;
-  matchId: string;
-  predictedResultCode?: string | null;
-  predictedOver25?: boolean | null;
-  predictedBtts?: boolean | null;
-  predictedHomeGoals?: number | null;
-  predictedAwayGoals?: number | null;
-  pointsAwarded: number;
-  rewardStatus: string;
+  venueId?: string | null;
+  title: string;
+  status: string;
+  isOfficial: boolean;
+  entryFeeFet: number;
+  stakeMinFet: number;
+  stakeMaxFet: number;
+  totalMembers: number;
+  totalStakedFet: number;
+  creatorRewardFet?: number;
+  shareSlug: string;
+  shareUrl?: string | null;
+  deepLinkUrl?: string | null;
+  socialCardUrl?: string | null;
+  resultCampId?: string | null;
+  lockedAt?: string | null;
+  settledAt?: string | null;
+  metadata?: Record<string, unknown>;
+  camps: MatchPoolCamp[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface LeaderboardEntry {
-  userId: string;
-  displayName: string;
-  predictionCount: number;
-  totalPoints: number;
-  totalFet: number;
-  correctResults: number;
-  exactScores: number;
+export interface MatchPoolEntrySummary {
+  entryId: string;
+  poolId: string;
+  campId: string;
+  matchId: string;
+  matchLabel: string;
+  competitionName?: string | null;
+  kickoffAt?: string | null;
+  poolTitle: string;
+  poolScope: string;
+  poolStatus: string;
+  campLabel: string;
+  stakeAmount: number;
+  entryStatus: string;
+  payoutFet: number;
+  totalMembers: number;
+  totalStakedFet: number;
+  resultCampId?: string | null;
+  shareUrl?: string | null;
+  deepLinkUrl?: string | null;
+  socialCardUrl?: string | null;
+  createdAt: string;
 }
 
 export interface ViewerProfile {
   userId: string;
   fanId: string;
   displayName: string;
-  favoriteTeamId?: string | null;
-  favoriteTeamName?: string | null;
   onboardingCompleted: boolean;
   isAnonymous: boolean;
   authMethod: string;
@@ -201,7 +138,6 @@ export interface ViewerNotification {
 export type OrderStatus = 'placed' | 'received' | 'served' | 'cancelled';
 export type PaymentMethod = 'momo' | 'revolut' | 'cash';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
-export type VenueStakeStatus = 'open' | 'settled' | 'cancelled';
 
 export interface Venue {
   id: string;
@@ -215,6 +151,7 @@ export interface Venue {
   isOpen: boolean;
   hoursJson?: Record<string, any>;
   revolutLink?: string | null;
+  momoCode?: string | null;
   whatsapp?: string | null;
   primaryCategory?: string | null;
   rating?: number | null;
@@ -268,14 +205,4 @@ export interface OrderItem {
   quantity: number;
   unitPrice: number;
   lineTotal: number;
-}
-
-export interface VenueMatchStake {
-  id: string;
-  venueId: string;
-  matchId: string;
-  entryFeeFet: number;
-  totalPoolFet: number;
-  status: VenueStakeStatus;
-  createdAt: string;
 }

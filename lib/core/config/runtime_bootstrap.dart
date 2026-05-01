@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'bootstrap_config.dart';
 
-/// Process-wide bootstrap snapshot used by static helpers and legacy code paths.
+/// Process-wide bootstrap snapshot used by static helpers.
 ///
 /// The app still has some APIs that are not provider-aware (for example
 /// `AppConfig` and utility functions used by route definitions). This store

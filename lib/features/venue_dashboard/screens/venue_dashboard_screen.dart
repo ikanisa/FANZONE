@@ -44,9 +44,9 @@ class _VenueDashboardScreenState extends ConsumerState<VenueDashboardScreen>
         title: const Text('Venue Dashboard'),
         actions: [
           IconButton(
-            onPressed: () => context.push('/venue-dashboard/stakes'),
+            onPressed: () => context.push('/pools'),
             icon: const Icon(LucideIcons.trophy),
-            tooltip: 'Match Stakes',
+            tooltip: 'Match Pools',
           ),
         ],
         bottom: TabBar(

@@ -9,7 +9,6 @@ import 'package:fanzone/features/home/data/competition_catalog_gateway.dart';
 import 'package:fanzone/features/home/data/event_catalog_gateway.dart';
 import 'package:fanzone/features/home/data/match_listing_gateway.dart';
 import 'package:fanzone/features/home/data/team_catalog_gateway.dart';
-import 'package:fanzone/features/predict/data/leaderboard_gateway.dart';
 import 'package:fanzone/features/settings/data/account_settings_gateway.dart';
 import 'package:fanzone/features/settings/data/notification_settings_gateway.dart';
 import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
@@ -80,15 +79,6 @@ void main() {
       expect(
         container.read(matchListingGatewayProvider),
         isA<MatchListingGateway>(),
-      );
-    });
-  });
-
-  group('Predict providers resolve', () {
-    test('leaderboardGatewayProvider', () {
-      expect(
-        container.read(leaderboardGatewayProvider),
-        isA<LeaderboardGateway>(),
       );
     });
   });

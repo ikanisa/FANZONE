@@ -76,7 +76,7 @@ async function loadMatchesByIds(
   if (!matchIds.length) return new Map<string, MatchRow>();
 
   const { data, error } = await supabase
-    .from("app_matches")
+    .from("curated_active_matches")
     .select("id, date, status, home_team, away_team, ft_home, ft_away")
     .in("id", matchIds);
 
@@ -148,7 +148,7 @@ Deno.serve(async (req: Request) => {
           Number.isNaN(kickoffAt.valueOf()) ||
           kickoffAt < kickoffStart ||
           kickoffAt > kickoffEnd ||
-          match.status === "finished" ||
+          match.status === "final" ||
           match.status === "cancelled" ||
           match.status === "postponed"
         ) {
@@ -221,7 +221,7 @@ Deno.serve(async (req: Request) => {
         const match = matchMap.get(row.match_id);
         if (
           !match ||
-          match.status !== "finished" ||
+          match.status !== "final" ||
           match.ft_home == null ||
           match.ft_away == null
         ) {

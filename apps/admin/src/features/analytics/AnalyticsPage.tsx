@@ -30,7 +30,7 @@ export function AnalyticsPage() {
           <KpiCard label="DAU" value={kpis.dau} trend={12.5} trendDirection="up" icon={<Users size={18} />} />
           <KpiCard label="WAU" value={kpis.wau} trend={8.1} trendDirection="up" icon={<Activity size={18} />} />
           <KpiCard label="MAU" value={kpis.mau} trend={22.3} trendDirection="up" icon={<TrendingUp size={18} />} />
-          <KpiCard label="Predictions (7d)" value={kpis.predictions7d} icon={<Trophy size={18} />} />
+          <KpiCard label="Pool Entries (7d)" value={kpis.poolEntries7d} icon={<Trophy size={18} />} />
           <KpiCard label="FET Volume (7d)" value={kpis.fetVolume7d} format="fet" icon={<Coins size={18} />} />
         </div>
       )}

@@ -164,16 +164,16 @@ def build_assets() -> dict[str, object]:
         (
             REPO_ROOT / "assets/images/logo_128.png",
             resized(transparent_mark, 128),
-            "flutter_shared_legacy",
+            "flutter_shared_alias",
             "light_source_rgb + dark_source_alpha",
-            "legacy transparent logo alias",
+            "transparent logo alias",
         ),
         (
             REPO_ROOT / "assets/images/logo_256.png",
             resized(transparent_mark, 256),
-            "flutter_shared_legacy",
+            "flutter_shared_alias",
             "light_source_rgb + dark_source_alpha",
-            "legacy transparent logo alias",
+            "transparent logo alias",
         ),
     ]
     for path, image, group, source_variant, usage in shared_specs:
@@ -186,7 +186,7 @@ def build_assets() -> dict[str, object]:
             usage=usage,
         )
 
-    # Android legacy launcher icons.
+    # Android launcher icons.
     launcher_sizes = {
         "mdpi": 48,
         "hdpi": 72,
@@ -202,7 +202,7 @@ def build_assets() -> dict[str, object]:
             inventory,
             group="android_launcher",
             source_variant="dark_source_rgb",
-            usage=f"android legacy launcher icon ({density})",
+            usage=f"android launcher icon ({density})",
         )
 
     # Android adaptive icon foregrounds keep the backed square mark for fidelity.
@@ -289,22 +289,22 @@ def build_assets() -> dict[str, object]:
 
     # Website icons and logo assets.
     website_specs = [
-        ("website/public/favicon.png", resized(square_dark, 64), "website_icon", "dark_source_rgb", "legacy favicon png"),
-        ("website/public/favicon-16.png", resized(square_dark, 16), "website_icon_legacy", "dark_source_rgb", "legacy favicon 16"),
-        ("website/public/favicon-16x16.png", resized(square_dark, 16), "website_icon", "dark_source_rgb", "favicon 16x16"),
-        ("website/public/favicon-32x32.png", resized(square_dark, 32), "website_icon", "dark_source_rgb", "favicon 32x32"),
-        ("website/public/apple-touch-icon.png", resized(square_dark, 180), "website_icon", "dark_source_rgb", "apple touch icon"),
-        ("website/public/icon-192.png", resized(square_dark, 192), "website_icon", "dark_source_rgb", "web app icon 192"),
-        ("website/public/icon-512.png", resized(square_dark, 512), "website_icon", "dark_source_rgb", "web app icon 512"),
-        ("website/public/logo-128.png", resized(transparent_mark, 128), "website_brand_legacy", "light_source_rgb + dark_source_alpha", "legacy website logo alias"),
-        ("website/public/logo-192.png", resized(square_dark, 192), "website_brand_legacy", "dark_source_rgb", "legacy website icon alias"),
-        ("website/public/logo-512.png", resized(square_dark, 512), "website_brand_legacy", "dark_source_rgb", "legacy website icon alias"),
-        ("website/public/logo.png", resized(transparent_mark, 512), "website_brand_legacy", "light_source_rgb + dark_source_alpha", "legacy website logo alias"),
-        ("website/public/og-image.png", social_preview(transparent_mark), "website_social_legacy", "light_source_rgb + dark_source_alpha", "legacy social preview alias"),
-        ("website/public/brand/logo-mark-128.png", resized(transparent_mark, 128), "website_brand", "light_source_rgb + dark_source_alpha", "small transparent website mark"),
-        ("website/public/brand/logo-mark-256.png", resized(transparent_mark, 256), "website_brand", "light_source_rgb + dark_source_alpha", "retina transparent website mark"),
-        ("website/public/brand/logo-mark-512.png", resized(transparent_mark, 512), "website_brand", "light_source_rgb + dark_source_alpha", "large transparent website mark"),
-        ("website/public/social-preview.png", social_preview(transparent_mark), "website_social", "light_source_rgb + dark_source_alpha", "social preview image"),
+        ("apps/website/public/favicon.png", resized(square_dark, 64), "website_icon", "dark_source_rgb", "favicon png"),
+        ("apps/website/public/favicon-16.png", resized(square_dark, 16), "website_icon_alias", "dark_source_rgb", "favicon 16"),
+        ("apps/website/public/favicon-16x16.png", resized(square_dark, 16), "website_icon", "dark_source_rgb", "favicon 16x16"),
+        ("apps/website/public/favicon-32x32.png", resized(square_dark, 32), "website_icon", "dark_source_rgb", "favicon 32x32"),
+        ("apps/website/public/apple-touch-icon.png", resized(square_dark, 180), "website_icon", "dark_source_rgb", "apple touch icon"),
+        ("apps/website/public/icon-192.png", resized(square_dark, 192), "website_icon", "dark_source_rgb", "web app icon 192"),
+        ("apps/website/public/icon-512.png", resized(square_dark, 512), "website_icon", "dark_source_rgb", "web app icon 512"),
+        ("apps/website/public/logo-128.png", resized(transparent_mark, 128), "website_brand_alias", "light_source_rgb + dark_source_alpha", "website logo alias"),
+        ("apps/website/public/logo-192.png", resized(square_dark, 192), "website_brand_alias", "dark_source_rgb", "website icon alias"),
+        ("apps/website/public/logo-512.png", resized(square_dark, 512), "website_brand_alias", "dark_source_rgb", "website icon alias"),
+        ("apps/website/public/logo.png", resized(transparent_mark, 512), "website_brand_alias", "light_source_rgb + dark_source_alpha", "website logo alias"),
+        ("apps/website/public/og-image.png", social_preview(transparent_mark), "website_social_alias", "light_source_rgb + dark_source_alpha", "social preview alias"),
+        ("apps/website/public/brand/logo-mark-128.png", resized(transparent_mark, 128), "website_brand", "light_source_rgb + dark_source_alpha", "small transparent website mark"),
+        ("apps/website/public/brand/logo-mark-256.png", resized(transparent_mark, 256), "website_brand", "light_source_rgb + dark_source_alpha", "retina transparent website mark"),
+        ("apps/website/public/brand/logo-mark-512.png", resized(transparent_mark, 512), "website_brand", "light_source_rgb + dark_source_alpha", "large transparent website mark"),
+        ("apps/website/public/social-preview.png", social_preview(transparent_mark), "website_social", "light_source_rgb + dark_source_alpha", "social preview image"),
     ]
     for raw_path, image, group, source_variant, usage in website_specs:
         save_png(
@@ -317,7 +317,7 @@ def build_assets() -> dict[str, object]:
         )
     save_ico(
         square_dark,
-        REPO_ROOT / "website/public/favicon.ico",
+        REPO_ROOT / "apps/website/public/favicon.ico",
         inventory,
         sizes=[16, 32, 48],
         group="website_icon",
@@ -327,21 +327,21 @@ def build_assets() -> dict[str, object]:
 
     # Admin icons and transparent logos.
     admin_specs = [
-        ("admin/public/favicon.png", resized(square_dark, 64), "admin_icon", "dark_source_rgb", "legacy admin favicon png"),
-        ("admin/public/favicon-16x16.png", resized(square_dark, 16), "admin_icon", "dark_source_rgb", "admin favicon 16x16"),
-        ("admin/public/favicon-32x32.png", resized(square_dark, 32), "admin_icon", "dark_source_rgb", "admin favicon 32x32"),
-        ("admin/public/apple-touch-icon.png", resized(square_dark, 180), "admin_icon", "dark_source_rgb", "admin apple touch icon"),
-        ("admin/public/icon-192.png", resized(square_dark, 192), "admin_icon", "dark_source_rgb", "admin web icon 192"),
-        ("admin/public/icon-512.png", resized(square_dark, 512), "admin_icon", "dark_source_rgb", "admin web icon 512"),
-        ("admin/public/logo-192.png", resized(square_dark, 192), "admin_icon_legacy", "dark_source_rgb", "legacy admin icon alias"),
-        ("admin/public/logo-512.png", resized(square_dark, 512), "admin_icon_legacy", "dark_source_rgb", "legacy admin icon alias"),
-        ("admin/public/brand/logo-mark-64.png", resized(transparent_mark, 64), "admin_brand", "light_source_rgb + dark_source_alpha", "sidebar transparent brand mark"),
-        ("admin/public/brand/logo-mark-128.png", resized(transparent_mark, 128), "admin_brand", "light_source_rgb + dark_source_alpha", "login transparent brand mark"),
-        ("admin/public/brand/logo-mark-256.png", resized(transparent_mark, 256), "admin_brand", "light_source_rgb + dark_source_alpha", "retina admin brand mark"),
-        ("admin/public/brand/logo-mark-512.png", resized(transparent_mark, 512), "admin_brand", "light_source_rgb + dark_source_alpha", "large admin brand mark"),
-        ("admin/src/assets/logo.png", resized(transparent_mark, 512), "admin_brand_legacy", "light_source_rgb + dark_source_alpha", "legacy admin import logo alias"),
-        ("admin/src/assets/logo-64.png", resized(transparent_mark, 64), "admin_brand_legacy", "light_source_rgb + dark_source_alpha", "legacy admin import logo alias"),
-        ("admin/src/assets/logo-128.png", resized(transparent_mark, 128), "admin_brand_legacy", "light_source_rgb + dark_source_alpha", "legacy admin import logo alias"),
+        ("apps/admin/public/favicon.png", resized(square_dark, 64), "admin_icon", "dark_source_rgb", "admin favicon png"),
+        ("apps/admin/public/favicon-16x16.png", resized(square_dark, 16), "admin_icon", "dark_source_rgb", "admin favicon 16x16"),
+        ("apps/admin/public/favicon-32x32.png", resized(square_dark, 32), "admin_icon", "dark_source_rgb", "admin favicon 32x32"),
+        ("apps/admin/public/apple-touch-icon.png", resized(square_dark, 180), "admin_icon", "dark_source_rgb", "admin apple touch icon"),
+        ("apps/admin/public/icon-192.png", resized(square_dark, 192), "admin_icon", "dark_source_rgb", "admin web icon 192"),
+        ("apps/admin/public/icon-512.png", resized(square_dark, 512), "admin_icon", "dark_source_rgb", "admin web icon 512"),
+        ("apps/admin/public/logo-192.png", resized(square_dark, 192), "admin_icon_alias", "dark_source_rgb", "admin icon alias"),
+        ("apps/admin/public/logo-512.png", resized(square_dark, 512), "admin_icon_alias", "dark_source_rgb", "admin icon alias"),
+        ("apps/admin/public/brand/logo-mark-64.png", resized(transparent_mark, 64), "admin_brand", "light_source_rgb + dark_source_alpha", "sidebar transparent brand mark"),
+        ("apps/admin/public/brand/logo-mark-128.png", resized(transparent_mark, 128), "admin_brand", "light_source_rgb + dark_source_alpha", "login transparent brand mark"),
+        ("apps/admin/public/brand/logo-mark-256.png", resized(transparent_mark, 256), "admin_brand", "light_source_rgb + dark_source_alpha", "retina admin brand mark"),
+        ("apps/admin/public/brand/logo-mark-512.png", resized(transparent_mark, 512), "admin_brand", "light_source_rgb + dark_source_alpha", "large admin brand mark"),
+        ("apps/admin/src/assets/logo.png", resized(transparent_mark, 512), "admin_brand_alias", "light_source_rgb + dark_source_alpha", "admin import logo alias"),
+        ("apps/admin/src/assets/logo-64.png", resized(transparent_mark, 64), "admin_brand_alias", "light_source_rgb + dark_source_alpha", "admin import logo alias"),
+        ("apps/admin/src/assets/logo-128.png", resized(transparent_mark, 128), "admin_brand_alias", "light_source_rgb + dark_source_alpha", "admin import logo alias"),
     ]
     for raw_path, image, group, source_variant, usage in admin_specs:
         save_png(
@@ -354,7 +354,7 @@ def build_assets() -> dict[str, object]:
         )
     save_ico(
         square_dark,
-        REPO_ROOT / "admin/public/favicon.ico",
+        REPO_ROOT / "apps/admin/public/favicon.ico",
         inventory,
         sizes=[16, 32, 48],
         group="admin_icon",

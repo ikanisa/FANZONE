@@ -61,9 +61,8 @@ class AppConfig {
     return _staticAssetVersionDefault;
   })();
 
-  static bool get enablePredictions => _featureFlag('predictions');
+  static bool get enablePools => _featureFlag('pools');
   static bool get enableWallet => _featureFlag('wallet');
-  static bool get enableLeaderboard => _featureFlag('leaderboard');
   static bool get enableRewards => _featureFlag('rewards');
   static bool get enableNotifications => _featureFlag('notifications');
 

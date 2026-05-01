@@ -1,6 +1,6 @@
 # FANZONE Privacy Policy
 
-**Last updated**: April 18, 2026
+**Last updated**: May 1, 2026
 
 FANZONE ("we", "us", or "our") is operated by IKANISA. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use the FANZONE mobile application ("App").
 
@@ -9,12 +9,12 @@ FANZONE ("we", "us", or "our") is operated by IKANISA. This Privacy Policy expla
 ### 1.1 Information You Provide
 - **Account Information**: WhatsApp-enabled phone number used for OTP authentication.
 - **Profile Information**: Display name, team preferences, and fan identity (anonymous handle).
-- **User-Generated Content**: Predictions and community interactions.
+- **User-Generated Content**: Match pool participation, venue order notes where enabled, and community interactions.
 
 ### 1.2 Information Collected Automatically
 - **Device Information**: Device type, operating system version, and unique device identifiers.
 - **Push Notification Tokens**: Firebase Cloud Messaging (FCM) tokens for delivering notifications.
-- **Usage Data**: Core product events needed to operate predictions, wallets, leaderboards, and support workflows.
+- **Usage Data**: Core product events needed to operate venue ordering, match pools, wallets, and support workflows.
 - **Crash Reports**: Runtime errors may be recorded in our Supabase-operated backend for stability, incident response, and release quality monitoring. We do not use a dedicated third-party crash-reporting SDK in the current release build.
 
 ### 1.3 Information We Do NOT Collect
@@ -28,8 +28,8 @@ FANZONE ("we", "us", or "our") is operated by IKANISA. This Privacy Policy expla
 We use the information we collect to:
 - Provide, operate, and maintain the App
 - Authenticate your identity and manage your account
-- Deliver push notifications about match updates, prediction results, and community activity
-- Manage predictions, leaderboards, and FET token balances
+- Deliver push notifications about match updates, pool activity, order status, and community activity
+- Manage match pools, venue orders, and FET token balances
 - Analyze usage patterns to improve the App experience
 - Monitor and fix technical issues
 - Comply with legal obligations
@@ -37,7 +37,7 @@ We use the information we collect to:
 ## 3. Data Storage and Processing
 
 Your data is processed and stored using:
-- **Supabase** (PostgreSQL): Account data, predictions, wallets, and community content. Hosted in the EU.
+- **Supabase** (PostgreSQL): Account data, venue orders, match pools, wallets, and community content. Hosted in the EU.
 - **Firebase (Google Cloud)**: Push notification delivery.
 
 All data transfers use industry-standard encryption (TLS 1.2+).
@@ -61,7 +61,7 @@ We use Firebase Cloud Messaging (FCM) to send push notifications. You can:
 ## 6. Data Retention
 
 - **Active accounts**: Data is retained for the lifetime of your account.
-- **Deleted accounts**: Personal data is deleted within 30 days of account deletion. Anonymized prediction and leaderboard data may be retained for statistical purposes.
+- **Deleted accounts**: Personal data is deleted within 30 days of account deletion. Anonymized operational, order, wallet, and match-pool data may be retained for audit, fraud prevention, and statistical purposes.
 - **Device tokens**: Deactivated tokens are purged after 90 days of inactivity.
 
 ## 7. Your Rights (GDPR — EU Users)

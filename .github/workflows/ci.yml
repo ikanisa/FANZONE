@@ -99,24 +99,36 @@ jobs:
       - name: Check Edge Function formatting
         run: |
           deno fmt --check \
+            supabase/functions/_shared/auth.ts \
+            supabase/functions/_shared/auth_test.ts \
+            supabase/functions/_shared/cors.ts \
+            supabase/functions/_shared/cors_test.ts \
+            supabase/functions/_shared/off_platform_payment.ts \
+            supabase/functions/_shared/off_platform_payment_test.ts \
             supabase/functions/whatsapp-otp/index.ts \
-            supabase/functions/generate-predictions/index.ts \
-            supabase/functions/score-predictions/index.ts \
             supabase/functions/import-football-data/index.ts \
             supabase/functions/push-notify/index.ts \
             supabase/functions/dispatch-match-alerts/index.ts \
             supabase/functions/dispatch-match-alerts/dispatch.ts \
-            supabase/functions/dispatch-match-alerts/dispatch_test.ts
+            supabase/functions/dispatch-match-alerts/dispatch_test.ts \
+            supabase/functions/generate-pool-social-card/index.ts \
+            supabase/functions/settle-match-pools/index.ts \
+            supabase/functions/menu_ingest_create/index.ts \
+            supabase/functions/menu_ingest_worker/index.ts \
+            supabase/functions/payment-hub/index.ts
 
       - name: Type-check Edge Functions
         run: |
           deno check \
             supabase/functions/whatsapp-otp/index.ts \
-            supabase/functions/generate-predictions/index.ts \
-            supabase/functions/score-predictions/index.ts \
             supabase/functions/import-football-data/index.ts \
             supabase/functions/push-notify/index.ts \
-            supabase/functions/dispatch-match-alerts/index.ts
+            supabase/functions/dispatch-match-alerts/index.ts \
+            supabase/functions/generate-pool-social-card/index.ts \
+            supabase/functions/settle-match-pools/index.ts \
+            supabase/functions/menu_ingest_create/index.ts \
+            supabase/functions/menu_ingest_worker/index.ts \
+            supabase/functions/payment-hub/index.ts
 
       - name: Run Edge Function tests
         run: deno test --allow-env supabase/functions
@@ -133,22 +145,22 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: admin/package-lock.json
+          cache-dependency-path: apps/admin/package-lock.json
 
       - name: Install admin dependencies
-        working-directory: admin
+        working-directory: apps/admin
         run: npm ci
 
       - name: Lint admin
-        working-directory: admin
+        working-directory: apps/admin
         run: npm run lint
 
       - name: Test admin
-        working-directory: admin
+        working-directory: apps/admin
         run: npm run test
 
       - name: Build admin
-        working-directory: admin
+        working-directory: apps/admin
         run: npm run build
 
   website-build:
@@ -163,23 +175,23 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: website/package-lock.json
+          cache-dependency-path: apps/website/package-lock.json
 
       - name: Install website dependencies
-        working-directory: website
+        working-directory: apps/website
         run: npm ci
 
       - name: Lint website
-        working-directory: website
+        working-directory: apps/website
         run: npm run lint
 
       - name: Build website
-        working-directory: website
+        working-directory: apps/website
         run: npm run build
 
       - name: Validate website release metadata
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        working-directory: website
+        working-directory: apps/website
         run: npm run validate:release-metadata
 
   flutter-lint:
@@ -305,19 +317,7 @@ jobs:
             "APP_ENV": "production",
             "SUPABASE_URL": "${{ secrets.SUPABASE_URL }}",
             "SUPABASE_ANON_KEY": "${{ secrets.SUPABASE_ANON_KEY }}",
-            "SENTRY_DSN": "${{ secrets.SENTRY_DSN }}",
-            "ENABLE_PREDICTIONS": "true",
-            "ENABLE_WALLET": "true",
-            "ENABLE_LEADERBOARD": "true",
-            "ENABLE_REWARDS": "true",
-            "ENABLE_MEMBERSHIP": "true",
-            "ENABLE_NOTIFICATIONS": "true",
-            "ENABLE_TEAM_COMMUNITIES": "true",
-            "ENABLE_FAN_IDENTITY": "true",
-            "ENABLE_MARKETPLACE": "true",
-            "ENABLE_FEATURED_EVENTS": "true",
-            "ENABLE_GLOBAL_CHALLENGES": "false",
-            "ENABLE_REGION_DISCOVERY": "true"
+            "SENTRY_DSN": "${{ secrets.SENTRY_DSN }}"
           }
           EOF
 
@@ -359,19 +359,7 @@ jobs:
             "APP_ENV": "production",
             "SUPABASE_URL": "${{ secrets.SUPABASE_URL }}",
             "SUPABASE_ANON_KEY": "${{ secrets.SUPABASE_ANON_KEY }}",
-            "SENTRY_DSN": "${{ secrets.SENTRY_DSN }}",
-            "ENABLE_PREDICTIONS": "true",
-            "ENABLE_WALLET": "true",
-            "ENABLE_LEADERBOARD": "true",
-            "ENABLE_REWARDS": "true",
-            "ENABLE_MEMBERSHIP": "true",
-            "ENABLE_NOTIFICATIONS": "true",
-            "ENABLE_TEAM_COMMUNITIES": "true",
-            "ENABLE_FAN_IDENTITY": "true",
-            "ENABLE_MARKETPLACE": "true",
-            "ENABLE_FEATURED_EVENTS": "true",
-            "ENABLE_GLOBAL_CHALLENGES": "false",
-            "ENABLE_REGION_DISCOVERY": "true"
+            "SENTRY_DSN": "${{ secrets.SENTRY_DSN }}"
           }
           EOF
 

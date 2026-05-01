@@ -37,7 +37,8 @@ import {
 import { buildCorsHeaders, getErrorMessage } from "../_shared/http.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ||
+const SUPABASE_SERVICE_KEY =
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() ||
   Deno.env.get("EDGE_SERVICE_ROLE_KEY")?.trim() || "";
 const SUPABASE_JWT_SECRET = Deno.env.get("FANZONE_JWT_SECRET")?.trim() || "";
 
@@ -639,7 +640,10 @@ async function handleVerify(phone: string, otp: string): Promise<Response> {
     if (createError) {
       // The user might already exist but find_auth_user_by_phone missed it
       // (e.g., phone format mismatch). Retry the lookup before failing.
-      console.error("User creation error (will retry lookup):", createError.message);
+      console.error(
+        "User creation error (will retry lookup):",
+        createError.message,
+      );
 
       // Try resolving again with the improved phone normalization
       try {

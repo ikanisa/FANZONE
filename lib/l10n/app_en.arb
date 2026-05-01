@@ -7,12 +7,10 @@
 
   "navScores": "Scores",
   "@navScores": { "description": "Bottom nav: Scores tab" },
-  "navFixtures": "Fixtures",
-  "@navFixtures": { "description": "Bottom nav: Fixtures tab" },
+  "navFixtures": "Pools",
+  "@navFixtures": { "description": "Bottom nav: Pools tab" },
   "navFollowing": "Following",
   "@navFollowing": { "description": "Bottom nav: Following tab" },
-  "navPredict": "Predict",
-  "@navPredict": { "description": "Bottom nav: Predict tab" },
   "navProfile": "Profile",
   "@navProfile": { "description": "Bottom nav: Profile tab" },
 
@@ -23,7 +21,7 @@
       "timeOfDay": { "type": "String", "example": "morning" }
     }
   },
-  "homeSubtitle": "Football Prediction Hub",
+  "homeSubtitle": "Sports-bar ordering and match pools",
   "@homeSubtitle": { "description": "Home screen subtitle" },
 
   "homeTabLive": "Live",
@@ -40,7 +38,7 @@
   "matchVs": "vs",
 
   "leagueStandings": "Standings",
-  "leagueFixtures": "Fixtures",
+  "leagueFixtures": "Matches",
   "leagueResults": "Results",
   "leagueTeams": "Teams",
 
@@ -52,23 +50,6 @@
   "standingsL": "L",
   "standingsGD": "GD",
   "standingsPts": "Pts",
-
-  "predictTitle": "Predict",
-  "predictMatchResult": "Match Result",
-  "predictExactScore": "Exact Score",
-  "predictStake": "Stake",
-  "predictProjectedEarn": "Projected Earn",
-  "predictSubmit": "Submit Prediction",
-  "predictClear": "Clear All",
-  "predictMarketHome": "{team} to Win",
-  "@predictMarketHome": {
-    "placeholders": { "team": { "type": "String" } }
-  },
-  "predictMarketDraw": "Draw",
-  "predictMarketAway": "{team} to Win",
-  "@predictMarketAway": {
-    "placeholders": { "team": { "type": "String" } }
-  },
 
   "walletTitle": "FET Wallet",
   "walletBalance": "Balance",
@@ -82,7 +63,6 @@
   "profileTitle": "Profile",
   "profileSettings": "Settings",
   "profileWallet": "Wallet",
-  "profileLeaderboard": "Leaderboard",
   "profileNotifications": "Notifications",
   "profileSignIn": "Sign in to unlock all features",
   "profileSignInCta": "Sign In",
@@ -101,11 +81,6 @@
     "placeholders": { "version": { "type": "String" } }
   },
 
-  "leaderboardTitle": "Leaderboard",
-  "leaderboardRank": "Rank",
-  "leaderboardPoints": "Points",
-  "leaderboardPredictions": "Predictions",
-
   "searchTitle": "Search",
   "searchHint": "Search teams, leagues, matches...",
   "searchNoResults": "No results found",
@@ -118,15 +93,13 @@
   "@teamFans": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "teamFixtures": "Fixtures",
-
   "followingTitle": "Following",
   "followingEmpty": "You haven't followed any teams or leagues yet.",
   "followingDiscoverCaption": "Explore teams and leagues to follow",
   "followingDiscover": "Discover",
 
   "loginTitle": "Welcome to FANZONE",
-  "loginSubtitle": "The Global Football Prediction Platform",
+  "loginSubtitle": "Sports-bar ordering, match pools, and FET wallet",
   "loginPhoneHint": "WhatsApp number",
   "loginOtpHint": "Enter WhatsApp verification code",
   "loginSendOtp": "Send Code Via WhatsApp",
@@ -134,7 +107,7 @@
   "loginSkip": "Continue as Guest",
 
   "onboardingWelcome": "Welcome to FANZONE",
-  "onboardingSubtitle": "Predict. Compete. Win.",
+  "onboardingSubtitle": "Order. Pool. Earn.",
   "onboardingNext": "Next",
   "onboardingDone": "Get Started",
 
@@ -163,11 +136,11 @@
     "placeholders": { "count": { "type": "int" } }
   },
 
-  "featureUnavailableTitle": "{feature} is coming soon",
+  "featureUnavailableTitle": "{feature} is unavailable",
   "@featureUnavailableTitle": {
     "placeholders": { "feature": { "type": "String" } }
   },
-  "featureUnavailableSubtitle": "This feature will be available in a future update.",
+  "featureUnavailableSubtitle": "This feature is not enabled for your account or market.",
 
   "notificationsTitle": "Notifications",
   "notificationsEmpty": "No notifications yet",
@@ -180,14 +153,10 @@
     "placeholders": { "eventName": { "type": "String" } }
   },
   "eventMatches": "Event Matches",
-  "eventChallenges": "Event Challenges",
-  "eventLeaderboard": "Event Leaderboard",
   "trendingGlobally": "Trending Globally",
   "regionAfrica": "Africa",
   "regionEurope": "Europe",
   "regionAmericas": "Americas",
   "regionGlobal": "Global",
-  "popularTeamsTitle": "Popular Teams",
-  "pickYourLocal": "Pick your local favorite team",
-  "onboardingLocalHint": "Search your favorite team from any league worldwide"
+  "popularTeamsTitle": "Featured Teams"
 }

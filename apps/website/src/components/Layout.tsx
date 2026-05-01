@@ -1,6 +1,5 @@
 import { ReactNode, useEffect, useMemo } from 'react';
 import {
-  Calendar,
   Home,
   Trophy,
   User,
@@ -65,11 +64,6 @@ export default function Layout({ children }: LayoutProps) {
         isVerified: viewerState.profile
           ? !viewerState.profile.isAnonymous
           : undefined,
-        favoriteTeams: viewerState.favoriteTeams,
-        profileTeam:
-          viewerState.profile?.favoriteTeamName ??
-          viewerState.favoriteTeams[0] ??
-          null,
         fetBalance: viewerState.wallet?.availableBalanceFet,
         walletTransactions: viewerState.walletTransactions,
         notifications: viewerState.notifications,
@@ -162,10 +156,9 @@ export default function Layout({ children }: LayoutProps) {
 }
 
 function iconForRoute(route: string) {
-  if (route === '/leaderboard') return <Trophy size={20} />;
+  if (route === '/pools') return <Trophy size={20} />;
   if (route === '/wallet') return <Wallet size={20} />;
   if (route === '/profile') return <User size={20} />;
-  if (route === '/fixtures') return <Calendar size={20} />;
   return <Home size={20} />;
 }
 

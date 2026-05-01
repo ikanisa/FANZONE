@@ -27,7 +27,7 @@ _$MatchModelImpl _$$MatchModelImplFromJson(Map<String, dynamic> json) =>
       awayTeam: json['away_team'] as String,
       ftHome: (json['ft_home'] as num?)?.toInt(),
       ftAway: (json['ft_away'] as num?)?.toInt(),
-      status: json['status'] as String? ?? 'upcoming',
+      status: json['status'] as String? ?? 'scheduled',
       liveMinute: (json['live_minute'] as num?)?.toInt(),
       resultCode: json['result_code'] as String?,
       isNeutral: json['is_neutral'] as bool? ?? false,

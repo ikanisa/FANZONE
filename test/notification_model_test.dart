@@ -5,10 +5,10 @@ void main() {
   group('NotificationItem', () {
     final json = {
       'id': 'n1',
-      'type': 'prediction_reward',
+      'type': 'pool_reward',
       'title': '🎉 You won!',
-      'body': 'Your prediction for Valletta vs Birkirkara was correct!',
-      'data': {'match_id': 'm1', 'screen': '/predict'},
+      'body': 'Your Valletta vs Birkirkara pool was settled.',
+      'data': {'match_id': 'm1', 'screen': '/pools'},
       'sent_at': '2026-04-18T14:00:00.000Z',
       'read_at': null,
     };
@@ -16,7 +16,7 @@ void main() {
     test('fromJson parses all fields', () {
       final notif = NotificationItem.fromJson(json);
       expect(notif.id, 'n1');
-      expect(notif.type, 'prediction_reward');
+      expect(notif.type, 'pool_reward');
       expect(notif.title, '🎉 You won!');
       expect(notif.body, contains('Valletta'));
       expect(notif.data['match_id'], 'm1');
@@ -66,7 +66,7 @@ void main() {
     test('defaults are sensible', () {
       const prefs = NotificationPreferences();
       expect(prefs.goalAlerts, true);
-      expect(prefs.predictionUpdates, true);
+      expect(prefs.poolUpdates, true);
       expect(prefs.rewardUpdates, true);
       expect(prefs.marketing, false); // marketing OFF by default
     });
@@ -74,7 +74,7 @@ void main() {
     test('fromJson round-trip', () {
       final json = {
         'goal_alerts': false,
-        'prediction_updates': true,
+        'pool_updates': true,
         'reward_updates': false,
         'marketing': true,
       };
@@ -91,42 +91,45 @@ void main() {
       final updated = prefs.copyWith(goalAlerts: false, marketing: true);
       expect(updated.goalAlerts, false);
       expect(updated.marketing, true);
-      expect(updated.predictionUpdates, true); // unchanged
+      expect(
+        updated.poolUpdates,
+        true,
+      ); // pool-update preference unchanged
     });
   });
 
   group('UserStats', () {
     test('defaults are all zero', () {
       const stats = UserStats();
-      expect(stats.predictionStreak, 0);
+      expect(stats.poolStreak, 0);
       expect(stats.longestStreak, 0);
-      expect(stats.totalPredictions, 0);
-      expect(stats.correctPredictions, 0);
+      expect(stats.totalPools, 0);
+      expect(stats.poolWins, 0);
       expect(stats.totalFetEarned, 0);
       expect(stats.totalFetSpent, 0);
     });
 
     test('fromJson round-trip', () {
       final json = {
-        'prediction_streak': 5,
+        'pool_streak': 5,
         'longest_streak': 12,
-        'total_predictions': 30,
-        'correct_predictions': 3,
+        'total_pools': 30,
+        'pool_wins': 3,
         'total_fet_earned': 2500,
         'total_fet_spent': 1200,
       };
       final stats = UserStats.fromJson(json);
-      expect(stats.predictionStreak, 5);
+      expect(stats.poolStreak, 5);
       expect(stats.longestStreak, 12);
-      expect(stats.correctPredictions, 3);
+      expect(stats.poolWins, 3);
       expect(stats.totalFetEarned, 2500);
       final encoded = stats.toJson();
-      expect(encoded['correct_predictions'], 3);
+      expect(encoded['pool_wins'], 3);
     });
 
     test('equality', () {
-      const a = UserStats(predictionStreak: 5, totalFetEarned: 100);
-      const b = UserStats(predictionStreak: 5, totalFetEarned: 100);
+      const a = UserStats(poolStreak: 5, totalFetEarned: 100);
+      const b = UserStats(poolStreak: 5, totalFetEarned: 100);
       expect(a, equals(b));
     });
   });

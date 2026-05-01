@@ -9,7 +9,7 @@ void main() {
   group('WalletTransaction', () {
     final json = {
       'id': 't1',
-      'title': 'Prediction reward',
+      'title': 'Pool reward',
       'amount': 50,
       'type': 'spend',
       'date': '2026-04-17T10:00:00.000Z',
@@ -19,7 +19,7 @@ void main() {
     test('fromJson round-trip', () {
       final tx = WalletTransaction.fromJson(json);
       expect(tx.id, 't1');
-      expect(tx.title, 'Prediction reward');
+      expect(tx.title, 'Pool reward');
       expect(tx.toJson()['amount'], 50);
     });
   });
@@ -32,7 +32,7 @@ void main() {
       'competition_id': 'competition-alpha',
       'season_label': '2025-26',
       'date': '2026-04-18T00:00:00.000Z',
-      'status': 'upcoming',
+      'status': 'scheduled',
       'data_source': 'openfootball',
     };
 
@@ -43,7 +43,7 @@ void main() {
       expect(match.awayTeam, 'Test Club B');
       expect(match.competitionId, 'competition-alpha');
       expect(match.season, '2025-26');
-      expect(match.status, 'upcoming');
+      expect(match.status, 'scheduled');
     });
 
     test('scoreDisplay returns correct format', () {
@@ -51,7 +51,7 @@ void main() {
         ...json,
         'ft_home': 3,
         'ft_away': 0,
-        'status': 'finished',
+        'status': 'final',
       });
       expect(match.scoreDisplay, '3 - 0');
     });

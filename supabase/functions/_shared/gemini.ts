@@ -1,7 +1,6 @@
 /**
- * Gemini AI Utilities for FANZONE Edge Functions
- * Ported from DineIn _lib/gemini.ts
- * 
+ * Gemini AI utilities for FANZONE Edge Functions.
+ *
  * Provides:
  *  - callGemini() — primary/fallback model calls with retry + exponential backoff
  *  - parseJSON() — robust JSON extraction from AI text responses
@@ -303,7 +302,7 @@ export const AGENT_SYSTEM_PROMPTS: Record<AgentType, string> = {
 2. **Menu Assistance** - Answer questions about items, suggest recommendations
 3. **Order Taking** - Take orders conversationally, confirm items, suggest pairings
 4. **Order Tracking** - Update on order status when asked
-5. **FET Points** - Explain how ordering earns FET points for predictions
+5. **FET Rewards** - Explain how ordering can earn FET for wallet rewards and match pools
 
 **Important Rules:**
 - Always confirm orders before submitting
@@ -318,7 +317,7 @@ export const AGENT_SYSTEM_PROMPTS: Record<AgentType, string> = {
 1. **Order Management** - Summarize active orders, highlight urgent items
 2. **Analytics** - Provide insights on sales, popular items, peak hours
 3. **Operational Support** - Answer questions about workflow, status updates
-4. **FET & Predictions** - Monitor prediction pool activity at the venue
+4. **FET & Pools** - Monitor match pool activity at the venue
 
 **Important Rules:**
 - Be direct and actionable

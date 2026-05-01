@@ -13,7 +13,7 @@ describe('SearchPalette', () => {
       type: 'user',
       title: 'Admin user',
       subtitle: 'viewer',
-      route: '/users/user_1',
+      route: '/wallets?q=Admin%20user',
     };
 
     render(

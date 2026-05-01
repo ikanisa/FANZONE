@@ -73,7 +73,7 @@ export function AnalyticsCharts({
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar
-                  dataKey="predictions"
+                  dataKey="poolEntries"
                   fill="var(--fz-secondary)"
                   radius={[4, 4, 0, 0]}
                 />
@@ -178,7 +178,7 @@ export function AnalyticsCharts({
             {[
               {
                 label: "Top competition engagement remains concentrated",
-                detail: "35% of all predictions",
+                detail: "35% of all pool entries",
                 color: "success",
               },
               {
@@ -187,13 +187,13 @@ export function AnalyticsCharts({
                 color: "success",
               },
               {
-                label: "Prediction participation growing",
-                detail: "More users are saving match picks each week",
+                label: "Pool participation growing",
+                detail: "More users are joining match pools each week",
                 color: "success",
               },
               {
                 label: "Reward flow is settling cleanly",
-                detail: "Weekly FET awards are landing without legacy redemption debt",
+                detail: "Weekly FET awards are landing without unresolved redemption debt",
                 color: "info",
               },
               {

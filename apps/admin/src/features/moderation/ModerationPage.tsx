@@ -5,7 +5,7 @@ import { StatusBadge } from '../../components/ui/StatusBadge';
 import { KpiCard } from '../../components/ui/KpiCard';
 import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/DetailDrawer';
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
-import { useReports, useUpdateReportStatus } from './useModeration';
+import { useAdminRiskSignals, useReports, useUpdateReportStatus } from './useModeration';
 import { formatRelativeTime, formatDateTime } from '../../lib/formatters';
 import { Shield, AlertTriangle, Eye, Clock, Search, CheckCircle, XCircle, ArrowUp } from 'lucide-react';
 import type { ModerationReport } from '../../types';
@@ -19,6 +19,7 @@ export function ModerationPage() {
 
   // Data
   const { data: result, isLoading, error, refetch } = useReports({ page }, { status: statusFilter, search });
+  const { data: riskSignals = [] } = useAdminRiskSignals();
   const updateStatus = useUpdateReportStatus();
 
   const reports = result?.data ?? [];
@@ -42,13 +43,40 @@ export function ModerationPage() {
 
   return (
     <div>
-      <PageHeader title="Moderation & Risk" subtitle="Review reports, fraud flags, and account issues" />
+      <PageHeader title="Risk & Abuse" subtitle="Review reports, fraud flags, and account issues" />
 
       <div className="grid grid-4 gap-4 mb-6">
         <KpiCard label="Open Reports" value={openCount} icon={<AlertTriangle size={18} />} />
         <KpiCard label="Investigating" value={investigatingCount} icon={<Eye size={18} />} />
         <KpiCard label="Escalated" value={escalatedCount} icon={<Shield size={18} />} />
-        <KpiCard label="Total Reports" value={result?.count ?? reports.length} icon={<Clock size={18} />} />
+        <KpiCard label="Risk Signals" value={riskSignals.length} icon={<Clock size={18} />} />
+      </div>
+
+      <div className="data-table-container mb-4">
+        <div className="flex items-center justify-between gap-3" style={{ padding: 12 }}>
+          <div>
+            <h2 className="font-semibold">Generated Risk Signals</h2>
+            <p className="text-sm text-muted">Pool creation, self-invites, creator rewards, and duplicate-account signals where detection exists.</p>
+          </div>
+        </div>
+        {riskSignals.length === 0 ? (
+          <div style={{ padding: 16 }}><EmptyState title="No generated risk signals" /></div>
+        ) : (
+          <table className="data-table">
+            <thead><tr><th>Signal</th><th>Entity</th><th>Severity</th><th>Message</th><th>Created</th></tr></thead>
+            <tbody>
+              {riskSignals.slice(0, 8).map((signal) => (
+                <tr key={`${signal.signal_type}-${signal.entity_id}`}>
+                  <td>{signal.signal_type.replaceAll('_', ' ')}</td>
+                  <td><span className="badge badge-neutral">{signal.entity_type}</span> <span className="text-xs mono">{signal.entity_id}</span></td>
+                  <td><StatusBadge status={signal.severity} /></td>
+                  <td>{signal.message}</td>
+                  <td className="text-muted">{formatRelativeTime(signal.created_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Filters */}

@@ -1,19 +1,12 @@
 import type {
-  Competition,
-  LeaderboardEntry,
   Match,
-  PredictionConsensus,
-  PredictionEngineOutput,
-  StandingRow,
-  Team,
-  TeamFormFeature,
-  UserPrediction,
+  MatchPoolEntrySummary,
+  MatchPoolSummary,
   Order,
   OrderItem,
   PaymentMethod,
   ViewerProfile,
   ViewerWallet,
-  VenueMatchStake,
 } from "../types";
 import { assertClientFeatureAvailable } from "../platform/access";
 import { normalizePlatformBootstrap } from "../platform/normalize";
@@ -69,13 +62,6 @@ function asString(value: unknown, fallback = ""): string {
   if (typeof value === "string") return value;
   if (value == null) return fallback;
   return String(value);
-}
-
-function asStringList(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((item) => asString(item).trim())
-    .filter((item) => item.length > 0);
 }
 
 function formatKickoffLabel(
@@ -183,161 +169,78 @@ function normalizeMatchRow(row: JsonRecord): Match {
   };
 }
 
-function normalizeCompetitionRow(row: JsonRecord): Competition {
-  return {
-    id: asString(row.id),
-    name: asString(row.name),
-    shortName: asString(row.short_name),
-    country: asString(row.country),
-    tier: asNumber(row.tier, 1),
-    competitionType: asString(row.competition_type) || null,
-    isFeatured: row.is_featured === true,
-    isInternational: row.is_international === true,
-    isActive: row.is_active !== false,
-    currentSeasonId: asString(row.current_season_id) || null,
-    currentSeasonLabel: asString(row.current_season_label) || null,
-    futureMatchCount: asNumber(row.future_match_count),
-    catalogRank: row.catalog_rank == null ? null : asNumber(row.catalog_rank),
-  };
-}
+function normalizeMatchPoolRow(row: JsonRecord): MatchPoolSummary {
+  const camps = Array.isArray(row.camps)
+    ? (row.camps as JsonRecord[])
+    : [];
 
-function normalizeTeamRow(row: JsonRecord): Team {
   return {
     id: asString(row.id),
-    name: asString(row.name),
-    shortName: asString(row.short_name) || asString(row.name),
-    slug: asString(row.slug) || asString(row.id),
-    country: asString(row.country) || null,
+    matchId: asString(row.match_id),
+    scope: asString(row.scope, "global"),
     countryCode: asString(row.country_code) || null,
-    teamType: asString(row.team_type, "club"),
-    description: asString(row.description) || null,
-    leagueName: asString(row.league_name) || null,
-    region: asString(row.region) || null,
-    competitionIds: asStringList(row.competition_ids),
-    aliases: asStringList(row.aliases),
-    searchTerms: asStringList(row.search_terms),
-    logoUrl: asString(row.logo_url) || null,
-    crestUrl: asString(row.crest_url) || null,
-    coverImageUrl: asString(row.cover_image_url) || null,
-    isActive: row.is_active !== false,
-    isFeatured: row.is_featured === true,
-    isPopularPick: row.is_popular_pick === true,
-    popularPickRank:
-      row.popular_pick_rank == null ? null : asNumber(row.popular_pick_rank),
-    fanCount: asNumber(row.fan_count),
-  };
-}
-
-function normalizeStandingRow(row: JsonRecord): StandingRow {
-  return {
-    id: asString(row.id),
-    competitionId: asString(row.competition_id),
-    seasonId: asString(row.season_id),
-    season: asString(row.season),
-    snapshotType: asString(row.snapshot_type),
-    snapshotDate: asString(row.snapshot_date),
-    teamId: asString(row.team_id),
-    teamName: asString(row.team_name),
-    position: asNumber(row.position),
-    played: asNumber(row.played),
-    won: asNumber(row.won),
-    drawn: asNumber(row.drawn),
-    lost: asNumber(row.lost),
-    goalsFor: asNumber(row.goals_for),
-    goalsAgainst: asNumber(row.goals_against),
-    goalDifference: asNumber(row.goal_difference),
-    points: asNumber(row.points),
-  };
-}
-
-function normalizeFormRow(row: JsonRecord): TeamFormFeature {
-  return {
-    matchId: asString(row.match_id),
-    teamId: asString(row.team_id),
-    last5Points: asNumber(row.last5_points),
-    last5Wins: asNumber(row.last5_wins),
-    last5Draws: asNumber(row.last5_draws),
-    last5Losses: asNumber(row.last5_losses),
-    last5GoalsFor: asNumber(row.last5_goals_for),
-    last5GoalsAgainst: asNumber(row.last5_goals_against),
-    last5CleanSheets: asNumber(row.last5_clean_sheets),
-    last5FailedToScore: asNumber(row.last5_failed_to_score),
-    homeFormLast5: asNumber(row.home_form_last5),
-    awayFormLast5: asNumber(row.away_form_last5),
-    over25Last5: asNumber(row.over25_last5),
-    bttsLast5: asNumber(row.btts_last5),
-  };
-}
-
-function normalizeEngineRow(row: JsonRecord): PredictionEngineOutput {
-  return {
-    id: asString(row.id),
-    matchId: asString(row.match_id),
-    modelVersion: asString(row.model_version),
-    homeWinScore: asNumber(row.home_win_score),
-    drawScore: asNumber(row.draw_score),
-    awayWinScore: asNumber(row.away_win_score),
-    over25Score: asNumber(row.over25_score),
-    bttsScore: asNumber(row.btts_score),
-    predictedHomeGoals:
-      row.predicted_home_goals == null
-        ? null
-        : asNumber(row.predicted_home_goals),
-    predictedAwayGoals:
-      row.predicted_away_goals == null
-        ? null
-        : asNumber(row.predicted_away_goals),
-    confidenceLabel: asString(row.confidence_label, "low"),
-    generatedAt: asString(row.generated_at),
-  };
-}
-
-function normalizeConsensusRow(row: JsonRecord): PredictionConsensus {
-  return {
-    matchId: asString(row.match_id),
-    totalPredictions: asNumber(row.total_predictions),
-    homePickCount: asNumber(row.home_pick_count),
-    drawPickCount: asNumber(row.draw_pick_count),
-    awayPickCount: asNumber(row.away_pick_count),
-    homePct: asNumber(row.home_pct),
-    drawPct: asNumber(row.draw_pct),
-    awayPct: asNumber(row.away_pct),
-  };
-}
-
-function normalizeUserPredictionRow(row: JsonRecord): UserPrediction {
-  return {
-    id: asString(row.id),
-    matchId: asString(row.match_id),
-    predictedResultCode: asString(row.predicted_result_code) || null,
-    predictedOver25:
-      row.predicted_over25 == null ? null : row.predicted_over25 === true,
-    predictedBtts:
-      row.predicted_btts == null ? null : row.predicted_btts === true,
-    predictedHomeGoals:
-      row.predicted_home_goals == null
-        ? null
-        : asNumber(row.predicted_home_goals),
-    predictedAwayGoals:
-      row.predicted_away_goals == null
-        ? null
-        : asNumber(row.predicted_away_goals),
-    pointsAwarded: asNumber(row.points_awarded),
-    rewardStatus: asString(row.reward_status),
+    venueId: asString(row.venue_id) || null,
+    title: asString(row.title, "Match pool"),
+    status: asString(row.status, "open"),
+    isOfficial: row.is_official === true,
+    entryFeeFet: asNumber(row.entry_fee_fet),
+    stakeMinFet: asNumber(row.stake_min_fet),
+    stakeMaxFet: asNumber(row.stake_max_fet),
+    totalMembers: asNumber(row.total_members),
+    totalStakedFet: asNumber(row.total_staked_fet),
+    creatorRewardFet: asNumber(row.creator_reward_fet),
+    shareSlug: asString(row.share_slug),
+    shareUrl: asString(row.share_url) || null,
+    deepLinkUrl: asString(row.deep_link_url) || null,
+    socialCardUrl: asString(row.social_card_url) || null,
+    resultCampId: asString(row.result_camp_id) || null,
+    lockedAt: asString(row.locked_at) || null,
+    settledAt: asString(row.settled_at) || null,
+    metadata:
+      row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+        ? (row.metadata as Record<string, unknown>)
+        : {},
+    camps: camps.map((camp) => ({
+      id: asString(camp.id),
+      poolId: asString(row.id),
+      code: asString(camp.code),
+      campKey: asString(camp.camp_key ?? camp.code),
+      label: asString(camp.label),
+      resultCode: asString(camp.result_code) || null,
+      teamId: asString(camp.team_id) || null,
+      memberCount: asNumber(camp.member_count),
+      totalStakedFet: asNumber(camp.total_staked_fet),
+      isWinningCamp: camp.is_winning_camp === true,
+      displayOrder: asNumber(camp.display_order),
+    })),
     createdAt: asString(row.created_at),
     updatedAt: asString(row.updated_at),
   };
 }
 
-function normalizeLeaderboardRow(row: JsonRecord): LeaderboardEntry {
+function normalizePoolEntryRow(row: JsonRecord): MatchPoolEntrySummary {
   return {
-    userId: asString(row.user_id),
-    displayName: asString(row.display_name),
-    predictionCount: asNumber(row.prediction_count),
-    totalPoints: asNumber(row.total_points),
-    totalFet: asNumber(row.total_fet),
-    correctResults: asNumber(row.correct_results),
-    exactScores: asNumber(row.exact_scores),
+    entryId: asString(row.entry_id),
+    poolId: asString(row.pool_id),
+    campId: asString(row.camp_id),
+    matchId: asString(row.match_id),
+    matchLabel: asString(row.match_label, "Match"),
+    competitionName: asString(row.competition_name) || null,
+    kickoffAt: asString(row.kickoff_at) || null,
+    poolTitle: asString(row.pool_title, "Match pool"),
+    poolScope: asString(row.pool_scope, "global"),
+    poolStatus: asString(row.pool_status, "open"),
+    campLabel: asString(row.camp_label, "Camp"),
+    stakeAmount: asNumber(row.stake_amount),
+    entryStatus: asString(row.entry_status, "active"),
+    payoutFet: asNumber(row.payout_fet),
+    totalMembers: asNumber(row.total_members),
+    totalStakedFet: asNumber(row.total_staked_fet),
+    resultCampId: asString(row.result_camp_id) || null,
+    shareUrl: asString(row.share_url) || null,
+    deepLinkUrl: asString(row.deep_link_url) || null,
+    socialCardUrl: asString(row.social_card_url) || null,
+    createdAt: asString(row.created_at),
   };
 }
 
@@ -396,7 +299,6 @@ export interface ViewerState {
     read: boolean;
     data: Record<string, unknown>;
   }[];
-  favoriteTeams: string[];
 }
 
 export interface WebsitePhonePreset {
@@ -413,15 +315,6 @@ export interface CurrencyDisplayPreference {
   spaceSeparated: boolean;
   rate: number;
   fetPerEur: number | null;
-}
-
-export interface PredictionSubmission {
-  matchId: string;
-  predictedResultCode?: string | null;
-  predictedOver25?: boolean | null;
-  predictedBtts?: boolean | null;
-  predictedHomeGoals?: number | null;
-  predictedAwayGoals?: number | null;
 }
 
 function resolveBrowserCountryCode(): string | null {
@@ -511,301 +404,6 @@ export const api = {
     }
   },
 
-  async getMatchesWindow(dateFrom: string, dateTo: string): Promise<Match[]> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    try {
-      const rows = await selectList<JsonRecord>(
-        client
-          .from("app_matches")
-          .select("*")
-          .gte("date", dateFrom)
-          .lte("date", dateTo)
-          .order("date", { ascending: true })
-          .order("kickoff_time", { ascending: true })
-          .limit(300),
-      );
-      return rows.map(normalizeMatchRow);
-    } catch (error) {
-      console.warn("Failed to load match window", error);
-      return [];
-    }
-  },
-
-  async getCompetitions(): Promise<Competition[]> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    try {
-      const rows = await selectList<JsonRecord>(
-        client
-          .from("competitions")
-          .select(
-            "id,name,short_name,country,tier,competition_type,is_featured,is_international,is_active,current_season_id,current_season_label,future_match_count,catalog_rank",
-          )
-          .eq("is_active", true)
-          .order("is_featured", { ascending: false })
-          .order("catalog_rank", { ascending: true, nullsFirst: false })
-          .order("name", { ascending: true }),
-      );
-      return rows.map(normalizeCompetitionRow);
-    } catch (error) {
-      console.warn("Failed to load competitions", error);
-      return [];
-    }
-  },
-
-  async getCompetitionById(competitionId: string): Promise<Competition | null> {
-    const client = await ensureClient();
-    if (!client) return null;
-
-    try {
-      const row = await maybeSingle<JsonRecord>(
-        client
-          .from("competitions")
-          .select(
-            "id,name,short_name,country,tier,competition_type,is_featured,is_international,is_active,current_season_id,current_season_label,future_match_count,catalog_rank",
-          )
-          .eq("id", competitionId)
-          .maybeSingle(),
-      );
-      return row ? normalizeCompetitionRow(row) : null;
-    } catch (error) {
-      console.warn(`Failed to load competition ${competitionId}`, error);
-      return null;
-    }
-  },
-
-  async getCompetitionMatches(
-    competitionId: string,
-    limit = 18,
-  ): Promise<Match[]> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    try {
-      const rows = await selectList<JsonRecord>(
-        client
-          .from("app_matches")
-          .select("*")
-          .eq("competition_id", competitionId)
-          .order("date", { ascending: true })
-          .limit(limit),
-      );
-      return rows.map(normalizeMatchRow);
-    } catch (error) {
-      console.warn(`Failed to load matches for ${competitionId}`, error);
-      return [];
-    }
-  },
-
-  async getCompetitionTeams(competitionId: string): Promise<Team[]> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    try {
-      const rows = await selectList<JsonRecord>(
-        client
-          .from("teams")
-          .select("*")
-          .eq("is_active", true)
-          .contains("competition_ids", [competitionId])
-          .order("is_popular_pick", { ascending: false })
-          .order("fan_count", { ascending: false })
-          .order("name", { ascending: true }),
-      );
-      return rows.map(normalizeTeamRow);
-    } catch (error) {
-      console.warn(
-        `Failed to load competition teams for ${competitionId}`,
-        error,
-      );
-      return [];
-    }
-  },
-
-  async getPopularTeams(limit = 12): Promise<Team[]> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    try {
-      const rows = await selectList<JsonRecord>(
-        client
-          .from("teams")
-          .select("*")
-          .eq("is_active", true)
-          .order("is_popular_pick", { ascending: false })
-          .order("popular_pick_rank", { ascending: true, nullsFirst: false })
-          .order("fan_count", { ascending: false })
-          .order("name", { ascending: true })
-          .limit(limit),
-      );
-      return rows.map(normalizeTeamRow);
-    } catch (error) {
-      console.warn("Failed to load popular teams", error);
-      return [];
-    }
-  },
-
-  async searchTeams(query: string, limit = 8): Promise<Team[]> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    const trimmed = query.trim();
-    if (!trimmed) return [];
-
-    const sanitized = trimmed.replace(/[,%]/g, "").slice(0, 64);
-    const pattern = `%${sanitized}%`;
-
-    try {
-      const [directRows, aliasRows] = await Promise.all([
-        selectList<JsonRecord>(
-          client
-            .from("teams")
-            .select("*")
-            .eq("is_active", true)
-            .or(`name.ilike.${pattern},short_name.ilike.${pattern}`)
-            .limit(limit * 2),
-        ),
-        selectList<JsonRecord>(
-          client
-            .from("team_aliases")
-            .select("team_id")
-            .ilike("alias_name", pattern)
-            .limit(limit * 2),
-        ),
-      ]);
-
-      const merged = new Map<string, JsonRecord>();
-      for (const row of directRows) {
-        const id = asString(row.id);
-        if (id) merged.set(id, row);
-      }
-
-      const aliasIds = [
-        ...new Set(
-          aliasRows.map((row) => asString(row.team_id)).filter(Boolean),
-        ),
-      ];
-      if (aliasIds.length > 0) {
-        const aliasTeams = await selectList<JsonRecord>(
-          client
-            .from("teams")
-            .select("*")
-            .in("id", aliasIds)
-            .eq("is_active", true),
-        );
-        for (const row of aliasTeams) {
-          const id = asString(row.id);
-          if (id) merged.set(id, row);
-        }
-      }
-
-      return [...merged.values()]
-        .map(normalizeTeamRow)
-        .sort((left, right) => {
-          if (left.isPopularPick !== right.isPopularPick) {
-            return left.isPopularPick ? -1 : 1;
-          }
-          const leftRank = left.popularPickRank ?? Number.MAX_SAFE_INTEGER;
-          const rightRank = right.popularPickRank ?? Number.MAX_SAFE_INTEGER;
-          if (leftRank !== rightRank) return leftRank - rightRank;
-          if (left.fanCount !== right.fanCount)
-            return right.fanCount - left.fanCount;
-          return left.name.localeCompare(right.name);
-        })
-        .slice(0, limit);
-    } catch (error) {
-      console.warn(`Failed to search teams for "${trimmed}"`, error);
-      return [];
-    }
-  },
-
-  async getCompetitionStandings(
-    competitionId: string,
-    season?: string | null,
-  ): Promise<StandingRow[]> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    try {
-      let query = client
-        .from("competition_standings")
-        .select("*")
-        .eq("competition_id", competitionId);
-
-      if (season && season.trim()) {
-        query = query.eq("season", season.trim());
-      }
-
-      const rows = await selectList<JsonRecord>(
-        query.order("snapshot_date", { ascending: false }).order("position", {
-          ascending: true,
-        }),
-      );
-      return rows.map(normalizeStandingRow);
-    } catch (error) {
-      console.warn(`Failed to load standings for ${competitionId}`, error);
-      return [];
-    }
-  },
-
-  async getTeamByIdOrSlug(teamIdOrSlug: string): Promise<Team | null> {
-    const client = await ensureClient();
-    if (!client) return null;
-
-    try {
-      let row = await maybeSingle<JsonRecord>(
-        client.from("teams").select("*").eq("id", teamIdOrSlug).maybeSingle(),
-      );
-
-      if (!row) {
-        const aliasRow = await maybeSingle<JsonRecord>(
-          client
-            .from("team_aliases")
-            .select("team_id")
-            .eq("alias_name", teamIdOrSlug)
-            .maybeSingle(),
-        );
-        if (aliasRow && typeof aliasRow.team_id === "string") {
-          row = await maybeSingle<JsonRecord>(
-            client
-              .from("teams")
-              .select("*")
-              .eq("id", aliasRow.team_id)
-              .maybeSingle(),
-          );
-        }
-      }
-
-      return row ? normalizeTeamRow(row) : null;
-    } catch (error) {
-      console.warn(`Failed to load team ${teamIdOrSlug}`, error);
-      return null;
-    }
-  },
-
-  async getTeamMatches(teamId: string, limit = 10): Promise<Match[]> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    try {
-      const rows = await selectList<JsonRecord>(
-        client
-          .from("app_matches")
-          .select("*")
-          .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
-          .order("date", { ascending: false })
-          .limit(limit),
-      );
-      return rows.map(normalizeMatchRow);
-    } catch (error) {
-      console.warn(`Failed to load team matches for ${teamId}`, error);
-      return [];
-    }
-  },
-
   async getMatchDetail(matchId: string): Promise<Match | null> {
     const client = await ensureClient();
     if (!client) return null;
@@ -821,105 +419,247 @@ export const api = {
     }
   },
 
-  async getPredictionEngineOutput(
-    matchId: string,
-  ): Promise<PredictionEngineOutput | null> {
-    const client = await ensureClient();
-    if (!client) return null;
-
-    try {
-      const row = await maybeSingle<JsonRecord>(
-        client
-          .from("predictions_engine_outputs")
-          .select("*")
-          .eq("match_id", matchId)
-          .maybeSingle(),
-      );
-      return row ? normalizeEngineRow(row) : null;
-    } catch (error) {
-      console.warn(`Failed to load engine output for ${matchId}`, error);
-      return null;
-    }
-  },
-
-  async getMatchFormFeatures(matchId: string): Promise<TeamFormFeature[]> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    try {
-      const rows = await selectList<JsonRecord>(
-        client.from("team_form_features").select("*").eq("match_id", matchId),
-      );
-      return rows.map(normalizeFormRow);
-    } catch (error) {
-      console.warn(`Failed to load form features for ${matchId}`, error);
-      return [];
-    }
-  },
-
-  async getMatchPredictionConsensus(
-    matchId: string,
-  ): Promise<PredictionConsensus | null> {
-    const client = await ensureClient();
-    if (!client) return null;
-
-    try {
-      const row = await maybeSingle<JsonRecord>(
-        client
-          .from("match_prediction_consensus")
-          .select("*")
-          .eq("match_id", matchId)
-          .maybeSingle(),
-      );
-      return row ? normalizeConsensusRow(row) : null;
-    } catch (error) {
-      console.warn(`Failed to load consensus for ${matchId}`, error);
-      return null;
-    }
-  },
-
-  async getMyPredictionForMatch(
-    matchId: string,
-  ): Promise<UserPrediction | null> {
-    const client = await ensureClient();
-    if (!client) return null;
-
-    try {
-      const userId = await ensureWebsiteSession();
-      if (!userId) return null;
-
-      const row = await maybeSingle<JsonRecord>(
-        client
-          .from("user_predictions")
-          .select("*")
-          .eq("user_id", userId)
-          .eq("match_id", matchId)
-          .maybeSingle(),
-      );
-      return row ? normalizeUserPredictionRow(row) : null;
-    } catch (error) {
-      console.warn(`Failed to load viewer prediction for ${matchId}`, error);
-      return null;
-    }
-  },
-
-  async getLeaderboard(limit = 20): Promise<LeaderboardEntry[]> {
+  async getOpenMatchPools(limit = 20): Promise<MatchPoolSummary[]> {
     const client = await ensureClient();
     if (!client) return [];
 
     try {
       const rows = await selectList<JsonRecord>(
         client
-          .from("public_leaderboard")
+          .from("match_pool_stats")
           .select("*")
-          .order("total_points", { ascending: false })
-          .order("total_fet", { ascending: false })
+          .in("status", ["open", "locked", "live", "settling"])
+          .order("created_at", { ascending: false })
           .limit(limit),
       );
-      return rows.map(normalizeLeaderboardRow);
+      return rows.map(normalizeMatchPoolRow);
     } catch (error) {
-      console.warn("Failed to load leaderboard", error);
+      console.warn("Failed to load match pools", error);
       return [];
+    }
+  },
+
+  async getMatchPools(matchId: string): Promise<MatchPoolSummary[]> {
+    const client = await ensureClient();
+    if (!client) return [];
+
+    try {
+      const rows = await selectList<JsonRecord>(
+        client
+          .from("match_pool_stats")
+          .select("*")
+          .eq("match_id", matchId)
+          .in("status", ["open", "locked", "live", "settling", "settled"])
+          .order("scope", { ascending: true })
+          .order("created_at", { ascending: false }),
+      );
+      return rows.map(normalizeMatchPoolRow);
+    } catch (error) {
+      console.warn(`Failed to load pools for ${matchId}`, error);
+      return [];
+    }
+  },
+
+  async getMatchPoolBySlug(slug: string): Promise<MatchPoolSummary | null> {
+    const client = await ensureClient();
+    if (!client) return null;
+
+    try {
+      const row = await maybeSingle<JsonRecord>(
+        client
+          .from("match_pool_stats")
+          .select("*")
+          .eq("share_slug", slug)
+          .maybeSingle(),
+      );
+      return row ? normalizeMatchPoolRow(row) : null;
+    } catch (error) {
+      console.warn(`Failed to load pool ${slug}`, error);
+      return null;
+    }
+  },
+
+  async getPoolMatches(limit = 16): Promise<Match[]> {
+    const [live, upcoming] = await Promise.all([
+      api.getLiveMatches(Math.ceil(limit / 2)),
+      api.getUpcomingMatches(limit),
+    ]);
+    const seen = new Set<string>();
+    return [...live, ...upcoming]
+      .filter((match) => {
+        if (seen.has(match.id)) return false;
+        seen.add(match.id);
+        return true;
+      })
+      .slice(0, limit);
+  },
+
+  async getMyPools(limit = 50): Promise<MatchPoolEntrySummary[]> {
+    const client = await ensureClient();
+    if (!client) return [];
+
+    try {
+      const { data, error } = await client.rpc("get_my_pools", {
+        p_limit: limit,
+      });
+      if (error) throw new Error(error.message);
+      return ((data ?? []) as JsonRecord[]).map(normalizePoolEntryRow);
+    } catch (error) {
+      console.warn("Failed to load my pools", error);
+      return [];
+    }
+  },
+
+  async createPool(input: {
+    matchId: string;
+    scope: "global" | "country" | "venue";
+    title: string;
+    stakeMinFet: number;
+    stakeMaxFet: number;
+    venueId?: string | null;
+    visibility?: "shareable" | "private" | "public";
+  }): Promise<{
+    success: boolean;
+    poolId?: string;
+    shareUrl?: string | null;
+    status?: string;
+    endorsementStatus?: string | null;
+    socialCardUrl?: string | null;
+    error?: string;
+  }> {
+    const client = await ensureClient();
+    if (!client) {
+      return {
+        success: false,
+        error: "Supabase is not configured for the website.",
+      };
+    }
+
+    try {
+      assertClientFeatureAvailable(
+        "pools",
+        "Match pools are currently unavailable.",
+      );
+
+      const { data, error } = await client.rpc("create_pool", {
+        p_match_id: input.matchId,
+        p_scope: input.scope,
+        p_country_id: null,
+        p_venue_id: input.venueId ?? null,
+        p_title: input.title.trim() || null,
+        p_stake_min: input.stakeMinFet,
+        p_stake_max: input.stakeMaxFet,
+        p_creator_reward_per_qualified_member: 1,
+        p_rules_json: {
+          visibility: input.visibility ?? "shareable",
+          is_official: false,
+        },
+        p_allow_multiple: false,
+      });
+
+      if (error) throw new Error(error.message);
+      const row = (data ?? {}) as JsonRecord;
+      const poolId = asString(row.pool_id);
+      let socialCardUrl: string | null = null;
+
+      if (poolId) {
+        try {
+          const generated = await api.generatePoolShareCard(poolId);
+          socialCardUrl = generated.socialCardUrl ?? null;
+        } catch (cardError) {
+          console.warn("Pool created but social card generation failed", cardError);
+        }
+      }
+
+      return {
+        success: true,
+        poolId,
+        shareUrl: asString(row.share_url) || null,
+        status: asString(row.status, "created"),
+        endorsementStatus: asString(row.endorsement_status) || null,
+        socialCardUrl,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Could not create pool.",
+      };
+    }
+  },
+
+  async generatePoolShareCard(poolId: string): Promise<{
+    success: boolean;
+    socialCardUrl?: string | null;
+    error?: string;
+  }> {
+    const client = await ensureClient();
+    if (!client) {
+      return {
+        success: false,
+        error: "Supabase is not configured for the website.",
+      };
+    }
+
+    try {
+      const { data, error } = await client.functions.invoke(
+        "generate-pool-social-card",
+        { body: { pool_id: poolId } },
+      );
+      if (error) throw new Error(error.message);
+      const row = (data ?? {}) as JsonRecord;
+      return {
+        success: true,
+        socialCardUrl:
+          asString(row.social_card_url) ||
+          asString(row.socialCardUrl) ||
+          null,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Could not generate social card.",
+      };
+    }
+  },
+
+  async createPoolInvite(poolId: string): Promise<{
+    success: boolean;
+    inviteCode?: string | null;
+    shareUrl?: string | null;
+    deepLinkUrl?: string | null;
+    error?: string;
+  }> {
+    const client = await ensureClient();
+    if (!client) {
+      return {
+        success: false,
+        error: "Supabase is not configured for the website.",
+      };
+    }
+
+    try {
+      const { data, error } = await client.rpc("create_match_pool_invite", {
+        p_pool_id: poolId,
+      });
+      if (error) throw new Error(error.message);
+      const row = (data ?? {}) as JsonRecord;
+      return {
+        success: true,
+        inviteCode: asString(row.invite_code) || null,
+        shareUrl: asString(row.share_url) || null,
+        deepLinkUrl: asString(row.deep_link_url) || null,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Could not create pool invite.",
+      };
     }
   },
 
@@ -931,13 +671,13 @@ export const api = {
     if (!userId) return null;
 
     try {
-      const [profileRow, walletRow, txRows, notificationRows, favoriteRows] =
+      const [profileRow, walletRow, txRows, notificationRows] =
         await Promise.all([
           maybeSingle<JsonRecord>(
             client
               .from("profiles")
               .select(
-                "user_id,fan_id,display_name,favorite_team_id,favorite_team_name,onboarding_completed,is_anonymous,auth_method",
+                "user_id,fan_id,display_name,onboarding_completed,is_anonymous,auth_method",
               )
               .eq("user_id", userId)
               .maybeSingle(),
@@ -963,14 +703,6 @@ export const api = {
               .order("sent_at", { ascending: false })
               .limit(20),
           ),
-          selectList<JsonRecord>(
-            client
-              .from("user_favorite_teams")
-              .select("team_name")
-              .order("sort_order", { ascending: true })
-              .order("created_at", { ascending: true })
-              .limit(12),
-          ),
         ]);
 
       const profile: ViewerProfile | null = profileRow
@@ -980,8 +712,6 @@ export const api = {
             displayName:
               asString(profileRow.display_name) ||
               `Fan #${asString(profileRow.fan_id, "------")}`,
-            favoriteTeamId: asString(profileRow.favorite_team_id) || null,
-            favoriteTeamName: asString(profileRow.favorite_team_name) || null,
             onboardingCompleted: profileRow.onboarding_completed === true,
             isAnonymous: profileRow.is_anonymous === true,
             authMethod: asString(profileRow.auth_method, "anonymous"),
@@ -1038,9 +768,6 @@ export const api = {
           read: !!row.read_at,
           data: (row.data as Record<string, unknown> | null) ?? {},
         })),
-        favoriteTeams: favoriteRows
-          .map((row) => asString(row.team_name))
-          .filter((teamName) => teamName.length > 0),
       };
     } catch (error) {
       console.warn("Failed to load viewer state", error);
@@ -1177,9 +904,13 @@ export const api = {
     };
   },
 
-  async submitPredictionEntry(
-    input: PredictionSubmission,
-  ): Promise<{ success: boolean; predictionId?: string; error?: string }> {
+  async joinMatchPool(
+    poolId: string,
+    campId: string,
+    amountFet?: number | null,
+    inviteCode?: string | null,
+    source: "direct" | "venue_qr" | "social_share" = "direct",
+  ): Promise<{ success: boolean; error?: string }> {
     const client = await ensureClient();
     if (!client) {
       return {
@@ -1190,32 +921,24 @@ export const api = {
 
     try {
       assertClientFeatureAvailable(
-        "predictions",
-        "Prediction entry is currently unavailable.",
+        "pools",
+        "Match pools are currently unavailable.",
       );
 
-      const { data, error } = await client.rpc("submit_user_prediction", {
-        p_match_id: input.matchId,
-        p_predicted_result_code: input.predictedResultCode ?? null,
-        p_predicted_over25: input.predictedOver25 ?? null,
-        p_predicted_btts: input.predictedBtts ?? null,
-        p_predicted_home_goals: input.predictedHomeGoals ?? null,
-        p_predicted_away_goals: input.predictedAwayGoals ?? null,
+      const { error } = await client.rpc("stake_fet", {
+        p_pool_id: poolId,
+        p_camp_id: campId,
+        p_stake_amount: amountFet ?? null,
+        p_source: inviteCode ? "invite_link" : source,
+        p_invite_code: inviteCode ?? null,
       });
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      return {
-        success: true,
-        predictionId: data ? String(data) : undefined,
-      };
+      if (error) throw new Error(error.message);
+      return { success: true };
     } catch (error) {
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : "Could not save prediction.",
+        error: error instanceof Error ? error.message : "Could not join pool.",
       };
     }
   },
@@ -1330,6 +1053,7 @@ export const api = {
       isOpen: row.is_open,
       hoursJson: row.hours_json,
       revolutLink: row.revolut_link,
+      momoCode: row.momo_code,
       whatsapp: row.whatsapp,
       primaryCategory: row.primary_category,
       rating: asNumber(row.rating, null),
@@ -1362,6 +1086,7 @@ export const api = {
       isOpen: data.is_open,
       hoursJson: data.hours_json,
       revolutLink: data.revolut_link,
+      momoCode: data.momo_code,
       whatsapp: data.whatsapp,
       primaryCategory: data.primary_category,
       rating: asNumber(data.rating, null),
@@ -1421,25 +1146,33 @@ export const api = {
 
   async placeOrder(payload: {
     venueId: string;
-    tableId: string;
+    tableId?: string;
+    tablePublicCode?: string;
     paymentMethod: PaymentMethod;
     items: Array<{ menuItemId: string; quantity: number }>;
-    useFet?: boolean;
   }): Promise<Order> {
     const client = await ensureClient();
     if (!client) throw new Error("Supabase client not available");
 
+    const body: Record<string, unknown> = {
+      venue_id: payload.venueId,
+      payment_method: payload.paymentMethod,
+      items: payload.items.map((item) => ({
+        menu_item_id: item.menuItemId,
+        quantity: item.quantity,
+      })),
+    };
+
+    if (payload.tableId) {
+      body.table_id = payload.tableId;
+    } else if (payload.tablePublicCode) {
+      body.table_public_code = payload.tablePublicCode;
+    } else {
+      throw new Error("Table context is required to place an order");
+    }
+
     const { data, error } = await client.functions.invoke("order_create", {
-      body: {
-        venue_id: payload.venueId,
-        table_id: payload.tableId,
-        payment_method: payload.paymentMethod,
-        items: payload.items.map((item) => ({
-          menu_item_id: item.menuItemId,
-          quantity: item.quantity,
-        })),
-        use_fet: payload.useFet ?? false,
-      },
+      body,
     });
 
     if (error) throw error;
@@ -1475,69 +1208,4 @@ export const api = {
     };
   },
 
-  async fetchActiveStake(
-    venueId: string,
-    matchId: string,
-  ): Promise<VenueMatchStake | null> {
-    const client = await ensureClient();
-    if (!client) return null;
-
-    const { data, error } = await client
-      .from("venue_match_stakes")
-      .select("*")
-      .eq("venue_id", venueId)
-      .eq("match_id", matchId)
-      .eq("status", "open")
-      .maybeSingle();
-
-    if (error) throw error;
-    if (!data) return null;
-
-    return {
-      id: data.id,
-      venueId: data.venue_id,
-      matchId: data.match_id,
-      entryFeeFet: asNumber(data.entry_fee_fet),
-      totalPoolFet: asNumber(data.total_pool_fet),
-      status: data.status,
-      createdAt: data.created_at,
-    };
-  },
-
-  async joinStake(stakeId: string): Promise<void> {
-    const client = await ensureClient();
-    if (!client) throw new Error("Supabase client not available");
-
-    const { error } = await client.rpc("join_venue_match_stake", {
-      p_stake_id: stakeId,
-    });
-
-    if (error) throw error;
-  },
-
-  async fetchActiveStakesForMatch(
-    matchId: string,
-  ): Promise<Array<VenueMatchStake & { venueName: string }>> {
-    const client = await ensureClient();
-    if (!client) return [];
-
-    const { data, error } = await client
-      .from("venue_match_stakes")
-      .select("*, venue:venues(name)")
-      .eq("match_id", matchId)
-      .eq("status", "open");
-
-    if (error) throw error;
-
-    return (data || []).map((row) => ({
-      id: row.id,
-      venueId: row.venue_id,
-      matchId: row.match_id,
-      entryFeeFet: asNumber(row.entry_fee_fet),
-      totalPoolFet: asNumber(row.total_pool_fet),
-      status: row.status,
-      createdAt: row.created_at,
-      venueName: row.venue?.name || "Unknown Venue",
-    }));
-  },
 };

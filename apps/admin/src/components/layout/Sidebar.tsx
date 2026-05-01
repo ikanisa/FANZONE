@@ -1,28 +1,27 @@
 // FANZONE Admin — Sidebar Navigation
 import { NavLink, useLocation } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
-import { hasMinRole } from "../../lib/formatters";
+import { useState } from "react";
 import {
-  LayoutDashboard,
-  Users,
-  Trophy,
-  Calendar,
-  Target,
-  Coins,
-  Wallet,
-  Shield,
   BarChart3,
-  PanelsTopLeft,
-  Settings,
-  UserCog,
-  ScrollText,
+  Building2,
   ChevronLeft,
   ChevronRight,
-  UserX,
-  Building2,
+  Coins,
+  Flag,
+  Globe2,
+  ListChecks,
+  ScrollText,
+  Shield,
+  SlidersHorizontal,
+  Trophy,
+  Users,
+  Wallet,
 } from "lucide-react";
-import { useState } from "react";
+
+import { ROUTES } from "../../config/routes";
 import type { AdminRole } from "../../config/constants";
+import { useAuth } from "../../hooks/useAuth";
+import { hasMinRole } from "../../lib/formatters";
 import { FanzoneWordmark } from "../FanzoneWordmark";
 
 const logoImg = "/brand/logo-mark-64.png";
@@ -32,129 +31,86 @@ interface NavItem {
   path: string;
   icon: React.ReactNode;
   minRole: AdminRole;
-  badge?: number;
 }
 
-const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
+const NAV_ITEMS: NavItem[] = [
   {
-    title: "Overview",
-    items: [
-      {
-        label: "Dashboard",
-        path: "/",
-        icon: <LayoutDashboard size={18} />,
-        minRole: "viewer",
-      },
-    ],
+    label: "Overview",
+    path: ROUTES.OVERVIEW,
+    icon: <BarChart3 size={18} />,
+    minRole: "viewer",
   },
   {
-    title: "Platform",
-    items: [
-      {
-        label: "Users",
-        path: "/users",
-        icon: <Users size={18} />,
-        minRole: "admin",
-      },
-      {
-        label: "Competitions",
-        path: "/competitions",
-        icon: <Trophy size={18} />,
-        minRole: "admin",
-      },
-      {
-        label: "Fixtures",
-        path: "/fixtures",
-        icon: <Calendar size={18} />,
-        minRole: "moderator",
-      },
-      {
-        label: "Predictions",
-        path: "/predictions",
-        icon: <Target size={18} />,
-        minRole: "admin",
-      },
-    ],
+    label: "Countries",
+    path: ROUTES.COUNTRIES,
+    icon: <Globe2 size={18} />,
+    minRole: "admin",
   },
   {
-    title: "Finance",
-    items: [
-      {
-        label: "FET Tokens",
-        path: "/tokens",
-        icon: <Coins size={18} />,
-        minRole: "admin",
-      },
-      {
-        label: "Wallets",
-        path: "/wallets",
-        icon: <Wallet size={18} />,
-        minRole: "admin",
-      },
-    ],
+    label: "Venues",
+    path: ROUTES.VENUES,
+    icon: <Building2 size={18} />,
+    minRole: "admin",
   },
   {
-    title: "Operations",
-    items: [
-      {
-        label: "Moderation",
-        path: "/moderation",
-        icon: <Shield size={18} />,
-        minRole: "moderator",
-      },
-      {
-        label: "Analytics",
-        path: "/analytics",
-        icon: <BarChart3 size={18} />,
-        minRole: "viewer",
-      },
-      {
-        label: "Account Deletions",
-        path: "/account-deletions",
-        icon: <UserX size={18} />,
-        minRole: "admin",
-      },
-    ],
+    label: "Competitions",
+    path: ROUTES.COMPETITIONS,
+    icon: <Trophy size={18} />,
+    minRole: "admin",
   },
   {
-    title: "Hospitality",
-    items: [
-      {
-        label: "Hospitality Auditor",
-        path: "/hospitality-audit",
-        icon: <Building2 size={18} />,
-        minRole: "admin",
-      },
-    ],
+    label: "Teams",
+    path: ROUTES.TEAMS,
+    icon: <Users size={18} />,
+    minRole: "admin",
   },
   {
-    title: "System",
-    items: [
-      {
-        label: "Platform Control",
-        path: "/platform-control",
-        icon: <PanelsTopLeft size={18} />,
-        minRole: "admin",
-      },
-      {
-        label: "Settings",
-        path: "/settings",
-        icon: <Settings size={18} />,
-        minRole: "super_admin",
-      },
-      {
-        label: "Admin Access",
-        path: "/admin-access",
-        icon: <UserCog size={18} />,
-        minRole: "super_admin",
-      },
-      {
-        label: "Audit Logs",
-        path: "/audit-logs",
-        icon: <ScrollText size={18} />,
-        minRole: "admin",
-      },
-    ],
+    label: "Curated Matches",
+    path: ROUTES.CURATED_MATCHES,
+    icon: <ListChecks size={18} />,
+    minRole: "admin",
+  },
+  {
+    label: "Pools",
+    path: ROUTES.POOLS,
+    icon: <Trophy size={18} />,
+    minRole: "admin",
+  },
+  {
+    label: "FET Wallets",
+    path: ROUTES.FET_WALLETS,
+    icon: <Wallet size={18} />,
+    minRole: "admin",
+  },
+  {
+    label: "Settlements",
+    path: ROUTES.SETTLEMENTS,
+    icon: <Flag size={18} />,
+    minRole: "admin",
+  },
+  {
+    label: "Reward Rules",
+    path: ROUTES.REWARD_RULES,
+    icon: <Coins size={18} />,
+    minRole: "admin",
+  },
+  {
+    label: "Risk & Abuse",
+    path: ROUTES.RISK_ABUSE,
+    icon: <Shield size={18} />,
+    minRole: "moderator",
+  },
+  {
+    label: "Feature Flags",
+    path: ROUTES.FEATURE_FLAGS,
+    icon: <SlidersHorizontal size={18} />,
+    minRole: "admin",
+  },
+  {
+    label: "Audit Logs",
+    path: ROUTES.AUDIT_LOGS,
+    icon: <ScrollText size={18} />,
+    minRole: "admin",
   },
 ];
 
@@ -163,10 +119,10 @@ export function Sidebar() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const role = admin?.role || "viewer";
+  const visibleItems = NAV_ITEMS.filter((item) => hasMinRole(role, item.minRole));
 
   return (
     <aside className={`sidebar ${collapsed ? "sidebar-collapsed" : ""}`}>
-      {/* Brand */}
       <div className="sidebar-brand">
         <div className="sidebar-logo">
           <img src={logoImg} alt="FANZONE" className="sidebar-logo-icon" />
@@ -185,42 +141,26 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="sidebar-nav">
-        {NAV_SECTIONS.map((section) => {
-          const visibleItems = section.items.filter((item) =>
-            hasMinRole(role, item.minRole),
-          );
-          if (visibleItems.length === 0) return null;
-
-          return (
-            <div key={section.title} className="sidebar-section">
-              {!collapsed && (
-                <div className="sidebar-section-title">{section.title}</div>
-              )}
-              {visibleItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === "/"}
-                  className={({ isActive }) =>
-                    `sidebar-link ${isActive || (item.path !== "/" && location.pathname.startsWith(item.path)) ? "active" : ""}`
-                  }
-                  title={collapsed ? item.label : undefined}
-                >
-                  {item.icon}
-                  {!collapsed && <span>{item.label}</span>}
-                  {!collapsed && item.badge !== undefined && item.badge > 0 && (
-                    <span className="sidebar-badge">{item.badge}</span>
-                  )}
-                </NavLink>
-              ))}
-            </div>
-          );
-        })}
+        <div className="sidebar-section">
+          {!collapsed && <div className="sidebar-section-title">Admin PWA</div>}
+          {visibleItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === ROUTES.OVERVIEW}
+              className={({ isActive }) =>
+                `sidebar-link ${isActive || (item.path !== ROUTES.OVERVIEW && location.pathname.startsWith(item.path)) ? "active" : ""}`
+              }
+              title={collapsed ? item.label : undefined}
+            >
+              {item.icon}
+              {!collapsed && <span>{item.label}</span>}
+            </NavLink>
+          ))}
+        </div>
       </nav>
 
-      {/* Footer */}
       {!collapsed && admin && (
         <div className="sidebar-footer">
           <div className="sidebar-user">

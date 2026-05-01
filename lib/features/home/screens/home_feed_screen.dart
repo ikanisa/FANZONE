@@ -1,29 +1,27 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../core/config/platform_feature_access.dart';
 import '../../../models/sports/match_model.dart';
-import '../../../providers/competitions_provider.dart';
 import '../../../providers/home_feed_provider.dart';
 import '../../../providers/matches_provider.dart';
+import '../../../services/wallet_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_badge.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_empty_state.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/match/match_list_widgets.dart';
-import '../../../widgets/common/fz_shimmer.dart';
-import '../../../widgets/home/fz_promo_banner.dart';
+import '../../ordering/providers/cart_provider.dart';
+import '../../ordering/providers/venue_context_provider.dart';
+import '../../pools/data/pools_repository.dart';
 
 class HomeFeedScreen extends ConsumerWidget {
   const HomeFeedScreen({super.key});
 
-  /// Prediction feed uses a 7-day forward window so upcoming matches always
-  /// appear, even on days without scheduled fixtures.
   static const _feedWindowDays = 7;
 
   DateTime get _today {
@@ -33,247 +31,177 @@ class HomeFeedScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDesktop = MediaQuery.sizeOf(context).width >= 1024;
-    final featureAccess = ref.watch(platformFeatureAccessProvider);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final homeBlocks = featureAccess.homeBlocks();
-    final canOpenPredictions = featureAccess.isVisible(
-      'predictions',
-      surface: PlatformSurface.action,
-    );
-    final canOpenLeaderboard = featureAccess.isVisible(
-      'leaderboard',
-      surface: PlatformSurface.route,
-    );
-    final predictionRoute = featureAccess.routeFor('predictions');
-    final fixturesRoute = featureAccess.routeFor('fixtures');
-    final leaderboardRoute = featureAccess.routeFor('leaderboard');
-
-    // Fetch a 7-day window: today through today + 6 days
+    final venueContext = ref.watch(venueContextProvider);
     final feedFilter = MatchesFilter(
       dateFrom: _today.toIso8601String(),
       dateTo: _today
           .add(const Duration(days: _feedWindowDays))
           .toIso8601String(),
+      countryCode: venueContext.venue?.countryCode.name.toUpperCase(),
+      venueId: venueContext.venueId,
       ascending: true,
     );
     final matchesAsync = ref.watch(homeFeedMatchesProvider(feedFilter));
-    final competitions =
-        ref.watch(competitionsProvider).valueOrNull ?? const [];
-    final competitionLabels = {
-      for (final competition in competitions)
-        competition.id: competition.shortName.isNotEmpty
-            ? competition.shortName
-            : competition.name,
-    };
+    final poolsAsync = ref.watch(poolsProvider);
+    final walletAsync = ref.watch(walletBalanceProvider);
+    final cart = ref.watch(cartProvider);
+    final textColor = Theme.of(context).brightness == Brightness.dark
+        ? FzColors.darkText
+        : FzColors.lightText;
 
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
           color: FzColors.primary,
           onRefresh: () async {
-            ref.invalidate(matchesProvider(feedFilter));
             ref.invalidate(homeFeedMatchesProvider(feedFilter));
-            await ref.read(homeFeedMatchesProvider(feedFilter).future);
+            ref.invalidate(poolsProvider);
+            ref.invalidate(walletBalanceProvider);
+            await Future.wait([
+              ref.read(homeFeedMatchesProvider(feedFilter).future),
+              ref.read(poolsProvider.future),
+            ]);
           },
           child: ListView(
-            padding: EdgeInsets.fromLTRB(16, isDesktop ? 16 : 8, 16, 120),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
             children: [
-              if (isDesktop) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Predictions',
-                        style: FzTypography.display(
-                          size: 36,
-                          color: textColor,
-                          letterSpacing: 0.8,
-                        ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Today',
+                      style: FzTypography.display(
+                        size: 40,
+                        color: textColor,
+                        letterSpacing: 0,
                       ),
                     ),
-                    _RoundActionButton(
-                      tooltip: 'Open predict',
-                      backgroundColor: FzColors.accent2,
-                      foregroundColor: FzColors.darkBg,
-                      icon: LucideIcons.target,
-                      onTap: canOpenPredictions
-                          ? () => context.go(predictionRoute)
-                          : () => context.go(fixturesRoute),
+                  ),
+                  walletAsync.when(
+                    data: (wallet) => _WalletChip(
+                      amount: wallet.availableFet,
+                      onTap: () => context.go('/wallet'),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-              ],
+                    loading: () => const _WalletChip(amount: 0),
+                    error: (_, _) => _WalletChip(
+                      amount: 0,
+                      onTap: () => context.go('/wallet'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _TodayHero(
+                venueName: venueContext.venue?.name,
+                tableNumber:
+                    venueContext.table?.tableNumber.toString() ??
+                    venueContext.tableNumber,
+                cartCount: cart.totalItemCount,
+                onOrder: () => context.go('/bar'),
+                onJoinPool: () => context.go('/pools'),
+                onCreatePool: () => context.push('/pools/create'),
+              ),
+              const SizedBox(height: 16),
+              _QuickActions(
+                onOrder: () => context.go('/bar'),
+                onJoinPool: () => context.go('/pools'),
+                onCreatePool: () => context.push('/pools/create'),
+              ),
+              const SizedBox(height: 22),
+              const _SectionTitle(
+                icon: LucideIcons.flame,
+                title: 'Featured matches',
+              ),
+              const SizedBox(height: 10),
               matchesAsync.when(
                 data: (selection) {
-                  final liveMatches = selection.liveMatches;
-                  final upcomingMatches = selection.upcomingMatches;
+                  final matches = [
+                    ...selection.liveMatches,
+                    ...selection.upcomingMatches,
+                  ].take(4).toList(growable: false);
+
+                  if (matches.isEmpty) {
+                    return FzEmptyState(
+                      title: 'No featured matches',
+                      description:
+                          'Featured match pools appear here when matches are curated for today.',
+                      icon: const Icon(LucideIcons.calendar),
+                      actionLabel: 'Open Pools',
+                      onAction: () => context.go('/pools'),
+                    );
+                  }
+
                   return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: homeBlocks
-                        .map<Widget>((block) {
-                          if (block.blockType == 'promo_banner') {
-                            return FzPromoBanner(
-                              key: ValueKey(block.blockKey),
-                              badgeLabel:
-                                  block.content['badge']?.toString() ??
-                                  'DERBY DAY',
-                              kickerLabel:
-                                  block.content['kicker']?.toString() ??
-                                  'GLOBAL',
-                              title: block.title,
-                              subtitle:
-                                  block.content['subtitle']?.toString() ??
-                                  'Fresh free picks are live now.',
-                              ctaLabel:
-                                  block.content['cta_label']?.toString() ??
-                                  'OPEN',
-                              ctaRoute: canOpenPredictions
-                                  ? block.content['cta_route']?.toString() ??
-                                        predictionRoute
-                                  : fixturesRoute,
-                            );
-                          }
-
-                          if (block.blockType == 'daily_insight') {
-                            return _DailyInsightCard(
-                              key: ValueKey(block.blockKey),
-                              muted: muted,
-                              subtitle:
-                                  block.content['subtitle']?.toString() ??
-                                  'Track live fixtures, lock free picks, and follow the leaderboard from one place.',
-                            );
-                          }
-
-                          if (block.blockType == 'live_matches') {
-                            return Column(
-                              key: ValueKey(block.blockKey),
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _HomeSectionHeader(
-                                  icon: LucideIcons.activity,
-                                  iconColor: FzColors.danger,
-                                  title: block.title,
-                                  trailing: FzBadge(
-                                    label: '${liveMatches.length}',
-                                    variant: FzBadgeVariant.danger,
-                                    pulse: liveMatches.isNotEmpty,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                if (liveMatches.isEmpty)
-                                  _CompactEmptyCard(
-                                    icon: LucideIcons.trophy,
-                                    title:
-                                        block.content['empty_title']
-                                            ?.toString() ??
-                                        'No Live Matches',
-                                    subtitle:
-                                        block.content['empty_description']
-                                            ?.toString() ??
-                                        'Check upcoming.',
-                                    muted: muted,
-                                  )
-                                else
-                                  _MatchGrid(
-                                    matches: liveMatches,
-                                    competitionLabels: competitionLabels,
-                                    onOpenMatch: (match) =>
-                                        context.push('/match/${match.id}'),
-                                    onOpenPredict: canOpenPredictions
-                                        ? () => context.push(predictionRoute)
-                                        : null,
-                                  ),
-                                const SizedBox(height: 24),
-                              ],
-                            );
-                          }
-
-                          if (block.blockType == 'upcoming_matches') {
-                            return Column(
-                              key: ValueKey(block.blockKey),
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _HomeSectionHeader(
-                                  icon: LucideIcons.calendar,
-                                  iconColor: muted,
-                                  title: block.title,
-                                  trailing: IconButton(
-                                    onPressed: () => context.go(
-                                      block.content['cta_route']?.toString() ??
-                                          '/fixtures',
-                                    ),
-                                    tooltip: 'Open fixtures',
-                                    visualDensity: VisualDensity.compact,
-                                    icon: Icon(
-                                      LucideIcons.chevronRight,
-                                      size: 18,
-                                      color: muted,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                if (upcomingMatches.isEmpty)
-                                  _CompactEmptyCard(
-                                    icon: LucideIcons.calendar,
-                                    title:
-                                        block.content['empty_title']
-                                            ?.toString() ??
-                                        'No Upcoming',
-                                    subtitle:
-                                        block.content['empty_description']
-                                            ?.toString() ??
-                                        'None left.',
-                                    muted: muted,
-                                  )
-                                else
-                                  _MatchGrid(
-                                    matches: upcomingMatches,
-                                    competitionLabels: competitionLabels,
-                                    onOpenMatch: (match) =>
-                                        context.push('/match/${match.id}'),
-                                    onOpenPredict: canOpenPredictions
-                                        ? () => context.push(predictionRoute)
-                                        : null,
-                                  ),
-                                if (canOpenLeaderboard)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 4),
-                                    child: TextButton.icon(
-                                      onPressed: () =>
-                                          context.push(leaderboardRoute),
-                                      icon: const Icon(
-                                        LucideIcons.trophy,
-                                        size: 14,
-                                      ),
-                                      label: const Text('Open leaderboard'),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          }
-
-                          return const SizedBox.shrink();
-                        })
-                        .toList(growable: false),
+                    children: [
+                      for (final match in matches)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _MatchCard(
+                            match: match,
+                            onOpenMatch: () =>
+                                context.push('/match/${match.id}'),
+                            onOpenPools: () => context.go('/pools'),
+                          ),
+                        ),
+                    ],
                   );
                 },
                 loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 80),
-                  child: ScoresPageSkeleton(),
+                  padding: EdgeInsets.symmetric(vertical: 36),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (error, stackTrace) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 60),
-                  child: StateView.error(
-                    title: 'Could not load predictions',
-                    subtitle: 'Pull to refresh and try again.',
-                    onRetry: () =>
-                        ref.invalidate(homeFeedMatchesProvider(feedFilter)),
-                  ),
+                error: (error, _) => StateView.error(
+                  title: 'Could not load matches',
+                  subtitle: error.toString(),
+                  onRetry: () =>
+                      ref.invalidate(homeFeedMatchesProvider(feedFilter)),
+                ),
+              ),
+              const SizedBox(height: 18),
+              const _SectionTitle(
+                icon: LucideIcons.trophy,
+                title: 'Active pools',
+              ),
+              const SizedBox(height: 10),
+              poolsAsync.when(
+                data: (pools) {
+                  final openPools = pools
+                      .where((pool) => pool.status == 'open')
+                      .take(3)
+                      .toList(growable: false);
+                  if (openPools.isEmpty) {
+                    return FzEmptyState(
+                      title: 'No open pools',
+                      description:
+                          'Create a pool or check back when featured matches open for staking.',
+                      icon: const Icon(LucideIcons.trophy),
+                      actionLabel: 'Create Pool',
+                      onAction: () => context.push('/pools/create'),
+                    );
+                  }
+                  return Column(
+                    children: [
+                      for (final pool in openPools)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _PoolPreviewCard(
+                            pool: pool,
+                            onTap: () => context.push('/pool/${pool.id}'),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (_, _) => FzEmptyState(
+                  title: 'Pools unavailable',
+                  description: 'Pull to refresh before joining a match pool.',
+                  icon: const Icon(LucideIcons.alertCircle),
+                  actionLabel: 'Retry',
+                  onAction: () => ref.invalidate(poolsProvider),
                 ),
               ),
             ],
@@ -284,244 +212,322 @@ class HomeFeedScreen extends ConsumerWidget {
   }
 }
 
-class _MatchGrid extends StatelessWidget {
-  const _MatchGrid({
-    required this.matches,
-    required this.competitionLabels,
-    required this.onOpenMatch,
-    required this.onOpenPredict,
+class _TodayHero extends StatelessWidget {
+  const _TodayHero({
+    required this.venueName,
+    required this.tableNumber,
+    required this.cartCount,
+    required this.onOrder,
+    required this.onJoinPool,
+    required this.onCreatePool,
   });
 
-  final List<MatchModel> matches;
-  final Map<String, String> competitionLabels;
-  final ValueChanged<MatchModel> onOpenMatch;
-  final VoidCallback? onOpenPredict;
+  final String? venueName;
+  final String? tableNumber;
+  final int cartCount;
+  final VoidCallback onOrder;
+  final VoidCallback onJoinPool;
+  final VoidCallback onCreatePool;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const gap = 12.0;
-        final maxAvailable = constraints.maxWidth.isFinite ? constraints.maxWidth : MediaQuery.sizeOf(context).width;
-        final columns = maxAvailable >= 720 ? 2 : 1;
-        final cardWidth =
-            ((maxAvailable - (gap * (columns - 1))) / columns).clamp(0.0, double.infinity);
+    final hasVenue = venueName != null && venueName!.trim().isNotEmpty;
 
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (final match in matches)
-              SizedBox(
-                width: cardWidth,
-                child: _HomeMatchCard(
-                  match: match,
-                  competitionLabel:
-                      competitionLabels[match.competitionId] ??
-                      match.competitionId.toUpperCase(),
-                  onOpenMatch: () => onOpenMatch(match),
-                  onOpenPredict: onOpenPredict,
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [FzColors.darkSurface, FzColors.teal, FzColors.accent2],
+          stops: [0, 0.55, 1],
+        ),
+        borderRadius: FzRadii.heroRadius,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        boxShadow: [
+          BoxShadow(
+            color: FzColors.accent2.withValues(alpha: 0.22),
+            blurRadius: 30,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                hasVenue ? LucideIcons.mapPin : LucideIcons.qrCode,
+                color: Colors.white70,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  hasVenue ? 'CURRENT BAR' : 'SCAN A TABLE QR',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ),
-          ],
-        );
-      },
+              if (cartCount > 0)
+                FzBadge(
+                  label: '$cartCount in cart',
+                  variant: FzBadgeVariant.success,
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            hasVenue ? venueName! : 'Sports bar mode',
+            style: FzTypography.display(
+              size: 34,
+              color: Colors.white,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            hasVenue && tableNumber != null
+                ? 'Table $tableNumber ready for menu, pools, and FET rewards.'
+                : 'Order at the bar, join match pools, and track FET from one place.',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              height: 1.35,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _HeroButton(
+                  label: 'Order',
+                  icon: LucideIcons.utensils,
+                  background: Colors.white,
+                  foreground: FzColors.darkBg,
+                  onTap: onOrder,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HeroButton(
+                  label: 'Join Pool',
+                  icon: LucideIcons.trophy,
+                  background: FzColors.darkBg.withValues(alpha: 0.72),
+                  foreground: Colors.white,
+                  onTap: onJoinPool,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _HomeMatchCard extends StatelessWidget {
-  const _HomeMatchCard({
-    required this.match,
-    required this.competitionLabel,
-    required this.onOpenMatch,
-    required this.onOpenPredict,
+class _QuickActions extends StatelessWidget {
+  const _QuickActions({
+    required this.onOrder,
+    required this.onJoinPool,
+    required this.onCreatePool,
   });
 
-  final MatchModel match;
-  final String competitionLabel;
-  final VoidCallback onOpenMatch;
-  final VoidCallback? onOpenPredict;
-
-  /// Builds the badge label: "COMPETITION · 21:30" for today,
-  /// "COMPETITION · TOMORROW" for tomorrow, "COMPETITION · Sat 15:00" for later.
-  String get _badgeLabel {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final tomorrow = today.add(const Duration(days: 1));
-    final matchDay = DateTime(
-      match.date.year,
-      match.date.month,
-      match.date.day,
-    );
-    final time = match.kickoffTimeLocalLabel;
-
-    if (match.isLive) return '$competitionLabel · LIVE';
-    if (match.isFinished) return '$competitionLabel · FT';
-
-    if (matchDay == today) {
-      return '$competitionLabel · $time';
-    } else if (matchDay == tomorrow) {
-      return '$competitionLabel · TOMORROW';
-    } else {
-      final dayName = _shortDayName(matchDay.weekday);
-      return '$competitionLabel · $dayName $time';
-    }
-  }
-
-  static String _shortDayName(int weekday) {
-    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return names[(weekday - 1) % 7];
-  }
+  final VoidCallback onOrder;
+  final VoidCallback onJoinPool;
+  final VoidCallback onCreatePool;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-    final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
-    final surface2 = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
-    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
-    const ctaColor = FzColors.accent2;
-    final scoreText = match.isLive ? (match.scoreDisplay ?? 'LIVE') : 'VS';
-
-    return Container(
-      key: ValueKey('home-match-card-${match.id}'),
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: FzRadii.cardRadius,
-        border: Border.all(
-          color: match.isLive
-              ? FzColors.danger.withValues(alpha: 0.30)
-              : border,
+    return Row(
+      children: [
+        Expanded(
+          child: _ActionCard(
+            label: 'Order',
+            icon: LucideIcons.shoppingCart,
+            color: FzColors.accent,
+            onTap: onOrder,
+          ),
         ),
-        boxShadow: [
-          if (match.isLive)
-            BoxShadow(
-              color: FzColors.danger.withValues(alpha: 0.08),
-              blurRadius: 24,
-              spreadRadius: -10,
-              offset: const Offset(0, 10),
-            ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _ActionCard(
+            label: 'Join',
+            icon: LucideIcons.trophy,
+            color: FzColors.accent2,
+            onTap: onJoinPool,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _ActionCard(
+            label: 'Create',
+            icon: LucideIcons.plus,
+            color: FzColors.accent3,
+            onTap: onCreatePool,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActionCard extends StatelessWidget {
+  const _ActionCard({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return FzCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      borderRadius: FzRadii.compact,
+      color: FzColors.darkSurface2,
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
+          ),
         ],
       ),
-      child: Stack(
+    );
+  }
+}
+
+class _WalletChip extends StatelessWidget {
+  const _WalletChip({required this.amount, this.onTap});
+
+  final int amount;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: FzRadii.fullRadius,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: FzColors.darkSurface2,
+          borderRadius: FzRadii.fullRadius,
+          border: Border.all(color: FzColors.darkBorder),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(LucideIcons.wallet, size: 15, color: FzColors.accent),
+            const SizedBox(width: 6),
+            Text(
+              '$amount FET',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MatchCard extends StatelessWidget {
+  const _MatchCard({
+    required this.match,
+    required this.onOpenMatch,
+    required this.onOpenPools,
+  });
+
+  final MatchModel match;
+  final VoidCallback onOpenMatch;
+  final VoidCallback onOpenPools;
+
+  @override
+  Widget build(BuildContext context) {
+    final scoreText = match.isLive ? (match.scoreDisplay ?? 'LIVE') : 'VS';
+
+    return FzCard(
+      onTap: onOpenMatch,
+      padding: const EdgeInsets.all(14),
+      borderRadius: FzRadii.compact,
+      borderColor: match.isLive
+          ? FzColors.danger.withValues(alpha: 0.35)
+          : FzColors.darkBorder,
+      child: Column(
         children: [
-          if (match.isLive)
-            Positioned(
-              top: -40,
-              right: 0,
-              left: 0,
-              child: IgnorePointer(
-                child: Center(
-                  child: Container(
-                    width: 192,
-                    height: 192,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: FzColors.danger.withValues(alpha: 0.05),
-                    ),
+          Row(
+            children: [
+              FzBadge(
+                label: match.isLive
+                    ? match.liveStatusLabel()
+                    : match.kickoffTimeLocalLabel,
+                variant: match.isLive
+                    ? FzBadgeVariant.danger
+                    : FzBadgeVariant.ghost,
+              ),
+              const Spacer(),
+              Text(
+                match.competitionName ?? match.competitionId.toUpperCase(),
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: FzColors.darkMuted,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _TeamColumn(
+                  name: match.homeTeam,
+                  logoUrl: match.homeLogoUrl,
+                ),
+              ),
+              SizedBox(
+                width: 70,
+                child: Text(
+                  scoreText,
+                  textAlign: TextAlign.center,
+                  style: FzTypography.scoreLarge(
+                    color: match.isLive ? FzColors.danger : FzColors.darkText,
                   ),
                 ),
               ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: FzBadge(
-                          label: _badgeLabel,
-                          variant: FzBadgeVariant.ghost,
-                          fontSize: 9,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (match.isLive) FzBadge.live(),
-                  ],
+              Expanded(
+                child: _TeamColumn(
+                  name: match.awayTeam,
+                  logoUrl: match.awayLogoUrl,
                 ),
-                const SizedBox(height: 12),
-                InkWell(
-                  onTap: onOpenMatch,
-                  borderRadius: BorderRadius.circular(FzRadii.compact),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _TeamColumn(
-                            name: match.homeTeam,
-                            logoUrl: match.homeLogoUrl,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 72,
-                          child: Center(
-                            child: Text(
-                              scoreText,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: match.isLive
-                                    ? FzColors.danger
-                                    : textColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: _TeamColumn(
-                            name: match.awayTeam,
-                            logoUrl: match.awayLogoUrl,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    if (onOpenPredict != null) ...[
-                      Expanded(
-                        child: _HomeMatchButton(
-                          label: 'PREDICT',
-                          icon: LucideIcons.target,
-                          backgroundColor: match.isLive
-                              ? FzColors.danger
-                              : ctaColor,
-                          foregroundColor: match.isLive
-                              ? FzColors.darkBg
-                              : FzColors.darkText,
-                          borderColor: match.isLive
-                              ? FzColors.danger
-                              : ctaColor,
-                          onTap: onOpenPredict!,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: _HomeMatchButton(
-                        label: 'MATCH',
-                        icon: LucideIcons.lineChart,
-                        backgroundColor: surface2,
-                        foregroundColor: FzColors.accent,
-                        borderColor: FzColors.accent.withValues(alpha: 0.20),
-                        onTap: onOpenMatch,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: onOpenPools,
+              icon: const Icon(LucideIcons.trophy, size: 16),
+              label: const Text('Join Pool'),
             ),
           ),
         ],
@@ -538,276 +544,45 @@ class _TeamColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = Theme.of(context).brightness == Brightness.dark
-        ? FzColors.darkText
-        : FzColors.lightText;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        TeamAvatar(name: name, logoUrl: logoUrl, size: 40),
+        TeamAvatar(name: name, logoUrl: logoUrl, size: 42),
         const SizedBox(height: 8),
         Text(
           name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: textColor,
-          ),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
         ),
       ],
     );
   }
 }
 
-class _HomeMatchButton extends StatelessWidget {
-  const _HomeMatchButton({
-    required this.label,
-    required this.icon,
-    required this.backgroundColor,
-    required this.foregroundColor,
-    required this.borderColor,
-    required this.onTap,
-  });
+class _PoolPreviewCard extends StatelessWidget {
+  const _PoolPreviewCard({required this.pool, required this.onTap});
 
-  final String label;
-  final IconData icon;
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final Color borderColor;
+  final PoolSummary pool;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: borderColor),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 14, color: foregroundColor),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  overflow: TextOverflow.fade,
-                  softWrap: false,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: foregroundColor,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DailyInsightCard extends StatelessWidget {
-  const _DailyInsightCard({
-    super.key,
-    required this.muted,
-    required this.subtitle,
-  });
-
-  final Color muted;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: _InsightCardShell(
-        muted: muted,
-        child: Row(
-          children: [
-            const SizedBox(
-              width: 14,
-              height: 14,
-              child: Center(
-                child: CupertinoActivityIndicator(color: FzColors.success),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                subtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, height: 1.38, color: textColor),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InsightCardShell extends StatelessWidget {
-  const _InsightCardShell({required this.muted, required this.child});
-
-  final Color muted;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            isDark ? FzColors.darkSurface : FzColors.lightSurface,
-            isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
-          ],
-        ),
-        borderRadius: FzRadii.cardRadius,
-        border: Border.all(color: FzColors.success.withValues(alpha: 0.18)),
-        boxShadow: [
-          BoxShadow(
-            color: FzColors.success.withValues(alpha: isDark ? 0.12 : 0.06),
-            blurRadius: 30,
-            spreadRadius: -12,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -28,
-            right: -18,
-            child: IgnorePointer(
-              child: Container(
-                width: 128,
-                height: 128,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: FzColors.success.withValues(alpha: 0.08),
-                ),
-              ),
-            ),
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: FzColors.success.withValues(alpha: 0.1),
-                  borderRadius: FzRadii.fullRadius,
-                  border: Border.all(
-                    color: FzColors.success.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: const Icon(
-                  LucideIcons.sparkles,
-                  size: 16,
-                  color: FzColors.success,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: child),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HomeSectionHeader extends StatelessWidget {
-  const _HomeSectionHeader({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.trailing,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final Widget trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final textColor = Theme.of(context).brightness == Brightness.dark
-        ? FzColors.darkText
-        : FzColors.lightText;
-
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: iconColor),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: textColor,
-            ),
-          ),
-        ),
-        trailing,
-      ],
-    );
-  }
-}
-
-class _CompactEmptyCard extends StatelessWidget {
-  const _CompactEmptyCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.muted,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color muted;
-
-  @override
-  Widget build(BuildContext context) {
     return FzCard(
-      padding: const EdgeInsets.all(16),
+      onTap: onTap,
+      padding: const EdgeInsets.all(14),
+      borderRadius: FzRadii.compact,
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: FzColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
+              color: FzColors.accent2.withValues(alpha: 0.12),
+              borderRadius: FzRadii.buttonRadius,
             ),
-            child: Icon(icon, size: 18, color: FzColors.primary),
+            child: const Icon(LucideIcons.trophy, color: FzColors.accent2),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -815,79 +590,99 @@ class _CompactEmptyCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  pool.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 12, color: muted, height: 1.4),
+                  '${pool.scope} - ${pool.totalMembers} members - ${pool.totalStakedFet} FET',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: FzColors.darkMuted,
+                  ),
                 ),
               ],
             ),
           ),
+          const Icon(LucideIcons.chevronRight, size: 18),
         ],
       ),
     );
   }
 }
 
-class _RoundActionButton extends StatelessWidget {
-  const _RoundActionButton({
-    required this.tooltip,
+class _HeroButton extends StatelessWidget {
+  const _HeroButton({
+    required this.label,
     required this.icon,
+    required this.background,
+    required this.foreground,
     required this.onTap,
-    this.backgroundColor,
-    this.foregroundColor,
   });
 
-  final String tooltip;
+  final String label;
   final IconData icon;
+  final Color background;
+  final Color foreground;
   final VoidCallback onTap;
-  final Color? backgroundColor;
-  final Color? foregroundColor;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final hasCustomBackground = backgroundColor != null;
-    return Semantics(
-      button: true,
-      label: tooltip,
+    return InkWell(
       onTap: onTap,
-      child: ExcludeSemantics(
-        child: IconButton(
-          onPressed: onTap,
-          tooltip: tooltip,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints.tightFor(width: 40, height: 40),
-          style: IconButton.styleFrom(
-            backgroundColor:
-                backgroundColor ??
-                (isDark ? FzColors.darkSurface2 : FzColors.lightSurface2),
-            foregroundColor:
-                foregroundColor ??
-                (isDark ? FzColors.darkText : FzColors.lightText),
-            shape: const RoundedRectangleBorder(
-              borderRadius: FzRadii.fullRadius,
+      borderRadius: FzRadii.compactRadius,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: FzRadii.compactRadius,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: foreground),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: foreground,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
-            side: BorderSide(
-              color: hasCustomBackground
-                  ? Colors.transparent
-                  : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
-            ),
-            shadowColor: hasCustomBackground
-                ? backgroundColor!.withValues(alpha: 0.28)
-                : null,
-            elevation: hasCustomBackground ? 6 : 0,
-          ),
-          icon: Icon(icon, size: 18),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.icon, required this.title});
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 17, color: FzColors.accent),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+        ),
+      ],
     );
   }
 }

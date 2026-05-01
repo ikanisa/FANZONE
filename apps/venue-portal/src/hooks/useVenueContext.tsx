@@ -89,6 +89,7 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           isOpen: v.is_open,
           hoursJson: mapHoursJson(v.hours_json),
           revolutLink: v.revolut_link,
+          momoCode: v.momo_code,
           whatsapp: v.whatsapp,
           primaryCategory: v.primary_category,
           rating: v.rating,

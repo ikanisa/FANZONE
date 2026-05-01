@@ -25,10 +25,10 @@ auth_status="$(curl -s -o /dev/null -w '%{http_code}' \
   -H "apikey: ${SUPABASE_ANON_KEY}")"
 matches_status="$(api_get_status 'matches?select=id&limit=1')"
 app_matches_status="$(api_get_status 'app_matches?select=id&limit=1')"
-leaderboard_status="$(api_get_status 'public_leaderboard?select=*')"
 standings_status="$(api_get_status 'standings?select=id&limit=1')"
 team_aliases_status="$(api_get_status 'team_aliases?select=id&limit=1')"
-prediction_output_status="$(api_get_status 'predictions_engine_outputs?select=id&limit=1')"
+match_pools_status="$(api_get_status 'match_pools?select=id&limit=1')"
+pool_stats_status="$(api_get_status 'match_pool_stats?select=id&limit=1')"
 wallet_status="$(api_get_status 'fet_wallets?select=user_id&limit=1')"
 transactions_status="$(api_get_status 'fet_wallet_transactions?select=id&limit=1')"
 profiles_status="$(api_get_status 'profiles?select=id&limit=1')"
@@ -61,10 +61,10 @@ competition_follow_write_status="$(curl -s -o /dev/null -w '%{http_code}' \
 echo "auth.settings                ${auth_status}"
 echo "matches.read                 ${matches_status}"
 echo "app_matches.read             ${app_matches_status}"
-echo "public_leaderboard.read      ${leaderboard_status}"
 echo "standings.read               ${standings_status}"
 echo "team_aliases.read            ${team_aliases_status}"
-echo "predictions_engine_outputs.read ${prediction_output_status}"
+echo "match_pools.read             ${match_pools_status}"
+echo "match_pool_stats.read        ${pool_stats_status}"
 echo "fet_wallets.read             ${wallet_status}"
 echo "fet_wallet_transactions.read ${transactions_status}"
 echo "profiles.read                ${profiles_status}"
@@ -83,10 +83,6 @@ echo "user_followed_competitions.write ${competition_follow_write_status}"
   echo "app_matches is not readable."
   exit 1
 }
-[[ "${leaderboard_status}" == "200" ]] || {
-  echo "public_leaderboard is not readable."
-  exit 1
-}
 [[ "${team_aliases_status}" == "200" ]] || {
   echo "team_aliases is not readable."
   exit 1
@@ -95,8 +91,12 @@ echo "user_followed_competitions.write ${competition_follow_write_status}"
   echo "standings is not readable."
   exit 1
 }
-[[ "${prediction_output_status}" == "200" ]] || {
-  echo "predictions_engine_outputs is not readable."
+[[ "${match_pools_status}" == "200" ]] || {
+  echo "match_pools is not readable."
+  exit 1
+}
+[[ "${pool_stats_status}" == "200" ]] || {
+  echo "match_pool_stats is not readable."
   exit 1
 }
 [[ "${favorite_team_write_status}" != "201" ]] || {
@@ -125,15 +125,13 @@ elif [[ "${profiles_status}" != "401" && "${profiles_status}" != "403" ]]; then
   exit 1
 fi
 
-if [[ "${ENABLE_WALLET:-false}" == "true" ]]; then
-  [[ "${wallet_status}" == "200" ]] || {
-    echo "Wallet is enabled but fet_wallets is unavailable."
-    exit 1
-  }
-  [[ "${transactions_status}" == "200" ]] || {
-    echo "Wallet is enabled but fet_wallet_transactions is unavailable."
-    exit 1
-  }
-fi
+[[ "${wallet_status}" == "200" ]] || {
+  echo "Core wallet table fet_wallets is unavailable."
+  exit 1
+}
+[[ "${transactions_status}" == "200" ]] || {
+  echo "Core wallet table fet_wallet_transactions is unavailable."
+  exit 1
+}
 
 echo "Supabase release probe passed."

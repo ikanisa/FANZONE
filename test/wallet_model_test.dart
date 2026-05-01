@@ -6,7 +6,7 @@ void main() {
     test('constructs with required fields', () {
       final tx = WalletTransaction(
         id: 'tx-001',
-        title: 'Prediction reward',
+        title: 'Pool reward',
         amount: 500,
         type: 'earn',
         date: DateTime(2026, 4, 18),
@@ -14,7 +14,7 @@ void main() {
       );
 
       expect(tx.id, 'tx-001');
-      expect(tx.title, 'Prediction reward');
+      expect(tx.title, 'Pool reward');
       expect(tx.amount, 500);
       expect(tx.type, 'earn');
       expect(tx.dateStr, '2h ago');

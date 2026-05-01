@@ -20,7 +20,7 @@ class PrivacySettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
-  bool _showNameOnLeaderboards = false;
+  bool _showNameInPoolActivity = false;
   bool _loading = true;
   bool _saving = false;
   String? _error;
@@ -45,7 +45,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
       final settings = await PrivacySettingsService.getSettings();
       if (!mounted) return;
       setState(() {
-        _showNameOnLeaderboards = settings.showNameOnLeaderboards;
+        _showNameInPoolActivity = settings.showNameInPoolActivity;
         _loading = false;
         _error = null;
       });
@@ -58,20 +58,18 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
     }
   }
 
-  Future<void> _updateSettings({
-    bool? showNameOnLeaderboards,
-  }) async {
+  Future<void> _updateSettings({bool? showNameInPoolActivity}) async {
     if (!ref.read(isFullyAuthenticatedProvider)) return;
 
     final previous = PrivacySettingsModel(
-      showNameOnLeaderboards: _showNameOnLeaderboards,
+      showNameInPoolActivity: _showNameInPoolActivity,
     );
     final next = previous.copyWith(
-      showNameOnLeaderboards: showNameOnLeaderboards,
+      showNameInPoolActivity: showNameInPoolActivity,
     );
 
     setState(() {
-      _showNameOnLeaderboards = next.showNameOnLeaderboards;
+      _showNameInPoolActivity = next.showNameInPoolActivity;
       _saving = true;
       _error = null;
     });
@@ -81,7 +79,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _showNameOnLeaderboards = previous.showNameOnLeaderboards;
+        _showNameInPoolActivity = previous.showNameInPoolActivity;
         _error = 'Could not save your privacy settings.';
       });
     } finally {
@@ -160,7 +158,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                                     iconColor: FzColors.primary,
                                     title: 'Phone Number Hidden',
                                     description:
-                                        'Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users, club admins, or in public leaderboards.',
+                                        'Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users, club admins, or public pool activity.',
                                     showDivider: true,
                                   ),
                                   GuaranteeRow(
@@ -168,7 +166,7 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                                     iconColor: FzColors.primary,
                                     title: 'Anonymous Rewards',
                                     description:
-                                        'Prediction rewards and token transfers are logged using your Fan ID and reward or amount metadata only. Exact phone numbers are not exposed publicly.',
+                                        'Pool rewards, venue rewards, and token transfers are logged using your Fan ID and reward or amount metadata only. Exact phone numbers are not exposed publicly.',
                                     showDivider: false,
                                   ),
                                 ],
@@ -190,14 +188,14 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                               child: Column(
                                 children: [
                                   VisibilityControlRow(
-                                    title: 'Display Name on Leaderboards',
+                                    title: 'Display Name in Pool Activity',
                                     description:
-                                        'Show your custom display name instead of your anonymous Fan ID on public leaderboards.',
-                                    value: _showNameOnLeaderboards,
+                                        'Show your custom display name instead of your anonymous Fan ID on public pool and share-card surfaces.',
+                                    value: _showNameInPoolActivity,
                                     enabled: isVerified && !_saving,
                                     showDivider: false,
                                     onChanged: (value) => _updateSettings(
-                                      showNameOnLeaderboards: value,
+                                      showNameInPoolActivity: value,
                                     ),
                                   ),
                                 ],

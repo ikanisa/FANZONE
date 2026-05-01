@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'venue_model.freezed.dart';
 part 'venue_model.g.dart';
 
-/// DineIn venue types.
+/// Venue types supported by the hospitality platform.
 enum VenueType {
   @JsonValue('bar')
   bar,
@@ -41,7 +41,7 @@ enum OnboardingStatus {
   @JsonValue('qr_generated')
   qrGenerated,
   @JsonValue('live')
-  live;
+  live,
 }
 
 /// Country codes supported by the platform.
@@ -102,6 +102,7 @@ class VenueModel with _$VenueModel {
     @Default(OnboardingStatus.draft)
     OnboardingStatus onboardingStatus,
     @JsonKey(name: 'revolut_link') String? revolutLink,
+    @JsonKey(name: 'momo_code') String? momoCode,
     String? whatsapp,
     @JsonKey(name: 'primary_category') String? primaryCategory,
     double? rating,
@@ -125,9 +126,13 @@ class VenueModel with _$VenueModel {
 
   /// Full address string for display.
   String get fullAddress {
-    final parts = [addressLine1, addressLine2, city, region, postalCode]
-        .where((p) => p != null && p.trim().isNotEmpty)
-        .toList();
+    final parts = [
+      addressLine1,
+      addressLine2,
+      city,
+      region,
+      postalCode,
+    ].where((p) => p != null && p.trim().isNotEmpty).toList();
     return parts.join(', ');
   }
 }

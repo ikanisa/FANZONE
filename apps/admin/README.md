@@ -2,7 +2,7 @@
 
 This directory contains the React/Vite admin console for FANZONE.
 
-The canonical repo documentation lives in the root [README](../README.md). Use that file for architecture, release flow, repository rules, and environment setup across the full stack.
+The canonical repo documentation lives in the root [README](../../README.md). Use that file for architecture, release flow, repository rules, and environment setup across the full stack.
 
 ## Local commands
 
@@ -16,7 +16,7 @@ npm run build
 
 ## Required environment
 
-Create `admin/.env` from `admin/.env.example` and set:
+Create `apps/admin/.env` from `apps/admin/.env.example` and set:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`

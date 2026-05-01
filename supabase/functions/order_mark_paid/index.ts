@@ -1,22 +1,24 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import {
+  AuditAction,
+  createAdminClient,
+  createAuditLogger,
+  createLogger,
+  EntityType,
+  errorResponse,
+  getOrCreateRequestId,
   handleCors,
   jsonResponse,
-  errorResponse,
-  createAdminClient,
   requireAuth,
   requireVendorOrAdmin,
-  createLogger,
-  getOrCreateRequestId,
-  createAuditLogger,
-  AuditAction,
-  EntityType,
 } from "../_shared/mod.ts";
 
 const markPaidSchema = z.object({
   order_id: z.string().uuid(),
-  payment_method: z.enum(["cash", "momo", "revolut"]).optional().default("cash"),
+  payment_method: z.enum(["cash", "momo", "revolut"]).optional().default(
+    "cash",
+  ),
 });
 
 Deno.serve(async (req) => {
@@ -67,14 +69,21 @@ Deno.serve(async (req) => {
       supabaseUser,
       order.venue_id,
       user.id,
-      logger
+      logger,
     );
     if (rbacResult instanceof Response) return rbacResult;
 
     // ---- Idempotency: already paid ----
     if (order.payment_status === "paid") {
-      logger.info("Order already marked paid (idempotent)", { orderId: order_id });
-      return jsonResponse({ success: true, requestId, message: "Already paid", order });
+      logger.info("Order already marked paid (idempotent)", {
+        orderId: order_id,
+      });
+      return jsonResponse({
+        success: true,
+        requestId,
+        message: "Already paid",
+        order,
+      });
     }
 
     // ---- Can only mark paid if order is in valid state ----
@@ -83,6 +92,8 @@ Deno.serve(async (req) => {
     }
 
     // ---- Update payment status ----
+    // External payments are off-platform. This endpoint records a staff/admin
+    // manual confirmation after the customer shows cash, USSD, or Revolut proof.
     const { data: updatedOrder, error: updateError } = await supabaseAdmin
       .from("orders")
       .update({
@@ -94,12 +105,14 @@ Deno.serve(async (req) => {
       .single();
 
     if (updateError) {
-      logger.error("Failed to update payment status", { error: updateError.message });
+      logger.error("Failed to update payment status", {
+        error: updateError.message,
+      });
       return errorResponse("Failed to update payment status", 500);
     }
 
-    // FET credit is handled by the database trigger in
-    // 20260501020000_dinein_fet_bridge.sql when payment_status transitions to paid.
+    // FET credit is handled by the database trigger when payment_status
+    // transitions to paid.
 
     // ---- Audit ----
     const audit = createAuditLogger(supabaseAdmin, user.id, requestId, logger);
@@ -114,7 +127,11 @@ Deno.serve(async (req) => {
       provider: payment_method,
       status: "paid",
       request_payload: { marked_by: user.id, request_id: requestId },
-      response_payload: { source: "order_mark_paid" },
+      response_payload: {
+        source: "order_mark_paid",
+        confirmation_mode: "staff_manual",
+        provider_api_used: false,
+      },
     });
 
     const durationMs = Date.now() - startTime;

@@ -1,72 +1,41 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { Order, OrderStatus, PaymentMethod, PaymentStatus } from '@fanzone/core';
 import { supabase } from '../lib/supabase';
-import type { Order, OrderItem, OrderItemRow, OrderRow, OrderStatus } from '@fanzone/core';
-
-type OrderWithItemsRow = OrderRow & {
-  items?: OrderItemRow[] | null;
-};
-
-function mapOrderItem(row: OrderItemRow): OrderItem {
-  return {
-    id: row.id,
-    orderId: row.order_id,
-    itemNameSnapshot: row.item_name_snapshot,
-    quantity: row.quantity,
-    unitPrice: row.unit_price,
-    lineTotal: row.line_total,
-  };
-}
-
-function mapOrder(row: OrderWithItemsRow): Order {
-  return {
-    id: row.id,
-    venueId: row.venue_id,
-    tableId: row.table_id,
-    orderCode: row.order_code,
-    status: row.status,
-    paymentMethod: row.payment_method,
-    paymentStatus: row.payment_status,
-    currencyCode: row.currency_code,
-    subtotalAmount: row.subtotal_amount,
-    totalAmount: row.total_amount,
-    paymentFetAmount: row.payment_fet_amount,
-    paymentFetConvertedAmount: row.payment_fet_converted_amount,
-    createdAt: row.created_at,
-    items: row.items?.map(mapOrderItem) ?? [],
-  };
-}
+import {
+  fetchVenueOrders,
+  setOrderPaymentStatus,
+  setOrderServiceStatus,
+} from '../services/venueOperations';
 
 export function useOrders(venueId: string) {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!venueId) {
+      setOrders([]);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      setOrders(await fetchVenueOrders(venueId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch orders.');
+    } finally {
+      setLoading(false);
+    }
+  }, [venueId]);
 
   useEffect(() => {
     if (!venueId) return;
 
-    // 1. Initial Fetch
-    const fetchOrders = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('orders')
-          .select('*, items:order_items(*)')
-          .eq('venue_id', venueId)
-          .neq('status', 'cancelled')
-          .neq('status', 'served')
-          .order('created_at', { ascending: true });
+    const timer = window.setTimeout(() => {
+      void refresh();
+    }, 0);
 
-        if (error) throw error;
-        setOrders(((data ?? []) as unknown as OrderWithItemsRow[]).map(mapOrder));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch orders.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-
-    // 2. Realtime Subscription
     const channel = supabase
       .channel(`venue-orders-${venueId}`)
       .on(
@@ -77,23 +46,37 @@ export function useOrders(venueId: string) {
           table: 'orders',
           filter: `venue_id=eq.${venueId}`,
         },
-        () => fetchOrders()
+        () => refresh(),
       )
       .subscribe();
 
     return () => {
+      window.clearTimeout(timer);
       supabase.removeChannel(channel);
     };
-  }, [venueId]);
+  }, [refresh, venueId]);
 
   const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    const { error } = await supabase
-      .from('orders')
-      .update({ status })
-      .eq('id', orderId);
-    
-    if (error) throw error;
+    await setOrderServiceStatus(orderId, status);
+    await refresh();
   };
 
-  return { orders, loading, error, updateOrderStatus };
+  const updatePaymentStatus = async (
+    orderId: string,
+    paymentStatus: PaymentStatus,
+    paymentMethod: PaymentMethod,
+    note?: string,
+  ) => {
+    await setOrderPaymentStatus(orderId, paymentStatus, paymentMethod, note);
+    await refresh();
+  };
+
+  return {
+    orders: venueId ? orders : [],
+    loading: venueId ? loading : false,
+    error: venueId ? error : null,
+    refresh,
+    updateOrderStatus,
+    updatePaymentStatus,
+  };
 }

@@ -9,6 +9,13 @@ abstract interface class OrderGateway {
   /// Place a new order. Returns the created order.
   Future<OrderModel> placeOrder(CreateOrderDto request);
 
+  /// Create an external payment handoff. This never marks the order paid.
+  Future<PaymentHandoff> createPaymentHandoff({
+    required String orderId,
+    required String venueId,
+    required PaymentMethod method,
+  });
+
   /// Get a single order by ID (with items).
   Future<OrderModel?> getOrder(String orderId);
 
@@ -28,6 +35,12 @@ abstract interface class OrderGateway {
   /// Update payment status (venue dashboard action).
   Future<void> updatePaymentStatus(String orderId, PaymentStatus newStatus);
 
+  /// Spend FET against an order through the wallet ledger RPC.
+  Future<void> spendFetOnOrder({
+    required String orderId,
+    required int amountFet,
+  });
+
   /// Subscribe to realtime order updates for a specific order.
   RealtimeChannel subscribeToOrder(
     String orderId,
@@ -40,7 +53,7 @@ abstract interface class OrderGateway {
     void Function(OrderModel order) onUpdate,
   );
 
-  /// Get total FET tokens redeemed at a venue.
+  /// Get total FET redeemed at a venue.
   Future<int> getVenueRedeemedTokens(String venueId);
 }
 
@@ -71,7 +84,7 @@ class CreateOrderDto {
   double get subtotalAmount =>
       items.fold<double>(0, (sum, item) => sum + item.lineTotal);
 
-  double get totalAmount => subtotalAmount + tipAmount - paymentFetConvertedAmount;
+  double get totalAmount => subtotalAmount + tipAmount;
 }
 
 /// DTO for a single item in a new order.
@@ -99,6 +112,49 @@ class CreateOrderItemDto {
   double get lineTotal => unitPrice * quantity;
 }
 
+/// External payment handoff returned by `payment-hub`.
+class PaymentHandoff {
+  const PaymentHandoff({
+    required this.method,
+    required this.amount,
+    required this.currency,
+    required this.instructions,
+    required this.requiresStaffConfirmation,
+    this.ussdString,
+    this.paymentUrl,
+  });
+
+  final PaymentMethod method;
+  final String amount;
+  final String currency;
+  final List<String> instructions;
+  final bool requiresStaffConfirmation;
+  final String? ussdString;
+  final String? paymentUrl;
+
+  factory PaymentHandoff.fromJson(Map<String, dynamic> json) {
+    final methodName = json['method']?.toString() ?? 'cash';
+    final method = PaymentMethod.values.firstWhere(
+      (value) => value.name == methodName,
+      orElse: () => PaymentMethod.cash,
+    );
+    final rawInstructions = json['instructions'];
+
+    return PaymentHandoff(
+      method: method,
+      amount: json['amount']?.toString() ?? '',
+      currency: json['currency']?.toString() ?? '',
+      instructions: rawInstructions is List
+          ? rawInstructions.map((item) => item.toString()).toList()
+          : const [],
+      requiresStaffConfirmation:
+          json['requires_staff_confirmation'] as bool? ?? true,
+      ussdString: json['ussd_string']?.toString(),
+      paymentUrl: json['payment_url']?.toString(),
+    );
+  }
+}
+
 class SupabaseOrderGateway implements OrderGateway {
   SupabaseOrderGateway(this._connection);
 
@@ -111,45 +167,88 @@ class SupabaseOrderGateway implements OrderGateway {
       throw StateError('Cannot place order: no connection');
     }
 
-    // Insert order
-    final orderRow = await client
-        .from('orders')
-        .insert({
-          'venue_id': request.venueId,
-          'table_id': request.tableId,
-          'payment_method': request.paymentMethod.name,
-          'currency_code': request.currencyCode,
-          'subtotal_amount': request.subtotalAmount,
-          'tax_amount': 0,
-          'tip_amount': request.tipAmount,
-          'payment_fet_amount': request.paymentFetAmount,
-          'payment_fet_converted_amount': request.paymentFetConvertedAmount,
-          'total_amount': request.totalAmount,
-          'special_instructions': request.specialInstructions,
-        })
-        .select()
-        .single();
+    final response = await client.functions.invoke(
+      'order_create',
+      body: {
+        'venue_id': request.venueId,
+        'table_id': request.tableId,
+        'payment_method': request.paymentMethod.name,
+        'special_instructions': request.specialInstructions,
+        'items': request.items
+            .map(
+              (item) => {
+                'menu_item_id': item.menuItemId,
+                'quantity': item.quantity,
+                'add_ons': item.addOns,
+              },
+            )
+            .toList(),
+      },
+    );
 
-    final orderId = orderRow['id'] as String;
+    final data = Map<String, dynamic>.from(
+      response.data as Map<String, dynamic>? ?? const {},
+    );
+    if (data['success'] != true || data['order'] is! Map) {
+      throw StateError('Order creation failed');
+    }
 
-    // Insert order items
-    final itemRows = request.items.map((item) => {
-      'order_id': orderId,
-      'menu_item_id': item.menuItemId,
-      'item_name_snapshot': item.itemNameSnapshot,
-      'item_description_snapshot': item.itemDescriptionSnapshot,
-      'quantity': item.quantity,
-      'unit_price': item.unitPrice,
-      'line_total': item.lineTotal,
-      'currency_code': item.currencyCode,
-      'add_ons': item.addOns,
-      'special_instructions': item.specialInstructions,
-    }).toList();
+    return _parseOrderWithItems(
+      Map<String, dynamic>.from(data['order'] as Map),
+    );
+  }
 
-    await client.from('order_items').insert(itemRows);
+  @override
+  Future<PaymentHandoff> createPaymentHandoff({
+    required String orderId,
+    required String venueId,
+    required PaymentMethod method,
+  }) async {
+    final client = _connection.client;
+    if (client == null) {
+      throw StateError('Cannot create payment handoff: no connection');
+    }
 
-    // Fetch complete order with items
-    return (await getOrder(orderId))!;
+    if (method == PaymentMethod.cash) {
+      throw ArgumentError('Cash payments do not need an external handoff');
+    }
+
+    final response = await client.functions.invoke(
+      'payment-hub',
+      body: {'order_id': orderId, 'venue_id': venueId, 'method': method.name},
+    );
+
+    final data = Map<String, dynamic>.from(
+      response.data as Map<String, dynamic>? ?? const {},
+    );
+    if (data['success'] != true) {
+      throw StateError(
+        data['error']?.toString() ?? 'Payment handoff unavailable',
+      );
+    }
+
+    return PaymentHandoff.fromJson(data);
+  }
+
+  @override
+  Future<void> spendFetOnOrder({
+    required String orderId,
+    required int amountFet,
+  }) async {
+    final client = _connection.client;
+    if (client == null) {
+      throw StateError('Cannot spend FET: no connection');
+    }
+    if (amountFet <= 0) return;
+
+    await client.rpc(
+      'spend_fet_on_order',
+      params: {
+        'p_order_id': orderId,
+        'p_amount_fet': amountFet,
+        'p_idempotency_key': 'order_spend:$orderId:$amountFet',
+      },
+    );
   }
 
   @override
@@ -233,19 +332,16 @@ class SupabaseOrderGateway implements OrderGateway {
   }
 
   @override
-  Future<void> updateOrderStatus(
-    String orderId,
-    OrderStatus newStatus,
-  ) async {
+  Future<void> updateOrderStatus(String orderId, OrderStatus newStatus) async {
     final client = _connection.client;
     if (client == null) {
       throw StateError('Cannot update order: no connection');
     }
 
-    await client
-        .from('orders')
-        .update({'status': newStatus.name})
-        .eq('id', orderId);
+    await client.functions.invoke(
+      'order_update_status',
+      body: {'order_id': orderId, 'status': newStatus.name},
+    );
   }
 
   @override
@@ -258,10 +354,16 @@ class SupabaseOrderGateway implements OrderGateway {
       throw StateError('Cannot update payment: no connection');
     }
 
-    await client
-        .from('orders')
-        .update({'payment_status': newStatus.name})
-        .eq('id', orderId);
+    if (newStatus != PaymentStatus.paid) {
+      throw UnsupportedError(
+        'Only manual paid confirmation is supported from the venue dashboard',
+      );
+    }
+
+    await client.functions.invoke(
+      'order_mark_paid',
+      body: {'order_id': orderId},
+    );
   }
 
   @override
@@ -350,20 +452,21 @@ class SupabaseOrderGateway implements OrderGateway {
   }
 
   OrderModel _parseOrderWithItems(Map<String, dynamic> row) {
-    final itemsRaw = row['order_items'];
+    final itemsRaw = row['order_items'] ?? row['items'];
     List<OrderItemModel>? items;
     if (itemsRaw is List) {
       items = itemsRaw
           .whereType<Map>()
           .map(
-            (item) =>
-                OrderItemModel.fromJson(Map<String, dynamic>.from(item)),
+            (item) => OrderItemModel.fromJson(Map<String, dynamic>.from(item)),
           )
           .toList(growable: false);
     }
 
     // Remove nested items from the order row before parsing
-    final orderData = Map<String, dynamic>.from(row)..remove('order_items');
+    final orderData = Map<String, dynamic>.from(row)
+      ..remove('order_items')
+      ..remove('items');
     final order = OrderModel.fromJson(orderData);
     return order.copyWith(items: items);
   }

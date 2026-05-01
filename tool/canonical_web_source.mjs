@@ -160,7 +160,7 @@ async function checkCanonicalSource() {
     assertEqualManifests(
       sourceManifest,
       websiteManifest,
-      "website/src has drifted from the canonical FANZONE source app.",
+      "apps/website/src has drifted from the canonical FANZONE source app.",
     );
     console.log("Canonical source check passed against the external FANZONE source.");
     return;
@@ -176,7 +176,7 @@ async function checkCanonicalSource() {
   assertEqualManifests(
     manifest,
     websiteManifest,
-    "website/src no longer matches the committed canonical snapshot.",
+    "apps/website/src no longer matches the committed canonical snapshot.",
   );
   console.log("Canonical source check passed against the committed snapshot.");
 }

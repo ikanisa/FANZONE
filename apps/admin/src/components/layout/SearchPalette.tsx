@@ -84,7 +84,7 @@ export function SearchPalette({
             ref={inputRef}
             type="text"
             className="search-palette-input"
-            placeholder="Search users, competitions, fixtures, predictions, wallets..."
+            placeholder="Search countries, venues, competitions, teams, matches, pools, wallets..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleKeyDown}
@@ -125,7 +125,7 @@ export function SearchPalette({
               Object.entries(groupedResults).map(([type, items]) => (
                 <div key={type}>
                   <div className="search-palette-group-label">
-                    {TYPE_ICONS[type as keyof typeof TYPE_ICONS] || '📄'} {type}s
+                    {TYPE_ICONS[type as keyof typeof TYPE_ICONS] || 'Result'}s
                   </div>
                   {items.map((item) => {
                     const itemIndex = flatIndex++;
@@ -164,14 +164,15 @@ export function SearchPalette({
           <div className="search-palette-results">
             <div className="search-palette-empty">
               <p className="text-sm text-muted">
-                Start typing to search across users, competitions, fixtures, predictions, and wallets.
+                Start typing to search across venues, competitions, teams, curated matches, pools, and wallets.
               </p>
               <div className="flex gap-4 mt-3 justify-center">
-                <span className="text-xs text-muted">👤 Users</span>
-                <span className="text-xs text-muted">🏆 Competitions</span>
-                <span className="text-xs text-muted">⚽ Fixtures</span>
-                <span className="text-xs text-muted">🎯 Predictions</span>
-                <span className="text-xs text-muted">👛 Wallets</span>
+                <span className="text-xs text-muted">Venues</span>
+                <span className="text-xs text-muted">Competitions</span>
+                <span className="text-xs text-muted">Teams</span>
+                <span className="text-xs text-muted">Matches</span>
+                <span className="text-xs text-muted">Pools</span>
+                <span className="text-xs text-muted">Wallets</span>
               </div>
             </div>
           </div>

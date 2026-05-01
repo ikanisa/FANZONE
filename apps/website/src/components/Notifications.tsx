@@ -26,9 +26,9 @@ export default function Notifications() {
 
   const getIconForType = (type: string) => {
     switch (type) {
-      case 'prediction_update':
+      case 'pool_update':
         return <Swords className="text-accent" size={16} />;
-      case 'prediction_reward':
+      case 'pool_reward':
         return <Trophy className="text-accent3" size={16} />;
       case 'system':
       default:

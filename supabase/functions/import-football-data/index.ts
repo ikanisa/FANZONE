@@ -28,8 +28,8 @@ interface ImportPayload {
   datasetType?: DatasetType;
   csv?: string;
   rows?: Record<string, unknown>[];
-  generatePredictions?: boolean;
   mode?: "manual" | "scheduled";
+  sourceId?: string;
 }
 
 interface ImportErrorRow {
@@ -186,6 +186,40 @@ function uniqueStrings(values: Array<string | null | undefined>): string[] {
       ),
     ),
   ];
+}
+
+function normalizedCompetitionToken(
+  id: string | null,
+  name: string | null,
+  type: string | null,
+): string {
+  return `${id ?? ""} ${name ?? ""} ${type ?? ""}`.toLowerCase().replace(
+    /[^a-z0-9]+/g,
+    "",
+  );
+}
+
+function isApprovedDefaultCompetition(
+  id: string | null,
+  name: string | null,
+  type: string | null,
+): boolean {
+  const token = normalizedCompetitionToken(id, name, type);
+  return [
+    "englishpremierleague",
+    "englandpremierleague",
+    "epl",
+    "laliga",
+    "seriea",
+    "ligue1",
+    "bundesliga",
+    "uefachampionsleague",
+    "ucl",
+    "uefaeuropaleague",
+    "uel",
+    "fifaworldcup",
+    "worldcup",
+  ].some((value) => token.includes(value));
 }
 
 async function runRpc(
@@ -365,6 +399,23 @@ Deno.serve(async (req: Request) => {
     const errors: ImportErrorRow[] = [];
     const teamCache = new Map<string, string>();
     const upserts: Record<string, unknown>[] = [];
+    const sourceId = readString(payload as Record<string, unknown>, [
+      "sourceId",
+      "source_id",
+    ]) ?? "manual_admin";
+
+    await supabase.from("fixture_sources").upsert(
+      {
+        id: sourceId,
+        name: sourceId === "manual_admin"
+          ? "Manual admin curation/import"
+          : sourceId,
+        source_type: payload.mode === "scheduled" ? "api" : "admin_import",
+        is_approved: sourceId === "manual_admin",
+        is_active: true,
+      },
+      { onConflict: "id" },
+    );
 
     if (datasetType === "competitions") {
       rows.forEach((row, index) => {
@@ -374,18 +425,27 @@ Deno.serve(async (req: Request) => {
           errors.push({ row: index + 2, reason: "id and name are required" });
           return;
         }
+        const competitionType = readString(row, ["competition_type", "type"]) ??
+          "league";
+        const isLocalCurated = competitionType === "local_curated";
+        const isApproved = isLocalCurated ||
+          isApprovedDefaultCompetition(id, name, competitionType);
+
+        const countryOrRegion =
+          readString(row, ["country_or_region", "country", "region"]) ??
+            "Global";
 
         upserts.push({
           id,
           name,
-          country_or_region:
-            readString(row, ["country_or_region", "country", "region"]) ??
-              "Global",
-          competition_type: readString(row, ["competition_type"]) ?? "league",
+          country_or_region: countryOrRegion,
+          competition_type: competitionType,
+          type: competitionType,
           is_international: toBoolean(row.is_international, false),
-          is_active: toBoolean(row.is_active, true),
-          short_name: readString(row, ["short_name"]),
-          country: readString(row, ["country"]),
+          is_active: toBoolean(row.is_active, isApproved) && isApproved,
+          short_name: readString(row, ["short_name"]) ?? name,
+          country: readString(row, ["country"]) ?? countryOrRegion,
+          data_source: sourceId,
         });
       });
 
@@ -534,7 +594,7 @@ Deno.serve(async (req: Request) => {
             "scheduled",
           is_neutral: toBoolean(row.is_neutral, false),
           source_name: readString(row, ["source_name", "data_source"]) ??
-            "csv_import",
+            sourceId,
           source_url: readString(row, ["source_url"]),
           notes: readString(row, ["notes"]),
         });
@@ -674,24 +734,6 @@ Deno.serve(async (req: Request) => {
           ? importedCompetitionIds
           : null,
       });
-    }
-
-    if (
-      (datasetType === "matches" || datasetType === "standings") &&
-      payload.generatePredictions !== false
-    ) {
-      if (datasetType === "matches" && importedMatchIds.length) {
-        await runRpc(supabase, "generate_predictions_for_matches", {
-          p_match_ids: importedMatchIds,
-          p_limit: Math.min(importedMatchIds.length || 25, 250),
-          p_model_version: "simple_form_v1",
-          p_include_finished: false,
-        });
-      } else {
-        await runRpc(supabase, "generate_predictions_for_upcoming_matches", {
-          p_limit: Math.min(upserts.length || 25, 100),
-        });
-      }
     }
 
     return Response.json(

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/auth/runtime_auth_session_manager.dart';
 import '../../../core/cache/shared_preferences_cache_service.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
@@ -14,7 +15,18 @@ import '../../../widgets/common/fz_wordmark.dart';
 ///
 /// Onboarding is local-first and no longer blocked behind authentication.
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({
+    super.key,
+    this.returnTo,
+    this.venueId,
+    this.venueSlug,
+    this.tableNumber,
+  });
+
+  final String? returnTo;
+  final String? venueId;
+  final String? venueSlug;
+  final String? tableNumber;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -56,14 +68,54 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToNextScreen() async {
+    await _ensureGuestSession();
     final onboardingDone = await _resolveOnboardingState();
 
     if (!mounted) return;
     final nextRoute = onboardingDone
-        ? (appRuntime.consumePendingAppRoute() ?? '/')
+        ? (_qrRoute() ??
+              widget.returnTo ??
+              appRuntime.consumePendingAppRoute() ??
+              '/today')
         : '/onboarding';
     context.go(nextRoute);
     markAppInteractive();
+  }
+
+  Future<void> _ensureGuestSession() async {
+    if (!appRuntime.supabaseInitialized) return;
+    final manager = RuntimeAuthSessionManager.instance;
+    final currentSession = manager.currentSession;
+    if (currentSession != null && !currentSession.isExpired) return;
+
+    try {
+      await manager.guestClient?.auth.signInAnonymously().timeout(
+        const Duration(seconds: 8),
+      );
+    } catch (error) {
+      AppLogger.d('Guest session resolver could not create a session: $error');
+    }
+  }
+
+  String? _qrRoute() {
+    final encodedTable = widget.tableNumber == null
+        ? null
+        : Uri.encodeQueryComponent(widget.tableNumber!);
+    final venueSlug = widget.venueSlug?.trim();
+    if (venueSlug != null && venueSlug.isNotEmpty) {
+      return encodedTable == null
+          ? '/v/$venueSlug'
+          : '/v/$venueSlug?t=$encodedTable';
+    }
+
+    final venueId = widget.venueId?.trim();
+    if (venueId != null && venueId.isNotEmpty) {
+      return encodedTable == null
+          ? '/bar?v=${Uri.encodeQueryComponent(venueId)}'
+          : '/bar?v=${Uri.encodeQueryComponent(venueId)}&table=$encodedTable';
+    }
+
+    return null;
   }
 
   Future<bool> _resolveOnboardingState() async {
@@ -145,7 +197,7 @@ class _SplashScreenState extends State<SplashScreen>
                       style: FzTypography.display(
                         size: 58,
                         color: isDark ? FzColors.darkText : FzColors.lightText,
-                        letterSpacing: 11.5,
+                        letterSpacing: 0,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -165,7 +217,7 @@ class _SplashScreenState extends State<SplashScreen>
                           const _PulseDot(color: FzColors.primary),
                           const SizedBox(width: 10),
                           Text(
-                            'MALTA\'S FOOTBALL FAN NETWORK',
+                            'SPORTS BAR ENTERTAINMENT',
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontSize: 10,
                               color: FzColors.darkMuted,

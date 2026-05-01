@@ -14,6 +14,7 @@ import '../../../widgets/common/fz_empty_state.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../../../services/wallet_service.dart';
+import '../data/wallet_gateway.dart';
 import '../widgets/wallet_screen_components.dart';
 import '../widgets/wallet_transfer_sheets.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
@@ -24,10 +25,17 @@ class WalletScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final balanceAsync = ref.watch(walletServiceProvider);
+    final walletBalanceAsync = ref.watch(walletBalanceProvider);
     final transactionsAsync = ref.watch(transactionServiceProvider);
     final isVerified = ref.watch(isFullyAuthenticatedProvider);
     final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
+    final transactions = transactionsAsync.valueOrNull ?? const [];
+    final orderEarned = transactions
+        .where((tx) => tx.type == 'order_earn')
+        .fold<int>(0, (sum, tx) => sum + tx.amount);
+    final poolEarned = transactions
+        .where((tx) => tx.type == 'pool_win' || tx.type == 'creator_reward')
+        .fold<int>(0, (sum, tx) => sum + tx.amount);
 
     return Scaffold(
       appBar: AppBar(
@@ -53,7 +61,7 @@ class WalletScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
         children: [
           _WalletHero(
-            balanceAsync: balanceAsync,
+            balanceAsync: walletBalanceAsync,
             currency: currency,
             onSend: () {
               if (!isVerified) {
@@ -76,29 +84,15 @@ class WalletScreen extends ConsumerWidget {
             },
           ),
           const SizedBox(height: 18),
-          balanceAsync.when(
-            data: (_) => transactionsAsync.when(
-              data: (transactions) {
-                final earned = transactions
-                    .where(
-                      (tx) =>
-                          tx.type == 'earn' ||
-                          tx.type == 'transfer_received' ||
-                          tx.type == 'bonus',
-                    )
-                    .fold<int>(0, (sum, tx) => sum + tx.amount);
-                final spent = transactions
-                    .where(
-                      (tx) => tx.type == 'spend' || tx.type == 'transfer_sent',
-                    )
-                    .fold<int>(0, (sum, tx) => sum + tx.amount);
-
-                return Row(
+          walletBalanceAsync.when(
+            data: (balance) => Column(
+              children: [
+                Row(
                   children: [
                     Expanded(
                       child: WalletSummaryCard(
                         label: 'Earned',
-                        amount: earned,
+                        amount: balance.earnedFet,
                         positive: true,
                         icon: LucideIcons.arrowUpRight,
                         color: FzColors.success,
@@ -107,25 +101,71 @@ class WalletScreen extends ConsumerWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: WalletSummaryCard(
+                        label: 'Staked',
+                        amount: balance.stakedFet,
+                        positive: true,
+                        showSign: false,
+                        icon: LucideIcons.lock,
+                        color: FzColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: WalletSummaryCard(
                         label: 'Spent',
-                        amount: spent,
+                        amount: balance.spentFet,
                         positive: false,
                         icon: LucideIcons.arrowDownLeft,
                         color: FzColors.coral,
                       ),
                     ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: WalletSummaryCard(
+                        label: 'Pending',
+                        amount: balance.pendingFet,
+                        positive: true,
+                        showSign: false,
+                        icon: LucideIcons.timer,
+                        color: FzColors.accent2,
+                      ),
+                    ),
                   ],
-                );
-              },
-              loading: () => const _WalletStatsSkeleton(),
-              error: (_, _) => _WalletStatsUnavailable(
-                onRetry: () => ref.invalidate(transactionServiceProvider),
-              ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: WalletSummaryCard(
+                        label: 'Order Earned',
+                        amount: orderEarned,
+                        positive: true,
+                        icon: LucideIcons.utensils,
+                        color: FzColors.success,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: WalletSummaryCard(
+                        label: 'Pool Earned',
+                        amount: poolEarned,
+                        positive: true,
+                        icon: LucideIcons.trophy,
+                        color: FzColors.accent2,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             loading: () => const _WalletStatsSkeleton(),
             error: (_, _) => _WalletStatsUnavailable(
               onRetry: () {
-                ref.invalidate(walletServiceProvider);
+                ref.invalidate(walletBalanceProvider);
                 ref.invalidate(transactionServiceProvider);
               },
             ),
@@ -134,11 +174,15 @@ class WalletScreen extends ConsumerWidget {
           const FzCard(
             child: Row(
               children: [
-                Icon(LucideIcons.shieldCheck, size: 18, color: FzColors.success),
+                Icon(
+                  LucideIcons.shieldCheck,
+                  size: 18,
+                  color: FzColors.success,
+                ),
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Wallet activity now covers transfers and lean prediction rewards only.',
+                    'Wallet activity covers available FET, staked FET, spent FET, earned FET, and pending pool settlements.',
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.4,
@@ -211,7 +255,7 @@ class _WalletHero extends StatelessWidget {
     required this.onSend,
   });
 
-  final AsyncValue<int> balanceAsync;
+  final AsyncValue<WalletBalance> balanceAsync;
   final String currency;
   final VoidCallback onSend;
 
@@ -248,7 +292,7 @@ class _WalletHero extends StatelessWidget {
           Column(
             children: [
               const Text(
-                'Total Balance',
+                'Available FET',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -262,7 +306,7 @@ class _WalletHero extends StatelessWidget {
                   children: [
                     FzAnimatedCounter(
                       key: const ValueKey('wallet-total-balance-value'),
-                      value: balance.toDouble(),
+                      value: balance.availableFet.toDouble(),
                       style: FzTypography.score(
                         size: 42,
                         weight: FontWeight.w700,
@@ -272,7 +316,7 @@ class _WalletHero extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      formatFET(balance, currency),
+                      formatFET(balance.availableFet, currency),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white70,
@@ -421,7 +465,7 @@ class _WalletStatsUnavailable extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Earned and spent totals are unavailable right now.',
+                'Wallet totals are unavailable right now.',
                 style: TextStyle(fontSize: 11, color: muted, height: 1.4),
               ),
             ),
@@ -542,7 +586,7 @@ class _HistoryEmptyState extends StatelessWidget {
     return const FzEmptyState(
       title: 'No History Yet',
       description:
-          'Completed transfers, conversions, and rewards activity will appear here.',
+          'Order rewards, pool stakes, settlement wins, and FET spending will appear here.',
       icon: Icon(LucideIcons.receipt, size: 24),
     );
   }

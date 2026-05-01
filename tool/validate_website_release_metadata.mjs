@@ -2,9 +2,11 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const repoRoot = "/Volumes/PRO-G40/FANZONE";
-const websiteRoot = path.join(repoRoot, "website");
+const toolDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(toolDir, "..");
+const websiteRoot = path.join(repoRoot, "apps", "website");
 const assetLinksPath = path.join(
   websiteRoot,
   "public",

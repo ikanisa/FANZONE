@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'website/**'
+      - 'apps/website/**'
       - 'tool/canonical_web_source.mjs'
   workflow_dispatch:
 
@@ -42,19 +42,19 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
-          cache-dependency-path: website/package-lock.json
+          cache-dependency-path: apps/website/package-lock.json
 
       - name: Install dependencies
         run: npm ci
-        working-directory: website
+        working-directory: apps/website
 
       - name: Lint
         run: npm run lint
-        working-directory: website
+        working-directory: apps/website
 
       - name: Build
         run: npm run build
-        working-directory: website
+        working-directory: apps/website
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
@@ -62,7 +62,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: >-
-            pages deploy website/dist
+            pages deploy apps/website/dist
             --project-name=${{ secrets.CLOUDFLARE_WEBSITE_PROJECT_NAME }}
             --branch=${{ github.ref_name }}
 

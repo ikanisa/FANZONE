@@ -5,11 +5,18 @@ import type { AuditLog } from '../../types';
 
 /* ── KPI Types ── */
 export interface DashboardKpis {
+  activeCountries: number;
+  activeVenues: number;
+  activePools: number;
   activeUsers: number;
-  openPredictionMatches: number;
+  openPools: number;
   totalFetIssued: number;
+  totalFetStaked: number;
   fetTransferred24h: number;
-  pendingRewards: number;
+  pendingSettlements: number;
+  failedSettlements: number;
+  todaysOrders: number;
+  riskAlerts: number;
   moderationAlerts: number;
   competitionsCount: number;
   upcomingFixtures: number;
@@ -55,16 +62,16 @@ export function useSystemAlerts() {
         alerts.push({ id: 'sa-crit', severity: 'critical', message: `${flaggedTx} critical reports need immediate attention`, module: 'Moderation' });
       }
 
-      const pendingRewards = await countAdminRows('user_predictions', (query) =>
-        query.eq('reward_status', 'pending'),
+      const pendingSettlements = await countAdminRows('match_pools', (query) =>
+        query.in('status', ['open', 'locked', 'live', 'settling']),
       );
 
-      if (pendingRewards > 0) {
+      if (pendingSettlements > 0) {
         alerts.push({
-          id: 'sa-reward-settlement',
+          id: 'sa-pool-settlement',
           severity: 'warning',
-          message: `${pendingRewards} prediction reward${pendingRewards > 1 ? 's are' : ' is'} waiting to settle`,
-          module: 'Predictions',
+          message: `${pendingSettlements} pool${pendingSettlements > 1 ? 's are' : ' is'} awaiting settlement or active monitoring`,
+          module: 'Pools',
         });
       }
 

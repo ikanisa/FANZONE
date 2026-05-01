@@ -6,11 +6,13 @@ import '../screens/venue_menu_screen.dart';
 class VenueEntryWrapper extends ConsumerStatefulWidget {
   const VenueEntryWrapper({
     super.key,
-    required this.venueSlug,
+    this.venueSlug,
+    this.venueId,
     this.tableNumber,
-  });
+  }) : assert(venueSlug != null || venueId != null);
 
-  final String venueSlug;
+  final String? venueSlug;
+  final String? venueId;
   final String? tableNumber;
 
   @override
@@ -29,10 +31,16 @@ class _VenueEntryWrapperState extends ConsumerState<VenueEntryWrapper> {
 
   Future<void> _initContext() async {
     try {
-      final success = await ref.read(venueContextProvider.notifier).setVenueBySlug(
-            widget.venueSlug,
-            tableNumber: widget.tableNumber,
-          );
+      final notifier = ref.read(venueContextProvider.notifier);
+      final success = widget.venueSlug != null
+          ? await notifier.setVenueBySlug(
+              widget.venueSlug!,
+              tableNumber: widget.tableNumber,
+            )
+          : await notifier.setVenueById(
+              widget.venueId!,
+              tableNumber: widget.tableNumber,
+            );
       if (!success) {
         setState(() => _error = 'Venue not found');
       }
@@ -48,9 +56,7 @@ class _VenueEntryWrapperState extends ConsumerState<VenueEntryWrapper> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_error != null) {

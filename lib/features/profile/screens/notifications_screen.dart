@@ -278,14 +278,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'prediction_update':
-      case 'prediction_created':
-      case 'prediction_reminder':
+      case 'pool_update':
+      case 'pool_created':
+      case 'pool_reminder':
         return LucideIcons.swords;
       case 'goal_alert':
         return LucideIcons.target;
-      case 'prediction_scored':
-      case 'prediction_reward':
+      case 'pool_settled':
+      case 'pool_reward':
         return LucideIcons.trophy;
       case 'wallet_credit':
       case 'wallet_debit':
@@ -304,12 +304,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   Color _colorForType(String type) {
     switch (type) {
-      case 'prediction_update':
-      case 'prediction_created':
-      case 'prediction_reminder':
+      case 'pool_update':
+      case 'pool_created':
+      case 'pool_reminder':
         return FzColors.accent;
-      case 'prediction_scored':
-      case 'prediction_reward':
+      case 'pool_settled':
+      case 'pool_reward':
         return FzColors.accent3;
       case 'system':
         return FzColors.accent2;
@@ -353,19 +353,19 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           case 'wallet_debit':
             return '/wallet';
           default:
-            return '/predict';
+            return '/pools';
         }
       }
       if (screen.startsWith('/')) return screen;
     }
 
     switch (item.type) {
-      case 'prediction_update':
-      case 'prediction_created':
-      case 'prediction_reminder':
-      case 'prediction_scored':
-      case 'prediction_reward':
-        return '/predict';
+      case 'pool_update':
+      case 'pool_created':
+      case 'pool_reminder':
+      case 'pool_settled':
+      case 'pool_reward':
+        return '/pools';
       case 'wallet':
       case 'wallet_credit':
       case 'wallet_debit':

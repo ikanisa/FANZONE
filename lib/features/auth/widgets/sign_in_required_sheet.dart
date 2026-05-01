@@ -298,7 +298,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
             _step == _AuthSheetStep.phone
                 ? (widget.message.isNotEmpty
                       ? widget.message
-                      : 'Verify your number to save picks, earn FET rewards, and track your record. It\'s 100% free.')
+                      : 'Verify your number to keep your wallet, orders, and match pools secured. It\'s 100% free.')
                 : 'Enter the 6-digit code sent to your WhatsApp.',
             style: TextStyle(fontSize: 14, color: muted, height: 1.5),
           ),

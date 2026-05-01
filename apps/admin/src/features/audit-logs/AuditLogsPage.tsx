@@ -58,10 +58,17 @@ export function AuditLogsPage() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
   const [moduleFilter, setModuleFilter] = useState('all');
+  const [actionFilter, setActionFilter] = useState('');
+  const [entityFilter, setEntityFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
   // Data
-  const { data: result, isLoading, error, refetch } = useAuditLogs({ page }, { module: moduleFilter, search });
+  const { data: result, isLoading, error, refetch } = useAuditLogs(
+    { page },
+    { module: moduleFilter, search, action: actionFilter, entity: entityFilter, dateFrom, dateTo },
+  );
   const logs = result?.data ?? [];
 
   const handleExport = () => {
@@ -99,6 +106,10 @@ export function AuditLogsPage() {
             {AUDIT_MODULES.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
+        <input className="input" style={{ maxWidth: 180 }} placeholder="Action" value={actionFilter} onChange={e => { setActionFilter(e.target.value); setPage(0); }} />
+        <input className="input" style={{ maxWidth: 220 }} placeholder="Entity type or id" value={entityFilter} onChange={e => { setEntityFilter(e.target.value); setPage(0); }} />
+        <input className="input" style={{ maxWidth: 170 }} type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(0); }} />
+        <input className="input" style={{ maxWidth: 170 }} type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(0); }} />
       </div>
 
       {/* Content */}

@@ -7,67 +7,50 @@ import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../widgets/common/fz_card.dart';
 
-class ProfileQuickLinksCard extends StatelessWidget {
-  const ProfileQuickLinksCard({
+class ProfileDetailsCard extends StatelessWidget {
+  const ProfileDetailsCard({
     super.key,
-    required this.showLeaderboard,
-    required this.showWallet,
-    required this.showPredictions,
-    this.isVenueOwner = false,
-    required this.onPredictionsTap,
-    required this.onLeaderboardTap,
-    required this.onWalletTap,
-    this.onVenueDashboardTap,
+    required this.countryLabel,
+    required this.countryDetail,
+    required this.favoriteTeamsLabel,
+    required this.favoriteTeamsDetail,
+    required this.linkedVenueLabel,
+    required this.linkedVenueDetail,
   });
 
-  final bool showLeaderboard;
-  final bool showWallet;
-  final bool showPredictions;
-  final bool isVenueOwner;
-  final VoidCallback onPredictionsTap;
-  final VoidCallback onLeaderboardTap;
-  final VoidCallback onWalletTap;
-  final VoidCallback? onVenueDashboardTap;
+  final String countryLabel;
+  final String countryDetail;
+  final String favoriteTeamsLabel;
+  final String favoriteTeamsDetail;
+  final String linkedVenueLabel;
+  final String linkedVenueDetail;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const ProfileSectionTitle(title: 'Play'),
+        const ProfileSectionTitle(title: 'Profile details'),
         const SizedBox(height: 8),
         ProfileSectionCard(
           children: [
-            if (showPredictions)
-              ProfileLinkRow(
-                icon: LucideIcons.target,
-                label: 'Predictions',
-                onTap: onPredictionsTap,
-              ),
-            if (showPredictions && showLeaderboard)
-              const Divider(height: 0.5, indent: 56),
-            if (showLeaderboard)
-              ProfileLinkRow(
-                icon: LucideIcons.trophy,
-                label: 'Leaderboard',
-                onTap: onLeaderboardTap,
-              ),
-            if ((showPredictions || showLeaderboard) && showWallet)
-              const Divider(height: 0.5, indent: 56),
-            if (showWallet)
-              ProfileLinkRow(
-                icon: LucideIcons.wallet,
-                label: 'Wallet',
-                onTap: onWalletTap,
-              ),
-            if (isVenueOwner) ...[
-              const Divider(height: 0.5, indent: 56),
-              ProfileLinkRow(
-                icon: LucideIcons.building,
-                label: 'Venue Dashboard',
-                onTap: onVenueDashboardTap,
-              ),
-            ],
+            ProfileLinkRow(
+              icon: LucideIcons.flag,
+              label: countryLabel,
+              subtitle: countryDetail,
+            ),
+            const Divider(height: 0.5, indent: 56),
+            ProfileLinkRow(
+              icon: LucideIcons.star,
+              label: favoriteTeamsLabel,
+              subtitle: favoriteTeamsDetail,
+            ),
+            const Divider(height: 0.5, indent: 56),
+            ProfileLinkRow(
+              icon: LucideIcons.mapPin,
+              label: linkedVenueLabel,
+              subtitle: linkedVenueDetail,
+            ),
           ],
         ),
         const SizedBox(height: 20),
@@ -113,8 +96,8 @@ class ProfileAccountLinksCard extends StatelessWidget {
             if (showVerifyAction) const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(
               icon: LucideIcons.lock,
-              label: 'Privacy',
-              onTap: () => context.push('/privacy'),
+              label: 'Responsible play & privacy',
+              onTap: () => context.push('/settings/privacy'),
             ),
             const Divider(height: 0.5, indent: 56),
             if (showInbox)
@@ -127,7 +110,7 @@ class ProfileAccountLinksCard extends StatelessWidget {
             if (showSettings)
               ProfileLinkRow(
                 icon: LucideIcons.settings,
-                label: 'Preferences',
+                label: 'Notification preferences',
                 onTap: onSettingsTap,
               ),
             if (showSettings) const Divider(height: 0.5, indent: 56),
@@ -157,12 +140,14 @@ class ProfileLinkRow extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
+    this.subtitle,
     this.onTap,
     this.danger = false,
   });
 
   final IconData icon;
   final String label;
+  final String? subtitle;
   final VoidCallback? onTap;
   final bool danger;
 
@@ -172,10 +157,12 @@ class ProfileLinkRow extends StatelessWidget {
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     return InkWell(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        onTap?.call();
-      },
+      onTap: onTap == null
+          ? null
+          : () {
+              HapticFeedback.selectionClick();
+              onTap?.call();
+            },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -204,17 +191,35 @@ class ProfileLinkRow extends StatelessWidget {
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: danger ? FzColors.error : null,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: danger ? FzColors.error : null,
+                    ),
+                  ),
+                  if (subtitle != null && subtitle!.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: danger ? FzColors.error : muted,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(width: 8),
-            Icon(LucideIcons.chevronRight, size: 16, color: muted),
+            if (onTap != null) ...[
+              const SizedBox(width: 8),
+              Icon(LucideIcons.chevronRight, size: 16, color: muted),
+            ],
           ],
         ),
       ),

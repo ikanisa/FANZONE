@@ -79,3 +79,12 @@ export function useDebitFet() {
     errorMessage: 'Failed to debit FET.',
   });
 }
+
+export function useReconcileWallet() {
+  return useRpcMutation<{ p_user_id: string }>({
+    fnName: 'reconcile_fet_wallet',
+    invalidateKeys: [['wallets'], ['wallet-transactions'], ['dashboard-kpis']],
+    successMessage: 'Wallet reconciled from ledger.',
+    errorMessage: 'Failed to reconcile wallet.',
+  });
+}

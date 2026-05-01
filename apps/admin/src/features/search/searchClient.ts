@@ -28,6 +28,30 @@ export async function searchEntities(
     type: row.result_type,
     title: row.title,
     subtitle: row.subtitle,
-    route: row.route,
+    route: normalizeAdminRoute(row),
   }));
+}
+
+function normalizeAdminRoute(row: AdminGlobalSearchRow) {
+  const search = `?q=${encodeURIComponent(row.title)}`;
+
+  switch (row.result_type) {
+    case 'user':
+    case 'wallet':
+      return `/wallets${search}`;
+    case 'venue':
+      return `/venues${search}`;
+    case 'country':
+      return `/countries${search}`;
+    case 'competition':
+      return `/competitions${search}`;
+    case 'team':
+      return `/teams${search}`;
+    case 'fixture':
+      return `/matches${search}`;
+    case 'pool':
+      return `/pools${search}`;
+    default:
+      return row.route;
+  }
 }

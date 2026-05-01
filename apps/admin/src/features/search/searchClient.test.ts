@@ -12,14 +12,14 @@ describe('searchEntities', () => {
           result_type: 'user',
           title: 'Marco Spiteri',
           subtitle: 'marco@example.com',
-          route: '/users?q=Marco',
+          route: '/wallets?q=Marco',
         },
         {
           result_id: 'match-42',
           result_type: 'fixture',
           title: 'Valletta vs Floriana',
           subtitle: 'live — 2026-04-19',
-          route: '/fixtures?q=Marco',
+          route: '/matches?q=Marco',
         },
       ],
       error: null,
@@ -38,14 +38,14 @@ describe('searchEntities', () => {
         type: 'user',
         title: 'Marco Spiteri',
         subtitle: 'marco@example.com',
-        route: '/users?q=Marco',
+        route: '/wallets?q=Marco%20Spiteri',
       },
       {
         id: 'match-42',
         type: 'fixture',
         title: 'Valletta vs Floriana',
         subtitle: 'live — 2026-04-19',
-        route: '/fixtures?q=Marco',
+        route: '/matches?q=Valletta%20vs%20Floriana',
       },
     ]);
   });

@@ -3,7 +3,7 @@
 /// Usage:
 ///   ```dart
 ///   final flags = ref.read(featureFlagsProvider);
-///   if (flags.predictions) { ... }
+///   if (flags.pools) { ... }
 ///   ```
 library;
 
@@ -21,9 +21,8 @@ class FeatureFlags {
 
   // ── Core Features ──
 
-  bool get predictions => _flag('predictions');
+  bool get pools => _flag('pools');
   bool get wallet => _flag('wallet');
-  bool get leaderboard => _flag('leaderboard');
   bool get rewards => _flag('rewards');
   bool get notifications => _flag('notifications');
 

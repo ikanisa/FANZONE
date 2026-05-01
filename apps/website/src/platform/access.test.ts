@@ -27,12 +27,12 @@ describe("platform access helpers", () => {
 
     expect(getWebsiteNavigationFeatures()).toEqual([]);
     expect(getWebsiteHomeBlocks("home.primary")).toEqual([]);
-    expect(isPlatformFeatureVisible("predictions", { surface: "route" })).toBe(
+    expect(isPlatformFeatureVisible("pools", { surface: "route" })).toBe(
       false,
     );
     expect(isPlatformFeatureAvailable("wallet")).toBe(false);
     expect(
-      getPlatformFeatureRoute("predictions", { fallback: "/fixtures" }),
+      getPlatformFeatureRoute("pools", { fallback: "/fixtures" }),
     ).toBe("/fixtures");
   });
 
@@ -110,13 +110,13 @@ describe("platform access helpers", () => {
             },
           },
           {
-            featureKey: "predictions",
-            displayName: "Predictions",
-            description: null,
+            featureKey: "pools",
+            displayName: "Pools",
+            description: "FET match pools",
             status: "active",
             isEnabled: true,
             navigationGroup: "primary",
-            defaultRouteKey: "/fixtures",
+            defaultRouteKey: "/pools",
             adminNotes: null,
             metadata: {},
             authRequired: true,
@@ -133,43 +133,43 @@ describe("platform access helpers", () => {
                 showInNavigation: true,
                 showOnHome: true,
                 sortOrder: 30,
-                routeKey: "/predict",
-                entryKey: "predictions.index",
-                navigationLabel: "Predict",
+                routeKey: "/pools",
+                entryKey: "pools.index",
+                navigationLabel: "Pools",
                 placementKey: "primary-nav",
                 metadata: {},
               },
               web: {
                 channel: "web",
-                isVisible: false,
+                isVisible: true,
                 isEnabled: true,
-                showInNavigation: false,
-                showOnHome: false,
+                showInNavigation: true,
+                showOnHome: true,
                 sortOrder: 30,
-                routeKey: "/fixtures",
-                entryKey: "predictions.index",
-                navigationLabel: "Predictions",
-                placementKey: "home-secondary",
+                routeKey: "/pools",
+                entryKey: "pools.index",
+                navigationLabel: "Pools",
+                placementKey: "primary-nav",
                 metadata: {},
               },
             },
             resolvedState: {
-              featureKey: "predictions",
-              displayName: "Predictions",
-              description: null,
+              featureKey: "pools",
+              displayName: "Pools",
+              description: "FET match pools",
               status: "active",
               exists: true,
               isEnabled: true,
               isOperational: true,
-              isVisible: false,
+              isVisible: true,
               isAvailable: false,
               authRequired: true,
               dependencyBlocker: null,
               channel: "web",
-              showInNavigation: false,
-              showOnHome: false,
-              routeKey: "/fixtures",
-              entryKey: "predictions.index",
+              showInNavigation: true,
+              showOnHome: true,
+              routeKey: "/pools",
+              entryKey: "pools.index",
               sortOrder: 30,
               roleRestrictions: [],
               rolloutConfig: {},
@@ -193,14 +193,14 @@ describe("platform access helpers", () => {
             metadata: {},
           },
           {
-            blockKey: "prediction_banner",
+            blockKey: "pool_banner",
             blockType: "promo_banner",
-            title: "Prediction Push",
+            title: "Pool Push",
             content: {},
             targetChannel: "web",
             isActive: true,
             sortOrder: 20,
-            featureKey: "predictions",
+            featureKey: "pools",
             placementKey: "home.primary",
             metadata: {},
           },
@@ -210,13 +210,11 @@ describe("platform access helpers", () => {
 
     expect(
       getWebsiteNavigationFeatures().map((feature) => feature.featureKey),
-    ).toEqual(["wallet"]);
-    expect(isPlatformFeatureVisible("predictions", { surface: "route" })).toBe(
-      false,
-    );
+    ).toEqual(["pools", "wallet"]);
+    expect(isPlatformFeatureVisible("pools", { surface: "route" })).toBe(true);
     expect(isPlatformFeatureAvailable("wallet")).toBe(false);
     expect(
       getWebsiteHomeBlocks("home.primary").map((block) => block.blockKey),
-    ).toEqual(["wallet_banner"]);
+    ).toEqual(["wallet_banner", "pool_banner"]);
   });
 });

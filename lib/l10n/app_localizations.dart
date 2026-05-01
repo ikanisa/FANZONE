@@ -105,10 +105,10 @@ abstract class S {
   /// **'Scores'**
   String get navScores;
 
-  /// Bottom nav: Fixtures tab
+  /// Bottom nav: Pools tab
   ///
   /// In en, this message translates to:
-  /// **'Fixtures'**
+  /// **'Pools'**
   String get navFixtures;
 
   /// Bottom nav: Following tab
@@ -116,12 +116,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Following'**
   String get navFollowing;
-
-  /// Bottom nav: Predict tab
-  ///
-  /// In en, this message translates to:
-  /// **'Predict'**
-  String get navPredict;
 
   /// Bottom nav: Profile tab
   ///
@@ -138,7 +132,7 @@ abstract class S {
   /// Home screen subtitle
   ///
   /// In en, this message translates to:
-  /// **'Football Prediction Hub'**
+  /// **'Sports-bar ordering and match pools'**
   String get homeSubtitle;
 
   /// No description provided for @homeTabLive.
@@ -216,7 +210,7 @@ abstract class S {
   /// No description provided for @leagueFixtures.
   ///
   /// In en, this message translates to:
-  /// **'Fixtures'**
+  /// **'Matches'**
   String get leagueFixtures;
 
   /// No description provided for @leagueResults.
@@ -278,66 +272,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Pts'**
   String get standingsPts;
-
-  /// No description provided for @predictTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Predict'**
-  String get predictTitle;
-
-  /// No description provided for @predictMatchResult.
-  ///
-  /// In en, this message translates to:
-  /// **'Match Result'**
-  String get predictMatchResult;
-
-  /// No description provided for @predictExactScore.
-  ///
-  /// In en, this message translates to:
-  /// **'Exact Score'**
-  String get predictExactScore;
-
-  /// No description provided for @predictStake.
-  ///
-  /// In en, this message translates to:
-  /// **'Stake'**
-  String get predictStake;
-
-  /// No description provided for @predictProjectedEarn.
-  ///
-  /// In en, this message translates to:
-  /// **'Projected Earn'**
-  String get predictProjectedEarn;
-
-  /// No description provided for @predictSubmit.
-  ///
-  /// In en, this message translates to:
-  /// **'Submit Prediction'**
-  String get predictSubmit;
-
-  /// No description provided for @predictClear.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All'**
-  String get predictClear;
-
-  /// No description provided for @predictMarketHome.
-  ///
-  /// In en, this message translates to:
-  /// **'{team} to Win'**
-  String predictMarketHome(String team);
-
-  /// No description provided for @predictMarketDraw.
-  ///
-  /// In en, this message translates to:
-  /// **'Draw'**
-  String get predictMarketDraw;
-
-  /// No description provided for @predictMarketAway.
-  ///
-  /// In en, this message translates to:
-  /// **'{team} to Win'**
-  String predictMarketAway(String team);
 
   /// No description provided for @walletTitle.
   ///
@@ -404,12 +338,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Wallet'**
   String get profileWallet;
-
-  /// No description provided for @profileLeaderboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Leaderboard'**
-  String get profileLeaderboard;
 
   /// No description provided for @profileNotifications.
   ///
@@ -489,30 +417,6 @@ abstract class S {
   /// **'Version {version}'**
   String settingsVersion(String version);
 
-  /// No description provided for @leaderboardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Leaderboard'**
-  String get leaderboardTitle;
-
-  /// No description provided for @leaderboardRank.
-  ///
-  /// In en, this message translates to:
-  /// **'Rank'**
-  String get leaderboardRank;
-
-  /// No description provided for @leaderboardPoints.
-  ///
-  /// In en, this message translates to:
-  /// **'Points'**
-  String get leaderboardPoints;
-
-  /// No description provided for @leaderboardPredictions.
-  ///
-  /// In en, this message translates to:
-  /// **'Predictions'**
-  String get leaderboardPredictions;
-
   /// No description provided for @searchTitle.
   ///
   /// In en, this message translates to:
@@ -561,12 +465,6 @@ abstract class S {
   /// **'{count} fans'**
   String teamFans(int count);
 
-  /// No description provided for @teamFixtures.
-  ///
-  /// In en, this message translates to:
-  /// **'Fixtures'**
-  String get teamFixtures;
-
   /// No description provided for @followingTitle.
   ///
   /// In en, this message translates to:
@@ -600,7 +498,7 @@ abstract class S {
   /// No description provided for @loginSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'The Global Football Prediction Platform'**
+  /// **'Sports-bar ordering, match pools, and FET wallet'**
   String get loginSubtitle;
 
   /// No description provided for @loginPhoneHint.
@@ -642,7 +540,7 @@ abstract class S {
   /// No description provided for @onboardingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Predict. Compete. Win.'**
+  /// **'Order. Pool. Earn.'**
   String get onboardingSubtitle;
 
   /// No description provided for @onboardingNext.
@@ -750,13 +648,13 @@ abstract class S {
   /// No description provided for @featureUnavailableTitle.
   ///
   /// In en, this message translates to:
-  /// **'{feature} is coming soon'**
+  /// **'{feature} is unavailable'**
   String featureUnavailableTitle(String feature);
 
   /// No description provided for @featureUnavailableSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'This feature will be available in a future update.'**
+  /// **'This feature is not enabled for your account or market.'**
   String get featureUnavailableSubtitle;
 
   /// No description provided for @notificationsTitle.
@@ -788,18 +686,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Event Matches'**
   String get eventMatches;
-
-  /// No description provided for @eventChallenges.
-  ///
-  /// In en, this message translates to:
-  /// **'Event Challenges'**
-  String get eventChallenges;
-
-  /// No description provided for @eventLeaderboard.
-  ///
-  /// In en, this message translates to:
-  /// **'Event Leaderboard'**
-  String get eventLeaderboard;
 
   /// No description provided for @trendingGlobally.
   ///
@@ -834,20 +720,8 @@ abstract class S {
   /// No description provided for @popularTeamsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Popular Teams'**
+  /// **'Featured Teams'**
   String get popularTeamsTitle;
-
-  /// No description provided for @pickYourLocal.
-  ///
-  /// In en, this message translates to:
-  /// **'Pick your local favorite team'**
-  String get pickYourLocal;
-
-  /// No description provided for @onboardingLocalHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Search your favorite team from any league worldwide'**
-  String get onboardingLocalHint;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

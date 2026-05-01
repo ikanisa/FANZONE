@@ -32,6 +32,8 @@ HomeFeedSelection curateHomeFeedMatches({
   required List<FavoriteTeamRecordDto> favoriteTeams,
   Map<String, MatchHomeDisplayOverride> overrides = const {},
   int featuredClubLimit = kDefaultHomeFeaturedClubLimit,
+  bool includeAllCurated = false,
+  bool preserveInputOrder = false,
 }) {
   final favoriteTeamTokens = favoriteTeams.expand(_favoriteTeamTokens).toSet();
 
@@ -59,20 +61,22 @@ HomeFeedSelection curateHomeFeedMatches({
       teamTokens: eligibleHomeTokens,
     );
 
-    if (isExplicitHomeMatch || isDefaultHomeMatch) {
+    if (includeAllCurated || isExplicitHomeMatch || isDefaultHomeMatch) {
       curated.add(match);
     }
   }
 
-  curated.sort(
-    (left, right) => compareHomeFeedMatches(
-      left,
-      right,
-      overrides: overrides,
-      favoriteTeamTokens: favoriteTeamTokens,
-      defaultFeaturedTeamTokens: defaultFeaturedTeamTokens,
-    ),
-  );
+  if (!preserveInputOrder) {
+    curated.sort(
+      (left, right) => compareHomeFeedMatches(
+        left,
+        right,
+        overrides: overrides,
+        favoriteTeamTokens: favoriteTeamTokens,
+        defaultFeaturedTeamTokens: defaultFeaturedTeamTokens,
+      ),
+    );
+  }
 
   return HomeFeedSelection(
     liveMatches: curated.where((match) => match.isLive).toList(growable: false),

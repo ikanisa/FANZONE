@@ -56,31 +56,42 @@ enum PaymentMethod {
   }
 }
 
-/// Payment status. Maps to `public.dinein_payment_status` enum.
+/// Payment status. Maps to the venue payment status enum.
 enum PaymentStatus {
   @JsonValue('pending')
   pending,
+  @JsonValue('unpaid')
+  unpaid,
   @JsonValue('paid')
   paid,
+  @JsonValue('partially_paid')
+  partiallyPaid,
   @JsonValue('failed')
   failed,
   @JsonValue('cancelled')
   cancelled,
   @JsonValue('refunded')
-  refunded;
+  refunded,
+  @JsonValue('disputed')
+  disputed;
 
   String get label {
     switch (this) {
       case PaymentStatus.pending:
-        return 'Pending';
+      case PaymentStatus.unpaid:
+        return 'Unpaid';
       case PaymentStatus.paid:
         return 'Paid';
+      case PaymentStatus.partiallyPaid:
+        return 'Partially paid';
       case PaymentStatus.failed:
         return 'Failed';
       case PaymentStatus.cancelled:
         return 'Cancelled';
       case PaymentStatus.refunded:
         return 'Refunded';
+      case PaymentStatus.disputed:
+        return 'Disputed';
     }
   }
 
@@ -107,7 +118,9 @@ class OrderModel with _$OrderModel {
     @JsonKey(name: 'tax_amount') @Default(0) double taxAmount,
     @JsonKey(name: 'tip_amount') @Default(0) double tipAmount,
     @JsonKey(name: 'payment_fet_amount') @Default(0) int paymentFetAmount,
-    @JsonKey(name: 'payment_fet_converted_amount') @Default(0) double paymentFetConvertedAmount,
+    @JsonKey(name: 'payment_fet_converted_amount')
+    @Default(0)
+    double paymentFetConvertedAmount,
     @JsonKey(name: 'total_amount') required double totalAmount,
     @JsonKey(name: 'special_instructions') String? specialInstructions,
     @JsonKey(name: 'estimated_ready_at') DateTime? estimatedReadyAt,

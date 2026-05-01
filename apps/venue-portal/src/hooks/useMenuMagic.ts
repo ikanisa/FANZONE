@@ -6,6 +6,7 @@ export interface ScannedMenuItem {
   description: string | null;
   price: number;
   category: string | null;
+  confidence?: number | null;
 }
 
 export function useMenuMagic() {

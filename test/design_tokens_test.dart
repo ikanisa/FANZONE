@@ -17,7 +17,7 @@ void main() {
       expect(FzColors.darkMuted, isA<Color>());
     });
 
-    test('legacy light token names resolve to the dark palette', () {
+    test('compat light token names resolve to the dark palette', () {
       expect(FzColors.lightBg, FzColors.darkBg);
       expect(FzColors.lightSurface, FzColors.darkSurface);
       expect(FzColors.lightSurface2, FzColors.darkSurface2);
@@ -75,13 +75,13 @@ void main() {
       expect(FzColors.darkColorScheme.onSurface, FzColors.darkText);
     });
 
-    test('legacy light color scheme resolves to the supported dark scheme', () {
+    test('compat light color scheme resolves to the supported dark scheme', () {
       expect(FzColors.lightColorScheme, same(FzColors.darkColorScheme));
       expect(FzColors.lightColorScheme.surface, FzColors.darkSurface);
       expect(FzColors.lightColorScheme.onSurface, FzColors.darkText);
     });
 
-    test('dark and legacy light schemes share the same surface', () {
+    test('dark and compat light schemes share the same surface', () {
       expect(
         FzColors.lightColorScheme.surface,
         FzColors.darkColorScheme.surface,
@@ -92,13 +92,13 @@ void main() {
       expect(FzColors.darkColorScheme.brightness, Brightness.dark);
     });
 
-    test('legacy light scheme brightness is dark', () {
+    test('compat light scheme brightness is dark', () {
       expect(FzColors.lightColorScheme.brightness, Brightness.dark);
     });
   });
 
   group('Dark-only theme enforcement', () {
-    test('legacy light theme builder resolves to dark ThemeData', () {
+    test('compat light theme builder resolves to dark ThemeData', () {
       final theme = FzTheme.light();
       expect(theme.brightness, Brightness.dark);
       expect(theme.colorScheme, same(FzColors.darkColorScheme));
@@ -125,7 +125,7 @@ void main() {
       );
     });
 
-    test('legacy light text aliases still preserve dark-mode contrast', () {
+    test('compat light text aliases still preserve dark-mode contrast', () {
       final textLuminance = FzColors.lightText.computeLuminance();
       final bgLuminance = FzColors.lightBg.computeLuminance();
 

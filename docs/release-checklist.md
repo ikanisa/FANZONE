@@ -1,8 +1,8 @@
 # Production Release Checklist
 
-## Current Android snapshot
+## Current Android Snapshot
 
-- Latest validated Android handoff: [android-release-handoff-2026-04-19.md](/Volumes/PRO-G40/FANZONE/docs/android-release-handoff-2026-04-19.md:1)
+- Latest validated Android release artifacts must be regenerated from the current sports-bar pool build before store submission.
 - Current production Android package: `app.fanzone.football`
 - Current release version: `1.1.0+6`
 - Current Android release artifacts:
@@ -13,7 +13,7 @@
 
 - Audit Supabase auth, RLS, storage rules, edge functions, migrations, backups, and rollback paths in the production project.
 - Review `ios/Flutter/AppConfig.xcconfig` and confirm the bundle ID, team ID, and APNs environment are correct for release signing.
-- Create a local `env/production.json` from `env/production.example.json` and keep `/predict` as the only live prediction entry surface.
+- Create a local `env/production.json` from `env/production.example.json` and keep `/pools` as the live fan engagement surface.
 - Replace all placeholder values in your local `env/production.json` and the platform signing/Firebase files before promoting a build.
 
 ## Android release
@@ -36,8 +36,8 @@
 ## Backend validation
 
 - Verify production credentials point to the correct Supabase project.
-- Confirm feature flags match the live backend, especially notifications, deep linking, and the lean prediction rollout.
-- Validate `fet_wallets`, `fet_wallet_transactions`, and `public_leaderboard` exist and are covered by policy.
+- Confirm feature flags match the live backend, especially notifications, deep linking, venue ordering, and pool rollout.
+- Validate `fet_wallets`, `fet_wallet_transactions`, `match_pools`, `match_pool_entries`, `match_pool_settlements`, and `pool_operation_audit_logs` exist and are covered by policy.
 - Confirm built-in Supabase email, phone OTP, magic link/OAuth, and third-party auth providers are disabled for the production project. Anonymous sign-in may remain enabled only for the mobile guest flow.
 - Run `./tool/supabase_rls_audit.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
 - Run `./tool/supabase_fet_supply_smoke.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
@@ -57,7 +57,7 @@
 
 ## Operational readiness
 
-- `ci.yml` is the canonical mobile/backend pipeline. Keep its build flags aligned with `env/production.example.json`.
+- `ci.yml` is the canonical mobile/backend pipeline. Keep its dart-define keys aligned with `env/production.example.json`.
 - Validate the current error-reporting path for the release build. The mobile app now queues runtime errors locally and flushes them to the Supabase-backed telemetry RPC `log_app_runtime_errors_batch`; confirm the migration is applied and operators know where to inspect `app_runtime_errors`.
 - Validate notification tokens are registering and `push-notify` can dispatch from production credentials.
-- Confirm release notes, privacy disclosures, and support contact details are ready.
+- Confirm release notes, privacy disclosures, and support contact details are ready for the sports-bar pool product.

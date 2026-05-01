@@ -44,42 +44,42 @@ void main() {
     } else {
       debugPrint('Detected Authenticated / Home Flow.');
       
-      // 2. Feed Screen / Bottom Navigation Check
+      // 2. Core bottom navigation check
       // Look for standard bottom navigation labels
-      final feedTab = find.text('Feed');
-      final predictTab = find.text('Predict');
-      final hubTab = find.text('Hub');
+      final barTab = find.text('Bar');
+      final poolsTab = find.text('Pools');
+      final walletTab = find.text('Wallet');
       
-      expect(feedTab.evaluate().isNotEmpty, true, reason: 'Feed tab not found on bottom nav');
-      expect(predictTab.evaluate().isNotEmpty, true, reason: 'Predict tab not found on bottom nav');
+      expect(barTab.evaluate().isNotEmpty, true, reason: 'Bar tab not found on bottom nav');
+      expect(poolsTab.evaluate().isNotEmpty, true, reason: 'Pools tab not found on bottom nav');
       
-      // 3. Navigate to Predict
-      debugPrint('Navigating to Predict Tab...');
-      await tester.tap(predictTab.first);
-      // Wait for layout and async Supabase live match fetch
+      // 3. Navigate to Pools
+      debugPrint('Navigating to Pools tab...');
+      await tester.tap(poolsTab.first);
+      // Wait for layout and async Supabase pool fetch
       await tester.pumpAndSettle(const Duration(seconds: 3));
-      debugPrint('Predict tab resolved.');
+      debugPrint('Pools tab resolved.');
       
       // Ensure there are no error widgets. Our StateView handles errors. 
       // We can check that the screen rendered fully.
-      final noOpenMatches = find.textContaining('No matches open for picks');
-      final noFixturesImported = find.textContaining(
-        'Upcoming fixtures will appear here once they are imported.',
+      final noOpenPools = find.textContaining('No pools available');
+      final noCuratedMatches = find.textContaining(
+        'Curated matches will appear here once they are published.',
       );
       
-      if (noOpenMatches.evaluate().isNotEmpty ||
-          noFixturesImported.evaluate().isNotEmpty) {
-        debugPrint('Predict empty states are active (Expected if no fixtures are ready).');
+      if (noOpenPools.evaluate().isNotEmpty ||
+          noCuratedMatches.evaluate().isNotEmpty) {
+        debugPrint('Pools empty states are active (expected if no curated matches are ready).');
       } else {
-        debugPrint('Predict fixtures found and rendered.');
+        debugPrint('Pools content found and rendered.');
       }
 
-      // Navigate to Hub
-      debugPrint('Navigating to Hub Tab...');
-      if (hubTab.evaluate().isNotEmpty) {
-        await tester.tap(hubTab.first);
+      // Navigate to Wallet
+      debugPrint('Navigating to Wallet tab...');
+      if (walletTab.evaluate().isNotEmpty) {
+        await tester.tap(walletTab.first);
         await tester.pumpAndSettle(const Duration(seconds: 2));
-        debugPrint('Hub tab resolved.');
+        debugPrint('Wallet tab resolved.');
       }
     }
     

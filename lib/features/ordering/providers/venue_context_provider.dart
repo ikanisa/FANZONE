@@ -20,11 +20,7 @@ import '../../../core/di/gateway_providers.dart';
 
 /// Holds the active venue + table context for the current ordering session.
 class VenueContext {
-  const VenueContext({
-    this.venue,
-    this.table,
-    this.tableNumber,
-  });
+  const VenueContext({this.venue, this.table, this.tableNumber});
 
   final VenueModel? venue;
   final VenueTableModel? table;
@@ -68,16 +64,12 @@ class VenueContextNotifier extends StateNotifier<VenueContext> {
     if (tableNumber != null) {
       final tables = await _gateway.getVenueTables(venue.id);
       table = tables.cast<VenueTableModel?>().firstWhere(
-            (t) => t!.tableNumber.toString() == tableNumber,
-            orElse: () => null,
-          );
+        (t) => t!.tableNumber.toString() == tableNumber,
+        orElse: () => null,
+      );
     }
 
-    state = VenueContext(
-      venue: venue,
-      table: table,
-      tableNumber: tableNumber,
-    );
+    state = VenueContext(venue: venue, table: table, tableNumber: tableNumber);
     return true;
   }
 
@@ -86,10 +78,16 @@ class VenueContextNotifier extends StateNotifier<VenueContext> {
     final venue = await _gateway.getVenueById(venueId);
     if (venue == null) return false;
 
-    state = VenueContext(
-      venue: venue,
-      tableNumber: tableNumber,
-    );
+    VenueTableModel? table;
+    if (tableNumber != null) {
+      final tables = await _gateway.getVenueTables(venue.id);
+      table = tables.cast<VenueTableModel?>().firstWhere(
+        (t) => t!.tableNumber.toString() == tableNumber,
+        orElse: () => null,
+      );
+    }
+
+    state = VenueContext(venue: venue, table: table, tableNumber: tableNumber);
     return true;
   }
 
@@ -106,8 +104,8 @@ class VenueContextNotifier extends StateNotifier<VenueContext> {
 
 final venueContextProvider =
     StateNotifierProvider<VenueContextNotifier, VenueContext>((ref) {
-  return VenueContextNotifier(ref.watch(venueGatewayProvider));
-});
+      return VenueContextNotifier(ref.watch(venueGatewayProvider));
+    });
 
 // ═══════════════════════════════════════════════════════════
 // MENU DATA PROVIDERS
@@ -116,15 +114,16 @@ final venueContextProvider =
 /// Fetches menu categories for the active venue.
 final menuCategoriesProvider =
     FutureProvider.autoDispose<List<MenuCategoryModel>>((ref) async {
-  final context = ref.watch(venueContextProvider);
-  if (!context.hasVenue) return const [];
-  final gateway = ref.watch(venueGatewayProvider);
-  return gateway.getMenuCategories(context.venueId!);
-});
+      final context = ref.watch(venueContextProvider);
+      if (!context.hasVenue) return const [];
+      final gateway = ref.watch(venueGatewayProvider);
+      return gateway.getMenuCategories(context.venueId!);
+    });
 
 /// Fetches menu items for the active venue.
-final menuItemsProvider =
-    FutureProvider.autoDispose<List<MenuItemModel>>((ref) async {
+final menuItemsProvider = FutureProvider.autoDispose<List<MenuItemModel>>((
+  ref,
+) async {
   final context = ref.watch(venueContextProvider);
   if (!context.hasVenue) return const [];
   final gateway = ref.watch(venueGatewayProvider);
@@ -132,17 +131,20 @@ final menuItemsProvider =
 });
 
 /// Menu items grouped by category — ready for tab display.
-final groupedMenuProvider = FutureProvider.autoDispose<
-    Map<MenuCategoryModel, List<MenuItemModel>>>((ref) async {
-  final context = ref.watch(venueContextProvider);
-  if (!context.hasVenue) return const {};
-  final gateway = ref.watch(venueGatewayProvider);
-  return gateway.getFullMenu(context.venueId!);
-});
+final groupedMenuProvider =
+    FutureProvider.autoDispose<Map<MenuCategoryModel, List<MenuItemModel>>>((
+      ref,
+    ) async {
+      final context = ref.watch(venueContextProvider);
+      if (!context.hasVenue) return const {};
+      final gateway = ref.watch(venueGatewayProvider);
+      return gateway.getFullMenu(context.venueId!);
+    });
 
 /// Venue tables for the active venue (venue dashboard use).
-final venueTablesProvider =
-    FutureProvider.autoDispose<List<VenueTableModel>>((ref) async {
+final venueTablesProvider = FutureProvider.autoDispose<List<VenueTableModel>>((
+  ref,
+) async {
   final context = ref.watch(venueContextProvider);
   if (!context.hasVenue) return const [];
   final gateway = ref.watch(venueGatewayProvider);

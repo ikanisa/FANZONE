@@ -51,6 +51,8 @@ export interface Team {
   name: string;
   short_name: string | null;
   country: string | null;
+  country_id?: string | null;
+  popularity_score?: number | null;
   competition_ids: string[] | null;
   logo_url: string | null;
   slug: string | null;
@@ -61,36 +63,6 @@ export interface Team {
   is_active: boolean;
   is_featured: boolean;
   fan_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PredictionEngineOutputAdmin {
-  id: string;
-  match_id: string;
-  model_version: string;
-  home_win_score: number;
-  draw_score: number;
-  away_win_score: number;
-  over25_score: number;
-  btts_score: number;
-  predicted_home_goals: number | null;
-  predicted_away_goals: number | null;
-  confidence_label: string;
-  generated_at: string;
-}
-
-export interface UserPredictionParticipation {
-  id: string;
-  user_id: string;
-  match_id: string;
-  predicted_result_code: string | null;
-  predicted_over25: boolean | null;
-  predicted_btts: boolean | null;
-  predicted_home_goals: number | null;
-  predicted_away_goals: number | null;
-  points_awarded: number;
-  reward_status: string;
   created_at: string;
   updated_at: string;
 }

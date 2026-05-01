@@ -11,6 +11,24 @@ import 'product_analytics_service.dart';
 
 part 'wallet_service.g.dart';
 
+final walletBalanceProvider = FutureProvider<WalletBalance>((ref) async {
+  ref.watch(authStateProvider);
+
+  final userId = ref.read(authServiceProvider).currentUser?.id;
+  if (userId == null) {
+    final available = await ref.watch(walletServiceProvider.future);
+    return WalletBalance(
+      availableFet: available,
+      stakedFet: 0,
+      pendingFet: 0,
+      spentFet: 0,
+      earnedFet: 0,
+    );
+  }
+
+  return ref.read(walletGatewayProvider).getWalletBalance(userId);
+});
+
 @riverpod
 class WalletService extends _$WalletService {
   @override
@@ -53,6 +71,7 @@ class WalletService extends _$WalletService {
           );
 
       ref.invalidateSelf();
+      ref.invalidate(walletBalanceProvider);
       ref.invalidate(transactionServiceProvider);
       ProductAnalytics.walletAction(action: 'transfer_sent', amountFet: amount);
     } catch (error, stack) {

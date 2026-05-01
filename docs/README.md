@@ -1,0 +1,75 @@
+# FANZONE Production Documentation
+
+This directory is the release-readiness entry point for FANZONE, the sports-bar entertainment platform for venues, lounges, fan zones, and hospitality operators.
+
+FANZONE is not a sportsbook, betting product, odds engine, fantasy app, or general restaurant app. The production product is guest menu browsing, bar ordering, off-platform payment guidance, manual payment confirmation, FET rewards, FET wallets, curated match pools, admin curation, settlement, audit, and operations tooling.
+
+## One-Hour Senior Developer Onboarding
+
+Read these documents in order:
+
+1. [Architecture Overview](architecture/overview.md)
+2. [Apps](architecture/apps.md)
+3. [Backend](architecture/backend.md)
+4. [Permissions And RLS](security/permissions-rls.md)
+5. [Audit Logs](security/audit-logs.md)
+6. [Admin Guide](operations/admin-guide.md)
+7. [Channels](integrations/channels.md)
+8. [Payments](integrations/payments.md)
+9. [Go-Live Checklist](release/go-live-checklist.md)
+10. [Rollback](release/rollback.md)
+11. [QA/UAT](testing/qa-uat.md)
+
+## Repository Map
+
+| Path | Purpose |
+| --- | --- |
+| `lib/` | Flutter mobile app. |
+| `apps/website/` | React/Vite guest PWA and public web surface. |
+| `apps/venue-portal/` | React/Vite venue operations console. |
+| `apps/admin/` | React/Vite admin control center. |
+| `packages/core/` | Shared TypeScript contracts. |
+| `supabase/migrations/` | Schema, RLS, views, triggers, and RPC migrations. |
+| `supabase/functions/` | Supabase Edge Functions. |
+| `supabase/tests/` | SQL verification scripts. |
+| `env/*.example.json` | Example Flutter runtime config. Real `env/*.json` files are ignored. |
+| `.github/workflows/` | CI, deploy, cron, and secret scan workflows. |
+
+## Required Environment Variables
+
+No live secrets belong in git.
+
+| Variable | Used by | Notes |
+| --- | --- | --- |
+| `SUPABASE_URL` | Flutter, Edge Functions, smoke scripts | Public project URL. |
+| `SUPABASE_ANON_KEY` | Flutter, web apps, smoke scripts | Public anon key. Never use service role in clients. |
+| `VITE_SUPABASE_URL` | Admin, website, venue portal | Browser-safe Supabase URL. |
+| `VITE_SUPABASE_ANON_KEY` | Admin, website, venue portal | Browser-safe anon key. |
+| `VITE_GUEST_APP_URL` | Venue portal | Base URL for table QR deep links. |
+| `SUPABASE_SERVICE_ROLE_KEY` or `EDGE_SERVICE_ROLE_KEY` | Edge Functions | Server only. Never expose through `VITE_` or Flutter config. |
+| `CRON_SECRET` | Cron Edge Functions | Required for scheduled jobs. |
+| `PUSH_NOTIFY_SECRET` | Push notification dispatch | Internal shared secret. |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | `push-notify` | Firebase service account JSON. |
+| `GEMINI_API_KEY` | menu OCR/import | AI OCR provider key. |
+| `FANZONE_JWT_SECRET` | `whatsapp-otp` | JWT signing secret for custom WhatsApp sessions. |
+| `WHATSAPP_AUTH_TEST_PHONE`, `WHATSAPP_AUTH_TEST_OTP`, `WHATSAPP_AUTH_TEST_EXPIRY` | reviewer/test OTP path | Optional controlled test account only. |
+| `FANZONE_EDGE_EXPOSE_ERROR_DETAILS` | Edge shared errors | Keep false in production. |
+| `SUPABASE_DB_URL`, `SUPABASE_DB_PASSWORD` | SQL smoke scripts | Operator-only local shell or CI secret. |
+
+## Known Issues Classified
+
+| Item | Classification | Required action |
+| --- | --- | --- |
+| Website release metadata can fail if `assetlinks.json` still has the all-zero fingerprint. | Release blocker | Replace with production Android SHA-256 before public web deploy. |
+| `supabase db lint --local` needs local Supabase Postgres on `127.0.0.1:54322`. | Local environment blocker | Run `supabase start` before database linting. |
+| Production `env/*.json`, signing files, and Firebase files are ignored. | Expected security posture | Supply through secure local store or CI secrets. |
+| Supabase credentials were shared in an assistant conversation during release work. | Release blocker | Rotate the access token, database password, anon key, and service-role key before production launch. |
+| No in-repo production agent workspaces were found. | Intentional | Use [Agents](architecture/agents.md) and [Agent Ops](operations/agent-ops.md) before adding one. |
+| Payment APIs are absent. | Product rule | Payments remain cash, MoMo/USSD, or Revolut link handoff with audited manual confirmation. |
+
+## Roadmap
+
+1. Launch hardening: rotate exposed Supabase credentials, finish release metadata, supply store signing/Firebase files, and complete venue/admin/guest UAT.
+2. Operational scale: add settlement latency, wallet ledger drift, QR scan conversion, and failed Edge Function alerts.
+3. Market expansion: add country-specific copy, currency display rules, venue onboarding templates, and curated match playbooks.
+4. Agent readiness: add explicit agent workspaces only after permissions, tool scopes, memory boundaries, and audit outputs are reviewed.

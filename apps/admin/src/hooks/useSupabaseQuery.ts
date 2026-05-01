@@ -30,6 +30,10 @@ interface QueryResponse<T> {
 export interface AdminListQuery<T = Record<string, unknown>>
   extends PromiseLike<QueryResponse<T>> {
   eq(column: string, value: unknown): AdminListQuery<T>;
+  neq(column: string, value: unknown): AdminListQuery<T>;
+  gte(column: string, value: unknown): AdminListQuery<T>;
+  lte(column: string, value: unknown): AdminListQuery<T>;
+  in(column: string, values: readonly unknown[]): AdminListQuery<T>;
   or(filters: string): AdminListQuery<T>;
   ilike(column: string, pattern: string): AdminListQuery<T>;
   order(column: string, options?: { ascending?: boolean }): AdminListQuery<T>;

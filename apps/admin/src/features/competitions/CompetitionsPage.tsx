@@ -5,10 +5,11 @@ import { KpiCard } from '../../components/ui/KpiCard';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { DetailDrawer, DrawerSection, DrawerField } from '../../components/ui/DetailDrawer';
 import { LoadingState, ErrorState, EmptyState } from '../../components/ui/StateViews';
-import { useCompetitions, useToggleCompetitionFeatured } from './useCompetitions';
+import { useCompetitions, useToggleCompetitionFeatured, useUpdateCompetitionControl } from './useCompetitions';
 import type { CompetitionRow } from './useCompetitions';
 import { formatDate } from '../../lib/formatters';
 import { Trophy, Search, Star, StarOff, Globe, Calendar, Layers } from 'lucide-react';
+import { APPROVED_COMPETITIONS } from '../platform-control/controlCenter';
 
 export function CompetitionsPage() {
   const [page, setPage] = useState(0);
@@ -18,9 +19,13 @@ export function CompetitionsPage() {
 
   const { data: result, isLoading, error, refetch } = useCompetitions({ page }, { search });
   const toggleFeaturedMutation = useToggleCompetitionFeatured();
+  const updateCompetition = useUpdateCompetitionControl();
 
-  const competitions = result?.data ?? [];
-  const activeCount = competitions.filter(c => c.status === 'active').length;
+  const competitions = (result?.data ?? []).filter((competition) => {
+    if (regionFilter === 'all') return true;
+    return (competition.region ?? competition.country ?? '').toLowerCase() === regionFilter;
+  });
+  const activeCount = competitions.filter(c => c.is_active ?? c.status === 'active').length;
   const featuredCount = competitions.filter(c => c.is_featured).length;
   const upcomingCount = competitions.filter(c => c.status === 'upcoming').length;
 
@@ -32,15 +37,34 @@ export function CompetitionsPage() {
     });
   };
 
+  const handleToggleActive = async (comp: CompetitionRow) => {
+    await updateCompetition.mutateAsync({
+      p_competition_id: comp.id,
+      p_is_active: !(comp.is_active ?? comp.status === 'active'),
+      p_priority: comp.priority ?? null,
+      p_type: comp.type ?? comp.competition_type ?? null,
+      p_region: comp.region ?? null,
+    });
+  };
+
   return (
     <div>
-      <PageHeader title="Competitions" subtitle={`${result?.count ?? competitions.length} competitions tracked`} />
+      <PageHeader title="Competitions" subtitle="Approved competition catalog for curated sports-bar pool discovery" />
 
       <div className="grid grid-4 gap-4 mb-6">
         <KpiCard label="Total" value={result?.count ?? competitions.length} icon={<Trophy size={18} />} />
         <KpiCard label="Active" value={activeCount} icon={<Calendar size={18} />} />
         <KpiCard label="Featured" value={featuredCount} icon={<Star size={18} />} />
         <KpiCard label="Upcoming" value={upcomingCount} icon={<Layers size={18} />} />
+      </div>
+
+      <div className="data-table-container mb-4" style={{ padding: 12 }}>
+        <div className="text-xs font-semibold text-muted uppercase mb-2">Approved rollout set</div>
+        <div className="flex flex-wrap gap-2">
+          {APPROVED_COMPETITIONS.map((name) => (
+            <span key={name} className="badge badge-neutral">{name}</span>
+          ))}
+        </div>
       </div>
 
       <div className="filter-bar mb-4 flex items-center gap-3">
@@ -67,21 +91,30 @@ export function CompetitionsPage() {
        competitions.length === 0 ? <EmptyState title="No competitions found" /> : (
         <div className="data-table-container">
           <table className="data-table">
-            <thead><tr><th>Competition</th><th>Country</th><th>Season</th><th>Tier</th><th>Matches</th><th>Featured</th><th>Status</th></tr></thead>
+            <thead><tr><th>Competition</th><th>Country</th><th>Type</th><th>Priority</th><th>Matches</th><th>Featured</th><th>Status</th><th className="cell-actions">Actions</th></tr></thead>
             <tbody>
               {competitions.map(c => (
                 <tr key={c.id} className="cursor-pointer" onClick={() => setSelected(c)}>
                   <td><div className="font-medium">{c.name}</div><div className="text-xs text-muted mono">{c.short_name}</div></td>
                   <td><span className="flex items-center gap-1"><Globe size={14} className="text-muted" />{c.country}</span></td>
-                  <td>{c.season || '—'}</td>
-                  <td><span className="badge badge-neutral">T{c.tier}</span></td>
+                  <td>{c.type ?? c.competition_type ?? 'league'}</td>
+                  <td>{c.priority ?? c.tier ?? 100}</td>
                   <td>{c.matches_count ?? 0}</td>
                   <td>
                     <button className="btn btn-ghost btn-icon btn-sm" onClick={e => { e.stopPropagation(); handleToggleFeatured(c); }}>
                       {c.is_featured ? <Star size={16} className="text-warning" /> : <StarOff size={16} className="text-muted" />}
                     </button>
                   </td>
-                  <td><StatusBadge status={c.status || 'active'} /></td>
+                  <td><StatusBadge status={(c.is_active ?? c.status === 'active') ? 'active' : 'disabled'} /></td>
+                  <td className="cell-actions">
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      disabled={updateCompetition.isPending}
+                      onClick={e => { e.stopPropagation(); handleToggleActive(c); }}
+                    >
+                      {(c.is_active ?? c.status === 'active') ? 'Disable' : 'Enable'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -96,6 +129,8 @@ export function CompetitionsPage() {
               <DrawerField label="Name" value={selected.name} />
               <DrawerField label="Short Name" value={selected.short_name || '—'} />
               <DrawerField label="Country" value={selected.country || '—'} />
+              <DrawerField label="Type" value={selected.type ?? selected.competition_type ?? 'league'} />
+              <DrawerField label="Priority" value={selected.priority ?? '—'} />
               <DrawerField label="Tier" value={<span className="badge badge-neutral">Tier {selected.tier}</span>} />
               <DrawerField label="Season" value={selected.season || '—'} />
               <DrawerField label="Matches" value={selected.matches_count ?? 0} />

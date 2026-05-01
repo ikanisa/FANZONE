@@ -1,21 +1,21 @@
 class PrivacySettingsModel {
   const PrivacySettingsModel({
-    this.showNameOnLeaderboards = false,
+    this.showNameInPoolActivity = false,
     this.allowFanDiscovery = false,
   });
 
-  final bool showNameOnLeaderboards;
+  final bool showNameInPoolActivity;
   final bool allowFanDiscovery;
 
   static const defaults = PrivacySettingsModel();
 
   PrivacySettingsModel copyWith({
-    bool? showNameOnLeaderboards,
+    bool? showNameInPoolActivity,
     bool? allowFanDiscovery,
   }) {
     return PrivacySettingsModel(
-      showNameOnLeaderboards:
-          showNameOnLeaderboards ?? this.showNameOnLeaderboards,
+      showNameInPoolActivity:
+          showNameInPoolActivity ?? this.showNameInPoolActivity,
       allowFanDiscovery: allowFanDiscovery ?? this.allowFanDiscovery,
     );
   }

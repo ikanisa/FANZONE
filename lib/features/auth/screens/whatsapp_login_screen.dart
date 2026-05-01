@@ -357,7 +357,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                     Text(
                       _otpSent
                           ? 'Enter the 6-digit OTP sent to your WhatsApp.'
-                          : 'Verify your number to save picks, earn FET rewards, and track your record. It\'s 100% free.',
+                          : 'Verify your number to keep your wallet, orders, and match pools secured. It\'s 100% free.',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: mutedColor,

@@ -28,18 +28,16 @@ import '../../data/team_search_database.dart';
 import '../../features/home/data/catalog_gateway.dart';
 import '../../features/home/data/match_listing_gateway.dart';
 import '../../features/onboarding/data/onboarding_gateway.dart';
-import '../../features/predict/data/leaderboard_gateway.dart';
 import '../../features/settings/data/account_settings_gateway.dart';
 import '../../features/settings/data/competition_preferences_gateway.dart';
 import '../../features/settings/data/market_preferences_gateway.dart';
 import '../../features/settings/data/notification_settings_gateway.dart';
 import '../../features/wallet/data/wallet_gateway.dart';
 
-// ── Ordering / DineIn gateways ─────────────────────────────
+// ── Ordering / venue gateways ──────────────────────────────
 import '../../features/ordering/data/bell_gateway.dart';
 import '../../features/ordering/data/order_gateway.dart';
 import '../../features/ordering/data/venue_gateway.dart';
-import '../../features/venue_dashboard/data/venue_stake_gateway.dart';
 
 // ═══════════════════════════════════════════════════════════
 // CORE SINGLETONS
@@ -433,14 +431,6 @@ final onboardingGatewayProvider = Provider<OnboardingGateway>((ref) {
 });
 
 // ═══════════════════════════════════════════════════════════
-// PREDICT
-// ═══════════════════════════════════════════════════════════
-
-final leaderboardGatewayProvider = Provider<LeaderboardGateway>((ref) {
-  return SupabaseLeaderboardGateway(ref.watch(supabaseConnectionProvider));
-});
-
-// ═══════════════════════════════════════════════════════════
 // WALLET
 // ═══════════════════════════════════════════════════════════
 
@@ -449,7 +439,7 @@ final walletGatewayProvider = Provider<WalletGateway>((ref) {
 });
 
 // ═══════════════════════════════════════════════════════════
-// ORDERING / DINEIN
+// ORDERING / VENUES
 // ═══════════════════════════════════════════════════════════
 
 final venueGatewayProvider = Provider<VenueGateway>((ref) {
@@ -462,10 +452,6 @@ final orderGatewayProvider = Provider<OrderGateway>((ref) {
 
 final bellGatewayProvider = Provider<BellGateway>((ref) {
   return SupabaseBellGateway(ref.watch(supabaseConnectionProvider));
-});
-
-final venueStakeGatewayProvider = Provider<VenueStakeGateway>((ref) {
-  return SupabaseVenueStakeGateway(ref.watch(supabaseConnectionProvider));
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -522,8 +508,5 @@ Future<List<Override>> resolveIntegrationOverrides({
   List<Override> customOverrides = const [],
 }) async {
   final baseOverrides = await resolveAsyncOverrides();
-  return [
-    ...baseOverrides,
-    ...customOverrides,
-  ];
+  return [...baseOverrides, ...customOverrides];
 }

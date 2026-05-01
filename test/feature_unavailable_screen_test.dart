@@ -7,11 +7,11 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(home: FeatureUnavailableScreen(featureName: 'Predict')),
+      const MaterialApp(home: FeatureUnavailableScreen(featureName: 'Archive')),
     );
 
-    expect(find.text('Predict IS NOT LIVE'), findsOneWidget);
+    expect(find.text('Archive IS NOT LIVE'), findsOneWidget);
     expect(find.text('UNAVAILABLE'), findsOneWidget);
-    expect(find.textContaining('Predict'), findsOneWidget);
+    expect(find.textContaining('Archive'), findsOneWidget);
   });
 }

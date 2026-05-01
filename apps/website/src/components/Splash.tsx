@@ -37,7 +37,7 @@ export function Splash() {
         >
           <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
           <span className="text-[10px] font-bold text-muted uppercase tracking-widest">
-            Free Football Predictions
+            Sports-Bar Match Pools
           </span>
         </motion.div>
       </motion.div>

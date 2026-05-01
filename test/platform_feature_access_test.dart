@@ -14,13 +14,13 @@ void main() {
           phonePresets: const {},
           currencyDisplay: const {},
           countryCurrencies: const {},
-          featureFlags: const {'predictions': true, 'wallet': true},
+          featureFlags: const {'pools': true, 'wallet': true},
           appConfig: const {},
           launchMoments: const [],
           platformFeatures: [
             PlatformFeatureInfo.fromJson({
-              'feature_key': 'predictions',
-              'display_name': 'Predictions',
+              'feature_key': 'pools',
+              'display_name': 'Pools',
               'status': 'active',
               'is_enabled': true,
               'channels': {
@@ -31,8 +31,8 @@ void main() {
                   'show_in_navigation': true,
                   'show_on_home': true,
                   'sort_order': 20,
-                  'route_key': '/predict',
-                  'navigation_label': 'Predict',
+                  'route_key': '/pools',
+                  'navigation_label': 'Pools',
                 },
                 'web': {
                   'channel': 'web',
@@ -41,7 +41,7 @@ void main() {
                   'show_in_navigation': false,
                   'show_on_home': false,
                   'sort_order': 20,
-                  'route_key': '/predict',
+                  'route_key': '/pools',
                 },
               },
               'resolved_state': {
@@ -50,7 +50,7 @@ void main() {
                 'is_available': true,
                 'show_in_navigation': true,
                 'show_on_home': true,
-                'route_key': '/predict',
+                'route_key': '/pools',
                 'sort_order': 20,
               },
             }),
@@ -60,11 +60,11 @@ void main() {
               'block_key': 'home_promo_banner',
               'block_type': 'promo_banner',
               'title': 'Lean Matchday Window',
-              'content': {'cta_route': '/predict'},
+              'content': {'cta_route': '/pools'},
               'target_channel': 'mobile',
               'is_active': true,
               'sort_order': 10,
-              'feature_key': 'predictions',
+              'feature_key': 'pools',
               'placement_key': 'home.primary',
             }),
           ],
@@ -73,13 +73,13 @@ void main() {
         final access = PlatformFeatureAccess(config, channel: 'mobile');
 
         expect(
-          access.isVisible('predictions', surface: PlatformSurface.navigation),
+          access.isVisible('pools', surface: PlatformSurface.navigation),
           isTrue,
         );
-        expect(access.routeFor('predictions'), '/predict');
+        expect(access.routeFor('pools'), '/pools');
         expect(
           access.navigationFeatures().map((item) => item.featureKey),
-          contains('predictions'),
+          contains('pools'),
         );
         expect(
           access.homeBlocks().map((block) => block.blockKey),
@@ -119,7 +119,7 @@ void main() {
         isFalse,
       );
       expect(
-        access.isActionAvailable('predictions', isAuthenticated: false),
+        access.isActionAvailable('pools', isAuthenticated: false),
         isFalse,
       );
     });
@@ -136,8 +136,8 @@ void main() {
         launchMoments: const [],
         platformFeatures: [
           PlatformFeatureInfo.fromJson({
-            'feature_key': 'predictions',
-            'display_name': 'Predictions',
+            'feature_key': 'pools',
+            'display_name': 'Pools',
             'status': 'active',
             'is_enabled': true,
             'channels': {
@@ -146,55 +146,19 @@ void main() {
                 'is_visible': true,
                 'is_enabled': true,
                 'show_in_navigation': true,
-                'show_on_home': false,
+                'show_on_home': true,
                 'sort_order': 30,
-                'route_key': '/predict',
-                'navigation_label': 'Predict',
+                'route_key': '/pools',
+                'navigation_label': 'Pools',
               },
               'web': {
                 'channel': 'web',
                 'is_visible': true,
                 'is_enabled': true,
                 'show_in_navigation': false,
-                'show_on_home': false,
+                'show_on_home': true,
                 'sort_order': 30,
-                'route_key': '/fixtures',
-              },
-            },
-            'resolved_state': {
-              'is_operational': true,
-              'is_visible': true,
-              'is_available': true,
-              'show_in_navigation': true,
-              'show_on_home': false,
-              'route_key': '/predict',
-              'sort_order': 30,
-            },
-          }),
-          PlatformFeatureInfo.fromJson({
-            'feature_key': 'fixtures',
-            'display_name': 'Fixtures',
-            'status': 'active',
-            'is_enabled': true,
-            'channels': {
-              'mobile': {
-                'channel': 'mobile',
-                'is_visible': true,
-                'is_enabled': true,
-                'show_in_navigation': true,
-                'show_on_home': true,
-                'sort_order': 20,
-                'route_key': '/fixtures',
-                'navigation_label': 'Fixtures',
-              },
-              'web': {
-                'channel': 'web',
-                'is_visible': true,
-                'is_enabled': true,
-                'show_in_navigation': true,
-                'show_on_home': true,
-                'sort_order': 20,
-                'route_key': '/fixtures',
+                'route_key': '/pools',
               },
             },
             'resolved_state': {
@@ -203,32 +167,68 @@ void main() {
               'is_available': true,
               'show_in_navigation': true,
               'show_on_home': true,
-              'route_key': '/fixtures',
+              'route_key': '/pools',
+              'sort_order': 30,
+            },
+          }),
+          PlatformFeatureInfo.fromJson({
+            'feature_key': 'wallet',
+            'display_name': 'Wallet',
+            'status': 'active',
+            'is_enabled': true,
+            'channels': {
+              'mobile': {
+                'channel': 'mobile',
+                'is_visible': true,
+                'is_enabled': true,
+                'show_in_navigation': true,
+                'show_on_home': false,
+                'sort_order': 20,
+                'route_key': '/wallet',
+                'navigation_label': 'Wallet',
+              },
+              'web': {
+                'channel': 'web',
+                'is_visible': true,
+                'is_enabled': true,
+                'show_in_navigation': true,
+                'show_on_home': false,
+                'sort_order': 20,
+                'route_key': '/wallet',
+              },
+            },
+            'resolved_state': {
+              'is_operational': true,
+              'is_visible': true,
+              'is_available': true,
+              'show_in_navigation': true,
+              'show_on_home': false,
+              'route_key': '/wallet',
               'sort_order': 20,
             },
           }),
         ],
         platformContentBlocks: [
           PlatformContentBlockInfo.fromJson({
-            'block_key': 'hidden_prediction_banner',
+            'block_key': 'hidden_pool_banner',
             'block_type': 'promo_banner',
-            'title': 'Prediction Push',
-            'content': {'cta_route': '/predict'},
+            'title': 'Pool Push',
+            'content': {'cta_route': '/pools'},
             'target_channel': 'mobile',
             'is_active': true,
             'sort_order': 10,
-            'feature_key': 'predictions',
+            'feature_key': 'wallet',
             'placement_key': 'home.primary',
           }),
           PlatformContentBlockInfo.fromJson({
-            'block_key': 'fixtures_live_matches',
+            'block_key': 'pool_live_matches',
             'block_type': 'live_matches',
             'title': 'Live Now',
             'content': const {},
             'target_channel': 'mobile',
             'is_active': true,
             'sort_order': 20,
-            'feature_key': 'fixtures',
+            'feature_key': 'pools',
             'placement_key': 'home.primary',
           }),
         ],
@@ -238,7 +238,7 @@ void main() {
 
       expect(
         access.homeBlocks().map((block) => block.blockKey),
-        equals(<String>['fixtures_live_matches']),
+        equals(<String>['pool_live_matches']),
       );
     });
   });

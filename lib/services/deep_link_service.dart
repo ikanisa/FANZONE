@@ -64,12 +64,14 @@ class DeepLinkService {
         }
         return _governedRoute(uri);
       case 'fanzone':
-        final host = uri.host.trim();
-        final pathSuffix = uri.path == '/' ? '' : uri.path;
-        final path = host.isEmpty
-            ? (uri.path.startsWith('/') ? uri.path : '/${uri.path}')
-            : '/$host$pathSuffix';
-        return _governedRoute(uri.replace(path: path));
+        final segments = <String>[
+          if (uri.host.trim().isNotEmpty) uri.host.trim(),
+          ...uri.pathSegments,
+        ];
+        if (segments.isEmpty) return null;
+        return _governedRoute(
+          Uri(path: '/${segments.join('/')}', query: uri.query),
+        );
       default:
         return null;
     }
@@ -80,6 +82,8 @@ class DeepLinkService {
     if (path.isEmpty || path == '/') {
       return null;
     }
-    return governedAppRouteForPath(uri.toString());
+    return governedAppRouteForPath(
+      Uri(path: uri.path, query: uri.query).toString(),
+    );
   }
 }

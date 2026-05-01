@@ -1,35 +1,34 @@
-FANZONE is a free football prediction app where fans predict match outcomes, earn Fan Engagement Tokens (FET), and compete on the leaderboard — no money, no gambling, just football knowledge.
+FANZONE is a sports-bar entertainment app for venues, lounges, fan zones, and hospitality operators. Guests can scan a venue QR code, order from the bar, earn Fan Engagement Tokens (FET), join curated match pools, and manage a FET wallet.
 
-🏟️ PREDICT MATCHES
-Browse upcoming fixtures from the Champions League, Premier League, La Liga, Bundesliga, Serie A, Ligue 1, and the Malta Premier League. Pick your predictions — home win, draw, or away — and earn FET tokens when you get it right.
+MATCH POOLS
+Join curated football match pools for major competitions and venue-hosted events. Pools are entertainment only: no bookmaker odds, no real-money wagering, and no payment API.
 
-⚡ FAN ENGAGEMENT TOKENS (FET)
-Every correct prediction earns you FET. Your token balance reflects your football knowledge over time. FET is an in-app reward — not a cryptocurrency, not real money.
+VENUE ORDERING
+Scan a bar or table QR code, browse the menu, and place orders with participating venues. Customer payments happen off-platform through the venue's supported methods such as cash, MoMo/USSD instructions, or Revolut links.
 
-📊 MATCH INSIGHTS
-View AI-generated match previews, team form analysis, head-to-head records, and predicted scorelines before you make your pick. Make informed predictions backed by data.
+FAN ENGAGEMENT TOKENS (FET)
+Earn FET from venue-configured order rewards, welcome grants, qualified pool creation, invited participant rewards, and pool settlements. FET is an in-app reward, not real currency.
 
-🏆 LEADERBOARDS
-Track your prediction accuracy, climb the global leaderboard, and see how you rank against other fans. Your prediction history is always available in your profile.
+MATCH CONTEXT
+Browse curated fixtures, team context, match status, and venue-linked pool stats for football moments selected by the platform or venue operators.
 
-👤 FAN IDENTITY
-Get your unique six-digit Fan ID, choose a display name, and pick your favourite team. Your profile tracks every prediction you've ever made — wins, losses, and streaks.
+FAN IDENTITY
+Get your unique Fan ID, choose a display name, and pick your favourite teams and markets.
 
-💰 FET WALLET
-Monitor your FET balance, view your full transaction history, and see exactly how you earned each token. Your wallet is your football CV.
+FET WALLET
+Monitor your FET balance, view your transaction history, and see exactly how each credit or debit was created.
 
 KEY FEATURES:
-• 100% free to play — no real money, no in-app purchases
-• Champions League, EPL, La Liga, Bundesliga, Serie A, Ligue 1, and Malta Premier League
-• AI-powered match insights and predicted scorelines
-• FET token rewards for correct predictions
-• Global leaderboard with Fan ID rankings
-• Full prediction history and accuracy tracking
-• Dark mode interface designed for match-day viewing
+• Venue QR and table ordering flows
+• Curated match pools for major football competitions
+• FET wallet with audited ledger history
+• Venue-configured order rewards
+• Off-platform payment handoff only
 • WhatsApp-based login — no passwords to remember
-• Works on phones and tablets
 • Guest browsing with optional sign-up
+• Dark mode interface designed for match-day viewing
+• Works on phones and tablets
 
-FANZONE is not a betting app. There are no bookmaker odds, no real-money stakes, and no gambling mechanics. It is a free football prediction game for fans who love the sport.
+FANZONE is not a betting app. There are no bookmaker odds, no real-money wagering, and no gambling mechanics.
 
-Download FANZONE and prove your football knowledge.
+Download FANZONE and make match day more interactive at participating venues.

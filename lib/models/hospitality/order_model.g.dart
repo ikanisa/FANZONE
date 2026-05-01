@@ -98,10 +98,13 @@ const _$PaymentMethodEnumMap = {
 
 const _$PaymentStatusEnumMap = {
   PaymentStatus.pending: 'pending',
+  PaymentStatus.unpaid: 'unpaid',
   PaymentStatus.paid: 'paid',
+  PaymentStatus.partiallyPaid: 'partially_paid',
   PaymentStatus.failed: 'failed',
   PaymentStatus.cancelled: 'cancelled',
   PaymentStatus.refunded: 'refunded',
+  PaymentStatus.disputed: 'disputed',
 };
 
 _$OrderItemModelImpl _$$OrderItemModelImplFromJson(Map<String, dynamic> json) =>
