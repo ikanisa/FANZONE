@@ -1,10 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, 
   Wand2, 
   Upload, 
-  Loader2, 
   CheckCircle2, 
   AlertCircle,
   Plus
@@ -18,7 +17,7 @@ interface MenuMagicModalProps {
 }
 
 export const MenuMagicModal: React.FC<MenuMagicModalProps> = ({ isOpen, onClose, onComplete }) => {
-  const { scanMenu, loading, error } = useMenuMagic();
+  const { scanMenu, error } = useMenuMagic();
   const [scannedItems, setScannedItems] = useState<ScannedMenuItem[]>([]);
   const [step, setStep] = useState<'upload' | 'scanning' | 'review'>('upload');
   const fileInputRef = useRef<HTMLInputElement>(null);

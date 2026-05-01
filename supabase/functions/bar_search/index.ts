@@ -12,7 +12,7 @@ import {
 const searchSchema = z.object({
   q: z.string().min(1).max(200).optional(),
   country: z.enum(["RW", "MT"]).optional(),
-  status: z.enum(["active", "pending", "suspended"]).optional().default("active"),
+  status: z.enum(["active", "inactive"]).optional().default("active"),
   limit: z.number().int().min(1).max(100).optional().default(20),
   offset: z.number().int().min(0).optional().default(0),
 });
@@ -58,17 +58,17 @@ Deno.serve(async (req) => {
     // Build query
     let query = supabaseAdmin
       .from("venues")
-      .select("id, name, slug, country, address, status, created_at", { count: "exact" })
-      .eq("status", status!)
+      .select("id, name, slug, country_code, address_line1, is_active, created_at", { count: "exact" })
+      .eq("is_active", status === "active")
       .order("name", { ascending: true })
       .range(offset!, offset! + limit! - 1);
 
     if (country) {
-      query = query.eq("country", country);
+      query = query.eq("country_code", country);
     }
 
     if (q) {
-      query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%,address.ilike.%${q}%`);
+      query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%,address_line1.ilike.%${q}%`);
     }
 
     const { data: venues, error, count } = await query;

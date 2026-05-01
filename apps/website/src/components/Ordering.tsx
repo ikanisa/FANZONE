@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Utensils, 
   ChevronRight, 
@@ -20,10 +20,10 @@ import { api } from '../services/api';
 import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
 import { FETDisplay } from './ui/FETDisplay';
-import { 
-  Venue, 
-  MenuItem, 
-  MenuCategory, 
+import type {
+  Venue,
+  MenuItem,
+  MenuCategory,
   PaymentMethod,
   Order,
   OrderStatus

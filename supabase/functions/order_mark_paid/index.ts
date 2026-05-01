@@ -16,7 +16,7 @@ import {
 
 const markPaidSchema = z.object({
   order_id: z.string().uuid(),
-  payment_method: z.enum(["cash", "momo_ussd", "revolut_link"]).optional().default("cash"),
+  payment_method: z.enum(["cash", "momo", "revolut"]).optional().default("cash"),
 });
 
 Deno.serve(async (req) => {
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // ---- Fetch order ----
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
-      .select("id, venue_id, payment_status, status, total_amount, currency, client_auth_user_id")
+      .select("id, venue_id, payment_status, status")
       .eq("id", order_id)
       .single();
 
@@ -88,7 +88,6 @@ Deno.serve(async (req) => {
       .update({
         payment_status: "paid",
         payment_method,
-        paid_at: new Date().toISOString(),
       })
       .eq("id", order_id)
       .select()
@@ -99,37 +98,8 @@ Deno.serve(async (req) => {
       return errorResponse("Failed to update payment status", 500);
     }
 
-    // ========================================================================
-    // FET CREDIT: 1 EUR = 100 FET, 1 RWF ≈ 0.00074 EUR (100 FET per EUR)
-    // This trigger is also backed by DB trigger, but we handle it here for
-    // immediacy and to capture metadata
-    // ========================================================================
-    if (order.client_auth_user_id) {
-      try {
-        let fetAmount = 0;
-        if (order.currency === "EUR") {
-          fetAmount = Math.floor(Number(order.total_amount) * 100);
-        } else if (order.currency === "RWF") {
-          fetAmount = Math.floor(Number(order.total_amount) * 0.074);
-        }
-
-        if (fetAmount > 0) {
-          const { error: fetError } = await supabaseAdmin.rpc("credit_fet_for_order", {
-            p_user_id: order.client_auth_user_id,
-            p_order_id: order_id,
-            p_amount: fetAmount,
-          });
-
-          if (fetError) {
-            logger.error("FET credit failed (non-blocking)", { error: fetError.message, fetAmount });
-          } else {
-            logger.info("FET credited", { userId: order.client_auth_user_id, fetAmount });
-          }
-        }
-      } catch (fetErr) {
-        logger.error("FET credit exception (non-blocking)", { error: String(fetErr) });
-      }
-    }
+    // FET credit is handled by the database trigger in
+    // 20260501020000_dinein_fet_bridge.sql when payment_status transitions to paid.
 
     // ---- Audit ----
     const audit = createAuditLogger(supabaseAdmin, user.id, requestId, logger);
@@ -137,6 +107,14 @@ Deno.serve(async (req) => {
       previousValue: { payment_status: order.payment_status },
       newValue: { payment_status: "paid", payment_method },
       vendorId: order.venue_id,
+    });
+
+    await supabaseAdmin.from("payment_events").insert({
+      order_id,
+      provider: payment_method,
+      status: "paid",
+      request_payload: { marked_by: user.id, request_id: requestId },
+      response_payload: { source: "order_mark_paid" },
     });
 
     const durationMs = Date.now() - startTime;

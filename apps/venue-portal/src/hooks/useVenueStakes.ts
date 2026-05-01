@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { VenueMatchStake } from '@fanzone/core';
+import type { VenueMatchStake, VenueMatchStakeRow } from '@fanzone/core';
+
+function mapStake(row: VenueMatchStakeRow): VenueMatchStake {
+  return {
+    id: row.id,
+    venueId: row.venue_id,
+    matchId: row.match_id,
+    entryFeeFet: row.entry_fee_fet,
+    totalPoolFet: row.total_pool_fet,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
 
 export function useVenueStakes(venueId: string) {
   const [stakes, setStakes] = useState<VenueMatchStake[]>([]);
@@ -19,7 +31,7 @@ export function useVenueStakes(venueId: string) {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setStakes(data as VenueMatchStake[]);
+        setStakes(((data ?? []) as VenueMatchStakeRow[]).map(mapStake));
       } catch (err) {
         console.error('Failed to fetch stakes:', err);
       } finally {

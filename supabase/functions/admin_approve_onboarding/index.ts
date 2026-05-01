@@ -97,7 +97,8 @@ Deno.serve(async (req) => {
         if (input.action === "approve") {
             // ---- APPROVE: Update venue, activate user, add menu items ----
             const vendorUpdates: Record<string, unknown> = {
-                status: "active",
+                is_active: true,
+                onboarding_status: "live",
             };
             if (request.whatsapp) vendorUpdates.whatsapp = request.whatsapp;
             if (request.revolut_link) vendorUpdates.revolut_link = request.revolut_link;
@@ -118,7 +119,7 @@ Deno.serve(async (req) => {
                 .from("venue_users")
                 .update({ is_active: true })
                 .eq("venue_id", request.venue_id)
-                .eq("auth_user_id", request.submitted_by);
+                .eq("user_id", request.submitted_by);
 
             if (userUpdateError) {
                 logger.error("Failed to activate venue user", { error: userUpdateError.message });
@@ -127,14 +128,54 @@ Deno.serve(async (req) => {
 
             // Add menu items if provided
             if (request.menu_items_json && Array.isArray(request.menu_items_json)) {
-                const menuItems = request.menu_items_json.map((item: Record<string, unknown>) => ({
+                const categoryNames = [
+                    ...new Set(
+                        request.menu_items_json.map((item: Record<string, unknown>) =>
+                            String(item.category || "Menu").trim() || "Menu"
+                        )
+                    ),
+                ];
+
+                const categoryRows = categoryNames.map((name, index) => ({
                     venue_id: request.venue_id,
-                    name: item.name,
-                    description: item.description || null,
-                    price: item.price,
-                    category: item.category || null,
-                    is_available: true,
+                    name,
+                    display_order: index,
                 }));
+
+                const { data: categories, error: categoryError } = await supabaseAdmin
+                    .from("menu_categories")
+                    .insert(categoryRows)
+                    .select("id, name");
+
+                if (categoryError) {
+                    logger.warn("Failed to add menu categories", { error: categoryError.message });
+                }
+
+                const categoryByName = new Map(
+                    (categories || []).map((category: Record<string, unknown>) => [
+                        String(category.name),
+                        String(category.id),
+                    ])
+                );
+
+                const currencyCode = request.venues?.currency_code || "EUR";
+                const menuItems = request.menu_items_json
+                    .map((item: Record<string, unknown>, index: number) => {
+                        const categoryName = String(item.category || "Menu").trim() || "Menu";
+                        const categoryId = categoryByName.get(categoryName);
+                        if (!categoryId) return null;
+                        return {
+                            venue_id: request.venue_id,
+                            category_id: categoryId,
+                            name: item.name,
+                            description: item.description || null,
+                            price: item.price,
+                            currency_code: currencyCode,
+                            is_available: true,
+                            display_order: index,
+                        };
+                    })
+                    .filter(Boolean);
 
                 if (menuItems.length > 0) {
                     const { error: menuError } = await supabaseAdmin
@@ -161,7 +202,7 @@ Deno.serve(async (req) => {
                 })
                 .eq("id", input.request_id);
 
-            await audit.log(AuditAction.UPDATE, EntityType.VENDOR, request.venue_id, {
+            await audit.log(AuditAction.VENDOR_UPDATE, EntityType.VENDOR, request.venue_id, {
                 action: "onboarding_approved",
                 requestId: input.request_id,
                 approvedBy: user.id,
@@ -184,9 +225,9 @@ Deno.serve(async (req) => {
                 .from("venue_users")
                 .update({ is_active: false })
                 .eq("venue_id", request.venue_id)
-                .eq("auth_user_id", request.submitted_by);
+                .eq("user_id", request.submitted_by);
 
-            await audit.log(AuditAction.UPDATE, EntityType.VENDOR, request.venue_id, {
+            await audit.log(AuditAction.VENDOR_UPDATE, EntityType.VENDOR, request.venue_id, {
                 action: "onboarding_rejected",
                 requestId: input.request_id,
                 rejectedBy: user.id,

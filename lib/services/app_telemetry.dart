@@ -89,12 +89,15 @@ class AppTelemetry {
         await _persistQueue();
         return;
       }
-      final payload =
-          batch.map((event) => event.toJson()).toList(growable: false);
+      final payload = batch.map((event) {
+        final json = event.toJson();
+        json['error_message'] = json['message'];
+        return json;
+      }).toList(growable: false);
 
       await client.rpc(
-        'log_app_telemetry_batch',
-        params: {'p_events': payload},
+        'log_app_runtime_errors_batch',
+        params: {'p_errors': payload},
       );
       await _persistQueue();
     } catch (error, stackTrace) {

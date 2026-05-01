@@ -8,8 +8,12 @@ import type {
   Team,
   TeamFormFeature,
   UserPrediction,
+  Order,
+  OrderItem,
+  PaymentMethod,
   ViewerProfile,
   ViewerWallet,
+  VenueMatchStake,
 } from "../types";
 import { assertClientFeatureAvailable } from "../platform/access";
 import { normalizePlatformBootstrap } from "../platform/normalize";
@@ -1425,19 +1429,50 @@ export const api = {
     const client = await ensureClient();
     if (!client) throw new Error("Supabase client not available");
 
-    const { data, error } = await client.rpc("order_create", {
-      p_venue_id: payload.venueId,
-      p_table_id: payload.tableId,
-      p_payment_method: payload.paymentMethod,
-      p_items: payload.items.map((i) => ({
-        menu_item_id: i.menuItemId,
-        quantity: i.quantity,
-      })),
-      p_use_fet: payload.useFet ?? false,
+    const { data, error } = await client.functions.invoke("order_create", {
+      body: {
+        venue_id: payload.venueId,
+        table_id: payload.tableId,
+        payment_method: payload.paymentMethod,
+        items: payload.items.map((item) => ({
+          menu_item_id: item.menuItemId,
+          quantity: item.quantity,
+        })),
+        use_fet: payload.useFet ?? false,
+      },
     });
 
     if (error) throw error;
-    return data;
+    if (!data?.success || !data.order) {
+      throw new Error("Order creation failed");
+    }
+
+    const row = data.order as JsonRecord & { items?: JsonRecord[] };
+    const items: OrderItem[] = (row.items || []).map((item) => ({
+      id: asString(item.id),
+      orderId: asString(item.order_id),
+      itemNameSnapshot: asString(item.item_name_snapshot),
+      quantity: asNumber(item.quantity),
+      unitPrice: asNumber(item.unit_price),
+      lineTotal: asNumber(item.line_total),
+    }));
+
+    return {
+      id: asString(row.id),
+      venueId: asString(row.venue_id),
+      tableId: asString(row.table_id),
+      orderCode: asString(row.order_code),
+      status: asString(row.status, "placed") as Order["status"],
+      paymentMethod: asString(row.payment_method, payload.paymentMethod) as PaymentMethod,
+      paymentStatus: asString(row.payment_status, "pending") as Order["paymentStatus"],
+      currencyCode: asString(row.currency_code),
+      subtotalAmount: asNumber(row.subtotal_amount),
+      totalAmount: asNumber(row.total_amount),
+      paymentFetAmount: asNumber(row.payment_fet_amount),
+      paymentFetConvertedAmount: asNumber(row.payment_fet_converted_amount),
+      createdAt: asString(row.created_at),
+      items,
+    };
   },
 
   async fetchActiveStake(
@@ -1473,7 +1508,7 @@ export const api = {
     const client = await ensureClient();
     if (!client) throw new Error("Supabase client not available");
 
-    const { error } = await client.rpc("dinein_join_stake", {
+    const { error } = await client.rpc("join_venue_match_stake", {
       p_stake_id: stakeId,
     });
 

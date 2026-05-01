@@ -81,8 +81,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  }
-
   Future<void> _launchMoMoHandoff() async {
     // In Rwanda, we launch a USSD dialer string for the merchant
     // Merchant code would ideally come from the venue metadata

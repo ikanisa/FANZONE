@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   BarChart3, 
   Coins, 
@@ -12,8 +12,7 @@ import {
   History,
   Trophy
 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { HospitalityAuditStats, VenuePerformance } from '@fanzone/core';
+import type { HospitalityAuditStats, VenuePerformance } from '@fanzone/core';
 
 // Mock Data
 const MOCK_STATS: HospitalityAuditStats = {
@@ -31,7 +30,15 @@ const MOCK_PERFORMANCE: VenuePerformance[] = [
   { venueId: 'v3', venueName: 'Malta Fan Zone', orderCount: 310, revenueEur: 6100.25, fetRedeemed: 10500, stakeCount: 18, participantCount: 820 },
 ];
 
-const MetricCard = ({ title, value, subValue, icon, trend }: any) => (
+type MetricCardProps = {
+  title: string;
+  value: string;
+  subValue?: string;
+  icon: React.ReactNode;
+  trend?: string;
+};
+
+const MetricCard = ({ title, value, subValue, icon, trend }: MetricCardProps) => (
   <div className="bg-white p-6 rounded-[24px] border border-border flex flex-col gap-4 shadow-sm">
     <div className="flex justify-between items-start">
       <div className="w-12 h-12 bg-primary/5 text-primary rounded-2xl flex items-center justify-center">
@@ -52,8 +59,6 @@ const MetricCard = ({ title, value, subValue, icon, trend }: any) => (
 );
 
 export const HospitalityAuditPage: React.FC = () => {
-  const [searchTerm, setSearchSet] = useState('');
-
   return (
     <div className="space-y-8 max-w-[1600px] mx-auto">
       <div className="flex justify-between items-end">

@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
             .from("venue_users")
             .select("id")
             .eq("venue_id", venue_id)
-            .eq("auth_user_id", userId)
+            .eq("user_id", userId)
             .single();
 
         if (!existingLink) {
@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
                 .from("venue_users")
                 .insert({
                     venue_id: venue_id,
-                    auth_user_id: userId,
+                    user_id: userId,
                     role: "owner",
                     is_active: true,
                 });

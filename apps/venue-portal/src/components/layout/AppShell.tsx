@@ -1,23 +1,20 @@
-import React, { useState } from 'react';
-import { NavLink, useLocation, Outlet } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Utensils, 
   ClipboardList, 
   Trophy, 
   BarChart3, 
-  Settings,
   ChevronLeft,
   ChevronRight,
   LogOut,
   Bell
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useVenue } from '../../hooks/useVenueContext';
 
-export const Sidebar: React.FC = () => {
+export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
 
   const navItems = [
     { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
@@ -63,7 +60,16 @@ export const Sidebar: React.FC = () => {
   );
 };
 
-export const AppShell: React.FC = () => {
+export const AppShell = () => {
+  const { venue } = useVenue();
+  const venueName = venue?.name ?? 'Venue';
+  const venueInitials = venueName
+    .split(' ')
+    .map((namePart) => namePart[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <div className="flex h-screen bg-surface2 overflow-hidden">
       <Sidebar />
@@ -71,7 +77,7 @@ export const AppShell: React.FC = () => {
         <header className="h-20 bg-white border-b border-border flex items-center px-8 justify-between shrink-0">
           <div>
             <h2 className="text-sm font-bold text-textSecondary uppercase tracking-widest">Venue Portal</h2>
-            <p className="font-black text-text">Stadium Sports Bar</p>
+            <p className="font-black text-text">{venueName}</p>
           </div>
           <div className="flex items-center gap-4">
             <button className="relative p-2 bg-surface2 rounded-xl text-textSecondary hover:text-text transition-colors">
@@ -79,26 +85,7 @@ export const AppShell: React.FC = () => {
               <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full border-2 border-white" />
             </button>
             <div className="w-10 h-10 bg-accent rounded-full border border-primary/10 flex items-center justify-center font-black">
-              SB
-            </div>
-          </div>
-        </header>
-        <main className="flex-1 overflow-y-auto p-8 no-scrollbar">
-          <Outlet />
-        </main>
-      </div>
-    </div>
-  );
-};
-{venue.name}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 bg-surface2 rounded-xl text-textSecondary hover:text-text transition-colors">
-              <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full border-2 border-white" />
-            </button>
-            <div className="w-10 h-10 bg-accent rounded-full border border-primary/10 flex items-center justify-center font-black">
-              {venue.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              {venueInitials}
             </div>
           </div>
         </header>

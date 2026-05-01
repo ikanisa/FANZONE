@@ -84,10 +84,13 @@ Deno.serve(async (req) => {
             .from("venues")
             .insert({
                 name: input.venue_name,
-                country: input.country,
+                country_code: input.country,
+                venue_type: "bar",
+                currency_code: input.country === "RW" ? "RWF" : "EUR",
                 city: input.city,
-                address: input.address || null,
-                status: "pending",
+                address_line1: input.address || null,
+                is_active: false,
+                onboarding_status: "draft",
                 owner_id: user.id,
                 whatsapp: input.whatsapp || null,
                 revolut_link: input.revolut_link || null,
@@ -108,7 +111,7 @@ Deno.serve(async (req) => {
             .from("venue_users")
             .insert({
                 venue_id: venue.id,
-                auth_user_id: user.id,
+                user_id: user.id,
                 role: "owner",
                 is_active: false, // Activated on approval
             });
@@ -142,7 +145,7 @@ Deno.serve(async (req) => {
         // STEP 4: Audit log
         // ========================================================================
         const audit = createAuditLogger(supabaseAdmin, user.id, requestId, logger);
-        await audit.log(AuditAction.CREATE, EntityType.VENDOR, venue.id, {
+        await audit.log(AuditAction.VENDOR_CREATE, EntityType.VENDOR, venue.id, {
             action: "onboarding_submitted",
             venue_name: input.venue_name,
             country: input.country,

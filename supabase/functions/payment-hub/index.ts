@@ -40,30 +40,23 @@ Deno.serve(async (req) => {
 
         const { order_id, venue_id, method } = parsed.data;
 
-        // 0. Security Verification: Is the authenticated user the owner of this order?
-        const { data: isOwner, error: ownerError } = await supabaseAdmin.rpc(
-            "is_order_owner",
-            { p_order_id: order_id }
-        );
-
-        if (ownerError || !isOwner) {
-            logger.warn("Unauthorized payment attempt", { user_id: user.id, order_id });
-            return errorResponse("You are not authorized to pay for this order", 403);
-        }
-
-        // 1. Fetch Order
+        // 1. Fetch Order and verify ownership using the authenticated user id.
         const { data: order } = await supabaseAdmin
             .from("orders")
-            .select("id, total, status, currency_code")
+            .select("id, venue_id, user_id, total_amount, status, currency_code")
             .eq("id", order_id).eq("venue_id", venue_id).single();
 
         if (!order) return errorResponse("Order not found", 404);
+        if (order.user_id !== user.id) {
+            logger.warn("Unauthorized payment attempt", { user_id: user.id, order_id });
+            return errorResponse("You are not authorized to pay for this order", 403);
+        }
         if (order.status === "cancelled") return errorResponse("Cannot pay cancelled order", 400);
 
         // 2. Fetch Venue
         const { data: venue } = await supabaseAdmin
             .from("venues")
-            .select("name, country_code, phone, revolut_link")
+            .select("name, country_code, owner_phone, whatsapp, revolut_link")
             .eq("id", venue_id)
             .single();
 
@@ -77,15 +70,15 @@ Deno.serve(async (req) => {
                 return errorResponse("MoMo is only available for venues in Rwanda", 400);
             }
 
-            const amount = Math.ceil(order.total || 0);
-            const venuePhone = venue.phone?.replace(/\D/g, "") || "";
+            const amount = Math.ceil(Number(order.total_amount || 0));
+            const venuePhone = (venue.owner_phone || venue.whatsapp || "").replace(/\D/g, "");
             const ussdString = venuePhone ? `*182*1*1*${venuePhone}*${amount}#` : "*182*1*1#";
             
             await audit.log(AuditAction.PAYMENT_HANDOFF, EntityType.PAYMENT, order_id, {
-                method: "momo_ussd", amount: String(amount), currency: "RWF"
+                method: "momo", amount: String(amount), currency: "RWF"
             });
 
-            await supabaseAdmin.from("orders").update({ payment_method: "MoMoUSSD" }).eq("id", order_id);
+            await supabaseAdmin.from("orders").update({ payment_method: "momo" }).eq("id", order_id);
 
             return jsonResponse({
                 success: true,
@@ -100,14 +93,14 @@ Deno.serve(async (req) => {
                 return errorResponse("Venue does not have a Revolut payment link set up", 400);
             }
 
-            const amount = order.total?.toFixed(2) || "0.00";
+            const amount = Number(order.total_amount || 0).toFixed(2);
             const paymentUrl = `${venue.revolut_link.replace(/\/$/, "")}?amount=${amount}`;
 
             await audit.log(AuditAction.PAYMENT_HANDOFF, EntityType.PAYMENT, order_id, {
                 method: "revolut", amount, currency: "EUR"
             });
 
-            await supabaseAdmin.from("orders").update({ payment_method: "RevolutLink" }).eq("id", order_id);
+            await supabaseAdmin.from("orders").update({ payment_method: "revolut" }).eq("id", order_id);
 
             return jsonResponse({
                 success: true,

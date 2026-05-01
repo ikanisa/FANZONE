@@ -1,6 +1,18 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Venue, VenueMember } from '@fanzone/core';
+import type { Json, Venue, VenueMember, VenueRow, VenueUserRow } from '@fanzone/core';
+
+type VenueUserWithVenue = VenueUserRow & {
+  venue: VenueRow | null;
+};
+
+function mapHoursJson(value: Json | null): Record<string, Json> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+  return value as Record<string, Json>;
+}
 
 interface VenueContextType {
   venue: Venue | null;
@@ -49,15 +61,22 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           return;
         }
 
+        const venueUser = memberData as unknown as VenueUserWithVenue;
         setMember({
-          id: memberData.id,
-          venueId: memberData.venue_id,
-          userId: memberData.user_id,
-          role: memberData.role,
-          isActive: memberData.is_active,
+          id: venueUser.id,
+          venueId: venueUser.venue_id,
+          userId: venueUser.user_id,
+          role: venueUser.role,
+          isActive: venueUser.is_active,
         });
 
-        const v = memberData.venue;
+        const v = venueUser.venue;
+        if (!v) {
+          setError('Venue details are unavailable for this account.');
+          setLoading(false);
+          return;
+        }
+
         setVenue({
           id: v.id,
           name: v.name,
@@ -68,16 +87,16 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           logoUrl: v.logo_url,
           coverUrl: v.cover_url,
           isOpen: v.is_open,
-          hoursJson: v.hours_json,
+          hoursJson: mapHoursJson(v.hours_json),
           revolutLink: v.revolut_link,
           whatsapp: v.whatsapp,
           primaryCategory: v.primary_category,
           rating: v.rating,
           priceLevel: v.price_level,
         });
-      } catch (err: any) {
+      } catch (err) {
         console.error('Failed to load venue context:', err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Failed to load venue context.');
       } finally {
         setLoading(false);
       }

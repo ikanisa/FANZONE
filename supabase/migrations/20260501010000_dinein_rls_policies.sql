@@ -209,7 +209,7 @@ CREATE POLICY orders_insert_user ON public.orders
   TO authenticated
   WITH CHECK (user_id = auth.uid());
 
--- Venue member: update order status (preparing, served, cancelled)
+-- Venue member: update order status (received, served, cancelled)
 CREATE POLICY orders_update_venue_member ON public.orders
   FOR UPDATE
   TO authenticated

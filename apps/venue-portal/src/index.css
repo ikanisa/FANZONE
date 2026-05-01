@@ -2,6 +2,7 @@
 
 @theme {
   --color-primary: #000000;
+  --color-primaryText: #ffffff;
   --color-primary-text: #ffffff;
   --color-accent: #88ff88;
   --color-accent2: #ff88ff;
@@ -10,6 +11,7 @@
   --color-surface3: #eeeeee;
   --color-border: #e5e5e5;
   --color-text: #000000;
+  --color-textSecondary: #666666;
   --color-text-secondary: #666666;
   --color-success: #00c853;
   --color-warning: #ffd600;

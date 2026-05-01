@@ -21,7 +21,7 @@ const createAdminSchema = z.object({
     action: z.literal("create_admin"),
     email: z.string().email(),
     password: z.string().min(6),
-    role: z.enum(["admin", "superadmin"]).optional().default("admin"),
+    role: z.enum(["admin", "super_admin"]).optional().default("admin"),
 });
 
 // Create Vendor (Bar) with Auth
@@ -197,8 +197,10 @@ async function handleCreateAdmin(
     // Create admin_users record
     const { data: adminRecord, error: adminError } = await supabaseAdmin
         .from("admin_users")
-        .insert({
-            auth_user_id: authData.user.id,
+            .insert({
+            user_id: authData.user.id,
+            email: input.email,
+            display_name: input.email,
             role: input.role,
             is_active: true,
         })
@@ -285,15 +287,21 @@ async function handleCreateVendor(
             google_place_id: googlePlaceId,
             slug,
             name: input.name,
-            address: input.address || null,
-            phone: input.phone || null,
+            country_code: input.country,
+            venue_type: "bar",
+            currency_code: input.country === "RW" ? "RWF" : "EUR",
+            address_line1: input.address || null,
+            owner_phone: input.phone || null,
             revolut_link: input.revolut_link || null,
             whatsapp: input.whatsapp || null,
-            website: input.website || null,
+            website_url: input.website || null,
             hours_json: input.hours_json || null,
             photos_json: input.photos_json || null,
-            status: "pending",
-            country: input.country,
+            owner_id: authData.user.id,
+            owner_email: input.owner_email,
+            claimed: true,
+            is_active: false,
+            onboarding_status: "draft",
         })
         .select()
         .single();
@@ -308,11 +316,11 @@ async function handleCreateVendor(
     // Create venue_users membership
     const { data: membership, error: membershipError } = await supabaseAdmin
         .from("venue_users")
-        .insert({
-            venue_id: vendor.id,
-            auth_user_id: authData.user.id,
-            role: "owner",
-            is_active: true,
+            .insert({
+                venue_id: vendor.id,
+                user_id: authData.user.id,
+                role: "owner",
+                is_active: true,
         })
         .select()
         .single();
@@ -351,14 +359,17 @@ async function handleUpdateVendor(
 
     const updateData: Record<string, any> = {};
     if (input.name !== undefined) updateData.name = input.name;
-    if (input.address !== undefined) updateData.address = input.address;
-    if (input.phone !== undefined) updateData.phone = input.phone;
+    if (input.address !== undefined) updateData.address_line1 = input.address;
+    if (input.phone !== undefined) updateData.owner_phone = input.phone;
     if (input.revolut_link !== undefined) updateData.revolut_link = input.revolut_link;
     if (input.whatsapp !== undefined) updateData.whatsapp = input.whatsapp;
-    if (input.website !== undefined) updateData.website = input.website;
+    if (input.website !== undefined) updateData.website_url = input.website;
     if (input.hours_json !== undefined) updateData.hours_json = input.hours_json;
     if (input.photos_json !== undefined) updateData.photos_json = input.photos_json;
-    if (input.status !== undefined) updateData.status = input.status;
+    if (input.status !== undefined) {
+        updateData.is_active = input.status === "active";
+        updateData.onboarding_status = input.status === "active" ? "live" : "draft";
+    }
 
     const { data: vendor, error } = await supabaseAdmin
         .from("venues")
@@ -388,7 +399,7 @@ async function handleDeleteVendor(
     // Get venue_users to clean up auth users
     const { data: vendorUsers } = await supabaseAdmin
         .from("venue_users")
-        .select("auth_user_id")
+        .select("user_id")
         .eq("venue_id", input.venue_id);
 
     // Delete vendor (cascades to venue_users, menu_items, tables, etc.)
@@ -415,10 +426,10 @@ async function handleListVendors(supabaseAdmin: any, logger: any) {
     const { data: venues, error } = await supabaseAdmin
         .from("venues")
         .select(`
-      id, name, slug, address, phone, revolut_link, whatsapp, website,
-      status, country, hours_json, photos_json, created_at, updated_at,
+      id, name, slug, address_line1, owner_phone, revolut_link, whatsapp, website_url,
+      onboarding_status, is_active, country_code, hours_json, photos_json, created_at, updated_at,
       venue_users (
-        id, auth_user_id, role, is_active
+        id, user_id, role, is_active
       )
     `)
         .order("created_at", { ascending: false });
@@ -434,7 +445,7 @@ async function handleListVendors(supabaseAdmin: any, logger: any) {
             const owner = vendor.venue_users?.find((u: any) => u.role === "owner");
             let ownerEmail = null;
             if (owner) {
-                const { data: userData } = await supabaseAdmin.auth.admin.getUserById(owner.auth_user_id);
+                const { data: userData } = await supabaseAdmin.auth.admin.getUserById(owner.user_id);
                 ownerEmail = userData?.user?.email || null;
             }
             return { ...vendor, owner_email: ownerEmail };
@@ -460,7 +471,7 @@ async function handleListAdmins(supabaseAdmin: any, logger: any) {
     // Fetch emails for admins
     const adminsWithEmails = await Promise.all(
         (admins || []).map(async (admin: any) => {
-            const { data: userData } = await supabaseAdmin.auth.admin.getUserById(admin.auth_user_id);
+            const { data: userData } = await supabaseAdmin.auth.admin.getUserById(admin.user_id);
             return { ...admin, email: userData?.user?.email || null };
         })
     );
@@ -499,15 +510,22 @@ async function handleListCountries(supabaseAdmin: any, logger: any) {
     logger.info("Listing all active countries");
 
     const { data: countries, error } = await supabaseAdmin
-        .from("countries")
-        .select("code, name, currency, currency_symbol, is_active")
-        .eq("is_active", true)
-        .order("name", { ascending: true });
+        .from("country_currency_map")
+        .select("country_code, country_name, currency_code")
+        .order("country_name", { ascending: true });
 
     if (error) {
         logger.error("Failed to list countries", { error: error.message });
         return errorResponse("Failed to list countries", 500, error.message);
     }
 
-    return jsonResponse({ success: true, countries: countries || [] });
+    return jsonResponse({
+        success: true,
+        countries: (countries || []).map((country: any) => ({
+            code: country.country_code,
+            name: country.country_name,
+            currency: country.currency_code,
+            is_active: true,
+        })),
+    });
 }

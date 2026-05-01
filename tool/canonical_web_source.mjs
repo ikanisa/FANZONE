@@ -4,11 +4,13 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
-const repoRoot = "/Volumes/PRO-G40/FANZONE";
+const toolDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(toolDir, "..");
 const sourceRoot = process.env.FANZONE_CANONICAL_SOURCE?.trim() || "";
 const sourceSrc = sourceRoot ? path.join(sourceRoot, "src") : "";
-const targetRoot = path.join(repoRoot, "website");
+const targetRoot = path.join(repoRoot, "apps", "website");
 const targetSrc = path.join(targetRoot, "src");
 const manifestPath = path.join(targetRoot, "canonical-source-manifest.json");
 

@@ -20,18 +20,6 @@ const generateTablesSchema = z.object({
   label_prefix: z.string().max(30).optional().default("Table"),
 });
 
-/**
- * Generate unique public codes for table QR links
- */
-function generatePublicCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I/O/0/1 for readability
-  let code = "TBL-";
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
-
 Deno.serve(async (req) => {
   const startTime = Date.now();
   const requestId = getOrCreateRequestId(req);
@@ -61,7 +49,7 @@ Deno.serve(async (req) => {
       return errorResponse("Invalid request", 400, parsed.error.issues);
     }
 
-    const { venue_id, count, label_prefix } = parsed.data;
+    const { venue_id, count } = parsed.data;
 
     // ---- RBAC: venue member or admin ----
     const rbacResult = await requireVendorOrAdmin(
@@ -81,27 +69,22 @@ Deno.serve(async (req) => {
       .order("table_number", { ascending: false })
       .limit(1);
 
-    const startNumber = existingTables?.[0]?.table_number
-      ? existingTables[0].table_number + 1
+    const lastTableNumber = Number.parseInt(existingTables?.[0]?.table_number ?? "0", 10);
+    const startNumber = Number.isFinite(lastTableNumber) && lastTableNumber > 0
+      ? lastTableNumber + 1
       : 1;
 
     // ---- Generate tables ----
     const tablesToInsert = [];
-    const usedCodes = new Set<string>();
 
     for (let i = 0; i < count; i++) {
-      let publicCode = generatePublicCode();
-      // Ensure unique within batch
-      while (usedCodes.has(publicCode)) {
-        publicCode = generatePublicCode();
-      }
-      usedCodes.add(publicCode);
+      const tableNumber = String(startNumber + i);
 
       tablesToInsert.push({
         venue_id,
-        table_number: startNumber + i,
-        label: `${label_prefix} ${startNumber + i}`,
-        public_code: publicCode,
+        table_number: tableNumber,
+        deep_link_uri: `fanzone://venue/${venue_id}/table/${tableNumber}`,
+        qr_code_url: null,
         is_active: true,
       });
     }

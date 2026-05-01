@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   UserX,
+  Building2,
 } from "lucide-react";
 import { useState } from "react";
 import type { AdminRole } from "../../config/constants";

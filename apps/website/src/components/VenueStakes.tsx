@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Ticket, Users, CheckCircle2 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { api } from '../services/api';
 import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
 import { FETDisplay } from './ui/FETDisplay';
-import { VenueMatchStake, Match, UserPrediction } from '../types';
+import type { VenueMatchStake, Match, UserPrediction } from '../types';
 
 interface VenueStakesProps {
   match: Match;

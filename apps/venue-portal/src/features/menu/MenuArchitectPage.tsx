@@ -10,7 +10,7 @@ import {
   GripVertical,
   Wand2
 } from 'lucide-react';
-import { Reorder } from 'framer-motion';
+import { Reorder } from 'motion/react';
 import { MenuMagicModal } from '../../components/MenuMagicModal';
 import { ScannedMenuItem } from '../../hooks/useMenuMagic';
 

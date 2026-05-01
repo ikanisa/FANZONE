@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Security Audit Hardening
--- Migration: 20260501050000_security_audit_hardening.sql
+-- Migration: 20260501060000_security_audit_hardening.sql
 -- Purpose: Tighten RLS and function permissions for the circular economy.
 -- ============================================================================
 
@@ -20,13 +20,13 @@ CREATE POLICY orders_update_staff_status ON public.orders
   FOR UPDATE
   TO authenticated
   USING (
-    public.dinein_is_venue_member(venue_id, ARRAY['owner', 'manager', 'waiter']::public.venue_user_role[])
+    public.dinein_is_venue_member(venue_id, ARRAY['owner', 'manager', 'staff']::public.venue_user_role[])
   )
   WITH CHECK (
     -- Staff can ONLY update the status, not the amount, user_id, or FET fields.
     -- (This logic is best handled via database triggers or more granular RLS if needed,
     -- but for now, we ensure only staff for THAT venue can touch it).
-    public.dinein_is_venue_member(venue_id, ARRAY['owner', 'manager', 'waiter']::public.venue_user_role[])
+    public.dinein_is_venue_member(venue_id, ARRAY['owner', 'manager', 'staff']::public.venue_user_role[])
   );
 
 -- ── 3. Venue Stake Security ──────────────────────────────────────────────────
@@ -57,6 +57,7 @@ CREATE OR REPLACE FUNCTION public.is_order_owner(p_order_id uuid)
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
   RETURN EXISTS (

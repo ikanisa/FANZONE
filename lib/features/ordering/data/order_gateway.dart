@@ -214,18 +214,7 @@ class SupabaseOrderGateway implements OrderGateway {
           .eq('venue_id', venueId);
 
       if (statusFilter != null && statusFilter.isNotEmpty) {
-        final statusValues = statusFilter.map((s) {
-          switch (s) {
-            case OrderStatus.placed:
-              return 'new';
-            case OrderStatus.received:
-              return 'preparing';
-            case OrderStatus.served:
-              return 'served';
-            case OrderStatus.cancelled:
-              return 'cancelled';
-          }
-        }).toList();
+        final statusValues = statusFilter.map((s) => s.name).toList();
         query = query.inFilter('status', statusValues);
       }
 
@@ -253,16 +242,9 @@ class SupabaseOrderGateway implements OrderGateway {
       throw StateError('Cannot update order: no connection');
     }
 
-    final statusValue = switch (newStatus) {
-      OrderStatus.placed => 'new',
-      OrderStatus.received => 'preparing',
-      OrderStatus.served => 'served',
-      OrderStatus.cancelled => 'cancelled',
-    };
-
     await client
         .from('orders')
-        .update({'status': statusValue})
+        .update({'status': newStatus.name})
         .eq('id', orderId);
   }
 

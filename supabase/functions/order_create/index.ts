@@ -16,15 +16,24 @@ import {
 // --- Input Validation Schema ---
 const orderItemSchema = z.object({
   menu_item_id: z.string().uuid(),
-  qty: z.number().int().positive(),
+  quantity: z.number().int().positive().optional(),
+  qty: z.number().int().positive().optional(),
+  add_ons: z.unknown().optional(),
   modifiers_json: z.unknown().optional(),
+}).refine((item) => item.quantity !== undefined || item.qty !== undefined, {
+  message: "quantity is required",
 });
 
 const createOrderSchema = z.object({
   venue_id: z.string().uuid(),
-  table_public_code: z.string().min(1),
+  table_id: z.string().uuid().optional(),
+  table_public_code: z.string().min(1).optional(),
+  payment_method: z.enum(["cash", "momo", "revolut"]).default("cash"),
   items: z.array(orderItemSchema).min(1),
+  special_instructions: z.string().max(1000).optional(),
   notes: z.string().max(1000).optional(),
+}).refine((input) => input.table_id !== undefined || input.table_public_code !== undefined, {
+  message: "table_id or table_public_code is required",
 });
 
 type CreateOrderInput = z.infer<typeof createOrderSchema>;
@@ -77,7 +86,7 @@ Deno.serve(async (req) => {
     // ========================================================================
     const { data: venue, error: venueError } = await supabaseAdmin
       .from("venues")
-      .select("id, status, country")
+      .select("id, is_active, country_code, currency_code")
       .eq("id", input.venue_id)
       .single();
 
@@ -86,52 +95,44 @@ Deno.serve(async (req) => {
       return errorResponse("Venue not found", 404);
     }
 
-    if (venue.status !== "active") {
-      logger.warn("Venue not active", { venueId: input.venue_id, status: venue.status });
+    if (!venue.is_active) {
+      logger.warn("Venue not active", { venueId: input.venue_id });
       return errorResponse("Venue is not active", 400);
     }
 
     // ========================================================================
     // STEP 2: Validate table belongs to venue and is active
     // ========================================================================
-    const rawTableInput = input.table_public_code.trim();
-    const normalizedTableCode = rawTableInput.toUpperCase();
+    let table: { id: string; venue_id: string; table_number: string } | null = null;
 
-    let table: { id: string; venue_id: string; table_number: number; label: string } | null = null;
+    if (input.table_id) {
+      const { data: tableById } = await supabaseAdmin
+        .from("tables")
+        .select("id, venue_id, table_number")
+        .eq("id", input.table_id)
+        .eq("venue_id", input.venue_id)
+        .eq("is_active", true)
+        .maybeSingle();
 
-    const { data: tableByCode } = await supabaseAdmin
-      .from("tables")
-      .select("id, venue_id, table_number, label")
-      .eq("public_code", normalizedTableCode)
-      .eq("venue_id", input.venue_id)
-      .eq("is_active", true)
-      .single();
+      table = tableById;
+    } else if (input.table_public_code) {
+      const rawTableInput = input.table_public_code.trim();
+      const digitsMatch = rawTableInput.match(/\d+/);
+      const tableNumber = digitsMatch ? digitsMatch[0] : rawTableInput;
 
-    if (tableByCode) {
-      table = tableByCode;
-    } else {
-      const isLikelyPublicCode = /^TBL-[A-Z0-9]+$/i.test(rawTableInput);
-      if (!isLikelyPublicCode) {
-        const digitsMatch = rawTableInput.match(/\d+/);
-        const tableNumber = digitsMatch ? Number.parseInt(digitsMatch[0], 10) : NaN;
-        if (!Number.isNaN(tableNumber)) {
-          const { data: tableByNumber } = await supabaseAdmin
-            .from("tables")
-            .select("id, venue_id, table_number, label")
-            .eq("table_number", tableNumber)
-            .eq("venue_id", input.venue_id)
-            .eq("is_active", true)
-            .single();
+      const { data: tableByNumber } = await supabaseAdmin
+        .from("tables")
+        .select("id, venue_id, table_number")
+        .eq("table_number", tableNumber)
+        .eq("venue_id", input.venue_id)
+        .eq("is_active", true)
+        .maybeSingle();
 
-          if (tableByNumber) {
-            table = tableByNumber;
-          }
-        }
-      }
+      table = tableByNumber;
     }
 
     if (!table) {
-      logger.warn("Table not found", { tableCode: rawTableInput, venueId: input.venue_id });
+      logger.warn("Table not found", { tableId: input.table_id, tableCode: input.table_public_code, venueId: input.venue_id });
       return errorResponse("Table not found or inactive", 404);
     }
 
@@ -141,7 +142,7 @@ Deno.serve(async (req) => {
     const menuItemIds = input.items.map((item) => item.menu_item_id);
     const { data: menuItems, error: menuItemsError } = await supabaseAdmin
       .from("menu_items")
-      .select("id, name, price, is_available, venue_id")
+      .select("id, name, description, price, currency_code, is_available, venue_id")
       .in("id", menuItemIds)
       .eq("venue_id", input.venue_id);
 
@@ -159,7 +160,8 @@ Deno.serve(async (req) => {
       if (!menuItem.is_available) {
         return errorResponse(`Menu item ${menuItem.name} is not available`, 400);
       }
-      if (inputItem.qty <= 0) {
+      const quantity = inputItem.quantity ?? inputItem.qty!;
+      if (quantity <= 0) {
         return errorResponse(`Invalid quantity for ${menuItem.name}`, 400);
       }
     }
@@ -170,14 +172,19 @@ Deno.serve(async (req) => {
     let totalAmount = 0;
     const orderItemsData = input.items.map((inputItem) => {
       const menuItem = menuItemsMap.get(inputItem.menu_item_id)!;
-      const itemTotal = Number(menuItem.price) * inputItem.qty;
+      const quantity = inputItem.quantity ?? inputItem.qty!;
+      const itemTotal = Number(menuItem.price) * quantity;
       totalAmount += itemTotal;
 
       return {
-        name_snapshot: menuItem.name,
-        price_snapshot: menuItem.price,
-        qty: inputItem.qty,
-        modifiers_json: inputItem.modifiers_json || null,
+        menu_item_id: menuItem.id,
+        item_name_snapshot: menuItem.name,
+        item_description_snapshot: menuItem.description,
+        quantity,
+        unit_price: menuItem.price,
+        line_total: Math.round(itemTotal * 100) / 100,
+        currency_code: menuItem.currency_code || venue.currency_code,
+        add_ons: inputItem.add_ons || inputItem.modifiers_json || [],
       };
     });
 
@@ -220,19 +227,23 @@ Deno.serve(async (req) => {
     // ========================================================================
     // STEP 6: Insert order and order items
     // ========================================================================
-    const currency = venue.country === "RW" ? "RWF" : "EUR";
+    const currencyCode = venue.currency_code || (venue.country_code === "RW" ? "RWF" : "EUR");
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
         venue_id: input.venue_id,
         table_id: table.id,
-        client_auth_user_id: userId,
+        user_id: userId,
         order_code: orderCode,
         status: "placed",
-        payment_status: "unpaid",
+        payment_method: input.payment_method,
+        payment_status: "pending",
+        subtotal_amount: totalAmount,
+        tax_amount: 0,
+        tip_amount: 0,
         total_amount: totalAmount,
-        currency,
-        notes: input.notes || null,
+        currency_code: currencyCode,
+        special_instructions: input.special_instructions || input.notes || null,
       })
       .select()
       .single();

@@ -118,7 +118,7 @@ BEGIN
   IF tg_op = 'UPDATE' AND NEW.status IS DISTINCT FROM OLD.status THEN
     NEW.status_changed_at = timezone('utc', now());
 
-    IF NEW.status = 'preparing' AND OLD.accepted_at IS NULL THEN
+    IF NEW.status = 'received' AND OLD.accepted_at IS NULL THEN
       NEW.accepted_at = timezone('utc', now());
     END IF;
 

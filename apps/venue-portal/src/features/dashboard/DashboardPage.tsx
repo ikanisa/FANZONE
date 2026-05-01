@@ -8,14 +8,27 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { MenuMagicModal } from '../../components/MenuMagicModal';
-import { ScannedMenuItem } from '../../hooks/useMenuMagic';
+import type { ScannedMenuItem } from '../../hooks/useMenuMagic';
 import { useVenue } from '../../hooks/useVenueContext';
 import { useVenueStats } from '../../hooks/useVenueStats';
 import { useOrders } from '../../hooks/useOrders';
 import { useVenueStakes } from '../../hooks/useVenueStakes';
 import { supabase } from '../../lib/supabase';
+import type { VenueMatchStake } from '@fanzone/core';
 
-const StatCard = ({ title, value, icon, trend, color }: any) => (
+type StatCardProps = {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  trend: string;
+  color: string;
+};
+
+type ActiveMatch = VenueMatchStake & {
+  matchName: string;
+};
+
+const StatCard = ({ title, value, icon, trend, color }: StatCardProps) => (
   <div className="bg-white p-6 rounded-[24px] border border-border flex flex-col gap-4 shadow-sm">
     <div className="flex justify-between items-start">
       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color}`}>
@@ -34,10 +47,10 @@ const StatCard = ({ title, value, icon, trend, color }: any) => (
 
 export const DashboardPage: React.FC = () => {
   const { venue } = useVenue();
-  const { stats, loading: statsLoading } = useVenueStats(venue?.id || '');
-  const { orders, loading: ordersLoading } = useOrders(venue?.id || '');
-  const { stakes, loading: stakesLoading } = useVenueStakes(venue?.id || '');
-  const [activeMatch, setActiveMatch] = useState<any>(null);
+  const { stats } = useVenueStats(venue?.id || '');
+  const { orders } = useOrders(venue?.id || '');
+  const { stakes } = useVenueStakes(venue?.id || '');
+  const [activeMatch, setActiveMatch] = useState<ActiveMatch | null>(null);
   const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
 
   useEffect(() => {
@@ -46,7 +59,11 @@ export const DashboardPage: React.FC = () => {
       const activeStake = stakes.find(s => s.status === 'open');
       if (activeStake) {
         supabase.from('matches').select('home_team, away_team').eq('id', activeStake.matchId).single().then(({ data }) => {
-          if (data) setActiveMatch({ ...activeStake, matchName: `${data.home_team} vs ${data.away_team}` });
+          if (data) {
+            const homeTeam = data.home_team ?? 'Home';
+            const awayTeam = data.away_team ?? 'Away';
+            setActiveMatch({ ...activeStake, matchName: `${homeTeam} vs ${awayTeam}` });
+          }
         });
       }
     }

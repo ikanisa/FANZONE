@@ -100,10 +100,6 @@ Deno.serve(async (req) => {
     if (newStatus === "served") {
       updateData.served_at = new Date().toISOString();
     }
-    if (newStatus === "cancelled") {
-      updateData.cancelled_at = new Date().toISOString();
-    }
-
     const { data: updatedOrder, error: updateError } = await supabaseAdmin
       .from("orders")
       .update(updateData)

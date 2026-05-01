@@ -40,8 +40,8 @@ export function useMenuMagic() {
       if (!data.success) throw new Error(data.error || 'Failed to scan menu');
 
       return data.items as ScannedMenuItem[];
-    } catch (err: any) {
-      const msg = err.message || 'An unexpected error occurred during OCR.';
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unexpected error occurred during OCR.';
       setError(msg);
       return [];
     } finally {

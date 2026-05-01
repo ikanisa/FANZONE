@@ -201,7 +201,9 @@ export interface ViewerNotification {
 export type OrderStatus = 'placed' | 'received' | 'served' | 'cancelled';
 export type PaymentMethod = 'momo' | 'revolut' | 'cash';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
+export type VenueUserRole = 'owner' | 'manager' | 'staff';
 export type VenueStakeStatus = 'open' | 'settled' | 'cancelled';
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Venue {
   id: string;
@@ -213,7 +215,7 @@ export interface Venue {
   logoUrl?: string | null;
   coverUrl?: string | null;
   isOpen: boolean;
-  hoursJson?: Record<string, any>;
+  hoursJson?: Record<string, Json>;
   revolutLink?: string | null;
   whatsapp?: string | null;
   primaryCategory?: string | null;
@@ -240,7 +242,7 @@ export interface MenuItem {
   isAvailable: boolean;
   isFeatured: boolean;
   displayOrder: number;
-  addOns?: any[];
+  addOns?: Json[];
   dietaryFlags?: Record<string, boolean>;
 }
 
@@ -305,4 +307,153 @@ export interface VenueMember {
   userId: string;
   role: VenueUserRole;
   isActive: boolean;
+}
+
+export interface VenueRow {
+  [key: string]: unknown;
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  address_line1: string | null;
+  country_code: string;
+  logo_url: string | null;
+  cover_url: string | null;
+  is_open: boolean;
+  hours_json: Json | null;
+  revolut_link: string | null;
+  whatsapp: string | null;
+  primary_category: string | null;
+  rating: number | null;
+  price_level: number | null;
+}
+
+export interface VenueUserRow {
+  [key: string]: unknown;
+  id: string;
+  venue_id: string;
+  user_id: string;
+  role: VenueUserRole;
+  is_active: boolean;
+}
+
+export interface OrderItemRow {
+  [key: string]: unknown;
+  id: string;
+  order_id: string;
+  item_name_snapshot: string;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  currency_code: string;
+}
+
+export interface MenuCategoryRow {
+  [key: string]: unknown;
+  id: string;
+  venue_id: string;
+  name: string;
+  display_order: number;
+}
+
+export interface MenuItemRow {
+  [key: string]: unknown;
+  id: string;
+  venue_id: string;
+  category_id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  currency_code: string;
+  image_url: string | null;
+  is_available: boolean;
+  is_featured: boolean;
+  display_order: number;
+  add_ons: Json[] | null;
+  dietary_flags: Record<string, boolean> | null;
+}
+
+export interface OrderRow {
+  [key: string]: unknown;
+  id: string;
+  venue_id: string;
+  table_id: string;
+  order_code: string;
+  status: OrderStatus;
+  payment_method: PaymentMethod;
+  payment_status: PaymentStatus;
+  currency_code: string;
+  subtotal_amount: number;
+  total_amount: number;
+  payment_fet_amount: number;
+  payment_fet_converted_amount: number;
+  created_at: string;
+}
+
+export interface VenueMatchStakeRow {
+  [key: string]: unknown;
+  id: string;
+  venue_id: string;
+  match_id: string;
+  entry_fee_fet: number;
+  total_pool_fet: number;
+  status: VenueStakeStatus;
+  created_at: string;
+}
+
+export interface VenueMatchStakeEntryRow {
+  [key: string]: unknown;
+  id: string;
+  stake_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface MatchRow {
+  [key: string]: unknown;
+  id: string;
+  home_team: string | null;
+  away_team: string | null;
+}
+
+type TableDefinition<Row extends Record<string, unknown>> = {
+  Row: Row;
+  Insert: Record<string, unknown>;
+  Update: Record<string, unknown>;
+  Relationships: [];
+};
+
+export interface Database {
+  public: {
+    Tables: {
+      venues: TableDefinition<VenueRow>;
+      venue_users: TableDefinition<VenueUserRow>;
+      menu_categories: TableDefinition<MenuCategoryRow>;
+      menu_items: TableDefinition<MenuItemRow>;
+      orders: TableDefinition<OrderRow>;
+      order_items: TableDefinition<OrderItemRow>;
+      venue_match_stakes: TableDefinition<VenueMatchStakeRow>;
+      venue_match_stake_entries: TableDefinition<VenueMatchStakeEntryRow>;
+      matches: TableDefinition<MatchRow>;
+    };
+    Views: { [_ in never]: never };
+    Functions: {
+      join_venue_match_stake: {
+        Args: { p_stake_id: string };
+        Returns: { success: boolean; stake_id: string; entry_fee_fet: number }[];
+      };
+      order_update_status: {
+        Args: { p_order_id: string; p_status: OrderStatus };
+        Returns: boolean;
+      };
+    };
+    Enums: {
+      order_status: OrderStatus;
+      payment_method: PaymentMethod;
+      payment_status: PaymentStatus;
+      venue_user_role: VenueUserRole;
+      venue_stake_status: VenueStakeStatus;
+    };
+    CompositeTypes: { [_ in never]: never };
+  };
 }

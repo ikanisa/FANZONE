@@ -14,7 +14,7 @@ export interface AuditMetadata {
 }
 
 /**
- * Write an entry to the audit_logs table
+ * Write an entry to the admin_audit_logs table
  * Uses service role client to bypass RLS
  */
 export async function writeAuditLog(
@@ -27,12 +27,20 @@ export async function writeAuditLog(
     logger?: Logger
 ): Promise<void> {
     try {
-        const { error } = await supabaseAdmin.from("audit_logs").insert({
-            actor_auth_user_id: actorUserId,
+        const { data: adminRecord } = await supabaseAdmin
+            .from("admin_users")
+            .select("id")
+            .eq("user_id", actorUserId)
+            .eq("is_active", true)
+            .maybeSingle();
+
+        const { error } = await supabaseAdmin.from("admin_audit_logs").insert({
+            admin_user_id: adminRecord?.id ?? null,
             action,
-            entity_type: entityType,
-            entity_id: entityId,
-            metadata_json: metadata || null,
+            module: String(entityType),
+            target_type: String(entityType),
+            target_id: entityId ?? "",
+            metadata: metadata || {},
         });
 
         if (error) {

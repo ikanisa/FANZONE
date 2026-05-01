@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { VenueProvider } from './hooks/useVenueContext';
@@ -17,23 +16,23 @@ const Placeholder = ({ title }: { title: string }) => (
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AppShell />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="menu" element={<MenuArchitectPage />} />
-          <Route path="orders" element={<LiveOrderQueuePage />} />
-          <Route path="stakes" element={<Placeholder title="Match Stakes & Pools" />} />
-          <Route path="analytics" element={<Placeholder title="Operational Analytics" />} />
-          <Route path="settings" element={<QRFactoryPage />} />
-        </Route>
-        
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <VenueProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AppShell />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="menu" element={<MenuArchitectPage />} />
+            <Route path="orders" element={<LiveOrderQueuePage />} />
+            <Route path="stakes" element={<Placeholder title="Match Stakes & Pools" />} />
+            <Route path="analytics" element={<Placeholder title="Operational Analytics" />} />
+            <Route path="settings" element={<QRFactoryPage />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </VenueProvider>
   );
 }
 
 export default App;
- default App;

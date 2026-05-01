@@ -59,9 +59,9 @@ Deno.serve(async (req) => {
     // ---- Validate venue ----
     const { data: venue } = await supabaseAdmin
       .from("venues")
-      .select("id, name, status")
+      .select("id, name, is_active")
       .eq("id", venue_id)
-      .eq("status", "active")
+      .eq("is_active", true)
       .single();
 
     if (!venue) {
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
     // ---- Validate table belongs to venue ----
     const { data: table } = await supabaseAdmin
       .from("tables")
-      .select("id, table_number, label")
+      .select("id, table_number")
       .eq("id", table_id)
       .eq("venue_id", venue_id)
       .eq("is_active", true)
@@ -83,13 +83,12 @@ Deno.serve(async (req) => {
 
     // ---- Insert bell ring record ----
     const { data: bell, error: bellError } = await supabaseAdmin
-      .from("bell_rings")
+      .from("bell_requests")
       .insert({
         venue_id,
         table_id,
-        client_auth_user_id: user.id,
+        user_id: user.id,
         message: message || null,
-        status: "pending",
       })
       .select()
       .single();
@@ -113,7 +112,7 @@ Deno.serve(async (req) => {
       requestId,
       bell,
       venue: { name: venue.name },
-      table: { number: table.table_number, label: table.label },
+      table: { number: table.table_number },
     }, 201);
   } catch (error) {
     logger.error("Ring bell error", { error: String(error) });

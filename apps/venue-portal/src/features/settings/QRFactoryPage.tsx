@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { 
   QrCode, 
   Download, 
-  Plus, 
-  Trash2, 
   Settings2, 
   Printer,
-  ChevronRight,
   Maximize2
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 interface QRTable {
   id: string;

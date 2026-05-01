@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
         // ========================================================================
         const { data: existingVendor } = await supabaseAdmin
             .from("venues")
-            .select("id, status")
+            .select("id")
             .eq("google_place_id", input.google_place_id)
             .single();
 
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
                 .from("venue_users")
                 .select("id, role")
                 .eq("venue_id", existingVendor.id)
-                .eq("auth_user_id", user.id)
+                .eq("user_id", user.id)
                 .single();
 
             if (existingMember) {
@@ -163,17 +163,22 @@ Deno.serve(async (req) => {
             google_place_id: input.google_place_id,
             slug: slug,
             name: input.name,
-            address: input.address || null,
-            lat: input.lat || null,
-            lng: input.lng || null,
+            address_line1: input.address || null,
+            latitude: input.lat || null,
+            longitude: input.lng || null,
             hours_json: input.hours_json || null,
             photos_json: input.photos_json || null,
-            website: input.website || null,
-            phone: input.phone || null,
+            website_url: input.website || null,
+            owner_phone: input.phone || null,
             revolut_link: input.revolut_link || null,
             whatsapp: input.whatsapp || null,
-            status: "pending",
-            country: input.country,
+            country_code: input.country,
+            venue_type: "bar",
+            currency_code: input.country === "RW" ? "RWF" : "EUR",
+            owner_id: user.id,
+            claimed: true,
+            is_active: false,
+            onboarding_status: "draft",
         };
 
         const { data: vendor, error: vendorError } = await supabaseAdmin
@@ -192,9 +197,9 @@ Deno.serve(async (req) => {
         // ========================================================================
         const { data: vendorUser, error: vendorUserError } = await supabaseAdmin
             .from("venue_users")
-            .insert({
+                .insert({
                 venue_id: vendor.id,
-                auth_user_id: user.id,
+                user_id: user.id,
                 role: "owner",
                 is_active: true,
             })

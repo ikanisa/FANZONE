@@ -97,7 +97,7 @@ export async function isAdmin(
     const { data: adminRecord } = await supabaseAdmin
         .from("admin_users")
         .select("id")
-        .eq("auth_user_id", userId)
+        .eq("user_id", userId)
         .eq("is_active", true)
         .single();
 
@@ -119,7 +119,7 @@ export async function isVendorMember(
         .from("venue_users")
         .select("id, role")
         .eq("venue_id", vendorId)
-        .eq("auth_user_id", userId)
+        .eq("user_id", userId)
         .eq("is_active", true)
         .single();
 
