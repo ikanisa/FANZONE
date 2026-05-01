@@ -44,7 +44,7 @@ function settlementLabel(row: PoolOperationsRow) {
 
 export function PoolOperationsPage({
   title = "Pools",
-  subtitle = "Pool health, social cards, invite rewards, and settlement readiness",
+  subtitle = "Pool health, automated settlements, failed retries, social cards, and invite rewards",
 }: {
   title?: string;
   subtitle?: string;
@@ -160,7 +160,7 @@ export function PoolOperationsPage({
         kpis && (
           <div className="grid grid-4 gap-4 mb-6">
             <KpiCard label="Open Pools" value={kpis.openPools} icon={<Trophy size={18} />} />
-            <KpiCard label="Pending Finals" value={kpis.pendingFinalPools} icon={<Play size={18} />} />
+            <KpiCard label="Due Settlements" value={kpis.pendingFinalPools} icon={<Play size={18} />} />
             <KpiCard label="Failed Settlements" value={kpis.failedSettlements} icon={<AlertTriangle size={18} />} />
             <KpiCard label="Stale Settling" value={kpis.staleSettlingPools} icon={<ShieldCheck size={18} />} />
             <KpiCard label="Open Pooled FET" value={kpis.totalOpenStakeFet} format="fet" icon={<Wallet size={18} />} />

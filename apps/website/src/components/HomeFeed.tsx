@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Calendar, Activity, ChevronRight, X, Flame, Trophy } from 'lucide-react';
+import { Calendar, Activity, ChevronRight, X, Flame, Trophy, Utensils, Wallet } from 'lucide-react';
 import { MatchCard } from './ui/MatchCard';
 import { EmptyState } from './ui/EmptyState';
 import { Badge } from './ui/Badge';
@@ -13,6 +13,8 @@ import {
 } from '../platform/access';
 import { usePlatformBootstrap } from '../platform/bootstrap';
 import type { Match } from '../types';
+import { useAppStore } from '../store/useAppStore';
+import { FETDisplay } from './ui/FETDisplay';
 
 function PromoBanner({
   title,
@@ -143,6 +145,7 @@ function FeedSection({
 
 export default function HomeFeed() {
   const { bootstrap } = usePlatformBootstrap();
+  const { fetBalance } = useAppStore();
   const [liveMatches, setLiveMatches] = useState<Match[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -202,7 +205,48 @@ export default function HomeFeed() {
           </div>
         </div>
       ) : (
-        homeBlocks.map((block) => {
+        <>
+          <section className="fz-surface-card p-5 lg:p-6 bg-gradient-to-br from-surface via-surface2 to-[#0F7B6C]/40">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted">
+                  Matchday wallet
+                </div>
+                <h2 className="mt-1 text-3xl lg:text-4xl font-black tracking-tight text-text">
+                  Join pools, order at the bar, track FET.
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-muted">
+                  FET comes from bar orders and settled match pools. No odds, no prediction clutter.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-accent/20 bg-accent/10 p-4 min-w-[180px]">
+                <div className="flex items-center gap-2 text-accent">
+                  <Wallet size={16} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    Balance
+                  </span>
+                </div>
+                <div className="mt-2 text-2xl font-black text-text">
+                  <FETDisplay amount={fetBalance} showFiat={false} />
+                </div>
+              </div>
+            </div>
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {showPools && (
+                <Link to={poolsRoute} className="h-14 rounded-xl bg-accent2 text-bg font-black flex items-center justify-center gap-2">
+                  <Trophy size={18} /> Join Pool
+                </Link>
+              )}
+              <Link to="/ordering" className="h-14 rounded-xl bg-primary text-primaryText font-black flex items-center justify-center gap-2">
+                <Utensils size={18} /> Order
+              </Link>
+              <Link to="/wallet" className="h-14 rounded-xl border border-border bg-surface2 text-text font-black flex items-center justify-center gap-2">
+                <Wallet size={18} /> Wallet
+              </Link>
+            </div>
+          </section>
+
+          {homeBlocks.map((block) => {
           if (block.blockType === 'promo_banner') {
             return (
               <PromoBanner
@@ -262,7 +306,8 @@ export default function HomeFeed() {
           }
 
           return null;
-        })
+          })}
+        </>
       )}
     </div>
   );

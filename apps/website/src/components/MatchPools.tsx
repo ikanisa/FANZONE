@@ -1,18 +1,25 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { CheckCircle2, Copy, Loader2, Share2, Trophy, Users } from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  CheckCircle2,
+  Copy,
+  Loader2,
+  Share2,
+  Trophy,
+  Users,
+} from "lucide-react";
 import {
   clampPoolStake,
   estimatePoolOutcome,
   fixedOrDefaultStake,
   getPoolJoinAvailability,
   poolStatusLabel,
-} from '@fanzone/core';
-import { api } from '../services/api';
-import { useAppStore } from '../store/useAppStore';
-import type { Match, MatchPoolCamp, MatchPoolSummary } from '../types';
-import { Badge } from './ui/Badge';
-import { Card } from './ui/Card';
-import { FETDisplay } from './ui/FETDisplay';
+} from "@fanzone/core";
+import { api } from "../services/api";
+import { useAppStore } from "../store/useAppStore";
+import type { Match, MatchPoolCamp, MatchPoolSummary } from "../types";
+import { Badge } from "./ui/Badge";
+import { Card } from "./ui/Card";
+import { FETDisplay } from "./ui/FETDisplay";
 
 interface MatchPoolsProps {
   match: Match;
@@ -33,29 +40,30 @@ function poolShareUrl(
   pool: MatchPoolSummary,
   source: "direct" | "venue_qr" | "social_share" = "social_share",
 ) {
-  const path = pool.shareUrl || (pool.shareSlug ? `/pools/${pool.shareSlug}` : '/pools');
+  const path =
+    pool.shareUrl || (pool.shareSlug ? `/pools/${pool.shareSlug}` : "/pools");
   const url =
-    typeof window === 'undefined'
-      ? new URL(path, 'https://fanzone.ikanisa.com')
+    typeof window === "undefined"
+      ? new URL(path, "https://fanzone.ikanisa.com")
       : new URL(path, window.location.origin);
-  if (!url.searchParams.has('source')) {
-    url.searchParams.set('source', source);
+  if (!url.searchParams.has("source")) {
+    url.searchParams.set("source", source);
   }
   return url.toString();
 }
 
 function formatScope(pool: MatchPoolSummary) {
-  if (pool.scope === 'venue') return 'Venue pool';
-  if (pool.scope === 'country') return `${pool.countryCode ?? 'Country'} pool`;
-  return 'Global pool';
+  if (pool.scope === "venue") return "Venue pool";
+  if (pool.scope === "country") return `${pool.countryCode ?? "Country"} pool`;
+  return "Global pool";
 }
 
 export function PoolList({
   pools,
-  emptyTitle = 'No pools open yet',
-  emptyDescription = 'Admin curated pools will appear here when available.',
+  emptyTitle = "No pools open yet",
+  emptyDescription = "Admin curated pools will appear here when available.",
   inviteCode,
-  source = 'direct',
+  source = "direct",
   onJoined,
 }: PoolListProps) {
   if (pools.length === 0) {
@@ -85,7 +93,7 @@ export function PoolList({
 export function PoolCard({
   pool,
   inviteCode,
-  source = 'direct',
+  source = "direct",
   onJoined,
 }: {
   pool: MatchPoolSummary;
@@ -94,13 +102,14 @@ export function PoolCard({
   onJoined?: () => void;
 }) {
   const { fetBalance, deductFet, addNotification } = useAppStore();
-  const [selectedCampId, setSelectedCampId] = useState(pool.camps[0]?.id ?? '');
+  const [selectedCampId, setSelectedCampId] = useState(pool.camps[0]?.id ?? "");
   const [stakeAmount, setStakeAmount] = useState(fixedOrDefaultStake(pool));
   const [joining, setJoining] = useState(false);
   const [joined, setJoined] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const selectedCamp = useMemo(
-    () => pool.camps.find((camp) => camp.id === selectedCampId) ?? pool.camps[0],
+    () =>
+      pool.camps.find((camp) => camp.id === selectedCampId) ?? pool.camps[0],
     [pool.camps, selectedCampId],
   );
   const entryAmount = clampPoolStake(stakeAmount, pool);
@@ -112,7 +121,7 @@ export function PoolCard({
 
   useEffect(() => {
     setStakeAmount(fixedOrDefaultStake(pool));
-    setSelectedCampId(pool.camps[0]?.id ?? '');
+    setSelectedCampId(pool.camps[0]?.id ?? "");
     setJoined(false);
     setFeedback(null);
   }, [pool.id, pool.entryFeeFet, pool.stakeMinFet, pool.camps]);
@@ -124,11 +133,11 @@ export function PoolCard({
       invite.success && invite.shareUrl
         ? new URL(
             invite.shareUrl,
-            typeof window === 'undefined'
-              ? 'https://fanzone.ikanisa.com'
+            typeof window === "undefined"
+              ? "https://fanzone.ikanisa.com"
               : window.location.origin,
           ).toString()
-        : poolShareUrl(pool, 'social_share');
+        : poolShareUrl(pool, "social_share");
     try {
       if (navigator.share) {
         await navigator.share({
@@ -138,17 +147,17 @@ export function PoolCard({
         });
       } else {
         await navigator.clipboard.writeText(url);
-        setFeedback('Pool link copied.');
+        setFeedback("Pool link copied.");
       }
     } catch {
-      setFeedback('Sharing is not available on this device.');
+      setFeedback("Sharing is not available on this device.");
     }
   }
 
   async function handleJoin() {
     if (!selectedCamp) return;
     if (fetBalance < entryAmount) {
-      setFeedback('Insufficient FET balance.');
+      setFeedback("Insufficient FET balance.");
       return;
     }
 
@@ -159,28 +168,28 @@ export function PoolCard({
       selectedCamp.id,
       entryAmount,
       inviteCode,
-      inviteCode ? 'direct' : source,
+      inviteCode ? "direct" : source,
     );
     setJoining(false);
 
     if (!result.success) {
-      setFeedback(result.error ?? 'Could not join pool.');
+      setFeedback(result.error ?? "Could not join pool.");
       return;
     }
 
     deductFet(entryAmount);
     setJoined(true);
     addNotification({
-      type: 'system',
-      title: 'Joined Match Pool',
+      type: "system",
+      title: "Joined Match Pool",
       message: `You joined ${pool.title} on ${selectedCamp.label}.`,
     });
     onJoined?.();
   }
 
   return (
-    <Card className="p-5 bg-surface2 border-border overflow-hidden relative">
-      <div className="flex items-start justify-between gap-3 mb-4">
+    <Card className="p-5 lg:p-6 bg-surface border-border overflow-hidden relative shadow-[0_18px_48px_rgba(0,0,0,0.22)]">
+      <div className="flex items-start justify-between gap-3 mb-5">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-accent2 mb-2">
             <Trophy size={18} />
@@ -188,7 +197,7 @@ export function PoolCard({
               {formatScope(pool)}
             </span>
           </div>
-          <h3 className="text-xl font-black text-text leading-tight">
+          <h3 className="text-2xl font-black text-text leading-tight">
             {pool.title}
           </h3>
         </div>
@@ -198,7 +207,7 @@ export function PoolCard({
           className="w-10 h-10 rounded-full bg-surface border border-border text-muted hover:text-text flex items-center justify-center"
           aria-label="Share pool"
         >
-          {typeof navigator !== 'undefined' && navigator.share ? (
+          {typeof navigator !== "undefined" && navigator.share ? (
             <Share2 size={18} />
           ) : (
             <Copy size={18} />
@@ -215,7 +224,7 @@ export function PoolCard({
         />
       )}
 
-      <div className="grid grid-cols-2 gap-2 mb-4">
+      <div className="grid grid-cols-2 gap-3 mb-5">
         <Metric label="Members" value={pool.totalMembers.toLocaleString()} />
         <Metric
           label="Pooled"
@@ -223,27 +232,27 @@ export function PoolCard({
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
         {pool.camps.map((camp) => (
           <CampButton
             key={camp.id}
             camp={camp}
             selected={camp.id === selectedCampId}
-            disabled={pool.status !== 'open' || joined}
+            disabled={pool.status !== "open" || joined}
             onSelect={() => setSelectedCampId(camp.id)}
           />
         ))}
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface3 p-4 mb-4">
+      <div className="rounded-2xl border border-border bg-surface2 p-5 mb-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted">
-              Stake
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted">
+              Stake FET
             </div>
-            <div className="text-xs text-muted mt-1">
+            <div className="text-xs text-muted mt-1 leading-5">
               {pool.entryFeeFet > 0
-                ? 'Fixed stake for this pool'
+                ? "Fixed stake for this pool"
                 : `${pool.stakeMinFet} - ${pool.stakeMaxFet} FET`}
             </div>
           </div>
@@ -255,7 +264,7 @@ export function PoolCard({
               value={entryAmount}
               disabled={pool.entryFeeFet > 0 || !canJoin}
               onChange={(event) => setStakeAmount(Number(event.target.value))}
-              className="w-24 rounded-xl border border-border bg-surface2 px-3 py-2 text-right font-mono font-bold text-text"
+              className="w-28 rounded-xl border border-border bg-surface3 px-3 py-3 text-right font-mono font-bold text-text"
               aria-label="FET stake amount"
             />
             <span className="text-xs font-black text-muted">FET</span>
@@ -266,11 +275,19 @@ export function PoolCard({
           <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
             <Metric
               label="If camp wins now"
-              value={<FETDisplay amount={outcomeEstimate.estimatedReturnIfSelectedCampWins} />}
+              value={
+                <FETDisplay
+                  amount={outcomeEstimate.estimatedReturnIfSelectedCampWins}
+                />
+              }
             />
             <Metric
               label="Est. upside"
-              value={<FETDisplay amount={outcomeEstimate.estimatedProfitIfSelectedCampWins} />}
+              value={
+                <FETDisplay
+                  amount={outcomeEstimate.estimatedProfitIfSelectedCampWins}
+                />
+              }
             />
             <p className="col-span-2 text-[11px] leading-5 text-muted">
               {outcomeEstimate.disclaimer}
@@ -301,11 +318,19 @@ export function PoolCard({
         </button>
       )}
 
-      <div className="flex items-center gap-2 mt-3">
-        <Badge variant={pool.status === 'open' ? 'success' : 'ghost'}>
+      <div className="flex items-center gap-2 mt-4">
+        <Badge variant={pool.status === "open" ? "success" : "ghost"}>
           {poolStatusLabel(pool.status).toUpperCase()}
         </Badge>
         {pool.isOfficial && <Badge variant="ghost">OFFICIAL</Badge>}
+        {pool.deepLinkUrl && (
+          <a
+            href={pool.deepLinkUrl}
+            className="ml-auto text-xs font-black uppercase tracking-widest text-accent2 hover:text-accent"
+          >
+            Open in app
+          </a>
+        )}
       </div>
 
       {!joinAvailability.canJoin && joinAvailability.reason && (
@@ -321,7 +346,11 @@ export function PoolCard({
   );
 }
 
-export default function MatchPools({ match, inviteCode, source }: MatchPoolsProps) {
+export default function MatchPools({
+  match,
+  inviteCode,
+  source,
+}: MatchPoolsProps) {
   const [pools, setPools] = useState<MatchPoolSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -386,36 +415,32 @@ function CampButton({
       type="button"
       disabled={disabled}
       onClick={onSelect}
-      className={`rounded-xl p-3 text-left transition-all border ${
+      className={`rounded-2xl p-4 text-left transition-all border min-h-28 ${
         selected
-          ? 'border-accent bg-accent/10 text-accent'
-          : 'bg-surface3 hover:bg-surface3/80 border-border text-text'
+          ? "border-accent bg-accent/10 text-accent shadow-[0_0_0_3px_rgba(34,211,238,0.08)]"
+          : "bg-surface2 hover:bg-surface3 border-border text-text"
       } disabled:opacity-70`}
     >
-      <div className="font-bold text-sm truncate">{camp.label}</div>
-      <div className="text-[10px] text-muted mt-1">
+      <div className="font-black text-lg truncate">{camp.label}</div>
+      <div className="text-xs font-bold text-muted mt-3">
         {camp.memberCount} members
       </div>
-      <div className="text-[10px] text-muted">
+      <div className="text-xs font-bold text-muted">
         {camp.totalStakedFet} FET pooled
       </div>
     </button>
   );
 }
 
-function Metric({
-  label,
-  value,
-}: {
-  label: string;
-  value: ReactNode;
-}) {
+function Metric({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-surface3 p-3">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-muted">
+    <div className="rounded-2xl border border-border bg-surface2 p-4">
+      <div className="text-[10px] font-black uppercase tracking-widest text-muted">
         {label}
       </div>
-      <div className="font-mono text-sm font-bold text-text mt-1">{value}</div>
+      <div className="font-mono text-base font-black text-text mt-1">
+        {value}
+      </div>
     </div>
   );
 }

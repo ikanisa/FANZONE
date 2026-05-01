@@ -35,9 +35,16 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className={`bg-white border-r border-border hidden md:flex flex-col transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`bg-surface border-r border-border hidden md:flex flex-col transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'}`}>
       <div className="h-20 flex items-center px-6 border-b border-border justify-between">
-        {!collapsed && <span className="font-black text-xl tracking-tighter">Venue Console</span>}
+        {!collapsed && (
+          <div>
+            <span className="block text-[10px] font-black uppercase tracking-widest text-textSecondary">
+              Sports bar ops
+            </span>
+            <span className="font-black text-xl tracking-tight text-text">Venue Console</span>
+          </div>
+        )}
         <button onClick={() => setCollapsed(!collapsed)} className="p-2 hover:bg-surface2 rounded-lg text-textSecondary">
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
@@ -50,7 +57,7 @@ export const Sidebar = () => {
             to={item.path}
             className={({ isActive }) => `
               flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all
-              ${isActive ? 'bg-primary text-primaryText shadow-lg shadow-primary/20' : 'text-textSecondary hover:bg-surface2'}
+              ${isActive ? 'bg-primary text-primaryText shadow-lg shadow-primary/20' : 'text-textSecondary hover:bg-surface2 hover:text-text'}
               ${collapsed ? 'justify-center px-0' : ''}
             `}
           >
@@ -85,16 +92,16 @@ export const AppShell = () => {
     .toUpperCase();
 
   return (
-    <div className="flex h-screen bg-surface2 overflow-hidden">
+    <div className="flex h-screen bg-bg overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-border flex flex-col gap-4 px-4 py-4 md:h-20 md:px-8 md:py-0 md:flex-row md:items-center md:justify-between shrink-0">
+        <header className="bg-surface/95 backdrop-blur border-b border-border flex flex-col gap-4 px-4 py-4 md:h-20 md:px-8 md:py-0 md:flex-row md:items-center md:justify-between shrink-0">
           <div>
-            <h2 className="text-sm font-bold text-textSecondary uppercase tracking-widest">Venue Portal</h2>
-            <p className="font-black text-text">{venueName}</p>
+            <h2 className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Live operations</h2>
+            <p className="font-black text-xl text-text">{venueName}</p>
           </div>
           <div className="hidden md:flex items-center gap-4">
-            <div className="w-10 h-10 bg-accent rounded-full border border-primary/10 flex items-center justify-center font-black">
+            <div className="w-10 h-10 bg-accent text-bg rounded-xl border border-accent/20 flex items-center justify-center font-black">
               {venueInitials}
             </div>
           </div>

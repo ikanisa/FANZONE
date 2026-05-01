@@ -14,7 +14,9 @@ const CRON_SECRET = Deno.env.get("CRON_SECRET")?.trim() || "";
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
-      headers: buildCorsHeaders("content-type, x-cron-secret"),
+      headers: buildCorsHeaders(
+        "authorization, apikey, content-type, x-cron-secret",
+      ),
     });
   }
 
@@ -25,6 +27,8 @@ Deno.serve(async (req: Request) => {
   if (
     !isAuthorizedEdgeRequest({
       req,
+      serviceRoleKey: SUPABASE_SERVICE_ROLE_KEY,
+      allowServiceRoleBearer: true,
       sharedSecrets: [{ header: "x-cron-secret", value: CRON_SECRET }],
     })
   ) {
@@ -50,12 +54,21 @@ Deno.serve(async (req: Request) => {
 
     return Response.json(
       { settled_pools: data ?? 0, limit },
-      { headers: buildCorsHeaders("content-type") },
+      {
+        headers: buildCorsHeaders(
+          "authorization, apikey, content-type, x-cron-secret",
+        ),
+      },
     );
   } catch (error) {
     return Response.json(
       { error: getErrorMessage(error) },
-      { status: 500, headers: buildCorsHeaders("content-type") },
+      {
+        status: 500,
+        headers: buildCorsHeaders(
+          "authorization, apikey, content-type, x-cron-secret",
+        ),
+      },
     );
   }
 });

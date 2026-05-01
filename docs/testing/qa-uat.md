@@ -4,6 +4,8 @@ This is the cross-surface release checklist.
 
 Venue-specific details are also in `docs/venue-dashboard-uat.md`.
 
+Latest dated execution report: `docs/testing/qa-uat-report-2026-05-01.md`.
+
 ## Static Checks
 
 ```bash

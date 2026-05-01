@@ -142,7 +142,8 @@ Expected backend result:
 4. Confirm terminated-app delivery.
 5. Tap the push and verify the app lands on the expected route:
    - `/match/:id`
-   - `/predict`
+   - `/pools`
+   - `/pool/:poolId`
    - `/notifications`
 
 ## What the live flow does
@@ -150,7 +151,7 @@ Expected backend result:
 1. User opens the app and signs in.
 2. The device token is registered in `device_tokens`.
 3. User notification preferences are stored in `notification_preferences`.
-4. Lean scoring jobs or admin-triggered flows call `push-notify`.
+4. Pool settlement, match alert, or admin-triggered flows call `push-notify`.
 5. The notification is logged in `notification_log`.
 6. Tapping the notification routes the user into the correct app screen.
 

@@ -129,7 +129,7 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
                         padding: const EdgeInsets.only(bottom: 14),
                         child: _PoolCard(
                           pool: pool,
-                          onOpen: () => context.push('/pool/'),
+                          onOpen: () => context.push('/pool/${pool.id}'),
                           onStake: (camp) => _openStake(context, pool, camp),
                         ),
                       ),
@@ -411,7 +411,7 @@ class _PoolCard extends StatelessWidget {
     return FzCard(
       onTap: onOpen,
       padding: const EdgeInsets.all(16),
-      borderRadius: FzRadii.compact,
+      borderRadius: FzRadii.card,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -504,27 +504,69 @@ class _CampStakeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: enabled ? onTap : null,
-      style: OutlinedButton.styleFrom(
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: FzRadii.cardAltRadius,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 64),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        shape: const RoundedRectangleBorder(borderRadius: FzRadii.buttonRadius),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              camp.label,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w900),
+        decoration: BoxDecoration(
+          color: enabled
+              ? FzColors.darkSurface2
+              : FzColors.darkSurface2.withValues(alpha: 0.45),
+          borderRadius: FzRadii.cardAltRadius,
+          border: Border.all(
+            color: enabled
+                ? FzColors.accent.withValues(alpha: 0.22)
+                : FzColors.darkBorder,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: FzColors.accent.withValues(alpha: 0.10),
+                borderRadius: FzRadii.buttonRadius,
+              ),
+              child: const Icon(
+                LucideIcons.trophy,
+                size: 16,
+                color: FzColors.accent,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '${camp.memberCount} - ${camp.totalStakedFet} FET',
-            style: const TextStyle(fontSize: 12, color: FzColors.darkMuted),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    camp.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${camp.memberCount} members',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: FzColors.darkMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '${camp.totalStakedFet} FET',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
       ),
     );
   }

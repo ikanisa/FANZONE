@@ -1,4 +1,4 @@
-/// League constants for the curated Top 5 European leagues showcase.
+/// League constants for the curated sports-bar football showcase.
 ///
 /// Flag emojis are now backed by the `country_region_map` Supabase table
 /// via [BootstrapConfig]. When bootstrap data is unavailable, callers fall
@@ -11,12 +11,18 @@ import '../config/runtime_bootstrap.dart';
 const kRestOfWorldCompetitionRank = 1000;
 
 const kPriorityCompetitionIds = <String>[
+  'fifa-world-cup',
+  'world-cup',
+  'wc-2026',
   'champions-league',
+  'uefa-champions-league',
+  'europa-league',
+  'uefa-europa-league',
   'epl',
   'la-liga',
+  'serie-a',
   'ligue-1',
   'bundesliga',
-  'serie-a',
 ];
 
 /// The Big 5 European domestic league countries — always shown first.
@@ -86,32 +92,45 @@ int competitionCatalogRankByIdName(String? id, String? name) {
 
   final combined = '$normalizedId $normalizedName'.trim();
 
+  if (combined.contains('fifa world cup') ||
+      combined.contains('world cup') ||
+      normalizedId == 'fifa world cup' ||
+      normalizedId == 'world cup') {
+    return 1;
+  }
+
   if (combined.contains('champions league') ||
       normalizedId == 'ucl' ||
       normalizedId == 'uefa champions league') {
-    return 1;
+    return 2;
+  }
+
+  if (combined.contains('europa league') ||
+      normalizedId == 'uel' ||
+      normalizedId == 'uefa europa league') {
+    return 3;
   }
 
   if (normalizedId == 'epl' ||
       normalizedName == 'premier league' ||
       normalizedName == 'english premier league') {
-    return 2;
+    return 10;
   }
 
   if (combined.contains('la liga')) {
-    return 3;
-  }
-
-  if (combined.contains('ligue 1')) {
-    return 4;
-  }
-
-  if (combined.contains('bundesliga')) {
-    return 5;
+    return 20;
   }
 
   if (combined.contains('serie a')) {
-    return 6;
+    return 30;
+  }
+
+  if (combined.contains('ligue 1')) {
+    return 40;
+  }
+
+  if (combined.contains('bundesliga')) {
+    return 50;
   }
 
   return kRestOfWorldCompetitionRank;

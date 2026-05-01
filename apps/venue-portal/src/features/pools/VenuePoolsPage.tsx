@@ -376,7 +376,7 @@ export const VenuePoolsPage: React.FC = () => {
                     type="button"
                     onClick={() => void handleGenerateSocialCard(pool.id)}
                     disabled={generatingPoolId === pool.id}
-                    className="px-4 py-3 rounded-xl bg-text text-white font-black flex items-center gap-2 disabled:opacity-60"
+                    className="px-4 py-3 rounded-xl bg-accent2 text-white font-black flex items-center gap-2 disabled:opacity-60"
                   >
                     {generatingPoolId === pool.id ? (
                       <Loader2 size={16} className="animate-spin" />

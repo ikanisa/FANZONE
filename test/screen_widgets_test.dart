@@ -112,7 +112,7 @@ void main() {
         find.byKey(const ValueKey('wallet-total-balance-value')),
         findsOneWidget,
       );
-      expect(find.text('Available FET'), findsOneWidget);
+      expect(find.text('FET BALANCE'), findsOneWidget);
       expect(find.text('SEND'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Pool reward'),

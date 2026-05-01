@@ -1,19 +1,27 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Copy, Loader2, Plus, Share2, Trophy, UserRound } from 'lucide-react';
-import { api } from '../services/api';
-import type { Match, MatchPoolEntrySummary, MatchPoolSummary } from '../types';
-import MatchPools, { PoolList } from './MatchPools';
-import { Card } from './ui/Card';
-import { Badge } from './ui/Badge';
-import { FETDisplay } from './ui/FETDisplay';
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import {
+  ChevronLeft,
+  Copy,
+  Loader2,
+  Plus,
+  Share2,
+  Trophy,
+  UserRound,
+} from "lucide-react";
+import { api } from "../services/api";
+import type { Match, MatchPoolEntrySummary, MatchPoolSummary } from "../types";
+import MatchPools, { PoolList } from "./MatchPools";
+import { Card } from "./ui/Card";
+import { Badge } from "./ui/Badge";
+import { FETDisplay } from "./ui/FETDisplay";
 
 export default function Pools() {
   const [searchParams] = useSearchParams();
   const { slug } = useParams<{ slug: string }>();
-  const matchId = searchParams.get('matchId');
-  const inviteCode = searchParams.get('invite');
-  const source = normalizePoolSource(searchParams.get('source'));
+  const matchId = searchParams.get("matchId");
+  const inviteCode = searchParams.get("invite");
+  const source = normalizePoolSource(searchParams.get("source"));
   const [match, setMatch] = useState<Match | null>(null);
   const [poolMatches, setPoolMatches] = useState<Match[]>([]);
   const [myPools, setMyPools] = useState<MatchPoolEntrySummary[]>([]);
@@ -30,7 +38,11 @@ export default function Pools() {
     setMyPools(nextMyPools);
 
     if (slug) {
-      const pool = await api.getMatchPoolBySlug(slug);
+      const pool = await api.getMatchPoolBySlug(
+        slug,
+        inviteCode,
+        inviteCode ? "invite_link" : source,
+      );
       if (!pool) {
         setMatch(null);
         setPools([]);
@@ -39,11 +51,9 @@ export default function Pools() {
       }
 
       let resolvedPool = pool;
-      if (!pool.socialCardUrl) {
-        const card = await api.generatePoolShareCard(pool.id);
-        if (card.success && card.socialCardUrl) {
-          resolvedPool = { ...pool, socialCardUrl: card.socialCardUrl };
-        }
+      const card = await api.generatePoolShareCard(pool.id);
+      if (card.success && card.socialCardUrl) {
+        resolvedPool = { ...pool, socialCardUrl: card.socialCardUrl };
       }
 
       const nextMatch = await api.getMatchDetail(pool.matchId);
@@ -77,17 +87,17 @@ export default function Pools() {
     const title = `${pool.title} | FANZONE Pool`;
     const description = match
       ? `${match.homeTeam} vs ${match.awayTeam}. Join the pool with FET.`
-      : 'Join this FANZONE match pool with FET.';
+      : "Join this FANZONE match pool with FET.";
     document.title = title;
-    setMetaTag('og:title', title, 'property');
-    setMetaTag('og:description', description, 'property');
-    setMetaTag('twitter:title', title);
-    setMetaTag('twitter:description', description);
+    setMetaTag("og:title", title, "property");
+    setMetaTag("og:description", description, "property");
+    setMetaTag("twitter:title", title);
+    setMetaTag("twitter:description", description);
     if (pool.socialCardUrl) {
-      setMetaTag('og:image', pool.socialCardUrl, 'property');
-      setMetaTag('twitter:image', pool.socialCardUrl);
+      setMetaTag("og:image", pool.socialCardUrl, "property");
+      setMetaTag("twitter:image", pool.socialCardUrl);
     }
-    setMetaTag('og:url', window.location.href, 'property');
+    setMetaTag("og:url", window.location.href, "property");
   }, [match, pools, slug]);
 
   return (
@@ -115,7 +125,8 @@ export default function Pools() {
           </h1>
           <p className="text-sm text-muted leading-6 mt-2 max-w-2xl">
             Join curated global, country, and venue pools. Guests enter a camp
-            with FET, and automated settlement pays winners after the final result.
+            with FET, and automated settlement pays winners after the final
+            result.
           </p>
         </section>
 
@@ -171,21 +182,21 @@ export default function Pools() {
 
 function normalizePoolSource(
   value: string | null,
-): 'direct' | 'venue_qr' | 'social_share' {
-  if (value === 'venue_qr' || value === 'social_share') return value;
-  return 'direct';
+): "direct" | "venue_qr" | "social_share" {
+  if (value === "venue_qr" || value === "social_share") return value;
+  return "direct";
 }
 
 function setMetaTag(
   name: string,
   content: string,
-  attribute: 'name' | 'property' = 'name',
+  attribute: "name" | "property" = "name",
 ) {
   let tag = document.head.querySelector<HTMLMetaElement>(
     `meta[${attribute}="${name}"]`,
   );
   if (!tag) {
-    tag = document.createElement('meta');
+    tag = document.createElement("meta");
     tag.setAttribute(attribute, name);
     document.head.appendChild(tag);
   }
@@ -223,8 +234,8 @@ function SelectedMatches({ matches }: { matches: Match[] }) {
                   {item.homeTeam} vs {item.awayTeam}
                 </div>
               </div>
-              <Badge variant={item.isLive ? 'danger' : 'ghost'}>
-                {item.isLive ? 'LIVE' : item.kickoffLabel}
+              <Badge variant={item.isLive ? "danger" : "ghost"}>
+                {item.isLive ? "LIVE" : item.kickoffLabel}
               </Badge>
             </div>
           </Link>
@@ -255,7 +266,10 @@ function MyPoolsList({ entries }: { entries: MatchPoolEntrySummary[] }) {
         {entries.map((entry) => (
           <Link
             key={entry.entryId}
-            to={entry.shareUrl ?? `/pools?matchId=${encodeURIComponent(entry.matchId)}`}
+            to={
+              entry.shareUrl ??
+              `/pools?matchId=${encodeURIComponent(entry.matchId)}`
+            }
             className="rounded-2xl border border-border bg-surface2 p-4 hover:border-accent/40 transition-colors"
           >
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -269,8 +283,14 @@ function MyPoolsList({ entries }: { entries: MatchPoolEntrySummary[] }) {
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 min-w-[220px]">
-                <MiniMetric label="Staked" value={<FETDisplay amount={entry.stakeAmount} />} />
-                <MiniMetric label="Payout" value={<FETDisplay amount={entry.payoutFet} />} />
+                <MiniMetric
+                  label="Staked"
+                  value={<FETDisplay amount={entry.stakeAmount} />}
+                />
+                <MiniMetric
+                  label="Payout"
+                  value={<FETDisplay amount={entry.payoutFet} />}
+                />
               </div>
             </div>
           </Link>
@@ -282,7 +302,7 @@ function MyPoolsList({ entries }: { entries: MatchPoolEntrySummary[] }) {
 
 function CreatePoolPanel({
   matches,
-  defaultMatchId = '',
+  defaultMatchId = "",
   onCreated,
 }: {
   matches: Match[];
@@ -290,9 +310,9 @@ function CreatePoolPanel({
   onCreated: () => void;
 }) {
   const [matchId, setMatchId] = useState(defaultMatchId);
-  const [scope, setScope] = useState<'global' | 'venue'>('global');
-  const [venueId, setVenueId] = useState('');
-  const [title, setTitle] = useState('');
+  const [scope, setScope] = useState<"global" | "venue">("global");
+  const [venueId, setVenueId] = useState("");
+  const [title, setTitle] = useState("");
   const [stakeMin, setStakeMin] = useState(5);
   const [stakeMax, setStakeMax] = useState(50);
   const [creating, setCreating] = useState(false);
@@ -314,26 +334,26 @@ function CreatePoolPanel({
       title,
       stakeMinFet: Math.max(1, stakeMin),
       stakeMaxFet: Math.max(Math.max(1, stakeMin), stakeMax),
-      venueId: scope === 'venue' ? venueId.trim() || null : null,
-      visibility: 'shareable',
+      venueId: scope === "venue" ? venueId.trim() || null : null,
+      visibility: "shareable",
     });
     setCreating(false);
 
     if (!response.success) {
-      setResult(response.error ?? 'Could not create pool.');
+      setResult(response.error ?? "Could not create pool.");
       return;
     }
 
     const endorsement =
-      response.endorsementStatus === 'pending'
-        ? ' Pending venue endorsement before guests can join.'
-        : '';
+      response.endorsementStatus === "pending"
+        ? " Pending venue endorsement before guests can join."
+        : "";
     setResult(
-      response.status === 'existing_pool'
-        ? `A venue pool already exists. ${response.shareUrl ?? ''}`.trim()
-        : `Pool created. ${response.shareUrl ?? ''}${endorsement}`.trim(),
+      response.status === "existing_pool"
+        ? `A venue pool already exists. ${response.shareUrl ?? ""}`.trim()
+        : `Pool created. ${response.shareUrl ?? ""}${endorsement}`.trim(),
     );
-    setTitle('');
+    setTitle("");
     onCreated();
   }
 
@@ -354,7 +374,8 @@ function CreatePoolPanel({
             Shareable Match Pool
           </h2>
           <p className="text-sm text-muted mt-1">
-            Choose a curated match, set FET stake bounds, confirm home/draw/away camps, then share the generated link.
+            Choose a curated match, set FET stake bounds, confirm home/draw/away
+            camps, then share the generated link.
           </p>
         </div>
       </div>
@@ -386,7 +407,9 @@ function CreatePoolPanel({
           <select
             className="rounded-xl border border-border bg-surface3 px-3 py-3 text-sm font-bold text-text"
             value={scope}
-            onChange={(event) => setScope(event.target.value as 'global' | 'venue')}
+            onChange={(event) =>
+              setScope(event.target.value as "global" | "venue")
+            }
           >
             <option value="global">Private/shareable</option>
             <option value="venue">Venue-linked</option>
@@ -394,7 +417,7 @@ function CreatePoolPanel({
         </label>
       </div>
 
-      {scope === 'venue' && (
+      {scope === "venue" && (
         <label className="grid gap-1">
           <span className="text-[10px] font-black uppercase tracking-widest text-muted">
             Venue ID
@@ -447,7 +470,11 @@ function CreatePoolPanel({
           disabled={creating || !matchId}
           className="h-12 rounded-2xl bg-accent2 px-5 font-black text-darkBg disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {creating ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+          {creating ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : (
+            <Share2 size={18} />
+          )}
           Create and Generate Share Card
         </button>
         {result && (

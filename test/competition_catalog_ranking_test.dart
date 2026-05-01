@@ -8,6 +8,7 @@ void main() {
           ('epl', 'English Premier League'),
           ('wc-2026', 'FIFA World Cup 2026'),
           ('champions-league', 'UEFA Champions League'),
+          ('europa-league', 'UEFA Europa League'),
           ('serie-a', 'Serie A'),
           ('la-liga', 'La Liga'),
           ('bundesliga', 'Bundesliga'),
@@ -22,13 +23,14 @@ void main() {
     expect(
       ranked.map((competition) => competition.$1).toList(growable: false),
       [
+        'wc-2026',
         'champions-league',
+        'europa-league',
         'epl',
         'la-liga',
+        'serie-a',
         'ligue-1',
         'bundesliga',
-        'serie-a',
-        'wc-2026',
       ],
     );
   });

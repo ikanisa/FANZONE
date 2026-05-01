@@ -162,6 +162,12 @@ abstract interface class PoolsRepository {
 
   Future<PoolSummary?> getPoolBySlug(String shareSlug);
 
+  Future<PoolSummary?> getPoolByShareLink({
+    required String shareSlug,
+    String? inviteCode,
+    String? source,
+  });
+
   Future<PoolEntryState?> getMyEntry(String poolId);
 
   Future<Map<String, dynamic>> stakeInPool({
@@ -249,6 +255,15 @@ class SupabasePoolsRepository implements PoolsRepository {
 
   @override
   Future<PoolSummary?> getPoolBySlug(String shareSlug) async {
+    return getPoolByShareLink(shareSlug: shareSlug);
+  }
+
+  @override
+  Future<PoolSummary?> getPoolByShareLink({
+    required String shareSlug,
+    String? inviteCode,
+    String? source,
+  }) async {
     final client = ref.watch(supabaseConnectionProvider).client;
     if (client == null) {
       throw StateError(
@@ -256,10 +271,25 @@ class SupabasePoolsRepository implements PoolsRepository {
       );
     }
 
+    final sharePayload = await client.rpc(
+      'get_public_pool_share',
+      params: {
+        'p_slug_or_pool_id': shareSlug,
+        'p_invite_code': inviteCode,
+        'p_source': _safeShareSource(source, inviteCode),
+      },
+    );
+    final share = Map<String, dynamic>.from(sharePayload as Map);
+    final poolPayload = share['pool'] is Map
+        ? Map<String, dynamic>.from(share['pool'] as Map)
+        : const <String, dynamic>{};
+    final poolId = poolPayload['id']?.toString();
+    if (poolId == null || poolId.isEmpty) return null;
+
     final row = await client
         .from('match_pool_stats')
         .select(_poolColumns)
-        .eq('share_slug', shareSlug)
+        .eq('id', poolId)
         .maybeSingle();
     if (row == null) return null;
     return PoolSummary.fromJson(Map<String, dynamic>.from(row as Map));
@@ -386,6 +416,21 @@ class SupabasePoolsRepository implements PoolsRepository {
   }
 }
 
+String _safeShareSource(String? source, String? inviteCode) {
+  if (inviteCode != null && inviteCode.trim().isNotEmpty) {
+    return 'invite_link';
+  }
+  switch (source) {
+    case 'venue_qr':
+    case 'social_share':
+    case 'web_fallback':
+    case 'deep_link':
+      return source!;
+    default:
+      return 'direct';
+  }
+}
+
 final poolsRepositoryProvider = Provider<PoolsRepository>((ref) {
   return SupabasePoolsRepository(ref);
 });
@@ -402,6 +447,41 @@ final poolDetailProvider = FutureProvider.autoDispose
 final poolBySlugProvider = FutureProvider.autoDispose
     .family<PoolSummary?, String>((ref, shareSlug) {
       return ref.watch(poolsRepositoryProvider).getPoolBySlug(shareSlug);
+    });
+
+class PoolShareLookup {
+  const PoolShareLookup({
+    required this.shareSlug,
+    this.inviteCode,
+    this.source,
+  });
+
+  final String shareSlug;
+  final String? inviteCode;
+  final String? source;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is PoolShareLookup &&
+            shareSlug == other.shareSlug &&
+            inviteCode == other.inviteCode &&
+            source == other.source;
+  }
+
+  @override
+  int get hashCode => Object.hash(shareSlug, inviteCode, source);
+}
+
+final poolShareProvider = FutureProvider.autoDispose
+    .family<PoolSummary?, PoolShareLookup>((ref, lookup) {
+      return ref
+          .watch(poolsRepositoryProvider)
+          .getPoolByShareLink(
+            shareSlug: lookup.shareSlug,
+            inviteCode: lookup.inviteCode,
+            source: lookup.source,
+          );
     });
 
 final matchPoolsProvider = FutureProvider.autoDispose

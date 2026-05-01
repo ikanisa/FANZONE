@@ -70,6 +70,7 @@ Backend source lives under `supabase/`.
 | `20260501154500_remote_payment_status_enum_compat.sql` | Adds manual-payment enum states used by the venue operational console. |
 | `20260501155000_remote_audit_helper_lint_compat.sql` | Replaces the audit helper with a version compatible with both old and clean audit table shapes. |
 | `20260501155500_remote_audit_helper_dynamic_sql.sql` | Avoids static lint failures on remote projects whose audit table still uses the old `details_json` shape. |
+| `20260501161000_sports_bar_supported_catalog_aliases.sql` | Adds canonical sports-bar RPC aliases and aligns competition ranking with EPL, La Liga, Serie A, Ligue 1, Bundesliga, Champions League, Europa League, and FIFA World Cup. |
 
 ## Edge Function Inventory
 

@@ -24,7 +24,7 @@
   --fz-muted-2: #6c7280;
 
   /* ── Official Brand Colors ── */
-  --fz-primary: #98ff98;
+  --fz-primary: #22d3ee;
   --fz-primary-hover: color-mix(in srgb, var(--fz-primary) 85%, white 15%);
   --fz-primary-strong: color-mix(in srgb, var(--fz-primary) 78%, black 22%);
   --fz-secondary: #ff7f50;
@@ -32,8 +32,8 @@
   --fz-secondary-strong: color-mix(in srgb, var(--fz-secondary) 78%, black 22%);
 
   /* ── Status ── */
-  --fz-success: var(--fz-primary);
-  --fz-success-bg: color-mix(in srgb, var(--fz-primary) 12%, transparent);
+  --fz-success: #98ff98;
+  --fz-success-bg: color-mix(in srgb, var(--fz-success) 12%, transparent);
   --fz-warning: var(--fz-secondary);
   --fz-warning-bg: color-mix(in srgb, var(--fz-secondary) 12%, transparent);
   --fz-error: #ef4444;

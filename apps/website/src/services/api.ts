@@ -43,6 +43,7 @@ function normalizeStatus(status: unknown): string {
     case "full_time":
     case "ft":
     case "finished":
+    case "final":
       return "finished";
     default:
       return value || "upcoming";
@@ -170,9 +171,7 @@ function normalizeMatchRow(row: JsonRecord): Match {
 }
 
 function normalizeMatchPoolRow(row: JsonRecord): MatchPoolSummary {
-  const camps = Array.isArray(row.camps)
-    ? (row.camps as JsonRecord[])
-    : [];
+  const camps = Array.isArray(row.camps) ? (row.camps as JsonRecord[]) : [];
 
   return {
     id: asString(row.id),
@@ -197,7 +196,9 @@ function normalizeMatchPoolRow(row: JsonRecord): MatchPoolSummary {
     lockedAt: asString(row.locked_at) || null,
     settledAt: asString(row.settled_at) || null,
     metadata:
-      row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+      row.metadata &&
+      typeof row.metadata === "object" &&
+      !Array.isArray(row.metadata)
         ? (row.metadata as Record<string, unknown>)
         : {},
     camps: camps.map((camp) => ({
@@ -370,7 +371,7 @@ export const api = {
     try {
       const rows = await selectList<JsonRecord>(
         client
-          .from("app_matches")
+          .from("curated_active_matches")
           .select("*")
           .eq("status", "live")
           .order("date", { ascending: true })
@@ -390,7 +391,7 @@ export const api = {
     try {
       const rows = await selectList<JsonRecord>(
         client
-          .from("app_matches")
+          .from("curated_active_matches")
           .select("*")
           .in("status", ["scheduled", "upcoming"])
           .gte("date", new Date().toISOString())
@@ -410,7 +411,11 @@ export const api = {
 
     try {
       const row = await maybeSingle<JsonRecord>(
-        client.from("app_matches").select("*").eq("id", matchId).maybeSingle(),
+        client
+          .from("curated_active_matches")
+          .select("*")
+          .eq("id", matchId)
+          .maybeSingle(),
       );
       return row ? normalizeMatchRow(row) : null;
     } catch (error) {
@@ -460,16 +465,34 @@ export const api = {
     }
   },
 
-  async getMatchPoolBySlug(slug: string): Promise<MatchPoolSummary | null> {
+  async getMatchPoolBySlug(
+    slug: string,
+    inviteCode?: string | null,
+    source: "direct" | "venue_qr" | "social_share" | "invite_link" = "direct",
+  ): Promise<MatchPoolSummary | null> {
     const client = await ensureClient();
     if (!client) return null;
 
     try {
+      const { data: shareData, error: shareError } = await client.rpc(
+        "get_public_pool_share",
+        {
+          p_slug_or_pool_id: slug,
+          p_invite_code: inviteCode ?? null,
+          p_source: inviteCode ? "invite_link" : source,
+        },
+      );
+      if (shareError) throw new Error(shareError.message);
+      const resolvedPoolId = asString(
+        ((shareData ?? {}) as { pool?: { id?: unknown } }).pool?.id,
+      );
+      if (!resolvedPoolId) return null;
+
       const row = await maybeSingle<JsonRecord>(
         client
           .from("match_pool_stats")
           .select("*")
-          .eq("share_slug", slug)
+          .eq("id", resolvedPoolId)
           .maybeSingle(),
       );
       return row ? normalizeMatchPoolRow(row) : null;
@@ -567,7 +590,10 @@ export const api = {
           const generated = await api.generatePoolShareCard(poolId);
           socialCardUrl = generated.socialCardUrl ?? null;
         } catch (cardError) {
-          console.warn("Pool created but social card generation failed", cardError);
+          console.warn(
+            "Pool created but social card generation failed",
+            cardError,
+          );
         }
       }
 
@@ -582,7 +608,8 @@ export const api = {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Could not create pool.",
+        error:
+          error instanceof Error ? error.message : "Could not create pool.",
       };
     }
   },
@@ -610,9 +637,7 @@ export const api = {
       return {
         success: true,
         socialCardUrl:
-          asString(row.social_card_url) ||
-          asString(row.socialCardUrl) ||
-          null,
+          asString(row.social_card_url) || asString(row.socialCardUrl) || null,
       };
     } catch (error) {
       return {
@@ -1196,8 +1221,14 @@ export const api = {
       tableId: asString(row.table_id),
       orderCode: asString(row.order_code),
       status: asString(row.status, "placed") as Order["status"],
-      paymentMethod: asString(row.payment_method, payload.paymentMethod) as PaymentMethod,
-      paymentStatus: asString(row.payment_status, "pending") as Order["paymentStatus"],
+      paymentMethod: asString(
+        row.payment_method,
+        payload.paymentMethod,
+      ) as PaymentMethod,
+      paymentStatus: asString(
+        row.payment_status,
+        "pending",
+      ) as Order["paymentStatus"],
       currencyCode: asString(row.currency_code),
       subtotalAmount: asNumber(row.subtotal_amount),
       totalAmount: asNumber(row.total_amount),
@@ -1207,5 +1238,4 @@ export const api = {
       items,
     };
   },
-
 };

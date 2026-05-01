@@ -115,12 +115,12 @@ final GoRouter router = GoRouter(
       ),
     ),
     GoRoute(
-      name: 'league_hub_redirect',
+      name: 'legacy_competition_redirect',
       path: '/league/:id',
       redirect: (context, state) => '/pools',
     ),
     GoRoute(
-      name: 'fixtures_redirect',
+      name: 'legacy_fixtures_redirect',
       path: '/fixtures',
       redirect: (context, state) => '/pools',
     ),
@@ -172,7 +172,7 @@ final GoRouter router = GoRouter(
       ],
     ),
     GoRoute(
-      name: 'team_profile_redirect',
+      name: 'legacy_team_redirect',
       path: '/team/:teamId',
       redirect: (context, state) => '/pools',
     ),

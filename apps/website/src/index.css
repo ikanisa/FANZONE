@@ -7,13 +7,20 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-bg: var(--bg);
+  --color-background: var(--bg);
+  --color-darkBg: var(--bg);
   --color-surface: var(--surface);
   --color-surface2: var(--surface2);
   --color-surface3: var(--surface3);
   --color-border: var(--border);
   --color-text: var(--text);
+  --color-textSecondary: var(--muted);
+  --color-text-secondary: var(--muted);
   --color-muted: var(--muted);
   
+  --color-primary: var(--accent3);
+  --color-primaryText: var(--bg);
+  --color-primary-text: var(--bg);
   --color-accent: var(--accent);       /* Cyan #22D3EE */
   --color-accent2: var(--accent2);     /* Blue #2563EB */
   --color-accent3: var(--accent3);     /* Coral #FF7F50 */
@@ -41,6 +48,11 @@
     --success: #98FF98; /* Mint Green */
     --danger: #EF4444; /* Red */
     --teal: #0F7B6C; /* Teal */
+
+    --radius-button: 12px;
+    --radius-card: 16px;
+    --radius-panel: 20px;
+    --radius-hero: 28px;
   }
 
   html, body {
@@ -48,6 +60,16 @@
   }
   body {
     @apply bg-bg text-text font-sans antialiased selection:bg-accent/20;
+  }
+}
+
+@layer components {
+  .fz-surface-card {
+    @apply rounded-[20px] border border-border bg-surface shadow-[0_18px_48px_rgba(0,0,0,0.22)];
+  }
+
+  .fz-action-primary {
+    @apply rounded-xl bg-primary px-5 py-3 font-black text-primaryText transition-all active:scale-[0.98] disabled:opacity-50;
   }
 }
 

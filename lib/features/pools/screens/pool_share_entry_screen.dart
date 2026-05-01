@@ -57,7 +57,15 @@ class _PoolShareEntryScreenState extends ConsumerState<PoolShareEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final poolAsync = ref.watch(poolBySlugProvider(widget.shareSlug));
+    final poolAsync = ref.watch(
+      poolShareProvider(
+        PoolShareLookup(
+          shareSlug: widget.shareSlug,
+          inviteCode: widget.inviteCode,
+          source: widget.source,
+        ),
+      ),
+    );
 
     return Scaffold(
       body: poolAsync.when(
@@ -78,7 +86,15 @@ class _PoolShareEntryScreenState extends ConsumerState<PoolShareEntryScreen> {
         error: (error, _) => StateView.error(
           title: 'Pool link unavailable',
           subtitle: error.toString(),
-          onRetry: () => ref.invalidate(poolBySlugProvider(widget.shareSlug)),
+          onRetry: () => ref.invalidate(
+            poolShareProvider(
+              PoolShareLookup(
+                shareSlug: widget.shareSlug,
+                inviteCode: widget.inviteCode,
+                source: widget.source,
+              ),
+            ),
+          ),
         ),
       ),
     );

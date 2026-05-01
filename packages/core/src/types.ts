@@ -690,6 +690,32 @@ export interface Database {
         Args: { p_pool_id: string; p_venue_id: string; p_reason?: string | null };
         Returns: Json;
       };
+      sports_bar_is_venue_member: {
+        Args: { p_venue_id: string; p_allowed_roles?: VenueUserRole[] };
+        Returns: boolean;
+      };
+      admin_curate_match: {
+        Args: {
+          p_match_id: string;
+          p_country_code?: string | null;
+          p_venue_id?: string | null;
+          p_priority_score?: number;
+          p_reason?: string;
+          p_metadata?: Json;
+          p_starts_at?: string | null;
+          p_expires_at?: string | null;
+          p_is_active?: boolean;
+        };
+        Returns: Json;
+      };
+      reconcile_wallet: {
+        Args: { p_user_id?: string | null };
+        Returns: Json;
+      };
+      refund_pool_for_cancelled_match: {
+        Args: { p_pool_id: string };
+        Returns: Json;
+      };
       admin_pool_operations_kpis: {
         Args: Record<string, never>;
         Returns: Json;

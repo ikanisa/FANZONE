@@ -39,6 +39,15 @@ class FzCard extends StatelessWidget {
               (isDark ? FzColors.darkBorder : FzColors.lightBorder),
           width: 1,
         ),
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 28,
+                  offset: const Offset(0, 14),
+                ),
+              ]
+            : null,
       ),
       child: padding != null ? Padding(padding: padding!, child: child) : child,
     );

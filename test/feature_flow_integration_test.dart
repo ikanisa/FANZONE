@@ -84,7 +84,7 @@ void main() {
       expect(find.text('Spent'), findsOneWidget);
       expect(
         find.text(
-          'Wallet activity covers available FET, staked FET, spent FET, earned FET, and pending pool settlements.',
+          'Wallet activity covers bar-order rewards, FET spent on orders, pool stakes, and audited settlements.',
         ),
         findsOneWidget,
       );

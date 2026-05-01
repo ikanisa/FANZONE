@@ -14,6 +14,7 @@ BEGIN
     VALUES
       ('public.app_matches'),
       ('public.app_competitions'),
+      ('public.app_competitions_ranked'),
       ('public.app_config_remote'),
       ('public.competition_standings'),
       ('public.curated_matches'),
@@ -45,6 +46,7 @@ BEGIN
       ('public.user_favorite_teams'),
       ('public.user_followed_competitions'),
       ('public.venues'),
+      ('public.venue_tables'),
       ('public.venue_users'),
       ('public.whatsapp_auth_sessions')
   ) AS expected(required_name)
@@ -73,7 +75,9 @@ BEGIN
       ('public.pool_state_transition_allowed(public.match_pool_status,public.match_pool_status)'),
       ('public.venue_endorse_pool(uuid,uuid)'),
       ('public.venue_reject_pool(uuid,uuid,text)'),
+      ('public.sports_bar_is_venue_member(uuid,public.venue_user_role[])'),
       ('public.get_wallet_balance(uuid)'),
+      ('public.reconcile_wallet(uuid)'),
       ('public.reconcile_fet_wallet(uuid)'),
       ('public.credit_welcome_fet(uuid,text)'),
       ('public.credit_fet_for_order(uuid,text)'),
@@ -85,6 +89,8 @@ BEGIN
       ('public.admin_pool_operations_kpis()'),
       ('public.admin_pool_operations_queue(integer)'),
       ('public.admin_run_pool_settlement(integer)'),
+      ('public.admin_curate_match(text,text,uuid,integer,text,jsonb,timestamp with time zone,timestamp with time zone,boolean)'),
+      ('public.refund_pool_for_cancelled_match(uuid)'),
       ('public.get_app_bootstrap_config(text,text)'),
       ('public.assert_platform_feature_available(text,text)'),
       ('public.current_user_platform_roles()'),

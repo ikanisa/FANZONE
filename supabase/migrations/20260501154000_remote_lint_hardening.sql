@@ -30,7 +30,9 @@ AS $$
   SELECT public.venue_user_has_role(p_venue_id, p_allowed_roles);
 $$;
 
-CREATE OR REPLACE FUNCTION public.lock_pool_for_match_start(p_match_id text)
+DROP FUNCTION IF EXISTS public.lock_pool_for_match_start(text);
+
+CREATE FUNCTION public.lock_pool_for_match_start(p_match_id text)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER

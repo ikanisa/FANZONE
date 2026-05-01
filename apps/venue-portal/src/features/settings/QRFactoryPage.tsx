@@ -226,7 +226,7 @@ export const QRFactoryPage: React.FC = () => {
                     <StatusChip status={table.isActive ? 'active' : 'inactive'} />
                   </div>
 
-                  <div className="aspect-square bg-white border border-border rounded-2xl flex items-center justify-center p-4">
+                  <div className="qr-paper aspect-square border border-border rounded-2xl flex items-center justify-center p-4">
                     {qrImages[table.id] ? (
                       <img src={qrImages[table.id]} className="w-full h-full object-contain" alt={`QR code for table ${table.tableNumber}`} />
                     ) : (

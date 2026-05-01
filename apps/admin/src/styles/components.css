@@ -25,6 +25,7 @@
 .btn-primary {
   background: var(--fz-secondary);
   color: var(--fz-bg);
+  font-weight: 700;
 }
 .btn-primary:hover:not(:disabled) { background: var(--fz-secondary-hover); }
 
@@ -69,6 +70,7 @@
   border: 1px solid var(--fz-border);
   border-radius: var(--fz-radius-lg);
   padding: var(--fz-sp-5);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.18);
 }
 .card-hover:hover {
   border-color: var(--fz-border-2);

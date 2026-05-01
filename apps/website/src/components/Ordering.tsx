@@ -134,9 +134,9 @@ export const Ordering: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
         <AlertCircle size={48} className="text-danger mb-4" />
-        <h2 className="text-2xl font-black mb-2">Oops!</h2>
+        <h2 className="text-2xl font-black mb-2">Venue unavailable</h2>
         <p className="text-textSecondary mb-8">{error || 'Something went wrong.'}</p>
-        <button onClick={() => window.location.reload()} className="px-8 py-3 bg-primary text-primaryText rounded-xl font-bold">RETRY</button>
+        <button onClick={() => window.location.reload()} className="px-8 py-3 bg-primary text-primaryText rounded-xl font-bold">Retry</button>
       </div>
     );
   }
@@ -151,8 +151,8 @@ export const Ordering: React.FC = () => {
         >
           <CheckCircle2 size={48} />
         </motion.div>
-        <h2 className="text-3xl font-black text-text mb-2">Order Placed!</h2>
-        <p className="text-textSecondary mb-8">Order #{placedOrder.orderCode} has been sent to the kitchen.</p>
+        <h2 className="text-3xl font-black text-text mb-2">Order sent</h2>
+        <p className="text-textSecondary mb-8">Order #{placedOrder.orderCode} is in the venue queue.</p>
         
         <Card className="w-full max-w-sm p-6 mb-8 text-left bg-surface2 border-border">
           <div className="flex justify-between mb-4">
@@ -160,6 +160,9 @@ export const Ordering: React.FC = () => {
             <span className="font-bold text-text">
               {formatMoney(placedOrder.totalAmount, placedOrder.currencyCode)}
             </span>
+          </div>
+          <div className="rounded-2xl border border-success/20 bg-success/10 px-4 py-3 text-sm font-bold text-success">
+            FET reward is issued after staff confirms payment.
           </div>
           {placedOrder.paymentFetAmount > 0 && (
             <div className="flex justify-between text-success">
@@ -173,7 +176,7 @@ export const Ordering: React.FC = () => {
           onClick={() => setOrderStatus('idle')}
           className="w-full max-w-sm h-14 bg-primary text-primaryText font-black rounded-2xl"
         >
-          DONE
+          Done
         </button>
       </div>
     );
@@ -223,6 +226,9 @@ export const Ordering: React.FC = () => {
               <div className="flex items-center gap-2 mt-3">
                 <span className="text-lg font-black text-text">
                   {item.currencyCode === 'RWF' ? '' : '€'}{item.price.toLocaleString()} {item.currencyCode === 'RWF' ? 'RWF' : ''}
+                </span>
+                <span className="rounded-full border border-success/20 bg-success/10 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-success">
+                  Earn FET
                 </span>
               </div>
             </div>

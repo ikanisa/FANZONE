@@ -49,13 +49,13 @@ class FzStatusChip extends StatelessWidget {
   static _ChipPalette _resolve(StatusChipVariant variant) {
     switch (variant) {
       case StatusChipVariant.success:
-        return const _ChipPalette(FzColors.accent);
+        return const _ChipPalette(FzColors.success);
       case StatusChipVariant.warning:
         return const _ChipPalette(FzColors.warning);
       case StatusChipVariant.danger:
-        return const _ChipPalette(FzColors.accent2);
+        return const _ChipPalette(FzColors.danger);
       case StatusChipVariant.info:
-        return const _ChipPalette(FzColors.darkText);
+        return const _ChipPalette(FzColors.accent);
     }
   }
 }

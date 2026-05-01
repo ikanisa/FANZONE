@@ -17,6 +17,11 @@ Core product:
 - venue console operations;
 - admin operations, audit, and release controls.
 
+Football catalog:
+
+- default discoverable competitions are EPL, La Liga, Serie A, Ligue 1, Bundesliga, Champions League, Europa League, and FIFA World Cup;
+- local leagues and World Cup country/team/fixture presentation are data-driven through imports and admin curation, not hardcoded app flows.
+
 Payments:
 
 - customer money movement is off-system;

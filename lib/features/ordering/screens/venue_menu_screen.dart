@@ -454,15 +454,50 @@ class _MenuItemCard extends ConsumerWidget {
                       color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
                     ),
                   ),
-                const SizedBox(height: 8),
-                Text(
-                  item.currencyCode == 'EUR'
-                      ? '€${item.price.toStringAsFixed(2)}'
-                      : '${item.currencyCode} ${item.price.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: FzColors.accent,
-                  ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      item.currencyCode == 'EUR'
+                          ? '€${item.price.toStringAsFixed(2)}'
+                          : '${item.currencyCode} ${item.price.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: FzColors.accent,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: FzColors.success.withValues(alpha: 0.10),
+                        borderRadius: FzRadii.fullRadius,
+                        border: Border.all(
+                          color: FzColors.success.withValues(alpha: 0.20),
+                        ),
+                      ),
+                      child: const Text(
+                        'Earn FET',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: FzColors.success,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                const Text(
+                  'Credited after staff confirms payment.',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: FzColors.darkMuted),
                 ),
               ],
             ),

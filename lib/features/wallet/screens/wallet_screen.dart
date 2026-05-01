@@ -182,7 +182,7 @@ class WalletScreen extends ConsumerWidget {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Wallet activity covers available FET, staked FET, spent FET, earned FET, and pending pool settlements.',
+                    'Wallet activity covers bar-order rewards, FET spent on orders, pool stakes, and audited settlements.',
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.4,
@@ -292,7 +292,7 @@ class _WalletHero extends StatelessWidget {
           Column(
             children: [
               const Text(
-                'Available FET',
+                'FET BALANCE',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,

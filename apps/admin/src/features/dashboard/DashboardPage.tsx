@@ -22,6 +22,7 @@ import {
   Building2,
   AlertTriangle,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function DashboardPage() {
   const { data: kpis, isLoading: kpisLoading } = useDashboardKpis();
@@ -31,8 +32,18 @@ export function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title="Overview"
-        subtitle={renderFanzoneText("Sports-bar FET pool platform control center")}
+        title="Control Center"
+        subtitle={renderFanzoneText("Curate matches, monitor pools, audit sensitive actions, and operate venues")}
+        actions={
+          <>
+            <Link className="btn btn-secondary" to="/matches">
+              Curate Matches
+            </Link>
+            <Link className="btn btn-primary" to="/pools">
+              Pool Operations
+            </Link>
+          </>
+        }
       />
 
       {/* KPI Grid */}
@@ -42,12 +53,12 @@ export function DashboardPage() {
         kpis && (
           <div className="grid grid-4 gap-4 mb-6">
             <KpiCard
-              label="Active Countries"
+              label="Countries"
               value={kpis.activeCountries}
               icon={<Globe2 size={18} />}
             />
             <KpiCard
-              label="Active Venues"
+              label="Venues"
               value={kpis.activeVenues}
               icon={<Building2 size={18} />}
             />
@@ -69,7 +80,7 @@ export function DashboardPage() {
               icon={<Wallet size={18} />}
             />
             <KpiCard
-              label="Pending Settlements"
+              label="Pending Settlement"
               value={kpis.pendingSettlements}
               icon={<ShoppingBag size={18} />}
             />
@@ -79,7 +90,7 @@ export function DashboardPage() {
               icon={<AlertTriangle size={18} />}
             />
             <KpiCard
-              label="Today's Orders"
+              label="Orders Today"
               value={kpis.todaysOrders}
               icon={<ShoppingBag size={18} />}
             />

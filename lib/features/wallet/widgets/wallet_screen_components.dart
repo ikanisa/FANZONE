@@ -93,6 +93,7 @@ class WalletTransactionRow extends ConsumerWidget {
         transaction.type == 'order_earn' ||
         transaction.type == 'welcome_credit' ||
         transaction.type == 'pool_win' ||
+        transaction.type == 'pool_refund' ||
         transaction.type == 'creator_reward' ||
         transaction.type == 'transfer_received' ||
         transaction.type == 'bonus' ||
@@ -165,6 +166,8 @@ class WalletTransactionRow extends ConsumerWidget {
       case 'pool_win':
       case 'creator_reward':
         return LucideIcons.trophy;
+      case 'pool_refund':
+        return LucideIcons.rotateCcw;
       case 'spend':
       case 'order_spend':
         return LucideIcons.swords;

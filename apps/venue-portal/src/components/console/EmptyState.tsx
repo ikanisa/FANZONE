@@ -10,7 +10,7 @@ export function EmptyState({
   message: string;
 }) {
   return (
-    <div className="bg-white border-2 border-dashed border-border rounded-[28px] p-12 text-center">
+    <div className="bg-surface border-2 border-dashed border-border rounded-[24px] p-12 text-center">
       <div className="w-16 h-16 bg-surface2 rounded-2xl flex items-center justify-center text-textSecondary mx-auto mb-5">
         {icon}
       </div>

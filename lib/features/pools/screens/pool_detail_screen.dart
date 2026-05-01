@@ -133,7 +133,7 @@ class PoolDetailScreen extends ConsumerWidget {
                         onPressed: pool.isOpen
                             ? () => context.push('/pool/${pool.id}/join')
                             : null,
-                        icon: const Icon(LucideIcons.lock, size: 16),
+                        icon: const Icon(LucideIcons.trophy, size: 16),
                         label: const Text('Stake FET'),
                       ),
                     ),
@@ -359,15 +359,47 @@ class _CampCard extends StatelessWidget {
     final isWinner = pool.resultCampId == camp.id;
 
     return FzCard(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       borderColor: isWinner ? FzColors.success : null,
-      borderRadius: FzRadii.compact,
+      borderRadius: FzRadii.cardAlt,
       child: Row(
         children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: (isWinner ? FzColors.success : FzColors.accent).withValues(
+                alpha: 0.10,
+              ),
+              borderRadius: FzRadii.buttonRadius,
+            ),
+            child: Icon(
+              isWinner ? LucideIcons.crown : LucideIcons.users,
+              size: 18,
+              color: isWinner ? FzColors.success : FzColors.accent,
+            ),
+          ),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              camp.label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  camp.label,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${camp.memberCount} members',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: FzColors.darkMuted,
+                  ),
+                ),
+              ],
             ),
           ),
           if (isWinner)
@@ -375,11 +407,6 @@ class _CampCard extends StatelessWidget {
               padding: EdgeInsets.only(right: 8),
               child: Icon(LucideIcons.crown, size: 16, color: FzColors.success),
             ),
-          Text(
-            '${camp.memberCount} members',
-            style: const TextStyle(fontSize: 12, color: FzColors.darkMuted),
-          ),
-          const SizedBox(width: 12),
           Text(
             '${camp.totalStakedFet} FET',
             style: const TextStyle(fontWeight: FontWeight.w900),

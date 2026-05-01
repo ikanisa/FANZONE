@@ -431,7 +431,7 @@ class SupabaseWalletGateway implements WalletGateway {
         row['transaction_type']?.toString() ?? row['tx_type']?.toString() ?? '';
     final direction = row['direction']?.toString() ?? '';
     final bucket = row['balance_bucket']?.toString() ?? 'available';
-    if (type == 'pool_stake' && direction == 'credit' && bucket == 'staked') {
+    if (type == 'pool_stake' && bucket == 'staked') {
       return false;
     }
     if (type == 'pool_win' && direction == 'debit' && bucket == 'pending') {
@@ -451,6 +451,7 @@ class SupabaseWalletGateway implements WalletGateway {
     if (type == 'order_spend') return 'order_spend';
     if (type == 'order_earn' || type == 'welcome_credit') return type;
     if (type == 'creator_reward') return 'creator_reward';
+    if (type == 'pool_refund') return 'pool_refund';
     if (type == 'pool_win') return bucket == 'pending' ? 'pending' : 'pool_win';
     if (direction == 'credit') return 'earn';
     return 'spend';

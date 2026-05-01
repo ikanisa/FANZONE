@@ -217,6 +217,16 @@ export const LiveOrderQueuePage: React.FC = () => {
   }, [drafts, orders]);
 
   const activeOrders = orders.filter((order) => order.status === 'placed' || order.status === 'received');
+  const visibleOrders = useMemo(
+    () =>
+      [...orders].sort((a, b) => {
+        const aActive = a.status === 'placed' || a.status === 'received';
+        const bActive = b.status === 'placed' || b.status === 'received';
+        if (aActive !== bActive) return aActive ? -1 : 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }),
+    [orders],
+  );
   const counts = serviceStatuses.map((status) => ({
     status,
     count: orders.filter((order) => order.status === status).length,
@@ -257,7 +267,7 @@ export const LiveOrderQueuePage: React.FC = () => {
         <div>
           <h1 className="text-4xl font-black tracking-tighter">Orders</h1>
           <p className="text-textSecondary font-medium mt-1">
-            Live queue with service status, manual payment state, and FET movement.
+            Handle live service and manual payment confirmation in seconds.
           </p>
         </div>
         <button type="button" className="btn btn-secondary w-fit" onClick={refresh} disabled={loading}>
@@ -275,6 +285,16 @@ export const LiveOrderQueuePage: React.FC = () => {
         ))}
       </div>
 
+      <div className="rounded-[24px] border border-accent/20 bg-accent/10 px-5 py-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-[10px] font-black text-accent uppercase tracking-widest">Priority queue</p>
+          <p className="text-2xl font-black text-text">{activeOrders.length} active orders</p>
+        </div>
+        <p className="text-sm font-bold text-textSecondary">
+          New and received orders stay at the top until served or cancelled.
+        </p>
+      </div>
+
       {actionError && (
         <div className="bg-danger/10 border border-danger/20 text-danger rounded-2xl px-5 py-4 font-bold">
           {actionError}
@@ -289,7 +309,7 @@ export const LiveOrderQueuePage: React.FC = () => {
         />
       ) : (
         <div className="space-y-4">
-          {orders.map((order) => {
+          {visibleOrders.map((order) => {
             const draft = orderDrafts[order.id] ?? initialDraft(order);
             return (
               <OrderCard
