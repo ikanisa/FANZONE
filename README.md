@@ -216,6 +216,7 @@ deno check supabase/functions/dispatch-match-alerts/index.ts
 - [Architecture Overview](docs/architecture/overview.md)
 - [Apps](docs/architecture/apps.md)
 - [Backend](docs/architecture/backend.md)
+- [Product Simplification Audit 2026-05-01](docs/refactor/product-simplification-audit-2026-05-01.md)
 - [Permissions And RLS](docs/security/permissions-rls.md)
 - [Audit Logs](docs/security/audit-logs.md)
 - [Go-Live Checklist](docs/release/go-live-checklist.md)

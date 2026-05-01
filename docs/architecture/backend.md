@@ -70,7 +70,11 @@ Backend source lives under `supabase/`.
 | `20260501154500_remote_payment_status_enum_compat.sql` | Adds manual-payment enum states used by the venue operational console. |
 | `20260501155000_remote_audit_helper_lint_compat.sql` | Replaces the audit helper with a version compatible with both old and clean audit table shapes. |
 | `20260501155500_remote_audit_helper_dynamic_sql.sql` | Avoids static lint failures on remote projects whose audit table still uses the old `details_json` shape. |
+| `20260501155600_automated_pool_settlement_engine.sql` | Adds idempotent match-pool settlement, cancellation refunds, settlement audit records, and settlement queue helpers. |
+| `20260501160000_pool_sharing_completion.sql` | Adds pool invite tracking, creator rewards, join-pool wrappers, public share payloads, and social-card generation payloads. |
 | `20260501161000_sports_bar_supported_catalog_aliases.sql` | Adds canonical sports-bar RPC aliases and aligns competition ranking with EPL, La Liga, Serie A, Ligue 1, Bundesliga, Champions League, Europa League, and FIFA World Cup. |
+| `20260501162000_wallet_rpc_grant_hardening.sql` | Keeps the raw wallet ledger mutation primitive service-role only. |
+| `20260501163000_backend_only_pool_wallet_helpers.sql` | Restricts pool-locking and order-reward helper RPCs to backend/service execution so clients cannot directly credit wallets or lock pools. |
 
 ## Edge Function Inventory
 
@@ -92,12 +96,13 @@ Backend source lives under `supabase/`.
 | `order_update_status` | Updates order service status. | Venue role checked; transition validated. |
 | `payment-hub` | Off-platform payment guidance/status helper. | Validated request; no provider API execution. |
 | `push-notify` | Sends push notifications. | `x-push-notify-secret`. |
-| `ring_bell` | Table assistance/bell request. | Authenticated venue/table context. |
 | `settle-match-pools` | Runs idempotent pool settlement. | `x-cron-secret` or service role. |
 | `submit_claim` | Submits venue claim. | Public/authenticated with validation. |
 | `tables_generate` | Generates table QR records. | Venue owner/manager. |
 | `venue_claim` | Venue claim workflow endpoint. | Validated request and policy checks. |
 | `whatsapp-otp` | WhatsApp OTP send/verify and custom session issuance. | Public action endpoint with rate limits and secrets. |
+
+Deprecated DineIn-era functions such as `ring_bell` are intentionally excluded from active deployment. The backing database objects should only be dropped in a later destructive-cleanup phase after a live dependency check and backup.
 
 ## Database Verification
 
@@ -111,6 +116,7 @@ psql "$SUPABASE_DB_URL" -f supabase/tests/admin_platform_control_center.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/curated_match_platform.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/rls_hardening_audit.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/fet_wallet_reward_engine.sql
+psql "$SUPABASE_DB_URL" -f supabase/tests/sports_bar_simplified_contract.sql
 ```
 
 If `SUPABASE_DB_URL` is not available, use the Supabase CLI-linked database plus `SUPABASE_DB_PASSWORD` as documented by the smoke scripts in `tool/`.

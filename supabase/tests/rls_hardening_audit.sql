@@ -65,6 +65,9 @@ BEGIN
       ('public.settle_match_pool(uuid)'),
       ('public.settle_finished_match_pools(integer)'),
       ('public.admin_run_pool_settlement(integer)'),
+      ('public.lock_pool_for_match_start(text)'),
+      ('public.credit_fet_for_order(uuid,text)'),
+      ('public.credit_order_fet(uuid,bigint)'),
       ('public.set_match_pool_share_links()'),
       ('public.set_match_pool_social_card_url(uuid,text)'),
       ('public.wallet_post_transaction(uuid,text,text,bigint,text,text,text,text,text,jsonb,uuid,text,uuid,uuid,uuid,uuid,text,uuid)')
@@ -87,7 +90,10 @@ BEGIN
     VALUES
       ('public.wallet_post_transaction(uuid,text,text,bigint,text,text,text,text,text,jsonb,uuid,text,uuid,uuid,uuid,uuid,text,uuid)'),
       ('public.settle_match_pool(uuid)'),
-      ('public.settle_finished_match_pools(integer)')
+      ('public.settle_finished_match_pools(integer)'),
+      ('public.lock_pool_for_match_start(text)'),
+      ('public.credit_fet_for_order(uuid,text)'),
+      ('public.credit_order_fet(uuid,bigint)')
   ) AS required(signature)
   WHERE has_function_privilege('authenticated', required.signature, 'EXECUTE');
 

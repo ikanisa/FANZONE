@@ -31,13 +31,13 @@ import 'widgets/navigation/app_shell.dart';
 
 String governedAppRouteForPath(String targetPath, {String? fallback}) {
   var path = targetPath.trim();
-  if (path.isEmpty) return fallback ?? '/today';
+  if (path.isEmpty) return fallback ?? '/bar';
 
   // Normalize hosted deep links into relative in-app routes
   const hostedPrefix = 'https://fanzone.ikanisa.com';
   if (path.startsWith(hostedPrefix)) {
     path = path.substring(hostedPrefix.length);
-    if (path.isEmpty) return fallback ?? '/today';
+    if (path.isEmpty) return fallback ?? '/bar';
   }
 
   final access = runtimePlatformFeatureAccess();
@@ -75,7 +75,7 @@ final GoRouter router = GoRouter(
         featureName: state.uri.queryParameters['f'] ?? 'unknown',
       ),
     ),
-    GoRoute(path: '/', redirect: (context, state) => '/today'),
+    GoRoute(path: '/', redirect: (context, state) => '/bar'),
     GoRoute(
       name: 'onboarding',
       path: '/onboarding',
@@ -113,6 +113,12 @@ final GoRouter router = GoRouter(
         state,
         MatchDetailScreen(matchId: state.pathParameters['id']!),
       ),
+    ),
+    GoRoute(
+      name: 'today',
+      path: '/today',
+      pageBuilder: (context, state) =>
+          _fadeSlideTransition(state, const HomeFeedScreen()),
     ),
     GoRoute(
       name: 'legacy_competition_redirect',
@@ -177,9 +183,9 @@ final GoRouter router = GoRouter(
       redirect: (context, state) => '/pools',
     ),
     GoRoute(
-      name: 'venue_dashboard',
+      name: 'legacy_venue_dashboard_redirect',
       path: '/venue-dashboard',
-      redirect: (context, state) => '/today',
+      redirect: (context, state) => '/bar',
     ),
     GoRoute(
       name: 'pool_detail',
@@ -226,16 +232,6 @@ final GoRouter router = GoRouter(
         currentLocation: state.uri.path,
       ),
       branches: [
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              name: 'today',
-              path: '/today',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const HomeFeedScreen()),
-            ),
-          ],
-        ),
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -314,7 +310,7 @@ final GoRouter router = GoRouter(
       return '/splash';
     }
 
-    if (isLoggingIn) return '/today';
+    if (isLoggingIn) return '/bar';
 
     return null;
   },

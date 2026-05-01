@@ -16,7 +16,7 @@ Deno.test("checkRateLimit calls the current SQL contract", async () => {
     supabaseAdmin as any,
     "00000000-0000-0000-0000-000000000001",
     {
-      endpoint: "ring_bell",
+      endpoint: "join_pool",
       maxRequests: 5,
       window: "1 hour",
     },
@@ -32,7 +32,7 @@ Deno.test("checkRateLimit calls the current SQL contract", async () => {
 
   const expected = {
     p_user_id: "00000000-0000-0000-0000-000000000001",
-    p_action: "ring_bell",
+    p_action: "join_pool",
     p_max_count: 5,
     p_window: "1 hour",
   };

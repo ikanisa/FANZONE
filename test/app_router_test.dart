@@ -151,7 +151,8 @@ void main() {
         governedAppRouteForPath('/wallet?tab=history'),
         '/wallet?tab=history',
       );
-      expect(governedAppRouteForPath('', fallback: '/fixtures'), '/fixtures');
+      expect(governedAppRouteForPath(''), '/bar');
+      expect(governedAppRouteForPath('', fallback: '/pools'), '/pools');
     });
   });
 }
