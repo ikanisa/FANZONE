@@ -28,9 +28,8 @@ void main() {
       await pumpAppScreen(tester, const VenueMenuScreen());
       await tester.pumpAndSettle();
 
-      expect(find.text('Bar'), findsOneWidget);
       expect(find.text('Scan a table QR'), findsOneWidget);
-      expect(find.textContaining('venue, table, menu, cart'), findsOneWidget);
+      expect(find.text('Browse Venues'), findsOneWidget);
     });
 
     testWidgets('pools screen renders open pools and camps', (tester) async {
@@ -75,12 +74,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Pools'), findsOneWidget);
+      expect(find.text('ARENA'), findsOneWidget);
       expect(find.text('Derby pool'), findsOneWidget);
       expect(find.text('Test Club A'), findsAtLeastNWidgets(1));
       expect(find.text('Test Club B'), findsAtLeastNWidgets(1));
-      expect(find.text('Members'), findsOneWidget);
-      expect(find.text('190 FET'), findsOneWidget);
+      expect(find.text('Entries'), findsAtLeastNWidgets(1));
+      expect(find.text('190'), findsOneWidget);
     });
 
     testWidgets('wallet screen renders balance and history', (tester) async {
@@ -113,7 +112,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('FET BALANCE'), findsOneWidget);
-      expect(find.text('SEND'), findsOneWidget);
+      expect(find.text('Send FET'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Pool reward'),
         300,
@@ -184,13 +183,18 @@ void main() {
       expect(find.text('Anonymous Rewards'), findsOneWidget);
       expect(find.text('Display Name in Pool Activity'), findsOneWidget);
       expect(find.text('Allow Friends to Find Me'), findsNothing);
-      expect(
-        find.text('* Verification required to change visibility settings.'),
-        findsOneWidget,
+      const verificationCopy =
+          '* Verification required to change visibility settings.';
+      await tester.scrollUntilVisible(
+        find.text(verificationCopy),
+        120,
+        scrollable: find.byType(Scrollable).first,
       );
+      await tester.pumpAndSettle();
+      expect(find.text(verificationCopy), findsOneWidget);
     });
 
-    testWidgets('notifications screen keeps the canonical inbox language', (
+    testWidgets('notifications screen keeps the canonical alerts language', (
       tester,
     ) async {
       await pumpAppScreen(
@@ -212,7 +216,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Inbox'), findsOneWidget);
+      expect(find.text('Alerts'), findsOneWidget);
       expect(find.text('Pool settled'), findsOneWidget);
     });
 
@@ -245,7 +249,7 @@ void main() {
 
       expect(find.text('Test Club A'), findsAtLeastNWidgets(1));
       expect(find.text('Test Club B'), findsAtLeastNWidgets(1));
-      expect(find.text('Match pools'), findsAtLeastNWidgets(1));
+      expect(find.text('Match Pools'), findsAtLeastNWidgets(1));
       expect(find.text('Open match pools'), findsOneWidget);
       expect(find.text('Recent form'), findsNothing);
       expect(find.text('Standings snapshot'), findsNothing);
@@ -337,7 +341,7 @@ BootstrapConfig _screenBootstrapConfig({
       _screenFeature(
         'fixtures',
         displayName: 'Fixtures',
-        routeKey: '/fixtures',
+        routeKey: '/pools',
         showInNavigation: true,
         showOnHome: true,
         sortOrder: 20,

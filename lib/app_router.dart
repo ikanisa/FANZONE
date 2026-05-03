@@ -8,12 +8,18 @@ import 'core/runtime/app_runtime_state.dart';
 import 'features/auth/screens/guest_upgrade_screen.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/whatsapp_login_screen.dart';
+import 'features/home/screens/global_search_screen.dart';
 import 'features/home/screens/home_feed_screen.dart';
 import 'features/home/screens/match_detail_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
+import 'features/ordering/screens/browse_venues_screen.dart';
 import 'features/ordering/screens/checkout_screen.dart';
+import 'features/ordering/screens/location_access_screen.dart';
+import 'features/ordering/screens/order_receipt_screen.dart';
 import 'features/ordering/screens/order_success_screen.dart';
 import 'features/ordering/screens/order_tracking_screen.dart';
+import 'features/ordering/screens/orders_screen.dart';
+import 'features/ordering/screens/venue_detail_screen.dart';
 import 'features/ordering/screens/venue_menu_screen.dart';
 import 'features/ordering/widgets/venue_entry_wrapper.dart';
 import 'features/pools/screens/create_pool_screen.dart';
@@ -26,18 +32,18 @@ import 'features/profile/screens/profile_screen.dart';
 import 'features/settings/screens/feature_unavailable_screen.dart';
 import 'features/settings/screens/privacy_settings_screen.dart';
 import 'features/settings/screens/settings_screen.dart';
+import 'features/wallet/screens/transaction_details_screen.dart';
 import 'features/wallet/screens/wallet_screen.dart';
 import 'widgets/navigation/app_shell.dart';
 
 String governedAppRouteForPath(String targetPath, {String? fallback}) {
   var path = targetPath.trim();
-  if (path.isEmpty) return fallback ?? '/bar';
+  if (path.isEmpty) return fallback ?? '/home';
 
-  // Normalize hosted deep links into relative in-app routes
   const hostedPrefix = 'https://fanzone.ikanisa.com';
   if (path.startsWith(hostedPrefix)) {
     path = path.substring(hostedPrefix.length);
-    if (path.isEmpty) return fallback ?? '/bar';
+    if (path.isEmpty) return fallback ?? '/home';
   }
 
   final access = runtimePlatformFeatureAccess();
@@ -75,7 +81,7 @@ final GoRouter router = GoRouter(
         featureName: state.uri.queryParameters['f'] ?? 'unknown',
       ),
     ),
-    GoRoute(path: '/', redirect: (context, state) => '/bar'),
+    GoRoute(path: '/', redirect: (context, state) => '/home'),
     GoRoute(
       name: 'onboarding',
       path: '/onboarding',
@@ -107,33 +113,55 @@ final GoRouter router = GoRouter(
       ),
     ),
     GoRoute(
+      name: 'bar',
+      path: '/bar',
+      pageBuilder: (context, state) {
+        final venueId =
+            state.uri.queryParameters['v'] ??
+            state.uri.queryParameters['venue'];
+        final venueSlug =
+            state.uri.queryParameters['venueSlug'] ??
+            state.uri.queryParameters['slug'];
+        final tableNumber =
+            state.uri.queryParameters['table'] ??
+            state.uri.queryParameters['t'];
+        final child = venueId == null && venueSlug == null
+            ? const VenueMenuScreen()
+            : VenueEntryWrapper(
+                venueId: venueId,
+                venueSlug: venueSlug,
+                tableNumber: tableNumber,
+              );
+        return _fadeSlideTransition(state, child);
+      },
+    ),
+    GoRoute(
+      name: 'venue_detail',
+      path: '/venue/:venueId',
+      pageBuilder: (context, state) => _fadeSlideTransition(
+        state,
+        VenueDetailScreen(venueId: state.pathParameters['venueId']!),
+      ),
+    ),
+    GoRoute(
+      name: 'location_access',
+      path: '/venues/location',
+      pageBuilder: (context, state) =>
+          _fadeSlideTransition(state, const LocationAccessScreen()),
+    ),
+    GoRoute(
+      name: 'global_search',
+      path: '/search',
+      pageBuilder: (context, state) =>
+          _fadeSlideTransition(state, const GlobalSearchScreen()),
+    ),
+    GoRoute(
       name: 'match_detail',
       path: '/match/:id',
       pageBuilder: (context, state) => _fadeSlideTransition(
         state,
         MatchDetailScreen(matchId: state.pathParameters['id']!),
       ),
-    ),
-    GoRoute(
-      name: 'today',
-      path: '/today',
-      pageBuilder: (context, state) =>
-          _fadeSlideTransition(state, const HomeFeedScreen()),
-    ),
-    GoRoute(
-      name: 'legacy_competition_redirect',
-      path: '/league/:id',
-      redirect: (context, state) => '/pools',
-    ),
-    GoRoute(
-      name: 'legacy_fixtures_redirect',
-      path: '/fixtures',
-      redirect: (context, state) => '/pools',
-    ),
-    GoRoute(
-      name: 'cart',
-      path: '/cart',
-      redirect: (context, state) => '/checkout',
     ),
     GoRoute(
       name: 'checkout',
@@ -147,6 +175,14 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) => _fadeSlideTransition(
         state,
         OrderSuccessScreen(orderId: state.pathParameters['orderId']!),
+      ),
+    ),
+    GoRoute(
+      name: 'order_receipt',
+      path: '/order/:orderId/receipt',
+      pageBuilder: (context, state) => _fadeSlideTransition(
+        state,
+        OrderReceiptScreen(orderId: state.pathParameters['orderId']!),
       ),
     ),
     GoRoute(
@@ -164,6 +200,12 @@ final GoRouter router = GoRouter(
           _fadeSlideTransition(state, const NotificationsScreen()),
     ),
     GoRoute(
+      name: 'profile',
+      path: '/profile',
+      pageBuilder: (context, state) =>
+          _fadeSlideTransition(state, const ProfileScreen()),
+    ),
+    GoRoute(
       name: 'settings',
       path: '/settings',
       pageBuilder: (context, state) =>
@@ -178,14 +220,14 @@ final GoRouter router = GoRouter(
       ],
     ),
     GoRoute(
-      name: 'legacy_team_redirect',
-      path: '/team/:teamId',
-      redirect: (context, state) => '/pools',
-    ),
-    GoRoute(
-      name: 'legacy_venue_dashboard_redirect',
-      path: '/venue-dashboard',
-      redirect: (context, state) => '/bar',
+      name: 'wallet_transaction',
+      path: '/wallet/transaction/:transactionId',
+      pageBuilder: (context, state) => _fadeSlideTransition(
+        state,
+        TransactionDetailsScreen(
+          transactionId: state.pathParameters['transactionId']!,
+        ),
+      ),
     ),
     GoRoute(
       name: 'pool_detail',
@@ -235,27 +277,20 @@ final GoRouter router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              name: 'bar',
-              path: '/bar',
-              pageBuilder: (context, state) {
-                final venueId =
-                    state.uri.queryParameters['v'] ??
-                    state.uri.queryParameters['venue'];
-                final venueSlug =
-                    state.uri.queryParameters['venueSlug'] ??
-                    state.uri.queryParameters['slug'];
-                final tableNumber =
-                    state.uri.queryParameters['table'] ??
-                    state.uri.queryParameters['t'];
-                final child = venueId == null && venueSlug == null
-                    ? const VenueMenuScreen()
-                    : VenueEntryWrapper(
-                        venueId: venueId,
-                        venueSlug: venueSlug,
-                        tableNumber: tableNumber,
-                      );
-                return _fadeSlideTransition(state, child);
-              },
+              name: 'home',
+              path: '/home',
+              pageBuilder: (context, state) =>
+                  _fadeSlideTransition(state, const HomeFeedScreen()),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              name: 'venues',
+              path: '/venues',
+              pageBuilder: (context, state) =>
+                  _fadeSlideTransition(state, const BrowseVenuesScreen()),
             ),
           ],
         ),
@@ -272,20 +307,20 @@ final GoRouter router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              name: 'wallet',
-              path: '/wallet',
+              name: 'orders',
+              path: '/orders',
               pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const WalletScreen()),
+                  _fadeSlideTransition(state, const OrdersScreen()),
             ),
           ],
         ),
         StatefulShellBranch(
           routes: [
             GoRoute(
-              name: 'profile',
-              path: '/profile',
+              name: 'wallet',
+              path: '/wallet',
               pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const ProfileScreen()),
+                  _fadeSlideTransition(state, const WalletScreen()),
             ),
           ],
         ),
@@ -310,7 +345,7 @@ final GoRouter router = GoRouter(
       return '/splash';
     }
 
-    if (isLoggingIn) return '/bar';
+    if (isLoggingIn) return '/home';
 
     return null;
   },
@@ -336,5 +371,5 @@ CustomTransitionPage<void> _fadeSlideTransition(
 }
 
 void initializeRouter({String initialRoute = '/'}) {
-  // Router is now a top-level final variable
+  // Router is now a top-level final variable.
 }

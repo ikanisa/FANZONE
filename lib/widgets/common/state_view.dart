@@ -80,12 +80,12 @@ class StateView extends StatelessWidget {
     final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final isErrorState =
         icon == LucideIcons.alertTriangle || icon == LucideIcons.wifiOff;
-    final actionColor = isErrorState ? FzColors.accent2 : text;
+    final actionColor = isErrorState ? FzColors.accent : text;
     final actionBackground = isErrorState
-        ? FzColors.accent2.withValues(alpha: 0.10)
+        ? FzColors.accent.withValues(alpha: 0.10)
         : surface3;
     final actionBorder = isErrorState
-        ? FzColors.accent2.withValues(alpha: 0.20)
+        ? FzColors.accent.withValues(alpha: 0.20)
         : border;
 
     return LayoutBuilder(
@@ -132,7 +132,11 @@ class StateView extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 14, color: muted, height: 1.45),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: muted,
+                        height: 1.45,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     if (action != null) ...[

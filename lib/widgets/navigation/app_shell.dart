@@ -71,12 +71,12 @@ class _BottomNavBar extends ConsumerWidget {
       top: false,
       minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
       child: Container(
-        height: 72,
+        height: 74,
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: (isDark ? FzColors.darkSurface : FzColors.lightSurface)
               .withValues(alpha: 0.94),
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(26),
           border: Border.all(
             color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
           ),
@@ -96,7 +96,7 @@ class _BottomNavBar extends ConsumerWidget {
                 message: item.label,
                 child: InkWell(
                   onTap: () => navigationShell.goBranch(item.branchIndex),
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(20),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     curve: Curves.easeOut,
@@ -105,7 +105,7 @@ class _BottomNavBar extends ConsumerWidget {
                       color: isSelected
                           ? FzColors.accent.withValues(alpha: 0.14)
                           : Colors.transparent,
-                      borderRadius: BorderRadius.circular(22),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
                             ? FzColors.accent.withValues(alpha: 0.32)
@@ -122,7 +122,7 @@ class _BottomNavBar extends ConsumerWidget {
                               : (isDark
                                     ? FzColors.darkMuted
                                     : FzColors.lightMuted),
-                          size: 22,
+                          size: 21,
                         ),
                         const SizedBox(height: 3),
                         FittedBox(
@@ -131,7 +131,7 @@ class _BottomNavBar extends ConsumerWidget {
                             item.label,
                             maxLines: 1,
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 9.5,
                               fontWeight: isSelected
                                   ? FontWeight.w900
                                   : FontWeight.w700,
@@ -175,32 +175,39 @@ class NavItem {
 List<NavItem> _getNavItems(WidgetRef ref) {
   return const [
     NavItem(
-      keyName: 'bar',
-      label: 'Bar',
-      icon: LucideIcons.utensils,
-      route: '/bar',
+      keyName: 'home',
+      label: 'Home',
+      icon: LucideIcons.home,
+      route: '/home',
       branchIndex: 0,
     ),
     NavItem(
-      keyName: 'pools',
-      label: 'Pools',
+      keyName: 'venues',
+      label: 'Venues',
+      icon: LucideIcons.mapPin,
+      route: '/venues',
+      branchIndex: 1,
+    ),
+    NavItem(
+      keyName: 'arena',
+      label: 'Arena',
       icon: LucideIcons.trophy,
       route: '/pools',
-      branchIndex: 1,
+      branchIndex: 2,
+    ),
+    NavItem(
+      keyName: 'orders',
+      label: 'Orders',
+      icon: LucideIcons.receipt,
+      route: '/orders',
+      branchIndex: 3,
     ),
     NavItem(
       keyName: 'wallet',
       label: 'Wallet',
       icon: LucideIcons.wallet,
       route: '/wallet',
-      branchIndex: 2,
-    ),
-    NavItem(
-      keyName: 'profile',
-      label: 'Profile',
-      icon: LucideIcons.user,
-      route: '/profile',
-      branchIndex: 3,
+      branchIndex: 4,
     ),
   ];
 }

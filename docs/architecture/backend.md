@@ -75,6 +75,11 @@ Backend source lives under `supabase/`.
 | `20260501161000_sports_bar_supported_catalog_aliases.sql` | Adds canonical sports-bar RPC aliases and aligns competition ranking with EPL, La Liga, Serie A, Ligue 1, Bundesliga, Champions League, Europa League, and FIFA World Cup. |
 | `20260501162000_wallet_rpc_grant_hardening.sql` | Keeps the raw wallet ledger mutation primitive service-role only. |
 | `20260501163000_backend_only_pool_wallet_helpers.sql` | Restricts pool-locking and order-reward helper RPCs to backend/service execution so clients cannot directly credit wallets or lock pools. |
+| `20260501163500_remote_contract_alias_views.sql` | Adds canonical contract views over existing runtime tables for venue tables, pool camps, pool entries, FET ledger, and settlement runs. |
+| `20260501163600_contract_rpc_wrappers.sql` | Adds product-facing RPC wrappers for staking, FET order spend, share-card payload/storage, table QR generation, and manual payment confirmation. |
+| `20260501163700_remote_lint_contract_compat.sql` | Adds missing remote pool-entry source columns, settlement `pending` enum support, and an explicit pgvector search path for legacy legal-document search. |
+
+Destructive retired-object cleanup is intentionally outside this migration inventory. See `supabase/destructive/20260501_retired_dinein_fanzone_cleanup.sql` and `docs/refactor/destructive-cleanup-runbook-2026-05-01.md`.
 
 ## Edge Function Inventory
 
@@ -119,4 +124,4 @@ psql "$SUPABASE_DB_URL" -f supabase/tests/fet_wallet_reward_engine.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/sports_bar_simplified_contract.sql
 ```
 
-If `SUPABASE_DB_URL` is not available, use the Supabase CLI-linked database plus `SUPABASE_DB_PASSWORD` as documented by the smoke scripts in `tool/`.
+If `SUPABASE_DB_URL` is not available, use the Supabase CLI-linked database and run the SQL files through `supabase db query --linked` after stripping psql-only meta commands. The simplified product contract and RLS hardening audit were verified this way on 2026-05-01.

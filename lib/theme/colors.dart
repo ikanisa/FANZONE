@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
 
-/// FANZONE design tokens aligned to the permanent source-of-truth reference.
+/// FANZONEUI Electric Noir design tokens.
 ///
-/// Canonical interactive palette:
-/// - Accent   #22D3EE
-/// - Accent2  #2563EB
-/// - Accent3  #FF7F50
-/// - Success  #98FF98
-/// - Danger   #EF4444
-/// - Teal     #0F7B6C
+/// The standalone FANZONEUI export is the primary visual reference for the
+/// Flutter client. These tokens intentionally mirror its obsidian surfaces,
+/// electric blue actions, and neon green reward language.
 abstract final class FzColors {
   // ════════════════════════════════════════════
   // Dark Theme (default) — Warm Stone palette
   // Night Sandstone foundation — UNTOUCHED.
   // ════════════════════════════════════════════
-  static const darkBg = Color(0xFF09090B);
-  static const darkSurface = Color(0xFF131418);
-  static const darkSurface2 = Color(0xFF18191E);
-  static const darkSurface3 = Color(0xFF22232A);
-  static const darkBorder = Color(0xFF272831);
-  static const darkText = Color(0xFFFDFCF0);
-  static const darkMuted = Color(0xFF8B8E99);
+  static const darkBg = Color(0xFF0F0F12);
+  static const darkSurface = Color(0xFF16161D);
+  static const darkSurface2 = Color(0xFF1E1E27);
+  static const darkSurface3 = Color(0xFF272735);
+  static const darkSurface4 = Color(0xFF323244);
+  static const darkBorder = Color(0xFF2A2A36);
+  static const darkText = Color(0xFFF6F7FB);
+  static const darkTextSecondary = Color(0xFFD4D7E2);
+  static const darkMuted = Color(0xFF8B90A0);
 
   // ════════════════════════════════════════════
   // Compatibility light-theme aliases
@@ -38,20 +36,22 @@ abstract final class FzColors {
   // ════════════════════════════════════════════
   // Canonical FANZONE accents from the original design
   // ════════════════════════════════════════════
-  static const accent = Color(0xFF22D3EE);
-  static const accent2 = Color(0xFF2563EB);
-  static const accent3 = Color(0xFFFF7F50);
-  static const success = Color(0xFF98FF98);
-  static const danger = Color(0xFFEF4444);
-  static const teal = Color(0xFF0F7B6C);
-  static const warning = Color(0xFFEAB308);
+  static const accent = Color(0xFF2E5BFF);
+  static const accent2 = Color(0xFF39FF14);
+  static const accent3 = Color(0xFFFFB020);
+  static const success = Color(0xFF39FF14);
+  static const danger = Color(0xFFFF4D6D);
+  static const teal = Color(0xFF00D4C8);
+  static const warning = Color(0xFFFFB020);
   static const whatsapp = Color(0xFF25D366);
 
   // Compatibility aliases still used across the Flutter codebase.
   static const primary = accent;
-  static const onPrimary = darkBg;
-  static const secondary = accent3;
+  static const onPrimary = Colors.white;
+  static const secondary = accent2;
   static const onSecondary = darkBg;
+  static const action = accent;
+  static const onAction = Colors.white;
 
   // ════════════════════════════════════════════
   // Semantic aliases
@@ -61,6 +61,7 @@ abstract final class FzColors {
   static const coral = accent3;
   static const live = danger;
   static const error = danger;
+  static const info = accent;
 
   // Cards / Yellow / Red
   static const yellowCard = warning;
@@ -74,9 +75,9 @@ abstract final class FzColors {
     onSurface: darkText,
     primary: accent,
     onPrimary: onPrimary,
-    secondary: accent3,
+    secondary: secondary,
     onSecondary: onSecondary,
-    tertiary: accent2,
+    tertiary: accent3,
     error: error,
     onError: Colors.white,
     outline: darkBorder,

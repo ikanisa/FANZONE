@@ -4,12 +4,14 @@ part 'order_model.freezed.dart';
 part 'order_model.g.dart';
 
 /// Order lifecycle statuses. Maps to `public.order_status` enum.
-/// Placed → Received → Served, or Cancelled.
+/// Placed → Received → Preparing → Served, or Cancelled.
 enum OrderStatus {
   @JsonValue('placed')
   placed,
   @JsonValue('received')
   received,
+  @JsonValue('preparing')
+  preparing,
   @JsonValue('served')
   served,
   @JsonValue('cancelled')
@@ -21,6 +23,8 @@ enum OrderStatus {
         return 'Placed';
       case OrderStatus.received:
         return 'Received';
+      case OrderStatus.preparing:
+        return 'Preparing';
       case OrderStatus.served:
         return 'Served';
       case OrderStatus.cancelled:
@@ -32,7 +36,7 @@ enum OrderStatus {
   bool get isTerminal => this == served || this == cancelled;
 
   /// Whether this status represents an active (in-progress) state.
-  bool get isActive => this == placed || this == received;
+  bool get isActive => this == placed || this == received || this == preparing;
 }
 
 /// Payment method. Maps to `public.payment_method` enum.
@@ -42,7 +46,11 @@ enum PaymentMethod {
   @JsonValue('revolut')
   revolut,
   @JsonValue('cash')
-  cash;
+  cash,
+  @JsonValue('card')
+  card,
+  @JsonValue('other')
+  other;
 
   String get label {
     switch (this) {
@@ -52,6 +60,10 @@ enum PaymentMethod {
         return 'Revolut';
       case PaymentMethod.cash:
         return 'Cash';
+      case PaymentMethod.card:
+        return 'Card';
+      case PaymentMethod.other:
+        return 'Other';
     }
   }
 }
@@ -62,6 +74,8 @@ enum PaymentStatus {
   pending,
   @JsonValue('unpaid')
   unpaid,
+  @JsonValue('payment_submitted')
+  paymentSubmitted,
   @JsonValue('paid')
   paid,
   @JsonValue('partially_paid')
@@ -80,6 +94,8 @@ enum PaymentStatus {
       case PaymentStatus.pending:
       case PaymentStatus.unpaid:
         return 'Unpaid';
+      case PaymentStatus.paymentSubmitted:
+        return 'Payment submitted';
       case PaymentStatus.paid:
         return 'Paid';
       case PaymentStatus.partiallyPaid:
@@ -118,6 +134,7 @@ class OrderModel with _$OrderModel {
     @JsonKey(name: 'tax_amount') @Default(0) double taxAmount,
     @JsonKey(name: 'tip_amount') @Default(0) double tipAmount,
     @JsonKey(name: 'payment_fet_amount') @Default(0) int paymentFetAmount,
+    @JsonKey(name: 'fet_earned') @Default(0) int fetEarned,
     @JsonKey(name: 'payment_fet_converted_amount')
     @Default(0)
     double paymentFetConvertedAmount,
@@ -155,7 +172,10 @@ class OrderModel with _$OrderModel {
   /// Whether the order has been paid.
   bool get isPaid => paymentStatus.isPaid;
 
-  /// FET earned from this order (100 FET per 1 EUR).
+  /// FET reward to show for this order.
+  int get earnedFetDisplayAmount => fetEarned;
+
+  /// Legacy estimate used only before the ledger-backed reward is available.
   int get estimatedFetEarned {
     const fetPerEur = 100;
     if (currencyCode == 'EUR') {

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   AlertCircle,
   CheckCircle2,
@@ -14,10 +15,19 @@ import { StatusChip } from '../../components/console/StatusChip';
 import { readableStatus } from '../../components/console/status';
 import { useVenue } from '../../hooks/useVenueContext';
 import { useOrders } from '../../hooks/useOrders';
+import { ManualMarkPaidModal } from './ManualMarkPaidModal';
 
-const serviceStatuses: OrderStatus[] = ['placed', 'received', 'served', 'cancelled'];
-const paymentStatuses: PaymentStatus[] = ['unpaid', 'paid', 'partially_paid', 'refunded', 'disputed'];
-const paymentMethods: PaymentMethod[] = ['cash', 'momo', 'revolut'];
+const activeServiceStatuses: OrderStatus[] = ['placed', 'received', 'preparing'];
+const serviceStatuses: OrderStatus[] = ['placed', 'received', 'preparing', 'served', 'cancelled'];
+const paymentStatuses: PaymentStatus[] = [
+  'unpaid',
+  'payment_submitted',
+  'paid',
+  'partially_paid',
+  'refunded',
+  'disputed',
+];
+const paymentMethods: PaymentMethod[] = ['momo', 'revolut', 'cash', 'card', 'other'];
 
 type PaymentDraft = {
   status: PaymentStatus;
@@ -34,6 +44,10 @@ function formatMoney(order: Order) {
 
 function tableLabel(order: Order) {
   return order.tableNumber || order.tableId.slice(0, 6).toUpperCase();
+}
+
+function userCode(order: Order) {
+  return (order.userId ?? order.id).replace(/-/g, '').slice(-6).toUpperCase();
 }
 
 function ageLabel(date: string) {
@@ -64,6 +78,7 @@ function OrderCard({
   onDraftChange,
   onServiceStatus,
   onPaymentStatus,
+  onMarkPaid,
 }: {
   order: Order;
   draft: PaymentDraft;
@@ -71,25 +86,29 @@ function OrderCard({
   onDraftChange: (next: PaymentDraft) => void;
   onServiceStatus: (status: OrderStatus) => Promise<void>;
   onPaymentStatus: (status: PaymentStatus) => Promise<void>;
+  onMarkPaid: () => void;
 }) {
   const canCancel = order.status !== 'cancelled' && order.status !== 'served';
-  const canServe = order.status === 'placed' || order.status === 'received';
+  const canPrepare = order.status === 'received';
+  const canServe = order.status === 'received' || order.status === 'preparing';
   const canReceive = order.status === 'placed';
+  const canMarkPaid = order.status !== 'cancelled' && draft.status !== 'paid';
 
   return (
-    <article className="bg-white border border-border rounded-[24px] shadow-sm overflow-hidden">
+    <article className="ops-card overflow-hidden">
       <div className="p-5 border-b border-border flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-start gap-4 min-w-0">
-          <div className="w-14 h-14 bg-primary text-primaryText rounded-2xl flex items-center justify-center font-black text-lg shrink-0">
+          <div className="w-16 h-16 bg-primary text-primaryText rounded-2xl flex items-center justify-center font-black text-xl shrink-0">
             {tableLabel(order)}
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-2xl font-black tracking-tight">#{order.orderCode}</h2>
+              <h2 className="text-3xl font-black tracking-tight">#{order.orderCode}</h2>
               <StatusChip status={order.status} />
               <StatusChip status={draft.status} />
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-textSecondary font-bold mt-2">
+              <span>User {userCode(order)}</span>
               <span>Table {tableLabel(order)}</span>
               <span>{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               <span>{ageLabel(order.createdAt)}</span>
@@ -99,9 +118,9 @@ function OrderCard({
 
         <div className="lg:text-right">
           <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Total</p>
-          <p className="text-2xl font-black text-text">{formatMoney(order)}</p>
+          <p className="text-3xl font-black text-text">{formatMoney(order)}</p>
           <p className="text-xs font-bold text-textSecondary mt-1">
-            +{order.fetEarned.toLocaleString()} FET earned · {order.fetSpent.toLocaleString()} FET spent
+            +{order.fetEarned.toLocaleString()} FET earned | {order.fetSpent.toLocaleString()} FET spent
           </p>
         </div>
       </div>
@@ -112,7 +131,7 @@ function OrderCard({
           <div className="space-y-2">
             {order.items?.length ? (
               order.items.map((item) => (
-                <div key={item.id} className="flex justify-between gap-4 rounded-2xl bg-surface2 px-4 py-3">
+                <div key={item.id} className="flex justify-between gap-4 rounded-xl bg-surface2 px-4 py-3">
                   <span className="font-bold text-text">
                     {item.quantity}x {item.itemNameSnapshot}
                   </span>
@@ -175,12 +194,17 @@ function OrderCard({
           <div className="grid grid-cols-2 gap-3">
             {canReceive && (
               <button className="btn btn-secondary" disabled={busy} onClick={() => onServiceStatus('received')}>
-                <Clock3 size={16} /> Received
+                <Clock3 size={16} /> Mark received
+              </button>
+            )}
+            {canPrepare && (
+              <button className="btn btn-secondary" disabled={busy} onClick={() => onServiceStatus('preparing')}>
+                <Clock3 size={16} /> Preparing
               </button>
             )}
             {canServe && (
               <button className="btn btn-secondary" disabled={busy} onClick={() => onServiceStatus('served')}>
-                <CheckCircle2 size={16} /> Served
+                <CheckCircle2 size={16} /> Serve order
               </button>
             )}
             {canCancel && (
@@ -188,11 +212,14 @@ function OrderCard({
                 <XCircle size={16} /> Cancel
               </button>
             )}
-            <button className="btn btn-primary" disabled={busy} onClick={() => onPaymentStatus('paid')}>
-              <ReceiptText size={16} /> Mark Paid
+            <button className="btn btn-primary" disabled={busy || !canMarkPaid} onClick={onMarkPaid}>
+              <ReceiptText size={16} /> Mark paid
             </button>
+            <Link className="btn btn-secondary" to={`/orders/${order.id}`}>
+              View Details
+            </Link>
             <button className="btn btn-secondary col-span-2" disabled={busy} onClick={() => onPaymentStatus(draft.status)}>
-              Apply Payment Status
+              Save payment status
             </button>
           </div>
         </div>
@@ -207,6 +234,8 @@ export const LiveOrderQueuePage: React.FC = () => {
   const [drafts, setDrafts] = useState<Record<string, PaymentDraft>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [markPaidOrder, setMarkPaidOrder] = useState<Order | null>(null);
+  const [markPaidError, setMarkPaidError] = useState<string | null>(null);
 
   const orderDrafts = useMemo(() => {
     const next = { ...drafts };
@@ -216,12 +245,12 @@ export const LiveOrderQueuePage: React.FC = () => {
     return next;
   }, [drafts, orders]);
 
-  const activeOrders = orders.filter((order) => order.status === 'placed' || order.status === 'received');
+  const activeOrders = orders.filter((order) => activeServiceStatuses.includes(order.status));
   const visibleOrders = useMemo(
     () =>
       [...orders].sort((a, b) => {
-        const aActive = a.status === 'placed' || a.status === 'received';
-        const bActive = b.status === 'placed' || b.status === 'received';
+        const aActive = activeServiceStatuses.includes(a.status);
+        const bActive = activeServiceStatuses.includes(b.status);
         if (aActive !== bActive) return aActive ? -1 : 1;
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }),
@@ -239,6 +268,29 @@ export const LiveOrderQueuePage: React.FC = () => {
       await action();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Action failed.');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function confirmPaid(details: {
+    amountReceived: number;
+    method: PaymentMethod;
+    reference: string;
+    note: string;
+  }) {
+    if (!markPaidOrder) return;
+    setBusyId(markPaidOrder.id);
+    setMarkPaidError(null);
+    setActionError(null);
+    try {
+      await updatePaymentStatus(markPaidOrder.id, 'paid', details.method, details.note, {
+        amountReceived: details.amountReceived,
+        externalReference: details.reference,
+      });
+      setMarkPaidOrder(null);
+    } catch (err) {
+      setMarkPaidError(err instanceof Error ? err.message : 'Could not mark order paid.');
     } finally {
       setBusyId(null);
     }
@@ -278,14 +330,14 @@ export const LiveOrderQueuePage: React.FC = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {counts.map(({ status, count }) => (
-          <div key={status} className="bg-white border border-border rounded-2xl p-4">
+          <div key={status} className="ops-panel p-4">
             <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">{readableStatus(status)}</p>
             <p className="text-3xl font-black mt-1">{count}</p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-[24px] border border-accent/20 bg-accent/10 px-5 py-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <div className="ops-card px-5 py-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-accent/25 bg-accent/10">
         <div>
           <p className="text-[10px] font-black text-accent uppercase tracking-widest">Priority queue</p>
           <p className="text-2xl font-black text-text">{activeOrders.length} active orders</p>
@@ -323,11 +375,26 @@ export const LiveOrderQueuePage: React.FC = () => {
                   order.id,
                   () => updatePaymentStatus(order.id, status, draft.method, draft.note),
                 )}
+                onMarkPaid={() => {
+                  setMarkPaidError(null);
+                  setMarkPaidOrder(order);
+                }}
               />
             );
           })}
         </div>
       )}
+      <ManualMarkPaidModal
+        order={markPaidOrder}
+        saving={!!markPaidOrder && busyId === markPaidOrder.id}
+        error={markPaidError}
+        onClose={() => {
+          if (busyId) return;
+          setMarkPaidOrder(null);
+          setMarkPaidError(null);
+        }}
+        onConfirm={confirmPaid}
+      />
     </div>
   );
 };

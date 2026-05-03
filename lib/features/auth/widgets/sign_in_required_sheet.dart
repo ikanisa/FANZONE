@@ -281,14 +281,18 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                 color: Color(0xFF25D366),
               ),
               const SizedBox(width: 10),
-              Text(
-                _step == _AuthSheetStep.phone
-                    ? 'VERIFY VIA WHATSAPP'
-                    : 'ENTER OTP',
-                style: FzTypography.display(
-                  size: 20,
-                  color: textColor,
-                  letterSpacing: 1.6,
+              Expanded(
+                child: Text(
+                  _step == _AuthSheetStep.phone
+                      ? 'VERIFY VIA WHATSAPP'
+                      : 'ENTER OTP',
+                  style: FzTypography.display(
+                    size: 20,
+                    color: textColor,
+                    letterSpacing: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

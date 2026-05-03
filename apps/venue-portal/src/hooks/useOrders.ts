@@ -3,6 +3,7 @@ import type { Order, OrderStatus, PaymentMethod, PaymentStatus } from '@fanzone/
 import { supabase } from '../lib/supabase';
 import {
   fetchVenueOrders,
+  type ManualPaymentDetails,
   setOrderPaymentStatus,
   setOrderServiceStatus,
 } from '../services/venueOperations';
@@ -66,8 +67,9 @@ export function useOrders(venueId: string) {
     paymentStatus: PaymentStatus,
     paymentMethod: PaymentMethod,
     note?: string,
+    details?: ManualPaymentDetails,
   ) => {
-    await setOrderPaymentStatus(orderId, paymentStatus, paymentMethod, note);
+    await setOrderPaymentStatus(orderId, paymentStatus, paymentMethod, note, details);
     await refresh();
   };
 

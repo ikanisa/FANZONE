@@ -33,7 +33,7 @@ Rotate before production use:
 Run before release:
 
 ```bash
-git grep -nE '(service_role|postgresql://|sbp_|SUPABASE_SERVICE_ROLE|SUPABASE_DB_PASSWORD)' -- .
+git grep -nE '(service[_-]?role|postgresql:/{2}|sbp[_-]|SUPABASE_(SERVICE_ROLE|DB_PASSWORD))' -- .
 git diff --check
 ```
 

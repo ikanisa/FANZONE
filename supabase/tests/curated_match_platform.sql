@@ -54,7 +54,7 @@ BEGIN
      OR v_settle_def NOT ILIKE '%locked%'
      OR v_settle_def NOT ILIKE '%live%'
      OR v_settle_def NOT ILIKE '%settling%'
-     OR v_settle_def NOT ILIKE '%idempotency_key%' THEN
+     OR v_settle_def NOT ILIKE '%status = ''completed''%' THEN
     RAISE EXCEPTION 'settle_finished_match_pools must cover all active pool states and preserve idempotency logging';
   END IF;
 

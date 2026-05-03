@@ -109,7 +109,7 @@ export function CountriesPage() {
     <div>
       <PageHeader
         title="Countries"
-        subtitle="Rollout markets for venue discovery, country pools, teams, and curated match visibility."
+        subtitle="Rollout markets for venue discovery, venue-linked pools, teams, and curated match visibility."
       />
 
       <div className="grid grid-4 gap-4 mb-6">
@@ -187,7 +187,7 @@ export function CountriesPage() {
       ) : countries.length === 0 ? (
         <EmptyState
           title="No countries configured"
-          description="Add the first rollout market before approving venues or country pools."
+          description="Add the first rollout market before approving venues and country-filtered pool visibility."
         />
       ) : (
         <div className="data-table-container">

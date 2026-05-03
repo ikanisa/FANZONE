@@ -1,8 +1,8 @@
 # Architecture Overview
 
-FANZONE is a production sports-bar entertainment platform. Guests scan table QR codes, browse a venue menu, place orders, receive FET rewards, join match pools, and keep or spend FET where a venue allows it.
+FANZONE is a production sports-bar entertainment platform. Guests discover venues, scan table QR codes, browse a venue menu, place orders, receive FET rewards, join Arena pools, and keep or spend FET where a venue allows it.
 
-The platform intentionally excludes betting, odds, individual prediction scoring, fantasy modes, badge clutter, and payment APIs.
+The Flutter client follows the standalone `FANZONEUI` export as the primary UI and product reference. Static export data should not be copied into production state; screens must be backed by existing gateways or explicit unavailable/empty states.
 
 ## Product Boundaries
 

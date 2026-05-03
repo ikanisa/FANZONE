@@ -74,19 +74,5 @@ void main() {
         );
       },
     );
-
-    test(
-      'competition standings throw instead of returning an empty list',
-      () async {
-        final gateway = SupabaseCompetitionCatalogGateway(connection);
-
-        await expectLater(
-          gateway.getCompetitionStandings(
-            const CompetitionStandingsFilter(competitionId: 'epl'),
-          ),
-          throwsA(isA<SportsDataUnavailableException>()),
-        );
-      },
-    );
   });
 }

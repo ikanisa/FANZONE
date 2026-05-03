@@ -162,7 +162,7 @@ class FzBadge extends StatelessWidget {
       case FzBadgeVariant.primary:
         return _tinted(FzColors.accent);
       case FzBadgeVariant.secondary:
-        return _tinted(FzColors.accent3);
+        return _tinted(FzColors.secondary);
       case FzBadgeVariant.success:
         return _tinted(FzColors.success);
       case FzBadgeVariant.danger:

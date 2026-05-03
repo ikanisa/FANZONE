@@ -9,10 +9,38 @@ const toneClass = {
 export type StatusTone = keyof typeof toneClass;
 
 export function statusTone(status: string): StatusTone {
-  if (['paid', 'served', 'active', 'endorsed', 'settled'].includes(status)) return 'success';
-  if (['received', 'partially_paid', 'pending', 'open', 'live'].includes(status)) return 'warning';
-  if (['cancelled', 'refunded', 'disputed', 'rejected'].includes(status)) return 'danger';
-  if (['placed', 'unpaid'].includes(status)) return 'primary';
+  if ([
+    'paid',
+    'served',
+    'active',
+    'endorsed',
+    'settled',
+    'eligible',
+    'open',
+    'connected',
+  ].includes(status)) return 'success';
+  if ([
+    'received',
+    'preparing',
+    'partially_paid',
+    'partial',
+    'pending',
+    'payment_submitted',
+    'submitted',
+    'settling',
+    'settlement_pending',
+    'order_required',
+    'needs_order',
+  ].includes(status)) return 'warning';
+  if ([
+    'cancelled',
+    'refunded',
+    'disputed',
+    'rejected',
+    'ineligible',
+    'disconnected',
+  ].includes(status)) return 'danger';
+  if (['placed', 'unpaid', 'draft', 'scheduled', 'live'].includes(status)) return 'primary';
   return 'neutral';
 }
 

@@ -1,7 +1,6 @@
 import 'market_preferences_gateway.dart';
 
 export 'account_settings_gateway.dart';
-export 'competition_preferences_gateway.dart';
 export 'market_preferences_gateway.dart';
 export 'notification_settings_gateway.dart';
 

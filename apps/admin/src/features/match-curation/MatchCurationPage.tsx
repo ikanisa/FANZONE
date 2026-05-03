@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from "react";
 import { CheckCircle2, EyeOff, Plus, Search, Save } from "lucide-react";
 
 import { PageHeader } from "../../components/layout/PageHeader";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { DetailDrawer, DrawerField, DrawerSection } from "../../components/ui/DetailDrawer";
 import { EmptyState, ErrorState, LoadingState } from "../../components/ui/StateViews";
 import { StatusBadge } from "../../components/ui/StatusBadge";
@@ -71,6 +72,7 @@ export function MatchCurationPage() {
   const [matchStatus, setMatchStatus] = useState<MatchStateInput["status"]>(initialMatchState);
   const [homeScore, setHomeScore] = useState("");
   const [awayScore, setAwayScore] = useState("");
+  const [pendingActiveChange, setPendingActiveChange] = useState<CuratedMatch | null>(null);
 
   const {
     data: result,
@@ -123,6 +125,12 @@ export function MatchCurationPage() {
 
     const parsedHome = homeScore.trim() === "" ? null : Number(homeScore);
     const parsedAway = awayScore.trim() === "" ? null : Number(awayScore);
+    if (
+      matchStatus === "final" &&
+      !window.confirm("Post this final score? This can trigger automatic pool settlement.")
+    ) {
+      return;
+    }
     await updateMatchState.mutateAsync({
       match_id: selected.match_id,
       status: matchStatus,
@@ -139,13 +147,13 @@ export function MatchCurationPage() {
       />
 
       <form
-        className="data-table-container"
-        style={{ padding: 16, marginBottom: 16 }}
+        className="card"
+        style={{ marginBottom: 16 }}
         onSubmit={handleSubmit}
       >
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
-            <h2 className="font-semibold">Curate a Match</h2>
+              <h2 className="font-semibold">Curate a Match</h2>
             <p className="text-sm text-muted">
               Select imported matches and make them eligible for pool discovery.
             </p>
@@ -388,10 +396,7 @@ export function MatchCurationPage() {
                       disabled={setActive.isPending}
                       onClick={(event) => {
                         event.stopPropagation();
-                        void setActive.mutateAsync({
-                          id: row.id,
-                          is_active: !row.is_active,
-                        });
+                        setPendingActiveChange(row);
                       }}
                     >
                       {row.is_active ? <EyeOff size={14} /> : <CheckCircle2 size={14} />}
@@ -483,6 +488,27 @@ export function MatchCurationPage() {
           </>
         )}
       </DetailDrawer>
+      <ConfirmDialog
+        open={!!pendingActiveChange}
+        title={pendingActiveChange?.is_active ? "Disable curated match?" : "Enable curated match?"}
+        description={
+          pendingActiveChange?.is_active
+            ? "This removes the match from guest pool discovery. Existing pools remain auditable."
+            : "This makes the match eligible for guest pool discovery again."
+        }
+        confirmLabel={pendingActiveChange?.is_active ? "Disable" : "Enable"}
+        danger={pendingActiveChange?.is_active}
+        onCancel={() => setPendingActiveChange(null)}
+        onConfirm={() => {
+          if (!pendingActiveChange) return;
+          void setActive
+            .mutateAsync({
+              id: pendingActiveChange.id,
+              is_active: !pendingActiveChange.is_active,
+            })
+            .finally(() => setPendingActiveChange(null));
+        }}
+      />
     </div>
   );
 }

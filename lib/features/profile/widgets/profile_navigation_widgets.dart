@@ -16,6 +16,7 @@ class ProfileDetailsCard extends StatelessWidget {
     required this.favoriteTeamsDetail,
     required this.linkedVenueLabel,
     required this.linkedVenueDetail,
+    this.onFavoriteTeamsTap,
   });
 
   final String countryLabel;
@@ -24,6 +25,7 @@ class ProfileDetailsCard extends StatelessWidget {
   final String favoriteTeamsDetail;
   final String linkedVenueLabel;
   final String linkedVenueDetail;
+  final VoidCallback? onFavoriteTeamsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +46,7 @@ class ProfileDetailsCard extends StatelessWidget {
               icon: LucideIcons.star,
               label: favoriteTeamsLabel,
               subtitle: favoriteTeamsDetail,
+              onTap: onFavoriteTeamsTap,
             ),
             const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(

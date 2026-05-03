@@ -2,7 +2,7 @@
 
 This directory is the release-readiness entry point for FANZONE, the sports-bar entertainment platform for venues, lounges, fan zones, and hospitality operators.
 
-FANZONE is not a sportsbook, betting product, odds engine, fantasy app, or general restaurant app. The production product is guest menu browsing, bar ordering, off-platform payment guidance, manual payment confirmation, FET rewards, FET wallets, curated match pools, admin curation, settlement, audit, and operations tooling.
+FANZONE uses the standalone `FANZONEUI` export as the primary UI and product reference for the Flutter client. Production implementation must wire those concepts to real app data, Supabase gateways, loading states, and empty states rather than static mock export data. The current production surface includes guest venue discovery, bar ordering, off-platform payment guidance, manual payment confirmation, FET rewards, FET wallets, Arena pools, admin curation, settlement, audit, and operations tooling.
 
 ## One-Hour Senior Developer Onboarding
 

@@ -10,6 +10,7 @@ import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_empty_state.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
@@ -31,40 +32,11 @@ class VenueMenuScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 72,
-        centerTitle: false,
-        titleSpacing: 20,
-        title: Row(
-          children: [
-            const Icon(LucideIcons.utensils, size: 22, color: FzColors.primary),
-            const SizedBox(width: 10),
-            Text(
-              'Bar',
-              style: FzTypography.display(
-                size: 34,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? FzColors.darkText
-                    : FzColors.lightText,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          if (venueContext.hasVenue)
-            IconButton(
-              tooltip: 'Leave venue',
-              onPressed: () {
-                ref.read(venueContextProvider.notifier).clear();
-                ref.read(cartProvider.notifier).clear();
-              },
-              icon: const Icon(LucideIcons.logOut, size: 18),
-            ),
-        ],
+      body: SafeArea(
+        child: venueContext.hasVenue
+            ? _BarContent(cart: cart)
+            : const _NoVenueState(),
       ),
-      body: venueContext.hasVenue
-          ? _BarContent(cart: cart)
-          : const _NoVenueState(),
       floatingActionButton: cart.isNotEmpty ? _CartPill(cart: cart) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
@@ -77,13 +49,17 @@ class _NoVenueState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 32, 16, 140),
-      children: const [
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
+      children: [
+        const FzReferenceHeader(title: 'Sports Elite'),
+        const SizedBox(height: 24),
         FzEmptyState(
           title: 'Scan a table QR',
           description:
-              'Your venue, table, menu, cart, payment guidance, and FET rewards appear here as soon as you scan a FANZONE table code.',
-          icon: Icon(LucideIcons.qrCode),
+              'Your venue, table, menu, cart, payment guidance, and FET rewards appear here as soon as you scan or select a FANZONE bar.',
+          icon: const Icon(LucideIcons.qrCode),
+          actionLabel: 'Browse Venues',
+          onAction: () => context.go('/venues'),
         ),
       ],
     );
@@ -112,6 +88,39 @@ class _BarContent extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             sliver: SliverList.list(
               children: [
+                Row(
+                  children: [
+                    const Expanded(
+                      child: FzReferenceHeader(title: 'Sports Elite'),
+                    ),
+                    IconButton(
+                      tooltip: 'Leave venue',
+                      onPressed: () {
+                        ref.read(venueContextProvider.notifier).clear();
+                        ref.read(cartProvider.notifier).clear();
+                        context.go('/venues');
+                      },
+                      icon: const Icon(LucideIcons.logOut, size: 18),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                Text(
+                  'Order to Play',
+                  style: FzTypography.display(
+                    size: 38,
+                    color: FzColors.darkText,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Order at the bar, earn FET after staff confirmation, and unlock the Arena.',
+                  style: TextStyle(
+                    color: FzColors.darkMuted,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 16),
                 _VenueContextCard(cart: cart),
                 const SizedBox(height: 12),
                 const _PaymentGuidanceCard(),
@@ -415,94 +424,129 @@ class _MenuItemCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final quantity = ref.watch(cartProvider.notifier).getQuantity(item.id);
+    final estimatedFet = _estimatedFetForItem(item);
 
     return FzCard(
-      padding: const EdgeInsets.all(12),
-      child: Row(
+      padding: EdgeInsets.zero,
+      borderRadius: FzRadii.card,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (item.imageUrl != null)
-            Container(
-              width: 76,
-              height: 76,
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                image: DecorationImage(
-                  image: NetworkImage(item.imageUrl!),
-                  fit: BoxFit.cover,
+          Stack(
+            children: [
+              FzImageSurface(
+                imageUrl: item.imageUrl,
+                icon: LucideIcons.utensils,
+                height: 132,
+              ),
+              Positioned(
+                right: 12,
+                top: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: FzColors.success,
+                    borderRadius: FzRadii.fullRadius,
+                  ),
+                  child: Text(
+                    estimatedFet > 0 ? '+$estimatedFet FET' : 'Earn FET',
+                    style: const TextStyle(
+                      color: FzColors.darkBg,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                if (item.description != null)
-                  Text(
-                    item.description!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
-                    ),
-                  ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      item.currencyCode == 'EUR'
-                          ? '€${item.price.toStringAsFixed(2)}'
-                          : '${item.currencyCode} ${item.price.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: FzColors.accent,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: FzColors.success.withValues(alpha: 0.10),
-                        borderRadius: FzRadii.fullRadius,
-                        border: Border.all(
-                          color: FzColors.success.withValues(alpha: 0.20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
                       ),
-                      child: const Text(
-                        'Earn FET',
+                      if (item.description != null)
+                        Text(
+                          item.description!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark
+                                ? FzColors.darkMuted
+                                : FzColors.lightMuted,
+                          ),
+                        ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            item.priceDisplay,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: FzColors.action,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: FzColors.success.withValues(alpha: 0.10),
+                              borderRadius: FzRadii.fullRadius,
+                              border: Border.all(
+                                color: FzColors.success.withValues(alpha: 0.20),
+                              ),
+                            ),
+                            child: Text(
+                              estimatedFet > 0
+                                  ? 'Earn ~$estimatedFet FET'
+                                  : 'Earn FET',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: FzColors.success,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Credited after staff confirms payment.',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: FzColors.success,
+                          fontSize: 11,
+                          color: FzColors.darkMuted,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Credited after staff confirms payment.',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: FzColors.darkMuted),
-                ),
+                const SizedBox(width: 12),
+                _QuantityControls(item: item, quantity: quantity),
               ],
             ),
           ),
-          _QuantityControls(item: item, quantity: quantity),
         ],
       ),
     );
@@ -518,43 +562,61 @@ class _QuantityControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (quantity == 0) {
-      return IconButton.filledTonal(
-        onPressed: () => ref.read(cartProvider.notifier).addItem(item),
-        icon: const Icon(LucideIcons.plus, size: 20),
-        style: IconButton.styleFrom(
-          backgroundColor: FzColors.accent.withValues(alpha: 0.1),
-          foregroundColor: FzColors.accent,
+      return ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 76, maxWidth: 92),
+        child: FilledButton.icon(
+          onPressed: () => ref.read(cartProvider.notifier).addItem(item),
+          icon: const Icon(LucideIcons.plus, size: 16),
+          label: const Text('Add'),
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            textStyle: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+            minimumSize: const Size(76, 44),
+          ),
         ),
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          onPressed: () => ref.read(cartProvider.notifier).removeItem(item.id),
-          icon: const Icon(
-            LucideIcons.minusCircle,
-            size: 22,
-            color: FzColors.danger,
+    return Container(
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface2,
+        borderRadius: FzRadii.fullRadius,
+        border: Border.all(color: FzColors.darkBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'Remove one',
+            onPressed: () =>
+                ref.read(cartProvider.notifier).removeItem(item.id),
+            icon: const Icon(
+              LucideIcons.minus,
+              size: 18,
+              color: FzColors.danger,
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: Text(
-            '$quantity',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Text(
+              '$quantity',
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+            ),
           ),
-        ),
-        IconButton(
-          onPressed: () => ref.read(cartProvider.notifier).addItem(item),
-          icon: const Icon(
-            LucideIcons.plusCircle,
-            size: 22,
-            color: FzColors.success,
+          IconButton(
+            tooltip: 'Add one',
+            onPressed: () => ref.read(cartProvider.notifier).addItem(item),
+            icon: const Icon(
+              LucideIcons.plus,
+              size: 18,
+              color: FzColors.success,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -569,7 +631,7 @@ class _CartPill extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push('/checkout'),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         decoration: BoxDecoration(
           color: FzColors.darkText,
           borderRadius: BorderRadius.circular(99),
@@ -590,13 +652,33 @@ class _CartPill extends StatelessWidget {
               size: 18,
             ),
             const SizedBox(width: 12),
-            Text(
-              'CART • ${cart.totalItemCount}',
-              style: const TextStyle(
-                color: FzColors.darkBg,
-                fontWeight: FontWeight.w900,
-                fontSize: 14,
-                letterSpacing: 0.5,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 150),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Review order',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: FzColors.darkBg,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    '${cart.totalItemCount} items • +${cart.estimatedFet} FET',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: FzColors.darkBg.withValues(alpha: 0.72),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 12),
@@ -613,4 +695,10 @@ class _CartPill extends StatelessWidget {
       ),
     );
   }
+}
+
+int _estimatedFetForItem(MenuItemModel item) {
+  if (item.currencyCode == 'EUR') return (item.price * 100).floor();
+  if (item.currencyCode == 'RWF') return ((item.price / 1500) * 100).floor();
+  return 0;
 }

@@ -8,7 +8,6 @@ const notificationPreferencesCachePrefix = 'preferences.notifications.';
 const notificationLogCachePrefix = 'preferences.notification_log.';
 const matchAlertsCachePrefix = 'preferences.match_alerts.';
 const deviceTokensCachePrefix = 'preferences.device_tokens.';
-const competitionIdsCachePrefix = 'preferences.favourites.competitions.';
 
 /// Serializes an [AccountDeletionRequestModel] for local cache storage.
 Map<String, dynamic> accountDeletionToJson(

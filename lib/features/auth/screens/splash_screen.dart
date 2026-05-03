@@ -76,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen>
         ? (_qrRoute() ??
               widget.returnTo ??
               appRuntime.consumePendingAppRoute() ??
-              '/today')
+              '/home')
         : '/onboarding';
     context.go(nextRoute);
     markAppInteractive();

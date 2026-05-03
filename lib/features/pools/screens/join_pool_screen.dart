@@ -10,6 +10,8 @@ import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
+import '../../../widgets/common/fz_reference_modals.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../data/pools_repository.dart';
@@ -86,9 +88,14 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
       return;
     }
     if (availableFet < amount) {
-      setState(
-        () =>
-            _error = 'Insufficient FET. You have $availableFet FET available.',
+      setState(() => _error = null);
+      await showFzInsufficientFetSheet(
+        context,
+        requiredFet: amount,
+        availableFet: availableFet,
+        onOpenWallet: () {
+          if (mounted) context.push('/wallet');
+        },
       );
       return;
     }
@@ -134,97 +141,108 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
     final walletAsync = ref.watch(walletBalanceProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Join pool'),
-        leading: IconButton(
-          tooltip: 'Back',
-          onPressed: () => context.pop(),
-          icon: const Icon(LucideIcons.chevronLeft),
-        ),
-      ),
-      body: poolAsync.when(
-        data: (pool) {
-          if (pool == null) {
-            return StateView.empty(
-              title: 'Pool not found',
-              subtitle: 'Open Pools to choose another pool.',
-              action: () => context.go('/pools'),
-              actionLabel: 'Open Pools',
-            );
-          }
+      body: SafeArea(
+        child: poolAsync.when(
+          data: (pool) {
+            if (pool == null) {
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
+                children: [
+                  const FzBackHeader(
+                    title: 'Join Pool',
+                    subtitle: 'Choose a camp and stake FET',
+                  ),
+                  const SizedBox(height: 48),
+                  StateView.empty(
+                    title: 'Pool not found',
+                    subtitle: 'Open Pools to choose another pool.',
+                    action: () => context.go('/pools'),
+                    actionLabel: 'Open Pools',
+                  ),
+                ],
+              );
+            }
 
-          if (_stakeController.text.isEmpty) {
-            _stakeController.text = pool.defaultStakeFet.toString();
-          }
+            if (_stakeController.text.isEmpty) {
+              _stakeController.text = pool.defaultStakeFet.toString();
+            }
 
-          return walletAsync.when(
-            data: (wallet) => ListView(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
-              children: [
-                _JoinHero(pool: pool, availableFet: wallet.availableFet),
-                const SizedBox(height: 16),
-                const _SectionLabel('Choose camp'),
-                const SizedBox(height: 10),
-                ...pool.camps.map(
-                  (camp) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: _CampChoice(
-                      camp: camp,
-                      selected: _selectedCampId == camp.id,
-                      onTap: () => setState(() => _selectedCampId = camp.id),
+            return walletAsync.when(
+              data: (wallet) => ListView(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
+                children: [
+                  const FzBackHeader(
+                    title: 'Join Pool',
+                    subtitle: 'Choose a camp and stake FET',
+                  ),
+                  const SizedBox(height: 18),
+                  _JoinHero(pool: pool, availableFet: wallet.availableFet),
+                  const SizedBox(height: 16),
+                  const _SectionLabel('Choose your camp'),
+                  const SizedBox(height: 10),
+                  ...pool.camps.map(
+                    (camp) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _CampChoice(
+                        camp: camp,
+                        selected: _selectedCampId == camp.id,
+                        onTap: () => setState(() => _selectedCampId = camp.id),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                const _SectionLabel('Stake FET'),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _stakeController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(LucideIcons.coins),
-                    suffixText: 'FET',
-                    helperText:
-                        'Range ${pool.stakeMinFet}-${pool.stakeMaxFet} FET',
-                  ),
-                ),
-                if (_error != null) ...[
                   const SizedBox(height: 12),
-                  _ErrorStrip(message: _error!),
-                ],
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: _submitting
-                      ? null
-                      : () => _confirm(pool, wallet.availableFet),
-                  icon: _submitting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(LucideIcons.lock, size: 16),
-                  label: Text(_submitting ? 'Confirming...' : 'Confirm stake'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  const _SectionLabel('Stake amount'),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _stakeController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(LucideIcons.coins),
+                      suffixText: 'FET',
+                      helperText:
+                          'Range ${pool.stakeMinFet}-${pool.stakeMaxFet} FET',
+                    ),
                   ),
-                ),
-              ],
-            ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => StateView.error(
-              title: 'Wallet unavailable',
-              subtitle: error.toString(),
-              onRetry: () => ref.invalidate(walletBalanceProvider),
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => StateView.error(
-          title: 'Pool unavailable',
-          subtitle: error.toString(),
-          onRetry: () => ref.invalidate(poolDetailProvider(widget.poolId)),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    _ErrorStrip(message: _error!),
+                  ],
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: _submitting
+                        ? null
+                        : () => _confirm(pool, wallet.availableFet),
+                    icon: _submitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.lock, size: 16),
+                    label: Text(
+                      _submitting ? 'Confirming...' : 'Stake FET now',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ],
+              ),
+              loading: () => const _JoinLoadingState(),
+              error: (error, _) => StateView.error(
+                title: 'Wallet unavailable',
+                subtitle: error.toString(),
+                onRetry: () => ref.invalidate(walletBalanceProvider),
+              ),
+            );
+          },
+          loading: () => const _JoinLoadingState(),
+          error: (error, _) => StateView.error(
+            title: 'Pool unavailable',
+            subtitle: error.toString(),
+            onRetry: () => ref.invalidate(poolDetailProvider(widget.poolId)),
+          ),
         ),
       ),
     );
@@ -249,19 +267,47 @@ class _JoinHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FzCard(
+    return Container(
       padding: const EdgeInsets.all(18),
-      borderRadius: FzRadii.hero,
-      color: FzColors.darkSurface2,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [FzColors.darkSurface, FzColors.teal, FzColors.action],
+          stops: [0, 0.58, 1],
+        ),
+        borderRadius: FzRadii.heroRadius,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'JOIN POOL',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: Colors.white70,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
           Text(
             pool.title,
             style: FzTypography.display(
               size: 30,
-              color: FzColors.darkText,
+              color: Colors.white,
               letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Pick one camp and stake from your available FET. Settlement is automatic after the final result.',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 13,
+              height: 1.35,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 12),
@@ -269,9 +315,32 @@ class _JoinHero extends StatelessWidget {
             children: [
               _HeroMetric(label: 'Available', value: '$availableFet FET'),
               const SizedBox(width: 10),
-              _HeroMetric(label: 'Stake', value: '${pool.defaultStakeFet} FET'),
+              _HeroMetric(
+                label: 'Default',
+                value: '${pool.defaultStakeFet} FET',
+              ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _JoinLoadingState extends StatelessWidget {
+  const _JoinLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
+      child: Column(
+        children: [
+          FzBackHeader(
+            title: 'Join Pool',
+            subtitle: 'Choose a camp and stake FET',
+          ),
+          Expanded(child: Center(child: CircularProgressIndicator())),
         ],
       ),
     );
@@ -293,25 +362,64 @@ class _CampChoice extends StatelessWidget {
   Widget build(BuildContext context) {
     return FzCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       borderRadius: FzRadii.compact,
-      borderColor: selected ? FzColors.accent : FzColors.darkBorder,
+      borderColor: selected ? FzColors.action : FzColors.darkBorder,
+      color: selected ? FzColors.action.withValues(alpha: 0.10) : null,
       child: Row(
         children: [
-          Icon(
-            selected ? LucideIcons.checkCircle2 : LucideIcons.circle,
-            color: selected ? FzColors.accent : FzColors.darkMuted,
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: selected
+                  ? FzColors.action.withValues(alpha: 0.16)
+                  : FzColors.darkSurface2,
+              borderRadius: FzRadii.buttonRadius,
+              border: Border.all(
+                color: selected ? FzColors.action : FzColors.darkBorder,
+              ),
+            ),
+            child: Icon(
+              selected ? LucideIcons.checkCircle2 : LucideIcons.circle,
+              color: selected ? FzColors.action : FzColors.darkMuted,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              camp.label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  camp.label,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '${camp.memberCount} members',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: FzColors.darkMuted,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
-          Text(
-            '${camp.memberCount} - ${camp.totalStakedFet} FET',
-            style: const TextStyle(fontSize: 12, color: FzColors.darkMuted),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: FzColors.darkSurface2,
+              borderRadius: FzRadii.buttonRadius,
+              border: Border.all(color: FzColors.darkBorder),
+            ),
+            child: Text(
+              '${camp.totalStakedFet} FET',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+            ),
           ),
         ],
       ),
@@ -331,8 +439,9 @@ class _HeroMetric extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: FzColors.accent.withValues(alpha: 0.08),
+          color: Colors.white.withValues(alpha: 0.10),
           borderRadius: FzRadii.buttonRadius,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,12 +450,20 @@ class _HeroMetric extends StatelessWidget {
               label,
               style: const TextStyle(
                 fontSize: 10,
-                color: FzColors.darkMuted,
+                color: Colors.white70,
                 fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 4),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
           ],
         ),
       ),

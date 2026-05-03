@@ -1,130 +1,130 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// FANZONE typography system.
 ///
 /// - Outfit: clean modern sans-serif for all UI text
-/// - Bebas Neue: display font for screen titles and section headers
+/// - Outfit: display and body text for a premium operational feel
 /// - JetBrains Mono: tabular numerals for scores only
 /// - Minimum 12px for accessibility
+/// - Large, high-weight hierarchy for the sports-bar command-center UI
 abstract final class FzTypography {
+  static const String _outfitFamily = 'Outfit';
+  static const String _monoFamily = 'JetBrains Mono';
+
   /// Base text theme using Outfit for the entire app.
   static TextTheme textTheme(Brightness brightness) {
-    const color = Color(0xFFFDFCF0);
+    const color = Color(0xFFF8FAFC);
 
     const baseTheme = TextTheme(
       // Display
       displayLarge: TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.w700,
+        fontSize: 48,
+        fontWeight: FontWeight.w900,
         color: color,
-        height: 1.2,
+        height: 1.05,
       ),
       displayMedium: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
+        fontSize: 40,
+        fontWeight: FontWeight.w900,
         color: color,
-        height: 1.2,
+        height: 1.08,
       ),
       displaySmall: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w700,
+        fontSize: 34,
+        fontWeight: FontWeight.w800,
         color: color,
-        height: 1.2,
+        height: 1.1,
       ),
 
       // Headlines
       headlineLarge: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
+        fontSize: 30,
+        fontWeight: FontWeight.w800,
         color: color,
-        height: 1.3,
+        height: 1.15,
       ),
       headlineMedium: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontSize: 26,
+        fontWeight: FontWeight.w800,
         color: color,
-        height: 1.3,
+        height: 1.18,
       ),
       headlineSmall: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
         color: color,
-        height: 1.3,
+        height: 1.2,
       ),
 
       // Titles
       titleLarge: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
+        fontSize: 20,
+        fontWeight: FontWeight.w800,
         color: color,
-        height: 1.4,
+        height: 1.25,
       ),
       titleMedium: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
         color: color,
-        height: 1.4,
+        height: 1.3,
       ),
       titleSmall: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
         color: color,
-        height: 1.4,
+        height: 1.35,
       ),
 
       // Body
       bodyLarge: TextStyle(
-        fontSize: 15,
-        fontWeight: FontWeight.w400,
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
         color: color,
-        height: 1.5,
+        height: 1.45,
       ),
       bodyMedium: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
         color: color,
-        height: 1.5,
+        height: 1.45,
       ),
       bodySmall: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w400,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
         color: color,
-        height: 1.5,
+        height: 1.45,
       ),
 
-      // Labels — w700 to match reference's aggressive font-bold usage
+      // Labels — high weight for operational chips, buttons, and badges.
       labelLarge: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w700,
+        fontSize: 15,
+        fontWeight: FontWeight.w800,
         color: color,
-        height: 1.3,
+        height: 1.25,
       ),
       labelMedium: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
+        fontSize: 14,
+        fontWeight: FontWeight.w800,
         color: color,
-        height: 1.3,
+        height: 1.25,
       ),
       labelSmall: TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.w700,
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
         color: color,
-        height: 1.3,
+        height: 1.25,
         letterSpacing: 1.2,
       ),
     );
 
-    return _withGoogleFontTextTheme(
-      () => GoogleFonts.outfitTextTheme(baseTheme),
-      fallback: baseTheme,
-    );
+    return baseTheme.apply(fontFamily: _outfitFamily);
   }
 
   /// Score text style — JetBrains Mono with tabular figures.
   static TextStyle score({
-    double size = 16,
-    FontWeight weight = FontWeight.w700,
+    double size = 18,
+    FontWeight weight = FontWeight.w800,
     Color? color,
   }) {
     final fallback = TextStyle(
@@ -134,7 +134,8 @@ abstract final class FzTypography {
       fontFeatures: const [FontFeature.tabularFigures()],
     );
     return _withGoogleFontStyle(
-      () => GoogleFonts.jetBrainsMono(
+      () => TextStyle(
+        fontFamily: _monoFamily,
         fontSize: size,
         fontWeight: weight,
         color: color,
@@ -148,30 +149,32 @@ abstract final class FzTypography {
   static TextStyle scoreCompact({Color? color}) =>
       score(size: 14, color: color);
 
-  /// Large score for match detail header (24px).
-  static TextStyle scoreLarge({Color? color}) => score(size: 24, color: color);
+  /// Large score for match detail headers and hero numbers (32px).
+  static TextStyle scoreLarge({Color? color}) => score(size: 32, color: color);
 
-  /// Medium score for match cards (18px).
-  static TextStyle scoreMedium({Color? color}) => score(size: 18, color: color);
+  /// Medium score for match cards (20px).
+  static TextStyle scoreMedium({Color? color}) => score(size: 20, color: color);
 
-  /// Display style — Bebas Neue for screen titles and section headers.
-  /// Matches the original design's `font-display` class.
+  /// Display style for screen titles and section headers.
+  /// Uses bundled Outfit weights to keep tests and offline builds deterministic.
   static TextStyle display({
-    double size = 32,
+    double size = 40,
     Color? color,
-    double letterSpacing = 3.2,
+    double letterSpacing = 0,
+    FontWeight weight = FontWeight.w900,
   }) {
     final fallback = TextStyle(
       fontSize: size,
-      fontWeight: FontWeight.w700,
+      fontWeight: weight,
       color: color,
       height: 1.1,
       letterSpacing: letterSpacing,
     );
     return _withGoogleFontStyle(
-      () => GoogleFonts.bebasNeue(
+      () => TextStyle(
+        fontFamily: _outfitFamily,
         fontSize: size,
-        fontWeight: FontWeight.w400, // Bebas Neue only has 400
+        fontWeight: weight,
         color: color,
         height: 1.1,
         letterSpacing: letterSpacing,
@@ -181,48 +184,29 @@ abstract final class FzTypography {
   }
 
   /// Section label style — uppercase, spaced, theme-aware muted color.
-  /// Matches design reference: `text-[10px] font-bold uppercase tracking-widest`
+  /// Keeps compact metadata legible without dropping below 12px.
   static TextStyle sectionLabel(Brightness brightness) => const TextStyle(
-    fontSize: 10,
-    fontWeight: FontWeight.w700,
+    fontSize: 12,
+    fontWeight: FontWeight.w800,
     color: Color(0xFF8B8E99),
-    letterSpacing: 2.4,
+    letterSpacing: 1.8,
   );
 
   /// Meta/status label style — uppercase, tracking-widest, small.
-  /// Matches the reference's ubiquitous `text-[9px] font-bold uppercase tracking-widest` pattern.
-  static TextStyle metaLabel({
-    double size = 9,
-    Color? color,
-  }) => TextStyle(
+  static TextStyle metaLabel({double size = 12, Color? color}) => TextStyle(
     fontSize: size,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w800,
     color: color ?? const Color(0xFF8B8E99),
-    letterSpacing: 1.6,
+    letterSpacing: 1.2,
   );
 
   /// Status/badge text — bold + tracked for premium sports-editorial feel.
-  /// Matches: `text-[10px] font-bold uppercase tracking-widest`
-  static TextStyle statusLabel({
-    double size = 10,
-    Color? color,
-  }) => TextStyle(
+  static TextStyle statusLabel({double size = 13, Color? color}) => TextStyle(
     fontSize: size,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w800,
     color: color,
-    letterSpacing: 1.4,
+    letterSpacing: 1.1,
   );
-
-  static TextTheme _withGoogleFontTextTheme(
-    TextTheme Function() build, {
-    required TextTheme fallback,
-  }) {
-    try {
-      return build();
-    } catch (_) {
-      return fallback;
-    }
-  }
 
   static TextStyle _withGoogleFontStyle(
     TextStyle Function() build, {

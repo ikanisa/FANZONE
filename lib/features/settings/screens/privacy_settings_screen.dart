@@ -8,6 +8,7 @@ import '../../../models/auth_and_user/privacy_settings_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/privacy_settings_service.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/typography.dart';
 import '../widgets/privacy_widgets.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
@@ -175,12 +176,9 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                             const SizedBox(height: 28),
                             Text(
                               'Visibility Controls'.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: muted,
-                                letterSpacing: 1.2,
-                              ),
+                              style: FzTypography.sectionLabel(
+                                Theme.of(context).brightness,
+                              ).copyWith(color: muted),
                             ),
                             const SizedBox(height: 12),
                             PrivacySourceCard(
@@ -203,13 +201,13 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                             ),
                             if (!isVerified) ...[
                               const SizedBox(height: 12),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 4),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
                                 child: Text(
                                   '* Verification required to change visibility settings.',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
+                                  style: FzTypography.statusLabel(
                                     color: FzColors.coral,
                                   ),
                                 ),

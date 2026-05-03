@@ -30,6 +30,7 @@ class FzCard extends StatelessWidget {
 
     final card = Container(
       margin: margin,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: color ?? (isDark ? FzColors.darkSurface : FzColors.lightSurface),
         borderRadius: BorderRadius.circular(borderRadius),
@@ -43,8 +44,8 @@ class FzCard extends StatelessWidget {
             ? [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.18),
-                  blurRadius: 28,
-                  offset: const Offset(0, 14),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
                 ),
               ]
             : null,
@@ -58,6 +59,8 @@ class FzCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         child: InkWell(
           onTap: onTap,
+          splashColor: FzColors.primary.withValues(alpha: 0.08),
+          highlightColor: FzColors.primary.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(borderRadius),
           child: card,
         ),

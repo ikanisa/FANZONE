@@ -390,7 +390,7 @@ export default function MatchPools({
       <PoolList
         pools={pools}
         emptyTitle="No pool is open for this match"
-        emptyDescription="Official venue, country, or global pools will appear after admin curation."
+        emptyDescription="Official venue-linked pools will appear after admin curation."
         inviteCode={inviteCode}
         source={source}
         onJoined={loadPools}

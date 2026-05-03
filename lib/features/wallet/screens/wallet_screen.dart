@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../core/utils/currency_utils.dart';
@@ -11,6 +12,7 @@ import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_animated_counter.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_empty_state.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../../../services/wallet_service.dart';
@@ -38,28 +40,28 @@ class WalletScreen extends ConsumerWidget {
         .fold<int>(0, (sum, tx) => sum + tx.amount);
 
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 72,
-        centerTitle: false,
-        titleSpacing: 20,
-        title: Row(
-          children: [
-            const Icon(LucideIcons.wallet, size: 22, color: FzColors.primary),
-            const SizedBox(width: 10),
-            Text(
-              'Wallet',
-              style: FzTypography.display(
-                size: 34,
-                color: FzColors.darkText,
-                letterSpacing: 0.4,
-              ),
-            ),
-          ],
-        ),
-      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
         children: [
+          const FzReferenceHeader(title: 'Sports Elite'),
+          const SizedBox(height: 24),
+          Text(
+            'Wallet',
+            style: FzTypography.display(
+              size: 38,
+              color: FzColors.darkText,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Your FET balance, locked stakes, rewards, and activity.',
+            style: TextStyle(
+              color: FzColors.darkMuted,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 18),
           _WalletHero(
             balanceAsync: walletBalanceAsync,
             currency: currency,
@@ -193,6 +195,11 @@ class WalletScreen extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 18),
+          _HowToEarnFetCard(
+            onOpenVenues: () => context.go('/venues'),
+            onOpenArena: () => context.go('/pools'),
+          ),
           const SizedBox(height: 24),
           const _HistoryHeader(),
           const SizedBox(height: 10),
@@ -219,9 +226,8 @@ class WalletScreen extends ConsumerWidget {
                         ),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(16),
-                          onTap: () => TransactionReceiptDialog.show(
-                            context,
-                            transaction: transactions[index],
+                          onTap: () => context.push(
+                            '/wallet/transaction/${transactions[index].id}',
                           ),
                           child: WalletTransactionRow(
                             transaction: transactions[index],
@@ -320,6 +326,7 @@ class _WalletHero extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white70,
+                        fontWeight: FontWeight.w700,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -347,7 +354,7 @@ class _WalletHero extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 220),
                   child: _HeroActionButton(
-                    label: 'SEND',
+                    label: 'Send FET',
                     icon: LucideIcons.send,
                     filled: true,
                     onTap: onSend,
@@ -387,7 +394,7 @@ class _HeroActionButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        height: 48,
+        height: 50,
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(12),
@@ -400,20 +407,154 @@ class _HeroActionButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 14, color: iconColor),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: labelColor,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 16, color: iconColor),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: labelColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _HowToEarnFetCard extends StatelessWidget {
+  const _HowToEarnFetCard({
+    required this.onOpenVenues,
+    required this.onOpenArena,
+  });
+
+  final VoidCallback onOpenVenues;
+  final VoidCallback onOpenArena;
+
+  @override
+  Widget build(BuildContext context) {
+    return FzCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: FzRadii.compact,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(LucideIcons.sparkles, size: 18, color: FzColors.success),
+              SizedBox(width: 10),
+              Text(
+                'How to Earn FET',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const _EarnStep(
+            icon: LucideIcons.utensils,
+            title: 'Order at venues',
+            subtitle: 'Earn rewards after venue staff confirm payment.',
+          ),
+          const SizedBox(height: 10),
+          const _EarnStep(
+            icon: LucideIcons.trophy,
+            title: 'Enter Arena pools',
+            subtitle: 'Stake FET and receive audited settlement rewards.',
+          ),
+          const SizedBox(height: 10),
+          const _EarnStep(
+            icon: LucideIcons.send,
+            title: 'Invite friends',
+            subtitle: 'Share pool links and keep activity inside FANZONE.',
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: onOpenVenues,
+                  icon: const Icon(LucideIcons.store, size: 16),
+                  label: const Text('Venues'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onOpenArena,
+                  icon: const Icon(LucideIcons.trophy, size: 16),
+                  label: const Text('Arena'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EarnStep extends StatelessWidget {
+  const _EarnStep({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: FzColors.darkSurface2,
+            borderRadius: FzRadii.buttonRadius,
+            border: Border.all(color: FzColors.darkBorder),
+          ),
+          child: Icon(icon, size: 17, color: FzColors.primary),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: FzColors.darkText,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: FzColors.darkMuted,
+                  fontSize: 12,
+                  height: 1.35,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

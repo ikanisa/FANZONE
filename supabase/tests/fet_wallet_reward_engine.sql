@@ -13,6 +13,7 @@ DECLARE
   v_venue_id uuid := extensions.gen_random_uuid();
   v_table_id uuid := extensions.gen_random_uuid();
   v_order_id uuid := extensions.gen_random_uuid();
+  v_winner_order_id uuid := extensions.gen_random_uuid();
   v_pool_id uuid := extensions.gen_random_uuid();
   v_camp_home uuid := extensions.gen_random_uuid();
   v_camp_away uuid := extensions.gen_random_uuid();
@@ -174,7 +175,7 @@ BEGIN
   VALUES (
     'fet_test_match',
     'fet_test_comp',
-    timezone('utc', now()) + interval '1 day',
+    timezone('utc', now()) + interval '1 hour',
     'scheduled',
     'home',
     'away'
@@ -183,6 +184,7 @@ BEGIN
   INSERT INTO public.match_pools (
     id,
     match_id,
+    venue_id,
     title,
     creator_user_id,
     entry_fee_fet,
@@ -193,6 +195,7 @@ BEGIN
   VALUES (
     v_pool_id,
     'fet_test_match',
+    v_venue_id,
     'FET test pool',
     v_user_creator,
     10,
@@ -209,13 +212,40 @@ BEGIN
   INSERT INTO public.match_pool_invites (pool_id, inviter_user_id, invite_code)
   VALUES (v_pool_id, v_user_creator, v_invite_code);
 
+  INSERT INTO public.orders (
+    id,
+    venue_id,
+    table_id,
+    user_id,
+    status,
+    payment_method,
+    payment_status,
+    currency_code,
+    subtotal_amount,
+    total_amount,
+    created_at
+  )
+  VALUES (
+    v_winner_order_id,
+    v_venue_id,
+    v_table_id,
+    v_user_winner,
+    'served',
+    'cash',
+    'paid',
+    'EUR',
+    10,
+    10,
+    timezone('utc', now()) + interval '30 minutes'
+  );
+
   PERFORM set_config('request.jwt.claim.sub', v_user_winner::text, true);
   PERFORM set_config('request.jwt.claim.role', 'authenticated', true);
   PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_user_winner, 'role', 'authenticated')::text, true);
   PERFORM public.join_match_pool(v_pool_id, v_camp_home, 10, v_invite_code);
 
   v_wallet := public.get_wallet_balance(v_user_winner);
-  IF (v_wallet ->> 'available_fet')::bigint <> 40 OR (v_wallet ->> 'staked_fet')::bigint <> 10 THEN
+  IF (v_wallet ->> 'available_fet')::bigint <> 140 OR (v_wallet ->> 'staked_fet')::bigint <> 10 THEN
     RAISE EXCEPTION 'Pool stake did not move available to staked as expected: %', v_wallet;
   END IF;
 
@@ -244,6 +274,8 @@ BEGIN
       winner_camp = 'home'
   WHERE id = 'fet_test_match';
 
+  PERFORM set_config('request.jwt.claim.role', 'service_role', true);
+  PERFORM set_config('request.jwt.claims', jsonb_build_object('role', 'service_role')::text, true);
   v_settlement := public.settle_match_pool(v_pool_id);
   IF v_settlement ->> 'status' <> 'settled' THEN
     RAISE EXCEPTION 'Expected settled pool, got %', v_settlement;
@@ -253,7 +285,7 @@ BEGIN
   PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_user_winner, 'role', 'authenticated')::text, true);
 
   v_wallet := public.get_wallet_balance(v_user_winner);
-  IF (v_wallet ->> 'available_fet')::bigint <> 60 OR (v_wallet ->> 'staked_fet')::bigint <> 0 THEN
+  IF (v_wallet ->> 'available_fet')::bigint <> 160 OR (v_wallet ->> 'staked_fet')::bigint <> 0 THEN
     RAISE EXCEPTION 'Pool settlement did not credit winner as expected: %', v_wallet;
   END IF;
 

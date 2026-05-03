@@ -100,6 +100,8 @@ class _PillContent extends StatelessWidget {
       case OrderStatus.placed:
         return 'Sent to Kitchen';
       case OrderStatus.received:
+        return 'Order Received';
+      case OrderStatus.preparing:
         return 'Preparing Now';
       case OrderStatus.served:
         return 'Enjoy your meal!';
@@ -121,7 +123,8 @@ class _StatusIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isSpinning = status == OrderStatus.received;
+    final bool isSpinning =
+        status == OrderStatus.received || status == OrderStatus.preparing;
 
     return Container(
       width: 32,

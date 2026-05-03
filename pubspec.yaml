@@ -42,8 +42,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
   lucide_icons: ^0.257.0
-  confetti: ^0.8.0
-  shimmer: ^3.0.0
   flutter_cache_manager: ^3.4.1
 
   # ── Utilities ──
@@ -76,4 +74,25 @@ flutter:
     - assets/fonts/
     - assets/images/
 
-  # Google Fonts families are vendored into assets/fonts for deterministic tests.
+  # Font families are vendored into assets/fonts for deterministic tests/builds.
+  fonts:
+    - family: Outfit
+      fonts:
+        - asset: assets/fonts/Outfit-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Outfit-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Outfit-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Outfit-Bold.ttf
+          weight: 700
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700
+    - family: Bebas Neue
+      fonts:
+        - asset: assets/fonts/BebasNeue-Regular.ttf
+          weight: 400

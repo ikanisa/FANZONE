@@ -1,26 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+@import "../../../packages/core/src/designTokens.css";
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #09090b;
-  --color-background: #09090b;
-  --color-primary: #ff7f50;
-  --color-primaryText: #09090b;
-  --color-primary-text: #09090b;
-  --color-accent: #22d3ee;
-  --color-accent2: #2563eb;
-  --color-surface1: #131418;
-  --color-surface: #131418;
-  --color-surface2: #18191e;
-  --color-surface3: #22232a;
-  --color-border: #272831;
-  --color-text: #fdfcf0;
-  --color-textSecondary: #8b8e99;
-  --color-text-secondary: #8b8e99;
-  --color-muted: #8b8e99;
-  --color-success: #98ff98;
-  --color-warning: #eab308;
-  --color-danger: #ef4444;
+  --color-bg: var(--fz-bg);
+  --color-background: var(--fz-bg);
+  --color-primary: var(--fz-secondary);
+  --color-primaryText: var(--fz-secondary-text);
+  --color-primary-text: var(--fz-secondary-text);
+  --color-accent: var(--fz-primary);
+  --color-accent2: var(--fz-accent-2);
+  --color-surface1: var(--fz-surface);
+  --color-surface: var(--fz-surface);
+  --color-surface2: var(--fz-surface-2);
+  --color-surface3: var(--fz-surface-3);
+  --color-border: var(--fz-border);
+  --color-text: var(--fz-text);
+  --color-textSecondary: var(--fz-muted);
+  --color-text-secondary: var(--fz-muted);
+  --color-muted: var(--fz-muted);
+  --color-success: var(--fz-success);
+  --color-warning: var(--fz-warning);
+  --color-danger: var(--fz-error);
 
   --font-display: "Outfit", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
@@ -52,13 +53,14 @@
 @layer components {
   .glass-card,
   .console-card {
-    @apply bg-surface border border-border shadow-[0_18px_48px_rgba(0,0,0,0.24)];
+    @apply bg-surface border border-border shadow-[0_16px_36px_rgba(0,0,0,0.28)];
   }
 
   .btn,
   .btn-primary,
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-black transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    min-height: var(--fz-touch);
   }
 
   .btn-primary {
@@ -77,6 +79,16 @@
   .bg-white {
     background-color: var(--color-surface) !important;
     color: var(--color-text);
+  }
+
+  .ops-card {
+    @apply border border-border bg-surface shadow-[0_16px_36px_rgba(0,0,0,0.28)];
+    border-radius: var(--fz-radius-xl);
+  }
+
+  .ops-panel {
+    @apply border border-border bg-surface2;
+    border-radius: var(--fz-radius-lg);
   }
 
   .qr-paper {

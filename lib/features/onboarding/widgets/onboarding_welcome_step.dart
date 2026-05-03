@@ -44,7 +44,7 @@ class OnboardingWelcomeStep extends StatelessWidget {
             OnboardingFeatureRow(
               icon: LucideIcons.zap,
               title: 'Match Pools',
-              description: 'Join venue, country, and global FET pools.',
+              description: 'Join venue-linked FET pools.',
               textColor: textColor,
               muted: muted,
               isDark: isDark,

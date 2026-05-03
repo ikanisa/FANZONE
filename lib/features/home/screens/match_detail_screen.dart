@@ -7,9 +7,10 @@ import '../../../models/sports/match_model.dart';
 import '../../../providers/matches_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/state_view.dart';
-import '../../../widgets/match/match_list_widgets.dart';
+import '../../../widgets/common/team_crest.dart';
 import '../../pools/data/pools_repository.dart';
 
 class MatchDetailScreen extends ConsumerWidget {
@@ -21,48 +22,62 @@ class MatchDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final matchAsync = ref.watch(matchDetailProvider(matchId));
 
-    return matchAsync.when(
-      data: (match) {
-        if (match == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Match pools')),
-            body: StateView.empty(
-              title: 'Match not found',
-              subtitle: 'Open pools to choose another match.',
-              icon: LucideIcons.trophy,
-            ),
-          );
-        }
+    return Scaffold(
+      body: SafeArea(
+        child: matchAsync.when(
+          data: (match) {
+            if (match == null) {
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
+                children: [
+                  const FzBackHeader(
+                    title: 'Match Pools',
+                    subtitle: 'Arena entries for this fixture',
+                  ),
+                  const SizedBox(height: 48),
+                  StateView.empty(
+                    title: 'Match not found',
+                    subtitle: 'Open pools to choose another match.',
+                    icon: LucideIcons.trophy,
+                    action: () => context.go('/pools'),
+                    actionLabel: 'Open Pools',
+                  ),
+                ],
+              );
+            }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Match pools'),
-            leading: IconButton(
-              tooltip: 'Back',
-              onPressed: () => context.pop(),
-              icon: const Icon(LucideIcons.chevronLeft),
-            ),
-          ),
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
+              children: [
+                const FzBackHeader(
+                  title: 'Match Pools',
+                  subtitle: 'Arena entries for this fixture',
+                ),
+                const SizedBox(height: 18),
+                _MatchHeroCard(match: match),
+                const SizedBox(height: 14),
+                _PoolEntryCard(match: match),
+                const SizedBox(height: 14),
+                _MatchPoolsList(matchId: match.id),
+              ],
+            );
+          },
+          loading: () => const _MatchPoolsLoadingState(),
+          error: (_, _) => ListView(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
             children: [
-              _MatchHeroCard(match: match),
-              const SizedBox(height: 14),
-              _PoolEntryCard(match: match),
-              const SizedBox(height: 14),
-              _MatchPoolsList(matchId: match.id),
+              const FzBackHeader(
+                title: 'Match Pools',
+                subtitle: 'Arena entries for this fixture',
+              ),
+              const SizedBox(height: 48),
+              StateView.error(
+                title: 'Match pools unavailable',
+                subtitle: 'Try again later.',
+                onRetry: () => ref.invalidate(matchDetailProvider(matchId)),
+              ),
             ],
           ),
-        );
-      },
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (_, _) => Scaffold(
-        appBar: AppBar(title: const Text('Match pools')),
-        body: StateView.error(
-          title: 'Match pools unavailable',
-          subtitle: 'Try again later.',
-          onRetry: () => ref.invalidate(matchDetailProvider(matchId)),
         ),
       ),
     );
@@ -136,7 +151,7 @@ class _HeroTeam extends StatelessWidget {
           ? CrossAxisAlignment.end
           : CrossAxisAlignment.start,
       children: [
-        TeamAvatar(name: name, logoUrl: logoUrl, size: 46),
+        TeamCrest(label: name, crestUrl: logoUrl, size: 46),
         const SizedBox(height: 10),
         Text(
           name,
@@ -148,6 +163,26 @@ class _HeroTeam extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MatchPoolsLoadingState extends StatelessWidget {
+  const _MatchPoolsLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
+      child: Column(
+        children: [
+          FzBackHeader(
+            title: 'Match Pools',
+            subtitle: 'Arena entries for this fixture',
+          ),
+          Expanded(child: Center(child: CircularProgressIndicator())),
+        ],
+      ),
     );
   }
 }
@@ -165,7 +200,7 @@ class _PoolEntryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Join a venue, country, or global pool for this match.',
+            'Join a venue-linked pool for this match.',
             style: TextStyle(
               fontSize: 14,
               height: 1.45,

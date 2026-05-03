@@ -91,10 +91,11 @@ abstract final class FzTheme {
 
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: FzColors.accent3,
-          foregroundColor: FzColors.onSecondary,
-          disabledBackgroundColor: FzColors.accent3.withValues(alpha: 0.35),
-          disabledForegroundColor: FzColors.onSecondary.withValues(alpha: 0.7),
+          backgroundColor: FzColors.action,
+          foregroundColor: FzColors.onAction,
+          disabledBackgroundColor: FzColors.action.withValues(alpha: 0.35),
+          disabledForegroundColor: FzColors.onAction.withValues(alpha: 0.7),
+          minimumSize: const Size(64, 48),
           shape: const RoundedRectangleBorder(
             borderRadius: FzRadii.compactRadius,
           ),
@@ -103,10 +104,21 @@ abstract final class FzTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: FzColors.accent3,
-          foregroundColor: FzColors.onSecondary,
-          disabledBackgroundColor: FzColors.accent3.withValues(alpha: 0.35),
-          disabledForegroundColor: FzColors.onSecondary.withValues(alpha: 0.7),
+          backgroundColor: FzColors.action,
+          foregroundColor: FzColors.onAction,
+          disabledBackgroundColor: FzColors.action.withValues(alpha: 0.35),
+          disabledForegroundColor: FzColors.onAction.withValues(alpha: 0.7),
+          minimumSize: const Size(64, 48),
+          shape: const RoundedRectangleBorder(
+            borderRadius: FzRadii.compactRadius,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: FzColors.darkText,
+          side: const BorderSide(color: FzColors.darkBorder),
+          minimumSize: const Size(64, 48),
           shape: const RoundedRectangleBorder(
             borderRadius: FzRadii.compactRadius,
           ),

@@ -58,7 +58,7 @@ function Step1({ onNext }: { onNext: () => void }) {
         <Feature
           icon={<Zap />}
           title="Match Pools"
-          desc="Join venue, country, and global match pools."
+          desc="Join venue-linked match pools."
         />
         <Feature
           icon={<Trophy />}

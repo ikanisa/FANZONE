@@ -13,6 +13,7 @@ export type VenuePool = MatchPool & {
   kickoffAt: string | null;
   competitionName?: string | null;
   endorsementStatus: 'not_required' | 'pending' | 'endorsed' | 'rejected';
+  barStakeFet: number;
 };
 
 export interface VenuePoolMatchOption {
@@ -36,6 +37,7 @@ export interface CreateVenueOfficialPoolInput {
   stakeMinFet: number;
   stakeMaxFet: number;
   creatorRewardFet: number;
+  barStakeFet: number;
 }
 
 function mapCamps(value: Json): MatchPoolCamp[] {
@@ -66,6 +68,8 @@ function mapPool(row: MatchPoolStatsRow, match?: AppMatchRow): VenuePool {
     ? row.metadata
     : {};
   const endorsement = String(metadata.venue_endorsement_status ?? (row.is_official ? 'endorsed' : 'not_required'));
+  const rawBarStake = metadata.bar_stake_fet;
+  const barStakeFet = typeof rawBarStake === 'number' ? rawBarStake : Number(rawBarStake ?? 0);
 
   return {
     id: row.id,
@@ -94,6 +98,7 @@ function mapPool(row: MatchPoolStatsRow, match?: AppMatchRow): VenuePool {
     matchName: `${homeTeam} vs ${awayTeam}`,
     kickoffAt: match?.match_date ?? null,
     competitionName: match?.competition_name,
+    barStakeFet: Number.isFinite(barStakeFet) ? Math.max(0, barStakeFet) : 0,
     endorsementStatus:
       endorsement === 'pending' || endorsement === 'endorsed' || endorsement === 'rejected'
         ? endorsement
@@ -238,6 +243,7 @@ export async function createVenueOfficialPool(input: CreateVenueOfficialPoolInpu
     p_stake_min_fet: input.stakeMinFet,
     p_stake_max_fet: input.stakeMaxFet,
     p_creator_reward_fet: input.creatorRewardFet,
+    p_bar_stake_fet: input.barStakeFet,
   });
 
   if (error) throw error;

@@ -13,7 +13,7 @@ export function StatusChip({
   return (
     <span
       className={clsx(
-        'inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-widest',
+        'inline-flex min-h-8 items-center rounded-full border px-3.5 py-1.5 text-[12px] font-black uppercase tracking-wide',
         toneClass[tone ?? statusTone(status)],
       )}
     >

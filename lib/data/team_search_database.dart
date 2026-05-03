@@ -1,6 +1,13 @@
 import '../features/onboarding/data/onboarding_gateway.dart';
 import '../features/onboarding/data/team_search_catalog.dart';
 
+export '../features/onboarding/data/fan_profile.dart'
+    show
+        FanProfileSelection,
+        FanProfileTeamCategory,
+        FanProfileTeamCategoryDetails,
+        groupFanProfileTeamRecords,
+        validateFanProfileSelection;
 export '../features/onboarding/data/team_search_catalog.dart'
     show FavoriteTeamRecordDto, OnboardingTeam, TeamSearchCatalog;
 

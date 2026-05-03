@@ -38,10 +38,10 @@ class SEn extends S {
   String get homeTabToday => 'Today';
 
   @override
-  String get homeTabFollowing => 'Following';
+  String get homeTabFollowing => 'My Teams';
 
   @override
-  String get homeTabAll => 'All Leagues';
+  String get homeTabAll => 'All Matches';
 
   @override
   String get matchStatusLive => 'LIVE';
@@ -63,42 +63,6 @@ class SEn extends S {
 
   @override
   String get matchVs => 'vs';
-
-  @override
-  String get leagueStandings => 'Standings';
-
-  @override
-  String get leagueFixtures => 'Matches';
-
-  @override
-  String get leagueResults => 'Results';
-
-  @override
-  String get leagueTeams => 'Teams';
-
-  @override
-  String get standingsPos => 'Pos';
-
-  @override
-  String get standingsTeam => 'Team';
-
-  @override
-  String get standingsP => 'P';
-
-  @override
-  String get standingsW => 'W';
-
-  @override
-  String get standingsD => 'D';
-
-  @override
-  String get standingsL => 'L';
-
-  @override
-  String get standingsGD => 'GD';
-
-  @override
-  String get standingsPts => 'Pts';
 
   @override
   String get walletTitle => 'FET Wallet';
@@ -178,7 +142,7 @@ class SEn extends S {
   String get searchTitle => 'Search';
 
   @override
-  String get searchHint => 'Search teams, leagues, matches...';
+  String get searchHint => 'Search teams, bars, matches...';
 
   @override
   String get searchNoResults => 'No results found';
@@ -204,11 +168,11 @@ class SEn extends S {
   String get followingTitle => 'Following';
 
   @override
-  String get followingEmpty =>
-      'You haven\'t followed any teams or leagues yet.';
+  String get followingEmpty => 'You haven\'t picked any favorite teams yet.';
 
   @override
-  String get followingDiscoverCaption => 'Explore teams and leagues to follow';
+  String get followingDiscoverCaption =>
+      'Pick teams to personalize featured pools';
 
   @override
   String get followingDiscover => 'Discover';

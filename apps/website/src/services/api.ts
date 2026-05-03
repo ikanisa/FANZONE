@@ -564,11 +564,18 @@ export const api = {
         "Match pools are currently unavailable.",
       );
 
+      if (input.scope !== "venue" || !input.venueId) {
+        return {
+          success: false,
+          error: "Choose the linked venue before creating a pool.",
+        };
+      }
+
       const { data, error } = await client.rpc("create_pool", {
         p_match_id: input.matchId,
-        p_scope: input.scope,
+        p_scope: "venue",
         p_country_id: null,
-        p_venue_id: input.venueId ?? null,
+        p_venue_id: input.venueId,
         p_title: input.title.trim() || null,
         p_stake_min: input.stakeMinFet,
         p_stake_max: input.stakeMaxFet,

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fanzone/theme/app_theme.dart';
 import 'package:fanzone/theme/colors.dart';
 import 'package:fanzone/theme/radii.dart';
+import 'package:fanzone/theme/typography.dart';
 
 void main() {
   group('FzColors design tokens', () {
@@ -29,15 +30,15 @@ void main() {
 
     // Content palette
     test('brand palette exposes the canonical source-of-truth colors', () {
-      expect(FzColors.accent, const Color(0xFF22D3EE));
-      expect(FzColors.accent2, const Color(0xFF2563EB));
-      expect(FzColors.accent3, const Color(0xFFFF7F50));
-      expect(FzColors.success, const Color(0xFF98FF98));
-      expect(FzColors.danger, const Color(0xFFEF4444));
-      expect(FzColors.teal, const Color(0xFF0F7B6C));
+      expect(FzColors.accent, const Color(0xFF2E5BFF));
+      expect(FzColors.accent2, const Color(0xFF39FF14));
+      expect(FzColors.accent3, const Color(0xFFFFB020));
+      expect(FzColors.success, const Color(0xFF39FF14));
+      expect(FzColors.danger, const Color(0xFFFF4D6D));
+      expect(FzColors.teal, const Color(0xFF00D4C8));
       expect(FzColors.primary, FzColors.accent);
-      expect(FzColors.secondary, FzColors.accent3);
-      expect(FzColors.onPrimary, FzColors.darkBg);
+      expect(FzColors.secondary, FzColors.accent2);
+      expect(FzColors.onPrimary, Colors.white);
       expect(FzColors.onSecondary, FzColors.darkBg);
     });
 
@@ -59,10 +60,41 @@ void main() {
 
   group('FzRadii design tokens', () {
     test('shared radii stay aligned with the reference contexts', () {
-      expect(FzRadii.compact, 20);
-      expect(FzRadii.card, 24);
-      expect(FzRadii.hero, 28);
+      expect(FzRadii.compact, 18);
+      expect(FzRadii.card, 20);
+      expect(FzRadii.hero, 22);
       expect(FzRadii.full, 999);
+    });
+  });
+
+  group('FzTypography design tokens', () {
+    test('large text hierarchy is bold and readable', () {
+      final textTheme = FzTypography.textTheme(Brightness.dark);
+
+      expect(textTheme.displayLarge?.fontSize, greaterThanOrEqualTo(44));
+      expect(
+        textTheme.displayLarge?.fontWeight?.value,
+        greaterThanOrEqualTo(800),
+      );
+      expect(textTheme.headlineLarge?.fontSize, greaterThanOrEqualTo(30));
+      expect(
+        textTheme.headlineLarge?.fontWeight?.value,
+        greaterThanOrEqualTo(800),
+      );
+      expect(textTheme.titleLarge?.fontSize, greaterThanOrEqualTo(20));
+      expect(textTheme.bodyMedium?.fontSize, greaterThanOrEqualTo(16));
+      expect(textTheme.labelSmall?.fontSize, greaterThanOrEqualTo(12));
+    });
+
+    test('specialized score and badge labels avoid tiny text', () {
+      expect(FzTypography.score().fontSize, greaterThanOrEqualTo(18));
+      expect(FzTypography.scoreLarge().fontSize, greaterThanOrEqualTo(32));
+      expect(
+        FzTypography.sectionLabel(Brightness.dark).fontSize,
+        greaterThanOrEqualTo(12),
+      );
+      expect(FzTypography.metaLabel().fontSize, greaterThanOrEqualTo(12));
+      expect(FzTypography.statusLabel().fontSize, greaterThanOrEqualTo(13));
     });
   });
 
@@ -107,7 +139,7 @@ void main() {
 
   group('WCAG contrast compliance', () {
     test('dark text on dark bg has sufficient contrast', () {
-      // FzColors.darkText (Cream #FDFCF0) on darkBg (#0C0A09)
+      // FzColors.darkText (#F8FAFC) on darkBg (#0B0D10)
       // This is a light-on-dark combination, should have high contrast
       final textLuminance = FzColors.darkText.computeLuminance();
       final bgLuminance = FzColors.darkBg.computeLuminance();

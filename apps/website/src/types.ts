@@ -135,9 +135,18 @@ export interface ViewerNotification {
   readAt?: string | null;
 }
 
-export type OrderStatus = 'placed' | 'received' | 'served' | 'cancelled';
-export type PaymentMethod = 'momo' | 'revolut' | 'cash';
-export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
+export type OrderStatus = 'placed' | 'received' | 'preparing' | 'served' | 'cancelled';
+export type PaymentMethod = 'momo' | 'revolut' | 'cash' | 'card' | 'other';
+export type PaymentStatus =
+  | 'unpaid'
+  | 'payment_submitted'
+  | 'pending'
+  | 'paid'
+  | 'partially_paid'
+  | 'failed'
+  | 'cancelled'
+  | 'refunded'
+  | 'disputed';
 
 export interface Venue {
   id: string;

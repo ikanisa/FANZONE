@@ -14,8 +14,10 @@ import '../../../services/push_notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../../ordering/providers/venue_context_provider.dart';
+import '../widgets/fan_profile_editor_sheet.dart';
 import '../widgets/profile_sections.dart';
 
 /// User profile screen with profile context, preferences, and logout.
@@ -52,7 +54,9 @@ class ProfileScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
+            const FzReferenceHeader(title: 'Sports Elite'),
+            const SizedBox(height: 24),
 
             // Header title
             Padding(
@@ -129,6 +133,19 @@ class ProfileScreen extends ConsumerWidget {
                 favoriteTeams,
                 loading: favoriteTeamsAsync.isLoading,
               ),
+              onFavoriteTeamsTap: () {
+                if (!hasSession) {
+                  showSignInRequiredSheet(
+                    context,
+                    title: 'Verify WhatsApp',
+                    message:
+                        'Verify your number before saving your fan profile.',
+                    from: '/profile',
+                  );
+                  return;
+                }
+                _openFanProfileEditor(context, ref, favoriteTeams);
+              },
               linkedVenueLabel: 'Linked venues',
               linkedVenueDetail: _linkedVenueDetail(venueContext),
             ),
@@ -204,12 +221,12 @@ class ProfileScreen extends ConsumerWidget {
     final country = team?.teamCountry?.trim();
     final countryCode = team?.teamCountryCode?.trim().toUpperCase();
     if (country != null && country.isNotEmpty) {
-      return 'Used for $country country pools and featured matches.';
+      return 'Used for $country pool filters and featured matches.';
     }
     if (countryCode != null && countryCode.isNotEmpty) {
-      return 'Used for $countryCode country pools and featured matches.';
+      return 'Used for $countryCode pool filters and featured matches.';
     }
-    return 'Not set. Pick favorite teams to personalize country pools.';
+    return 'Not set. Pick favorite teams to personalize pool filters.';
   }
 
   static String _favoriteTeamsDetail(
@@ -221,14 +238,22 @@ class ProfileScreen extends ConsumerWidget {
       return 'No favorite teams yet. Add teams to improve featured matches.';
     }
 
-    final visibleNames = teams
-        .map((team) => team.teamName.trim())
-        .where((name) => name.isNotEmpty)
-        .take(3)
-        .join(', ');
-    if (visibleNames.isEmpty) return 'Favorite teams saved.';
-    final extraCount = teams.length - 3;
-    return extraCount > 0 ? '$visibleNames, +$extraCount more' : visibleNames;
+    final grouped = groupFanProfileTeamRecords(teams);
+    final summary = <String>[];
+    final local = grouped[FanProfileTeamCategory.local]?.firstOrNull;
+    if (local != null && local.teamName.trim().isNotEmpty) {
+      summary.add('Local: ${local.teamName.trim()}');
+    }
+
+    final europeCount =
+        grouped[FanProfileTeamCategory.topEuropean]?.length ?? 0;
+    if (europeCount > 0) summary.add('Europe: $europeCount');
+
+    final nationalCount = grouped[FanProfileTeamCategory.national]?.length ?? 0;
+    if (nationalCount > 0) summary.add('National: $nationalCount');
+
+    if (summary.isNotEmpty) return summary.join(' | ');
+    return 'Favorite teams saved.';
   }
 
   static String _linkedVenueDetail(VenueContext context) {
@@ -241,6 +266,24 @@ class ProfileScreen extends ConsumerWidget {
       return '${venue.name}, table $tableNumber';
     }
     return '${venue.name} is your current bar.';
+  }
+
+  static Future<void> _openFanProfileEditor(
+    BuildContext context,
+    WidgetRef ref,
+    List<FavoriteTeamRecordDto> favoriteTeams,
+  ) async {
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      builder: (_) => FanProfileEditorSheet(initialTeams: favoriteTeams),
+    );
+
+    if (saved == true) {
+      ref.invalidate(favoriteTeamRecordsProvider);
+    }
   }
 
   static FavoriteTeamRecordDto? _firstTeamWithCountry(

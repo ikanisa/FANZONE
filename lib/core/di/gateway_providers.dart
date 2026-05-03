@@ -29,7 +29,6 @@ import '../../features/home/data/catalog_gateway.dart';
 import '../../features/home/data/match_listing_gateway.dart';
 import '../../features/onboarding/data/onboarding_gateway.dart';
 import '../../features/settings/data/account_settings_gateway.dart';
-import '../../features/settings/data/competition_preferences_gateway.dart';
 import '../../features/settings/data/market_preferences_gateway.dart';
 import '../../features/settings/data/notification_settings_gateway.dart';
 import '../../features/wallet/data/wallet_gateway.dart';
@@ -347,14 +346,6 @@ final authGatewayProvider = Provider<AuthGateway>((ref) {
 // ═══════════════════════════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════════════════════════
-
-final competitionPreferencesGatewayProvider =
-    Provider<CompetitionPreferencesGateway>((ref) {
-      return SupabaseCompetitionPreferencesGateway(
-        ref.watch(cacheServiceProvider),
-        ref.watch(supabaseConnectionProvider),
-      );
-    });
 
 final accountSettingsGatewayProvider = Provider<AccountSettingsGateway>((ref) {
   return SupabaseAccountSettingsGateway(

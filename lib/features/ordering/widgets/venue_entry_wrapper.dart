@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/venue_context_provider.dart';
 import '../screens/venue_menu_screen.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
+import '../../../widgets/common/state_view.dart';
 
 class VenueEntryWrapper extends ConsumerStatefulWidget {
   const VenueEntryWrapper({
@@ -56,13 +59,50 @@ class _VenueEntryWrapperState extends ConsumerState<VenueEntryWrapper> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: Column(
+              children: [
+                FzBackHeader(
+                  title: 'Venue Entry',
+                  subtitle: 'Resolving FANZONE link',
+                ),
+                Expanded(child: Center(child: CircularProgressIndicator())),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(),
-        body: Center(child: Text(_error!)),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
+            children: [
+              FzBackHeader(
+                title: 'Venue Entry',
+                subtitle: 'Resolving FANZONE link',
+                onClose: () => context.go('/venues'),
+              ),
+              const SizedBox(height: 48),
+              StateView.error(
+                title: 'Venue link unavailable',
+                subtitle: _error!,
+                onRetry: () {
+                  setState(() {
+                    _loading = true;
+                    _error = null;
+                  });
+                  _initContext();
+                },
+              ),
+            ],
+          ),
+        ),
       );
     }
 

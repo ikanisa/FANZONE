@@ -7,4 +7,6 @@ abstract final class FzSpacing {
   static const double xxl = 24;
   static const double xxxl = 32;
   static const double huge = 40;
+  static const double touch = 48;
+  static const double touchLarge = 56;
 }

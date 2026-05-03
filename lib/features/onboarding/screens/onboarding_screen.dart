@@ -10,13 +10,16 @@ import '../../../core/di/gateway_providers.dart';
 import '../../../core/market/launch_market.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../core/utils/phone_country_catalog.dart';
+import '../../../data/team_search_database.dart';
 import '../widgets/country_code_picker.dart';
 import '../../../models/auth_and_user/user_market_preferences_model.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/favorite_teams_provider.dart';
 import '../../../providers/market_preferences_provider.dart';
 import '../../../providers/region_provider.dart';
 import '../../../theme/colors.dart';
 import '../providers/onboarding_provider.dart';
+import '../widgets/fan_profile_selector.dart';
 import '../widgets/onboarding_phone_verification_steps.dart';
 import '../widgets/onboarding_welcome_step.dart';
 
@@ -25,6 +28,7 @@ import '../widgets/onboarding_welcome_step.dart';
 /// Step 1: Welcome
 /// Step 2: Enter WhatsApp phone
 /// Step 3: Verify OTP and enter the app
+/// Step 4: Optional fan profile setup
 ///
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -37,6 +41,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static const _welcomeStep = 0;
   static const _phoneStep = 1;
   static const _otpStep = 2;
+  static const _fanProfileStep = 3;
 
   final _phoneController = TextEditingController();
   final _otpControllers = List.generate(6, (_) => TextEditingController());
@@ -46,6 +51,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _loading = false;
   String? _error;
   late CountryEntry _selectedCountry;
+  bool _completedOtpInThisSession = false;
 
   @override
   void initState() {
@@ -129,7 +135,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _handleWelcomeContinue() {
     if (_isAlreadyAuthenticated) {
-      unawaited(_completeOnboarding());
+      _setStep(_fanProfileStep);
       return;
     }
     _setStep(_phoneStep);
@@ -206,7 +212,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             _otpControllers.map((controller) => controller.text).join(),
           );
       if (!mounted) return;
-      await _completeOnboarding();
+      _completedOtpInThisSession = true;
+      _setStep(_fanProfileStep);
     } on AuthException catch (error) {
       if (!mounted) return;
       setState(() => _error = error.message);
@@ -214,6 +221,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       if (!mounted) return;
       setState(() {
         _error = 'WhatsApp OTP verification failed. Please try again.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  Future<void> _handleFanProfileSave(FanProfileSelection selection) async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      await ref
+          .read(onboardingGatewayProvider)
+          .saveFanProfileTeams(
+            localTeam: selection.localTeam,
+            topEuropeanTeamIds: selection.topEuropeanTeamIds,
+            nationalTeamIds: selection.nationalTeamIds,
+          );
+      ref.invalidate(favoriteTeamRecordsProvider);
+      await _completeOnboarding();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Could not save your fan profile. Please try again.';
       });
     } finally {
       if (mounted) {
@@ -244,7 +279,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             followWorldCup: focusTags.any(
               (tag) => tag.contains('world-cup') || tag == 'worldcup2026',
             ),
-            followChampionsLeague: focusTags.contains('ucl-final-2026'),
             updatedAt: DateTime.now(),
           ),
         );
@@ -386,6 +420,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           },
           onNext: _handleOtpContinue,
           buttonLabel: _loading ? 'VERIFYING...' : 'VERIFY CODE',
+        );
+      case _fanProfileStep:
+        return FanProfileSelector(
+          gateway: ref.read(onboardingGatewayProvider),
+          initialTeams:
+              ref.watch(favoriteTeamRecordsProvider).valueOrNull ??
+              const <FavoriteTeamRecordDto>[],
+          textColor: textColor,
+          muted: muted,
+          isDark: isDark,
+          onBack: () =>
+              _setStep(_completedOtpInThisSession ? _otpStep : _welcomeStep),
+          onSave: _handleFanProfileSave,
+          onSkip: _completeOnboarding,
         );
       default:
         return const SizedBox.shrink();

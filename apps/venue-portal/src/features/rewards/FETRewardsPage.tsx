@@ -70,7 +70,7 @@ export const FETRewardsPage: React.FC = () => {
   );
 
   const ordersAwaitingPayment = orders.filter((order) =>
-    ['unpaid', 'pending', 'partially_paid', 'disputed'].includes(order.paymentStatus),
+    ['unpaid', 'payment_submitted', 'pending', 'partially_paid', 'disputed'].includes(order.paymentStatus),
   );
 
   const saveConfig = async () => {
@@ -97,7 +97,7 @@ export const FETRewardsPage: React.FC = () => {
             Venue-level earn and spend settings for bar orders.
           </p>
         </div>
-        <div className="px-4 py-2 bg-white border border-border rounded-xl flex items-center gap-2 text-sm font-bold w-fit">
+        <div className="ops-panel px-4 py-2 flex items-center gap-2 text-sm font-bold w-fit">
           <ShieldCheck size={16} />
           Role checked and audited
         </div>
@@ -109,7 +109,7 @@ export const FETRewardsPage: React.FC = () => {
         <MetricCard label="Pending payments" value={stats.pending_payment_count.toLocaleString()} icon={<Timer size={22} />} />
       </div>
 
-      <div className="bg-white border border-border rounded-[28px] shadow-sm p-6">
+      <div className="ops-card p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between mb-6">
           <div>
             <div className="flex items-center gap-3 flex-wrap">
@@ -222,7 +222,7 @@ export const FETRewardsPage: React.FC = () => {
           </label>
         </div>
 
-        <div className="mt-6 rounded-[24px] bg-surface2 border border-border p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="mt-6 ops-panel p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Preview</p>
             <p className="text-2xl font-black text-text mt-1">
@@ -243,7 +243,7 @@ export const FETRewardsPage: React.FC = () => {
         )}
       </div>
 
-      <div className="bg-white border border-border rounded-[28px] shadow-sm overflow-hidden">
+      <div className="ops-card overflow-hidden">
         <div className="p-6 border-b border-border">
           <h2 className="font-black text-xl">Orders Awaiting Payment</h2>
           <p className="text-sm text-textSecondary font-medium mt-1">

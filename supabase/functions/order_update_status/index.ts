@@ -1,34 +1,36 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import {
+  AuditAction,
+  createAdminClient,
+  createAuditLogger,
+  createLogger,
+  EntityType,
+  errorResponse,
+  getOrCreateRequestId,
   handleCors,
   jsonResponse,
-  errorResponse,
-  createAdminClient,
   requireAuth,
   requireVendorOrAdmin,
-  createLogger,
-  getOrCreateRequestId,
-  createAuditLogger,
-  AuditAction,
-  EntityType,
 } from "../_shared/mod.ts";
 
 /**
  * Valid status transitions:
- *   placed    → received | cancelled
- *   received  → served | cancelled
- *   served    → (terminal)
- *   cancelled → (terminal)
+ *   placed    -> received | preparing | cancelled
+ *   received  -> preparing | served | cancelled
+ *   preparing -> served | cancelled
+ *   served    -> (terminal)
+ *   cancelled -> (terminal)
  */
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  placed: ["received", "cancelled"],
-  received: ["served", "cancelled"],
+  placed: ["received", "preparing", "cancelled"],
+  received: ["preparing", "served", "cancelled"],
+  preparing: ["served", "cancelled"],
 };
 
 const updateStatusSchema = z.object({
   order_id: z.string().uuid(),
-  status: z.enum(["received", "served", "cancelled"]),
+  status: z.enum(["received", "preparing", "served", "cancelled"]),
 });
 
 Deno.serve(async (req) => {
@@ -79,7 +81,7 @@ Deno.serve(async (req) => {
       supabaseUser,
       order.venue_id,
       user.id,
-      logger
+      logger,
     );
     if (rbacResult instanceof Response) return rbacResult;
 
@@ -88,10 +90,16 @@ Deno.serve(async (req) => {
     const allowedNext = VALID_TRANSITIONS[currentStatus] || [];
 
     if (!allowedNext.includes(newStatus)) {
-      logger.warn("Invalid status transition", { currentStatus, newStatus, orderId: order_id });
+      logger.warn("Invalid status transition", {
+        currentStatus,
+        newStatus,
+        orderId: order_id,
+      });
       return errorResponse(
-        `Invalid status transition: ${currentStatus} → ${newStatus}. Allowed: ${allowedNext.join(", ")}`,
-        400
+        `Invalid status transition: ${currentStatus} -> ${newStatus}. Allowed: ${
+          allowedNext.join(", ")
+        }`,
+        400,
       );
     }
 
@@ -108,17 +116,24 @@ Deno.serve(async (req) => {
       .single();
 
     if (updateError) {
-      logger.error("Failed to update order status", { error: updateError.message });
+      logger.error("Failed to update order status", {
+        error: updateError.message,
+      });
       return errorResponse("Failed to update order status", 500);
     }
 
     // ---- Audit ----
     const audit = createAuditLogger(supabaseAdmin, user.id, requestId, logger);
-    await audit.log(AuditAction.ORDER_STATUS_UPDATE, EntityType.ORDER, order_id, {
-      previousValue: { status: currentStatus },
-      newValue: { status: newStatus },
-      vendorId: order.venue_id,
-    });
+    await audit.log(
+      AuditAction.ORDER_STATUS_UPDATE,
+      EntityType.ORDER,
+      order_id,
+      {
+        previousValue: { status: currentStatus },
+        newValue: { status: newStatus },
+        vendorId: order.venue_id,
+      },
+    );
 
     const durationMs = Date.now() - startTime;
     logger.requestEnd(200, durationMs);

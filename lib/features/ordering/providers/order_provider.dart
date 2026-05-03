@@ -137,6 +137,42 @@ final orderDetailProvider = FutureProvider.autoDispose
       return gateway.getOrder(orderId);
     });
 
+/// Track a single order with realtime updates and reload full item detail
+/// when the order row changes.
+final orderRealtimeProvider = StreamProvider.autoDispose
+    .family<OrderModel?, String>((ref, orderId) {
+      final gateway = ref.watch(orderGatewayProvider);
+      final connection = ref.watch(supabaseConnectionProvider);
+      final controller = StreamController<OrderModel?>();
+
+      Future<void> emitLatest() async {
+        if (controller.isClosed) return;
+        controller.add(await gateway.getOrder(orderId));
+      }
+
+      unawaited(emitLatest());
+
+      final client = connection.client;
+      final channel = client == null
+          ? null
+          : gateway.subscribeToOrder(orderId, (_) {
+              unawaited(emitLatest());
+            });
+
+      ref.onDispose(() {
+        if (channel != null && client != null) {
+          unawaited(
+            Future<void>(() async {
+              await client.removeChannel(channel);
+            }),
+          );
+        }
+        unawaited(controller.close());
+      });
+
+      return controller.stream;
+    });
+
 // ═══════════════════════════════════════════════════════════
 // ORDER HISTORY
 // ═══════════════════════════════════════════════════════════

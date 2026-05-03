@@ -89,7 +89,7 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.text('SEND').first);
+      await tester.tap(find.text('Send FET').first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -131,7 +131,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('SEND').first);
+      await tester.tap(find.text('Send FET').first);
       await tester.pump();
       await tester.pumpAndSettle();
 
@@ -180,10 +180,10 @@ void main() {
       await tester.tap(find.text('Test Club A'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Verify WhatsApp to join pools'), findsOneWidget);
+      expect(find.text('Verify WhatsApp to enter the Arena'), findsOneWidget);
       expect(
         find.text(
-          'Verify your WhatsApp number before staking FET into a match pool.',
+          'Verify your WhatsApp number before joining FANZONE pools and games.',
         ),
         findsOneWidget,
       );

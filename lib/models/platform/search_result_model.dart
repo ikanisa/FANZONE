@@ -18,9 +18,9 @@ class SearchResultModel {
   String get route {
     switch (type) {
       case SearchResultType.competition:
-        return '/league/$id';
+        return '/pools';
       case SearchResultType.team:
-        return '/team/$id';
+        return '/pools';
       case SearchResultType.match:
         return '/match/$id';
     }

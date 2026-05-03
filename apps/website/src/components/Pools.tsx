@@ -310,7 +310,6 @@ function CreatePoolPanel({
   onCreated: () => void;
 }) {
   const [matchId, setMatchId] = useState(defaultMatchId);
-  const [scope, setScope] = useState<"global" | "venue">("global");
   const [venueId, setVenueId] = useState("");
   const [title, setTitle] = useState("");
   const [stakeMin, setStakeMin] = useState(5);
@@ -325,16 +324,20 @@ function CreatePoolPanel({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!matchId) return;
+    if (!venueId.trim()) {
+      setResult("Choose the linked venue before creating a pool.");
+      return;
+    }
 
     setCreating(true);
     setResult(null);
     const response = await api.createPool({
       matchId,
-      scope,
+      scope: "venue",
       title,
       stakeMinFet: Math.max(1, stakeMin),
       stakeMaxFet: Math.max(Math.max(1, stakeMin), stakeMax),
-      venueId: scope === "venue" ? venueId.trim() || null : null,
+      venueId: venueId.trim(),
       visibility: "shareable",
     });
     setCreating(false);
@@ -371,11 +374,11 @@ function CreatePoolPanel({
             </span>
           </div>
           <h2 className="font-display text-xl text-text mt-1">
-            Shareable Match Pool
+            Venue-linked Match Pool
           </h2>
           <p className="text-sm text-muted mt-1">
-            Choose a curated match, set FET stake bounds, confirm home/draw/away
-            camps, then share the generated link.
+            Choose a curated match, linked venue, FET stake bounds, and
+            home/draw/away camps, then share the generated link.
           </p>
         </div>
       </div>
@@ -402,24 +405,6 @@ function CreatePoolPanel({
 
         <label className="grid gap-1">
           <span className="text-[10px] font-black uppercase tracking-widest text-muted">
-            Scope
-          </span>
-          <select
-            className="rounded-xl border border-border bg-surface3 px-3 py-3 text-sm font-bold text-text"
-            value={scope}
-            onChange={(event) =>
-              setScope(event.target.value as "global" | "venue")
-            }
-          >
-            <option value="global">Private/shareable</option>
-            <option value="venue">Venue-linked</option>
-          </select>
-        </label>
-      </div>
-
-      {scope === "venue" && (
-        <label className="grid gap-1">
-          <span className="text-[10px] font-black uppercase tracking-widest text-muted">
             Venue ID
           </span>
           <input
@@ -430,7 +415,7 @@ function CreatePoolPanel({
             required
           />
         </label>
-      )}
+      </div>
 
       <div className="grid gap-3 md:grid-cols-[1fr_120px_120px]">
         <input
@@ -467,7 +452,7 @@ function CreatePoolPanel({
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <button
           type="submit"
-          disabled={creating || !matchId}
+          disabled={creating || !matchId || !venueId.trim()}
           className="h-12 rounded-2xl bg-accent2 px-5 font-black text-darkBg disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {creating ? (

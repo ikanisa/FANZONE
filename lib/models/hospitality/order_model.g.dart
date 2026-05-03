@@ -29,6 +29,7 @@ _$OrderModelImpl _$$OrderModelImplFromJson(Map<String, dynamic> json) =>
       taxAmount: (json['tax_amount'] as num?)?.toDouble() ?? 0,
       tipAmount: (json['tip_amount'] as num?)?.toDouble() ?? 0,
       paymentFetAmount: (json['payment_fet_amount'] as num?)?.toInt() ?? 0,
+      fetEarned: (json['fet_earned'] as num?)?.toInt() ?? 0,
       paymentFetConvertedAmount:
           (json['payment_fet_converted_amount'] as num?)?.toDouble() ?? 0,
       totalAmount: (json['total_amount'] as num).toDouble(),
@@ -72,6 +73,7 @@ Map<String, dynamic> _$$OrderModelImplToJson(_$OrderModelImpl instance) =>
       'tax_amount': instance.taxAmount,
       'tip_amount': instance.tipAmount,
       'payment_fet_amount': instance.paymentFetAmount,
+      'fet_earned': instance.fetEarned,
       'payment_fet_converted_amount': instance.paymentFetConvertedAmount,
       'total_amount': instance.totalAmount,
       'special_instructions': instance.specialInstructions,
@@ -86,6 +88,7 @@ Map<String, dynamic> _$$OrderModelImplToJson(_$OrderModelImpl instance) =>
 const _$OrderStatusEnumMap = {
   OrderStatus.placed: 'placed',
   OrderStatus.received: 'received',
+  OrderStatus.preparing: 'preparing',
   OrderStatus.served: 'served',
   OrderStatus.cancelled: 'cancelled',
 };
@@ -94,11 +97,14 @@ const _$PaymentMethodEnumMap = {
   PaymentMethod.momo: 'momo',
   PaymentMethod.revolut: 'revolut',
   PaymentMethod.cash: 'cash',
+  PaymentMethod.card: 'card',
+  PaymentMethod.other: 'other',
 };
 
 const _$PaymentStatusEnumMap = {
   PaymentStatus.pending: 'pending',
   PaymentStatus.unpaid: 'unpaid',
+  PaymentStatus.paymentSubmitted: 'payment_submitted',
   PaymentStatus.paid: 'paid',
   PaymentStatus.partiallyPaid: 'partially_paid',
   PaymentStatus.failed: 'failed',

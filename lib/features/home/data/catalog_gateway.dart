@@ -1,7 +1,6 @@
 import '../../../models/sports/competition_model.dart';
 import '../../../models/sports/featured_event_model.dart';
 import '../../../models/platform/search_result_model.dart';
-import '../../../models/sports/standing_row_model.dart';
 import '../../../models/sports/team_model.dart';
 import 'competition_catalog_gateway.dart';
 import 'event_catalog_gateway.dart';
@@ -48,13 +47,6 @@ class SupabaseCatalogGateway implements CatalogGateway {
       tier: tier,
       featuredOnly: featuredOnly,
     );
-  }
-
-  @override
-  Future<List<StandingRowModel>> getCompetitionStandings(
-    CompetitionStandingsFilter filter,
-  ) {
-    return _competitions.getCompetitionStandings(filter);
   }
 
   @override

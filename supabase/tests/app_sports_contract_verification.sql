@@ -20,6 +20,45 @@ BEGIN
   IF to_regclass('public.teams') IS NULL THEN
     RAISE EXCEPTION 'Missing required table: public.teams';
   END IF;
+
+  INSERT INTO public.competitions (
+    id,
+    name,
+    short_name,
+    country,
+    data_source,
+    country_or_region,
+    competition_type,
+    is_active
+  )
+  VALUES (
+    'contract_test_comp',
+    'Contract Test League',
+    'CTL',
+    'Malta',
+    'test',
+    'MT',
+    'league',
+    true
+  )
+  ON CONFLICT (id) DO UPDATE
+  SET is_active = true;
+
+  INSERT INTO public.teams (
+    id,
+    name,
+    short_name,
+    country,
+    country_code,
+    competition_ids,
+    is_active
+  )
+  VALUES
+    ('contract_test_home', 'Contract Test Home', 'CTH', 'Malta', 'MT', ARRAY['contract_test_comp'], true),
+    ('contract_test_away', 'Contract Test Away', 'CTA', 'Malta', 'MT', ARRAY['contract_test_comp'], true)
+  ON CONFLICT (id) DO UPDATE
+  SET is_active = true,
+      competition_ids = EXCLUDED.competition_ids;
 END;
 $$;
 

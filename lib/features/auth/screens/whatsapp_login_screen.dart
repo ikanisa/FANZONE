@@ -620,53 +620,55 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         ),
         const SizedBox(height: 14),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: List.generate(
-            _otpControllers.length,
-            (index) => SizedBox(
-              width: 44,
-              child: TextField(
-                controller: _otpControllers[index],
-                focusNode: _otpFocusNodes[index],
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                maxLength: 1,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'monospace',
+          children: List.generate(_otpControllers.length, (index) {
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: index == _otpControllers.length - 1 ? 0 : 6,
                 ),
-                decoration: InputDecoration(
-                  counterText: '',
-                  filled: true,
-                  fillColor: Theme.of(context).brightness == Brightness.dark
-                      ? FzColors.darkSurface3
-                      : FzColors.lightSurface2,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? FzColors.darkBorder
-                          : FzColors.lightBorder,
+                child: TextField(
+                  controller: _otpControllers[index],
+                  focusNode: _otpFocusNodes[index],
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  maxLength: 1,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'monospace',
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    filled: true,
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? FzColors.darkSurface3
+                        : FzColors.lightSurface2,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? FzColors.darkBorder
+                            : FzColors.lightBorder,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(
+                        color: _verificationAccent,
+                        width: 1.5,
+                      ),
                     ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: _verificationAccent,
-                      width: 1.5,
-                    ),
-                  ),
+                  onChanged: (value) {
+                    if (_error != null) setState(() => _error = null);
+                    _handleOtpChanged(index, value);
+                  },
                 ),
-                onChanged: (value) {
-                  if (_error != null) setState(() => _error = null);
-                  _handleOtpChanged(index, value);
-                },
               ),
-            ),
-          ),
+            );
+          }),
         ),
         const SizedBox(height: 14),
         if (statusMessage != null)
@@ -703,20 +705,22 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                 ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
+            Align(
+              alignment: Alignment.center,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: TextButton(
                   onPressed: _loading ? null : _goBackToPhone,
                   child: Text(
                     'Use a different number',
+                    maxLines: 1,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: mutedColor,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ],
         ),
@@ -755,27 +759,40 @@ class _PrimaryActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: textColor,
-          disabledBackgroundColor: color.withValues(alpha: 0.35),
-          disabledForegroundColor: textColor.withValues(alpha: 0.7),
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          textStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.4,
+    final disabled = onPressed == null;
+    final radius = BorderRadius.circular(14);
+
+    return Semantics(
+      button: true,
+      enabled: !disabled,
+      child: Material(
+        color: disabled ? color.withValues(alpha: 0.35) : color,
+        borderRadius: radius,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: radius,
+          child: Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(minHeight: 56),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            alignment: Alignment.center,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: TextStyle(
+                  color: disabled
+                      ? textColor.withValues(alpha: 0.7)
+                      : textColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
           ),
         ),
-        child: Text(label),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../theme/colors.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
 import '../providers/order_provider.dart';
 import '../../../models/hospitality/order_model.dart';
@@ -16,28 +17,49 @@ class OrderTrackingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orderAsync = ref.watch(orderDetailProvider(orderId));
+    final orderAsync = ref.watch(orderRealtimeProvider(orderId));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order status'),
-        leading: IconButton(
-          onPressed: () => context.go('/bar'),
-          icon: const Icon(LucideIcons.x),
+      body: SafeArea(
+        child: orderAsync.when(
+          data: (order) {
+            if (order == null) {
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
+                children: [
+                  const FzBackHeader(
+                    title: 'Order Status',
+                    subtitle: 'Venue confirmation and FET reward',
+                  ),
+                  const SizedBox(height: 48),
+                  StateView.empty(
+                    title: 'Order not found',
+                    subtitle: 'We couldn\'t find that order record.',
+                    icon: LucideIcons.receipt,
+                    action: () => context.go('/orders'),
+                    actionLabel: 'Open Orders',
+                  ),
+                ],
+              );
+            }
+            return _TrackingContent(order: order);
+          },
+          loading: () => const _OrderTrackingLoadingState(),
+          error: (e, _) => ListView(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
+            children: [
+              const FzBackHeader(
+                title: 'Order Status',
+                subtitle: 'Venue confirmation and FET reward',
+              ),
+              const SizedBox(height: 48),
+              StateView.error(
+                subtitle: e.toString(),
+                onRetry: () => ref.invalidate(orderRealtimeProvider(orderId)),
+              ),
+            ],
+          ),
         ),
-      ),
-      body: orderAsync.when(
-        data: (order) {
-          if (order == null) {
-            return StateView.empty(
-              title: 'Order not found',
-              subtitle: 'We couldn\'t find that order record.',
-            );
-          }
-          return _TrackingContent(order: order);
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => StateView.error(subtitle: e.toString()),
       ),
     );
   }
@@ -51,8 +73,15 @@ class _TrackingContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
       children: [
+        const FzBackHeader(
+          title: 'Order Status',
+          subtitle: 'Venue confirmation and FET reward',
+        ),
+        const SizedBox(height: 18),
+        _FetEarnedCard(order: order),
+        const SizedBox(height: 18),
         _StatusTimeline(status: order.status),
         const SizedBox(height: 18),
         _PaymentStatusCard(status: order.paymentStatus),
@@ -143,7 +172,82 @@ class _TrackingContent extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 18),
+        OutlinedButton.icon(
+          onPressed: () => context.push('/order/${order.id}/receipt'),
+          icon: const Icon(LucideIcons.receipt, size: 16),
+          label: const Text('View Receipt'),
+        ),
       ],
+    );
+  }
+}
+
+class _OrderTrackingLoadingState extends StatelessWidget {
+  const _OrderTrackingLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
+      child: Column(
+        children: [
+          FzBackHeader(
+            title: 'Order Status',
+            subtitle: 'Venue confirmation and FET reward',
+          ),
+          Expanded(child: Center(child: CircularProgressIndicator())),
+        ],
+      ),
+    );
+  }
+}
+
+class _FetEarnedCard extends StatelessWidget {
+  const _FetEarnedCard({required this.order});
+
+  final OrderModel order;
+
+  @override
+  Widget build(BuildContext context) {
+    return FzCard(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(LucideIcons.coins, color: FzColors.success),
+              SizedBox(width: 10),
+              Text(
+                'FET Earned',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '+${order.earnedFetDisplayAmount} FET',
+            style: const TextStyle(
+              color: FzColors.success,
+              fontSize: 34,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            order.paymentStatus.isPaid
+                ? (order.earnedFetDisplayAmount > 0
+                      ? 'Credited through the wallet ledger.'
+                      : 'No FET reward is configured for this order.')
+                : 'Pending until venue staff confirm payment.',
+            style: const TextStyle(
+              color: FzColors.darkMuted,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -163,7 +267,21 @@ class _StatusTimeline extends StatelessWidget {
           icon: LucideIcons.checkCircle2,
           isActive: true,
           isCompleted:
-              status == OrderStatus.received || status == OrderStatus.served,
+              status == OrderStatus.received ||
+              status == OrderStatus.preparing ||
+              status == OrderStatus.served,
+        ),
+        _TimelineConnector(
+          isActive:
+              status == OrderStatus.preparing || status == OrderStatus.served,
+        ),
+        _TimelineItem(
+          label: 'Preparing',
+          subtitle: 'The kitchen is preparing your order',
+          icon: LucideIcons.loader,
+          isActive: status == OrderStatus.preparing,
+          isCompleted:
+              status == OrderStatus.preparing || status == OrderStatus.served,
         ),
         _TimelineConnector(isActive: status == OrderStatus.served),
         _TimelineItem(
@@ -199,6 +317,7 @@ class _PaymentStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = switch (status) {
       PaymentStatus.paid => FzColors.success,
+      PaymentStatus.paymentSubmitted => FzColors.warning,
       PaymentStatus.partiallyPaid => FzColors.warning,
       PaymentStatus.refunded => FzColors.accent2,
       PaymentStatus.disputed || PaymentStatus.failed => FzColors.danger,

@@ -35,7 +35,7 @@ void main() {
                   'show_in_navigation': false,
                   'show_on_home': false,
                   'sort_order': 10,
-                  'route_key': '/fixtures',
+                  'route_key': '/pools',
                 },
               },
               'resolved_state': {
@@ -151,7 +151,7 @@ void main() {
         governedAppRouteForPath('/wallet?tab=history'),
         '/wallet?tab=history',
       );
-      expect(governedAppRouteForPath(''), '/bar');
+      expect(governedAppRouteForPath(''), '/home');
       expect(governedAppRouteForPath('', fallback: '/pools'), '/pools');
     });
   });

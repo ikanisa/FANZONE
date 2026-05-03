@@ -7,6 +7,8 @@ import '../../../models/platform/notification_model.dart';
 import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
+import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
@@ -33,13 +35,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 10),
+              child: FzReferenceHeader(
+                title: 'Sports Elite',
+                showNotifications: false,
+              ),
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
-                      'Inbox',
+                      'Alerts',
                       style: FzTypography.display(
                         size: 36,
                         color: isDark ? FzColors.darkText : FzColors.lightText,
@@ -116,18 +125,27 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     );
                   }
 
-                  return ListView.builder(
+                  return ListView(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-                    itemCount: notifications.length,
-                    itemBuilder: (context, index) {
-                      final item = notifications[index];
-                      final isUnread = item.readAt == null;
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: GestureDetector(
+                    children: [
+                      _CriticalAlertCard(
+                        count: notifications
+                            .where((item) => item.readAt == null)
+                            .length,
+                      ),
+                      const SizedBox(height: 16),
+                      const FzSectionHeader(title: 'Recent'),
+                      const SizedBox(height: 10),
+                      for (final item in notifications)
+                        _NotificationCard(
+                          item: item,
+                          isDark: isDark,
+                          muted: muted,
+                          iconForType: _iconForType,
+                          colorForType: _colorForType,
+                          timeLabel: _formatTime(item.sentAt),
                           onTap: () async {
-                            if (isUnread) {
+                            if (item.readAt == null) {
                               try {
                                 await ref
                                     .read(notificationServiceProvider.notifier)
@@ -146,119 +164,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             if (!context.mounted) return;
                             _handleNotificationTap(context, item);
                           },
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isUnread
-                                  ? FzColors.accent.withValues(alpha: 0.05)
-                                  : (isDark
-                                        ? FzColors.darkSurface
-                                        : FzColors.lightSurface),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: isUnread
-                                    ? FzColors.accent.withValues(alpha: 0.4)
-                                    : (isDark
-                                          ? FzColors.darkBorder
-                                          : FzColors.lightBorder),
-                              ),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: isUnread
-                                        ? FzColors.accent.withValues(alpha: 0.1)
-                                        : (isDark
-                                              ? FzColors.darkSurface2
-                                              : FzColors.lightSurface2),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: isUnread
-                                          ? FzColors.accent.withValues(
-                                              alpha: 0.2,
-                                            )
-                                          : (isDark
-                                                ? FzColors.darkBorder
-                                                : FzColors.lightBorder),
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    _iconForType(item.type),
-                                    size: 16,
-                                    color: _colorForType(item.type),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              item.title,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700,
-                                                color: isDark
-                                                    ? FzColors.darkText
-                                                    : FzColors.lightText,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            _formatTime(item.sentAt),
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700,
-                                              color: muted,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      if (item.body.isNotEmpty) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          item.body,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: muted,
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                if (isUnread)
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    margin: const EdgeInsets.only(
-                                      top: 4,
-                                      left: 8,
-                                    ),
-                                    decoration: const BoxDecoration(
-                                      color: FzColors.accent,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
                         ),
-                      );
-                    },
+                    ],
                   );
                 },
                 loading: () => const FzGlassLoader(message: 'Syncing...'),
@@ -341,8 +248,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final competitionId = _stringValue(item.data['competition_id']);
     final screen = _stringValue(item.data['screen']);
 
-    if (teamId != null) return '/team/$teamId';
-    if (competitionId != null) return '/league/$competitionId';
+    if (teamId != null || competitionId != null) return '/pools';
     if (matchId != null) return '/match/$matchId';
 
     if (screen != null) {
@@ -387,5 +293,190 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     if (diff.inHours > 0) return '${diff.inHours}h';
     if (diff.inMinutes > 0) return '${diff.inMinutes}m';
     return 'Now';
+  }
+}
+
+class _CriticalAlertCard extends StatelessWidget {
+  const _CriticalAlertCard({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasUnread = count > 0;
+    return FzCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: 18,
+      color: hasUnread
+          ? FzColors.accent.withValues(alpha: 0.12)
+          : FzColors.darkSurface,
+      borderColor: hasUnread
+          ? FzColors.accent.withValues(alpha: 0.42)
+          : FzColors.darkBorder,
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: hasUnread
+                  ? FzColors.accent.withValues(alpha: 0.14)
+                  : FzColors.darkSurface2,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              hasUnread ? LucideIcons.zap : LucideIcons.badgeCheck,
+              color: hasUnread ? FzColors.accent : FzColors.success,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hasUnread ? '$count unread alerts' : 'All clear',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  hasUnread
+                      ? 'Review pool, wallet, order, and match updates.'
+                      : 'No critical FANZONE alerts need action.',
+                  style: const TextStyle(
+                    color: FzColors.darkMuted,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationCard extends StatelessWidget {
+  const _NotificationCard({
+    required this.item,
+    required this.isDark,
+    required this.muted,
+    required this.iconForType,
+    required this.colorForType,
+    required this.timeLabel,
+    required this.onTap,
+  });
+
+  final NotificationItem item;
+  final bool isDark;
+  final Color muted;
+  final IconData Function(String type) iconForType;
+  final Color Function(String type) colorForType;
+  final String timeLabel;
+  final Future<void> Function() onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isUnread = item.readAt == null;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isUnread
+                ? FzColors.accent.withValues(alpha: 0.06)
+                : (isDark ? FzColors.darkSurface : FzColors.lightSurface),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isUnread
+                  ? FzColors.accent.withValues(alpha: 0.4)
+                  : (isDark ? FzColors.darkBorder : FzColors.lightBorder),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: colorForType(item.type).withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: colorForType(item.type).withValues(alpha: 0.22),
+                  ),
+                ),
+                child: Icon(
+                  iconForType(item.type),
+                  size: 17,
+                  color: colorForType(item.type),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: isDark
+                                  ? FzColors.darkText
+                                  : FzColors.lightText,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          timeLabel,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: muted,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (item.body.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        item.body,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: muted),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (isUnread)
+                Container(
+                  width: 8,
+                  height: 8,
+                  margin: const EdgeInsets.only(top: 5, left: 8),
+                  decoration: const BoxDecoration(
+                    color: FzColors.accent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

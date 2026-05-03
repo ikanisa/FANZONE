@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 
 /// Shared rounded-corner tokens aligned with the FANZONE reference UI.
 ///
-/// - 12px: buttons and small interactive elements
-/// - 16px: secondary cards and inputs
-/// - 20px: compact section surfaces and interactive pills
-/// - 24px: primary card and empty-state surfaces
-/// - 28px: hero/profile emphasis surfaces
-/// - 32px: bottom sheet top corners
+/// - 10px: buttons and small interactive elements
+/// - 14px: secondary cards and inputs
+/// - 18px: compact section surfaces and interactive pills
+/// - 20px: primary card and empty-state surfaces
+/// - 22px: hero/profile emphasis surfaces
+/// - 26px: bottom sheet top corners
 abstract final class FzRadii {
-  static const double button = 12;
-  static const double cardAlt = 16;
-  static const double compact = 20;
-  static const double card = 24;
-  static const double hero = 28;
-  static const double bottomSheet = 32;
+  static const double button = 10;
+  static const double cardAlt = 14;
+  static const double compact = 18;
+  static const double card = 20;
+  static const double hero = 22;
+  static const double bottomSheet = 26;
   static const double full = 999;
 
   static const BorderRadius buttonRadius = BorderRadius.all(

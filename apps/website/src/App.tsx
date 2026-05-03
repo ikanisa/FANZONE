@@ -8,7 +8,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAppStore } from './store/useAppStore';
 import { Splash } from './components/Splash';
 import Layout from './components/Layout';
-import HomeFeed from './components/HomeFeed';
 import MatchDetail from './components/MatchDetail';
 import Pools from './components/Pools';
 import WalletHub from './components/WalletHub';
@@ -159,18 +158,8 @@ export default function App() {
                   <RequireOnboarding>
                     <Layout>
                       <Routes>
-                        <Route
-                          path="/"
-                          element={
-                            <FeatureRoute
-                              featureKey="home_feed"
-                              title="Home feed is unavailable"
-                              message="The homepage feed is currently hidden from the website."
-                            >
-                              <HomeFeed />
-                            </FeatureRoute>
-                          }
-                        />
+                        <Route path="/" element={<Navigate to="/bar" replace />} />
+                        <Route path="/today" element={<Navigate to="/bar" replace />} />
                         <Route
                           path="/match/:id"
                           element={
@@ -244,8 +233,31 @@ export default function App() {
                           }
                         />
                         <Route path="/privacy" element={<PrivacySettings />} />
-                        <Route path="/ordering" element={<Ordering />} />
-                        <Route path="/v/:slug" element={<Ordering />} />
+                        <Route
+                          path="/bar"
+                          element={
+                            <FeatureRoute
+                              featureKey="ordering"
+                              title="Bar ordering is unavailable"
+                              message="Venue menus and order creation are currently disabled for the website."
+                            >
+                              <Ordering />
+                            </FeatureRoute>
+                          }
+                        />
+                        <Route path="/ordering" element={<Navigate to="/bar" replace />} />
+                        <Route
+                          path="/v/:slug"
+                          element={
+                            <FeatureRoute
+                              featureKey="ordering"
+                              title="Bar ordering is unavailable"
+                              message="Venue menus and order creation are currently disabled for the website."
+                            >
+                              <Ordering />
+                            </FeatureRoute>
+                          }
+                        />
                         <Route
                           path="/notifications"
                           element={

@@ -1,17 +1,19 @@
 {
   "sourceLabel": "/Volumes/PRO-G40/FANZONE/apps/website",
-  "generatedAt": "2026-05-01T19:35:57.988Z",
+  "generatedAt": "2026-05-01T21:40:21.574Z",
   "routes": [
     "/onboarding",
     "/pools/:slug",
     "/*",
     "/",
+    "/today",
     "/match/:id",
     "/pools",
     "/wallet",
     "/profile",
     "/settings",
     "/privacy",
+    "/bar",
     "/ordering",
     "/v/:slug",
     "/notifications",
@@ -60,9 +62,8 @@
     "radius-hero": "28px"
   },
   "files": {
-    "App.tsx": "74cca931f6d6e0e384a18d0b83051256023c76a2c32d6ac3a781c3b4936745e0",
-    "components/HomeFeed.tsx": "bfa17061da64e029cd9493683269a7bfc735a3fb80e818290018d5aaaed7c498",
-    "components/Layout.tsx": "434fbce3018a11c7043ebecb4d49b8fe79d1844b7083a109d6d5ca07548fe628",
+    "App.tsx": "b141e9c5cea7c81de6fc4701184d9861740077d9385978352048b317be4e9a53",
+    "components/Layout.tsx": "3b2b5df229ad9796273fd8d12fdd5175700528d97688e607102f68478e9e5d93",
     "components/MatchDetail.tsx": "62a98899a609e060f748f315f1a4d8137603e77cba6101a5c881f15771c8aadc",
     "components/MatchPools.tsx": "7504b1719449acfb6bbca8f18120e17d2671527bbbb1f7b17ed09fd37f8f1613",
     "components/Notifications.tsx": "c52ab0a534332df308c61471682ce8c0411345d954a86145ca039aff4510c0d8",
@@ -105,7 +106,6 @@
     "types.ts": "7f8f21a494c12e4e997092237da61a6ffcdb90ffe8c5ad56feb65354e58c62d5"
   },
   "components": [
-    "components/HomeFeed.tsx",
     "components/Layout.tsx",
     "components/MatchDetail.tsx",
     "components/MatchPools.tsx",

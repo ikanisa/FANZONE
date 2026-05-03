@@ -9,6 +9,8 @@ import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
+import '../../../widgets/common/fz_reference_modals.dart';
 import '../../../widgets/common/state_view.dart';
 import '../data/pools_repository.dart';
 
@@ -48,33 +50,46 @@ class PoolDetailScreen extends ConsumerWidget {
     }
 
     final absoluteUrl = _absolutePoolShareUrl(shareUrl);
-    try {
-      await SharePlus.instance.share(
-        ShareParams(
-          text: '${pool.title}\nJoin the pool: $absoluteUrl',
-          title: pool.title,
-          subject: pool.title,
-        ),
-      );
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              inviteCreated
-                  ? 'Creator invite ready to share.'
-                  : 'Pool link ready to share.',
+    if (!context.mounted) return;
+
+    await showFzInviteFriendsSheet(
+      context,
+      title: inviteCreated
+          ? 'Creator invite ready for ${pool.title}.'
+          : 'Share ${pool.title} with your friends.',
+      shareUrl: absoluteUrl,
+      onShare: () async {
+        try {
+          await SharePlus.instance.share(
+            ShareParams(
+              text: '${pool.title}\nJoin the pool: $absoluteUrl',
+              title: pool.title,
+              subject: pool.title,
             ),
-          ),
-        );
-      }
-    } catch (_) {
-      await Clipboard.setData(ClipboardData(text: absoluteUrl));
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Pool link copied.')));
-      }
-    }
+          );
+        } catch (_) {
+          await Clipboard.setData(ClipboardData(text: absoluteUrl));
+        }
+      },
+      onCopy: () async {
+        await Clipboard.setData(ClipboardData(text: absoluteUrl));
+      },
+    );
+  }
+
+  Future<void> _showWinnerReward(
+    BuildContext context,
+    PoolSummary pool,
+    PoolEntryState entry,
+  ) {
+    return showFzWinnerCelebrationSheet(
+      context,
+      title: '${pool.title} settled with your entry rewarded.',
+      amountFet: entry.payoutFet,
+      onOpenWallet: () {
+        if (context.mounted) context.push('/wallet');
+      },
+    );
   }
 
   @override
@@ -83,79 +98,101 @@ class PoolDetailScreen extends ConsumerWidget {
     final entryAsync = ref.watch(poolEntryStateProvider(poolId));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pool detail'),
-        leading: IconButton(
-          tooltip: 'Back',
-          onPressed: () => context.pop(),
-          icon: const Icon(LucideIcons.chevronLeft),
-        ),
-      ),
-      body: poolAsync.when(
-        data: (pool) {
-          if (pool == null) {
-            return StateView.empty(
-              title: 'Pool not found',
-              subtitle: 'Open Pools to choose another match pool.',
-              action: () => context.go('/pools'),
-              actionLabel: 'Open Pools',
-            );
-          }
+      body: SafeArea(
+        child: poolAsync.when(
+          data: (pool) {
+            if (pool == null) {
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
+                children: [
+                  const FzBackHeader(
+                    title: 'Pool Detail',
+                    subtitle: 'Arena entry and settlement',
+                  ),
+                  const SizedBox(height: 48),
+                  StateView.empty(
+                    title: 'Pool not found',
+                    subtitle: 'Open Pools to choose another match pool.',
+                    action: () => context.go('/pools'),
+                    actionLabel: 'Open Pools',
+                  ),
+                ],
+              );
+            }
 
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(poolDetailProvider(poolId));
-              ref.invalidate(poolEntryStateProvider(poolId));
-              await ref.read(poolDetailProvider(poolId).future);
-            },
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
-              children: [
-                _PoolHero(pool: pool),
-                const SizedBox(height: 14),
-                entryAsync.when(
-                  data: (entry) => _EntryStateCard(pool: pool, entry: entry),
-                  loading: () => const _EntryStateLoading(),
-                  error: (_, _) =>
-                      const _EntryStateCard(pool: null, entry: null),
-                ),
-                const SizedBox(height: 14),
-                _CampsSection(pool: pool),
-                const SizedBox(height: 14),
-                _LiveTimeline(pool: pool),
-                const SizedBox(height: 14),
-                _SettlementCard(pool: pool),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: pool.isOpen
-                            ? () => context.push('/pool/${pool.id}/join')
-                            : null,
-                        icon: const Icon(LucideIcons.trophy, size: 16),
-                        label: const Text('Stake FET'),
-                      ),
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(poolDetailProvider(poolId));
+                ref.invalidate(poolEntryStateProvider(poolId));
+                await ref.read(poolDetailProvider(poolId).future);
+              },
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
+                children: [
+                  const FzBackHeader(
+                    title: 'Pool Detail',
+                    subtitle: 'Arena entry and settlement',
+                  ),
+                  const SizedBox(height: 18),
+                  _PoolHero(pool: pool),
+                  const SizedBox(height: 14),
+                  entryAsync.when(
+                    data: (entry) => Column(
+                      children: [
+                        _EntryStateCard(pool: pool, entry: entry),
+                        if (entry != null && entry.payoutFet > 0) ...[
+                          const SizedBox(height: 14),
+                          _WinnerRewardCard(
+                            pool: pool,
+                            entry: entry,
+                            onView: () =>
+                                _showWinnerReward(context, pool, entry),
+                          ),
+                        ],
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _sharePool(context, ref, pool),
-                        icon: const Icon(LucideIcons.share2, size: 16),
-                        label: const Text('Share'),
+                    loading: () => const _EntryStateLoading(),
+                    error: (_, _) =>
+                        const _EntryStateCard(pool: null, entry: null),
+                  ),
+                  const SizedBox(height: 14),
+                  _CampsSection(pool: pool),
+                  const SizedBox(height: 14),
+                  _LiveTimeline(pool: pool),
+                  const SizedBox(height: 14),
+                  _SettlementCard(pool: pool),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: pool.isOpen
+                              ? () => context.push('/pool/${pool.id}/join')
+                              : null,
+                          icon: const Icon(LucideIcons.trophy, size: 16),
+                          label: const Text('Stake FET'),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => StateView.error(
-          title: 'Pool unavailable',
-          subtitle: error.toString(),
-          onRetry: () => ref.invalidate(poolDetailProvider(poolId)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _sharePool(context, ref, pool),
+                          icon: const Icon(LucideIcons.share2, size: 16),
+                          label: const Text('Share pool'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+          loading: () => const _PoolDetailLoadingState(),
+          error: (error, _) => StateView.error(
+            title: 'Pool unavailable',
+            subtitle: error.toString(),
+            onRetry: () => ref.invalidate(poolDetailProvider(poolId)),
+          ),
         ),
       ),
     );
@@ -313,6 +350,90 @@ class _EntryStateLoading extends StatelessWidget {
           ),
           SizedBox(width: 12),
           Text('Checking your entry...'),
+        ],
+      ),
+    );
+  }
+}
+
+class _WinnerRewardCard extends StatelessWidget {
+  const _WinnerRewardCard({
+    required this.pool,
+    required this.entry,
+    required this.onView,
+  });
+
+  final PoolSummary pool;
+  final PoolEntryState entry;
+  final VoidCallback onView;
+
+  @override
+  Widget build(BuildContext context) {
+    return FzCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: FzRadii.compact,
+      borderColor: FzColors.success.withValues(alpha: 0.45),
+      color: FzColors.success.withValues(alpha: 0.08),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: FzColors.success.withValues(alpha: 0.16),
+              borderRadius: FzRadii.buttonRadius,
+            ),
+            child: const Icon(LucideIcons.crown, color: FzColors.success),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Winner reward ready',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '+${entry.payoutFet} FET from ${pool.title}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: FzColors.darkMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'View reward',
+            onPressed: onView,
+            icon: const Icon(LucideIcons.sparkles, color: FzColors.success),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PoolDetailLoadingState extends StatelessWidget {
+  const _PoolDetailLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
+      child: Column(
+        children: [
+          FzBackHeader(
+            title: 'Pool Detail',
+            subtitle: 'Arena entry and settlement',
+          ),
+          Expanded(child: Center(child: CircularProgressIndicator())),
         ],
       ),
     );

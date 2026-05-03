@@ -3,10 +3,34 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
 import { VenueProvider } from "./hooks/useVenueContext";
 import { isSupabaseConfigured, venueEnvError } from "./lib/supabase";
+import {
+  BuyFetPage,
+  CreatePoolPage,
+  GameControlPage,
+  GamesPage,
+  MenuItemEditorPage,
+  NotificationsPage,
+  ParticipantsPage,
+  PoolDetailPage,
+  PoolSettlementPage,
+  ScreenControlPage,
+  SettingsSubsectionPage,
+  StaffPermissionsPage,
+  StartGamePage,
+  TeamDetailPage,
+  TeamsPage,
+  WalletLedgerPage,
+  WalletPage,
+} from "./features/target/TargetPages";
 
 const DashboardPage = lazy(() =>
   import("./features/dashboard/DashboardPage").then((module) => ({
     default: module.DashboardPage,
+  })),
+);
+const OverviewPage = lazy(() =>
+  import("./features/overview/OverviewPage").then((module) => ({
+    default: module.OverviewPage,
   })),
 );
 const MenuArchitectPage = lazy(() =>
@@ -17,6 +41,11 @@ const MenuArchitectPage = lazy(() =>
 const LiveOrderQueuePage = lazy(() =>
   import("./features/orders/LiveOrderQueuePage").then((module) => ({
     default: module.LiveOrderQueuePage,
+  })),
+);
+const OrderDetailPage = lazy(() =>
+  import("./features/orders/OrderDetailPage").then((module) => ({
+    default: module.OrderDetailPage,
   })),
 );
 const VenuePoolsPage = lazy(() =>
@@ -80,17 +109,41 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AppShell />}>
-            <Route index element={<Navigate to="/orders" replace />} />
+            <Route index element={<Navigate to="/overview" replace />} />
+            <Route path="overview" element={lazyPage(<OverviewPage />)} />
             <Route path="orders" element={lazyPage(<LiveOrderQueuePage />)} />
+            <Route path="orders/:orderId" element={lazyPage(<OrderDetailPage />)} />
             <Route path="menu" element={lazyPage(<MenuArchitectPage />)} />
+            <Route path="menu/items/new" element={<MenuItemEditorPage />} />
+            <Route path="menu/items/:itemId" element={<MenuItemEditorPage />} />
             <Route path="pools" element={lazyPage(<VenuePoolsPage />)} />
-            <Route path="rewards" element={lazyPage(<FETRewardsPage />)} />
-            <Route path="tables" element={lazyPage(<QRFactoryPage />)} />
+            <Route path="pools/new" element={<CreatePoolPage />} />
+            <Route path="pools/:poolId" element={<PoolDetailPage />} />
+            <Route path="pools/:poolId/settle" element={<PoolSettlementPage />} />
+            <Route path="games" element={<GamesPage />} />
+            <Route path="games/new" element={<StartGamePage />} />
+            <Route path="games/:sessionId/control" element={<GameControlPage />} />
+            <Route path="teams" element={<TeamsPage />} />
+            <Route path="teams/:teamId" element={<TeamDetailPage />} />
+            <Route path="participants" element={<ParticipantsPage />} />
+            <Route path="screen" element={<ScreenControlPage />} />
+            <Route path="wallet" element={<WalletPage />} />
+            <Route path="wallet/buy" element={<BuyFetPage />} />
+            <Route path="wallet/ledger" element={<WalletLedgerPage />} />
             <Route path="insights" element={lazyPage(<DashboardPage />)} />
             <Route path="settings" element={lazyPage(<VenueSettingsPage />)} />
+            <Route path="settings/profile" element={<SettingsSubsectionPage />} />
+            <Route path="settings/payments" element={<SettingsSubsectionPage />} />
+            <Route path="settings/permissions" element={<StaffPermissionsPage />} />
+            <Route path="settings/screen" element={<SettingsSubsectionPage />} />
+            <Route path="settings/fet-rewards" element={lazyPage(<FETRewardsPage />)} />
+            <Route path="settings/tables" element={lazyPage(<QRFactoryPage />)} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="rewards" element={<Navigate to="/settings/fet-rewards" replace />} />
+            <Route path="tables" element={<Navigate to="/settings/tables" replace />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/orders" replace />} />
+          <Route path="*" element={<Navigate to="/overview" replace />} />
         </Routes>
       </BrowserRouter>
     </VenueProvider>

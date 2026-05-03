@@ -5,18 +5,14 @@ class UserMarketPreferences {
     this.primaryRegion = 'global',
     this.selectedRegions = const ['global'],
     this.focusEventTags = const [],
-    this.favoriteCompetitionIds = const [],
     this.followWorldCup = true,
-    this.followChampionsLeague = true,
     this.updatedAt,
   });
 
   final String primaryRegion;
   final List<String> selectedRegions;
   final List<String> focusEventTags;
-  final List<String> favoriteCompetitionIds;
   final bool followWorldCup;
-  final bool followChampionsLeague;
   final DateTime? updatedAt;
 
   factory UserMarketPreferences.fromJson(Map<String, dynamic> json) {
@@ -24,9 +20,7 @@ class UserMarketPreferences {
       primaryRegion: normalizeRegionKey(json['primary_region']?.toString()),
       selectedRegions: _normalizeRegions(json['selected_regions']),
       focusEventTags: _asStringList(json['focus_event_tags']),
-      favoriteCompetitionIds: _asStringList(json['favorite_competition_ids']),
       followWorldCup: json['follow_world_cup'] as bool? ?? true,
-      followChampionsLeague: json['follow_champions_league'] as bool? ?? true,
       updatedAt: json['updated_at'] == null
           ? null
           : DateTime.tryParse(json['updated_at'].toString()),
@@ -48,7 +42,6 @@ class UserMarketPreferences {
   bool get hasCustomSelections {
     return normalizeRegionKey(primaryRegion) != 'global' ||
         focusEventTags.isNotEmpty ||
-        favoriteCompetitionIds.isNotEmpty ||
         selectedRegions.any((value) => normalizeRegionKey(value) != 'global');
   }
 
@@ -56,9 +49,7 @@ class UserMarketPreferences {
     String? primaryRegion,
     List<String>? selectedRegions,
     List<String>? focusEventTags,
-    List<String>? favoriteCompetitionIds,
     bool? followWorldCup,
-    bool? followChampionsLeague,
     DateTime? updatedAt,
   }) {
     return UserMarketPreferences(
@@ -67,12 +58,7 @@ class UserMarketPreferences {
         selectedRegions ?? this.selectedRegions,
       ),
       focusEventTags: _asStringList(focusEventTags ?? this.focusEventTags),
-      favoriteCompetitionIds: _asStringList(
-        favoriteCompetitionIds ?? this.favoriteCompetitionIds,
-      ),
       followWorldCup: followWorldCup ?? this.followWorldCup,
-      followChampionsLeague:
-          followChampionsLeague ?? this.followChampionsLeague,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -82,9 +68,7 @@ class UserMarketPreferences {
       'primary_region': normalizeRegionKey(primaryRegion),
       'selected_regions': effectiveRegions,
       'focus_event_tags': _asStringList(focusEventTags),
-      'favorite_competition_ids': _asStringList(favoriteCompetitionIds),
       'follow_world_cup': followWorldCup,
-      'follow_champions_league': followChampionsLeague,
       'updated_at': (updatedAt ?? DateTime.now()).toUtc().toIso8601String(),
     };
   }

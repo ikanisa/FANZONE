@@ -1,0 +1,77 @@
+:root {
+  color-scheme: dark;
+
+  --fz-bg: #0b0d10;
+  --fz-surface: #14171c;
+  --fz-surface-2: #1b2027;
+  --fz-surface-3: #242a33;
+  --fz-surface-4: #303745;
+  --fz-border: #303745;
+  --fz-border-2: #3d4654;
+
+  --fz-text: #f8fafc;
+  --fz-text-secondary: #cbd5e1;
+  --fz-muted: #94a3b8;
+  --fz-muted-2: #64748b;
+
+  --fz-primary: #38bdf8;
+  --fz-primary-text: #0b0d10;
+  --fz-secondary: #f97316;
+  --fz-secondary-text: #0b0d10;
+  --fz-accent-2: #2563eb;
+  --fz-teal: #0f766e;
+
+  --fz-success: #22c55e;
+  --fz-warning: #f59e0b;
+  --fz-error: #ef4444;
+  --fz-info: #38bdf8;
+
+  --fz-success-bg: color-mix(in srgb, var(--fz-success) 14%, transparent);
+  --fz-warning-bg: color-mix(in srgb, var(--fz-warning) 14%, transparent);
+  --fz-error-bg: color-mix(in srgb, var(--fz-error) 14%, transparent);
+  --fz-info-bg: color-mix(in srgb, var(--fz-info) 14%, transparent);
+  --fz-primary-bg: color-mix(in srgb, var(--fz-primary) 14%, transparent);
+  --fz-secondary-bg: color-mix(in srgb, var(--fz-secondary) 14%, transparent);
+
+  --fz-font: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --fz-display-font: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --fz-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --fz-text-xs: 0.6875rem;
+  --fz-text-sm: 0.8125rem;
+  --fz-text-base: 0.875rem;
+  --fz-text-md: 1rem;
+  --fz-text-lg: 1.125rem;
+  --fz-text-xl: 1.25rem;
+  --fz-text-2xl: 1.5rem;
+  --fz-text-3xl: 1.875rem;
+
+  --fz-sp-1: 4px;
+  --fz-sp-2: 8px;
+  --fz-sp-3: 12px;
+  --fz-sp-4: 16px;
+  --fz-sp-5: 20px;
+  --fz-sp-6: 24px;
+  --fz-sp-8: 32px;
+  --fz-sp-10: 40px;
+  --fz-sp-12: 48px;
+  --fz-sp-16: 64px;
+
+  --fz-radius-sm: 6px;
+  --fz-radius: 10px;
+  --fz-radius-md: 12px;
+  --fz-radius-lg: 14px;
+  --fz-radius-xl: 18px;
+  --fz-radius-2xl: 22px;
+  --fz-radius-full: 9999px;
+
+  --fz-shadow-sm: 0 8px 22px rgba(0, 0, 0, 0.2);
+  --fz-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+  --fz-shadow-lg: 0 22px 54px rgba(0, 0, 0, 0.34);
+  --fz-shadow-xl: 0 30px 70px rgba(0, 0, 0, 0.4);
+
+  --fz-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --fz-transition-slow: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  --fz-touch: 48px;
+  --fz-touch-lg: 56px;
+}

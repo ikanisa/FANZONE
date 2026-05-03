@@ -16,7 +16,7 @@ import {
 
 const markPaidSchema = z.object({
   order_id: z.string().uuid(),
-  payment_method: z.enum(["cash", "momo", "revolut"]).optional().default(
+  payment_method: z.enum(["cash", "momo", "revolut", "card", "other"]).optional().default(
     "cash",
   ),
 });

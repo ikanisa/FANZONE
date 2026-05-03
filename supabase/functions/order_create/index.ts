@@ -28,7 +28,7 @@ const createOrderSchema = z.object({
   venue_id: z.string().uuid(),
   table_id: z.string().uuid().optional(),
   table_public_code: z.string().min(1).optional(),
-  payment_method: z.enum(["cash", "momo", "revolut"]).default("cash"),
+  payment_method: z.enum(["cash", "momo", "revolut", "card", "other"]).default("cash"),
   items: z.array(orderItemSchema).min(1),
   special_instructions: z.string().max(1000).optional(),
   notes: z.string().max(1000).optional(),

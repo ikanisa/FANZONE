@@ -150,13 +150,13 @@ abstract class S {
   /// No description provided for @homeTabFollowing.
   ///
   /// In en, this message translates to:
-  /// **'Following'**
+  /// **'My Teams'**
   String get homeTabFollowing;
 
   /// No description provided for @homeTabAll.
   ///
   /// In en, this message translates to:
-  /// **'All Leagues'**
+  /// **'All Matches'**
   String get homeTabAll;
 
   /// No description provided for @matchStatusLive.
@@ -200,78 +200,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'vs'**
   String get matchVs;
-
-  /// No description provided for @leagueStandings.
-  ///
-  /// In en, this message translates to:
-  /// **'Standings'**
-  String get leagueStandings;
-
-  /// No description provided for @leagueFixtures.
-  ///
-  /// In en, this message translates to:
-  /// **'Matches'**
-  String get leagueFixtures;
-
-  /// No description provided for @leagueResults.
-  ///
-  /// In en, this message translates to:
-  /// **'Results'**
-  String get leagueResults;
-
-  /// No description provided for @leagueTeams.
-  ///
-  /// In en, this message translates to:
-  /// **'Teams'**
-  String get leagueTeams;
-
-  /// No description provided for @standingsPos.
-  ///
-  /// In en, this message translates to:
-  /// **'Pos'**
-  String get standingsPos;
-
-  /// No description provided for @standingsTeam.
-  ///
-  /// In en, this message translates to:
-  /// **'Team'**
-  String get standingsTeam;
-
-  /// No description provided for @standingsP.
-  ///
-  /// In en, this message translates to:
-  /// **'P'**
-  String get standingsP;
-
-  /// No description provided for @standingsW.
-  ///
-  /// In en, this message translates to:
-  /// **'W'**
-  String get standingsW;
-
-  /// No description provided for @standingsD.
-  ///
-  /// In en, this message translates to:
-  /// **'D'**
-  String get standingsD;
-
-  /// No description provided for @standingsL.
-  ///
-  /// In en, this message translates to:
-  /// **'L'**
-  String get standingsL;
-
-  /// No description provided for @standingsGD.
-  ///
-  /// In en, this message translates to:
-  /// **'GD'**
-  String get standingsGD;
-
-  /// No description provided for @standingsPts.
-  ///
-  /// In en, this message translates to:
-  /// **'Pts'**
-  String get standingsPts;
 
   /// No description provided for @walletTitle.
   ///
@@ -426,7 +354,7 @@ abstract class S {
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:
-  /// **'Search teams, leagues, matches...'**
+  /// **'Search teams, bars, matches...'**
   String get searchHint;
 
   /// No description provided for @searchNoResults.
@@ -474,13 +402,13 @@ abstract class S {
   /// No description provided for @followingEmpty.
   ///
   /// In en, this message translates to:
-  /// **'You haven\'t followed any teams or leagues yet.'**
+  /// **'You haven\'t picked any favorite teams yet.'**
   String get followingEmpty;
 
   /// No description provided for @followingDiscoverCaption.
   ///
   /// In en, this message translates to:
-  /// **'Explore teams and leagues to follow'**
+  /// **'Pick teams to personalize featured pools'**
   String get followingDiscoverCaption;
 
   /// No description provided for @followingDiscover.

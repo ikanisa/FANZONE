@@ -39,7 +39,7 @@ The current route map is derived from the canonical source app.
 | Route | Surface |
 | --- | --- |
 | `/onboarding` | Onboarding |
-| `/` | Home feed |
+| `/` | Redirects to `/bar` |
 | `/match/:id` | Match detail |
 | `/pools` | Pool discovery |
 | `/pools/:slug` | Pool detail |
@@ -47,7 +47,8 @@ The current route map is derived from the canonical source app.
 | `/profile` | Profile |
 | `/settings` | Settings |
 | `/privacy` | Privacy settings |
-| `/ordering` | Venue ordering |
+| `/bar` | Venue ordering |
+| `/ordering` | Legacy redirect to `/bar` |
 | `/v/:slug` | Venue QR ordering |
 | `/notifications` | Notifications |
 | `*` | Pool discovery fallback |

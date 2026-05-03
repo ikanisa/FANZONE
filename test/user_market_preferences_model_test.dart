@@ -8,7 +8,6 @@ void main() {
         'primary_region': 'americas',
         'selected_regions': ['global', 'north-america'],
         'focus_event_tags': ['worldcup2026'],
-        'favorite_competition_ids': ['ucl'],
       });
 
       expect(preferences.primaryRegion, 'north_america');
@@ -17,7 +16,6 @@ void main() {
         containsAll(['global', 'north_america']),
       );
       expect(preferences.focusEventTags, ['worldcup2026']);
-      expect(preferences.favoriteCompetitionIds, ['ucl']);
     });
 
     test('toJson preserves explicit selections', () {
@@ -25,7 +23,6 @@ void main() {
         primaryRegion: 'europe',
         selectedRegions: ['global', 'europe', 'africa'],
         focusEventTags: ['ucl-final-2026'],
-        favoriteCompetitionIds: ['champions-league'],
         followWorldCup: false,
       );
 
@@ -37,7 +34,6 @@ void main() {
         containsAll(['global', 'europe', 'africa']),
       );
       expect(json['focus_event_tags'], ['ucl-final-2026']);
-      expect(json['favorite_competition_ids'], ['champions-league']);
       expect(json['follow_world_cup'], false);
     });
   });

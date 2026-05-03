@@ -148,9 +148,18 @@ export interface ViewerNotification {
   readAt?: string | null;
 }
 
-export type OrderStatus = 'placed' | 'received' | 'served' | 'cancelled';
-export type PaymentMethod = 'momo' | 'revolut' | 'cash';
-export type PaymentStatus = 'unpaid' | 'paid' | 'partially_paid' | 'refunded' | 'disputed' | 'pending' | 'failed' | 'cancelled';
+export type OrderStatus = 'placed' | 'received' | 'preparing' | 'served' | 'cancelled';
+export type PaymentMethod = 'momo' | 'revolut' | 'cash' | 'card' | 'other';
+export type PaymentStatus =
+  | 'unpaid'
+  | 'payment_submitted'
+  | 'paid'
+  | 'partially_paid'
+  | 'refunded'
+  | 'disputed'
+  | 'pending'
+  | 'failed'
+  | 'cancelled';
 export type VenueUserRole = 'owner' | 'manager' | 'staff';
 export type MatchPoolScope = 'global' | 'country' | 'venue';
 export type MatchPoolStatus = 'draft' | 'open' | 'locked' | 'live' | 'settling' | 'settled' | 'cancelled';
@@ -204,6 +213,7 @@ export interface Order {
   id: string;
   venueId: string;
   tableId: string;
+  userId?: string | null;
   tableNumber?: string | null;
   orderCode: string;
   status: OrderStatus;
@@ -374,6 +384,7 @@ export interface OrderRow {
   id: string;
   venue_id: string;
   table_id: string;
+  user_id: string;
   order_code: string;
   status: OrderStatus;
   payment_method: PaymentMethod;
@@ -394,6 +405,19 @@ export interface OrderRow {
   fet_spent?: number;
   created_at: string;
   updated_at?: string;
+}
+
+export interface PaymentEventRow {
+  [key: string]: unknown;
+  id: string;
+  order_id: string;
+  provider: PaymentMethod;
+  status: PaymentStatus;
+  external_reference: string | null;
+  request_payload: Json;
+  response_payload: Json;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface VenueTableRow {
@@ -628,6 +652,7 @@ export interface Database {
       menu_items: TableDefinition<MenuItemRow>;
       orders: TableDefinition<OrderRow>;
       order_items: TableDefinition<OrderItemRow>;
+      payment_events: TableDefinition<PaymentEventRow>;
       tables: TableDefinition<VenueTableRow>;
       match_pools: TableDefinition<MatchPoolRow>;
       match_pool_camps: TableDefinition<MatchPoolCampRow>;
@@ -675,6 +700,7 @@ export interface Database {
           p_stake_min_fet?: number;
           p_stake_max_fet?: number;
           p_creator_reward_fet?: number;
+          p_bar_stake_fet?: number;
         };
         Returns: Json;
       };
@@ -738,6 +764,8 @@ export interface Database {
           p_payment_status: PaymentStatus;
           p_payment_method?: PaymentMethod | null;
           p_actor_note?: string | null;
+          p_amount_received?: number | null;
+          p_external_reference?: string | null;
         };
         Returns: Json;
       };

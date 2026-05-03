@@ -26,8 +26,8 @@
 
   "homeTabLive": "Live",
   "homeTabToday": "Today",
-  "homeTabFollowing": "Following",
-  "homeTabAll": "All Leagues",
+  "homeTabFollowing": "My Teams",
+  "homeTabAll": "All Matches",
 
   "matchStatusLive": "LIVE",
   "matchStatusFT": "FT",
@@ -36,20 +36,6 @@
   "matchStatusHT": "HT",
   "matchKickoff": "Kickoff",
   "matchVs": "vs",
-
-  "leagueStandings": "Standings",
-  "leagueFixtures": "Matches",
-  "leagueResults": "Results",
-  "leagueTeams": "Teams",
-
-  "standingsPos": "Pos",
-  "standingsTeam": "Team",
-  "standingsP": "P",
-  "standingsW": "W",
-  "standingsD": "D",
-  "standingsL": "L",
-  "standingsGD": "GD",
-  "standingsPts": "Pts",
 
   "walletTitle": "FET Wallet",
   "walletBalance": "Balance",
@@ -82,7 +68,7 @@
   },
 
   "searchTitle": "Search",
-  "searchHint": "Search teams, leagues, matches...",
+  "searchHint": "Search teams, bars, matches...",
   "searchNoResults": "No results found",
   "searchCompetitions": "Competitions",
   "searchTeams": "Teams",
@@ -94,8 +80,8 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "followingTitle": "Following",
-  "followingEmpty": "You haven't followed any teams or leagues yet.",
-  "followingDiscoverCaption": "Explore teams and leagues to follow",
+  "followingEmpty": "You haven't picked any favorite teams yet.",
+  "followingDiscoverCaption": "Pick teams to personalize featured pools",
   "followingDiscover": "Discover",
 
   "loginTitle": "Welcome to FANZONE",

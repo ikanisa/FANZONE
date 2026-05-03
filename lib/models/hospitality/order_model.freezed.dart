@@ -47,6 +47,8 @@ mixin _$OrderModel {
   double get tipAmount => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_fet_amount')
   int get paymentFetAmount => throw _privateConstructorUsedError;
+  @JsonKey(name: 'fet_earned')
+  int get fetEarned => throw _privateConstructorUsedError;
   @JsonKey(name: 'payment_fet_converted_amount')
   double get paymentFetConvertedAmount => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_amount')
@@ -100,6 +102,7 @@ abstract class $OrderModelCopyWith<$Res> {
     @JsonKey(name: 'tax_amount') double taxAmount,
     @JsonKey(name: 'tip_amount') double tipAmount,
     @JsonKey(name: 'payment_fet_amount') int paymentFetAmount,
+    @JsonKey(name: 'fet_earned') int fetEarned,
     @JsonKey(name: 'payment_fet_converted_amount')
     double paymentFetConvertedAmount,
     @JsonKey(name: 'total_amount') double totalAmount,
@@ -143,6 +146,7 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
     Object? taxAmount = null,
     Object? tipAmount = null,
     Object? paymentFetAmount = null,
+    Object? fetEarned = null,
     Object? paymentFetConvertedAmount = null,
     Object? totalAmount = null,
     Object? specialInstructions = freezed,
@@ -211,6 +215,10 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
             paymentFetAmount: null == paymentFetAmount
                 ? _value.paymentFetAmount
                 : paymentFetAmount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            fetEarned: null == fetEarned
+                ? _value.fetEarned
+                : fetEarned // ignore: cast_nullable_to_non_nullable
                       as int,
             paymentFetConvertedAmount: null == paymentFetConvertedAmount
                 ? _value.paymentFetConvertedAmount
@@ -282,6 +290,7 @@ abstract class _$$OrderModelImplCopyWith<$Res>
     @JsonKey(name: 'tax_amount') double taxAmount,
     @JsonKey(name: 'tip_amount') double tipAmount,
     @JsonKey(name: 'payment_fet_amount') int paymentFetAmount,
+    @JsonKey(name: 'fet_earned') int fetEarned,
     @JsonKey(name: 'payment_fet_converted_amount')
     double paymentFetConvertedAmount,
     @JsonKey(name: 'total_amount') double totalAmount,
@@ -324,6 +333,7 @@ class __$$OrderModelImplCopyWithImpl<$Res>
     Object? taxAmount = null,
     Object? tipAmount = null,
     Object? paymentFetAmount = null,
+    Object? fetEarned = null,
     Object? paymentFetConvertedAmount = null,
     Object? totalAmount = null,
     Object? specialInstructions = freezed,
@@ -393,6 +403,10 @@ class __$$OrderModelImplCopyWithImpl<$Res>
             ? _value.paymentFetAmount
             : paymentFetAmount // ignore: cast_nullable_to_non_nullable
                   as int,
+        fetEarned: null == fetEarned
+            ? _value.fetEarned
+            : fetEarned // ignore: cast_nullable_to_non_nullable
+                  as int,
         paymentFetConvertedAmount: null == paymentFetConvertedAmount
             ? _value.paymentFetConvertedAmount
             : paymentFetConvertedAmount // ignore: cast_nullable_to_non_nullable
@@ -456,6 +470,7 @@ class _$OrderModelImpl extends _OrderModel {
     @JsonKey(name: 'tax_amount') this.taxAmount = 0,
     @JsonKey(name: 'tip_amount') this.tipAmount = 0,
     @JsonKey(name: 'payment_fet_amount') this.paymentFetAmount = 0,
+    @JsonKey(name: 'fet_earned') this.fetEarned = 0,
     @JsonKey(name: 'payment_fet_converted_amount')
     this.paymentFetConvertedAmount = 0,
     @JsonKey(name: 'total_amount') required this.totalAmount,
@@ -515,6 +530,9 @@ class _$OrderModelImpl extends _OrderModel {
   @JsonKey(name: 'payment_fet_amount')
   final int paymentFetAmount;
   @override
+  @JsonKey(name: 'fet_earned')
+  final int fetEarned;
+  @override
   @JsonKey(name: 'payment_fet_converted_amount')
   final double paymentFetConvertedAmount;
   @override
@@ -556,7 +574,7 @@ class _$OrderModelImpl extends _OrderModel {
 
   @override
   String toString() {
-    return 'OrderModel(id: $id, venueId: $venueId, tableId: $tableId, userId: $userId, orderCode: $orderCode, status: $status, paymentMethod: $paymentMethod, paymentStatus: $paymentStatus, paymentReference: $paymentReference, currencyCode: $currencyCode, subtotalAmount: $subtotalAmount, taxAmount: $taxAmount, tipAmount: $tipAmount, paymentFetAmount: $paymentFetAmount, paymentFetConvertedAmount: $paymentFetConvertedAmount, totalAmount: $totalAmount, specialInstructions: $specialInstructions, estimatedReadyAt: $estimatedReadyAt, acceptedAt: $acceptedAt, servedAt: $servedAt, statusChangedAt: $statusChangedAt, createdAt: $createdAt, updatedAt: $updatedAt, items: $items)';
+    return 'OrderModel(id: $id, venueId: $venueId, tableId: $tableId, userId: $userId, orderCode: $orderCode, status: $status, paymentMethod: $paymentMethod, paymentStatus: $paymentStatus, paymentReference: $paymentReference, currencyCode: $currencyCode, subtotalAmount: $subtotalAmount, taxAmount: $taxAmount, tipAmount: $tipAmount, paymentFetAmount: $paymentFetAmount, fetEarned: $fetEarned, paymentFetConvertedAmount: $paymentFetConvertedAmount, totalAmount: $totalAmount, specialInstructions: $specialInstructions, estimatedReadyAt: $estimatedReadyAt, acceptedAt: $acceptedAt, servedAt: $servedAt, statusChangedAt: $statusChangedAt, createdAt: $createdAt, updatedAt: $updatedAt, items: $items)';
   }
 
   @override
@@ -587,6 +605,8 @@ class _$OrderModelImpl extends _OrderModel {
                 other.tipAmount == tipAmount) &&
             (identical(other.paymentFetAmount, paymentFetAmount) ||
                 other.paymentFetAmount == paymentFetAmount) &&
+            (identical(other.fetEarned, fetEarned) ||
+                other.fetEarned == fetEarned) &&
             (identical(
                   other.paymentFetConvertedAmount,
                   paymentFetConvertedAmount,
@@ -629,6 +649,7 @@ class _$OrderModelImpl extends _OrderModel {
     taxAmount,
     tipAmount,
     paymentFetAmount,
+    fetEarned,
     paymentFetConvertedAmount,
     totalAmount,
     specialInstructions,
@@ -671,6 +692,7 @@ abstract class _OrderModel extends OrderModel {
     @JsonKey(name: 'tax_amount') final double taxAmount,
     @JsonKey(name: 'tip_amount') final double tipAmount,
     @JsonKey(name: 'payment_fet_amount') final int paymentFetAmount,
+    @JsonKey(name: 'fet_earned') final int fetEarned,
     @JsonKey(name: 'payment_fet_converted_amount')
     final double paymentFetConvertedAmount,
     @JsonKey(name: 'total_amount') required final double totalAmount,
@@ -728,6 +750,9 @@ abstract class _OrderModel extends OrderModel {
   @override
   @JsonKey(name: 'payment_fet_amount')
   int get paymentFetAmount;
+  @override
+  @JsonKey(name: 'fet_earned')
+  int get fetEarned;
   @override
   @JsonKey(name: 'payment_fet_converted_amount')
   double get paymentFetConvertedAmount;

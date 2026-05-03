@@ -19,6 +19,12 @@ abstract class OnboardingGateway {
     Set<String> popularTeamIds = const <String>{},
   });
 
+  Future<void> saveFanProfileTeams({
+    OnboardingTeam? localTeam,
+    Set<String> topEuropeanTeamIds = const <String>{},
+    Set<String> nationalTeamIds = const <String>{},
+  });
+
   Future<void> addFavoriteTeam(
     OnboardingTeam team, {
     String source = 'settings',
@@ -71,17 +77,62 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     OnboardingTeam? localTeam,
     Set<String> popularTeamIds = const <String>{},
   }) async {
+    await saveFanProfileTeams(
+      localTeam: localTeam,
+      topEuropeanTeamIds: popularTeamIds,
+    );
+  }
+
+  @override
+  Future<void> saveFanProfileTeams({
+    OnboardingTeam? localTeam,
+    Set<String> topEuropeanTeamIds = const <String>{},
+    Set<String> nationalTeamIds = const <String>{},
+  }) async {
+    validateFanProfileSelection(
+      localTeam: localTeam,
+      topEuropeanTeamIds: topEuropeanTeamIds,
+      nationalTeamIds: nationalTeamIds,
+    );
+
     final rows = <FavoriteTeamRecordDto>[];
+    final usedTeamIds = <String>{};
+    final cachedById = {
+      for (final row in await getCachedFavoriteTeams()) row.teamId: row,
+    };
 
     if (localTeam != null) {
       rows.add(_teamToRecord(localTeam, source: 'local', sortOrder: 0));
+      usedTeamIds.add(localTeam.id);
     }
 
-    var sortOrder = rows.length;
-    for (final teamId in popularTeamIds) {
-      final team = _resolvedCatalog.byId(teamId);
-      if (team == null) continue;
-      rows.add(_teamToRecord(team, source: 'popular', sortOrder: sortOrder));
+    var sortOrder = 10;
+    for (final teamId in topEuropeanTeamIds) {
+      if (usedTeamIds.contains(teamId)) continue;
+      final row = _favoriteRecordForTeamId(
+        teamId,
+        cachedById: cachedById,
+        source: FanProfileTeamCategory.topEuropean.source,
+        sortOrder: sortOrder,
+      );
+      if (row == null) continue;
+      rows.add(row);
+      usedTeamIds.add(teamId);
+      sortOrder += 1;
+    }
+
+    sortOrder = 20;
+    for (final teamId in nationalTeamIds) {
+      if (usedTeamIds.contains(teamId)) continue;
+      final row = _favoriteRecordForTeamId(
+        teamId,
+        cachedById: cachedById,
+        source: FanProfileTeamCategory.national.source,
+        sortOrder: sortOrder,
+      );
+      if (row == null) continue;
+      rows.add(row);
+      usedTeamIds.add(teamId);
       sortOrder += 1;
     }
 
@@ -231,6 +282,34 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
       teamCountryCode: team.countryCode,
       teamLeague: team.league,
       teamCrestUrl: team.resolvedCrestUrl,
+      source: source,
+      sortOrder: sortOrder,
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  FavoriteTeamRecordDto? _favoriteRecordForTeamId(
+    String teamId, {
+    required Map<String, FavoriteTeamRecordDto> cachedById,
+    required String source,
+    required int sortOrder,
+  }) {
+    final team = _resolvedCatalog.byId(teamId);
+    if (team != null) {
+      return _teamToRecord(team, source: source, sortOrder: sortOrder);
+    }
+
+    final cached = cachedById[teamId];
+    if (cached == null) return null;
+
+    return FavoriteTeamRecordDto(
+      teamId: cached.teamId,
+      teamName: cached.teamName,
+      teamShortName: cached.teamShortName,
+      teamCountry: cached.teamCountry,
+      teamCountryCode: cached.teamCountryCode,
+      teamLeague: cached.teamLeague,
+      teamCrestUrl: cached.teamCrestUrl,
       source: source,
       sortOrder: sortOrder,
       updatedAt: DateTime.now(),

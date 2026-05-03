@@ -46,10 +46,10 @@ void main() {
     );
     expect(
       tester
-              .widget<ElevatedButton>(
-                find.widgetWithText(ElevatedButton, 'SEND CODE VIA WHATSAPP'),
+              .widget<InkWell>(
+                find.widgetWithText(InkWell, 'SEND CODE VIA WHATSAPP'),
               )
-              .onPressed !=
+              .onTap !=
           null,
       isTrue,
     );

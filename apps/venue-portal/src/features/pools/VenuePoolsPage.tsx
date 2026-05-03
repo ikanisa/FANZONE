@@ -37,6 +37,7 @@ export const VenuePoolsPage: React.FC = () => {
   const [stakeMin, setStakeMin] = useState('5');
   const [stakeMax, setStakeMax] = useState('50');
   const [creatorReward, setCreatorReward] = useState('1');
+  const [barStake, setBarStake] = useState('0');
   const [saving, setSaving] = useState(false);
   const [generatingPoolId, setGeneratingPoolId] = useState<string | null>(null);
   const [reviewingPoolId, setReviewingPoolId] = useState<string | null>(null);
@@ -54,13 +55,15 @@ export const VenuePoolsPage: React.FC = () => {
         venueId: venue.id,
         matchId: selectedMatchId,
         title,
-        entryFeeFet: 0,
+        entryFeeFet: Math.max(1, Number(stakeMin) || 1),
         stakeMinFet: Math.max(1, Number(stakeMin) || 1),
         stakeMaxFet: Math.max(Math.max(1, Number(stakeMin) || 1), Number(stakeMax) || 1),
         creatorRewardFet: Math.max(0, Number(creatorReward) || 0),
+        barStakeFet: Math.max(0, Number(barStake) || 0),
       });
       setSelectedMatchId('');
       setTitle('');
+      setBarStake('0');
       setNotice('Official venue pool created.');
       refresh();
       matchOptions.refresh();
@@ -141,7 +144,7 @@ export const VenuePoolsPage: React.FC = () => {
             Official venue-linked FET pools with live members, pooled FET totals, and share links.
           </p>
         </div>
-        <div className="px-4 py-2 bg-white border border-border rounded-xl flex items-center gap-2 text-sm font-bold w-fit">
+        <div className="ops-panel px-4 py-2 flex items-center gap-2 text-sm font-bold w-fit">
           <Trophy size={16} />
           {pools.filter((pool) => pool.status === 'open').length} open
         </div>
@@ -156,7 +159,7 @@ export const VenuePoolsPage: React.FC = () => {
       {canCreateOfficialPool && (
         <form
           onSubmit={handleCreatePool}
-          className="bg-white border border-border rounded-[24px] p-6 shadow-sm space-y-5"
+          className="ops-card p-6 space-y-5"
         >
           <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
             <div>
@@ -166,7 +169,7 @@ export const VenuePoolsPage: React.FC = () => {
               </p>
             </div>
             <button
-              className="px-5 py-3 bg-primary text-primaryText rounded-xl font-black flex items-center gap-2 disabled:opacity-60"
+              className="btn btn-primary"
               type="submit"
               disabled={saving || !selectedMatchId}
             >
@@ -175,9 +178,9 @@ export const VenuePoolsPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr_120px_120px_170px] gap-3">
+          <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr_110px_110px_130px_130px] gap-3">
             <select
-              className="bg-surface2 border border-border rounded-xl px-4 py-3 font-bold"
+              className="input"
               value={selectedMatchId}
               onChange={(event) => setSelectedMatchId(event.target.value)}
               disabled={matchOptions.loading}
@@ -198,14 +201,14 @@ export const VenuePoolsPage: React.FC = () => {
               ))}
             </select>
             <input
-              className="bg-surface2 border border-border rounded-xl px-4 py-3 font-bold"
+              className="input"
               placeholder="Pool title, optional"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={120}
             />
             <input
-              className="bg-surface2 border border-border rounded-xl px-4 py-3 font-bold"
+              className="input"
               type="number"
               min={1}
               value={stakeMin}
@@ -214,7 +217,7 @@ export const VenuePoolsPage: React.FC = () => {
               placeholder="Min stake"
             />
             <input
-              className="bg-surface2 border border-border rounded-xl px-4 py-3 font-bold"
+              className="input"
               type="number"
               min={Number(stakeMin) || 1}
               value={stakeMax}
@@ -223,12 +226,22 @@ export const VenuePoolsPage: React.FC = () => {
               placeholder="Max stake"
             />
             <input
-              className="bg-surface2 border border-border rounded-xl px-4 py-3 font-bold"
+              className="input"
               type="number"
               min={0}
               value={creatorReward}
               onChange={(event) => setCreatorReward(event.target.value)}
               aria-label="Creator reward FET"
+              placeholder="Invite reward"
+            />
+            <input
+              className="input"
+              type="number"
+              min={0}
+              value={barStake}
+              onChange={(event) => setBarStake(event.target.value)}
+              aria-label="Bar stake FET"
+              placeholder="Bar stake"
             />
           </div>
 
@@ -239,7 +252,7 @@ export const VenuePoolsPage: React.FC = () => {
       )}
 
       {pools.length === 0 ? (
-        <div className="bg-white border border-border rounded-[24px] p-10 text-center">
+        <div className="ops-card p-10 text-center">
           <Trophy className="mx-auto text-textSecondary" size={40} />
           <h2 className="font-black text-xl mt-4">No venue pools configured</h2>
           <p className="text-textSecondary font-medium mt-2 max-w-xl mx-auto">
@@ -249,7 +262,7 @@ export const VenuePoolsPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {pools.map((pool) => (
-            <article key={pool.id} className="bg-white border border-border rounded-[24px] shadow-sm overflow-hidden">
+            <article key={pool.id} className="ops-card overflow-hidden">
               <div className="p-6 border-b border-border flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -288,7 +301,7 @@ export const VenuePoolsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-surface2 rounded-2xl p-4">
                   <Users size={18} className="text-primary mb-3" />
                   <p className="text-xs font-black text-textSecondary uppercase tracking-widest">Members</p>
@@ -304,6 +317,11 @@ export const VenuePoolsPage: React.FC = () => {
                   <p className="text-xs font-black text-textSecondary uppercase tracking-widest">Kickoff</p>
                   <p className="font-black text-sm">{formatKickoff(pool.kickoffAt)}</p>
                 </div>
+                <div className="bg-surface2 rounded-2xl p-4">
+                  <Wallet size={18} className="text-primary mb-3" />
+                  <p className="text-xs font-black text-textSecondary uppercase tracking-widest">Bar stake</p>
+                  <p className="font-black text-2xl">{pool.barStakeFet} FET</p>
+                </div>
               </div>
 
               <div className="px-6 pb-6">
@@ -311,7 +329,7 @@ export const VenuePoolsPage: React.FC = () => {
                   {pool.camps.map((camp) => (
                     <div
                       key={camp.id}
-                      className={`border rounded-2xl p-4 ${
+                      className={`border rounded-xl p-4 ${
                         camp.isWinningCamp
                           ? 'border-success/30 bg-success/10'
                           : 'border-border'
@@ -353,7 +371,7 @@ export const VenuePoolsPage: React.FC = () => {
                         type="button"
                         onClick={() => void handleEndorsePool(pool.id)}
                         disabled={reviewingPoolId === pool.id}
-                        className="px-4 py-3 rounded-xl bg-primary text-primaryText font-black flex items-center gap-2 disabled:opacity-60"
+                      className="btn btn-primary"
                       >
                         {reviewingPoolId === pool.id ? (
                           <Loader2 size={16} className="animate-spin" />
@@ -366,7 +384,7 @@ export const VenuePoolsPage: React.FC = () => {
                         type="button"
                         onClick={() => void handleRejectPool(pool.id)}
                         disabled={reviewingPoolId === pool.id}
-                        className="px-4 py-3 rounded-xl bg-danger text-white font-black disabled:opacity-60"
+                        className="btn bg-danger text-white"
                       >
                         Reject
                       </button>
@@ -376,7 +394,7 @@ export const VenuePoolsPage: React.FC = () => {
                     type="button"
                     onClick={() => void handleGenerateSocialCard(pool.id)}
                     disabled={generatingPoolId === pool.id}
-                    className="px-4 py-3 rounded-xl bg-accent2 text-white font-black flex items-center gap-2 disabled:opacity-60"
+                    className="btn bg-accent2 text-white"
                   >
                     {generatingPoolId === pool.id ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -390,7 +408,7 @@ export const VenuePoolsPage: React.FC = () => {
                       href={pool.socialCardUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-4 py-3 rounded-xl bg-surface2 border border-border font-black"
+                      className="btn btn-secondary"
                     >
                       Open Card
                     </a>

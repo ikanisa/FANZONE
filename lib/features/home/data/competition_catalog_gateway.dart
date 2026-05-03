@@ -2,8 +2,6 @@ import '../../../core/constants/league_constants.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/sports/competition_model.dart';
-import '../../../models/sports/standing_row_model.dart';
-import 'home_dtos.dart';
 import 'sports_data_exception.dart';
 
 abstract interface class CompetitionCatalogGateway {
@@ -13,10 +11,6 @@ abstract interface class CompetitionCatalogGateway {
   });
 
   Future<CompetitionModel?> getCompetition(String competitionId);
-
-  Future<List<StandingRowModel>> getCompetitionStandings(
-    CompetitionStandingsFilter filter,
-  );
 }
 
 class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
@@ -148,41 +142,6 @@ class SupabaseCompetitionCatalogGateway implements CompetitionCatalogGateway {
       AppLogger.d('Failed to load competition $competitionId: $error');
       throw SportsDataQueryException(
         'Failed to load competition details for $competitionId.',
-        cause: error,
-      );
-    }
-  }
-
-  @override
-  Future<List<StandingRowModel>> getCompetitionStandings(
-    CompetitionStandingsFilter filter,
-  ) async {
-    final client = _connection.client;
-    if (client == null) {
-      _throwUnavailable('standings');
-    }
-
-    try {
-      var query = client
-          .from('competition_standings')
-          .select()
-          .eq('competition_id', filter.competitionId);
-      if (filter.season != null && filter.season!.trim().isNotEmpty) {
-        query = query.eq('season', filter.season!.trim());
-      }
-      final rows = await query.order('position');
-      final standings = (rows as List)
-          .whereType<Map>()
-          .map(
-            (row) => StandingRowModel.fromJson(Map<String, dynamic>.from(row)),
-          )
-          .toList(growable: false);
-      return standings;
-    } catch (error) {
-      AppLogger.d('Failed to load standings: $error');
-      if (error is SportsDataException) rethrow;
-      throw SportsDataQueryException(
-        'Failed to load standings for ${filter.competitionId}.',
         cause: error,
       );
     }

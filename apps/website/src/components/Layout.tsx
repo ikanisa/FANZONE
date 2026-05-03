@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useMemo } from 'react';
 import {
-  Home,
+  Utensils,
   Trophy,
   User,
   Wallet,
@@ -11,10 +11,7 @@ import { NotificationToast } from './ui/NotificationToast';
 import { useAppStore } from '../store/useAppStore';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { api } from '../services/api';
-import {
-  getPlatformFeatureRoute,
-  getWebsiteNavigationFeatures,
-} from '../platform/access';
+import { isPlatformFeatureVisible } from '../platform/access';
 import { usePlatformBootstrap } from '../platform/bootstrap';
 
 interface LayoutProps {
@@ -27,30 +24,40 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const { bootstrap } = usePlatformBootstrap();
 
-  const isHome = location.pathname === '/';
+  const isBar = location.pathname === '/bar' || location.pathname.startsWith('/v/');
   const navigationItems = useMemo(
     () =>
-      getWebsiteNavigationFeatures().map((feature) => ({
-        featureKey: feature.featureKey,
-        to:
-          getPlatformFeatureRoute(feature.featureKey, {
-            fallback: feature.defaultRouteKey ?? '/',
-          }),
-        label:
-          feature.channels.web.navigationLabel ??
-          feature.displayName,
-        icon: iconForRoute(
-          getPlatformFeatureRoute(feature.featureKey, {
-            fallback: feature.defaultRouteKey ?? '/',
-          }),
-        ),
-      })),
+      [
+        {
+          featureKey: 'ordering',
+          to: '/bar',
+          label: 'Bar',
+          icon: <Utensils size={20} />,
+        },
+        {
+          featureKey: 'pools',
+          to: '/pools',
+          label: 'Pools',
+          icon: <Trophy size={20} />,
+        },
+        {
+          featureKey: 'wallet',
+          to: '/wallet',
+          label: 'Wallet',
+          icon: <Wallet size={20} />,
+        },
+        {
+          featureKey: 'profile',
+          to: '/profile',
+          label: 'Profile',
+          icon: <User size={20} />,
+        },
+      ].filter((item) =>
+        isPlatformFeatureVisible(item.featureKey, { surface: 'route' }),
+      ),
     [bootstrap],
   );
-  const mobileNavigationItems = useMemo(() => {
-    const topItems = navigationItems.slice(0, 4);
-    return topItems;
-  }, [navigationItems]);
+  const mobileNavigationItems = navigationItems;
   const walletNavigationItem =
     navigationItems.find((item) => item.featureKey === 'wallet') ?? null;
 
@@ -79,8 +86,8 @@ export default function Layout({ children }: LayoutProps) {
     <div className="flex flex-col lg:flex-row min-h-screen bg-bg">
       <NotificationToast />
       
-      {/* Mobile Top Bar - Auto-hiding - ONLY ON HOME */}
-      {isHome && (
+      {/* Mobile Top Bar - Auto-hiding - ONLY ON BAR */}
+      {isBar && (
         <div 
           className={`lg:hidden fixed top-0 w-full bg-surface/80 backdrop-blur-2xl border-b border-border flex justify-between items-center px-5 py-4 z-50 transition-transform duration-300 ease-in-out ${
             scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
@@ -128,7 +135,7 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       {/* Main Content */}
-      <main className={`flex-1 min-w-0 w-full lg:w-auto lg:ml-64 lg:pt-0 pb-20 lg:pb-0 overflow-x-hidden ${isHome ? 'pt-16' : 'pt-0'}`}>
+      <main className={`flex-1 min-w-0 w-full lg:w-auto lg:ml-64 lg:pt-0 pb-20 lg:pb-0 overflow-x-hidden ${isBar ? 'pt-16' : 'pt-0'}`}>
         {children}
       </main>
 
@@ -153,13 +160,6 @@ export default function Layout({ children }: LayoutProps) {
       <AuthGateModal />
     </div>
   );
-}
-
-function iconForRoute(route: string) {
-  if (route === '/pools') return <Trophy size={20} />;
-  if (route === '/wallet') return <Wallet size={20} />;
-  if (route === '/profile') return <User size={20} />;
-  return <Home size={20} />;
 }
 
 function NavItem({ to, icon, label, mobile = false, badge = 0 }: { to: string; icon: ReactNode; label: string; mobile?: boolean; badge?: number }) {

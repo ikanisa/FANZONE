@@ -2,7 +2,7 @@
 
 FANZONE is a sports-bar entertainment platform for venues, lounges, fan zones, and hospitality operators.
 
-It is not a betting product, a sportsbook, an odds engine, or a general restaurant app. Guests order from venue menus, earn FET from venue-configured rewards, join curated match pools, and receive audited wallet ledger credits when pools settle.
+The Flutter client uses the standalone `FANZONEUI` export as the primary product and UI reference. Production screens should implement those concepts through real app data, Supabase gateways, loading states, and empty states rather than hardcoded mock export data. Guests order from venue menus, earn FET from venue-configured rewards, join Arena pools, and receive audited wallet ledger credits when pools settle.
 
 ## Repo Surfaces
 
@@ -33,16 +33,12 @@ The production source of truth now centers on:
 - `fet_wallet_transactions`
 - `venues`, `menu_categories`, `menu_items`, and order tables
 
-The platform deliberately excludes:
+The platform implementation should follow FANZONEUI concepts first while preserving production-grade data contracts:
 
-- bookmaker odds
-- betting markets
-- xG and advanced event warehouses
-- player-level and lineup data
-- weather, injury, and suspension modeling
-- individual pick/scoring mechanics
-- fantasy, jackpot, slip, badge clutter, and ranking mechanics
-- payment APIs; customer payments stay off-platform through cash, MoMo/USSD instructions, or Revolut links
+- no hardcoded mock production flows
+- no duplicated services or tables when an existing gateway can support the screen
+- no static FANZONEUI sample data copied into app state
+- customer payments stay off-platform through cash, MoMo/USSD instructions, or Revolut links unless a backed product decision changes that contract
 
 ## 2026-05-01 Sports-Bar Refactor Status
 

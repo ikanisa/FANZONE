@@ -13,8 +13,19 @@ import {
 import { Reorder } from 'motion/react';
 import { MenuMagicModal } from '../../components/MenuMagicModal';
 import { ScannedMenuItem } from '../../hooks/useMenuMagic';
-import { supabase } from '../../lib/supabase';
 import { useVenue } from '../../hooks/useVenueContext';
+import {
+  createVenueMenuCategory,
+  createVenueMenuItem,
+  createVenueMenuItems,
+  deleteVenueMenuItem,
+  fetchVenueMenuRows,
+  setVenueMenuCategoryVisibility,
+  setVenueMenuItemAvailability,
+  updateVenueMenuCategoryOrder,
+  updateVenueMenuItem,
+  type VenueMenuItemCreateInput,
+} from '../../services/venueOperations';
 import type { MenuCategoryRow, MenuItemRow } from '@fanzone/core';
 
 type CategoryView = {
@@ -95,30 +106,13 @@ export const MenuArchitectPage: React.FC = () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const [categoryResult, itemResult] = await Promise.all([
-        supabase
-          .from('menu_categories')
-          .select('*')
-          .eq('venue_id', venue.id)
-          .order('display_order', { ascending: true }),
-        supabase
-          .from('menu_items')
-          .select('*')
-          .eq('venue_id', venue.id)
-          .order('display_order', { ascending: true }),
-      ]);
-
-      if (categoryResult.error) throw categoryResult.error;
-      if (itemResult.error) throw itemResult.error;
-
-      const nextItems = (itemResult.data ?? []).map((row) => mapItem(row as MenuItemRow));
+      const menuRows = await fetchVenueMenuRows(venue.id);
+      const nextItems = menuRows.items.map((row) => mapItem(row));
       const counts = new Map<string, number>();
       nextItems.forEach((item) => {
         counts.set(item.categoryId, (counts.get(item.categoryId) ?? 0) + 1);
       });
-      const nextCategories = (categoryResult.data ?? []).map((row) =>
-        mapCategory(row as MenuCategoryRow, counts.get(row.id) ?? 0)
-      );
+      const nextCategories = menuRows.categories.map((row) => mapCategory(row, counts.get(row.id) ?? 0));
 
       setItems(nextItems);
       setCategories(nextCategories);
@@ -179,19 +173,15 @@ export const MenuArchitectPage: React.FC = () => {
     setIsSaving(true);
     setErrorMessage(null);
     try {
-      const { data, error } = await supabase
-        .from('menu_categories')
-        .insert({
-          venue_id: activeVenue.id,
+      const category = mapCategory(
+        await createVenueMenuCategory({
+          venueId: activeVenue.id,
           name: truncateValue(name, 'New Category', 80),
-          display_order: categories.length,
-          is_visible: true,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      const category = mapCategory(data as MenuCategoryRow, 0);
+          displayOrder: categories.length,
+          isVisible: true,
+        }),
+        0,
+      );
       setCategories((current) => [...current, category]);
       setSelectedCategoryId(category.id);
       setStatusMessage('Category saved.');
@@ -212,16 +202,11 @@ export const MenuArchitectPage: React.FC = () => {
     setIsSaving(true);
     setErrorMessage(null);
     try {
-      const updates = await Promise.all(
+      await Promise.all(
         reordered.map((category) =>
-          supabase
-            .from('menu_categories')
-            .update({ display_order: category.displayOrder })
-            .eq('id', category.id),
+          updateVenueMenuCategoryOrder(category.id, category.displayOrder),
         ),
       );
-      const failed = updates.find((result) => result.error);
-      if (failed?.error) throw failed.error;
       setStatusMessage('Category order saved.');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save category order.');
@@ -235,12 +220,7 @@ export const MenuArchitectPage: React.FC = () => {
     setIsSaving(true);
     setErrorMessage(null);
     try {
-      const { error } = await supabase
-        .from('menu_categories')
-        .update({ is_visible: !category.isVisible })
-        .eq('id', category.id);
-
-      if (error) throw error;
+      await setVenueMenuCategoryVisibility(category.id, !category.isVisible);
       setCategories((current) =>
         current.map((item) =>
           item.id === category.id ? { ...item, isVisible: !category.isVisible } : item,
@@ -276,27 +256,22 @@ export const MenuArchitectPage: React.FC = () => {
     setIsSaving(true);
     setErrorMessage(null);
     try {
-      const { data, error } = await supabase
-        .from('menu_items')
-        .insert({
-          venue_id: activeVenue.id,
-          category_id: selectedCategoryId,
-          name: truncateValue(name, 'Menu Item', 120),
-          description,
-          price,
-          currency_code: currencyCode,
-          image_url: imageUrl,
-          fet_earn_percent_override: Number.isFinite(fetEarnPercentOverride)
-            ? fetEarnPercentOverride
-            : null,
-          is_available: true,
-          display_order: items.filter((item) => item.categoryId === selectedCategoryId).length,
-        })
-        .select()
-        .single();
+      const item = await createVenueMenuItem({
+        venueId: activeVenue.id,
+        categoryId: selectedCategoryId,
+        name: truncateValue(name, 'Menu Item', 120),
+        description,
+        price,
+        currencyCode,
+        imageUrl,
+        fetEarnPercentOverride: Number.isFinite(fetEarnPercentOverride)
+          ? fetEarnPercentOverride
+          : null,
+        isAvailable: true,
+        displayOrder: items.filter((currentItem) => currentItem.categoryId === selectedCategoryId).length,
+      });
 
-      if (error) throw error;
-      setItems((current) => [...current, mapItem(data as MenuItemRow)]);
+      setItems((current) => [...current, mapItem(item)]);
       setCategories((current) =>
         current.map((category) =>
           category.id === selectedCategoryId
@@ -334,20 +309,16 @@ export const MenuArchitectPage: React.FC = () => {
     setIsSaving(true);
     setErrorMessage(null);
     try {
-      const { error } = await supabase
-        .from('menu_items')
-        .update({
-          name: truncateValue(name, 'Menu Item', 120),
-          price,
-          description,
-          image_url: imageUrl,
-          fet_earn_percent_override: Number.isFinite(fetEarnPercentOverride)
-            ? fetEarnPercentOverride
-            : null,
-        })
-        .eq('id', item.id);
-
-      if (error) throw error;
+      await updateVenueMenuItem({
+        itemId: item.id,
+        name: truncateValue(name, 'Menu Item', 120),
+        price,
+        description,
+        imageUrl,
+        fetEarnPercentOverride: Number.isFinite(fetEarnPercentOverride)
+          ? fetEarnPercentOverride
+          : null,
+      });
       setItems((current) =>
         current.map((currentItem) =>
           currentItem.id === item.id
@@ -376,12 +347,7 @@ export const MenuArchitectPage: React.FC = () => {
     setIsSaving(true);
     setErrorMessage(null);
     try {
-      const { error } = await supabase
-        .from('menu_items')
-        .update({ is_available: !item.isAvailable })
-        .eq('id', item.id);
-
-      if (error) throw error;
+      await setVenueMenuItemAvailability(item.id, !item.isAvailable);
       setItems((current) =>
         current.map((currentItem) =>
           currentItem.id === item.id
@@ -403,8 +369,7 @@ export const MenuArchitectPage: React.FC = () => {
     setIsSaving(true);
     setErrorMessage(null);
     try {
-      const { error } = await supabase.from('menu_items').delete().eq('id', item.id);
-      if (error) throw error;
+      await deleteVenueMenuItem(item.id);
 
       setItems((current) => current.filter((currentItem) => currentItem.id !== item.id));
       setCategories((current) =>
@@ -433,7 +398,7 @@ export const MenuArchitectPage: React.FC = () => {
         categories.map((category) => [category.name.trim().toLowerCase(), category]),
       );
       const categoriesToUse = [...categories];
-      const itemRows: Record<string, unknown>[] = [];
+      const itemRows: VenueMenuItemCreateInput[] = [];
 
       for (const scannedItem of scannedItems) {
         const categoryName = truncateValue(scannedItem.category ?? '', 'Imported', 80);
@@ -441,33 +406,29 @@ export const MenuArchitectPage: React.FC = () => {
         let category = categoryByName.get(categoryKey);
 
         if (!category) {
-          const { data, error } = await supabase
-            .from('menu_categories')
-            .insert({
-              venue_id: activeVenue.id,
+          category = mapCategory(
+            await createVenueMenuCategory({
+              venueId: activeVenue.id,
               name: categoryName,
-              display_order: categoriesToUse.length,
-              is_visible: true,
-            })
-            .select()
-            .single();
-
-          if (error) throw error;
-          category = mapCategory(data as MenuCategoryRow, 0);
+              displayOrder: categoriesToUse.length,
+              isVisible: true,
+            }),
+            0,
+          );
           categoryByName.set(categoryKey, category);
           categoriesToUse.push(category);
         }
 
         itemRows.push({
-          venue_id: activeVenue.id,
-          category_id: category.id,
+          venueId: activeVenue.id,
+          categoryId: category.id,
           name: truncateValue(scannedItem.name, 'Imported Item', 120),
           description: scannedItem.description?.trim() || null,
           price: Number.isFinite(scannedItem.price) ? Math.max(0, scannedItem.price) : 0,
-          currency_code: currencyCode,
-          is_available: true,
-          display_order: items.filter((item) => item.categoryId === category?.id).length +
-            itemRows.filter((row) => row.category_id === category?.id).length,
+          currencyCode,
+          isAvailable: true,
+          displayOrder: items.filter((item) => item.categoryId === category?.id).length +
+            itemRows.filter((row) => row.categoryId === category?.id).length,
           metadata: {
             import_source: 'menu_magic',
             confidence: scannedItem.confidence ?? null,
@@ -475,8 +436,7 @@ export const MenuArchitectPage: React.FC = () => {
         });
       }
 
-      const { error } = await supabase.from('menu_items').insert(itemRows);
-      if (error) throw error;
+      await createVenueMenuItems(itemRows);
 
       setStatusMessage(`Imported ${itemRows.length} menu items.`);
       await loadMenu();
@@ -520,18 +480,18 @@ export const MenuArchitectPage: React.FC = () => {
           <button
             onClick={() => setIsMagicModalOpen(true)}
             disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-3 bg-accent/10 text-success rounded-xl font-bold hover:bg-accent/20 disabled:opacity-50 transition-all"
+            className="btn btn-secondary"
           >
             <Wand2 size={18} />
-            MAGIC IMPORT
+            Import menu
           </button>
           <button
             onClick={handleAddCategory}
             disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-3 bg-primary text-primaryText rounded-xl font-bold hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all"
+            className="btn btn-primary"
           >
             <Plus size={18} />
-            ADD CATEGORY
+            Add category
           </button>
         </div>
       </div>
@@ -550,7 +510,7 @@ export const MenuArchitectPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-white p-6 rounded-[32px] border border-border">
+          <div className="ops-card p-5">
             <h3 className="font-black text-lg mb-4 px-2">Categories</h3>
             {categories.length === 0 ? (
               <div className="p-5 bg-surface2 rounded-2xl text-sm font-bold text-textSecondary">
@@ -568,7 +528,7 @@ export const MenuArchitectPage: React.FC = () => {
                     key={cat.id}
                     value={cat}
                     onClick={() => setSelectedCategoryId(cat.id)}
-                    className={`group bg-surface2 hover:bg-surface3 border p-4 rounded-2xl flex items-center gap-3 cursor-pointer transition-all ${
+                    className={`group bg-surface2 hover:bg-surface3 border p-4 rounded-xl flex items-center gap-3 cursor-pointer transition-all ${
                       selectedCategoryId === cat.id ? 'border-primary/40' : 'border-transparent'
                     }`}
                   >
@@ -601,7 +561,7 @@ export const MenuArchitectPage: React.FC = () => {
         </div>
 
         <div className="lg:col-span-8 space-y-6">
-          <div className="bg-white p-4 rounded-2xl border border-border flex items-center gap-4">
+          <div className="ops-card p-4 flex items-center gap-4">
             <div className="flex-1 relative">
               <Search
                 size={18}
@@ -612,7 +572,7 @@ export const MenuArchitectPage: React.FC = () => {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder={`Search items${selectedCategory ? ` in ${selectedCategory.name}` : ''}...`}
-                className="w-full pl-12 pr-4 py-3 bg-surface2 border-transparent rounded-xl focus:bg-white focus:border-border transition-all text-sm outline-none"
+                className="input pl-12"
               />
             </div>
           </div>
@@ -621,10 +581,10 @@ export const MenuArchitectPage: React.FC = () => {
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white p-4 rounded-3xl border border-border group hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all"
+                className="ops-card p-4 group hover:border-primary/30 transition-all"
               >
                 <div className="flex gap-4">
-                  <div className="w-24 h-24 bg-surface2 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center">
+                  <div className="w-24 h-24 bg-surface2 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}
@@ -694,12 +654,12 @@ export const MenuArchitectPage: React.FC = () => {
             <button
               onClick={handleAddItem}
               disabled={isSaving || !selectedCategoryId}
-              className="border-2 border-dashed border-border rounded-3xl p-8 flex flex-col items-center justify-center gap-3 text-textSecondary hover:border-primary hover:text-primary disabled:opacity-50 disabled:hover:border-border disabled:hover:text-textSecondary transition-all group min-h-[128px]"
+                className="border-2 border-dashed border-border rounded-xl p-8 flex flex-col items-center justify-center gap-3 text-textSecondary hover:border-primary hover:text-primary disabled:opacity-50 disabled:hover:border-border disabled:hover:text-textSecondary transition-all group min-h-[128px]"
             >
               <div className="w-12 h-12 rounded-full bg-surface2 flex items-center justify-center group-hover:bg-primary/5 transition-colors">
                 <Plus size={24} />
               </div>
-              <span className="font-bold text-sm uppercase tracking-widest">Add New Item</span>
+              <span className="font-bold text-sm uppercase tracking-wide">Add item</span>
             </button>
           </div>
         </div>
