@@ -9,6 +9,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_eligibility_rule_card.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/fz_reference_modals.dart';
 import '../../../widgets/common/state_view.dart';
@@ -154,6 +155,11 @@ class PoolDetailScreen extends ConsumerWidget {
                     loading: () => const _EntryStateLoading(),
                     error: (_, _) =>
                         const _EntryStateCard(pool: null, entry: null),
+                  ),
+                  const SizedBox(height: 14),
+                  const FzEligibilityRuleCard(
+                    description:
+                        'Joining is allowed before ordering. Winning FET is paid only with a paid order from the linked bar within 2 hours before start. Different-bar, cancelled, unpaid, or post-start orders do not count.',
                   ),
                   const SizedBox(height: 14),
                   _CampsSection(pool: pool),

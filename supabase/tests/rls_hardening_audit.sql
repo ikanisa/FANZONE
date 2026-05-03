@@ -104,7 +104,6 @@ BEGIN
       ('public.create_game_team(uuid,text)'),
       ('public.join_game_team(uuid)'),
       ('public.start_game_session(uuid)'),
-      ('public.get_game_session_question(uuid,integer)'),
       ('public.submit_game_answer(uuid,uuid,uuid,text)'),
       ('public.submit_music_bingo_claim(uuid,jsonb)'),
       ('public.verify_music_bingo_claim(uuid,boolean,bigint,text)'),
@@ -117,6 +116,18 @@ BEGIN
 
   IF unsafe_functions IS NOT NULL THEN
     RAISE EXCEPTION 'Anonymous role can execute restricted functions: %', array_to_string(unsafe_functions, ', ');
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT has_function_privilege('anon', 'public.get_game_session_question(uuid,integer)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'Anonymous TV role must be able to execute the prompt/options-only live question RPC';
+  END IF;
+
+  IF pg_get_functiondef('public.get_game_session_question(uuid,integer)'::regprocedure) ILIKE '%correct_answer%' THEN
+    RAISE EXCEPTION 'TV question RPC must not expose correct answers';
   END IF;
 END;
 $$;

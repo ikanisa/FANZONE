@@ -2,14 +2,15 @@ import React from 'react';
 import { Building2, LogOut, Settings, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useVenue } from '../../hooks/useVenueContext';
-import { supabase } from '../../lib/supabase';
+import { useVenueAuth } from '../../hooks/useVenueAuth';
 
 export const VenueSettingsPage: React.FC = () => {
   const { venue, member } = useVenue();
+  const { logout } = useVenueAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await logout();
     navigate('/orders', { replace: true });
   };
 

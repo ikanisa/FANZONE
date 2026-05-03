@@ -70,7 +70,9 @@ const MAX_OTP_REQUESTS_PER_IP = parseInt(
   Deno.env.get("MAX_OTP_REQUESTS_PER_IP") || "10",
   10,
 );
-const CORS_HEADERS = buildCorsHeaders("authorization, content-type, apikey");
+const CORS_HEADERS = buildCorsHeaders(
+  "authorization, content-type, apikey, x-client-info",
+);
 
 type UserSummary = {
   id: string;
@@ -289,7 +291,8 @@ async function loadUserSummary(
 ): Promise<UserSummary> {
   const { data, error } = await supabase.auth.admin.getUserById(userId);
   if (error) {
-    throw new Error("Failed to load authenticated user.");
+    console.error("Failed to load authenticated user summary:", error.message);
+    return { id: userId, phone: fallbackPhone };
   }
   return (data.user as unknown as UserSummary | null) ??
     { id: userId, phone: fallbackPhone };

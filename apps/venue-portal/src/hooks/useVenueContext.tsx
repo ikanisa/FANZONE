@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Json, Venue, VenueMember, VenueRow, VenueUserRow } from '@fanzone/core';
+import { useVenueAuth } from './useVenueAuth';
 
 type VenueUserWithVenue = VenueUserRow & {
   venue: VenueRow | null;
@@ -31,6 +32,7 @@ const VenueContext = createContext<VenueContextType>({
 export const useVenue = () => useContext(VenueContext);
 
 export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { session } = useVenueAuth();
   const [venue, setVenue] = useState<Venue | null>(null);
   const [member, setMember] = useState<VenueMember | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,9 +41,11 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     async function loadContext() {
       setLoading(true);
+      setError(null);
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) {
+        if (!session?.userId) {
+          setVenue(null);
+          setMember(null);
           setLoading(false);
           return;
         }
@@ -50,7 +54,7 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const { data: memberData, error: memberError } = await supabase
           .from('venue_users')
           .select('*, venue:venues(*)')
-          .eq('user_id', session.user.id)
+          .eq('user_id', session.userId)
           .eq('is_active', true)
           .maybeSingle();
 
@@ -103,14 +107,12 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
 
-    loadContext();
+    void loadContext();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      loadContext();
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    const reload = () => void loadContext();
+    window.addEventListener('fanzone:venue-auth-change', reload);
+    return () => window.removeEventListener('fanzone:venue-auth-change', reload);
+  }, [session?.userId]);
 
   return (
     <VenueContext.Provider value={{ venue, member, loading, error }}>

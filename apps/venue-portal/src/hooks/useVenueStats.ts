@@ -60,7 +60,7 @@ export function useVenueStats(venueId: string) {
     }, 0);
 
     const channel = supabase
-      .channel(`venue-stats-${venueId}`)
+      .channel(`venue-stats-${venueId}-${Date.now()}-${Math.random().toString(16).slice(2)}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders', filter: `venue_id=eq.${venueId}` },

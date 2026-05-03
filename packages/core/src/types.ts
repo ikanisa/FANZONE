@@ -164,6 +164,20 @@ export type VenueUserRole = 'owner' | 'manager' | 'staff';
 export type MatchPoolScope = 'global' | 'country' | 'venue';
 export type MatchPoolStatus = 'draft' | 'open' | 'locked' | 'live' | 'settling' | 'settled' | 'cancelled';
 export type MatchPoolEntryStatus = 'active' | 'cancelled' | 'won' | 'lost' | 'refunded';
+export type GameTemplateCategory = 'trivia' | 'music_bingo' | 'song_guess';
+export type GameSessionStatus = 'scheduled' | 'lobby' | 'live' | 'ended' | 'settled' | 'cancelled';
+export type GameTeamMemberRole = 'captain' | 'member';
+export type MusicBingoClaimStatus = 'submitted' | 'verified' | 'rejected';
+export type VenueScreenMode =
+  | 'welcome'
+  | 'qr'
+  | 'pool'
+  | 'game_lobby'
+  | 'game_question'
+  | 'leaderboard'
+  | 'winners'
+  | 'menu'
+  | 'promo';
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Venue {
@@ -434,6 +448,176 @@ export interface VenueTableRow {
   updated_at: string;
 }
 
+export interface VenueFetWalletRow {
+  [key: string]: unknown;
+  venue_id: string;
+  available_balance_fet: number;
+  staked_balance_fet: number;
+  pending_balance_fet: number;
+  created_at?: string;
+  updated_at: string;
+}
+
+export interface VenueFetWalletTransactionRow {
+  [key: string]: unknown;
+  id: string;
+  venue_id: string;
+  transaction_type: string;
+  direction: 'credit' | 'debit';
+  amount_fet: number;
+  balance_bucket: 'available' | 'staked' | 'pending';
+  balance_before_fet: number;
+  balance_after_fet: number;
+  reference_type: string | null;
+  reference_id: string | null;
+  pool_id: string | null;
+  game_session_id: string | null;
+  idempotency_key: string | null;
+  title: string | null;
+  status: 'posted' | 'pending' | 'voided';
+  metadata: Json;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface GameTemplateRow {
+  [key: string]: unknown;
+  id: string;
+  name: string;
+  category: GameTemplateCategory;
+  is_active: boolean;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GameQuestionRow {
+  [key: string]: unknown;
+  id: string;
+  template_id: string;
+  category: string | null;
+  prompt: string;
+  options: Json;
+  correct_answer: string;
+  is_active: boolean;
+  approved_at: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GameSessionRow {
+  [key: string]: unknown;
+  id: string;
+  venue_id: string;
+  template_id: string;
+  status: GameSessionStatus;
+  scheduled_start_at: string;
+  started_at: string | null;
+  ended_at: string | null;
+  reward_fet: number;
+  selected_question_count: number;
+  current_question_ordinal: number | null;
+  created_by: string | null;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GameSessionQuestionRow {
+  [key: string]: unknown;
+  session_id: string;
+  question_id: string;
+  ordinal: number;
+  snapshot: Json;
+  created_at: string;
+}
+
+export interface GameTeamRow {
+  [key: string]: unknown;
+  id: string;
+  session_id: string;
+  venue_id: string;
+  name: string;
+  created_by_user_id: string | null;
+  score_fet: number;
+  invite_code: string;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GameTeamMemberRow {
+  [key: string]: unknown;
+  team_id: string;
+  session_id: string;
+  user_id: string;
+  role: GameTeamMemberRole;
+  joined_at: string;
+}
+
+export interface GameAnswerRow {
+  [key: string]: unknown;
+  id: string;
+  session_id: string;
+  question_id: string;
+  team_id: string;
+  user_id: string;
+  answer_text: string;
+  is_correct: boolean;
+  is_first_correct: boolean;
+  awarded_fet: number;
+  metadata: Json;
+  created_at: string;
+}
+
+export interface MusicBingoCardRow {
+  [key: string]: unknown;
+  id: string;
+  session_id: string;
+  team_id: string;
+  card: Json;
+  marks: Json;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MusicBingoClaimRow {
+  [key: string]: unknown;
+  id: string;
+  session_id: string;
+  card_id: string;
+  team_id: string;
+  submitted_by: string;
+  status: MusicBingoClaimStatus;
+  verified_by: string | null;
+  verified_at: string | null;
+  awarded_fet: number;
+  metadata: Json;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VenueScreenStateRow {
+  [key: string]: unknown;
+  venue_id: string;
+  mode: VenueScreenMode;
+  active_pool_id: string | null;
+  active_game_session_id: string | null;
+  payload: Json;
+  updated_by: string | null;
+  updated_at: string;
+}
+
+export interface GameSessionQuestionRpcRow {
+  [key: string]: unknown;
+  session_id: string;
+  question_id: string;
+  ordinal: number;
+  prompt: string;
+  options: Json;
+}
+
 export interface MatchPoolRow {
   [key: string]: unknown;
   id: string;
@@ -654,6 +838,8 @@ export interface Database {
       order_items: TableDefinition<OrderItemRow>;
       payment_events: TableDefinition<PaymentEventRow>;
       tables: TableDefinition<VenueTableRow>;
+      venue_fet_wallets: TableDefinition<VenueFetWalletRow>;
+      venue_fet_wallet_transactions: TableDefinition<VenueFetWalletTransactionRow>;
       match_pools: TableDefinition<MatchPoolRow>;
       match_pool_camps: TableDefinition<MatchPoolCampRow>;
       match_pool_entries: TableDefinition<MatchPoolEntryRow>;
@@ -661,6 +847,16 @@ export interface Database {
       pool_operation_audit_logs: TableDefinition<PoolOperationAuditLogRow>;
       curated_matches: TableDefinition<CuratedMatchRow>;
       matches: TableDefinition<MatchRow>;
+      game_templates: TableDefinition<GameTemplateRow>;
+      game_questions: TableDefinition<GameQuestionRow>;
+      game_sessions: TableDefinition<GameSessionRow>;
+      game_session_questions: TableDefinition<GameSessionQuestionRow>;
+      game_teams: TableDefinition<GameTeamRow>;
+      game_team_members: TableDefinition<GameTeamMemberRow>;
+      game_answers: TableDefinition<GameAnswerRow>;
+      music_bingo_cards: TableDefinition<MusicBingoCardRow>;
+      music_bingo_claims: TableDefinition<MusicBingoClaimRow>;
+      venue_screen_states: TableDefinition<VenueScreenStateRow>;
     };
     Views: {
       app_matches: TableDefinition<AppMatchRow>;
@@ -797,8 +993,62 @@ export interface Database {
         Args: { p_venue_id: string };
         Returns: Json;
       };
+      get_venue_fet_wallet: {
+        Args: { p_venue_id: string };
+        Returns: VenueFetWalletRow[];
+      };
+      request_venue_fet_top_up: {
+        Args: {
+          p_venue_id: string;
+          p_amount_fet: number;
+          p_note?: string | null;
+        };
+        Returns: Json;
+      };
       get_venue_operational_insights: {
         Args: { p_venue_id: string };
+        Returns: Json;
+      };
+      create_game_session: {
+        Args: {
+          p_venue_id: string;
+          p_template_id: string;
+          p_scheduled_start_at: string;
+          p_reward_fet?: number;
+        };
+        Returns: Json;
+      };
+      update_game_session_lifecycle: {
+        Args: {
+          p_session_id: string;
+          p_action: 'start' | 'pause' | 'resume' | 'next_round' | 'end';
+          p_note?: string | null;
+        };
+        Returns: Json;
+      };
+      get_game_session_question: {
+        Args: {
+          p_session_id: string;
+          p_ordinal: number;
+        };
+        Returns: GameSessionQuestionRpcRow[];
+      };
+      set_venue_screen_state: {
+        Args: {
+          p_venue_id: string;
+          p_mode: VenueScreenMode;
+          p_active_pool_id?: string | null;
+          p_active_game_session_id?: string | null;
+          p_payload?: Json;
+        };
+        Returns: Json;
+      };
+      venue_close_match_pool: {
+        Args: { p_pool_id: string; p_note?: string | null };
+        Returns: Json;
+      };
+      venue_settle_match_pool: {
+        Args: { p_pool_id: string };
         Returns: Json;
       };
       generate_table_qr: {

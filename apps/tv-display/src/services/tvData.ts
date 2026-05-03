@@ -226,7 +226,7 @@ export async function resolveVenue(venueKey: string): Promise<Venue> {
 
 export async function fetchScreenState(venueId: string): Promise<VenueScreenState | null> {
   const { data, error } = await supabase
-    .from('venue_screen_states' as never)
+    .from('venue_screen_states')
     .select('*')
     .eq('venue_id', venueId)
     .maybeSingle();
@@ -252,7 +252,7 @@ export async function fetchPoolDisplay(venueId: string, poolId: string): Promise
 
 export async function fetchGameDisplay(venueId: string, sessionId: string): Promise<TvGameDisplay | null> {
   const { data: sessionData, error: sessionError } = await supabase
-    .from('game_sessions' as never)
+    .from('game_sessions')
     .select('*, template:game_templates(name, category)')
     .eq('id', sessionId)
     .eq('venue_id', venueId)
@@ -263,7 +263,7 @@ export async function fetchGameDisplay(venueId: string, sessionId: string): Prom
 
   const session = mapGameSession(sessionData as unknown as GameSessionRow);
   const { data: teamRows, error: teamError } = await supabase
-    .from('game_teams' as never)
+    .from('game_teams')
     .select('*, members:game_team_members(user_id)')
     .eq('session_id', sessionId)
     .eq('venue_id', venueId)
@@ -273,10 +273,10 @@ export async function fetchGameDisplay(venueId: string, sessionId: string): Prom
 
   let currentQuestion: TvGameQuestion | null = null;
   if (session.currentQuestionOrdinal) {
-    const { data: questionRows, error: questionError } = await supabase.rpc('get_game_session_question' as never, {
+    const { data: questionRows, error: questionError } = await supabase.rpc('get_game_session_question', {
       p_session_id: sessionId,
       p_ordinal: session.currentQuestionOrdinal,
-    } as never);
+    });
     if (questionError) throw questionError;
     const question = Array.isArray(questionRows) ? (questionRows[0] as QuestionRow | undefined) : undefined;
     if (question) {

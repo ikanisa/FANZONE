@@ -78,14 +78,6 @@ export interface VenueMenuItemUpdateInput {
   fetEarnPercentOverride?: number | null;
 }
 
-type RpcError = { message?: string } | null;
-type SupabaseRpc = {
-  rpc<T = Json>(
-    fn: string,
-    params: Record<string, unknown>,
-  ): Promise<{ data: T | null; error: RpcError }>;
-};
-
 type OrderWithRelations = OrderRow & {
   items?: OrderItemRow[] | null;
   table?: { table_number?: string | null } | Array<{ table_number?: string | null }> | null;
@@ -278,8 +270,6 @@ export interface VenuePoolDetail {
   entries: VenuePoolEntry[];
   settlement: VenuePoolSettlement | null;
 }
-
-const rpcClient = supabase as unknown as SupabaseRpc;
 
 function asRecord(value: Json | null | undefined): Record<string, Json | undefined> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -606,7 +596,7 @@ export function mapRewardConfig(value: Partial<RewardConfig> | Json | null | und
 }
 
 export async function fetchRewardConfig(venueId: string): Promise<RewardConfig> {
-  const { data, error } = await rpcClient.rpc<Json>('get_venue_fet_reward_config', {
+  const { data, error } = await supabase.rpc('get_venue_fet_reward_config', {
     p_venue_id: venueId,
   });
 
@@ -615,7 +605,7 @@ export async function fetchRewardConfig(venueId: string): Promise<RewardConfig> 
 }
 
 export async function fetchRewardSummary(venueId: string): Promise<RewardSummary> {
-  const { data, error } = await rpcClient.rpc<Json>('get_venue_fet_reward_summary', {
+  const { data, error } = await supabase.rpc('get_venue_fet_reward_summary', {
     p_venue_id: venueId,
   });
 
@@ -629,7 +619,7 @@ export async function fetchRewardSummary(venueId: string): Promise<RewardSummary
 }
 
 export async function saveRewardConfig(venueId: string, config: RewardConfig): Promise<RewardConfig> {
-  const { data, error } = await rpcClient.rpc<Json>('update_venue_fet_reward_config', {
+  const { data, error } = await supabase.rpc('update_venue_fet_reward_config', {
     p_venue_id: venueId,
     p_reward_percent: config.reward_percent,
     p_reward_trigger: config.reward_trigger,
@@ -669,7 +659,7 @@ export async function fetchVenueTables(venueId: string): Promise<VenueTable[]> {
 
 export async function generateVenueTableQr(venueId: string, tableNumber: string): Promise<VenueTable> {
   const baseUrl = String(import.meta.env.VITE_GUEST_APP_URL || 'https://fanzone.app');
-  const { data, error } = await rpcClient.rpc<Json>('generate_table_qr', {
+  const { data, error } = await supabase.rpc('generate_table_qr', {
     p_venue_id: venueId,
     p_table_number: tableNumber.trim(),
     p_base_url: baseUrl,
@@ -718,7 +708,7 @@ function mapVenueWallet(row: VenueWalletRpcRow): VenueFetWallet {
 }
 
 export async function fetchVenueFetWallet(venueId: string): Promise<VenueFetWallet> {
-  const { data, error } = await rpcClient.rpc<Json>('get_venue_fet_wallet', {
+  const { data, error } = await supabase.rpc('get_venue_fet_wallet', {
     p_venue_id: venueId,
   });
 
@@ -782,7 +772,7 @@ export async function fetchVenueFetLedger(
   limit = 50,
 ): Promise<VenueFetLedgerEntry[]> {
   const { data, error } = await supabase
-    .from('venue_fet_wallet_transactions' as never)
+    .from('venue_fet_wallet_transactions')
     .select('*')
     .eq('venue_id', venueId)
     .order('created_at', { ascending: false })
@@ -797,7 +787,7 @@ export async function requestVenueFetTopUp(
   amountFet: number,
   note: string | null,
 ): Promise<Json | null> {
-  const { data, error } = await rpcClient.rpc<Json>('request_venue_fet_top_up', {
+  const { data, error } = await supabase.rpc('request_venue_fet_top_up', {
     p_venue_id: venueId,
     p_amount_fet: Math.max(1, Math.round(amountFet)),
     p_note: note?.trim() || null,
@@ -816,7 +806,7 @@ type GameTemplateRow = {
 
 export async function fetchGameTemplates(): Promise<GameTemplate[]> {
   const { data, error } = await supabase
-    .from('game_templates' as never)
+    .from('game_templates')
     .select('id, name, category, is_active')
     .eq('is_active', true)
     .order('name', { ascending: true });
@@ -876,7 +866,7 @@ function mapGameSession(row: GameSessionRow): VenueGameSession {
 
 export async function fetchVenueGameSessions(venueId: string): Promise<VenueGameSession[]> {
   const { data, error } = await supabase
-    .from('game_sessions' as never)
+    .from('game_sessions')
     .select('*, template:game_templates(name, category)')
     .eq('venue_id', venueId)
     .order('scheduled_start_at', { ascending: false });
@@ -911,7 +901,7 @@ function mapGameTeam(row: GameTeamRow): VenueGameTeam {
 
 export async function fetchVenueGameTeams(venueId: string): Promise<VenueGameTeam[]> {
   const { data, error } = await supabase
-    .from('game_teams' as never)
+    .from('game_teams')
     .select('*, members:game_team_members(user_id)')
     .eq('venue_id', venueId)
     .order('created_at', { ascending: false });
@@ -922,7 +912,7 @@ export async function fetchVenueGameTeams(venueId: string): Promise<VenueGameTea
 
 export async function fetchGameSessionControl(sessionId: string): Promise<VenueGameControl> {
   const { data: sessionData, error: sessionError } = await supabase
-    .from('game_sessions' as never)
+    .from('game_sessions')
     .select('*, template:game_templates(name, category)')
     .eq('id', sessionId)
     .maybeSingle();
@@ -932,7 +922,7 @@ export async function fetchGameSessionControl(sessionId: string): Promise<VenueG
 
   const session = mapGameSession(sessionData as unknown as GameSessionRow);
   const { data: teamRows, error: teamError } = await supabase
-    .from('game_teams' as never)
+    .from('game_teams')
     .select('*, members:game_team_members(user_id)')
     .eq('session_id', sessionId)
     .order('score_fet', { ascending: false });
@@ -941,7 +931,7 @@ export async function fetchGameSessionControl(sessionId: string): Promise<VenueG
 
   let currentQuestion: VenueGameQuestion | null = null;
   if (session.currentQuestionOrdinal) {
-    const { data: questionRows, error: questionError } = await rpcClient.rpc<Json>(
+    const { data: questionRows, error: questionError } = await supabase.rpc(
       'get_game_session_question',
       {
         p_session_id: sessionId,
@@ -981,7 +971,7 @@ export async function createVenueGameSession(input: {
   scheduledStartAt: string;
   rewardFet: number;
 }): Promise<Json | null> {
-  const { data, error } = await rpcClient.rpc<Json>('create_game_session', {
+  const { data, error } = await supabase.rpc('create_game_session', {
     p_venue_id: input.venueId,
     p_template_id: input.templateId,
     p_scheduled_start_at: input.scheduledStartAt,
@@ -997,7 +987,7 @@ export async function updateGameSessionLifecycle(
   action: 'start' | 'pause' | 'resume' | 'next_round' | 'end',
   note?: string,
 ): Promise<Json | null> {
-  const { data, error } = await rpcClient.rpc<Json>('update_game_session_lifecycle', {
+  const { data, error } = await supabase.rpc('update_game_session_lifecycle', {
     p_session_id: sessionId,
     p_action: action,
     p_note: note?.trim() || null,
@@ -1031,7 +1021,7 @@ function mapScreenState(row: ScreenStateRow): VenueScreenState {
 
 export async function fetchVenueScreenState(venueId: string): Promise<VenueScreenState | null> {
   const { data, error } = await supabase
-    .from('venue_screen_states' as never)
+    .from('venue_screen_states')
     .select('*')
     .eq('venue_id', venueId)
     .maybeSingle();
@@ -1047,7 +1037,7 @@ export async function setVenueScreenState(input: {
   activeGameSessionId?: string | null;
   payload?: Json | null;
 }): Promise<Json | null> {
-  const { data, error } = await rpcClient.rpc<Json>('set_venue_screen_state', {
+  const { data, error } = await supabase.rpc('set_venue_screen_state', {
     p_venue_id: input.venueId,
     p_mode: input.mode,
     p_active_pool_id: input.activePoolId ?? null,
@@ -1060,7 +1050,7 @@ export async function setVenueScreenState(input: {
 }
 
 export async function closeVenuePoolJoining(poolId: string, note?: string): Promise<Json | null> {
-  const { data, error } = await rpcClient.rpc<Json>('venue_close_match_pool', {
+  const { data, error } = await supabase.rpc('venue_close_match_pool', {
     p_pool_id: poolId,
     p_note: note?.trim() || null,
   });
@@ -1070,7 +1060,7 @@ export async function closeVenuePoolJoining(poolId: string, note?: string): Prom
 }
 
 export async function settleVenuePool(poolId: string): Promise<Json | null> {
-  const { data, error } = await rpcClient.rpc<Json>('venue_settle_match_pool', {
+  const { data, error } = await supabase.rpc('venue_settle_match_pool', {
     p_pool_id: poolId,
   });
 
@@ -1223,7 +1213,7 @@ export async function fetchVenuePoolDetail(
 }
 
 export async function fetchVenueOperationalInsights(venueId: string): Promise<VenueOperationalInsights> {
-  const { data, error } = await rpcClient.rpc<Json>('get_venue_operational_insights', {
+  const { data, error } = await supabase.rpc('get_venue_operational_insights', {
     p_venue_id: venueId,
   });
 

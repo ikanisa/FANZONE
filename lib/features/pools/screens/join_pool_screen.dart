@@ -10,6 +10,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_eligibility_rule_card.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/fz_reference_modals.dart';
 import '../../../widgets/common/state_view.dart';
@@ -177,6 +178,12 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
                   ),
                   const SizedBox(height: 18),
                   _JoinHero(pool: pool, availableFet: wallet.availableFet),
+                  const SizedBox(height: 16),
+                  const FzEligibilityRuleCard(
+                    title: 'Order required for FET settlement',
+                    description:
+                        'You may join now. If you win, FET is paid only when you have a paid, non-cancelled order from this linked bar within 2 hours before the pool starts.',
+                  ),
                   const SizedBox(height: 16),
                   const _SectionLabel('Choose your camp'),
                   const SizedBox(height: 10),

@@ -23,7 +23,7 @@ import { StatusChip } from '../console/StatusChip';
 import { useOrders } from '../../hooks/useOrders';
 import { useVenue } from '../../hooks/useVenueContext';
 import { useVenueStats } from '../../hooks/useVenueStats';
-import { supabase } from '../../lib/supabase';
+import { useVenueAuth } from '../../hooks/useVenueAuth';
 
 const navItems = [
   { label: 'Overview', path: '/overview', icon: <LayoutDashboard size={20} /> },
@@ -76,9 +76,10 @@ function HeaderClock() {
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useVenueAuth();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await logout();
     navigate('/', { replace: true });
   };
 

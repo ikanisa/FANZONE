@@ -38,7 +38,7 @@ export function useOrders(venueId: string) {
     }, 0);
 
     const channel = supabase
-      .channel(`venue-orders-${venueId}`)
+      .channel(`venue-orders-${venueId}-${Date.now()}-${Math.random().toString(16).slice(2)}`)
       .on(
         'postgres_changes',
         {

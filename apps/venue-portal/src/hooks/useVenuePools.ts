@@ -161,7 +161,7 @@ export function useVenuePools(venueId: string | undefined) {
     fetchPools();
 
     const channel = supabase
-      .channel(`venue-pools-${venueId}`)
+      .channel(`venue-pools-${venueId}-${Date.now()}-${Math.random().toString(16).slice(2)}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'match_pools', filter: `venue_id=eq.${venueId}` },
