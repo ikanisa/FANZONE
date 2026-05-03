@@ -1,11 +1,8 @@
 name: Deploy Website
 
+# Automatic GitHub Actions deploys are disabled for the free-account release model.
+# Use tool/deploy_cloudflare_pages.sh for local Cloudflare Pages deploys.
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'apps/website/**'
-      - 'tool/canonical_web_source.mjs'
   workflow_dispatch:
 
 env:

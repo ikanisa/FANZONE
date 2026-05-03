@@ -1,10 +1,9 @@
 name: FANZONE CI
 
+# Automatic GitHub Actions are disabled for the free-account release model.
+# Use local scripts in tool/ for verification; this workflow remains manual only.
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read

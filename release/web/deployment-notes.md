@@ -17,19 +17,22 @@ Current deployments from this release pass:
 - Venue dashboard PWA: `https://fanzone-venue-portal.pages.dev`
 - TV display PWA: `https://fanzone-tv-display.pages.dev`
 
-Configured workflows:
-- `.github/workflows/deploy-website.yml`
-- `.github/workflows/deploy-admin.yml`
-- `.github/workflows/deploy-venue-portal.yml`
-- `.github/workflows/deploy-tv-display.yml`
+Primary deploy path:
+- `tool/deploy_cloudflare_pages.sh all`
+- `tool/deploy_cloudflare_pages.sh website`
+- `tool/deploy_cloudflare_pages.sh admin`
+- `tool/deploy_cloudflare_pages.sh venue-portal`
+- `tool/deploy_cloudflare_pages.sh tv-display`
 
-## Required GitHub Secrets
+The GitHub Actions deploy workflows are manual-only fallbacks. They do not run on push because the project uses the free-account release model and does not depend on GitHub-hosted runners.
 
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_WEBSITE_PROJECT_NAME`
-- `CLOUDFLARE_VENUE_PORTAL_PROJECT_NAME`
-- `CLOUDFLARE_TV_DISPLAY_PROJECT_NAME`
+## Required Local Env
+
+- Cloudflare Wrangler login, or `CLOUDFLARE_API_TOKEN` plus `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_WEBSITE_PROJECT_NAME` if not using the default `fanzone-website`
+- `CLOUDFLARE_ADMIN_PROJECT_NAME` if not using the default `fanzone-admin`
+- `CLOUDFLARE_VENUE_PORTAL_PROJECT_NAME` if not using the default `fanzone-venue-portal`
+- `CLOUDFLARE_TV_DISPLAY_PROJECT_NAME` if not using the default `fanzone-tv-display`
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_GUEST_APP_URL`
@@ -46,6 +49,7 @@ npm run build -w @fanzone/website
 npm run build -w @fanzone/admin
 npm run build -w @fanzone/venue-portal
 npm run build -w @fanzone/tv-display
+tool/deploy_cloudflare_pages.sh all
 ```
 
 ## Production Smoke

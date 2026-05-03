@@ -1,13 +1,11 @@
 # FANZONE Admin Panel — Cloudflare Pages Deployment
-# Deploys to Production on `main` push, Preview on `develop` push.
+# Manual-only fallback. Local Cloudflare Pages deploys are the primary free-account release path.
 
 name: Deploy Admin Panel
 
+# Automatic GitHub Actions deploys are disabled for the free-account release model.
+# Use tool/deploy_cloudflare_pages.sh for local Cloudflare Pages deploys.
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'apps/admin/**'
   workflow_dispatch:
 
 env:

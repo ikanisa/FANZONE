@@ -1,12 +1,11 @@
 # FANZONE — Match Alert Dispatch Cron
 # Runs every 5 minutes to dispatch kickoff/goal/result push alerts.
-# Fallback for when pg_cron orchestration is unavailable.
+# Manual-only fallback. Use Supabase/platform cron or tool/run_supabase_cron_job.sh.
 
 name: Match Alert Dispatch Cron
 
+# Automatic GitHub Actions schedules are disabled for the free-account release model.
 on:
-  schedule:
-    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 env:

@@ -15,6 +15,7 @@
 - Review `ios/Flutter/AppConfig.xcconfig` and confirm the bundle ID, team ID, and APNs environment are correct for release signing.
 - Create a local `env/production.json` from `env/production.example.json` and keep `/pools` as the live fan engagement surface.
 - Configure Cloudflare Pages projects for website, admin, venue dashboard, and TV display before launch.
+- Use local Cloudflare deploys through `tool/deploy_cloudflare_pages.sh`; GitHub Actions are manual-only fallbacks and must not be required for release.
 - Keep the app-store handoff package in `release/` aligned with the final production build.
 - Replace all placeholder values in your local `env/production.json` and the platform signing/Firebase files before promoting a build.
 
@@ -45,7 +46,7 @@
 - Confirm `npm run build -w @fanzone/venue-portal` succeeds.
 - Confirm `npm run build -w @fanzone/tv-display` succeeds.
 - Confirm browser release env with `./tool/validate_web_release_env.sh venue-portal` and `./tool/validate_web_release_env.sh tv-display`.
-- Configure `CLOUDFLARE_WEBSITE_PROJECT_NAME`, `CLOUDFLARE_VENUE_PORTAL_PROJECT_NAME`, and `CLOUDFLARE_TV_DISPLAY_PROJECT_NAME` in GitHub Actions secrets.
+- Configure local Cloudflare Wrangler access and optional project-name env vars for `tool/deploy_cloudflare_pages.sh`.
 - Verify deep route refresh works for public web, venue dashboard, and TV screen routes after deploy.
 
 ## Backend validation

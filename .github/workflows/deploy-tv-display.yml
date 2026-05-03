@@ -1,13 +1,8 @@
 name: Deploy TV Display
 
+# Automatic GitHub Actions deploys are disabled for the free-account release model.
+# Use tool/deploy_cloudflare_pages.sh for local Cloudflare Pages deploys.
 on:
-  push:
-    branches: [main, develop]
-    paths:
-      - 'apps/tv-display/**'
-      - 'packages/core/**'
-      - 'package.json'
-      - 'package-lock.json'
   workflow_dispatch:
 
 env:

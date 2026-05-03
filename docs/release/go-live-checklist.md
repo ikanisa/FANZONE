@@ -34,7 +34,7 @@ Use this checklist for production launch or major release promotion.
 - Venue portal build passes.
 - TV display build passes.
 - Website release metadata validation passes.
-- Venue and TV Cloudflare Pages workflows have project-name secrets configured.
+- Cloudflare Pages projects exist and `tool/deploy_cloudflare_pages.sh all` succeeds from a local/free release machine.
 - Android `assetlinks.json` has production SHA-256 fingerprints.
 - Apple app site association is valid.
 - PWA manifest names, icons, start URL, and theme color are final.
@@ -52,7 +52,7 @@ Use this checklist for production launch or major release promotion.
 - Admin users and emergency owners are configured.
 - Venue owner/manager/staff test accounts are configured.
 - Guest UAT accounts and QR/table fixtures are configured.
-- Cron workflows have current secrets.
+- Supabase/platform cron or local scheduled jobs call `tool/run_supabase_cron_job.sh settle-match-pools` and `tool/run_supabase_cron_job.sh dispatch-match-alerts`.
 - Push notification credentials are present.
 - WhatsApp OTP reviewer/test values are configured only when required.
 - Incident response owner and escalation channel are named.

@@ -3,9 +3,9 @@
 
 name: Match Pool Settlement Cron
 
+# Automatic GitHub Actions schedules are disabled for the free-account release model.
+# Use Supabase/platform cron or tool/run_supabase_cron_job.sh instead.
 on:
-  schedule:
-    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 env:
