@@ -421,7 +421,7 @@ class _MatchChoiceCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: FzColors.darkMuted,
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
                 ),

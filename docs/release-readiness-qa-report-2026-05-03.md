@@ -9,7 +9,7 @@ Release recommendation: Not ready.
 
 The implemented product has a working simplified sports-bar foundation: WhatsApp OTP tests exist, no-name mobile onboarding is present, venue browsing/ordering is implemented, off-platform payment handoff exists, staff manual payment confirmation is audited, user FET wallets use a ledgered mutation function, and basic pool staking/settlement flows exist.
 
-Remediation update: the critical server-side product-rule gaps found in the first audit pass now have targeted Supabase hardening migrations and client/dashboard contract updates. The remote FANZONE Supabase project has migrations through `20260503143000_tv_display_live_question_grants.sql` applied. These add immutable unique fan IDs, fan-profile category limits, venue FET wallets and ledgering, venue-only pool creation, join-deadline enforcement, order-linked eligibility settlement, venue staff settlement wrapper, centralized game templates/sessions/questions, 20-question stable selection, first-correct answer protection, Music Bingo claims, venue-isolated TV screen state, hardened grants, security-advisor error remediation, targeted performance WARN cleanup for release-touched RLS policies, and TV-safe live-question access.
+Remediation update: the critical server-side product-rule gaps found in the first audit pass now have targeted Supabase hardening migrations and client/dashboard contract updates. The remote FANZONE Supabase project has migrations through `20260503150000_release_query_indexes.sql` applied. These add immutable unique fan IDs, fan-profile category limits, venue FET wallets and ledgering, venue-only pool creation, join-deadline enforcement, order-linked eligibility settlement, venue staff settlement wrapper, centralized game templates/sessions/questions, 20-question stable selection, first-correct answer protection, Music Bingo claims, venue-isolated TV screen state, hardened grants, security-advisor error remediation, targeted performance WARN cleanup for release-touched RLS policies, TV-safe live-question access, and release-critical order query indexes.
 
 Authenticated UAT seed data is now present on the linked Supabase project: a dedicated UAT venue, admin/owner/manager/staff accounts, eligible/ineligible guests, orders, wallets, ledger rows, a venue-linked pool, a live game session with exactly 20 selected Fan Trivia questions, 100+ approved questions, teams, first-correct answer data, and TV screen state. Browser OTP login smokes now pass for the venue dashboard and admin PWA, and the standalone TV display renders the seeded live game question.
 
@@ -180,7 +180,7 @@ Files changed: `supabase/functions/order_update_status/index.ts`, `apps/venue-po
 - Expected: Repeatable fixtures and tests for every required UAT scenario.
 - Actual before fix: Existing unit/widget tests covered important slices, but no complete game/TV/eligibility fixture set was found.
 - Suggested fix: Add deterministic Supabase seed data and backend tests for settlement eligibility, game session question selection, and first-correct answer races.
-- Status: Partial. `supabase/tests/uat_seed_fixtures.sql` and `supabase/tests/uat_fixture_verification.sql` now seed and verify authenticated UAT fixtures on the linked backend. The fixture covers the live UAT venue/admin/staff/TV path, 3 countries, wallets, orders, a pool, a game session, 100+ approved questions, and exactly 20 selected questions. The broader 5-bar full UAT matrix remains a separate expansion.
+- Status: Partial. `supabase/tests/uat_00_seed_fixtures.sql` and `supabase/tests/uat_01_fixture_verification.sql` now seed and verify authenticated UAT fixtures on the linked backend. The fixture covers the live UAT venue/admin/staff/TV path, 3 countries, wallets, orders, a pool, a game session, 100+ approved questions, and exactly 20 selected questions. The broader 5-bar full UAT matrix remains a separate expansion.
 
 ### FZ-QA-015 - Authenticated venue dashboard UAT fixture coverage
 
@@ -295,11 +295,11 @@ Missing or broken:
 | `npm test` | Pass | Admin 22 tests passed; website 6 tests passed. |
 | `deno check supabase/functions/order_update_status/index.ts` | Pass | Edge Function compiles after status fix. |
 | Targeted Flutter auth-flow test | Pass | OTP row overflow fixed; targeted integration test passes. |
-| Remote Supabase migration dry-run | Pass | `supabase db push --dry-run` reports the linked FANZONE project is up to date, including `20260503143000_tv_display_live_question_grants.sql`. |
+| Remote Supabase migration push | Pass | `supabase db push --linked` applied `20260503150000_release_query_indexes.sql`; the linked FANZONE project is current through the release query indexes migration. |
 | Remote SQL contract tests | Pass | `release_readiness_hardening.sql` executed successfully through `supabase db query --linked`. |
 | Remote RLS audit tests | Pass | `rls_hardening_audit.sql` executed successfully through `supabase db query --linked`. |
-| Remote UAT fixture seed | Pass | `supabase/tests/uat_seed_fixtures.sql` applied successfully to the linked backend. |
-| Remote UAT fixture verification | Pass | `supabase/tests/uat_fixture_verification.sql` verified auth users, admin user, 3 active venue memberships, 100+ questions, exactly 20 selected questions, eligible/ineligible order rules, venue wallet ledger rows, and anon TV grants. |
+| Remote UAT fixture seed | Pass | `supabase/tests/uat_00_seed_fixtures.sql` applied successfully to the linked backend. |
+| Remote UAT fixture verification | Pass | `supabase/tests/uat_01_fixture_verification.sql` verified auth users, admin user, 3 active venue memberships, 100+ questions, exactly 20 selected questions, eligible/ineligible order rules, venue wallet ledger rows, anon TV grants, and release query indexes. |
 | Supabase advisor ERROR checks | Pass | Linked security and performance advisors report no ERROR-level issues after hardening. Performance WARN count is now 224 after targeted release-policy cleanup. |
 | Live WhatsApp auth smoke | Pass | `tool/supabase_whatsapp_auth_smoke.sh` passes against the deployed function using the time-bound reviewer OTP fixture. |
 | Deno Edge unit tests | Pass | `SUPABASE_URL=http://localhost:54321 deno test --allow-env supabase/functions/whatsapp-otp/index_test.ts` passed 7 tests. |
@@ -309,7 +309,7 @@ Missing or broken:
 | TV display browser smoke | Pass | `apps/tv-display` built, linted, typechecked, and rendered pairing plus venue-specific screens at desktop/mobile sizes. Screenshots: `output/playwright/tv-display-pairing.png`, `output/playwright/tv-display-venue-u-bistrot-wait.png`, `output/playwright/tv-display-venue-mobile.png`. |
 | TV display live game smoke | Pass | The standalone TV app renders the seeded live game question/options after safe RPC grants and layout tuning. Screenshot: `output/playwright/tv-display-uat-live-game-fixed-10s.png`. |
 | Live mobile onboarding UAT | Partial | Public web onboarding screenshot exists at `output/playwright/uat-website-onboarding-mobile.png`, but Flutter mobile must be validated on simulator/device rather than through Flutter web. |
-| Local Supabase DB reset/tests | Pass | Colima was restarted, product services are healthy locally, `supabase db reset` replayed all migrations through `20260503143000_tv_display_live_question_grants.sql`, and the full `supabase/tests/*.sql` suite passed with UAT seed before fixture verification. |
+| Local Supabase DB reset/tests | Pass | Colima was restarted, product services are healthy locally, `supabase db reset` replayed all migrations through `20260503143000_tv_display_live_question_grants.sql`, and the full `supabase/tests/*.sql` suite passed with UAT seed before fixture verification. The newer release query indexes were verified on the linked backend. |
 | Scenario A: New user onboarding | Partial | OTP/no-name path covered by code/tests and browser OTP smoke; fan profile setup/editing is implemented and tested. Flutter mobile device UAT remains. |
 | Scenario B: Order and eligibility | Pending live mobile UAT | Settlement backend and UAT fixture cover eligibility logic; full phone/dashboard update path remains unvalidated. |
 | Scenario C: User joins pool without order | Fixed pending live UAT | Settlement now marks ineligible winners with zero payout. |

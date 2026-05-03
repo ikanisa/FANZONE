@@ -547,7 +547,7 @@ class _SelectedCategoryRow extends StatelessWidget {
             child: Text(
               '$label ${teams.length}/$max',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
                 color: muted,
               ),

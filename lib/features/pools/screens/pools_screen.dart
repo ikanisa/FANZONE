@@ -272,7 +272,7 @@ class _ArenaPoolCard extends StatelessWidget {
                 pool.scope.toUpperCase(),
                 style: const TextStyle(
                   color: FzColors.darkMuted,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.1,
                 ),

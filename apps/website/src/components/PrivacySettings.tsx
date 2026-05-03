@@ -90,11 +90,11 @@ export default function PrivacySettings() {
             <div className="p-4 flex items-center justify-between">
               <div className="pr-4">
                 <div className="font-bold text-sm text-text mb-1 flex items-center gap-2">
-                  Allow Friends to Find Me
+                  Allow Invite Discovery
                   {!isVerified && <Lock size={12} className="text-muted" />}
                 </div>
                 <div className="text-xs text-muted">
-                  Allow other users who have your phone number in their contacts to find your Fan ID.
+                  Allow users with a FANZONE invite link to find your Fan ID.
                 </div>
               </div>
               <button 

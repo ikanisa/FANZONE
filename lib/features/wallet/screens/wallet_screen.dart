@@ -300,7 +300,7 @@ class _WalletHero extends StatelessWidget {
               const Text(
                 'FET BALANCE',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: Colors.white70,
                   letterSpacing: 1.0,
@@ -607,7 +607,7 @@ class _WalletStatsUnavailable extends StatelessWidget {
             Expanded(
               child: Text(
                 'Wallet totals are unavailable right now.',
-                style: TextStyle(fontSize: 11, color: muted, height: 1.4),
+                style: TextStyle(fontSize: 12, color: muted, height: 1.4),
               ),
             ),
             TextButton(
@@ -676,7 +676,7 @@ class _StatUnavailableCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 9,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
               color: muted.withValues(alpha: 0.8),
               letterSpacing: 1,

@@ -15,6 +15,7 @@ import Profile from './components/Profile';
 import Notifications from './components/Notifications';
 import Settings from './components/Settings';
 import PrivacySettings from './components/PrivacySettings';
+import LegalPage from './components/LegalPage';
 import Onboarding from './components/Onboarding';
 import { Ordering } from './components/Ordering';
 import { AnimatePresence } from 'motion/react';
@@ -152,6 +153,10 @@ export default function App() {
                     </FeatureRoute>
                   }
                 />
+                <Route path="/privacy" element={<LegalPage kind="privacy" />} />
+                <Route path="/terms" element={<LegalPage kind="terms" />} />
+                <Route path="/fet-terms" element={<LegalPage kind="fet" />} />
+                <Route path="/help" element={<LegalPage kind="help" />} />
 
                 {/* Routes with Layout */}
                 <Route path="/*" element={
@@ -232,7 +237,7 @@ export default function App() {
                             </FeatureRoute>
                           }
                         />
-                        <Route path="/privacy" element={<PrivacySettings />} />
+                        <Route path="/privacy-settings" element={<PrivacySettings />} />
                         <Route
                           path="/bar"
                           element={

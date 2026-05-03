@@ -99,7 +99,7 @@ const screenModes: Array<{ label: string; mode: VenueScreenMode }> = [
   { label: 'Order promo / FET reminder', mode: 'promo' },
 ];
 
-const tvDisplayBaseUrl = (import.meta.env.VITE_TV_DISPLAY_URL || 'http://localhost:5176').replace(/\/$/, '');
+const tvDisplayBaseUrl = (import.meta.env.VITE_TV_DISPLAY_URL || 'https://screen.fanzone.ikanisa.com').replace(/\/$/, '');
 
 function tvDisplayUrl(venueId: string) {
   return `${tvDisplayBaseUrl}/venue/${venueId}`;

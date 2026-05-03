@@ -1,0 +1,27 @@
+{
+  "name": "FANZONE Venue Dashboard",
+  "short_name": "FZ Venue",
+  "description": "Venue operations console for FANZONE ordering, pools, games, wallets, and TV screens.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050507",
+  "theme_color": "#050507",
+  "icons": [
+    {
+      "src": "/brand/logo-mark-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/logo-mark-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/logo-mark-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+

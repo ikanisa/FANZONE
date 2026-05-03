@@ -196,7 +196,7 @@ class ProfileScreen extends ConsumerWidget {
                   Text(
                     '${AppConfig.appName} v${AppConfig.appVersion}',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 12,
                       letterSpacing: 1.6,
                       fontWeight: FontWeight.w700,
                       color: muted,

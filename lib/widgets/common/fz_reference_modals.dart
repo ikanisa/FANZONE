@@ -343,7 +343,7 @@ class _SheetMetric extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: FzColors.darkMuted,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
           ),

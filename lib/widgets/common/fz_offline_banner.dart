@@ -21,11 +21,7 @@ class FzOfflineBanner extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: const Row(
                 children: [
-                  Icon(
-                    LucideIcons.wifiOff,
-                    size: 14,
-                    color: FzColors.darkBg,
-                  ),
+                  Icon(LucideIcons.wifiOff, size: 14, color: FzColors.darkBg),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(

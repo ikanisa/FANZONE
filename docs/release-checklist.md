@@ -4,7 +4,7 @@
 
 - Latest validated Android release artifacts must be regenerated from the current sports-bar pool build before store submission.
 - Current production Android package: `app.fanzone.football`
-- Current release version: `1.1.0+6`
+- Current release version: `1.1.2+10`
 - Current Android release artifacts:
   - `build/app/outputs/flutter-apk/app-release.apk`
   - `build/app/outputs/bundle/release/app-release.aab`
@@ -14,10 +14,13 @@
 - Audit Supabase auth, RLS, storage rules, edge functions, migrations, backups, and rollback paths in the production project.
 - Review `ios/Flutter/AppConfig.xcconfig` and confirm the bundle ID, team ID, and APNs environment are correct for release signing.
 - Create a local `env/production.json` from `env/production.example.json` and keep `/pools` as the live fan engagement surface.
+- Configure Cloudflare Pages projects for website, admin, venue dashboard, and TV display before launch.
+- Keep the app-store handoff package in `release/` aligned with the final production build.
 - Replace all placeholder values in your local `env/production.json` and the platform signing/Firebase files before promoting a build.
 
 ## Android release
 
+- Run `./tool/preflight_build_check.sh production`.
 - Confirm `./tool/build_android_release_from_env.sh production` succeeds.
 - Confirm `./tool/build_android_aab_from_env.sh production` succeeds.
 - Verify the resulting APK or AAB is signed with the upload keystore.
@@ -32,6 +35,16 @@
 - Open the Runner target in Xcode and confirm signing, push notifications, and background remote notifications resolve without manual overrides.
 - Archive a production build and validate install on a physical device.
 - Validate push delivery and notification tap routing on at least one physical iPhone.
+
+## Web and PWA release
+
+- Confirm `npm run build -w @fanzone/website` succeeds.
+- Confirm `npm run build -w @fanzone/admin` succeeds.
+- Confirm `npm run build -w @fanzone/venue-portal` succeeds.
+- Confirm `npm run build -w @fanzone/tv-display` succeeds.
+- Confirm browser release env with `./tool/validate_web_release_env.sh venue-portal` and `./tool/validate_web_release_env.sh tv-display`.
+- Configure `CLOUDFLARE_WEBSITE_PROJECT_NAME`, `CLOUDFLARE_VENUE_PORTAL_PROJECT_NAME`, and `CLOUDFLARE_TV_DISPLAY_PROJECT_NAME` in GitHub Actions secrets.
+- Verify deep route refresh works for public web, venue dashboard, and TV screen routes after deploy.
 
 ## Backend validation
 
@@ -54,6 +67,13 @@
 - Dedicated review/test OTP: `123456`
 - Reviewer flow: launch the submitted build, enter `+35699711145`, tap `SEND OTP`, then enter `123456`.
 - This path is powered by the deployed `whatsapp-otp` function secrets above. If those secrets are missing, reviewer login will fail even if the app build is correct.
+
+## Store submission package
+
+- Android: `release/android/play-store-metadata.md`, `release/android/data-safety-notes.md`, and `release/android/app-access-instructions.md`.
+- iOS: `release/ios/app-store-metadata.md`, `release/ios/app-review-notes.md`, and `release/ios/privacy-label-notes.md`.
+- Legal: `release/legal/privacy-policy.md`, `release/legal/terms.md`, and `release/legal/fet-reward-terms.md`.
+- QA: `release/qa/production-uat-report.md` and `release/qa/release-checklist.md`.
 
 ## Operational readiness
 

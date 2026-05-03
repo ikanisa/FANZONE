@@ -69,7 +69,7 @@ class _PillContent extends StatelessWidget {
                       'ORDER STATUS',
                       style: FzTypography.metaLabel(
                         color: FzColors.accent,
-                      ).copyWith(fontSize: 10),
+                      ).copyWith(fontSize: 12),
                     ),
                     Text(
                       _statusText(order.status),

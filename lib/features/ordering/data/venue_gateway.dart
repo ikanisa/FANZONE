@@ -104,9 +104,7 @@ class SupabaseVenueGateway implements VenueGateway {
         query = query.eq('country_code', countryCode);
       }
 
-      final rows = await query
-          .order('name')
-          .limit(limit);
+      final rows = await query.order('name').limit(limit);
 
       return (rows as List)
           .whereType<Map>()
@@ -158,8 +156,7 @@ class SupabaseVenueGateway implements VenueGateway {
       return (rows as List)
           .whereType<Map>()
           .map(
-            (row) =>
-                VenueTableModel.fromJson(Map<String, dynamic>.from(row)),
+            (row) => VenueTableModel.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
     } catch (error) {
@@ -184,8 +181,7 @@ class SupabaseVenueGateway implements VenueGateway {
       return (rows as List)
           .whereType<Map>()
           .map(
-            (row) =>
-                MenuCategoryModel.fromJson(Map<String, dynamic>.from(row)),
+            (row) => MenuCategoryModel.fromJson(Map<String, dynamic>.from(row)),
           )
           .toList(growable: false);
     } catch (error) {
@@ -204,10 +200,7 @@ class SupabaseVenueGateway implements VenueGateway {
     if (client == null) return const [];
 
     try {
-      var query = client
-          .from('menu_items')
-          .select()
-          .eq('venue_id', venueId);
+      var query = client.from('menu_items').select().eq('venue_id', venueId);
 
       if (categoryId != null) {
         query = query.eq('category_id', categoryId);
@@ -217,15 +210,11 @@ class SupabaseVenueGateway implements VenueGateway {
         query = query.eq('is_available', true);
       }
 
-      final rows = await query
-          .order('display_order')
-          .order('name');
+      final rows = await query.order('display_order').order('name');
 
       return (rows as List)
           .whereType<Map>()
-          .map(
-            (row) => MenuItemModel.fromJson(Map<String, dynamic>.from(row)),
-          )
+          .map((row) => MenuItemModel.fromJson(Map<String, dynamic>.from(row)))
           .toList(growable: false);
     } catch (error) {
       AppLogger.w('Failed to load menu items: $error');

@@ -89,7 +89,7 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
             Center(
               child: Text(
                 'Verify your phone to unlock all features',
-                style: TextStyle(fontSize: 10, color: muted),
+                style: TextStyle(fontSize: 12, color: muted),
               ),
             ),
 
@@ -137,7 +137,7 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
             Center(
               child: Text(
                 'Browse matches and teams • Sign in anytime',
-                style: TextStyle(fontSize: 10, color: muted),
+                style: TextStyle(fontSize: 12, color: muted),
               ),
             ),
 
@@ -149,7 +149,7 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
                 'By continuing, you agree to our Terms of Service\nand Privacy Policy.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   color: muted.withValues(alpha: 0.7),
                   height: 1.5,
                 ),

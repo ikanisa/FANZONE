@@ -37,14 +37,20 @@
   --fz-display-font: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --fz-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --fz-text-xs: 0.6875rem;
-  --fz-text-sm: 0.8125rem;
-  --fz-text-base: 0.875rem;
-  --fz-text-md: 1rem;
+  --fz-text-xs: 0.75rem;
+  --fz-text-sm: 0.875rem;
+  --fz-text-base: 1rem;
+  --fz-text-md: 1.0625rem;
   --fz-text-lg: 1.125rem;
   --fz-text-xl: 1.25rem;
   --fz-text-2xl: 1.5rem;
   --fz-text-3xl: 1.875rem;
+  --fz-text-4xl: 2.25rem;
+  --fz-text-display: 3rem;
+
+  --fz-weight-body: 600;
+  --fz-weight-strong: 800;
+  --fz-weight-display: 900;
 
   --fz-sp-1: 4px;
   --fz-sp-2: 8px;

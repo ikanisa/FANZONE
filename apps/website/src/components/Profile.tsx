@@ -144,7 +144,7 @@ export default function Profile() {
               </button>
             )}
             <SettingsItem
-              to="/privacy"
+              to="/privacy-settings"
               icon={<Lock size={18} />}
               label="Privacy"
             />

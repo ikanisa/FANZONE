@@ -46,7 +46,7 @@ class PrivacySettingsHeader extends StatelessWidget {
                 Text(
                   'Settings',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: muted,
                     letterSpacing: 1.4,

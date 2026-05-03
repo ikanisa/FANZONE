@@ -219,7 +219,7 @@ class _SplashScreenState extends State<SplashScreen>
                           Text(
                             'SPORTS BAR ENTERTAINMENT',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
+                              fontSize: 12,
                               color: FzColors.darkMuted,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.6,

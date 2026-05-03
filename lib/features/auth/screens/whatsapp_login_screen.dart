@@ -1022,7 +1022,7 @@ class _SmartPhoneCountryPickerSheetState
                     ? '${widget.countries.length} countries'
                     : '${_filtered.length} results',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   color: muted,
                   letterSpacing: 0.3,
                 ),
@@ -1097,7 +1097,7 @@ class _SmartPhoneCountryPickerSheetState
                                       Text(
                                         entry.countryCode,
                                         style: TextStyle(
-                                          fontSize: 10,
+                                          fontSize: 12,
                                           color: muted,
                                         ),
                                       ),

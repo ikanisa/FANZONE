@@ -89,11 +89,13 @@ class AppTelemetry {
         await _persistQueue();
         return;
       }
-      final payload = batch.map((event) {
-        final json = event.toJson();
-        json['error_message'] = json['message'];
-        return json;
-      }).toList(growable: false);
+      final payload = batch
+          .map((event) {
+            final json = event.toJson();
+            json['error_message'] = json['message'];
+            return json;
+          })
+          .toList(growable: false);
 
       await client.rpc(
         'log_app_runtime_errors_batch',
@@ -191,7 +193,9 @@ class _TelemetryEvent {
   static _TelemetryEvent? fromJson(Map<String, dynamic> json) {
     final type = json['type']?.toString() ?? 'exception';
     final reason = json['reason']?.toString().trim();
-    final message = json['message']?.toString().trim() ?? json['error_message']?.toString().trim();
+    final message =
+        json['message']?.toString().trim() ??
+        json['error_message']?.toString().trim();
     final stackTrace = json['stack_trace']?.toString().trim() ?? '';
     final sessionId = json['session_id']?.toString().trim();
     final platform = json['platform']?.toString().trim();

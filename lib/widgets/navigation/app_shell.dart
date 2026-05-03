@@ -131,10 +131,10 @@ class _BottomNavBar extends ConsumerWidget {
                             item.label,
                             maxLines: 1,
                             style: TextStyle(
-                              fontSize: 9.5,
+                              fontSize: 12,
                               fontWeight: isSelected
                                   ? FontWeight.w900
-                                  : FontWeight.w700,
+                                  : FontWeight.w800,
                               color: isSelected
                                   ? FzColors.accent
                                   : (isDark

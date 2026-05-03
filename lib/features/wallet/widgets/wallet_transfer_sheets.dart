@@ -229,7 +229,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                 Text(
                   'Recipient Fan ID',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: muted,
                     letterSpacing: 0.8,
@@ -287,21 +287,31 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Amount to Send',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: muted,
-                        letterSpacing: 0.8,
+                    Expanded(
+                      child: Text(
+                        'Amount to Send',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: muted,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ),
-                    Text(
-                      'Balance: ${formatFET(balance, currency)}',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: FzColors.secondary,
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        'Balance: ${formatFET(balance, currency)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: FzColors.secondary,
+                        ),
                       ),
                     ),
                   ],
@@ -319,7 +329,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                       Text(
                         'FET',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                           color: muted,
                           letterSpacing: 0.8,
@@ -373,7 +383,7 @@ class _TransferFetSheetState extends ConsumerState<TransferFetSheet> {
                         child: const Text(
                           'MAX',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 12,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.4,
                           ),
@@ -537,7 +547,7 @@ class ReceiveFetSheet extends ConsumerWidget {
                     Text(
                       'Your Fan ID',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
                         color: muted,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.5,
@@ -711,7 +721,7 @@ class TransactionReceiptDialog extends StatelessWidget {
                   Text(
                     transaction.dateStr,
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: muted,
                       letterSpacing: 1.0,
@@ -806,7 +816,7 @@ class _ReceiptRow extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 12,
             fontWeight: FontWeight.w700,
             color: muted,
             letterSpacing: 0.9,
@@ -817,13 +827,18 @@ class _ReceiptRow extends StatelessWidget {
           Icon(leadingIcon, size: 12, color: valueColor),
           const SizedBox(width: 4),
         ],
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: valueColor,
-            fontFamily: monospace ? 'monospace' : null,
+        Flexible(
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: valueColor,
+              fontFamily: monospace ? 'monospace' : null,
+            ),
           ),
         ),
       ],

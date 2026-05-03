@@ -37,7 +37,7 @@ type ScreenData = {
   refreshedAt: Date | null;
 };
 
-const publicAppBaseUrl = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://fanzone.app').replace(/\/$/, '');
+const publicAppBaseUrl = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://fanzone.ikanisa.com').replace(/\/$/, '');
 
 function App() {
   if (!isSupabaseConfigured) {

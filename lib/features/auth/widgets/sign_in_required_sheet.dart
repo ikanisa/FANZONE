@@ -556,7 +556,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                       Center(
                         child: Text(
                           'Your number is never shown to others.',
-                          style: TextStyle(fontSize: 11, color: muted),
+                          style: TextStyle(fontSize: 12, color: muted),
                         ),
                       ),
                     ],

@@ -658,7 +658,7 @@ export async function fetchVenueTables(venueId: string): Promise<VenueTable[]> {
 }
 
 export async function generateVenueTableQr(venueId: string, tableNumber: string): Promise<VenueTable> {
-  const baseUrl = String(import.meta.env.VITE_GUEST_APP_URL || 'https://fanzone.app');
+  const baseUrl = String(import.meta.env.VITE_GUEST_APP_URL || 'https://fanzone.ikanisa.com');
   const { data, error } = await supabase.rpc('generate_table_qr', {
     p_venue_id: venueId,
     p_table_number: tableNumber.trim(),

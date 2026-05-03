@@ -23,9 +23,7 @@ class NotificationItem with _$NotificationItem {
 class NotificationPreferences with _$NotificationPreferences {
   const factory NotificationPreferences({
     @JsonKey(name: 'goal_alerts') @Default(true) bool goalAlerts,
-    @JsonKey(name: 'pool_updates')
-    @Default(true)
-    bool poolUpdates,
+    @JsonKey(name: 'pool_updates') @Default(true) bool poolUpdates,
     @JsonKey(name: 'reward_updates') @Default(true) bool rewardUpdates,
     @JsonKey(name: 'marketing') @Default(false) bool marketing,
   }) = _NotificationPreferences;

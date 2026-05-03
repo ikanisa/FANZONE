@@ -444,7 +444,7 @@ class _NotificationCard extends StatelessWidget {
                         Text(
                           timeLabel,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 12,
                             fontWeight: FontWeight.w800,
                             color: muted,
                           ),

@@ -46,7 +46,7 @@ class WalletSummaryCard extends ConsumerWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: muted.withValues(alpha: 0.8),
                     letterSpacing: 1,
@@ -126,7 +126,7 @@ class WalletTransactionRow extends ConsumerWidget {
                 Text(
                   transaction.title,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
                     height: 1.2,
                   ),
@@ -134,7 +134,7 @@ class WalletTransactionRow extends ConsumerWidget {
                 Text(
                   transaction.dateStr,
                   style: TextStyle(
-                    fontSize: 8,
+                    fontSize: 12,
                     color: muted,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,

@@ -50,7 +50,8 @@ class SupabaseNotificationSettingsGateway
 
   static const deviceTokensCachePrefix = 'settings.device_tokens.';
   static const matchAlertsCachePrefix = 'settings.match_alerts.';
-  static const notificationPreferencesCachePrefix = 'settings.notification_prefs.';
+  static const notificationPreferencesCachePrefix =
+      'settings.notification_prefs.';
   static const notificationLogCachePrefix = 'settings.notification_log.';
 
   bool get _hasVerifiedSession =>
@@ -254,7 +255,8 @@ class SupabaseNotificationSettingsGateway
     final key = '$matchAlertsCachePrefix$scopedUser';
     final client = _connection.client;
 
-    if (userId != null && !runtimePlatformFeatureActionAvailable('notifications')) {
+    if (userId != null &&
+        !runtimePlatformFeatureActionAvailable('notifications')) {
       throw StateError('Match alerts are unavailable right now.');
     }
     if (userId != null && !_hasVerifiedSession) {

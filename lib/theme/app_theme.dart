@@ -38,12 +38,12 @@ abstract final class FzTheme {
         unselectedItemColor: FzColors.darkMuted,
         type: BottomNavigationBarType.fixed,
         selectedLabelStyle: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w500,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
         ),
         elevation: 0,
       ),

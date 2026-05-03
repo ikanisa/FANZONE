@@ -653,7 +653,7 @@ class _HeroMetric extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
                 color: Colors.white70,
               ),
@@ -711,7 +711,7 @@ class _StatusPill extends StatelessWidget {
       child: Text(
         status.toUpperCase(),
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w900,
           color: color,
         ),
@@ -736,7 +736,7 @@ class _ScopePill extends StatelessWidget {
       child: Text(
         '$scope pool'.toUpperCase(),
         style: const TextStyle(
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w900,
           color: Colors.white,
         ),

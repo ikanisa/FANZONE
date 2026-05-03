@@ -28,7 +28,7 @@ class FzBadge extends StatelessWidget {
     this.textColor,
     this.pulse = false,
     this.icon,
-    this.fontSize = 10,
+    this.fontSize = 12,
     this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
   });
 
@@ -45,13 +45,13 @@ class FzBadge extends StatelessWidget {
     label: 'LIVE',
     variant: FzBadgeVariant.danger,
     pulse: true,
-    fontSize: 9,
+    fontSize: 12,
   );
 
   factory FzBadge.count(int count) => FzBadge(
     label: count.toString(),
     variant: FzBadgeVariant.primary,
-    fontSize: 9,
+    fontSize: 12,
   );
 
   factory FzBadge.status(String status) {
@@ -122,7 +122,7 @@ class FzBadge extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: fontSize,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
                 color: palette.foreground,
                 letterSpacing: 1.4,
               ),

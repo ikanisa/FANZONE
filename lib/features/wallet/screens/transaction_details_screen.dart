@@ -120,7 +120,7 @@ class _TransactionContent extends StatelessWidget {
                 style: const TextStyle(
                   color: FzColors.darkMuted,
                   fontWeight: FontWeight.w800,
-                  fontSize: 11,
+                  fontSize: 12,
                   letterSpacing: 1.1,
                 ),
               ),

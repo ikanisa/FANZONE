@@ -43,9 +43,11 @@ No live secrets belong in git.
 | --- | --- | --- |
 | `SUPABASE_URL` | Flutter, Edge Functions, smoke scripts | Public project URL. |
 | `SUPABASE_ANON_KEY` | Flutter, web apps, smoke scripts | Public anon key. Never use service role in clients. |
-| `VITE_SUPABASE_URL` | Admin, website, venue portal | Browser-safe Supabase URL. |
-| `VITE_SUPABASE_ANON_KEY` | Admin, website, venue portal | Browser-safe anon key. |
+| `VITE_SUPABASE_URL` | Admin, website, venue portal, TV display | Browser-safe Supabase URL. |
+| `VITE_SUPABASE_ANON_KEY` | Admin, website, venue portal, TV display | Browser-safe anon key. |
 | `VITE_GUEST_APP_URL` | Venue portal | Base URL for table QR deep links. |
+| `VITE_PUBLIC_APP_URL` | TV display | Base URL used in TV QR joins. |
+| `VITE_TV_DISPLAY_URL` | Venue portal | Base URL for venue screen links. |
 | `SUPABASE_SERVICE_ROLE_KEY` or `EDGE_SERVICE_ROLE_KEY` | Edge Functions | Server only. Never expose through `VITE_` or Flutter config. |
 | `CRON_SECRET` | Cron Edge Functions | Required for scheduled jobs. |
 | `PUSH_NOTIFY_SECRET` | Push notification dispatch | Internal shared secret. |

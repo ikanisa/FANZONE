@@ -217,7 +217,7 @@ class _BalanceHero extends StatelessWidget {
                 'AVAILABLE FET',
                 style: TextStyle(
                   color: Colors.white70,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.2,
                 ),
@@ -415,7 +415,7 @@ class _TeamsStrip extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -637,7 +637,7 @@ class _DashboardMatchCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: FzColors.darkMuted,
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
                 ),

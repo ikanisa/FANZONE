@@ -91,10 +91,7 @@ void main() {
       final updated = prefs.copyWith(goalAlerts: false, marketing: true);
       expect(updated.goalAlerts, false);
       expect(updated.marketing, true);
-      expect(
-        updated.poolUpdates,
-        true,
-      ); // pool-update preference unchanged
+      expect(updated.poolUpdates, true); // pool-update preference unchanged
     });
   });
 

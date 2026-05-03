@@ -46,7 +46,8 @@ class SupabaseConnectionImpl implements SupabaseConnection {
   }
 
   @override
-  Session? get currentSession => RuntimeAuthSessionManager.instance.currentSession;
+  Session? get currentSession =>
+      RuntimeAuthSessionManager.instance.currentSession;
 
   @override
   bool get isAuthenticated {
@@ -55,8 +56,7 @@ class SupabaseConnectionImpl implements SupabaseConnection {
   }
 
   @override
-  Stream<AuthState> get authStateChanges =>
-      appRuntime.supabaseInitialized
-          ? RuntimeAuthSessionManager.instance.authStateChanges
-          : const Stream<AuthState>.empty();
+  Stream<AuthState> get authStateChanges => appRuntime.supabaseInitialized
+      ? RuntimeAuthSessionManager.instance.authStateChanges
+      : const Stream<AuthState>.empty();
 }

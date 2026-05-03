@@ -65,9 +65,12 @@
 .text-xl { font-size: var(--fz-text-xl); }
 .text-2xl { font-size: var(--fz-text-2xl); }
 .text-3xl { font-size: var(--fz-text-3xl); }
+.text-4xl { font-size: var(--fz-text-4xl); }
+.text-display { font-size: var(--fz-text-display); }
 .font-medium { font-weight: 500; }
 .font-semibold { font-weight: 600; }
 .font-bold { font-weight: 700; }
+.font-black { font-weight: var(--fz-weight-display); }
 .text-muted { color: var(--fz-muted); }
 .text-secondary { color: var(--fz-text-secondary); }
 .text-primary { color: var(--fz-primary); }

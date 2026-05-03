@@ -32,7 +32,9 @@ Use this checklist for production launch or major release promotion.
 - Admin app build passes.
 - Website app build passes and canonical check passes.
 - Venue portal build passes.
+- TV display build passes.
 - Website release metadata validation passes.
+- Venue and TV Cloudflare Pages workflows have project-name secrets configured.
 - Android `assetlinks.json` has production SHA-256 fingerprints.
 - Apple app site association is valid.
 - PWA manifest names, icons, start URL, and theme color are final.

@@ -36,9 +36,7 @@ class RuntimeAuthSessionManager {
     );
 
     // ignore: cancel_subscriptions
-    guestClient?.auth.onAuthStateChange.listen((
-      state,
-    ) {
+    guestClient?.auth.onAuthStateChange.listen((state) {
       if (_customSession != null) return;
       _emit(state.event, state.session);
     });
@@ -54,9 +52,11 @@ class RuntimeAuthSessionManager {
 
   Session? get customSession => _customSession;
 
-  Session? get currentSession => _customSession ?? guestClient?.auth.currentSession;
+  Session? get currentSession =>
+      _customSession ?? guestClient?.auth.currentSession;
 
-  User? get currentUser => _customSession?.user ?? guestClient?.auth.currentUser;
+  User? get currentUser =>
+      _customSession?.user ?? guestClient?.auth.currentUser;
 
   bool get hasCustomSession => _customSession != null;
 
@@ -123,8 +123,7 @@ class RuntimeAuthSessionManager {
       );
       if (data['success'] != true) {
         throw AuthException(
-          data['error'] as String? ??
-              'Session expired. Please sign in again.',
+          data['error'] as String? ?? 'Session expired. Please sign in again.',
         );
       }
 
@@ -137,12 +136,16 @@ class RuntimeAuthSessionManager {
       appRuntime.isOffline.value = false;
       completer.complete(true);
     } on AuthException catch (error) {
-      AppLogger.d('Custom WhatsApp session refresh failed (Auth): ${error.message}');
+      AppLogger.d(
+        'Custom WhatsApp session refresh failed (Auth): ${error.message}',
+      );
       await clearCustomSession(emitEvent: true);
       appRuntime.isOffline.value = false;
       completer.complete(false);
     } on FunctionException catch (error) {
-      AppLogger.d('Custom WhatsApp session refresh failed (Function): ${error.details}');
+      AppLogger.d(
+        'Custom WhatsApp session refresh failed (Function): ${error.details}',
+      );
       await clearCustomSession(emitEvent: true);
       appRuntime.isOffline.value = false;
       completer.complete(false);

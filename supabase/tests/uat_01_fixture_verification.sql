@@ -111,6 +111,14 @@ BEGIN
   IF NOT has_table_privilege('anon', 'public.game_team_members', 'SELECT') THEN
     RAISE EXCEPTION 'Anon TV role lacks SELECT grant needed for embedded team-member counts';
   END IF;
+
+  IF to_regclass('public.orders_venue_payment_created_idx') IS NULL THEN
+    RAISE EXCEPTION 'Missing venue payment queue order index';
+  END IF;
+
+  IF to_regclass('public.orders_eligibility_lookup_idx') IS NULL THEN
+    RAISE EXCEPTION 'Missing qualifying-order eligibility lookup index';
+  END IF;
 END;
 $$;
 

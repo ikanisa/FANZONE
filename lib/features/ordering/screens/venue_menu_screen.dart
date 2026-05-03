@@ -290,7 +290,7 @@ class _ContextMetric extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
                 color: FzColors.lightMuted,
               ),
@@ -455,7 +455,7 @@ class _MenuItemCard extends ConsumerWidget {
                     estimatedFet > 0 ? '+$estimatedFet FET' : 'Earn FET',
                     style: const TextStyle(
                       color: FzColors.darkBg,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -521,7 +521,7 @@ class _MenuItemCard extends ConsumerWidget {
                                   ? 'Earn ~$estimatedFet FET'
                                   : 'Earn FET',
                               style: const TextStyle(
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w900,
                                 color: FzColors.success,
                               ),
@@ -535,7 +535,7 @@ class _MenuItemCard extends ConsumerWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 12,
                           color: FzColors.darkMuted,
                         ),
                       ),
@@ -675,7 +675,7 @@ class _CartPill extends StatelessWidget {
                     style: TextStyle(
                       color: FzColors.darkBg.withValues(alpha: 0.72),
                       fontWeight: FontWeight.w800,
-                      fontSize: 11,
+                      fontSize: 12,
                     ),
                   ),
                 ],

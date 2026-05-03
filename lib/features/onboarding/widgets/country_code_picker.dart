@@ -191,7 +191,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                     ? '$totalCountries countries'
                     : '${_filtered.length} results',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   color: muted,
                   letterSpacing: 0.3,
                 ),
@@ -294,7 +294,7 @@ class _CountryTile extends StatelessWidget {
                     const SizedBox(height: 1),
                     Text(
                       entry.countryCode,
-                      style: TextStyle(fontSize: 10, color: muted),
+                      style: TextStyle(fontSize: 12, color: muted),
                     ),
                   ],
                 ),

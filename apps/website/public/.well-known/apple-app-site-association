@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "KL8NM5C2.app.fanzone.football",
+        "appID": "KL8NM5C2.com.fanzone.fanzone",
         "paths": [
           "/predict",
           "/predict/*"

@@ -292,7 +292,7 @@ class _JoinHero extends StatelessWidget {
           const Text(
             'JOIN POOL',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: FontWeight.w900,
               color: Colors.white70,
               letterSpacing: 1.2,
@@ -456,7 +456,7 @@ class _HeroMetric extends StatelessWidget {
             Text(
               label,
               style: const TextStyle(
-                fontSize: 10,
+                fontSize: 12,
                 color: Colors.white70,
                 fontWeight: FontWeight.w800,
               ),

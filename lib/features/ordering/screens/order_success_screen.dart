@@ -288,7 +288,7 @@ class _HeroMetric extends StatelessWidget {
             label,
             style: const TextStyle(
               color: Colors.white70,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
           ),

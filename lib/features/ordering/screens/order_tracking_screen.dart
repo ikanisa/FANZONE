@@ -354,7 +354,7 @@ class _PaymentStatusCard extends StatelessWidget {
           ),
           const Text(
             'Manual confirmation',
-            style: TextStyle(fontSize: 11, color: FzColors.darkMuted),
+            style: TextStyle(fontSize: 12, color: FzColors.darkMuted),
           ),
         ],
       ),

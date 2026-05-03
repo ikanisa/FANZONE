@@ -216,7 +216,7 @@ class _VenueInfoRow extends StatelessWidget {
               Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   color: FzColors.darkMuted,
                   fontWeight: FontWeight.w800,
                 ),

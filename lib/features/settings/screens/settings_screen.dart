@@ -129,9 +129,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         value: prefs.poolUpdates,
                         muted: muted,
                         textColor: textColor,
-                        onChanged: (value) => _updatePrefs(
-                          prefs.copyWith(poolUpdates: value),
-                        ),
+                        onChanged: (value) =>
+                            _updatePrefs(prefs.copyWith(poolUpdates: value)),
                       ),
                       const _Divider(),
                       _SettingsToggle(
