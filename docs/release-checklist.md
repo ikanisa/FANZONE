@@ -31,7 +31,9 @@
 ## iOS release
 
 - Confirm `ios/Runner/GoogleService-Info.plist` is the production Firebase config.
+- Confirm Apple Team ID `63STJ5N27W` is set in the ignored local `ios/Flutter/AppConfig.xcconfig`.
 - Run `./tool/build_ios_release_from_env.sh production` and fix any fail-fast validation before opening Xcode.
+- Use `FANZONE_IOS_FORCE_UNSIGNED=1 ./tool/build_ios_release_from_env.sh production` only for compile/archive verification when Apple signing assets are not available on the build machine.
 - Open the Runner target in Xcode and confirm signing, push notifications, and background remote notifications resolve without manual overrides.
 - Archive a production build and validate install on a physical device.
 - Validate push delivery and notification tap routing on at least one physical iPhone.

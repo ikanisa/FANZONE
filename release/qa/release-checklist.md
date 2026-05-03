@@ -32,7 +32,8 @@
 - [x] `flutter test` passed.
 - [x] Android AAB built and signed.
 - [ ] Android uploaded to internal test.
-- [x] iOS archive built.
+- [x] iOS unsigned archive built.
+- [ ] iOS signed archive and IPA exported with Apple Team ID `63STJ5N27W`.
 - [ ] iOS uploaded to TestFlight.
 
 ## Store Submission

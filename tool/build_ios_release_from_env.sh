@@ -32,9 +32,16 @@ if [[ "${APS_ENVIRONMENT}" != "development" && "${APS_ENVIRONMENT}" != "producti
   exit 1
 fi
 
+HAS_SIGNING_TEAM=1
+ALLOW_PROVISIONING_UPDATES="${FANZONE_IOS_ALLOW_PROVISIONING_UPDATES:-1}"
+FORCE_UNSIGNED="${FANZONE_IOS_FORCE_UNSIGNED:-0}"
 if [[ -z "${TEAM_ID}" || "${TEAM_ID}" == 'YOUR_TEAM_ID' || "${TEAM_ID}" == *'$('* ]]; then
+  HAS_SIGNING_TEAM=0
   echo "Warning: FANZONE_DEVELOPMENT_TEAM is not set to a real Apple Team ID in ${APP_CONFIG_FILE}."
   echo "Proceeding with an unsigned archive only. App Store signing/upload remains blocked until this is configured."
+elif [[ "${FORCE_UNSIGNED}" == "1" ]]; then
+  HAS_SIGNING_TEAM=0
+  echo "FANZONE_IOS_FORCE_UNSIGNED=1 set. Building an unsigned archive without IPA export."
 fi
 
 echo "Building iOS release for ${APP_ENVIRONMENT} using ${DART_DEFINE_FILE}"
@@ -68,6 +75,23 @@ PY
 
 rm -rf "${ARCHIVE_PATH}"
 
+XCODEBUILD_SIGNING_ARGS=()
+if [[ "${HAS_SIGNING_TEAM}" -eq 1 ]]; then
+  XCODEBUILD_SIGNING_ARGS+=(
+    "DEVELOPMENT_TEAM=${TEAM_ID}"
+    "PRODUCT_BUNDLE_IDENTIFIER=${BUNDLE_ID}"
+  )
+  if [[ "${ALLOW_PROVISIONING_UPDATES}" == "1" ]]; then
+    XCODEBUILD_SIGNING_ARGS+=(-allowProvisioningUpdates)
+  fi
+else
+  XCODEBUILD_SIGNING_ARGS+=(
+    CODE_SIGNING_ALLOWED=NO
+    CODE_SIGNING_REQUIRED=NO
+    CODE_SIGN_IDENTITY=""
+  )
+fi
+
 xcodebuild \
   -workspace ios/Runner.xcworkspace \
   -scheme Runner \
@@ -75,9 +99,50 @@ xcodebuild \
   -sdk iphoneos \
   -destination "generic/platform=iOS" \
   DART_DEFINES="${DART_DEFINES}" \
-  CODE_SIGNING_ALLOWED=NO \
-  CODE_SIGNING_REQUIRED=NO \
-  CODE_SIGN_IDENTITY="" \
+  "${XCODEBUILD_SIGNING_ARGS[@]}" \
   archive \
   -archivePath "${ARCHIVE_PATH}" \
   "$@"
+
+if [[ "${HAS_SIGNING_TEAM}" -eq 1 && "${FANZONE_IOS_SKIP_EXPORT:-0}" != "1" ]]; then
+  EXPORT_PATH="build/ios/ipa"
+  EXPORT_OPTIONS_PLIST="$(mktemp "${TMPDIR:-/tmp}/fanzone-export-options.XXXXXX.plist")"
+  EXPORT_METHOD="${FANZONE_IOS_EXPORT_METHOD:-app-store-connect}"
+
+  rm -rf "${EXPORT_PATH}"
+  cat > "${EXPORT_OPTIONS_PLIST}" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>destination</key>
+  <string>export</string>
+  <key>manageAppVersionAndBuildNumber</key>
+  <false/>
+  <key>method</key>
+  <string>${EXPORT_METHOD}</string>
+  <key>signingStyle</key>
+  <string>automatic</string>
+  <key>stripSwiftSymbols</key>
+  <true/>
+  <key>teamID</key>
+  <string>${TEAM_ID}</string>
+</dict>
+</plist>
+PLIST
+
+  XCODEBUILD_EXPORT_ARGS=()
+  if [[ "${ALLOW_PROVISIONING_UPDATES}" == "1" ]]; then
+    XCODEBUILD_EXPORT_ARGS+=(-allowProvisioningUpdates)
+  fi
+
+  xcodebuild \
+    -exportArchive \
+    -archivePath "${ARCHIVE_PATH}" \
+    -exportPath "${EXPORT_PATH}" \
+    -exportOptionsPlist "${EXPORT_OPTIONS_PLIST}" \
+    "${XCODEBUILD_EXPORT_ARGS[@]}"
+
+  rm -f "${EXPORT_OPTIONS_PLIST}"
+  echo "Exported iOS IPA to ${EXPORT_PATH}"
+fi

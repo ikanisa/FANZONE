@@ -14,6 +14,7 @@ Status: Release package and automated checks are complete. Final live multi-devi
 - Android release APK build
 - Android release AAB build
 - unsigned iOS release archive
+- Apple Team ID `63STJ5N27W` configured locally for iOS signing
 - web release env validation for website, admin, venue dashboard, and TV display
 - website, admin, venue dashboard, and TV display production builds
 - Cloudflare Pages deploys for all four web surfaces
@@ -22,7 +23,7 @@ Status: Release package and automated checks are complete. Final live multi-devi
 ## Required Devices
 
 - Android release build.
-- iOS release archive. TestFlight IPA requires Apple signing team/provisioning setup.
+- iOS release archive. TestFlight IPA requires Apple account access plus a provisioning profile/certificate for `com.fanzone.fanzone`.
 - Venue dashboard browser.
 - TV display browser or HDMI-connected device.
 - Supabase production-like project.
