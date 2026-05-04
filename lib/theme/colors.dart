@@ -1,29 +1,26 @@
 import 'package:flutter/material.dart';
 
-/// FANZONEUI Electric Noir design tokens.
+/// FANZONE Dark Sports-Gaming design tokens.
 ///
-/// The standalone FANZONEUI export is the primary visual reference for the
-/// Flutter client. These tokens intentionally mirror its obsidian surfaces,
-/// electric blue actions, and neon green reward language.
+/// Near-black surfaces, cyan/orange/red controlled accents,
+/// warm off-white text. No bright whites, no dirty greys.
 abstract final class FzColors {
   // ════════════════════════════════════════════
-  // Dark Theme (default) — Warm Stone palette
-  // Night Sandstone foundation — UNTOUCHED.
+  // Dark Theme — Deep Black surfaces
   // ════════════════════════════════════════════
-  static const darkBg = Color(0xFF0F0F12);
-  static const darkSurface = Color(0xFF16161D);
-  static const darkSurface2 = Color(0xFF1E1E27);
-  static const darkSurface3 = Color(0xFF272735);
-  static const darkSurface4 = Color(0xFF323244);
-  static const darkBorder = Color(0xFF2A2A36);
-  static const darkText = Color(0xFFF6F7FB);
-  static const darkTextSecondary = Color(0xFFD4D7E2);
-  static const darkMuted = Color(0xFF8B90A0);
+  static const darkBg = Color(0xFF050607);
+  static const darkSurface = Color(0xFF15161D);
+  static const darkSurface2 = Color(0xFF1B1C25);
+  static const darkSurface3 = Color(0xFF20212B);
+  static const darkSurface4 = Color(0xFF2A2C39);
+  static const darkBorder = Color(0xFF2A2C39);
+  static const darkText = Color(0xFFFFFDF3);
+  static const darkTextSecondary = Color(0xFF9A9CA8);
+  static const darkMuted = Color(0xFF6F7280);
 
   // ════════════════════════════════════════════
   // Compatibility light-theme aliases
-  // FANZONE is dark-only, so these names resolve to the dark palette to
-  // collapse any stray light-mode code paths back onto the supported colors.
+  // FANZONE is dark-only, so these resolve to the dark palette.
   // ════════════════════════════════════════════
   static const lightBg = darkBg;
   static const lightSurface = darkSurface;
@@ -34,34 +31,42 @@ abstract final class FzColors {
   static const lightMuted = darkMuted;
 
   // ════════════════════════════════════════════
-  // Canonical FANZONE accents from the original design
+  // Primary accents — cyan/orange/red sports-gaming palette
   // ════════════════════════════════════════════
-  static const accent = Color(0xFF2E5BFF);
-  static const accent2 = Color(0xFF39FF14);
-  static const accent3 = Color(0xFFFFB020);
-  static const success = Color(0xFF39FF14);
-  static const danger = Color(0xFFFF4D6D);
-  static const teal = Color(0xFF00D4C8);
-  static const warning = Color(0xFFFFB020);
+  static const accent = Color(0xFF27D8F2);   // cyan — primary action
+  static const accent2 = Color(0xFFFF7A4D);  // orange — FET / reward
+  static const accent3 = Color(0xFFFFD166);  // gold — tertiary / warning
+  static const success = Color(0xFF5BE06B);  // green — open / eligible
+  static const danger = Color(0xFFFF4D57);   // red — live / error
+  static const teal = Color(0xFF19D6F2);     // active border cyan
+  static const warning = Color(0xFFFFD166);  // gold
   static const whatsapp = Color(0xFF25D366);
 
-  // Compatibility aliases still used across the Flutter codebase.
+  // Compatibility aliases used across the Flutter codebase.
   static const primary = accent;
-  static const onPrimary = Colors.white;
+  static const onPrimary = Color(0xFF050607);
   static const secondary = accent2;
-  static const onSecondary = darkBg;
+  static const onSecondary = Color(0xFF050607);
   static const action = accent;
-  static const onAction = Colors.white;
+  static const onAction = Color(0xFF050607);
 
   // ════════════════════════════════════════════
   // Semantic aliases
   // ════════════════════════════════════════════
-  static const cyan = accent;
-  static const blue = accent2;
-  static const coral = accent3;
+  static const cyan = Color(0xFF27D8F2);
+  static const orange = Color(0xFFFF7A4D);
+  static const red = Color(0xFFFF4D57);
+  static const green = Color(0xFF5BE06B);
+  static const gold = Color(0xFFFFD166);
+  static const blue = accent;
+  static const coral = accent2;
   static const live = danger;
   static const error = danger;
   static const info = accent;
+
+  // Active border accents
+  static const activeBorderCyan = Color(0xFF19D6F2);
+  static const activeBorderRed = Color(0xFFFF3E4D);
 
   // Cards / Yellow / Red
   static const yellowCard = warning;

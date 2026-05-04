@@ -4,7 +4,10 @@ import 'colors.dart';
 import 'radii.dart';
 import 'typography.dart';
 
-/// FANZONE theme aligned to the original design reference.
+/// FANZONE theme — dark sports-gaming aesthetic.
+///
+/// Cyan primary actions, orange FET accents, red live states.
+/// Large rounded cards, pill CTAs, bold typography.
 abstract final class FzTheme {
   // ════════════════════════════════════════════
   // DARK THEME (only supported app appearance)
@@ -21,14 +24,18 @@ abstract final class FzTheme {
 
       // AppBar
       appBarTheme: AppBarTheme(
-        backgroundColor: FzColors.darkSurface,
+        backgroundColor: FzColors.darkBg,
         foregroundColor: FzColors.darkText,
         elevation: 0,
-        scrolledUnderElevation: 0.5,
+        scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         titleTextStyle: textTheme.titleMedium,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarBrightness: Brightness.dark,
+          statusBarIconBrightness: Brightness.light,
+          systemNavigationBarColor: FzColors.darkBg,
+        ),
       ),
 
       // Bottom Navigation
@@ -38,11 +45,11 @@ abstract final class FzTheme {
         unselectedItemColor: FzColors.darkMuted,
         type: BottomNavigationBarType.fixed,
         selectedLabelStyle: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: FontWeight.w700,
         ),
         elevation: 0,
@@ -86,41 +93,58 @@ abstract final class FzTheme {
         shape: const RoundedRectangleBorder(
           borderRadius: FzRadii.compactRadius,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       ),
 
+      // Filled Button — cyan pill CTA
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: FzColors.action,
+          backgroundColor: FzColors.accent,
           foregroundColor: FzColors.onAction,
-          disabledBackgroundColor: FzColors.action.withValues(alpha: 0.35),
+          disabledBackgroundColor: FzColors.accent.withValues(alpha: 0.35),
           disabledForegroundColor: FzColors.onAction.withValues(alpha: 0.7),
-          minimumSize: const Size(64, 48),
+          minimumSize: const Size(64, 56),
           shape: const RoundedRectangleBorder(
-            borderRadius: FzRadii.compactRadius,
+            borderRadius: FzRadii.fullRadius,
+          ),
+          textStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ),
 
+      // Elevated Button — cyan pill
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: FzColors.action,
+          backgroundColor: FzColors.accent,
           foregroundColor: FzColors.onAction,
-          disabledBackgroundColor: FzColors.action.withValues(alpha: 0.35),
+          disabledBackgroundColor: FzColors.accent.withValues(alpha: 0.35),
           disabledForegroundColor: FzColors.onAction.withValues(alpha: 0.7),
-          minimumSize: const Size(64, 48),
+          minimumSize: const Size(64, 56),
           shape: const RoundedRectangleBorder(
-            borderRadius: FzRadii.compactRadius,
+            borderRadius: FzRadii.fullRadius,
           ),
+          textStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+          ),
+          elevation: 0,
         ),
       ),
+
+      // Outlined Button
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: FzColors.darkText,
           side: const BorderSide(color: FzColors.darkBorder),
-          minimumSize: const Size(64, 48),
+          minimumSize: const Size(64, 56),
           shape: const RoundedRectangleBorder(
-            borderRadius: FzRadii.compactRadius,
+            borderRadius: FzRadii.fullRadius,
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ),
@@ -134,13 +158,13 @@ abstract final class FzTheme {
         ),
       ),
 
-      // Bottom Sheet
+      // Bottom Sheet — large rounded top corners
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: FzColors.darkSurface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(FzRadii.card), // 24px = rounded-t-3xl
+            top: Radius.circular(FzRadii.bottomSheet),
           ),
         ),
       ),
@@ -150,15 +174,15 @@ abstract final class FzTheme {
         filled: true,
         fillColor: FzColors.darkSurface2,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(FzRadii.button),
           borderSide: const BorderSide(color: FzColors.darkBorder),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(FzRadii.button),
           borderSide: const BorderSide(color: FzColors.darkBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(FzRadii.button),
           borderSide: const BorderSide(color: FzColors.accent, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
@@ -175,7 +199,9 @@ abstract final class FzTheme {
           color: FzColors.darkText,
         ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(FzRadii.button),
+        ),
       ),
 
       // Progress
@@ -190,7 +216,6 @@ abstract final class FzTheme {
 
   // ════════════════════════════════════════════
   // Compatibility guard
-  // Any caller that still requests a light theme is forced onto dark.
   // ════════════════════════════════════════════
   static ThemeData light() => dark();
 }
