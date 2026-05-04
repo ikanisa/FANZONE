@@ -32,7 +32,7 @@ class ProfileDetailsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const ProfileSectionTitle(title: 'Profile details'),
+        const ProfileSectionTitle(title: 'Profile'),
         const SizedBox(height: 8),
         ProfileSectionCard(
           children: [
@@ -99,7 +99,7 @@ class ProfileAccountLinksCard extends StatelessWidget {
             if (showVerifyAction) const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(
               icon: LucideIcons.lock,
-              label: 'Responsible play & privacy',
+              label: 'Privacy',
               onTap: () => context.push('/settings/privacy'),
             ),
             const Divider(height: 0.5, indent: 56),
@@ -113,7 +113,7 @@ class ProfileAccountLinksCard extends StatelessWidget {
             if (showSettings)
               ProfileLinkRow(
                 icon: LucideIcons.settings,
-                label: 'Notification preferences',
+                label: 'Settings',
                 onTap: onSettingsTap,
               ),
             if (showSettings) const Divider(height: 0.5, indent: 56),
@@ -127,7 +127,7 @@ class ProfileAccountLinksCard extends StatelessWidget {
             if (showSignOut)
               ProfileLinkRow(
                 icon: LucideIcons.logOut,
-                label: 'Sign Out',
+                label: 'Sign out',
                 onTap: onSignOut,
                 danger: true,
               ),
@@ -208,7 +208,7 @@ class ProfileLinkRow extends StatelessWidget {
                   if (subtitle != null && subtitle!.isNotEmpty) ...[
                     const SizedBox(height: 3),
                     Text(
-                      subtitle!,
+                      _compactWords(subtitle!, 5),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -228,6 +228,11 @@ class ProfileLinkRow extends StatelessWidget {
       ),
     );
   }
+}
+
+String _compactWords(String value, int maxWords) {
+  final words = value.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+  return words.take(maxWords).join(' ');
 }
 
 class ProfileSectionTitle extends StatelessWidget {

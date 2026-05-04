@@ -55,9 +55,7 @@ class PoolDetailScreen extends ConsumerWidget {
 
     await showFzInviteFriendsSheet(
       context,
-      title: inviteCreated
-          ? 'Creator invite ready for ${pool.title}.'
-          : 'Share ${pool.title} with your friends.',
+      title: inviteCreated ? 'Invite ready' : 'Share pool',
       shareUrl: absoluteUrl,
       onShare: () async {
         try {
@@ -85,7 +83,7 @@ class PoolDetailScreen extends ConsumerWidget {
   ) {
     return showFzWinnerCelebrationSheet(
       context,
-      title: '${pool.title} settled with your entry rewarded.',
+      title: 'Reward ready',
       amountFet: entry.payoutFet,
       onOpenWallet: () {
         if (context.mounted) context.push('/wallet');
@@ -106,16 +104,13 @@ class PoolDetailScreen extends ConsumerWidget {
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
                 children: [
-                  const FzBackHeader(
-                    title: 'Pool Detail',
-                    subtitle: 'Arena entry and settlement',
-                  ),
+                  const FzBackHeader(title: 'Pool', subtitle: 'Entry'),
                   const SizedBox(height: 48),
                   StateView.empty(
                     title: 'Pool not found',
-                    subtitle: 'Open Pools to choose another match pool.',
+                    subtitle: 'Choose another.',
                     action: () => context.go('/pools'),
-                    actionLabel: 'Open Pools',
+                    actionLabel: 'Pools',
                   ),
                 ],
               );
@@ -130,10 +125,7 @@ class PoolDetailScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
                 children: [
-                  const FzBackHeader(
-                    title: 'Pool Detail',
-                    subtitle: 'Arena entry and settlement',
-                  ),
+                  const FzBackHeader(title: 'Pool', subtitle: 'Entry'),
                   const SizedBox(height: 18),
                   _PoolHero(pool: pool),
                   const SizedBox(height: 14),
@@ -157,10 +149,7 @@ class PoolDetailScreen extends ConsumerWidget {
                         const _EntryStateCard(pool: null, entry: null),
                   ),
                   const SizedBox(height: 14),
-                  const FzEligibilityRuleCard(
-                    description:
-                        'Joining is allowed before ordering. Winning FET is paid only with a paid order from the linked bar within 2 hours before start. Different-bar, cancelled, unpaid, or post-start orders do not count.',
-                  ),
+                  const FzEligibilityRuleCard(),
                   const SizedBox(height: 14),
                   _CampsSection(pool: pool),
                   const SizedBox(height: 14),
@@ -176,7 +165,7 @@ class PoolDetailScreen extends ConsumerWidget {
                               ? () => context.push('/pool/${pool.id}/join')
                               : null,
                           icon: const Icon(LucideIcons.trophy, size: 16),
-                          label: const Text('Stake FET'),
+                          label: const Text('Stake'),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -184,7 +173,7 @@ class PoolDetailScreen extends ConsumerWidget {
                         child: OutlinedButton.icon(
                           onPressed: () => _sharePool(context, ref, pool),
                           icon: const Icon(LucideIcons.share2, size: 16),
-                          label: const Text('Share pool'),
+                          label: const Text('Share'),
                         ),
                       ),
                     ],
@@ -247,7 +236,7 @@ class _PoolHero extends StatelessWidget {
             children: [
               _StatusPill(status: pool.status),
               const SizedBox(width: 8),
-              _ScopePill(scope: pool.scope),
+              const _ScopePill(),
             ],
           ),
           const SizedBox(height: 16),
@@ -257,6 +246,14 @@ class _PoolHero extends StatelessWidget {
               size: 34,
               color: Colors.white,
               letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            pool.venueName == null ? 'Bar needed' : pool.venueName!,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 16),
@@ -314,7 +311,7 @@ class _EntryStateCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  entry == null ? 'No entry yet' : 'Your entry is active',
+                  entry == null ? 'No entry' : 'Joined',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
@@ -323,8 +320,8 @@ class _EntryStateCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   entry == null
-                      ? 'Choose a camp and stake FET before the pool locks.'
-                      : '${camp?.label ?? 'Selected camp'} - ${entry!.amountFet} FET staked',
+                      ? 'Pick a camp.'
+                      : '${camp?.label ?? 'Camp'} - ${entry!.amountFet} FET',
                   style: const TextStyle(
                     fontSize: 13,
                     color: FzColors.darkMuted,
@@ -355,7 +352,7 @@ class _EntryStateLoading extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
           SizedBox(width: 12),
-          Text('Checking your entry...'),
+          Text('Checking...'),
         ],
       ),
     );
@@ -397,7 +394,7 @@ class _WinnerRewardCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Winner reward ready',
+                  'Reward ready',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 3),
@@ -435,10 +432,7 @@ class _PoolDetailLoadingState extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
         children: [
-          FzBackHeader(
-            title: 'Pool Detail',
-            subtitle: 'Arena entry and settlement',
-          ),
+          FzBackHeader(title: 'Pool', subtitle: 'Entry'),
           Expanded(child: Center(child: CircularProgressIndicator())),
         ],
       ),
@@ -459,10 +453,7 @@ class _CampsSection extends StatelessWidget {
         const _SectionTitle(title: 'Camps'),
         const SizedBox(height: 10),
         if (pool.camps.isEmpty)
-          const FzCard(
-            padding: EdgeInsets.all(16),
-            child: Text('Pool camps are not published yet.'),
-          )
+          const FzCard(padding: EdgeInsets.all(16), child: Text('No camps.'))
         else
           ...pool.camps.map(
             (camp) => Padding(
@@ -552,9 +543,9 @@ class _LiveTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final steps = [
-      ('Pool opened', true),
-      ('Stakes locked', pool.status == 'locked' || pool.isSettled),
-      ('Settlement posted', pool.isSettled),
+      ('Open', true),
+      ('Locked', pool.status == 'locked' || pool.isSettled),
+      ('Settled', pool.isSettled),
     ];
 
     return FzCard(
@@ -563,7 +554,7 @@ class _LiveTimeline extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionTitle(title: 'Live timeline'),
+          const _SectionTitle(title: 'Timeline'),
           const SizedBox(height: 14),
           for (final step in steps)
             Padding(
@@ -621,8 +612,8 @@ class _SettlementCard extends StatelessWidget {
           Expanded(
             child: Text(
               pool.isSettled
-                  ? 'Settlement result: ${winner?.label ?? 'posted'}.'
-                  : 'Settlement posts after the official result is confirmed.',
+                  ? 'Winner: ${winner?.label ?? 'posted'}'
+                  : 'Awaiting result',
               style: const TextStyle(fontSize: 13, height: 1.4),
             ),
           ),
@@ -721,9 +712,7 @@ class _StatusPill extends StatelessWidget {
 }
 
 class _ScopePill extends StatelessWidget {
-  const _ScopePill({required this.scope});
-
-  final String scope;
+  const _ScopePill();
 
   @override
   Widget build(BuildContext context) {
@@ -733,9 +722,9 @@ class _ScopePill extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.12),
         borderRadius: FzRadii.fullRadius,
       ),
-      child: Text(
-        '$scope pool'.toUpperCase(),
-        style: const TextStyle(
+      child: const Text(
+        'BAR POOL',
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w900,
           color: Colors.white,

@@ -51,14 +51,13 @@ class _NoVenueState extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
       children: [
-        const FzReferenceHeader(title: 'Sports Elite'),
+        const FzReferenceHeader(title: 'FZ'),
         const SizedBox(height: 24),
         FzEmptyState(
           title: 'Scan a table QR',
-          description:
-              'Your venue, table, menu, cart, payment guidance, and FET rewards appear here as soon as you scan or select a FANZONE bar.',
+          description: 'Scan or pick bar.',
           icon: const Icon(LucideIcons.qrCode),
-          actionLabel: 'Browse Venues',
+          actionLabel: 'Bars',
           onAction: () => context.go('/venues'),
         ),
       ],
@@ -90,9 +89,7 @@ class _BarContent extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    const Expanded(
-                      child: FzReferenceHeader(title: 'Sports Elite'),
-                    ),
+                    const Expanded(child: FzReferenceHeader(title: 'FZ')),
                     IconButton(
                       tooltip: 'Leave venue',
                       onPressed: () {
@@ -106,7 +103,7 @@ class _BarContent extends ConsumerWidget {
                 ),
                 const SizedBox(height: 22),
                 Text(
-                  'Order to Play',
+                  'Menu',
                   style: FzTypography.display(
                     size: 38,
                     color: FzColors.darkText,
@@ -114,7 +111,7 @@ class _BarContent extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Order at the bar, earn FET after staff confirmation, and unlock the Arena.',
+                  'Order unlocks rewards.',
                   style: TextStyle(
                     color: FzColors.darkMuted,
                     fontWeight: FontWeight.w700,
@@ -136,8 +133,7 @@ class _BarContent extends ConsumerWidget {
                   hasScrollBody: false,
                   child: StateView.empty(
                     title: 'Menu unavailable',
-                    subtitle:
-                        'Ask venue staff to confirm today\'s menu and publish available items from the venue console.',
+                    subtitle: 'Ask staff.',
                     icon: LucideIcons.utensils,
                   ),
                 );
@@ -217,7 +213,7 @@ class _VenueContextCard extends ConsumerWidget {
                           ? 'Table ${venueContext.table!.tableNumber}'
                           : venueContext.tableNumber != null
                           ? 'Table ${venueContext.tableNumber}'
-                          : 'Ask staff to confirm your table',
+                          : 'Ask staff',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -239,7 +235,7 @@ class _VenueContextCard extends ConsumerWidget {
               const SizedBox(width: 10),
               _ContextMetric(
                 label: 'Earn',
-                value: cart.isEmpty ? 'Add items' : '${cart.estimatedFet} FET',
+                value: cart.isEmpty ? 'Add' : '${cart.estimatedFet} FET',
               ),
             ],
           ),
@@ -247,20 +243,18 @@ class _VenueContextCard extends ConsumerWidget {
           activeOrdersAsync.when(
             data: (orders) => _StatusStrip(
               icon: orders.isEmpty ? LucideIcons.receipt : LucideIcons.timer,
-              label: 'Order status',
-              value: orders.isEmpty
-                  ? 'Place an order to track it here.'
-                  : 'Tap the live status pill for your latest order.',
+              label: 'Status',
+              value: orders.isEmpty ? 'No orders.' : 'Track live.',
             ),
             loading: () => const _StatusStrip(
               icon: LucideIcons.timer,
-              label: 'Order status',
-              value: 'Checking active orders...',
+              label: 'Status',
+              value: 'Checking...',
             ),
             error: (_, _) => const _StatusStrip(
               icon: LucideIcons.alertCircle,
-              label: 'Order status',
-              value: 'Pull to refresh order status.',
+              label: 'Status',
+              value: 'Refresh.',
             ),
           ),
         ],
@@ -356,7 +350,7 @@ class _PaymentGuidanceCard extends StatelessWidget {
           SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Pay the venue directly by cash or supported local handoff. FET is earned after staff confirms the order payment.',
+              'Staff confirms rewards.',
               style: TextStyle(fontSize: 13, height: 1.4),
             ),
           ),
@@ -452,7 +446,7 @@ class _MenuItemCard extends ConsumerWidget {
                     borderRadius: FzRadii.fullRadius,
                   ),
                   child: Text(
-                    estimatedFet > 0 ? '+$estimatedFet FET' : 'Earn FET',
+                    estimatedFet > 0 ? '+$estimatedFet FET' : 'FET',
                     style: const TextStyle(
                       color: FzColors.darkBg,
                       fontSize: 12,
@@ -481,8 +475,8 @@ class _MenuItemCard extends ConsumerWidget {
                       ),
                       if (item.description != null)
                         Text(
-                          item.description!,
-                          maxLines: 2,
+                          _compactWords(item.description!, 5),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 13,
@@ -517,9 +511,7 @@ class _MenuItemCard extends ConsumerWidget {
                               ),
                             ),
                             child: Text(
-                              estimatedFet > 0
-                                  ? 'Earn ~$estimatedFet FET'
-                                  : 'Earn FET',
+                              estimatedFet > 0 ? '~$estimatedFet FET' : 'FET',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w900,
@@ -531,7 +523,7 @@ class _MenuItemCard extends ConsumerWidget {
                       ),
                       const SizedBox(height: 2),
                       const Text(
-                        'Credited after staff confirms payment.',
+                        'After staff confirms.',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -659,7 +651,7 @@ class _CartPill extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Review order',
+                    'Cart',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -701,4 +693,9 @@ int _estimatedFetForItem(MenuItemModel item) {
   if (item.currencyCode == 'EUR') return (item.price * 100).floor();
   if (item.currencyCode == 'RWF') return ((item.price / 1500) * 100).floor();
   return 0;
+}
+
+String _compactWords(String value, int maxWords) {
+  final words = value.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+  return words.take(maxWords).join(' ');
 }

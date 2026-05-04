@@ -31,8 +31,8 @@ class MatchDetailScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
                 children: [
                   const FzBackHeader(
-                    title: 'Match Pools',
-                    subtitle: 'Arena entries for this fixture',
+                    title: 'MATCH',
+                    subtitle: 'Pools for this fixture',
                   ),
                   const SizedBox(height: 48),
                   StateView.empty(
@@ -91,9 +91,10 @@ class _MatchHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = match.isLive ? FzColors.danger : FzColors.accent;
+    final statusColor = match.isLive ? FzColors.danger : FzColors.cyan;
     return FzCard(
       padding: const EdgeInsets.all(18),
+      borderColor: match.isLive ? FzColors.activeBorderRed : null,
       child: Column(
         children: [
           Row(
@@ -117,7 +118,8 @@ class _MatchHeroCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
                   match.scoreDisplay ?? 'VS',
-                  style: FzTypography.scoreLarge(
+                  style: FzTypography.heroScore(
+                    size: match.isLive ? 48 : 36,
                     color: match.isLive ? FzColors.danger : FzColors.darkText,
                   ),
                 ),
@@ -151,7 +153,7 @@ class _HeroTeam extends StatelessWidget {
           ? CrossAxisAlignment.end
           : CrossAxisAlignment.start,
       children: [
-        TeamCrest(label: name, crestUrl: logoUrl, size: 46),
+        TeamCrest(label: name, crestUrl: logoUrl, size: 52),
         const SizedBox(height: 10),
         Text(
           name,
@@ -177,8 +179,8 @@ class _MatchPoolsLoadingState extends StatelessWidget {
       child: Column(
         children: [
           FzBackHeader(
-            title: 'Match Pools',
-            subtitle: 'Arena entries for this fixture',
+            title: 'MATCH',
+            subtitle: 'Pools for this fixture',
           ),
           Expanded(child: Center(child: CircularProgressIndicator())),
         ],
@@ -269,9 +271,9 @@ class _MatchPoolsList extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Available pools',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+            Text(
+              'OPEN POOLS',
+              style: FzTypography.sportsTitle(size: 22, color: FzColors.darkText),
             ),
             const SizedBox(height: 10),
             ...pools.map(

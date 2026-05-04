@@ -19,7 +19,7 @@ class OnboardingPhoneStep extends StatelessWidget {
     required this.selectedCountry,
     this.onGuest,
     this.guestLoading = false,
-    this.buttonLabel = 'SEND OTP',
+    this.buttonLabel = 'Send OTP',
   });
 
   final Color textColor;
@@ -46,13 +46,13 @@ class OnboardingPhoneStep extends StatelessWidget {
             OnboardingBackButtonRow(onBack: onBack),
             const Spacer(),
             OnboardingSectionTitle(
-              title: 'WHATSAPP LOGIN',
+              title: 'WHATSAPP',
               textColor: textColor,
               size: 34,
             ),
             const SizedBox(height: 10),
             Text(
-              'We\'ll send you an OTP via WhatsApp. No names or emails required.',
+              'No name needed.',
               style: TextStyle(fontSize: 14, color: muted, height: 1.45),
             ),
             const SizedBox(height: 28),
@@ -143,7 +143,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                 child: TextButton(
                   onPressed: guestLoading ? null : onGuest,
                   child: Text(
-                    guestLoading ? 'Loading...' : 'Continue as Guest',
+                    guestLoading ? 'Loading...' : 'Guest',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -172,7 +172,7 @@ class OnboardingOtpStep extends StatelessWidget {
     required this.canVerify,
     required this.onBack,
     required this.onNext,
-    this.buttonLabel = 'VERIFY CODE',
+    this.buttonLabel = 'Verify',
   });
 
   final Color textColor;
@@ -196,10 +196,10 @@ class OnboardingOtpStep extends StatelessWidget {
           children: [
             OnboardingBackButtonRow(onBack: onBack),
             const Spacer(),
-            OnboardingSectionTitle(title: 'VERIFY OTP', textColor: textColor),
+            OnboardingSectionTitle(title: 'OTP', textColor: textColor),
             const SizedBox(height: 8),
             Text(
-              'Enter the 6-digit code sent to your WhatsApp.',
+              '6-digit code.',
               style: TextStyle(fontSize: 14, color: muted, height: 1.45),
             ),
             const SizedBox(height: 24),

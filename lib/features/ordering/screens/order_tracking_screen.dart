@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../design_system/design_system.dart';
 import '../../../theme/colors.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
@@ -27,17 +28,14 @@ class OrderTrackingScreen extends ConsumerWidget {
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
                 children: [
-                  const FzBackHeader(
-                    title: 'Order Status',
-                    subtitle: 'Venue confirmation and FET reward',
-                  ),
+                  const FzBackHeader(title: 'Order', subtitle: 'FET reward'),
                   const SizedBox(height: 48),
                   StateView.empty(
                     title: 'Order not found',
-                    subtitle: 'We couldn\'t find that order record.',
+                    subtitle: 'Not found.',
                     icon: LucideIcons.receipt,
                     action: () => context.go('/orders'),
-                    actionLabel: 'Open Orders',
+                    actionLabel: 'Orders',
                   ),
                 ],
               );
@@ -48,10 +46,7 @@ class OrderTrackingScreen extends ConsumerWidget {
           error: (e, _) => ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
             children: [
-              const FzBackHeader(
-                title: 'Order Status',
-                subtitle: 'Venue confirmation and FET reward',
-              ),
+              const FzBackHeader(title: 'Order', subtitle: 'FET reward'),
               const SizedBox(height: 48),
               StateView.error(
                 subtitle: e.toString(),
@@ -65,48 +60,32 @@ class OrderTrackingScreen extends ConsumerWidget {
   }
 }
 
-class _TrackingContent extends StatelessWidget {
+class _TrackingContent extends ConsumerWidget {
   const _TrackingContent({required this.order});
 
   final OrderModel order;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
       children: [
-        const FzBackHeader(
-          title: 'Order Status',
-          subtitle: 'Venue confirmation and FET reward',
-        ),
+        const FzBackHeader(title: 'Order', subtitle: 'FET reward'),
         const SizedBox(height: 18),
         _FetEarnedCard(order: order),
         const SizedBox(height: 18),
         _StatusTimeline(status: order.status),
         const SizedBox(height: 18),
-        _PaymentStatusCard(status: order.paymentStatus),
+        _PaymentStatusCard(order: order),
         const SizedBox(height: 28),
-        const Text(
-          'ORDER DETAILS',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            letterSpacing: 1,
-          ),
-        ),
+        Text('DETAILS', style: AppTypography.status(color: AppColors.muted)),
         const SizedBox(height: 16),
         FzCard(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Order #${order.orderCode}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                ),
-              ),
+              Text('Order #${order.orderCode}', style: AppTypography.cardTitle),
               const Divider(height: 32),
               ...order.items
                       ?.map(
@@ -124,7 +103,7 @@ class _TrackingContent extends StatelessWidget {
                                 child: Center(
                                   child: Text(
                                     '${item.quantity}',
-                                    style: const TextStyle(
+                                    style: AppTypography.label.copyWith(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                       color: FzColors.accent,
@@ -136,14 +115,14 @@ class _TrackingContent extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   item.itemNameSnapshot,
-                                  style: const TextStyle(fontSize: 15),
+                                  style: AppTypography.body.copyWith(
+                                    fontSize: 15,
+                                  ),
                                 ),
                               ),
                               Text(
                                 item.lineTotalDisplay,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: AppTypography.label,
                               ),
                             ],
                           ),
@@ -155,14 +134,10 @@ class _TrackingContent extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Total',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  const Text('Total', style: AppTypography.label),
                   Text(
                     order.totalDisplay,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
+                    style: AppTypography.cardTitle.copyWith(
                       fontSize: 18,
                       color: FzColors.accent,
                     ),
@@ -173,10 +148,11 @@ class _TrackingContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 18),
-        OutlinedButton.icon(
+        AppButton(
           onPressed: () => context.push('/order/${order.id}/receipt'),
-          icon: const Icon(LucideIcons.receipt, size: 16),
-          label: const Text('View Receipt'),
+          icon: LucideIcons.receipt,
+          label: 'Receipt',
+          variant: AppButtonVariant.secondary,
         ),
       ],
     );
@@ -192,10 +168,7 @@ class _OrderTrackingLoadingState extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
         children: [
-          FzBackHeader(
-            title: 'Order Status',
-            subtitle: 'Venue confirmation and FET reward',
-          ),
+          FzBackHeader(title: 'Order', subtitle: 'FET reward'),
           Expanded(child: Center(child: CircularProgressIndicator())),
         ],
       ),
@@ -218,33 +191,23 @@ class _FetEarnedCard extends StatelessWidget {
           const Row(
             children: [
               Icon(LucideIcons.coins, color: FzColors.success),
-              SizedBox(width: 10),
-              Text(
-                'FET Earned',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-              ),
+              SizedBox(width: AppSpacing.md),
+              Text('FET', style: AppTypography.cardTitle),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Text(
             '+${order.earnedFetDisplayAmount} FET',
-            style: const TextStyle(
-              color: FzColors.success,
-              fontSize: 34,
-              fontWeight: FontWeight.w900,
-            ),
+            style: AppTypography.metric(size: 38, color: FzColors.success),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             order.paymentStatus.isPaid
                 ? (order.earnedFetDisplayAmount > 0
-                      ? 'Credited through the wallet ledger.'
-                      : 'No FET reward is configured for this order.')
-                : 'Pending until venue staff confirm payment.',
-            style: const TextStyle(
-              color: FzColors.darkMuted,
-              fontWeight: FontWeight.w700,
-            ),
+                      ? 'Credited.'
+                      : 'No reward.')
+                : 'Awaiting venue.',
+            style: AppTypography.secondary.copyWith(color: AppColors.muted),
           ),
         ],
       ),
@@ -263,7 +226,7 @@ class _StatusTimeline extends StatelessWidget {
       children: [
         _TimelineItem(
           label: 'Received',
-          subtitle: 'The venue has the order request',
+          subtitle: 'Venue received.',
           icon: LucideIcons.checkCircle2,
           isActive: true,
           isCompleted:
@@ -277,7 +240,7 @@ class _StatusTimeline extends StatelessWidget {
         ),
         _TimelineItem(
           label: 'Preparing',
-          subtitle: 'The kitchen is preparing your order',
+          subtitle: 'Kitchen active.',
           icon: LucideIcons.loader,
           isActive: status == OrderStatus.preparing,
           isCompleted:
@@ -286,7 +249,7 @@ class _StatusTimeline extends StatelessWidget {
         _TimelineConnector(isActive: status == OrderStatus.served),
         _TimelineItem(
           label: 'Served',
-          subtitle: 'Venue staff marked the order served',
+          subtitle: 'Served.',
           icon: LucideIcons.badgeCheck,
           isActive: status == OrderStatus.served,
           isCompleted: status == OrderStatus.served,
@@ -296,7 +259,7 @@ class _StatusTimeline extends StatelessWidget {
           const _TimelineConnector(isActive: true),
           const _TimelineItem(
             label: 'Cancelled',
-            subtitle: 'The venue cancelled this order',
+            subtitle: 'Cancelled.',
             icon: LucideIcons.xCircle,
             isActive: true,
             isCompleted: true,
@@ -308,13 +271,39 @@ class _StatusTimeline extends StatelessWidget {
   }
 }
 
-class _PaymentStatusCard extends StatelessWidget {
-  const _PaymentStatusCard({required this.status});
+class _PaymentStatusCard extends ConsumerStatefulWidget {
+  const _PaymentStatusCard({required this.order});
 
-  final PaymentStatus status;
+  final OrderModel order;
+
+  @override
+  ConsumerState<_PaymentStatusCard> createState() => _PaymentStatusCardState();
+}
+
+class _PaymentStatusCardState extends ConsumerState<_PaymentStatusCard> {
+  bool _submitting = false;
+
+  Future<void> _submitPayment() async {
+    setState(() => _submitting = true);
+    try {
+      await submitPaymentForOrder(ref, widget.order);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Awaiting venue.')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment submission failed: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final status = widget.order.paymentStatus;
     final color = switch (status) {
       PaymentStatus.paid => FzColors.success,
       PaymentStatus.paymentSubmitted => FzColors.warning,
@@ -325,37 +314,72 @@ class _PaymentStatusCard extends StatelessWidget {
       PaymentStatus.unpaid ||
       PaymentStatus.cancelled => FzColors.darkMuted,
     };
+    final canSubmit = canSubmitPaymentForOrder(widget.order);
 
     return FzCard(
       padding: const EdgeInsets.all(16),
-      child: Row(
+      child: Column(
         children: [
-          Icon(LucideIcons.creditCard, color: color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Payment status',
-                  style: TextStyle(fontSize: 12, color: FzColors.darkMuted),
+          Row(
+            children: [
+              Icon(LucideIcons.creditCard, color: color),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payment',
+                      style: AppTypography.status(color: AppColors.muted),
+                    ),
+                    const SizedBox(height: AppSpacing.xs / 2),
+                    Text(
+                      status.label,
+                      style: AppTypography.cardTitle.copyWith(color: color),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  status.label,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: color,
-                    fontWeight: FontWeight.w900,
-                  ),
+              ),
+              AppStatusPill(status: status.name, label: 'Manual'),
+            ],
+          ),
+          if (canSubmit) ...[
+            const SizedBox(height: AppSpacing.lg),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _submitting ? null : _submitPayment,
+                icon: _submitting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(LucideIcons.checkCircle2, size: 16),
+                label: const Text('I paid'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-              ],
+              ),
             ),
-          ),
-          const Text(
-            'Manual confirmation',
-            style: TextStyle(fontSize: 12, color: FzColors.darkMuted),
-          ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Staff confirms rewards.',
+              style: AppTypography.secondary.copyWith(color: AppColors.muted),
+            ),
+          ] else if (status == PaymentStatus.paymentSubmitted) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Awaiting venue.',
+              style: AppTypography.secondary.copyWith(color: AppColors.muted),
+            ),
+          ] else if (status == PaymentStatus.paid) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Paid.',
+              style: AppTypography.secondary.copyWith(color: AppColors.muted),
+            ),
+          ],
         ],
       ),
     );

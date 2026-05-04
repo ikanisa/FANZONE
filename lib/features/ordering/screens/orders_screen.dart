@@ -30,15 +30,15 @@ class OrdersScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
             children: [
-              const FzReferenceHeader(title: 'Sports Elite'),
+              const FzReferenceHeader(title: 'FZ'),
               const SizedBox(height: 24),
               Text(
-                'Orders',
-                style: FzTypography.display(size: 38, color: FzColors.darkText),
+                'ORDERS',
+                style: FzTypography.sportsTitle(size: 38, color: FzColors.darkText),
               ),
               const SizedBox(height: 8),
               const Text(
-                'Track venue orders, payment confirmation, receipts, and FET impact.',
+                'Orders and FET.',
                 style: TextStyle(
                   color: FzColors.darkMuted,
                   fontWeight: FontWeight.w700,
@@ -49,11 +49,10 @@ class OrdersScreen extends ConsumerWidget {
                 data: (orders) {
                   if (orders.isEmpty) {
                     return FzEmptyState(
-                      title: 'No orders yet',
-                      description:
-                          'Open a venue menu and place an order to start earning FET.',
+                      title: 'No orders',
+                      description: 'Start ordering.',
                       icon: const Icon(LucideIcons.receipt),
-                      actionLabel: 'Browse Venues',
+                      actionLabel: 'Bars',
                       onAction: () => context.go('/venues'),
                     );
                   }
@@ -181,7 +180,7 @@ class _OrderCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: FzMetricTile(
-                  label: 'FET Earned',
+                  label: 'FET',
                   value: '+${order.earnedFetDisplayAmount}',
                   color: FzColors.success,
                 ),

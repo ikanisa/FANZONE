@@ -67,9 +67,8 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
     if (!isVerified) {
       await showSignInRequiredSheet(
         context,
-        title: 'Verify WhatsApp to create pools',
-        message:
-            'Verify your WhatsApp number before creating and sharing Arena pools.',
+        title: 'Verify WhatsApp',
+        message: 'Unlock create.',
         from: '/pools/create',
       );
       return;
@@ -84,15 +83,15 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
         : _titleController.text.trim();
 
     if (match == null) {
-      setState(() => _error = 'Select a match before creating the pool.');
+      setState(() => _error = 'Pick match.');
       return;
     }
     if (minStake <= 0 || maxStake < minStake) {
-      setState(() => _error = 'Use a valid FET stake range.');
+      setState(() => _error = 'Invalid stake.');
       return;
     }
     if (!venueContext.hasVenue) {
-      setState(() => _error = 'Choose or scan a bar before creating a pool.');
+      setState(() => _error = 'Bar needed.');
       return;
     }
 
@@ -143,9 +142,8 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
           data: (matches) {
             if (matches.isEmpty) {
               return StateView.empty(
-                title: 'No matches available',
-                subtitle:
-                    'Create pools when curated upcoming matches are available.',
+                title: 'No matches',
+                subtitle: 'Check soon.',
                 icon: LucideIcons.calendar,
                 action: () => ref.invalidate(matchesProvider(filter)),
                 actionLabel: 'Refresh',
@@ -160,7 +158,7 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
                   child: FzBackHeader(
-                    title: 'Create Pool',
+                    title: 'Create',
                     subtitle: 'Step ${(_step + 1).clamp(1, 4)} of 4',
                     onClose: () => context.go('/pools'),
                   ),
@@ -224,14 +222,11 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
                         }),
                   onNext: () {
                     if (_step == 0 && selected == null) {
-                      setState(() => _error = 'Select a match to continue.');
+                      setState(() => _error = 'Pick match.');
                       return;
                     }
                     if (_step == 1 && !venueContext.hasVenue) {
-                      setState(
-                        () => _error =
-                            'Choose or scan a bar before creating a pool.',
-                      );
+                      setState(() => _error = 'Bar needed.');
                       return;
                     }
                     if (_step == 2) {
@@ -338,12 +333,12 @@ class _SelectMatchStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Select Match',
+          'Match',
           style: FzTypography.display(size: 36, color: FzColors.darkText),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Pick the fixture that anchors your Arena pool.',
+          'Pick fixture.',
           style: TextStyle(
             color: FzColors.darkMuted,
             fontWeight: FontWeight.w700,
@@ -354,7 +349,7 @@ class _SelectMatchStep extends StatelessWidget {
           controller: controller,
           onChanged: onQuery,
           decoration: InputDecoration(
-            hintText: 'Search matches',
+            hintText: 'Search',
             prefixIcon: const Icon(LucideIcons.search),
             suffixIcon: query.isEmpty
                 ? null
@@ -479,12 +474,12 @@ class _TermsStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Set the Terms',
+          'Terms',
           style: FzTypography.display(size: 36, color: FzColors.darkText),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Choose the linked bar and the FET stake range.',
+          'Bar and stake.',
           style: TextStyle(
             color: FzColors.darkMuted,
             fontWeight: FontWeight.w700,
@@ -495,7 +490,7 @@ class _TermsStep extends StatelessWidget {
           children: [
             Expanded(
               child: _ScopeCard(
-                label: venueContext.hasVenue ? 'This Bar' : 'Choose Bar',
+                label: venueContext.hasVenue ? 'This Bar' : 'Pick Bar',
                 icon: LucideIcons.mapPin,
                 selected: scope == 'venue' && venueContext.hasVenue,
                 onTap: () => onScope('venue'),
@@ -515,7 +510,7 @@ class _TermsStep extends StatelessWidget {
                 child: Text(
                   venueContext.hasVenue
                       ? venueContext.venue!.name
-                      : 'No bar linked. Browse venues before creating a pool.',
+                      : 'Bar needed.',
                   style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
@@ -549,12 +544,7 @@ class _TermsStep extends StatelessWidget {
             children: [
               Icon(LucideIcons.shieldCheck, color: FzColors.success),
               SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'FET is reserved only through the production pool ledger after a fan confirms entry.',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
+              Expanded(child: Text('Ledger reserves FET.')),
             ],
           ),
         ),
@@ -633,12 +623,12 @@ class _ReviewStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Review Pool',
+          'Review',
           style: FzTypography.display(size: 36, color: FzColors.darkText),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Confirm the room before creating invites.',
+          'Confirm room.',
           style: TextStyle(
             color: FzColors.darkMuted,
             fontWeight: FontWeight.w700,
@@ -649,7 +639,7 @@ class _ReviewStep extends StatelessWidget {
           controller: titleController,
           maxLength: 80,
           decoration: const InputDecoration(
-            labelText: 'Pool title',
+            labelText: 'Title',
             hintText: 'Derby night room',
             counterText: '',
           ),
@@ -663,13 +653,13 @@ class _ReviewStep extends StatelessWidget {
             children: [
               Text(
                 match == null
-                    ? 'No match selected'
+                    ? 'No match'
                     : '${match!.homeTeam} vs ${match!.awayTeam}',
                 style: FzTypography.display(size: 25, color: FzColors.darkText),
               ),
               const SizedBox(height: 8),
               Text(
-                match?.competitionName ?? 'Match room',
+                match?.competitionName ?? 'Room',
                 style: const TextStyle(
                   color: FzColors.darkMuted,
                   fontWeight: FontWeight.w700,
@@ -686,18 +676,12 @@ class _ReviewStep extends StatelessWidget {
             children: [
               _ReviewRow(
                 label: 'Host',
-                value: venueContext.venue?.name ?? 'Choose a bar',
+                value: venueContext.venue?.name ?? 'Pick bar',
               ),
               const Divider(height: 24),
-              _ReviewRow(
-                label: 'Stake range',
-                value: '$minStake-$maxStake FET',
-              ),
+              _ReviewRow(label: 'Stake', value: '$minStake-$maxStake FET'),
               const Divider(height: 24),
-              const _ReviewRow(
-                label: 'Invites',
-                value: 'Generated after create',
-              ),
+              const _ReviewRow(label: 'Invites', value: 'After create'),
             ],
           ),
         ),
@@ -759,12 +743,12 @@ class _CreatedStep extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         Text(
-          'Pool Created',
+          'Created',
           style: FzTypography.display(size: 36, color: FzColors.darkText),
         ),
         const SizedBox(height: 10),
         const Text(
-          'Your Arena room is live. Share the invite or open the pool detail.',
+          'Room is live.',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: FzColors.darkMuted,
@@ -810,10 +794,10 @@ class _WizardFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = switch (step) {
-      0 => 'Set Terms',
+      0 => 'Terms',
       1 => 'Review',
-      2 => submitting ? 'Creating...' : 'Create & Generate Invites',
-      _ => 'Open Pool',
+      2 => submitting ? 'Creating...' : 'Create',
+      _ => 'Open',
     };
 
     return SafeArea(

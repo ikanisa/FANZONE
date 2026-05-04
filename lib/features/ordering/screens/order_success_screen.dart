@@ -26,8 +26,8 @@ class OrderSuccessScreen extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
           children: [
             FzBackHeader(
-              title: 'Order Received',
-              subtitle: 'Venue confirmation pending',
+              title: 'Order',
+              subtitle: 'Awaiting venue',
               onClose: () => context.go('/orders'),
             ),
             const SizedBox(height: 18),
@@ -45,9 +45,7 @@ class OrderSuccessScreen extends ConsumerWidget {
                 if (order == null) {
                   return const FzCard(
                     padding: EdgeInsets.all(16),
-                    child: Text(
-                      'Order details are syncing. You can still open Orders to track status.',
-                    ),
+                    child: Text('Syncing order.'),
                   );
                 }
                 return _OrderSummaryCard(order: order);
@@ -62,20 +60,30 @@ class OrderSuccessScreen extends ConsumerWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                     SizedBox(width: 12),
-                    Text('Loading order details...'),
+                    Text('Loading...'),
                   ],
                 ),
               ),
-              error: (error, _) => FzCard(
-                padding: const EdgeInsets.all(16),
-                child: Text('Order details are unavailable: $error'),
+              error: (error, _) => const FzCard(
+                padding: EdgeInsets.all(16),
+                child: Text('Order unavailable.'),
               ),
             ),
             const SizedBox(height: 20),
+            orderAsync.when(
+              data: (order) => order != null && canSubmitPaymentForOrder(order)
+                  ? Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _PaymentSubmitCard(order: order),
+                    )
+                  : const SizedBox.shrink(),
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+            ),
             ElevatedButton.icon(
               onPressed: () => context.go('/order/$orderId'),
               icon: const Icon(LucideIcons.mapPin, size: 16),
-              label: const Text('Track Order'),
+              label: const Text('Track'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
@@ -95,7 +103,7 @@ class OrderSuccessScreen extends ConsumerWidget {
                   child: OutlinedButton.icon(
                     onPressed: () => context.go('/venues'),
                     icon: const Icon(LucideIcons.store, size: 16),
-                    label: const Text('Venues'),
+                    label: const Text('Bars'),
                   ),
                 ),
               ],
@@ -153,7 +161,7 @@ class _SuccessHero extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Text(
-            'Order sent to venue',
+            'Order sent',
             style: FzTypography.display(
               size: 32,
               color: Colors.white,
@@ -162,7 +170,7 @@ class _SuccessHero extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Payment stays pending until staff confirm. Your FET reward posts through the wallet ledger after confirmation.',
+            'Awaiting venue.',
             style: TextStyle(
               color: Colors.white70,
               fontSize: 13,
@@ -260,6 +268,81 @@ class _OrderSummaryCard extends StatelessWidget {
               valueColor: FzColors.warning,
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentSubmitCard extends ConsumerStatefulWidget {
+  const _PaymentSubmitCard({required this.order});
+
+  final OrderModel order;
+
+  @override
+  ConsumerState<_PaymentSubmitCard> createState() => _PaymentSubmitCardState();
+}
+
+class _PaymentSubmitCardState extends ConsumerState<_PaymentSubmitCard> {
+  bool _submitting = false;
+
+  Future<void> _submitPayment() async {
+    setState(() => _submitting = true);
+    try {
+      await submitPaymentForOrder(ref, widget.order);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Awaiting venue.')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment submission failed: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FzCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Paid?',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Staff confirms rewards.',
+            style: TextStyle(
+              color: FzColors.darkMuted,
+              fontSize: 12,
+              height: 1.35,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _submitting ? null : _submitPayment,
+              icon: _submitting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(LucideIcons.checkCircle2, size: 16),
+              label: const Text('I paid'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
         ],
       ),
     );

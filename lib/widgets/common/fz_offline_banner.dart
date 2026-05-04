@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/runtime/app_runtime_state.dart';
-import '../../theme/colors.dart';
+import '../../design_system/tokens/app_colors.dart';
+import '../../design_system/tokens/app_spacing.dart';
+import '../../design_system/typography/app_typography.dart';
 
 class FzOfflineBanner extends StatelessWidget {
   const FzOfflineBanner({super.key});
@@ -14,22 +16,28 @@ class FzOfflineBanner extends StatelessWidget {
         if (!isOffline) return const SizedBox.shrink();
 
         return Material(
-          color: FzColors.warning,
+          color: AppColors.warning,
           child: SafeArea(
             bottom: false,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: const Row(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.sm,
+              ),
+              child: Row(
                 children: [
-                  Icon(LucideIcons.wifiOff, size: 14, color: FzColors.darkBg),
-                  SizedBox(width: 8),
+                  const Icon(
+                    LucideIcons.wifiOff,
+                    size: 16,
+                    color: AppColors.background,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
-                      'Offline Mode — viewing cached data',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: FzColors.darkBg,
+                      'Offline mode - viewing cached data',
+                      style: AppTypography.label.copyWith(
+                        fontSize: 13,
+                        color: AppColors.background,
                       ),
                     ),
                   ),

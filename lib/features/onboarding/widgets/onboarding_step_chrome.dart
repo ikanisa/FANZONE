@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../design_system/design_system.dart';
 import '../../../theme/colors.dart';
-import '../../../theme/typography.dart';
 
 class OnboardingBackButtonRow extends StatelessWidget {
   const OnboardingBackButtonRow({super.key, required this.onBack});
@@ -55,23 +55,19 @@ class OnboardingFeatureRow extends StatelessWidget {
           ),
           child: Icon(icon, size: 20, color: FzColors.primary),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: textColor,
-                ),
+                style: AppTypography.label.copyWith(color: textColor),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: AppSpacing.xs / 2),
               Text(
                 description,
-                style: TextStyle(fontSize: 12, color: muted, height: 1.35),
+                style: AppTypography.secondary.copyWith(color: muted),
               ),
             ],
           ),
@@ -102,7 +98,7 @@ class OnboardingPrimaryButton extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: AppSpacing.touchLarge,
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
@@ -128,13 +124,12 @@ class OnboardingPrimaryButton extends StatelessWidget {
               : BorderSide(
                   color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
                 ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppRadii.buttonRadius,
           ),
-          textStyle: const TextStyle(
+          textStyle: AppTypography.label.copyWith(
             fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
+            letterSpacing: 0,
           ),
         ),
         child: Row(
@@ -142,7 +137,7 @@ class OnboardingPrimaryButton extends StatelessWidget {
           children: [
             Text(label),
             if (showChevron) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               const Icon(LucideIcons.chevronRight, size: 18),
             ],
           ],
@@ -170,7 +165,7 @@ class OnboardingSectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: FzTypography.display(size: size, color: textColor),
+      style: AppTypography.display(size: size, color: textColor),
     );
   }
 }

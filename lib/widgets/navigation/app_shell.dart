@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../features/ordering/widgets/live_order_status_pill.dart';
+import '../../design_system/design_system.dart';
 import '../../theme/colors.dart';
+import '../../theme/radii.dart';
 import '../common/fz_offline_banner.dart';
 
 class AppShell extends ConsumerWidget {
@@ -19,9 +20,6 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       extendBody: true,
       resizeToAvoidBottomInset: false,
@@ -46,7 +44,6 @@ class AppShell extends ConsumerWidget {
       bottomNavigationBar: _BottomNavBar(
         navigationShell: navigationShell,
         currentLocation: currentLocation,
-        isDark: isDark,
       ),
     );
   }
@@ -56,12 +53,10 @@ class _BottomNavBar extends ConsumerWidget {
   const _BottomNavBar({
     required this.navigationShell,
     required this.currentLocation,
-    required this.isDark,
   });
 
   final StatefulNavigationShell navigationShell;
   final String currentLocation;
-  final bool isDark;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -69,22 +64,24 @@ class _BottomNavBar extends ConsumerWidget {
 
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      minimum: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
       child: Container(
-        height: 74,
-        padding: const EdgeInsets.all(6),
+        height: 68,
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         decoration: BoxDecoration(
-          color: (isDark ? FzColors.darkSurface : FzColors.lightSurface)
-              .withValues(alpha: 0.94),
-          borderRadius: BorderRadius.circular(26),
-          border: Border.all(
-            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-          ),
+          color: FzColors.darkSurface,
+          borderRadius: FzRadii.heroRadius,
+          border: Border.all(color: FzColors.darkBorder),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.36),
-              blurRadius: 26,
-              offset: const Offset(0, 14),
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
@@ -96,53 +93,40 @@ class _BottomNavBar extends ConsumerWidget {
                 message: item.label,
                 child: InkWell(
                   onTap: () => navigationShell.goBranch(item.branchIndex),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: AppRadii.cardRadius,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     curve: Curves.easeOut,
                     height: double.infinity,
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? FzColors.accent.withValues(alpha: 0.14)
+                          ? FzColors.accent.withValues(alpha: 0.12)
                           : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected
-                            ? FzColors.accent.withValues(alpha: 0.32)
-                            : Colors.transparent,
-                      ),
+                      borderRadius: AppRadii.cardRadius,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        AppSvgIcon(
                           item.icon,
                           color: isSelected
                               ? FzColors.accent
-                              : (isDark
-                                    ? FzColors.darkMuted
-                                    : FzColors.lightMuted),
-                          size: 21,
+                              : FzColors.darkMuted,
+                          size: 22,
                         ),
-                        const SizedBox(height: 3),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
+                        // Only show label for active item
+                        if (isSelected) ...[
+                          const SizedBox(height: 3),
+                          Text(
                             item.label,
                             maxLines: 1,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: isSelected
-                                  ? FontWeight.w900
-                                  : FontWeight.w800,
-                              color: isSelected
-                                  ? FzColors.accent
-                                  : (isDark
-                                        ? FzColors.darkMuted
-                                        : FzColors.lightMuted),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: FzColors.accent,
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
@@ -166,7 +150,7 @@ class NavItem {
   });
 
   final String label;
-  final IconData icon;
+  final AppIconName icon;
   final String route;
   final String keyName;
   final int branchIndex;
@@ -177,35 +161,35 @@ List<NavItem> _getNavItems(WidgetRef ref) {
     NavItem(
       keyName: 'home',
       label: 'Home',
-      icon: LucideIcons.home,
+      icon: AppIconName.home,
       route: '/home',
       branchIndex: 0,
     ),
     NavItem(
       keyName: 'venues',
-      label: 'Venues',
-      icon: LucideIcons.mapPin,
+      label: 'Bars',
+      icon: AppIconName.bars,
       route: '/venues',
       branchIndex: 1,
     ),
     NavItem(
       keyName: 'arena',
-      label: 'Arena',
-      icon: LucideIcons.trophy,
+      label: 'Play',
+      icon: AppIconName.play,
       route: '/pools',
       branchIndex: 2,
     ),
     NavItem(
       keyName: 'orders',
       label: 'Orders',
-      icon: LucideIcons.receipt,
+      icon: AppIconName.orders,
       route: '/orders',
       branchIndex: 3,
     ),
     NavItem(
       keyName: 'wallet',
       label: 'Wallet',
-      icon: LucideIcons.wallet,
+      icon: AppIconName.wallet,
       route: '/wallet',
       branchIndex: 4,
     ),

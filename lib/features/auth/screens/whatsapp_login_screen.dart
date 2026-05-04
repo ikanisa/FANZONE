@@ -80,7 +80,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   Future<void> _sendOtp() async {
     final phone = _fullPhone;
     if (!phone.startsWith('+') || !_isPhoneValid) {
-      setState(() => _error = 'Enter your WhatsApp number with country code.');
+      setState(() => _error = 'Enter WhatsApp number.');
       return;
     }
 
@@ -100,15 +100,13 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         // Auto-focus first OTP field
         _otpFocusNodes[0].requestFocus();
       } else {
-        setState(
-          () => _error = 'Could not send your WhatsApp code. Please try again.',
-        );
+        setState(() => _error = 'Code failed.');
       }
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'Something went wrong. Please try again.');
+        setState(() => _error = 'Try again.');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -118,7 +116,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   Future<void> _verifyOtp() async {
     final otp = _otpControllers.map((c) => c.text).join();
     if (otp.length != 6) {
-      setState(() => _error = 'Enter the complete 6-digit code.');
+      setState(() => _error = 'Enter 6 digits.');
       return;
     }
 
@@ -136,7 +134,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
       if (mounted) setState(() => _error = e.message);
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'Verification failed. Please try again.');
+        setState(() => _error = 'Verify failed.');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -355,9 +353,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _otpSent
-                          ? 'Enter the 6-digit OTP sent to your WhatsApp.'
-                          : 'Verify your number to keep your wallet, orders, and match pools secured. It\'s 100% free.',
+                      _otpSent ? 'Enter 6 digits.' : 'WhatsApp secures access.',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: mutedColor,
@@ -422,8 +418,8 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
     final helperText = _localDigits.isEmpty
         ? '${selectedCountry.countryName} • ${selectedCountry.preset.dialCode} • e.g. ${selectedCountry.preset.hint}'
         : _isPhoneValid
-        ? 'Ready to send your WhatsApp OTP to ${selectedCountry.countryName}.'
-        : 'Add $_remainingDigits more digit${_remainingDigits == 1 ? '' : 's'} for ${selectedCountry.countryName}.';
+        ? 'Ready.'
+        : '$_remainingDigits more digit${_remainingDigits == 1 ? '' : 's'}.';
 
     return Column(
       key: const ValueKey('phone_step'),
@@ -439,7 +435,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'ENTER WHATSAPP NUMBER',
+                'WHATSAPP',
                 style: FzTypography.display(
                   size: 24,
                   color: textColor,
@@ -575,7 +571,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
           ),
         if (statusMessage != null) const SizedBox(height: 14),
         _PrimaryActionButton(
-          label: _loading ? 'SENDING...' : 'SEND CODE VIA WHATSAPP',
+          label: _loading ? 'Sending...' : 'Send OTP',
           onPressed: (_loading || authUnavailable || !_isPhoneValid)
               ? null
               : _sendOtp,
@@ -608,7 +604,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'ENTER OTP',
+                'OTP',
                 style: FzTypography.display(
                   size: 24,
                   color: textColor,
@@ -678,7 +674,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
           ),
         if (statusMessage != null) const SizedBox(height: 14),
         _PrimaryActionButton(
-          label: _loading ? 'VERIFYING...' : 'VERIFY CODE',
+          label: _loading ? 'Verifying...' : 'Verify',
           onPressed: (_loading || authUnavailable) ? null : _verifyOtp,
           color: _verificationAccent,
           textColor: const Color(0xFF061514),
@@ -694,7 +690,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                 child: Text(
                   _resendCooldown > 0
                       ? 'RESEND CODE IN ${_resendCooldown}S'
-                      : 'RESEND OTP',
+                      : 'Resend',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.1,
@@ -712,7 +708,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                 child: TextButton(
                   onPressed: _loading ? null : _goBackToPhone,
                   child: Text(
-                    'Use a different number',
+                    'Change number',
                     maxLines: 1,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: mutedColor,
@@ -727,7 +723,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         const SizedBox(height: 4),
         Center(
           child: Text(
-            'Your number is never shown to others.',
+            'Private number.',
             style: Theme.of(
               context,
             ).textTheme.labelMedium?.copyWith(color: mutedColor),

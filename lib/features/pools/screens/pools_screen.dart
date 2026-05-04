@@ -32,9 +32,8 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
     if (!isVerified) {
       await showSignInRequiredSheet(
         context,
-        title: 'Verify WhatsApp to enter the Arena',
-        message:
-            'Verify your WhatsApp number before joining FANZONE pools and games.',
+        title: 'Verify WhatsApp',
+        message: 'Unlock pools.',
         from: '/pools',
       );
       return;
@@ -70,21 +69,47 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 150),
             children: [
-              const FzReferenceHeader(title: 'Sports Elite'),
+              const FzReferenceHeader(title: 'FZ'),
               const SizedBox(height: 24),
               Text(
-                'ARENA',
-                style: FzTypography.display(size: 42, color: FzColors.darkText),
+                'PLAY',
+                style: FzTypography.sportsTitle(size: 42, color: FzColors.darkText),
               ),
               const SizedBox(height: 8),
               const Text(
-                'Live pools, upcoming rooms, big FET pools, and your entries.',
+                'Pools. Games. FET.',
                 style: TextStyle(
                   color: FzColors.darkMuted,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(LucideIcons.trophy, size: 16),
+                      label: const Text('Pools'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.go('/games'),
+                      icon: const Icon(LucideIcons.gamepad2, size: 16),
+                      label: const Text('Games'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -102,7 +127,7 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
                       onTap: _setFilter,
                     ),
                     _FilterPill(
-                      label: 'Big Pool',
+                      label: 'Big Pot',
                       filter: _ArenaFilter.bigPool,
                       selected: _filter == _ArenaFilter.bigPool,
                       onTap: _setFilter,
@@ -126,8 +151,8 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
                       description: _emptyDescription,
                       icon: const Icon(LucideIcons.trophy),
                       actionLabel: _filter == _ArenaFilter.entries
-                          ? 'Find Pools'
-                          : 'Create Pool',
+                          ? 'Pools'
+                          : 'Create',
                       onAction: _filter == _ArenaFilter.entries
                           ? () => _setFilter(_ArenaFilter.live)
                           : () => context.push('/pools/create'),
@@ -181,29 +206,29 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
           ..sort((a, b) => b.totalStakedFet.compareTo(a.totalStakedFet));
         return sorted.take(20).toList(growable: false);
       case _ArenaFilter.entries:
-        return const <PoolSummary>[];
+        return pools.where((pool) => pool.hasMyEntry).toList(growable: false);
     }
   }
 
   String get _emptyTitle {
     switch (_filter) {
       case _ArenaFilter.entries:
-        return 'No entries yet';
+        return 'No entries';
       case _ArenaFilter.soon:
-        return 'No upcoming rooms';
+        return 'No rooms';
       default:
-        return 'The Arena is quiet';
+        return 'No pools';
     }
   }
 
   String get _emptyDescription {
     switch (_filter) {
       case _ArenaFilter.entries:
-        return 'Join a pool to track your entries, live status, and settlement here.';
+        return 'Join one.';
       case _ArenaFilter.soon:
-        return 'Upcoming pool rooms appear here when a match is about to lock.';
+        return 'Check soon.';
       default:
-        return 'Create a pool or refresh when featured matches go live.';
+        return 'Create one.';
     }
   }
 }
@@ -264,13 +289,13 @@ class _ArenaPoolCard extends StatelessWidget {
               FzPill(
                 label: pool.status.toUpperCase(),
                 icon: pool.isOpen ? LucideIcons.zap : LucideIcons.clock,
-                color: pool.isOpen ? FzColors.success : FzColors.accent3,
+                color: pool.isOpen ? FzColors.green : FzColors.gold,
                 selected: true,
               ),
               const Spacer(),
-              Text(
-                pool.scope.toUpperCase(),
-                style: const TextStyle(
+              const Text(
+                'BAR',
+                style: TextStyle(
                   color: FzColors.darkMuted,
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
@@ -297,12 +322,14 @@ class _ArenaPoolCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'VS',
-                      style: TextStyle(
+                    Text(
+                      pool.venueName == null ? 'Bar needed' : pool.venueName!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
                         color: FzColors.darkMuted,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 1.4,
+                        fontSize: 12,
                       ),
                     ),
                   ],
@@ -318,15 +345,15 @@ class _ArenaPoolCard extends StatelessWidget {
                 child: FzMetricTile(
                   label: 'Stake',
                   value: '${pool.defaultStakeFet} FET',
-                  color: FzColors.accent,
+                  color: FzColors.cyan,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: FzMetricTile(
-                  label: 'Total Pool',
+                  label: 'Pot',
                   value: '${pool.totalStakedFet}',
-                  color: FzColors.success,
+                  color: FzColors.green,
                 ),
               ),
               const SizedBox(width: 10),
@@ -334,7 +361,7 @@ class _ArenaPoolCard extends StatelessWidget {
                 child: FzMetricTile(
                   label: 'Entries',
                   value: '${pool.totalMembers}',
-                  color: FzColors.accent3,
+                  color: FzColors.gold,
                 ),
               ),
             ],
@@ -361,7 +388,7 @@ class _ArenaPoolCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onOpen,
                   icon: const Icon(LucideIcons.eye, size: 16),
-                  label: const Text('Details'),
+                  label: const Text('View'),
                 ),
               ),
               const SizedBox(width: 10),
@@ -369,7 +396,7 @@ class _ArenaPoolCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: pool.isOpen ? () => onJoin(primaryCamp) : null,
                   icon: const Icon(LucideIcons.trophy, size: 16),
-                  label: const Text('Enter'),
+                  label: const Text('Join'),
                 ),
               ),
             ],

@@ -37,10 +37,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           children: [
             const Padding(
               padding: EdgeInsets.fromLTRB(20, 16, 20, 10),
-              child: FzReferenceHeader(
-                title: 'Sports Elite',
-                showNotifications: false,
-              ),
+              child: FzReferenceHeader(title: 'FZ', showNotifications: false),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
@@ -64,11 +61,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       } catch (_) {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Could not mark all notifications as read.',
-                            ),
-                          ),
+                          const SnackBar(content: Text('Mark failed.')),
                         );
                       }
                     },
@@ -154,9 +147,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                 if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text(
-                                      'Could not update notification status.',
-                                    ),
+                                    content: Text('Update failed.'),
                                   ),
                                 );
                               }
@@ -171,7 +162,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 loading: () => const FzGlassLoader(message: 'Syncing...'),
                 error: (error, stackTrace) => Center(
                   child: StateView.error(
-                    title: 'Could not load inbox',
+                    title: 'Inbox error',
                     onRetry: () => ref.invalidate(notificationLogProvider),
                   ),
                 ),
@@ -335,7 +326,7 @@ class _CriticalAlertCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  hasUnread ? '$count unread alerts' : 'All clear',
+                  hasUnread ? '$count unread' : 'All clear',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
@@ -343,9 +334,7 @@ class _CriticalAlertCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  hasUnread
-                      ? 'Review pool, wallet, order, and match updates.'
-                      : 'No critical FANZONE alerts need action.',
+                  hasUnread ? 'Review updates.' : 'No action.',
                   style: const TextStyle(
                     color: FzColors.darkMuted,
                     fontWeight: FontWeight.w700,
@@ -428,7 +417,7 @@ class _NotificationCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            item.title,
+                            _compactWords(item.title, 5),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -454,8 +443,8 @@ class _NotificationCard extends StatelessWidget {
                     if (item.body.isNotEmpty) ...[
                       const SizedBox(height: 3),
                       Text(
-                        item.body,
-                        maxLines: 2,
+                        _compactWords(item.body, 5),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, color: muted),
                       ),
@@ -479,4 +468,9 @@ class _NotificationCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _compactWords(String value, int maxWords) {
+  final words = value.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+  return words.take(maxWords).join(' ');
 }

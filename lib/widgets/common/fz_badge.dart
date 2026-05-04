@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../design_system/design_system.dart';
 import '../../theme/colors.dart';
-import '../../theme/radii.dart';
 
 enum FzBadgeVariant {
   standard,
@@ -28,8 +28,11 @@ class FzBadge extends StatelessWidget {
     this.textColor,
     this.pulse = false,
     this.icon,
-    this.fontSize = 12,
-    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    this.fontSize = 13,
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: AppSpacing.md,
+      vertical: AppSpacing.xs,
+    ),
   });
 
   final String label;
@@ -45,13 +48,13 @@ class FzBadge extends StatelessWidget {
     label: 'LIVE',
     variant: FzBadgeVariant.danger,
     pulse: true,
-    fontSize: 12,
+    fontSize: 13,
   );
 
   factory FzBadge.count(int count) => FzBadge(
     label: count.toString(),
     variant: FzBadgeVariant.primary,
-    fontSize: 12,
+    fontSize: 13,
   );
 
   factory FzBadge.status(String status) {
@@ -102,7 +105,7 @@ class FzBadge extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: palette.background,
-        borderRadius: FzRadii.fullRadius,
+        borderRadius: AppRadii.fullRadius,
         border: Border.all(color: palette.border),
       ),
       child: FittedBox(
@@ -124,7 +127,7 @@ class FzBadge extends StatelessWidget {
                 fontSize: fontSize,
                 fontWeight: FontWeight.w800,
                 color: palette.foreground,
-                letterSpacing: 1.4,
+                letterSpacing: 0,
               ),
             ),
           ],

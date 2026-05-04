@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import '../../../core/location/location_service.dart';
 import '../../../models/hospitality/venue_model.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
@@ -11,6 +12,7 @@ import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_empty_state.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
+import '../data/venue_gateway.dart';
 import '../providers/venue_context_provider.dart';
 import '../providers/venue_discovery_provider.dart';
 
@@ -33,6 +35,8 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locationState = ref.watch(locationAccessProvider);
+    final userLocation = locationState.position;
     final venuesAsync = ref.watch(venueSearchProvider(_query));
 
     return Scaffold(
@@ -46,15 +50,15 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
             children: [
-              const FzReferenceHeader(title: 'Sports Elite'),
+              const FzReferenceHeader(title: 'FZ'),
               const SizedBox(height: 24),
               Text(
-                'Browse Venues',
-                style: FzTypography.display(size: 38, color: FzColors.darkText),
+                'BARS',
+                style: FzTypography.sportsTitle(size: 38, color: FzColors.darkText),
               ),
               const SizedBox(height: 8),
               const Text(
-                'Find live sports bars, menus, rewards, and pool-ready rooms near you.',
+                'Nearby venues.',
                 style: TextStyle(
                   color: FzColors.darkMuted,
                   fontWeight: FontWeight.w700,
@@ -65,7 +69,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                 controller: _searchController,
                 onChanged: (value) => setState(() => _query = value),
                 decoration: InputDecoration(
-                  hintText: 'Search bars, cities, venues',
+                  hintText: 'Search bars',
                   prefixIcon: const Icon(LucideIcons.search),
                   suffixIcon: _query.isEmpty
                       ? null
@@ -85,17 +89,17 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                 child: Row(
                   children: [
                     FzPill(
-                      label: 'Near Me',
+                      label: 'Within 20 km',
                       icon: LucideIcons.navigation,
-                      selected: true,
+                      selected: locationState.hasFreshLocation,
                       onTap: () => context.push('/venues/location'),
                     ),
                     const SizedBox(width: 8),
-                    const FzPill(label: 'Open Now', icon: LucideIcons.clock),
+                    const FzPill(label: 'Open', icon: LucideIcons.clock),
                     const SizedBox(width: 8),
-                    const FzPill(label: 'Live Match', icon: LucideIcons.tv),
+                    const FzPill(label: 'Live', icon: LucideIcons.tv),
                     const SizedBox(width: 8),
-                    const FzPill(label: 'FET Rewards', icon: LucideIcons.coins),
+                    const FzPill(label: 'FET', icon: LucideIcons.coins),
                   ],
                 ),
               ),
@@ -103,13 +107,20 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
               venuesAsync.when(
                 data: (venues) {
                   if (venues.isEmpty) {
+                    final needsLocation = !locationState.hasFreshLocation;
                     return FzEmptyState(
-                      title: 'No venues found',
-                      description:
-                          'Try another search or open location access to discover FANZONE bars.',
+                      title: needsLocation ? 'Use location' : 'No nearby bars',
+                      description: needsLocation
+                          ? 'Find nearby bars.'
+                          : 'Try another area.',
                       icon: const Icon(LucideIcons.mapPin),
-                      actionLabel: 'Use location',
-                      onAction: () => context.push('/venues/location'),
+                      actionLabel: needsLocation ? 'Locate' : 'Refresh',
+                      onAction: needsLocation
+                          ? () => context.push('/venues/location')
+                          : () {
+                              ref.invalidate(activeVenuesProvider);
+                              ref.invalidate(venueSearchProvider(_query));
+                            },
                     );
                   }
 
@@ -120,6 +131,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                           padding: const EdgeInsets.only(bottom: 14),
                           child: _VenueDiscoveryCard(
                             venue: venue,
+                            userLocation: userLocation,
                             onTap: () => context.push('/venue/${venue.id}'),
                             onOrder: () async {
                               await ref
@@ -153,11 +165,13 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
 class _VenueDiscoveryCard extends StatelessWidget {
   const _VenueDiscoveryCard({
     required this.venue,
+    required this.userLocation,
     required this.onTap,
     required this.onOrder,
   });
 
   final VenueModel venue;
+  final UserLocation? userLocation;
   final VoidCallback onTap;
   final VoidCallback onOrder;
 
@@ -181,9 +195,9 @@ class _VenueDiscoveryCard extends StatelessWidget {
                 left: 12,
                 top: 12,
                 child: FzPill(
-                  label: venue.isOpen ? 'Open Now' : 'Venue',
+                  label: venue.isOpen ? 'Open' : 'Bar',
                   icon: venue.isOpen ? LucideIcons.zap : LucideIcons.mapPin,
-                  color: venue.isOpen ? FzColors.success : FzColors.accent,
+                  color: venue.isOpen ? FzColors.green : FzColors.cyan,
                   selected: true,
                 ),
               ),
@@ -224,6 +238,7 @@ class _VenueDiscoveryCard extends StatelessWidget {
                 const SizedBox(height: 5),
                 Text(
                   [
+                    _distanceLabel,
                     venue.city,
                     venue.venueType.label,
                     venue.primaryCategory,
@@ -243,7 +258,7 @@ class _VenueDiscoveryCard extends StatelessWidget {
                         label: 'Rewards',
                         value: 'FET',
                         icon: LucideIcons.coins,
-                        color: FzColors.success,
+                        color: FzColors.green,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -262,5 +277,17 @@ class _VenueDiscoveryCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String? get _distanceLabel {
+    final location = userLocation;
+    if (location == null) return null;
+    final distance = venue.distanceKmFrom(
+      location.latitude,
+      location.longitude,
+    );
+    if (distance == null) return null;
+    if (distance < 1) return '${(distance * 1000).round()} m';
+    return '${distance.toStringAsFixed(distance < 10 ? 1 : 0)} km';
   }
 }

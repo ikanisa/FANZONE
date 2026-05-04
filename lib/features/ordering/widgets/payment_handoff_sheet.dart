@@ -76,7 +76,7 @@ Future<void> showPaymentHandoffSheet(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isMomo ? 'MoMo Handoff' : 'Revolut Handoff',
+                            isMomo ? 'MoMo' : 'Revolut',
                             style: const TextStyle(
                               color: FzColors.darkText,
                               fontSize: 22,
@@ -85,7 +85,7 @@ Future<void> showPaymentHandoffSheet(
                           ),
                           const SizedBox(height: 5),
                           const Text(
-                            'Complete payment outside FANZONE. Venue staff confirm it manually.',
+                            'Awaiting venue.',
                             style: TextStyle(
                               color: FzColors.darkMuted,
                               fontSize: 13,
@@ -134,7 +134,7 @@ Future<void> showPaymentHandoffSheet(
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              instruction,
+                              _compactWords(instruction, 5),
                               style: const TextStyle(
                                 color: FzColors.darkText,
                                 fontSize: 13,
@@ -213,4 +213,9 @@ class _PaymentMetric extends StatelessWidget {
       ),
     );
   }
+}
+
+String _compactWords(String value, int maxWords) {
+  final words = value.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+  return words.take(maxWords).join(' ');
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -52,6 +54,10 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
   OnboardingTeam? _localTeam;
   late List<OnboardingTeam> _topEuropeanTeams;
   late List<OnboardingTeam> _nationalTeams;
+  List<OnboardingTeam> _results = const <OnboardingTeam>[];
+  Timer? _searchDebounce;
+  int _resultsRequestId = 0;
+  bool _loadingResults = true;
   bool _saving = false;
   String? _error;
 
@@ -59,7 +65,8 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
   void initState() {
     super.initState();
     _hydrateInitialSelection();
-    _searchController.addListener(() => setState(() {}));
+    _searchController.addListener(_handleSearchChanged);
+    _loadResults();
   }
 
   @override
@@ -67,13 +74,23 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialTeams != widget.initialTeams) {
       _hydrateInitialSelection();
+      _loadResults();
+    }
+    if (oldWidget.gateway != widget.gateway) {
+      _loadResults();
     }
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _handleSearchChanged() {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 220), _loadResults);
   }
 
   void _hydrateInitialSelection() {
@@ -99,17 +116,6 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
     ..._nationalTeams.map((team) => team.id),
   };
 
-  List<OnboardingTeam> get _activeSelections {
-    switch (_activeCategory) {
-      case FanProfileTeamCategory.local:
-        return [?_localTeam];
-      case FanProfileTeamCategory.topEuropean:
-        return _topEuropeanTeams;
-      case FanProfileTeamCategory.national:
-        return _nationalTeams;
-    }
-  }
-
   void _selectCategory(FanProfileTeamCategory category) {
     HapticFeedback.selectionClick();
     setState(() {
@@ -117,6 +123,7 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
       _error = null;
       _searchController.clear();
     });
+    _loadResults();
   }
 
   void _selectTeam(OnboardingTeam team) {
@@ -150,6 +157,7 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
           break;
       }
     });
+    _loadResults();
   }
 
   void _addTeamToList(
@@ -189,6 +197,26 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
           break;
       }
     });
+    _loadResults();
+  }
+
+  Future<void> _loadResults() async {
+    final requestId = ++_resultsRequestId;
+    final query = _searchController.text.trim();
+    final category = _activeCategory;
+
+    setState(() => _loadingResults = true);
+
+    final source = query.isEmpty
+        ? await _defaultResultsForCategory(category)
+        : await _queryResultsForCategory(category, query);
+
+    if (!mounted || requestId != _resultsRequestId) return;
+
+    setState(() {
+      _results = _filterResults(source, category);
+      _loadingResults = false;
+    });
   }
 
   Future<void> _save() async {
@@ -218,7 +246,6 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
 
   @override
   Widget build(BuildContext context) {
-    final results = _searchResults();
     final surfaceColor = widget.isDark
         ? FzColors.darkSurface2
         : FzColors.lightSurface2;
@@ -324,7 +351,14 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
                 ),
               ),
             Expanded(
-              child: results.isEmpty
+              child: _loadingResults
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: widget.textColor,
+                        strokeWidth: 2.4,
+                      ),
+                    )
+                  : _results.isEmpty
                   ? _FanProfileEmptyState(
                       query: _searchController.text,
                       category: _activeCategory,
@@ -333,13 +367,13 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
                   : ListView.separated(
                       keyboardDismissBehavior:
                           ScrollViewKeyboardDismissBehavior.onDrag,
-                      itemCount: results.length,
+                      itemCount: _results.length,
                       separatorBuilder: (_, _) => Divider(
                         height: 1,
                         color: borderColor.withValues(alpha: 0.65),
                       ),
                       itemBuilder: (context, index) {
-                        final team = results[index];
+                        final team = _results[index];
                         return _TeamResultTile(
                           team: team,
                           muted: widget.muted,
@@ -378,13 +412,14 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
     }
   }
 
-  List<OnboardingTeam> _searchResults() {
-    final query = _searchController.text.trim();
+  List<OnboardingTeam> _filterResults(
+    List<OnboardingTeam> source,
+    FanProfileTeamCategory category,
+  ) {
     final selectedIds = _selectedTeamIds;
-    final activeIds = _activeSelections.map((team) => team.id).toSet();
-    final source = query.isEmpty
-        ? _defaultResultsForCategory()
-        : _queryResultsForCategory(query);
+    final activeIds = _selectionsForCategory(
+      category,
+    ).map((team) => team.id).toSet();
 
     final deduped = <String, OnboardingTeam>{};
     for (final team in source) {
@@ -395,56 +430,64 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
     return deduped.values.take(16).toList(growable: false);
   }
 
-  List<OnboardingTeam> _defaultResultsForCategory() {
-    switch (_activeCategory) {
+  List<OnboardingTeam> _selectionsForCategory(FanProfileTeamCategory category) {
+    switch (category) {
       case FanProfileTeamCategory.local:
-        return widget.gateway.allTeams.take(16).toList(growable: false);
+        return [?_localTeam];
       case FanProfileTeamCategory.topEuropean:
-        final popular = widget.gateway.popularTeamsForRegion('europe');
-        if (popular.isNotEmpty) return popular;
-        return widget.gateway.allTeams
-            .where((team) => team.region.toLowerCase() == 'europe')
-            .take(16)
-            .toList(growable: false);
+        return _topEuropeanTeams;
       case FanProfileTeamCategory.national:
-        final national = widget.gateway.allTeams
-            .where(_looksLikeNationalTeam)
-            .take(16)
-            .toList(growable: false);
-        return national;
+        return _nationalTeams;
     }
   }
 
-  List<OnboardingTeam> _queryResultsForCategory(String query) {
-    switch (_activeCategory) {
+  Future<List<OnboardingTeam>> _defaultResultsForCategory(
+    FanProfileTeamCategory category,
+  ) {
+    switch (category) {
       case FanProfileTeamCategory.local:
-      case FanProfileTeamCategory.national:
-        return widget.gateway.searchTeams(query, limit: 20);
+        return widget.gateway.browseTeams(limit: 32);
       case FanProfileTeamCategory.topEuropean:
-        final popular = widget.gateway.searchPopularTeams(query, limit: 20);
-        final all = widget.gateway.searchTeams(query, limit: 20);
+        return widget.gateway.browseTeams(
+          region: 'europe',
+          popularOnly: true,
+          limit: 32,
+        );
+      case FanProfileTeamCategory.national:
+        return widget.gateway.browseTeams(nationalOnly: true, limit: 32);
+    }
+  }
+
+  Future<List<OnboardingTeam>> _queryResultsForCategory(
+    FanProfileTeamCategory category,
+    String query,
+  ) async {
+    switch (category) {
+      case FanProfileTeamCategory.local:
+        return widget.gateway.browseTeams(query: query, limit: 32);
+      case FanProfileTeamCategory.topEuropean:
+        final popular = await widget.gateway.browseTeams(
+          query: query,
+          region: 'europe',
+          popularOnly: true,
+          limit: 20,
+        );
+        final all = await widget.gateway.browseTeams(
+          query: query,
+          region: 'europe',
+          limit: 20,
+        );
         return [...popular, ...all];
+      case FanProfileTeamCategory.national:
+        return widget.gateway.browseTeams(
+          query: query,
+          nationalOnly: true,
+          limit: 32,
+        );
     }
-  }
-
-  bool _looksLikeNationalTeam(OnboardingTeam team) {
-    final haystack = [
-      team.id,
-      team.name,
-      team.league ?? '',
-      ...team.aliases,
-    ].join(' ').toLowerCase();
-    return haystack.contains('national') ||
-        haystack.contains('world cup') ||
-        haystack.contains('fifa');
   }
 
   OnboardingTeam _teamFromRecord(FavoriteTeamRecordDto row) {
-    final resolved = widget.gateway.allTeams
-        .where((team) => team.id == row.teamId)
-        .firstOrNull;
-    if (resolved != null) return resolved;
-
     return OnboardingTeam(
       id: row.teamId,
       name: row.teamName,

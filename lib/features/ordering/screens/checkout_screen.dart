@@ -75,7 +75,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             await showFzNoticeSheet(
               context,
               title: 'FET spend not applied',
-              message: 'Order placed, but FET spend was not applied: $error',
+              message: 'Order placed. FET failed: $error',
               icon: LucideIcons.alertTriangle,
               iconColor: FzColors.warning,
               primaryLabel: 'Continue',
@@ -101,9 +101,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           if (mounted) {
             await showFzNoticeSheet(
               context,
-              title: 'Payment handoff unavailable',
-              message:
-                  'Order placed, but payment instructions are unavailable. Please ask venue staff.',
+              title: 'Payment unavailable',
+              message: 'Ask venue staff.',
               icon: LucideIcons.alertTriangle,
               iconColor: FzColors.warning,
               primaryLabel: 'Continue',
@@ -116,11 +115,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         context.go('/order/${order.id}/success');
       }
     } else if (mounted) {
+      final placementState = ref.read(orderPlacementProvider);
+      final errorMessage = placementState.errorMessage;
       await showFzNoticeSheet(
         context,
-        title: 'Scan a table QR',
-        message: 'Scan a table QR before placing an order at the venue.',
-        icon: LucideIcons.qrCode,
+        title: errorMessage == null ? 'Scan a table QR' : 'Order unavailable',
+        message: errorMessage ?? 'Scan table QR.',
+        icon: errorMessage == null
+            ? LucideIcons.qrCode
+            : LucideIcons.alertTriangle,
         primaryLabel: 'Browse Venues',
         onPrimary: () {
           if (mounted) context.go('/venues');
@@ -189,14 +192,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
             children: [
-              const FzBackHeader(title: 'Checkout', subtitle: 'Order to Play'),
+              const FzBackHeader(title: 'Checkout', subtitle: 'Order'),
               const SizedBox(height: 48),
               StateView.empty(
                 title: 'Cart is empty',
-                subtitle: 'Add menu items from a venue before checkout.',
+                subtitle: 'Add items.',
                 icon: LucideIcons.shoppingCart,
                 action: () => context.go('/venues'),
-                actionLabel: 'Browse Venues',
+                actionLabel: 'Bars',
               ),
             ],
           ),
@@ -209,13 +212,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
           children: [
-            FzBackHeader(
-              title: 'Checkout',
-              subtitle: venue?.name ?? 'Order to Play',
-            ),
+            FzBackHeader(title: 'Checkout', subtitle: venue?.name ?? 'Order'),
             const SizedBox(height: 18),
             const Text(
-              'ORDER SUMMARY',
+              'SUMMARY',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -283,7 +283,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(height: 24),
             const Text(
-              'ORDER NOTES',
+              'NOTES',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -296,13 +296,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               maxLines: 3,
               onChanged: (value) =>
                   ref.read(cartProvider.notifier).setSpecialInstructions(value),
-              decoration: const InputDecoration(
-                hintText: 'Table notes or item instructions',
-              ),
+              decoration: const InputDecoration(hintText: 'Notes'),
             ),
             const SizedBox(height: 24),
             const Text(
-              'FET REWARDS',
+              'FET',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -318,7 +316,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Earn about ${cart.estimatedFet} FET after venue staff confirms payment.',
+                      '+${cart.estimatedFet} FET after confirm.',
                       style: const TextStyle(
                         fontSize: 13,
                         color: FzColors.lightMuted,
@@ -340,12 +338,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           setState(() => _useFetSpend = value),
                       contentPadding: EdgeInsets.zero,
                       title: const Text(
-                        'Spend FET on this order',
+                        'Spend FET',
                         style: TextStyle(fontWeight: FontWeight.w900),
                       ),
-                      subtitle: const Text(
-                        'Applied only through the wallet ledger after the order is created.',
-                      ),
+                      subtitle: const Text('Wallet ledger.'),
                     ),
                     if (_useFetSpend) ...[
                       const SizedBox(height: 8),
@@ -355,7 +351,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         decoration: const InputDecoration(
                           prefixIcon: Icon(LucideIcons.wallet),
                           suffixText: 'FET',
-                          hintText: 'Amount to spend',
+                          hintText: 'Amount',
                         ),
                       ),
                     ],
@@ -365,7 +361,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ],
             const SizedBox(height: 24),
             const Text(
-              'PAYMENT METHOD',
+              'PAYMENT',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
@@ -418,12 +414,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ),
               child: Text(
                 _submitting
-                    ? 'PLACING ORDER...'
+                    ? 'ORDERING...'
                     : _paymentMethod == PaymentMethod.cash
-                    ? 'PLACE ORDER'
+                    ? 'ORDER'
                     : (_paymentMethod == PaymentMethod.momo
-                          ? 'PLACE ORDER + OPEN USSD'
-                          : 'PLACE ORDER + OPEN REVOLUT'),
+                          ? 'OPEN USSD'
+                          : 'OPEN REVOLUT'),
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
@@ -433,8 +429,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             const SizedBox(height: 12),
             Text(
               _paymentMethod == PaymentMethod.cash
-                  ? 'Complete payment directly with venue staff.'
-                  : 'Payment happens outside FANZONE and remains pending until staff confirm it.',
+                  ? 'Pay staff.'
+                  : 'Awaiting venue.',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12, color: FzColors.lightMuted),
             ),

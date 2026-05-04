@@ -66,9 +66,8 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
       ).toString();
       await showSignInRequiredSheet(
         context,
-        title: 'Verify WhatsApp to join pools',
-        message:
-            'Verify your WhatsApp number before staking FET into a match pool.',
+        title: 'Verify WhatsApp',
+        message: 'Unlock stake.',
         from: returnTo,
       );
       return;
@@ -78,14 +77,11 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
     final amount =
         int.tryParse(_stakeController.text.trim()) ?? pool.defaultStakeFet;
     if (campId == null || campId.isEmpty) {
-      setState(() => _error = 'Choose a camp before confirming.');
+      setState(() => _error = 'Pick camp.');
       return;
     }
     if (amount < pool.stakeMinFet || amount > pool.stakeMaxFet) {
-      setState(
-        () => _error =
-            'Stake must be between ${pool.stakeMinFet} and ${pool.stakeMaxFet} FET.',
-      );
+      setState(() => _error = '${pool.stakeMinFet}-${pool.stakeMaxFet} FET.');
       return;
     }
     if (availableFet < amount) {
@@ -149,16 +145,13 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
                 children: [
-                  const FzBackHeader(
-                    title: 'Join Pool',
-                    subtitle: 'Choose a camp and stake FET',
-                  ),
+                  const FzBackHeader(title: 'Join', subtitle: 'Pick camp'),
                   const SizedBox(height: 48),
                   StateView.empty(
                     title: 'Pool not found',
-                    subtitle: 'Open Pools to choose another pool.',
+                    subtitle: 'Pick another.',
                     action: () => context.go('/pools'),
-                    actionLabel: 'Open Pools',
+                    actionLabel: 'Pools',
                   ),
                 ],
               );
@@ -172,20 +165,13 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
               data: (wallet) => ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
                 children: [
-                  const FzBackHeader(
-                    title: 'Join Pool',
-                    subtitle: 'Choose a camp and stake FET',
-                  ),
+                  const FzBackHeader(title: 'Join', subtitle: 'Pick camp'),
                   const SizedBox(height: 18),
                   _JoinHero(pool: pool, availableFet: wallet.availableFet),
                   const SizedBox(height: 16),
-                  const FzEligibilityRuleCard(
-                    title: 'Order required for FET settlement',
-                    description:
-                        'You may join now. If you win, FET is paid only when you have a paid, non-cancelled order from this linked bar within 2 hours before the pool starts.',
-                  ),
+                  const FzEligibilityRuleCard(),
                   const SizedBox(height: 16),
-                  const _SectionLabel('Choose your camp'),
+                  const _SectionLabel('Camp'),
                   const SizedBox(height: 10),
                   ...pool.camps.map(
                     (camp) => Padding(
@@ -198,7 +184,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const _SectionLabel('Stake amount'),
+                  const _SectionLabel('Stake'),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _stakeController,
@@ -207,8 +193,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
                     decoration: InputDecoration(
                       prefixIcon: const Icon(LucideIcons.coins),
                       suffixText: 'FET',
-                      helperText:
-                          'Range ${pool.stakeMinFet}-${pool.stakeMaxFet} FET',
+                      helperText: '${pool.stakeMinFet}-${pool.stakeMaxFet} FET',
                     ),
                   ),
                   if (_error != null) ...[
@@ -227,9 +212,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(LucideIcons.lock, size: 16),
-                    label: Text(
-                      _submitting ? 'Confirming...' : 'Stake FET now',
-                    ),
+                    label: Text(_submitting ? 'Staking...' : 'Stake'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -290,7 +273,7 @@ class _JoinHero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'JOIN POOL',
+            'JOIN',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w900,
@@ -309,7 +292,7 @@ class _JoinHero extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Pick one camp and stake from your available FET. Settlement is automatic after the final result.',
+            'Pick camp. Stake FET.',
             style: TextStyle(
               color: Colors.white70,
               fontSize: 13,
@@ -343,10 +326,7 @@ class _JoinLoadingState extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
         children: [
-          FzBackHeader(
-            title: 'Join Pool',
-            subtitle: 'Choose a camp and stake FET',
-          ),
+          FzBackHeader(title: 'Join', subtitle: 'Pick camp'),
           Expanded(child: Center(child: CircularProgressIndicator())),
         ],
       ),

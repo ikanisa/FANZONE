@@ -30,9 +30,9 @@ class VenueDetailScreen extends ConsumerWidget {
             if (venue == null) {
               return FzEmptyState(
                 title: 'Venue not found',
-                description: 'Open venue discovery to choose another bar.',
+                description: 'Choose another.',
                 icon: const Icon(LucideIcons.mapPin),
-                actionLabel: 'Browse Venues',
+                actionLabel: 'Bars',
                 onAction: () => context.go('/venues'),
               );
             }
@@ -61,7 +61,7 @@ class _VenueDetailContent extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 130),
       children: [
         FzBackHeader(
-          title: 'Venue Detail',
+          title: 'Bar',
           subtitle: venue.city ?? venue.countryCode.label,
           onClose: () => context.go('/venues'),
         ),
@@ -77,7 +77,7 @@ class _VenueDetailContent extends ConsumerWidget {
               left: 14,
               top: 14,
               child: FzPill(
-                label: venue.isOpen ? 'Live Now' : 'Venue',
+                label: venue.isOpen ? 'Live' : 'Bar',
                 icon: venue.isOpen ? LucideIcons.zap : LucideIcons.mapPin,
                 color: venue.isOpen ? FzColors.success : FzColors.accent,
                 selected: true,
@@ -92,9 +92,7 @@ class _VenueDetailContent extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          venue.description?.trim().isNotEmpty == true
-              ? venue.description!.trim()
-              : 'Sports-bar ordering, match pools, and FET rewards are ready here.',
+          venue.city ?? venue.countryCode.label,
           style: const TextStyle(
             color: FzColors.darkMuted,
             fontWeight: FontWeight.w700,
@@ -139,7 +137,7 @@ class _VenueDetailContent extends ConsumerWidget {
               _VenueInfoRow(
                 icon: LucideIcons.clock,
                 label: 'Status',
-                value: venue.isOpen ? 'Open for orders' : 'Discovery only',
+                value: venue.isOpen ? 'Open' : 'Closed',
               ),
               if (venue.websiteUrl != null &&
                   venue.websiteUrl!.trim().isNotEmpty) ...[
@@ -162,7 +160,7 @@ class _VenueDetailContent extends ConsumerWidget {
             if (context.mounted) context.go('/bar');
           },
           icon: const Icon(LucideIcons.utensils),
-          label: const Text('Open Menu'),
+          label: const Text('Menu'),
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
         ),
         const SizedBox(height: 10),
@@ -174,7 +172,7 @@ class _VenueDetailContent extends ConsumerWidget {
             if (context.mounted) context.go('/pools/create');
           },
           icon: const Icon(LucideIcons.trophy),
-          label: const Text('Create Pool Here'),
+          label: const Text('Create'),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(52),
           ),

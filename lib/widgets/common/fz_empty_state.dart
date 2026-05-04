@@ -9,7 +9,7 @@ class FzEmptyState extends StatelessWidget {
   const FzEmptyState({
     super.key,
     required this.title,
-    required this.description,
+    this.description = '',
     this.icon,
     this.actionLabel,
     this.onAction,
@@ -80,15 +80,23 @@ class FzEmptyState extends StatelessWidget {
                     letterSpacing: 1.5,
                   ),
                 ),
-                const SizedBox(height: 8),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 320),
-                  child: Text(
-                    description,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: muted, height: 1.45),
+                if (description.trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 260),
+                    child: Text(
+                      description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: muted,
+                        height: 1.25,
+                      ),
+                    ),
                   ),
-                ),
+                ],
                 if (actionLabel != null && onAction != null) ...[
                   const SizedBox(height: 32),
                   OutlinedButton(

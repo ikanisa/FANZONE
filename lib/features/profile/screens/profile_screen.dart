@@ -10,11 +10,13 @@ import '../../../data/team_search_database.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../providers/favorite_teams_provider.dart';
+import '../../../providers/profile_country_provider.dart';
 import '../../../services/push_notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
+import '../../../widgets/common/fz_card.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../../ordering/providers/venue_context_provider.dart';
 import '../widgets/fan_profile_editor_sheet.dart';
@@ -35,6 +37,7 @@ class ProfileScreen extends ConsumerWidget {
     final featureAccess = ref.watch(platformFeatureAccessProvider);
     final favoriteTeamsAsync = ref.watch(favoriteTeamRecordsProvider);
     final favoriteTeams = favoriteTeamsAsync.valueOrNull ?? const [];
+    final profileCountryCode = ref.watch(profileCountryProvider);
     final venueContext = ref.watch(venueContextProvider);
     final showSettings = featureAccess.isVisible(
       'settings',
@@ -55,7 +58,7 @@ class ProfileScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           children: [
             const SizedBox(height: 14),
-            const FzReferenceHeader(title: 'Sports Elite'),
+            const FzReferenceHeader(title: 'FZ'),
             const SizedBox(height: 24),
 
             // Header title
@@ -65,11 +68,10 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Profile',
-                      style: FzTypography.display(
+                      'PROFILE',
+                      style: FzTypography.sportsTitle(
                         size: 36,
-                        letterSpacing: 0.4,
-                        color: isDark ? FzColors.darkText : FzColors.lightText,
+                        color: FzColors.darkText,
                       ),
                     ),
                   ),
@@ -114,8 +116,7 @@ class ProfileScreen extends ConsumerWidget {
               onVerifyPhone: () => showSignInRequiredSheet(
                 context,
                 title: 'Verify WhatsApp',
-                message:
-                    'Verify your number to unlock wallet transfers, notifications, and match pools.',
+                message: 'Unlock wallet and pools.',
                 from: '/profile',
               ),
             ),
@@ -138,8 +139,7 @@ class ProfileScreen extends ConsumerWidget {
                   showSignInRequiredSheet(
                     context,
                     title: 'Verify WhatsApp',
-                    message:
-                        'Verify your number before saving your fan profile.',
+                    message: 'Unlock profile.',
                     from: '/profile',
                   );
                   return;
@@ -148,6 +148,15 @@ class ProfileScreen extends ConsumerWidget {
               },
               linkedVenueLabel: 'Linked venues',
               linkedVenueDetail: _linkedVenueDetail(venueContext),
+            ),
+
+            const SizedBox(height: 12),
+
+            ProfileCountryPreferenceCard(
+              selectedCountryCode: profileCountryCode,
+              onSelected: ref
+                  .read(profileCountryProvider.notifier)
+                  .setCountryCode,
             ),
 
             const SizedBox(height: 12),
@@ -161,8 +170,7 @@ class ProfileScreen extends ConsumerWidget {
               onVerifyPhone: () => showSignInRequiredSheet(
                 context,
                 title: 'Verify WhatsApp',
-                message:
-                    'Verify your number to unlock wallet transfers, notifications, and match pools.',
+                message: 'Unlock wallet and pools.',
                 from: '/profile',
               ),
               showSignOut: hasSession,
@@ -216,26 +224,26 @@ class ProfileScreen extends ConsumerWidget {
     List<FavoriteTeamRecordDto> teams, {
     required bool loading,
   }) {
-    if (loading) return 'Loading country preference...';
+    if (loading) return 'Loading...';
     final team = _firstTeamWithCountry(teams);
     final country = team?.teamCountry?.trim();
     final countryCode = team?.teamCountryCode?.trim().toUpperCase();
     if (country != null && country.isNotEmpty) {
-      return 'Used for $country pool filters and featured matches.';
+      return country;
     }
     if (countryCode != null && countryCode.isNotEmpty) {
-      return 'Used for $countryCode pool filters and featured matches.';
+      return countryCode;
     }
-    return 'Not set. Pick favorite teams to personalize pool filters.';
+    return 'Pick teams.';
   }
 
   static String _favoriteTeamsDetail(
     List<FavoriteTeamRecordDto> teams, {
     required bool loading,
   }) {
-    if (loading) return 'Loading favorite teams...';
+    if (loading) return 'Loading...';
     if (teams.isEmpty) {
-      return 'No favorite teams yet. Add teams to improve featured matches.';
+      return 'No teams.';
     }
 
     final grouped = groupFanProfileTeamRecords(teams);
@@ -253,19 +261,19 @@ class ProfileScreen extends ConsumerWidget {
     if (nationalCount > 0) summary.add('National: $nationalCount');
 
     if (summary.isNotEmpty) return summary.join(' | ');
-    return 'Favorite teams saved.';
+    return 'Saved.';
   }
 
   static String _linkedVenueDetail(VenueContext context) {
     final venue = context.venue;
     if (venue == null) {
-      return 'No linked venue. Scan a table QR at a FANZONE bar.';
+      return 'No bar.';
     }
     final tableNumber = context.table?.tableNumber ?? context.tableNumber;
     if (tableNumber != null && tableNumber.toString().trim().isNotEmpty) {
       return '${venue.name}, table $tableNumber';
     }
-    return '${venue.name} is your current bar.';
+    return venue.name;
   }
 
   static Future<void> _openFanProfileEditor(
@@ -305,5 +313,69 @@ class ProfileScreen extends ConsumerWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+}
+
+class ProfileCountryPreferenceCard extends StatelessWidget {
+  const ProfileCountryPreferenceCard({
+    super.key,
+    required this.selectedCountryCode,
+    required this.onSelected,
+  });
+
+  final String selectedCountryCode;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return FzCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: FzRadii.card,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(LucideIcons.globe2, size: 18, color: FzColors.cyan),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Country',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Personalizes pools.',
+            style: TextStyle(
+              color: FzColors.darkMuted,
+              fontWeight: FontWeight.w700,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FzPill(
+                label: 'Malta',
+                icon: LucideIcons.mapPin,
+                selected: selectedCountryCode == 'MT',
+                onTap: () => onSelected('MT'),
+              ),
+              FzPill(
+                label: 'Rwanda',
+                icon: LucideIcons.mapPin,
+                selected: selectedCountryCode == 'RW',
+                onTap: () => onSelected('RW'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

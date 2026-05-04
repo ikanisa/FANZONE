@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../design_system/design_system.dart';
 import '../../../theme/colors.dart';
-import '../../../theme/typography.dart';
 import '../providers/order_provider.dart';
 import '../../../models/hospitality/order_model.dart';
 
@@ -38,50 +38,43 @@ class _PillContent extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: FzColors.darkBg,
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: FzColors.accent.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: AppColors.background,
+        borderRadius: AppRadii.fullRadius,
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+        boxShadow: AppShadows.elevated,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _showTrackingSheet(context, order.id),
-          borderRadius: BorderRadius.circular(99),
+          borderRadius: AppRadii.fullRadius,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _StatusIcon(status: order.status),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'ORDER STATUS',
-                      style: FzTypography.metaLabel(
-                        color: FzColors.accent,
-                      ).copyWith(fontSize: 12),
+                      style: AppTypography.status(color: AppColors.primary),
                     ),
                     Text(
                       _statusText(order.status),
-                      style: const TextStyle(
-                        color: FzColors.darkText,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 14,
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.text,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(width: 24),
+                const SizedBox(width: AppSpacing.xxl),
                 const Icon(
                   LucideIcons.chevronUp,
                   color: FzColors.darkMuted,
@@ -130,7 +123,7 @@ class _StatusIcon extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: FzColors.accent.withValues(alpha: 0.1),
+        color: AppColors.primary.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: isSpinning

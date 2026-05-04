@@ -10,8 +10,8 @@ import 'fz_card.dart';
 class FzEligibilityRuleCard extends StatelessWidget {
   const FzEligibilityRuleCard({
     super.key,
-    this.title = 'FET settlement eligibility',
-    this.description = defaultDescription,
+    this.title = 'Order unlocks rewards',
+    this.description = '2h order needed',
   });
 
   static const defaultDescription =
@@ -23,12 +23,11 @@ class FzEligibilityRuleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FzCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       borderRadius: FzRadii.compact,
       borderColor: FzColors.accent2.withValues(alpha: 0.35),
       color: FzColors.accent2.withValues(alpha: 0.08),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(LucideIcons.receipt, color: FzColors.accent2, size: 20),
           const SizedBox(width: 12),
@@ -42,7 +41,7 @@ class FzEligibilityRuleCard extends StatelessWidget {
                     Theme.of(context).brightness,
                   ).titleSmall?.copyWith(fontWeight: FontWeight.w900),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 2),
                 Text(
                   description,
                   style: FzTypography.textTheme(
@@ -52,7 +51,48 @@ class FzEligibilityRuleCard extends StatelessWidget {
               ],
             ),
           ),
+          IconButton(
+            tooltip: 'Info',
+            onPressed: () => _showEligibilityInfo(context),
+            icon: const Icon(
+              LucideIcons.info,
+              size: 18,
+              color: FzColors.accent2,
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  void _showEligibilityInfo(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(LucideIcons.receipt, color: FzColors.accent2),
+                SizedBox(width: 10),
+                Text(
+                  'Reward Rule',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              defaultDescription,
+              style: FzTypography.textTheme(
+                Theme.of(context).brightness,
+              ).bodyMedium?.copyWith(height: 1.35),
+            ),
+          ],
+        ),
       ),
     );
   }

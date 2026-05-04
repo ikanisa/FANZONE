@@ -4,11 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../core/utils/currency_utils.dart';
+import '../../../design_system/design_system.dart';
 import '../../../models/auth_and_user/wallet.dart';
 import '../../../providers/currency_provider.dart';
 import '../../../theme/colors.dart';
-import '../../../theme/typography.dart';
-import '../../../widgets/common/fz_card.dart';
 
 class WalletSummaryCard extends ConsumerWidget {
   const WalletSummaryCard({
@@ -30,13 +29,9 @@ class WalletSummaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final surface = isDark ? FzColors.darkSurface2 : FzColors.lightSurface;
-    return FzCard(
-      color: surface,
-      borderRadius: 20,
-      padding: const EdgeInsets.all(12),
+    return AppCard(
+      color: AppColors.surfaceAlt,
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
         children: [
           Expanded(
@@ -45,28 +40,21 @@ class WalletSummaryCard extends ConsumerWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: muted.withValues(alpha: 0.8),
-                    letterSpacing: 1,
+                  style: AppTypography.status(
+                    color: AppColors.muted.withValues(alpha: 0.86),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   '${showSign ? (positive ? '+' : '-') : ''}${NumberFormat.compact().format(amount).toLowerCase()}',
-                  style: FzTypography.score(
-                    size: 16,
-                    weight: FontWeight.w700,
-                    color: color,
-                  ),
+                  style: AppTypography.metric(size: 18, color: color),
                 ),
               ],
             ),
           ),
           Container(
-            width: 32,
-            height: 32,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
@@ -101,43 +89,35 @@ class WalletTransactionRow extends ConsumerWidget {
     final color = isEarn ? FzColors.success : FzColors.danger;
     final icon = _iconForType(transaction.type);
     final prefix = isEarn ? '+' : '-';
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
               border: Border.all(color: color.withValues(alpha: 0.2)),
             ),
-            child: Icon(icon, size: 11, color: color),
+            child: Icon(icon, size: 13, color: color),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   transaction.title,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    height: 1.2,
-                  ),
+                  style: AppTypography.label.copyWith(fontSize: 15),
                 ),
                 Text(
                   transaction.dateStr,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: muted,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
+                  style: AppTypography.secondary.copyWith(
+                    color: AppColors.muted,
+                    fontSize: 13,
                   ),
                 ),
               ],
@@ -145,11 +125,7 @@ class WalletTransactionRow extends ConsumerWidget {
           ),
           Text(
             '$prefix${formatFETCompact(transaction.amount)}',
-            style: FzTypography.score(
-              size: 10,
-              weight: FontWeight.w700,
-              color: color,
-            ),
+            style: AppTypography.metric(size: 16, color: color),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../providers/currency_provider.dart';
 import '../../theme/colors.dart';
 import '../../theme/radii.dart';
+import '../../theme/typography.dart';
 
 class FzReferenceHeader extends ConsumerWidget {
   const FzReferenceHeader({
@@ -36,8 +37,8 @@ class FzReferenceHeader extends ConsumerWidget {
             onTap: () => context.push('/profile'),
             borderRadius: FzRadii.fullRadius,
             child: Container(
-              width: 46,
-              height: 46,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: FzColors.darkSurface2,
                 shape: BoxShape.circle,
@@ -47,32 +48,32 @@ class FzReferenceHeader extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title ?? 'Sports Elite',
+                title ?? 'FANZONE',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
+                style: FzTypography.sportsTitle(
+                  size: 20,
+                  color: FzColors.darkText,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle ??
                     (fanId == null || fanId.isEmpty
-                        ? 'ID: verify to claim'
-                        : 'ID: $fanId'),
+                        ? 'Verify to claim'
+                        : '#$fanId'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 12,
                   color: FzColors.darkMuted,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
@@ -123,7 +124,7 @@ class FzBackHeader extends StatelessWidget {
             }
           },
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,9 +133,9 @@ class FzBackHeader extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
+                style: FzTypography.sportsTitle(
+                  size: 22,
+                  color: FzColors.darkText,
                 ),
               ),
               if (subtitle != null) ...[
@@ -146,7 +147,7 @@ class FzBackHeader extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 12,
                     color: FzColors.darkMuted,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ],
@@ -182,15 +183,24 @@ class FzSectionHeader extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+            title.toUpperCase(),
+            style: FzTypography.sportsTitle(
+              size: 24,
+              color: FzColors.darkText,
+            ),
           ),
         ),
         if (actionLabel != null && onAction != null)
           TextButton(
             onPressed: onAction,
-            style: TextButton.styleFrom(foregroundColor: FzColors.darkText),
-            child: Text(actionLabel!),
+            style: TextButton.styleFrom(
+              foregroundColor: FzColors.cyan,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+            child: Text(
+              actionLabel!,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+            ),
           ),
       ],
     );
@@ -214,7 +224,7 @@ class FzMetricTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: FzColors.darkSurface2,
         borderRadius: FzRadii.compactRadius,
@@ -224,7 +234,7 @@ class FzMetricTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (icon != null) ...[
-            Icon(icon, color: color, size: 16),
+            Icon(icon, color: color, size: 18),
             const SizedBox(height: 8),
           ],
           Text(
@@ -233,7 +243,7 @@ class FzMetricTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: color,
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -245,7 +255,7 @@ class FzMetricTile extends StatelessWidget {
             style: const TextStyle(
               color: FzColors.darkMuted,
               fontSize: 12,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -273,26 +283,31 @@ class FzPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = Container(
-      height: 38,
+      height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 13),
       decoration: BoxDecoration(
-        color: selected ? color : FzColors.darkSurface2,
+        color: selected ? color.withValues(alpha: 0.18) : FzColors.darkSurface2,
         borderRadius: FzRadii.fullRadius,
         border: Border.all(color: selected ? color : FzColors.darkBorder),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 15, color: selected ? Colors.white : color),
+          if (selected) ...[
+            Container(
+              width: 6, height: 6,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 7),
+          ] else if (icon != null) ...[
+            Icon(icon, size: 15, color: color),
             const SizedBox(width: 7),
           ],
           Text(
-            label,
-            style: TextStyle(
-              color: selected ? Colors.white : FzColors.darkText,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
+            label.toUpperCase(),
+            style: FzTypography.chipLabel(
+              size: 12,
+              color: selected ? color : FzColors.darkText,
             ),
           ),
         ],
@@ -371,8 +386,8 @@ class _HeaderIconButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: FzRadii.fullRadius,
         child: Container(
-          width: 42,
-          height: 42,
+          width: 44,
+          height: 44,
           margin: const EdgeInsets.only(left: 8),
           decoration: BoxDecoration(
             color: FzColors.darkSurface2,

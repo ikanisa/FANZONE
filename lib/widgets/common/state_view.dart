@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'dart:async' show TimeoutException;
 import 'dart:io' show SocketException;
 
-import '../../theme/colors.dart';
-import '../../theme/radii.dart';
-import '../../theme/typography.dart';
+import '../../design_system/components/app_button.dart';
+import '../../design_system/tokens/app_colors.dart';
+import '../../design_system/tokens/app_radii.dart';
+import '../../design_system/tokens/app_spacing.dart';
+import '../../design_system/typography/app_typography.dart';
 
 /// Unified view for empty, error, and loading states.
 ///
@@ -27,8 +29,8 @@ class StateView extends StatelessWidget {
 
   /// Empty state — no data to show.
   factory StateView.empty({
-    String title = 'Nothing here yet',
-    String subtitle = 'Check back later.',
+    String title = 'Nothing yet',
+    String subtitle = 'Check later.',
     IconData icon = LucideIcons.inbox,
     VoidCallback? action,
     String? actionLabel,
@@ -42,8 +44,8 @@ class StateView extends StatelessWidget {
 
   /// Error state — something went wrong.
   factory StateView.error({
-    String title = 'Something went wrong',
-    String subtitle = 'Please try again.',
+    String title = 'Error',
+    String subtitle = 'Try again.',
     VoidCallback? onRetry,
   }) => StateView._(
     icon: LucideIcons.alertTriangle,
@@ -56,8 +58,8 @@ class StateView extends StatelessWidget {
   /// Offline state — no network.
   factory StateView.offline({VoidCallback? onRetry}) => StateView._(
     icon: LucideIcons.wifiOff,
-    title: 'You\'re offline',
-    subtitle: 'Connect to the internet and try again.',
+    title: 'Offline',
+    subtitle: 'Reconnect.',
     action: onRetry,
     actionLabel: 'Retry',
   );
@@ -72,21 +74,8 @@ class StateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final text = isDark ? FzColors.darkText : FzColors.lightText;
-    final surface2 = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
-    final surface3 = isDark ? FzColors.darkSurface3 : FzColors.lightSurface3;
-    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final isErrorState =
         icon == LucideIcons.alertTriangle || icon == LucideIcons.wifiOff;
-    final actionColor = isErrorState ? FzColors.accent : text;
-    final actionBackground = isErrorState
-        ? FzColors.accent.withValues(alpha: 0.10)
-        : surface3;
-    final actionBorder = isErrorState
-        ? FzColors.accent.withValues(alpha: 0.20)
-        : border;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -95,17 +84,17 @@ class StateView extends StatelessWidget {
             : 0.0;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(AppSpacing.xxxl),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: minHeight),
             child: Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 360),
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(AppSpacing.xxxl),
                 decoration: BoxDecoration(
-                  color: surface2,
-                  borderRadius: FzRadii.cardRadius,
-                  border: Border.all(color: border),
+                  color: AppColors.surfaceAlt,
+                  borderRadius: AppRadii.cardRadius,
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -113,56 +102,34 @@ class StateView extends StatelessWidget {
                     Container(
                       width: 64,
                       height: 64,
-                      decoration: BoxDecoration(
-                        color: surface3,
+                      decoration: const BoxDecoration(
+                        color: AppColors.surfaceRaised,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(icon, size: 24, color: muted),
+                      child: Icon(icon, size: 24, color: AppColors.muted),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
                     Text(
                       title,
-                      style: FzTypography.display(
-                        size: 24,
-                        color: text,
-                        letterSpacing: 1.5,
-                      ),
+                      style: AppTypography.h3(),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: muted,
-                        height: 1.45,
+                      style: AppTypography.secondary.copyWith(
+                        color: AppColors.muted,
                       ),
                       textAlign: TextAlign.center,
                     ),
                     if (action != null) ...[
-                      const SizedBox(height: 32),
-                      InkWell(
-                        onTap: action,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: actionBackground,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: actionBorder),
-                          ),
-                          child: Text(
-                            actionLabel ?? 'Try again',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: actionColor,
-                            ),
-                          ),
-                        ),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      AppButton(
+                        label: actionLabel ?? 'Retry',
+                        onPressed: action,
+                        variant: isErrorState
+                            ? AppButtonVariant.primary
+                            : AppButtonVariant.secondary,
                       ),
                     ],
                   ],
