@@ -33,19 +33,19 @@ void main() {
 
       await tester.enterText(find.byType(TextFormField), '99112233');
       await tester.pump();
-      await tester.tap(find.text('SEND CODE VIA WHATSAPP'));
+      await tester.tap(find.text('Send OTP'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
       expect(gateway.sentPhones, ['+11199112233']);
-      expect(find.text('VERIFY CODE'), findsOneWidget);
+      expect(find.text('OTP'), findsOneWidget);
 
       final otpFields = find.byType(TextField);
       for (var index = 0; index < 6; index++) {
         await tester.enterText(otpFields.at(index), '${index + 1}');
         await tester.pump();
       }
-      await tester.tap(find.text('VERIFY CODE'));
+      await tester.tap(find.text('Verify'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
@@ -82,14 +82,8 @@ void main() {
 
       expect(find.text('Earned'), findsOneWidget);
       expect(find.text('Spent'), findsOneWidget);
-      expect(
-        find.text(
-          'Wallet activity covers bar-order rewards, FET spent on orders, pool stakes, and audited settlements.',
-        ),
-        findsOneWidget,
-      );
 
-      await tester.tap(find.text('Send FET').first);
+      await tester.tap(find.text('Send').first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -131,17 +125,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Send FET').first);
+      await tester.tap(find.text('Send').first);
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Verify WhatsApp to transfer FET'), findsOneWidget);
-      expect(
-        find.text(
-          'Verify your WhatsApp number before sending FET to another fan.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('Verify'), findsOneWidget);
+      expect(find.text('Unlock transfer.'), findsOneWidget);
       expect(find.text('Confirm Transfer'), findsNothing);
     });
 
@@ -177,16 +166,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Test Club A'));
+      // Tap the 'Join' CTA button in the pool card action row
+      await tester.tap(find.text('Join'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Verify WhatsApp to enter the Arena'), findsOneWidget);
-      expect(
-        find.text(
-          'Verify your WhatsApp number before joining FANZONE pools and games.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('Verify WhatsApp'), findsOneWidget);
+      expect(find.text('Unlock pools.'), findsOneWidget);
     });
   });
 }

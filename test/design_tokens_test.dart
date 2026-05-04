@@ -4,6 +4,7 @@ import 'package:fanzone/theme/app_theme.dart';
 import 'package:fanzone/theme/colors.dart';
 import 'package:fanzone/theme/radii.dart';
 import 'package:fanzone/theme/typography.dart';
+import 'package:fanzone/design_system/design_system.dart';
 
 void main() {
   group('FzColors design tokens', () {
@@ -30,24 +31,24 @@ void main() {
 
     // Content palette
     test('brand palette exposes the canonical source-of-truth colors', () {
-      expect(FzColors.accent, const Color(0xFF2E5BFF));
-      expect(FzColors.accent2, const Color(0xFF39FF14));
-      expect(FzColors.accent3, const Color(0xFFFFB020));
-      expect(FzColors.success, const Color(0xFF39FF14));
-      expect(FzColors.danger, const Color(0xFFFF4D6D));
-      expect(FzColors.teal, const Color(0xFF00D4C8));
+      expect(FzColors.accent, const Color(0xFF27D8F2));
+      expect(FzColors.accent2, const Color(0xFFFF7A4D));
+      expect(FzColors.accent3, const Color(0xFFFFD166));
+      expect(FzColors.success, const Color(0xFF5BE06B));
+      expect(FzColors.danger, const Color(0xFFFF4D57));
+      expect(FzColors.teal, const Color(0xFF19D6F2));
       expect(FzColors.primary, FzColors.accent);
       expect(FzColors.secondary, FzColors.accent2);
-      expect(FzColors.onPrimary, Colors.white);
-      expect(FzColors.onSecondary, FzColors.darkBg);
+      expect(FzColors.onPrimary, const Color(0xFF050607));
+      expect(FzColors.onSecondary, const Color(0xFF050607));
     });
 
     // Semantic aliases
     test('semantic aliases map correctly', () {
       expect(FzColors.live, FzColors.danger);
-      expect(FzColors.coral, FzColors.accent3);
-      expect(FzColors.cyan, FzColors.accent);
-      expect(FzColors.blue, FzColors.accent2);
+      expect(FzColors.coral, FzColors.accent2);
+      expect(FzColors.cyan, const Color(0xFF27D8F2));
+      expect(FzColors.blue, FzColors.accent);
       expect(FzColors.error, FzColors.danger);
     });
 
@@ -60,9 +61,9 @@ void main() {
 
   group('FzRadii design tokens', () {
     test('shared radii stay aligned with the reference contexts', () {
-      expect(FzRadii.compact, 18);
-      expect(FzRadii.card, 20);
-      expect(FzRadii.hero, 22);
+      expect(FzRadii.compact, 22);
+      expect(FzRadii.card, 28);
+      expect(FzRadii.hero, 32);
       expect(FzRadii.full, 999);
     });
   });
@@ -134,6 +135,25 @@ void main() {
       final theme = FzTheme.light();
       expect(theme.brightness, Brightness.dark);
       expect(theme.colorScheme, same(FzColors.darkColorScheme));
+    });
+  });
+
+  group('App design-system facade', () {
+    test('public aliases resolve to canonical FANZONE tokens', () {
+      expect(AppColors.background, FzColors.darkBg);
+      expect(AppColors.primary, FzColors.primary);
+      expect(AppColors.fet, FzColors.secondary);
+      expect(AppSpacing.touch, 48);
+      expect(AppRadii.card, FzRadii.card);
+      expect(AppTypography.textTheme(Brightness.dark).bodyMedium?.fontSize, 16);
+    });
+
+    test('public typography scale keeps bold hierarchy', () {
+      expect(AppTypography.h1().fontSize, greaterThanOrEqualTo(32));
+      expect(AppTypography.h1().fontWeight?.value, greaterThanOrEqualTo(800));
+      expect(AppTypography.cardTitle.fontSize, greaterThanOrEqualTo(18));
+      expect(AppTypography.body.fontSize, greaterThanOrEqualTo(16));
+      expect(AppTypography.label.fontWeight?.value, greaterThanOrEqualTo(700));
     });
   });
 

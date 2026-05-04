@@ -37,11 +37,9 @@ void main() {
       ),
     );
 
-    expect(find.text('WHATSAPP LOGIN'), findsOneWidget);
+    expect(find.text('WHATSAPP'), findsOneWidget);
     expect(
-      find.text(
-        'We\'ll send you an OTP via WhatsApp. No names or emails required.',
-      ),
+      find.text('No name needed.'),
       findsOneWidget,
     );
     expect(find.text('SEND OTP TO WHATSAPP'), findsOneWidget);

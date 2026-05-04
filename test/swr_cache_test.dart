@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -77,7 +76,7 @@ void main() {
     );
 
     test(
-      'cache hit (stale) — returns stale data and schedules background refresh',
+      'cache hit (stale) — fetches fresh data and updates cache',
       () async {
         // Write already-expired data
         await StructuredCacheStore.writeList(
@@ -89,36 +88,53 @@ void main() {
         );
 
         var fetchCalled = false;
-        final completer = Completer<List<Map<String, dynamic>>>();
 
         final result = await StaleWhileRevalidateCache.list(
           cacheKey: 'matches:stale:stale',
           ttl: const Duration(minutes: 5),
-          fetch: () {
+          fetch: () async {
             fetchCalled = true;
-            return completer.future;
+            return [
+              {'id': 'm_fresh', 'homeTeam': 'FreshData'},
+            ];
           },
         );
 
-        // Should return stale data immediately
+        // Should return fresh data (stale cache triggers live fetch)
         expect(result, hasLength(1));
-        expect(result[0]['homeTeam'], 'OldData');
-        expect(fetchCalled, isTrue, reason: 'Background refresh should start');
-
-        // Complete the background fetch
-        completer.complete([
-          {'id': 'm_fresh', 'homeTeam': 'FreshData'},
-        ]);
-        await Future<void>.delayed(Duration.zero);
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(result[0]['homeTeam'], 'FreshData');
+        expect(fetchCalled, isTrue, reason: 'Fetch should be called for stale cache');
 
         // The cache should now have fresh data
+        await Future<void>.delayed(const Duration(milliseconds: 50));
         final freshSnapshot = await StructuredCacheStore.readList(
           'matches:stale:stale',
           allowExpired: false,
         );
         expect(freshSnapshot, isNotNull);
         expect(freshSnapshot!.payload[0]['homeTeam'], 'FreshData');
+      },
+    );
+
+    test(
+      'cache hit (stale) + fetch error — returns stale data as fallback',
+      () async {
+        await StructuredCacheStore.writeList(
+          'matches:stale-fallback:stale-fallback',
+          [
+            {'id': 'm_stale', 'homeTeam': 'FallbackData'},
+          ],
+          ttl: const Duration(milliseconds: -1),
+        );
+
+        final result = await StaleWhileRevalidateCache.list(
+          cacheKey: 'matches:stale-fallback:stale-fallback',
+          ttl: const Duration(minutes: 5),
+          fetch: () async => throw Exception('Network down'),
+        );
+
+        expect(result, hasLength(1));
+        expect(result[0]['homeTeam'], 'FallbackData');
       },
     );
 

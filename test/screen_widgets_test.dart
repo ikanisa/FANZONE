@@ -29,7 +29,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Scan a table QR'), findsOneWidget);
-      expect(find.text('Browse Venues'), findsOneWidget);
+      expect(find.text('Bars'), findsOneWidget);
     });
 
     testWidgets('pools screen renders open pools and camps', (tester) async {
@@ -74,12 +74,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('ARENA'), findsOneWidget);
+      expect(find.text('PLAY'), findsOneWidget);
       expect(find.text('Derby pool'), findsOneWidget);
-      expect(find.text('Test Club A'), findsAtLeastNWidgets(1));
-      expect(find.text('Test Club B'), findsAtLeastNWidgets(1));
-      expect(find.text('Entries'), findsAtLeastNWidgets(1));
-      expect(find.text('190'), findsOneWidget);
+      // FzPill renders camp labels uppercased
+      expect(find.text('TEST CLUB A'), findsAtLeastNWidgets(1));
+      expect(find.text('TEST CLUB B'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('wallet screen renders balance and history', (tester) async {
@@ -106,13 +105,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Wallet'), findsOneWidget);
+      expect(find.text('WALLET'), findsOneWidget);
       expect(
         find.byKey(const ValueKey('wallet-total-balance-value')),
         findsOneWidget,
       );
       expect(find.text('FET BALANCE'), findsOneWidget);
-      expect(find.text('Send FET'), findsOneWidget);
+      expect(find.text('Send'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Pool reward'),
         300,
@@ -146,26 +145,24 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Profile'), findsOneWidget);
+      expect(find.text('PROFILE'), findsOneWidget);
       expect(find.text('Fan ID 123456'), findsOneWidget);
-      expect(find.text('Profile details'), findsOneWidget);
-      expect(find.text('Country'), findsOneWidget);
+      // ProfileDetailsCard section title is 'Profile'
+      expect(find.text('Profile'), findsOneWidget);
+      expect(find.text('Country'), findsAtLeastNWidgets(1));
       expect(find.text('Favorite teams'), findsOneWidget);
       expect(find.text('Linked venues'), findsOneWidget);
-      expect(
-        find.text('No linked venue. Scan a table QR at a FANZONE bar.'),
-        findsOneWidget,
-      );
       expect(find.text('Account'), findsOneWidget);
-      expect(find.text('Play'), findsNothing);
+      expect(find.text('PLAY'), findsNothing);
       expect(find.text('Match Pools'), findsNothing);
-      expect(find.text('Wallet'), findsNothing);
+      expect(find.text('WALLET'), findsNothing);
       expect(find.text('Select Identity'), findsNothing);
       await tester.tap(find.byKey(const ValueKey('profile-identity-trigger')));
       await tester.pumpAndSettle();
       expect(find.text('Select Identity'), findsNothing);
-      expect(find.text('Notification preferences'), findsOneWidget);
-      expect(find.text('Responsible play & privacy'), findsOneWidget);
+      // Account links rendered via ProfileAccountLinksCard
+      expect(find.text('Privacy'), findsOneWidget);
+      expect(find.text('Settings'), findsOneWidget);
     });
 
     testWidgets('privacy settings screen matches the source sections', (

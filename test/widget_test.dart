@@ -33,21 +33,21 @@ void main() {
     await tester.pump();
     tester.takeException();
 
-    expect(find.text('ENTER WHATSAPP NUMBER'), findsOneWidget);
-    expect(find.text('SEND CODE VIA WHATSAPP'), findsOneWidget);
+    expect(find.text('WHATSAPP'), findsOneWidget);
+    expect(find.text('Send OTP'), findsOneWidget);
     expect(find.text('Test Country • +111 • e.g. 99XX XXXX'), findsOneWidget);
 
     await tester.enterText(find.byType(TextFormField), '79123456');
     await tester.pump();
 
     expect(
-      find.text('Ready to send your WhatsApp OTP to Test Country.'),
+      find.text('Ready.'),
       findsOneWidget,
     );
     expect(
       tester
               .widget<InkWell>(
-                find.widgetWithText(InkWell, 'SEND CODE VIA WHATSAPP'),
+                find.widgetWithText(InkWell, 'Send OTP'),
               )
               .onTap !=
           null,
