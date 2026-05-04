@@ -685,6 +685,23 @@ async function handleVerify(phone: string, otp: string): Promise<Response> {
     );
   }
 
+  const { error: foundationError } = await supabase.rpc(
+    "ensure_user_foundation",
+    {
+      p_user_id: userId,
+    },
+  );
+  if (foundationError) {
+    console.error(
+      "Failed to provision WhatsApp auth foundation:",
+      foundationError,
+    );
+    return Response.json(
+      { error: "Failed to prepare user profile." },
+      { status: 500, headers: CORS_HEADERS },
+    );
+  }
+
   return await createCustomSession(supabase, userId, normalized);
 }
 

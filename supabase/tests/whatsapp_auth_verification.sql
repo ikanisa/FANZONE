@@ -19,6 +19,24 @@ BEGIN
     RAISE EXCEPTION 'Missing public.find_auth_user_by_phone(text) RPC';
   END IF;
 
+  IF to_regprocedure('public.ensure_user_foundation(uuid)') IS NULL THEN
+    RAISE EXCEPTION 'Missing public.ensure_user_foundation(uuid) RPC';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_trigger
+    WHERE tgname = 'on_auth_user_created'
+      AND tgrelid = 'auth.users'::regclass
+      AND NOT tgisinternal
+  ) THEN
+    RAISE EXCEPTION 'Missing auth.users foundation trigger for immediate Fan ID provisioning';
+  END IF;
+
+  IF has_function_privilege('anon', 'public.ensure_user_foundation(uuid)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'Anonymous role must not execute ensure_user_foundation';
+  END IF;
+
   IF NOT EXISTS (
     SELECT 1
     FROM information_schema.columns

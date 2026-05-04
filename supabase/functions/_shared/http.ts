@@ -110,27 +110,27 @@ export function getErrorMessage(error: unknown): string {
  */
 
 export const responses = {
-  ok: (data: any = { success: true }) => 
-    Response.json(data, { 
+  ok: (data: any = { success: true }) =>
+    Response.json(data, {
       headers: buildCorsHeaders("content-type"),
-      status: 200 
+      status: 200,
     }),
-    
-  badRequest: (message: string) => 
-    Response.json({ error: message }, { 
+
+  badRequest: (message: string) =>
+    Response.json({ error: message }, {
       headers: buildCorsHeaders("content-type"),
-      status: 400 
+      status: 400,
     }),
-    
-  unauthorized: () => 
-    Response.json({ error: "Unauthorized" }, { 
+
+  unauthorized: () =>
+    Response.json({ error: "Unauthorized" }, {
       headers: buildCorsHeaders("content-type"),
-      status: 401 
+      status: 401,
     }),
-    
-  error: (err: unknown) => 
-    Response.json({ error: getErrorMessage(err) }, { 
+
+  error: (err: unknown) =>
+    Response.json({ error: getErrorMessage(err) }, {
       headers: buildCorsHeaders("content-type"),
-      status: 500 
+      status: 500,
     }),
 };

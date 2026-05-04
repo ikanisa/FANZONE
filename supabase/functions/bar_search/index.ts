@@ -1,12 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import {
-  handleCors,
-  jsonResponse,
-  errorResponse,
   createAdminClient,
   createLogger,
+  errorResponse,
   getOrCreateRequestId,
+  handleCors,
+  jsonResponse,
 } from "../_shared/mod.ts";
 
 const searchSchema = z.object({
@@ -41,8 +41,12 @@ Deno.serve(async (req) => {
         q: url.searchParams.get("q") || undefined,
         country: url.searchParams.get("country") || undefined,
         status: url.searchParams.get("status") || undefined,
-        limit: url.searchParams.has("limit") ? Number(url.searchParams.get("limit")) : undefined,
-        offset: url.searchParams.has("offset") ? Number(url.searchParams.get("offset")) : undefined,
+        limit: url.searchParams.has("limit")
+          ? Number(url.searchParams.get("limit"))
+          : undefined,
+        offset: url.searchParams.has("offset")
+          ? Number(url.searchParams.get("offset"))
+          : undefined,
       };
     } else {
       searchParams = await req.json();
@@ -50,7 +54,11 @@ Deno.serve(async (req) => {
 
     const parsed = searchSchema.safeParse(searchParams);
     if (!parsed.success) {
-      return errorResponse("Invalid search parameters", 400, parsed.error.issues);
+      return errorResponse(
+        "Invalid search parameters",
+        400,
+        parsed.error.issues,
+      );
     }
 
     const { q, country, status, limit, offset } = parsed.data;
@@ -58,7 +66,10 @@ Deno.serve(async (req) => {
     // Build query
     let query = supabaseAdmin
       .from("venues")
-      .select("id, name, slug, country_code, address_line1, is_active, created_at", { count: "exact" })
+      .select(
+        "id, name, slug, country_code, address_line1, is_active, created_at",
+        { count: "exact" },
+      )
       .eq("is_active", status === "active")
       .order("name", { ascending: true })
       .range(offset!, offset! + limit! - 1);
@@ -68,7 +79,9 @@ Deno.serve(async (req) => {
     }
 
     if (q) {
-      query = query.or(`name.ilike.%${q}%,slug.ilike.%${q}%,address_line1.ilike.%${q}%`);
+      query = query.or(
+        `name.ilike.%${q}%,slug.ilike.%${q}%,address_line1.ilike.%${q}%`,
+      );
     }
 
     const { data: venues, error, count } = await query;
@@ -78,7 +91,10 @@ Deno.serve(async (req) => {
       return errorResponse("Search failed", 500);
     }
 
-    logger.info("Search completed", { results: venues?.length || 0, total: count });
+    logger.info("Search completed", {
+      results: venues?.length || 0,
+      total: count,
+    });
 
     return jsonResponse({
       success: true,

@@ -7,55 +7,64 @@
  */
 
 // CORS + HTTP helpers
-export { corsHeaders, handleCors, jsonResponse, errorResponse } from "./cors.ts";
+export {
+  corsHeaders,
+  errorResponse,
+  handleCors,
+  jsonResponse,
+} from "./cors.ts";
 
 // HTTP authorization (FANZONE-original)
 export {
-    buildCorsHeaders,
-    readBearerToken,
-    isAuthorizedEdgeRequest,
-    isAuthorizedByServiceRole,
-    getErrorMessage,
+  buildCorsHeaders,
+  getErrorMessage,
+  isAuthorizedByServiceRole,
+  isAuthorizedEdgeRequest,
+  readBearerToken,
 } from "./http.ts";
 
 // Structured logging
-export { createLogger, getOrCreateRequestId, generateRequestId } from "./logger.ts";
-export type { Logger, LogLevel, LogContext } from "./logger.ts";
+export {
+  createLogger,
+  generateRequestId,
+  getOrCreateRequestId,
+} from "./logger.ts";
+export type { LogContext, Logger, LogLevel } from "./logger.ts";
 
 // Types + enums
 export { AuditAction, EntityType, ErrorCode } from "./types.ts";
-export type { AuthContext, ApiResponse, RateLimitConfig } from "./types.ts";
+export type { ApiResponse, AuthContext, RateLimitConfig } from "./types.ts";
 
 // Auth + RBAC
 export {
-    createAdminClient,
-    createUserClient,
-    getAuthHeader,
-    getAuthenticatedUser,
-    requireAuth,
-    optionalAuth,
-    isAdmin,
-    isVendorMember,
-    requireAdmin,
-    requireVendorOrAdmin,
-    checkRateLimit,
+  checkRateLimit,
+  createAdminClient,
+  createUserClient,
+  getAuthenticatedUser,
+  getAuthHeader,
+  isAdmin,
+  isVendorMember,
+  optionalAuth,
+  requireAdmin,
+  requireAuth,
+  requireVendorOrAdmin,
 } from "./auth.ts";
 
 // Audit logging
-export { writeAuditLog, createAuditLogger } from "./audit.ts";
-export type { AuditMetadata, AuditLogger } from "./audit.ts";
+export { createAuditLogger, writeAuditLog } from "./audit.ts";
+export type { AuditLogger, AuditMetadata } from "./audit.ts";
 
 // Gemini AI utilities
 export {
-    GEMINI_API_URL,
-    GEMINI_MODELS,
-    callGemini,
-    searchWithGoogle,
-    searchPlaces,
-    parseJSON,
-    buildAgentContext,
-    streamAgentChat,
-    getAgentChatCompletion,
+  buildAgentContext,
+  callGemini,
+  GEMINI_API_URL,
+  GEMINI_MODELS,
+  getAgentChatCompletion,
+  parseJSON,
+  searchPlaces,
+  searchWithGoogle,
+  streamAgentChat,
 } from "./gemini.ts";
-export type { PlaceResult, AgentType, ConversationMessage } from "./gemini.ts";
+export type { AgentType, ConversationMessage, PlaceResult } from "./gemini.ts";
 export { AGENT_SYSTEM_PROMPTS } from "./gemini.ts";

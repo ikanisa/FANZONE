@@ -1,16 +1,16 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import {
+  AuditAction,
+  createAdminClient,
+  createAuditLogger,
+  createLogger,
+  EntityType,
+  errorResponse,
+  getOrCreateRequestId,
   handleCors,
   jsonResponse,
-  errorResponse,
-  createAdminClient,
   optionalAuth,
-  createLogger,
-  getOrCreateRequestId,
-  createAuditLogger,
-  AuditAction,
-  EntityType,
 } from "../_shared/mod.ts";
 
 // --- Input Validation Schema ---
@@ -28,15 +28,53 @@ const createOrderSchema = z.object({
   venue_id: z.string().uuid(),
   table_id: z.string().uuid().optional(),
   table_public_code: z.string().min(1).optional(),
-  payment_method: z.enum(["cash", "momo", "revolut", "card", "other"]).default("cash"),
+  payment_method: z.enum(["cash", "momo", "revolut", "card", "other"]).default(
+    "cash",
+  ),
   items: z.array(orderItemSchema).min(1),
-  special_instructions: z.string().max(1000).optional(),
-  notes: z.string().max(1000).optional(),
-}).refine((input) => input.table_id !== undefined || input.table_public_code !== undefined, {
-  message: "table_id or table_public_code is required",
-});
+  special_instructions: z.string().max(1000).nullable().optional(),
+  notes: z.string().max(1000).nullable().optional(),
+}).refine(
+  (input) =>
+    input.table_id !== undefined || input.table_public_code !== undefined,
+  {
+    message: "table_id or table_public_code is required",
+  },
+);
 
 type CreateOrderInput = z.infer<typeof createOrderSchema>;
+
+function authenticatedUserIdFromJwt(req: Request): string | null {
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.match(/^Bearer\s+(.+)$/i)?.[1];
+  const payloadSegment = token?.split(".")[1];
+  if (!payloadSegment) return null;
+
+  try {
+    const payload = JSON.parse(
+      new TextDecoder().decode(base64UrlDecode(payloadSegment)),
+    ) as { sub?: unknown; role?: unknown; exp?: unknown };
+    const expiresAt = typeof payload.exp === "number" ? payload.exp : 0;
+    if (payload.role !== "authenticated" || expiresAt <= Date.now() / 1000) {
+      return null;
+    }
+    return typeof payload.sub === "string" && payload.sub.length > 0
+      ? payload.sub
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function base64UrlDecode(value: string): Uint8Array {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(
+    base64.length + (4 - base64.length % 4) % 4,
+    "=",
+  );
+  const binary = atob(padded);
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+}
 
 Deno.serve(async (req) => {
   const startTime = Date.now();
@@ -59,7 +97,7 @@ Deno.serve(async (req) => {
 
     // Authentication required — FANZONE mandates auth.uid() on all orders
     const authResult = await optionalAuth(req, logger);
-    const userId = authResult?.user?.id || null;
+    const userId = authResult?.user?.id || authenticatedUserIdFromJwt(req);
 
     if (!userId) {
       return errorResponse("Authentication required to place orders", 401);
@@ -76,7 +114,10 @@ Deno.serve(async (req) => {
     }
 
     const input: CreateOrderInput = parsed.data;
-    logger.info("Processing order", { venueId: input.venue_id, itemCount: input.items.length });
+    logger.info("Processing order", {
+      venueId: input.venue_id,
+      itemCount: input.items.length,
+    });
 
     // Create audit logger
     const audit = createAuditLogger(supabaseAdmin, userId, requestId, logger);
@@ -103,7 +144,8 @@ Deno.serve(async (req) => {
     // ========================================================================
     // STEP 2: Validate table belongs to venue and is active
     // ========================================================================
-    let table: { id: string; venue_id: string; table_number: string } | null = null;
+    let table: { id: string; venue_id: string; table_number: string } | null =
+      null;
 
     if (input.table_id) {
       const { data: tableById } = await supabaseAdmin
@@ -117,22 +159,47 @@ Deno.serve(async (req) => {
       table = tableById;
     } else if (input.table_public_code) {
       const rawTableInput = input.table_public_code.trim();
-      const digitsMatch = rawTableInput.match(/\d+/);
-      const tableNumber = digitsMatch ? digitsMatch[0] : rawTableInput;
-
-      const { data: tableByNumber } = await supabaseAdmin
+      const normalizedTableInput = decodeURIComponent(rawTableInput);
+      const { data: candidateTables } = await supabaseAdmin
         .from("tables")
-        .select("id, venue_id, table_number")
-        .eq("table_number", tableNumber)
+        .select(
+          "id, venue_id, table_number, qr_url, qr_code_url, deep_link_uri",
+        )
         .eq("venue_id", input.venue_id)
         .eq("is_active", true)
-        .maybeSingle();
+        .limit(200);
 
-      table = tableByNumber;
+      table = candidateTables?.find((candidate) =>
+        [
+          candidate.id,
+          candidate.table_number,
+          candidate.qr_url,
+          candidate.qr_code_url,
+          candidate.deep_link_uri,
+        ].some((value) => value === normalizedTableInput)
+      ) ?? null;
+
+      if (!table) {
+        const digitsMatch = normalizedTableInput.match(/\d+/);
+        const tableNumber = digitsMatch ? digitsMatch[0] : normalizedTableInput;
+        const { data: tableByNumber } = await supabaseAdmin
+          .from("tables")
+          .select("id, venue_id, table_number")
+          .eq("table_number", tableNumber)
+          .eq("venue_id", input.venue_id)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        table = tableByNumber;
+      }
     }
 
     if (!table) {
-      logger.warn("Table not found", { tableId: input.table_id, tableCode: input.table_public_code, venueId: input.venue_id });
+      logger.warn("Table not found", {
+        tableId: input.table_id,
+        tableCode: input.table_public_code,
+        venueId: input.venue_id,
+      });
       return errorResponse("Table not found or inactive", 404);
     }
 
@@ -142,7 +209,9 @@ Deno.serve(async (req) => {
     const menuItemIds = input.items.map((item) => item.menu_item_id);
     const { data: menuItems, error: menuItemsError } = await supabaseAdmin
       .from("menu_items")
-      .select("id, name, description, price, currency_code, is_available, venue_id")
+      .select(
+        "id, name, description, price, currency_code, is_available, venue_id",
+      )
       .in("id", menuItemIds)
       .eq("venue_id", input.venue_id);
 
@@ -155,10 +224,16 @@ Deno.serve(async (req) => {
     for (const inputItem of input.items) {
       const menuItem = menuItemsMap.get(inputItem.menu_item_id);
       if (!menuItem) {
-        return errorResponse(`Menu item ${inputItem.menu_item_id} not found`, 404);
+        return errorResponse(
+          `Menu item ${inputItem.menu_item_id} not found`,
+          404,
+        );
       }
       if (!menuItem.is_available) {
-        return errorResponse(`Menu item ${menuItem.name} is not available`, 400);
+        return errorResponse(
+          `Menu item ${menuItem.name} is not available`,
+          400,
+        );
       }
       const quantity = inputItem.quantity ?? inputItem.qty!;
       if (quantity <= 0) {
@@ -227,7 +302,8 @@ Deno.serve(async (req) => {
     // ========================================================================
     // STEP 6: Insert order and order items
     // ========================================================================
-    const currencyCode = venue.currency_code || (venue.country_code === "RW" ? "RWF" : "EUR");
+    const currencyCode = venue.currency_code ||
+      (venue.country_code === "RW" ? "RWF" : "EUR");
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -265,9 +341,15 @@ Deno.serve(async (req) => {
       .select();
 
     if (itemsError || !insertedItems) {
-      logger.error("Failed to insert order items, cleaning up order", { error: itemsError?.message });
+      logger.error("Failed to insert order items, cleaning up order", {
+        error: itemsError?.message,
+      });
       await supabaseAdmin.from("orders").delete().eq("id", order.id);
-      return errorResponse("Failed to create order items", 500, itemsError?.message);
+      return errorResponse(
+        "Failed to create order items",
+        500,
+        itemsError?.message,
+      );
     }
 
     // ========================================================================

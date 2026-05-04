@@ -16,9 +16,10 @@ import {
 
 const markPaidSchema = z.object({
   order_id: z.string().uuid(),
-  payment_method: z.enum(["cash", "momo", "revolut", "card", "other"]).optional().default(
-    "cash",
-  ),
+  payment_method: z.enum(["cash", "momo", "revolut", "card", "other"])
+    .optional().default(
+      "cash",
+    ),
 });
 
 Deno.serve(async (req) => {

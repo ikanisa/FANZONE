@@ -1,17 +1,17 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import {
+  AuditAction,
+  createAdminClient,
+  createAuditLogger,
+  createLogger,
+  EntityType,
+  errorResponse,
+  getOrCreateRequestId,
   handleCors,
   jsonResponse,
-  errorResponse,
-  createAdminClient,
   requireAuth,
   requireVendorOrAdmin,
-  createLogger,
-  getOrCreateRequestId,
-  createAuditLogger,
-  AuditAction,
-  EntityType,
 } from "../_shared/mod.ts";
 
 const generateTablesSchema = z.object({
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       supabaseUser,
       venue_id,
       user.id,
-      logger
+      logger,
     );
     if (rbacResult instanceof Response) return rbacResult;
 
@@ -69,7 +69,10 @@ Deno.serve(async (req) => {
       .order("table_number", { ascending: false })
       .limit(1);
 
-    const lastTableNumber = Number.parseInt(existingTables?.[0]?.table_number ?? "0", 10);
+    const lastTableNumber = Number.parseInt(
+      existingTables?.[0]?.table_number ?? "0",
+      10,
+    );
     const startNumber = Number.isFinite(lastTableNumber) && lastTableNumber > 0
       ? lastTableNumber + 1
       : 1;
@@ -96,7 +99,11 @@ Deno.serve(async (req) => {
 
     if (insertError) {
       logger.error("Failed to generate tables", { error: insertError.message });
-      return errorResponse("Failed to generate tables", 500, insertError.message);
+      return errorResponse(
+        "Failed to generate tables",
+        500,
+        insertError.message,
+      );
     }
 
     // ---- Audit ----

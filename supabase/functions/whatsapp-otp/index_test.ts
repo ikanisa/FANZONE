@@ -51,7 +51,9 @@ Deno.test("resolveConfiguredTestOtp returns the configured OTP for Malta test ph
     "123456",
   );
   if (otp !== "123456") {
-    throw new Error("Expected Malta reviewer phone to resolve to the configured OTP");
+    throw new Error(
+      "Expected Malta reviewer phone to resolve to the configured OTP",
+    );
   }
 });
 
@@ -67,9 +69,21 @@ Deno.test("resolveConfiguredTestOtp rejects non-matching phone", () => {
 });
 
 Deno.test("resolveConfiguredTestOtp rejects invalid OTP format (non-6-digit)", () => {
-  const alpha = resolveConfiguredTestOtp("+250788767816", "+250788767816", "abc123");
-  const short = resolveConfiguredTestOtp("+250788767816", "+250788767816", "1234");
-  const long = resolveConfiguredTestOtp("+250788767816", "+250788767816", "1234567");
+  const alpha = resolveConfiguredTestOtp(
+    "+250788767816",
+    "+250788767816",
+    "abc123",
+  );
+  const short = resolveConfiguredTestOtp(
+    "+250788767816",
+    "+250788767816",
+    "1234",
+  );
+  const long = resolveConfiguredTestOtp(
+    "+250788767816",
+    "+250788767816",
+    "1234567",
+  );
 
   if (alpha !== null) throw new Error("Expected alpha OTP to be rejected");
   if (short !== null) throw new Error("Expected short OTP to be rejected");
@@ -79,13 +93,31 @@ Deno.test("resolveConfiguredTestOtp rejects invalid OTP format (non-6-digit)", (
 Deno.test("resolveConfiguredTestOtp handles empty/null config gracefully", () => {
   const emptyPhone = resolveConfiguredTestOtp("+250788767816", "", "123456");
   const nullPhone = resolveConfiguredTestOtp("+250788767816", null, "123456");
-  const emptyOtp = resolveConfiguredTestOtp("+250788767816", "+250788767816", "");
-  const nullOtp = resolveConfiguredTestOtp("+250788767816", "+250788767816", null);
-  const undefinedBoth = resolveConfiguredTestOtp("+250788767816", undefined, undefined);
+  const emptyOtp = resolveConfiguredTestOtp(
+    "+250788767816",
+    "+250788767816",
+    "",
+  );
+  const nullOtp = resolveConfiguredTestOtp(
+    "+250788767816",
+    "+250788767816",
+    null,
+  );
+  const undefinedBoth = resolveConfiguredTestOtp(
+    "+250788767816",
+    undefined,
+    undefined,
+  );
 
-  if (emptyPhone !== null) throw new Error("Empty phone config should return null");
-  if (nullPhone !== null) throw new Error("Null phone config should return null");
+  if (emptyPhone !== null) {
+    throw new Error("Empty phone config should return null");
+  }
+  if (nullPhone !== null) {
+    throw new Error("Null phone config should return null");
+  }
   if (emptyOtp !== null) throw new Error("Empty OTP config should return null");
   if (nullOtp !== null) throw new Error("Null OTP config should return null");
-  if (undefinedBoth !== null) throw new Error("Undefined config should return null");
+  if (undefinedBoth !== null) {
+    throw new Error("Undefined config should return null");
+  }
 });
