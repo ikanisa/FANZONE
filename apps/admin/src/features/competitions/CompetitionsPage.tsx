@@ -9,7 +9,6 @@ import { useCompetitions, useToggleCompetitionFeatured, useUpdateCompetitionCont
 import type { CompetitionRow } from './useCompetitions';
 import { formatDate } from '../../lib/formatters';
 import { Trophy, Search, Star, StarOff, Globe, Calendar, Layers } from 'lucide-react';
-import { APPROVED_COMPETITIONS } from '../platform-control/controlCenter';
 
 export function CompetitionsPage() {
   const [page, setPage] = useState(0);
@@ -25,6 +24,9 @@ export function CompetitionsPage() {
     if (regionFilter === 'all') return true;
     return (competition.region ?? competition.country ?? '').toLowerCase() === regionFilter;
   });
+  const activeRolloutCompetitions = competitions
+    .filter((competition) => competition.is_active ?? competition.status === 'active')
+    .slice(0, 12);
   const activeCount = competitions.filter(c => c.is_active ?? c.status === 'active').length;
   const featuredCount = competitions.filter(c => c.is_featured).length;
   const upcomingCount = competitions.filter(c => c.status === 'upcoming').length;
@@ -59,11 +61,15 @@ export function CompetitionsPage() {
       </div>
 
       <div className="data-table-container mb-4" style={{ padding: 12 }}>
-        <div className="text-xs font-semibold text-muted uppercase mb-2">Approved rollout set</div>
+        <div className="text-xs font-semibold text-muted uppercase mb-2">Active Supabase rollout set</div>
         <div className="flex flex-wrap gap-2">
-          {APPROVED_COMPETITIONS.map((name) => (
-            <span key={name} className="badge badge-neutral">{name}</span>
-          ))}
+          {activeRolloutCompetitions.length === 0 ? (
+            <span className="text-sm text-muted">No active competitions loaded from Supabase.</span>
+          ) : (
+            activeRolloutCompetitions.map((competition) => (
+              <span key={competition.id} className="badge badge-neutral">{competition.name}</span>
+            ))
+          )}
         </div>
       </div>
 

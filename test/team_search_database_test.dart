@@ -262,4 +262,18 @@ void main() {
       }
     });
   });
+
+  group('async team catalog access', () {
+    test('searchTeamsAsync resolves through the active catalog', () async {
+      final results = await searchTeamsAsync('Sailors');
+      expect(results, isNotEmpty);
+      expect(results.first.id, 'harbor-united');
+    });
+
+    test('popularTeamsForRegionAsync preserves regional scoping', () async {
+      final results = await popularTeamsForRegionAsync('africa', limit: 2);
+      expect(results, hasLength(2));
+      expect(results.any((team) => team.region == 'africa'), isTrue);
+    });
+  });
 }

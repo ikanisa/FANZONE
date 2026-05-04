@@ -2,7 +2,7 @@ name: fanzone
 description: "FANZONE — Sports-bar ordering, match pools, and FET wallet."
 publish_to: 'none'
 
-version: 1.1.2+10
+version: 1.1.3+11
 
 environment:
   sdk: ^3.10.8
@@ -52,6 +52,7 @@ dependencies:
   url_launcher: ^6.3.2
   uuid: ^4.5.1
   app_links: ^7.0.0
+  geolocator: ^14.0.2
 
 dev_dependencies:
   integration_test:
@@ -73,6 +74,7 @@ flutter:
   assets:
     - assets/fonts/
     - assets/images/
+    - assets/icons/
 
   # Font families are vendored into assets/fonts for deterministic tests/builds.
   fonts:

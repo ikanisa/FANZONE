@@ -6,18 +6,6 @@ export const ROLLOUT_REGIONS = [
   { value: "world_cup_markets", label: "World Cup markets" },
 ] as const;
 
-export const APPROVED_COMPETITIONS = [
-  "EPL",
-  "La Liga",
-  "Serie A",
-  "Ligue 1",
-  "Bundesliga",
-  "Champions League",
-  "Europa League",
-  "World Cup",
-  "Local Curated",
-] as const;
-
 export const SPORTS_BAR_FEATURE_FLAGS = [
   {
     key: "fet_spending",

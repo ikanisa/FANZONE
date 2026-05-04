@@ -25,6 +25,7 @@ import {
   Users,
   Utensils,
   Wallet,
+  XCircle,
 } from 'lucide-react';
 import { EligibilityBadge } from '../../components/console/EligibilityBadge';
 import { EmptyState } from '../../components/console/EmptyState';
@@ -52,8 +53,10 @@ import {
   requestVenueFetTopUp,
   setVenueScreenState,
   settleVenuePool,
+  settleVenueGameSession,
   updateGameSessionLifecycle,
   updateVenueMenuItem,
+  verifyMusicBingoClaim,
   type GameTemplate,
   type VenueFetLedgerEntry,
   type VenueFetWallet,
@@ -1031,8 +1034,41 @@ export function GameControlPage() {
     }
   }
 
+  async function reviewBingoClaim(claimId: string, approved: boolean) {
+    setBusy(true);
+    setNotice(null);
+    try {
+      await verifyMusicBingoClaim(claimId, approved, approved ? 1 : 0);
+      setNotice(approved ? 'Bingo claim verified.' : 'Bingo claim rejected.');
+      control.refresh();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : 'Bingo claim review failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function settleGame() {
+    if (!sessionId) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      await settleVenueGameSession(sessionId);
+      setNotice('Game settled. Eligible winners were paid from the venue reward pool.');
+      control.refresh();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : 'Game settlement failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const session = control.data?.session;
   const teams = control.data?.teams ?? [];
+  const bingoClaims = control.data?.bingoClaims ?? [];
+  const hasSettlement = session?.metadata && typeof session.metadata === 'object' && !Array.isArray(session.metadata)
+    ? (session.metadata as Record<string, unknown>).settlement
+    : null;
 
   return (
     <OperationalPage
@@ -1069,7 +1105,13 @@ export function GameControlPage() {
               <button className="btn btn-secondary" type="button" disabled={busy} onClick={() => lifecycle('resume')}><RefreshCcw size={16} /> Resume</button>
               <button className="btn btn-secondary" type="button" disabled={busy} onClick={() => lifecycle('next_round')}><SkipForward size={16} /> Next round</button>
               <button className="btn bg-danger/10 text-danger border border-danger/20 md:col-span-2" type="button" disabled={busy} onClick={() => lifecycle('end')}><Square size={16} /> End game</button>
+              <button className="btn btn-primary md:col-span-2" type="button" disabled={busy || session?.status === 'settled'} onClick={settleGame}><Coins size={16} /> Settle eligible winners</button>
             </div>
+            {Boolean(hasSettlement) && (
+              <div className="mt-5 rounded-2xl border border-success/20 bg-success/10 p-4 text-sm font-bold text-success">
+                Settlement recorded. Eligible winners and ineligible winners are stored on the session audit metadata.
+              </div>
+            )}
           </div>
         </SectionCard>
         <SectionCard title="Leaderboard and eligibility">
@@ -1091,6 +1133,34 @@ export function GameControlPage() {
             <EmptyState icon={<Users size={30} />} title="No teams loaded" message="Teams appear here after guests join or create teams inside the venue game session." />
           )}
         </SectionCard>
+        {session?.templateId === 'music_bingo' && (
+          <SectionCard title="Music Bingo claims" detail="Claims require host verification before score changes. The app does not stream music.">
+            {bingoClaims.length ? (
+              <div className="space-y-3">
+                {bingoClaims.map((claim) => (
+                  <div key={claim.id} className="rounded-2xl border border-border bg-surface2 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xl font-black">{claim.teamName}</p>
+                        <p className="text-sm font-bold text-textSecondary">Claim {shortId(claim.id)} · {readableStatus(claim.status)} · {claim.awardedFet} FET</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button className="btn btn-secondary" type="button" disabled={busy || claim.status !== 'submitted'} onClick={() => reviewBingoClaim(claim.id, true)}>
+                          <CheckCircle2 size={16} /> Verify
+                        </button>
+                        <button className="btn bg-danger/10 text-danger border border-danger/20" type="button" disabled={busy || claim.status !== 'submitted'} onClick={() => reviewBingoClaim(claim.id, false)}>
+                          <XCircle size={16} /> Reject
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState icon={<ClipboardCheck size={30} />} title="No bingo claims" message="Submitted Music Bingo claims appear here for host verification." />
+            )}
+          </SectionCard>
+        )}
       </div>
     </OperationalPage>
   );

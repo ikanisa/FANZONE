@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
@@ -40,6 +42,41 @@
                     android:scheme="https"
                     android:host="fanzone.ikanisa.com"
                     android:pathPrefix="/predict" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.ikanisa.com"
+                    android:pathPrefix="/v" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.ikanisa.com"
+                    android:pathPrefix="/venues" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.ikanisa.com"
+                    android:pathPrefix="/bar" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.ikanisa.com"
+                    android:pathPrefix="/pool" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.ikanisa.com"
+                    android:pathPrefix="/pools" />
+            </intent-filter>
+
+            <!-- Deep linking: legacy QR host used by generated venue table links -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.app"
+                    android:pathPrefix="/v" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.app"
+                    android:pathPrefix="/venues" />
             </intent-filter>
 
             <!-- Deep linking: custom scheme fallback -->
@@ -50,6 +87,15 @@
                 <data
                     android:scheme="fanzone"
                     android:host="predict" />
+                <data
+                    android:scheme="fanzone"
+                    android:host="v" />
+                <data
+                    android:scheme="fanzone"
+                    android:host="venues" />
+                <data
+                    android:scheme="fanzone"
+                    android:host="bar" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

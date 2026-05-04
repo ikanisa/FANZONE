@@ -12,10 +12,12 @@
 Existing deployment pattern is Cloudflare Pages.
 
 Current deployments from this release pass:
-- Public PWA / website: `https://fanzone.ikanisa.com` and `https://fanzone-website.pages.dev`
-- Admin PWA: `https://fanzone-admin.pages.dev`
-- Venue dashboard PWA: `https://fanzone-venue-portal.pages.dev`
-- TV display PWA: `https://fanzone-tv-display.pages.dev`
+- Public PWA / website: `https://2fdf640b.fanzone-website.pages.dev`
+- Admin PWA: `https://d68abe9b.fanzone-admin.pages.dev`
+- Venue dashboard PWA: `https://945a5815.fanzone-venue-portal.pages.dev`
+- TV display PWA: `https://3078ac01.fanzone-tv-display.pages.dev`
+- Production public domain smoke: `https://fanzone.ikanisa.com` returns HTTP 200.
+- TV custom domain `https://screen.fanzone.ikanisa.com` has a Cloudflare Pages custom-domain binding, but still needs the `screen` CNAME in the `ikanisa.com` DNS zone.
 
 Primary deploy path:
 - `tool/deploy_cloudflare_pages.sh all`
@@ -54,7 +56,7 @@ tool/deploy_cloudflare_pages.sh all
 
 ## Production Smoke
 
-- Completed: HTTP 200 smoke for website root, website `/privacy`, admin root, venue dashboard root, and TV display root.
+- Completed: HTTP 200 smoke for all four Cloudflare Pages deployment roots and production public root.
 - Still required: authenticated route smoke using real reviewer/staff accounts.
 - Refresh deep routes on each PWA.
 - Confirm manifest and icons load.

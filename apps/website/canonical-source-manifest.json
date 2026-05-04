@@ -1,6 +1,6 @@
 {
   "sourceLabel": "/Volumes/PRO-G40/FANZONE/apps/website",
-  "generatedAt": "2026-05-03T19:04:54.470Z",
+  "generatedAt": "2026-05-04T07:13:35.035Z",
   "routes": [
     "/onboarding",
     "/pools/:slug",
@@ -74,7 +74,7 @@
     "components/Notifications.tsx": "c52ab0a534332df308c61471682ce8c0411345d954a86145ca039aff4510c0d8",
     "components/Onboarding.tsx": "a9df332873cf7f4ff88f0e6fe2c407478af6c7a43743e99f04e48ea7981e6c66",
     "components/Ordering.tsx": "004a1169d8a1b8ec4b7ebe3b7e16391154cd6ad5a0f19c0af1599fd92360a070",
-    "components/Pools.tsx": "fa777db48dd1c997e86727f1a49762252ab72c19b2c4459f34d71b7561e093cc",
+    "components/Pools.tsx": "3b456cbe93f9d54770c1ed83ca1408d4f1bceef7eb877428882fed953c32ed32",
     "components/PrivacySettings.tsx": "6f30cee468e50e550f7907f9d85517bcfe82b5562c8712f64e53a14826f3fda4",
     "components/Profile.tsx": "38230a72e60fd3d13e0651c2a53b017176e8e9a13699fe76a09ce5eebbef4f7b",
     "components/Settings.tsx": "c8347285eff9223be80b9dfce4a0e3d0c922e4f17f60b766135a3868caf4b774",
@@ -106,7 +106,7 @@
     "platform/normalize.ts": "65a2e4603c3e047d66e265533d6a488f678e1dbe4af61cde5b125da41abcc38d",
     "platform/types.ts": "a81e1aeabe40e1940006145ab28a3dc662860df8e92dbf34837694bed093697a",
     "pools/poolDomain.test.ts": "cf55934d3f79093f730262ba8179d09cf7e3db48f0ba7794bd1b532146e01536",
-    "services/api.ts": "c022af39e95a19b88406a75b7880e56b1566f46ddbe7ce5b5b2f7fdac1c260f6",
+    "services/api.ts": "f229adf512e687966868c2b3ac1fc262b2c399bcb85af988db58888294a589e0",
     "store/useAppStore.ts": "ddfb5835ace9be2ae6d0933d0f4c9fde6f771e35d513849a65fd1eff25f0ffb6",
     "types.ts": "455d747f29e604f540f8f23e39e03fb19f417537b54473c6bfda341e34aa82b7"
   },

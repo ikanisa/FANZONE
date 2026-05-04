@@ -191,10 +191,23 @@ export interface VenueGameQuestion {
   options: Json;
 }
 
+export interface VenueBingoClaim {
+  id: string;
+  sessionId: string;
+  cardId: string;
+  teamId: string;
+  teamName: string;
+  status: string;
+  awardedFet: number;
+  createdAt: string;
+  verifiedAt: string | null;
+}
+
 export interface VenueGameControl {
   session: VenueGameSession;
   teams: VenueGameTeam[];
   currentQuestion: VenueGameQuestion | null;
+  bingoClaims: VenueBingoClaim[];
 }
 
 export type VenueScreenMode =
@@ -886,6 +899,18 @@ type GameTeamRow = {
   members?: Array<{ user_id: string }> | null;
 };
 
+type BingoClaimRow = {
+  id: string;
+  session_id: string;
+  card_id: string;
+  team_id: string;
+  status: string;
+  awarded_fet: number;
+  created_at: string;
+  verified_at: string | null;
+  team?: { name?: string | null } | Array<{ name?: string | null }> | null;
+};
+
 function mapGameTeam(row: GameTeamRow): VenueGameTeam {
   return {
     id: row.id,
@@ -896,6 +921,25 @@ function mapGameTeam(row: GameTeamRow): VenueGameTeam {
     inviteCode: row.invite_code,
     memberCount: row.members?.length ?? 0,
     createdAt: row.created_at,
+  };
+}
+
+function relationTeamName(row: BingoClaimRow): string {
+  const team = Array.isArray(row.team) ? row.team[0] : row.team;
+  return team?.name ?? 'Team';
+}
+
+function mapBingoClaim(row: BingoClaimRow): VenueBingoClaim {
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    cardId: row.card_id,
+    teamId: row.team_id,
+    teamName: relationTeamName(row),
+    status: row.status,
+    awardedFet: toNumber(row.awarded_fet),
+    createdAt: row.created_at,
+    verifiedAt: row.verified_at,
   };
 }
 
@@ -958,10 +1002,23 @@ export async function fetchGameSessionControl(sessionId: string): Promise<VenueG
     }
   }
 
+  let bingoClaims: VenueBingoClaim[] = [];
+  if (session.templateId === 'music_bingo') {
+    const { data: claimRows, error: claimError } = await supabase
+      .from('music_bingo_claims')
+      .select('*, team:game_teams(name)')
+      .eq('session_id', sessionId)
+      .order('created_at', { ascending: false });
+
+    if (claimError) throw claimError;
+    bingoClaims = ((claimRows ?? []) as unknown as BingoClaimRow[]).map(mapBingoClaim);
+  }
+
   return {
     session,
     teams: ((teamRows ?? []) as unknown as GameTeamRow[]).map(mapGameTeam),
     currentQuestion,
+    bingoClaims,
   };
 }
 
@@ -991,6 +1048,32 @@ export async function updateGameSessionLifecycle(
     p_session_id: sessionId,
     p_action: action,
     p_note: note?.trim() || null,
+  });
+
+  if (error) throw error;
+  return data as Json | null;
+}
+
+export async function verifyMusicBingoClaim(
+  claimId: string,
+  approved: boolean,
+  awardFet: number,
+  note?: string,
+): Promise<Json | null> {
+  const { data, error } = await supabase.rpc('verify_music_bingo_claim', {
+    p_claim_id: claimId,
+    p_approved: approved,
+    p_award_fet: Math.max(0, Math.round(awardFet)),
+    p_note: note?.trim() || null,
+  });
+
+  if (error) throw error;
+  return data as Json | null;
+}
+
+export async function settleVenueGameSession(sessionId: string): Promise<Json | null> {
+  const { data, error } = await supabase.rpc('venue_settle_game_session', {
+    p_session_id: sessionId,
   });
 
   if (error) throw error;

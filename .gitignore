@@ -44,9 +44,14 @@ migrate_working_dir/
 
 # Environment secrets
 .env
+.env.*
+!.env.example
+!.env.*.example
 admin/.env
 env/*.json
 !env/*.example.json
+/supabase/.env.*
+!/supabase/.env.example
 /android/key.properties
 /android/app/*.jks
 /android/app/*.keystore

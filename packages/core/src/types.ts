@@ -1026,6 +1026,19 @@ export interface Database {
         };
         Returns: Json;
       };
+      verify_music_bingo_claim: {
+        Args: {
+          p_claim_id: string;
+          p_approved: boolean;
+          p_award_fet?: number;
+          p_note?: string | null;
+        };
+        Returns: Json;
+      };
+      venue_settle_game_session: {
+        Args: { p_session_id: string };
+        Returns: Json;
+      };
       get_game_session_question: {
         Args: {
           p_session_id: string;

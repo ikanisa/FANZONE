@@ -1,0 +1,5 @@
+Release hardening for the sports-bar pilot:
+- WhatsApp OTP provisioning and 6-digit FANZONE ID checks.
+- Payment-submitted order flow for external MoMo/Revolut guidance.
+- Venue-linked games, Music Bingo, eligibility, and settlement hardening.
+- Remote Supabase and Play Store internal testing readiness fixes.

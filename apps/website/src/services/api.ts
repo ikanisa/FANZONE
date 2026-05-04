@@ -176,7 +176,7 @@ function normalizeMatchPoolRow(row: JsonRecord): MatchPoolSummary {
   return {
     id: asString(row.id),
     matchId: asString(row.match_id),
-    scope: asString(row.scope, "global"),
+    scope: asString(row.scope, "venue"),
     countryCode: asString(row.country_code) || null,
     venueId: asString(row.venue_id) || null,
     title: asString(row.title, "Match pool"),
@@ -229,7 +229,7 @@ function normalizePoolEntryRow(row: JsonRecord): MatchPoolEntrySummary {
     competitionName: asString(row.competition_name) || null,
     kickoffAt: asString(row.kickoff_at) || null,
     poolTitle: asString(row.pool_title, "Match pool"),
-    poolScope: asString(row.pool_scope, "global"),
+    poolScope: asString(row.pool_scope, "venue"),
     poolStatus: asString(row.pool_status, "open"),
     campLabel: asString(row.camp_label, "Camp"),
     stakeAmount: asNumber(row.stake_amount),

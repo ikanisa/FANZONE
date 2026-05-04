@@ -13,7 +13,7 @@ FANZONE does not depend on paid GitHub Actions minutes for release.
 Run checks from a release machine:
 
 ```bash
-git grep -nE '(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|sbp_[A-Za-z0-9_-]{20,}|postgresql://[^[:space:]]+:[^[:space:]]+@)' -- ':!.github/workflows/secret-regex-scan.yml' ':!docs/secret-rotation-runbook.md' ':!**/package-lock.json'
+git grep -nE '(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|sbp_[A-Za-z0-9_-]{20,}|postgresql://[^[:space:]]+:[^[:space:]]+@)' -- ':!.github/workflows/secret-regex-scan.yml' ':!docs/free-account-release.md' ':!docs/secret-rotation-runbook.md' ':!**/.env*.example' ':!**/package-lock.json'
 bash -n tool/*.sh
 flutter analyze
 flutter test
@@ -39,4 +39,3 @@ Use Supabase cron, another free scheduler, or local cron to call:
 tool/run_supabase_cron_job.sh settle-match-pools
 tool/run_supabase_cron_job.sh dispatch-match-alerts
 ```
-

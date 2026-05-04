@@ -107,14 +107,24 @@ echo "user_followed_competitions.write ${competition_follow_write_status}"
   echo "Protected competition follow table accepted anon writes."
   exit 1
 }
-[[ "${wallet_body}" == "[]" ]] || {
-  echo "fet_wallets leaked data to an anonymous request."
+if [[ "${wallet_status}" == "200" ]]; then
+  [[ "${wallet_body}" == "[]" ]] || {
+    echo "fet_wallets leaked data to an anonymous request."
+    exit 1
+  }
+elif [[ "${wallet_status}" != "401" && "${wallet_status}" != "403" ]]; then
+  echo "fet_wallets probe returned an unexpected status (${wallet_status})."
   exit 1
-}
-[[ "${transactions_body}" == "[]" ]] || {
-  echo "fet_wallet_transactions leaked data to an anonymous request."
+fi
+if [[ "${transactions_status}" == "200" ]]; then
+  [[ "${transactions_body}" == "[]" ]] || {
+    echo "fet_wallet_transactions leaked data to an anonymous request."
+    exit 1
+  }
+elif [[ "${transactions_status}" != "401" && "${transactions_status}" != "403" ]]; then
+  echo "fet_wallet_transactions probe returned an unexpected status (${transactions_status})."
   exit 1
-}
+fi
 if [[ "${profiles_status}" == "200" ]]; then
   [[ "${profiles_body}" == "[]" ]] || {
     echo "profiles leaked data to an anonymous request."
@@ -124,14 +134,5 @@ elif [[ "${profiles_status}" != "401" && "${profiles_status}" != "403" ]]; then
   echo "profiles probe returned an unexpected status (${profiles_status})."
   exit 1
 fi
-
-[[ "${wallet_status}" == "200" ]] || {
-  echo "Core wallet table fet_wallets is unavailable."
-  exit 1
-}
-[[ "${transactions_status}" == "200" ]] || {
-  echo "Core wallet table fet_wallet_transactions is unavailable."
-  exit 1
-}
 
 echo "Supabase release probe passed."

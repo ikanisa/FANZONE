@@ -124,9 +124,8 @@ export default function Pools() {
             Match Pools
           </h1>
           <p className="text-sm text-muted leading-6 mt-2 max-w-2xl">
-            Join curated global, country, and venue pools. Guests enter a camp
-            with FET, and automated settlement pays winners after the final
-            result.
+            Join curated venue-linked pools. Guests enter a camp with FET, and
+            settlement pays eligible winners after the final result.
           </p>
         </section>
 
@@ -214,7 +213,7 @@ function SelectedMatches({ matches }: { matches: Match[] }) {
             Selected Matches
           </h2>
           <p className="text-sm text-muted">
-            Pick a match to compare global, country, venue, and shareable pools.
+            Pick a match to compare venue-linked and shareable pools.
           </p>
         </div>
       </div>

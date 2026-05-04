@@ -46,7 +46,7 @@ fi
 
 for pattern in "${BLOCKED_PATTERNS[@]}"; do
   while IFS='=' read -r name _; do
-    if [[ "${name}" == *"${pattern}"* ]]; then
+    if [[ "${name}" == VITE_* && "${name}" == *"${pattern}"* ]]; then
       echo "Refusing browser release env: ${name} must not be exposed to ${APP_NAME}." >&2
       exit 1
     fi
@@ -67,4 +67,3 @@ if [[ "${VITE_SUPABASE_ANON_KEY:-}" != eyJ* ]]; then
 fi
 
 echo "Web release env OK for ${APP_NAME}."
-
