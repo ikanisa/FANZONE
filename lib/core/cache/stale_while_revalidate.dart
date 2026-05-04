@@ -37,23 +37,18 @@ abstract final class StaleWhileRevalidateCache {
       allowExpired: true,
     );
 
-    if (snapshot != null) {
-      if (snapshot.isExpired) {
-        // Stale: return immediately, refresh in background
-        StructuredCacheStore.scheduleRefresh(cacheKey, () async {
-          final fresh = await fetch();
-          await StructuredCacheStore.writeList(cacheKey, fresh, ttl: ttl);
-        }, debugLabel: 'SWR:$cacheKey');
-      }
+    if (snapshot != null && !snapshot.isExpired) {
       return snapshot.payload;
     }
 
-    // Cache miss: fetch fresh data
+    // Cache miss or expired cache: fetch fresh data. Expired cached data is only
+    // used as a fallback if the live fetch fails.
     try {
       final freshData = await fetch();
       unawaited(StructuredCacheStore.writeList(cacheKey, freshData, ttl: ttl));
       return freshData;
     } catch (error) {
+      if (snapshot != null) return snapshot.payload;
       AppLogger.d('SWR cache miss + fetch failed for $cacheKey: $error');
       rethrow;
     }
@@ -70,15 +65,7 @@ abstract final class StaleWhileRevalidateCache {
       allowExpired: true,
     );
 
-    if (snapshot != null) {
-      if (snapshot.isExpired) {
-        StructuredCacheStore.scheduleRefresh(cacheKey, () async {
-          final fresh = await fetch();
-          if (fresh != null) {
-            await StructuredCacheStore.writeMap(cacheKey, fresh, ttl: ttl);
-          }
-        }, debugLabel: 'SWR:$cacheKey');
-      }
+    if (snapshot != null && !snapshot.isExpired) {
       return snapshot.payload;
     }
 
@@ -89,6 +76,7 @@ abstract final class StaleWhileRevalidateCache {
       }
       return freshData;
     } catch (error) {
+      if (snapshot != null) return snapshot.payload;
       AppLogger.d('SWR cache miss + fetch failed for $cacheKey: $error');
       rethrow;
     }

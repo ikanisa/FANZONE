@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di/gateway_providers.dart';
+import '../../../providers/profile_country_provider.dart';
 
 class PoolSummary {
   const PoolSummary({
@@ -18,11 +19,13 @@ class PoolSummary {
     this.matchId,
     this.countryCode,
     this.venueId,
+    this.venueName,
     this.shareSlug,
     this.shareUrl,
     this.deepLinkUrl,
     this.socialCardUrl,
     this.resultCampId,
+    this.hasMyEntry = false,
   });
 
   factory PoolSummary.fromJson(Map<String, dynamic> json) {
@@ -41,9 +44,10 @@ class PoolSummary {
           ? json['title'] as String
           : 'Match pool',
       status: json['status'] as String? ?? 'open',
-      scope: json['scope'] as String? ?? 'global',
+      scope: json['scope'] as String? ?? 'venue',
       countryCode: json['country_code'] as String?,
       venueId: json['venue_id'] as String?,
+      venueName: json['venue_name']?.toString(),
       isOfficial: json['is_official'] == true,
       totalMembers: (json['total_members'] as num?)?.toInt() ?? 0,
       totalStakedFet: (json['total_staked_fet'] as num?)?.toInt() ?? 0,
@@ -66,6 +70,7 @@ class PoolSummary {
   final String scope;
   final String? countryCode;
   final String? venueId;
+  final String? venueName;
   final bool isOfficial;
   final int totalMembers;
   final int totalStakedFet;
@@ -78,10 +83,63 @@ class PoolSummary {
   final String? socialCardUrl;
   final String? resultCampId;
   final List<PoolCamp> camps;
+  final bool hasMyEntry;
 
   int get defaultStakeFet => entryFeeFet > 0 ? entryFeeFet : stakeMinFet;
   bool get isOpen => status == 'open';
   bool get isSettled => status == 'settled';
+
+  PoolSummary withVenueName(String? name) {
+    return PoolSummary(
+      id: id,
+      title: title,
+      status: status,
+      scope: scope,
+      isOfficial: isOfficial,
+      totalMembers: totalMembers,
+      totalStakedFet: totalStakedFet,
+      entryFeeFet: entryFeeFet,
+      stakeMinFet: stakeMinFet,
+      stakeMaxFet: stakeMaxFet,
+      camps: camps,
+      matchId: matchId,
+      countryCode: countryCode,
+      venueId: venueId,
+      venueName: name ?? venueName,
+      shareSlug: shareSlug,
+      shareUrl: shareUrl,
+      deepLinkUrl: deepLinkUrl,
+      socialCardUrl: socialCardUrl,
+      resultCampId: resultCampId,
+      hasMyEntry: hasMyEntry,
+    );
+  }
+
+  PoolSummary withMyEntry(bool value) {
+    return PoolSummary(
+      id: id,
+      title: title,
+      status: status,
+      scope: scope,
+      isOfficial: isOfficial,
+      totalMembers: totalMembers,
+      totalStakedFet: totalStakedFet,
+      entryFeeFet: entryFeeFet,
+      stakeMinFet: stakeMinFet,
+      stakeMaxFet: stakeMaxFet,
+      camps: camps,
+      matchId: matchId,
+      countryCode: countryCode,
+      venueId: venueId,
+      venueName: venueName,
+      shareSlug: shareSlug,
+      shareUrl: shareUrl,
+      deepLinkUrl: deepLinkUrl,
+      socialCardUrl: socialCardUrl,
+      resultCampId: resultCampId,
+      hasMyEntry: value,
+    );
+  }
 }
 
 class PoolCamp {
@@ -154,7 +212,7 @@ class PoolCreateRequest {
 }
 
 abstract interface class PoolsRepository {
-  Future<List<PoolSummary>> listPools();
+  Future<List<PoolSummary>> listPools({String? countryCode});
 
   Future<List<PoolSummary>> listPoolsForMatch(String matchId);
 
@@ -197,22 +255,31 @@ class SupabasePoolsRepository implements PoolsRepository {
       'result_camp_id,camps,created_at';
 
   @override
-  Future<List<PoolSummary>> listPools() async {
-    final client = ref.watch(supabaseConnectionProvider).client;
+  Future<List<PoolSummary>> listPools({String? countryCode}) async {
+    final connection = ref.watch(supabaseConnectionProvider);
+    final client = connection.client;
     if (client == null) {
       throw StateError(
         'Pools are unavailable until the backend is configured.',
       );
     }
 
-    final rows = await client
-        .from('match_pool_stats')
-        .select(_poolColumns)
-        .inFilter('status', ['open', 'locked', 'live', 'settling', 'settled'])
-        .order('created_at', ascending: false)
-        .limit(50);
+    var request = client.from('match_pool_stats').select(_poolColumns).inFilter(
+      'status',
+      ['open', 'locked', 'live', 'settling', 'settled'],
+    );
 
-    return _parsePools(rows);
+    if (countryCode != null && countryCode.trim().isNotEmpty) {
+      request = request.eq('country_code', countryCode.trim().toUpperCase());
+    }
+
+    final rows = await request.order('created_at', ascending: false).limit(50);
+
+    return _withEntryFlags(
+      client,
+      await _withVenueNames(client, _parsePools(rows)),
+      connection.currentUser?.id,
+    );
   }
 
   @override
@@ -232,7 +299,7 @@ class SupabasePoolsRepository implements PoolsRepository {
         .order('created_at', ascending: false)
         .limit(20);
 
-    return _parsePools(rows);
+    return _withVenueNames(client, _parsePools(rows));
   }
 
   @override
@@ -250,7 +317,9 @@ class SupabasePoolsRepository implements PoolsRepository {
         .eq('id', poolId)
         .maybeSingle();
     if (row == null) return null;
-    return PoolSummary.fromJson(Map<String, dynamic>.from(row as Map));
+    return _withVenueNames(client, [
+      PoolSummary.fromJson(Map<String, dynamic>.from(row as Map)),
+    ]).then((pools) => pools.first);
   }
 
   @override
@@ -292,13 +361,16 @@ class SupabasePoolsRepository implements PoolsRepository {
         .eq('id', poolId)
         .maybeSingle();
     if (row == null) return null;
-    return PoolSummary.fromJson(Map<String, dynamic>.from(row as Map));
+    return _withVenueNames(client, [
+      PoolSummary.fromJson(Map<String, dynamic>.from(row as Map)),
+    ]).then((pools) => pools.first);
   }
 
   @override
   Future<PoolEntryState?> getMyEntry(String poolId) async {
-    final client = ref.watch(supabaseConnectionProvider).client;
-    final userId = client?.auth.currentUser?.id;
+    final connection = ref.watch(supabaseConnectionProvider);
+    final client = connection.client;
+    final userId = connection.currentUser?.id;
     if (client == null || userId == null) return null;
 
     final row = await client
@@ -414,6 +486,58 @@ class SupabasePoolsRepository implements PoolsRepository {
         .map((row) => PoolSummary.fromJson(Map<String, dynamic>.from(row)))
         .toList(growable: false);
   }
+
+  Future<List<PoolSummary>> _withVenueNames(
+    dynamic client,
+    List<PoolSummary> pools,
+  ) async {
+    final venueIds = pools
+        .map((pool) => pool.venueId)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    if (venueIds.isEmpty) return pools;
+
+    final rows = await client
+        .from('venues')
+        .select('id,name')
+        .inFilter('id', venueIds);
+    final names = {
+      for (final row in (rows as List).whereType<Map>())
+        row['id']?.toString() ?? '': row['name']?.toString(),
+    };
+
+    return pools
+        .map((pool) => pool.withVenueName(names[pool.venueId]))
+        .toList(growable: false);
+  }
+
+  Future<List<PoolSummary>> _withEntryFlags(
+    dynamic client,
+    List<PoolSummary> pools,
+    String? userId,
+  ) async {
+    if (userId == null || userId.isEmpty || pools.isEmpty) return pools;
+
+    final poolIds = pools.map((pool) => pool.id).toList(growable: false);
+    final rows = await client
+        .from('match_pool_entries')
+        .select('pool_id')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .inFilter('pool_id', poolIds);
+
+    final enteredPoolIds = {
+      for (final row in (rows as List).whereType<Map>())
+        row['pool_id']?.toString(),
+    }..remove(null);
+
+    if (enteredPoolIds.isEmpty) return pools;
+    return pools
+        .map((pool) => pool.withMyEntry(enteredPoolIds.contains(pool.id)))
+        .toList(growable: false);
+  }
 }
 
 String _safeShareSource(String? source, String? inviteCode) {
@@ -436,7 +560,8 @@ final poolsRepositoryProvider = Provider<PoolsRepository>((ref) {
 });
 
 final poolsProvider = FutureProvider.autoDispose<List<PoolSummary>>((ref) {
-  return ref.watch(poolsRepositoryProvider).listPools();
+  final countryCode = ref.watch(profileCountryProvider);
+  return ref.watch(poolsRepositoryProvider).listPools(countryCode: countryCode);
 });
 
 final poolDetailProvider = FutureProvider.autoDispose

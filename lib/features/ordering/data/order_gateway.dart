@@ -16,6 +16,16 @@ abstract interface class OrderGateway {
     required PaymentMethod method,
   });
 
+  /// Mark that the customer completed the external payment handoff.
+  ///
+  /// This never marks the order paid; venue staff still confirm payment.
+  Future<void> submitPayment({
+    required String orderId,
+    required PaymentMethod method,
+    String? externalReference,
+    String? note,
+  });
+
   /// Get a single order by ID (with items).
   Future<OrderModel?> getOrder(String orderId);
 
@@ -61,7 +71,8 @@ abstract interface class OrderGateway {
 class CreateOrderDto {
   const CreateOrderDto({
     required this.venueId,
-    required this.tableId,
+    this.tableId,
+    this.tablePublicCode,
     required this.paymentMethod,
     required this.currencyCode,
     required this.items,
@@ -72,7 +83,8 @@ class CreateOrderDto {
   });
 
   final String venueId;
-  final String tableId;
+  final String? tableId;
+  final String? tablePublicCode;
   final PaymentMethod paymentMethod;
   final String currencyCode;
   final List<CreateOrderItemDto> items;
@@ -160,6 +172,12 @@ class SupabaseOrderGateway implements OrderGateway {
 
   final SupabaseConnection _connection;
 
+  Map<String, String>? get _authHeaders {
+    final token = _connection.currentSession?.accessToken;
+    if (token == null || token.isEmpty) return null;
+    return {'Authorization': 'Bearer $token'};
+  }
+
   @override
   Future<OrderModel> placeOrder(CreateOrderDto request) async {
     final client = _connection.client;
@@ -169,9 +187,12 @@ class SupabaseOrderGateway implements OrderGateway {
 
     final response = await client.functions.invoke(
       'order_create',
+      headers: _authHeaders,
       body: {
         'venue_id': request.venueId,
-        'table_id': request.tableId,
+        if (request.tableId != null) 'table_id': request.tableId,
+        if (request.tablePublicCode != null)
+          'table_public_code': request.tablePublicCode,
         'payment_method': request.paymentMethod.name,
         'special_instructions': request.specialInstructions,
         'items': request.items
@@ -215,6 +236,7 @@ class SupabaseOrderGateway implements OrderGateway {
 
     final response = await client.functions.invoke(
       'payment-hub',
+      headers: _authHeaders,
       body: {'order_id': orderId, 'venue_id': venueId, 'method': method.name},
     );
 
@@ -228,6 +250,29 @@ class SupabaseOrderGateway implements OrderGateway {
     }
 
     return PaymentHandoff.fromJson(data);
+  }
+
+  @override
+  Future<void> submitPayment({
+    required String orderId,
+    required PaymentMethod method,
+    String? externalReference,
+    String? note,
+  }) async {
+    final client = _connection.client;
+    if (client == null) {
+      throw StateError('Cannot submit payment: no connection');
+    }
+
+    await client.rpc(
+      'user_submit_order_payment',
+      params: {
+        'p_order_id': orderId,
+        'p_payment_method': method.name,
+        'p_external_reference': externalReference,
+        'p_actor_note': note,
+      },
+    );
   }
 
   @override
@@ -340,6 +385,7 @@ class SupabaseOrderGateway implements OrderGateway {
 
     await client.functions.invoke(
       'order_update_status',
+      headers: _authHeaders,
       body: {'order_id': orderId, 'status': newStatus.name},
     );
   }
@@ -362,6 +408,7 @@ class SupabaseOrderGateway implements OrderGateway {
 
     await client.functions.invoke(
       'order_mark_paid',
+      headers: _authHeaders,
       body: {'order_id': orderId},
     );
   }

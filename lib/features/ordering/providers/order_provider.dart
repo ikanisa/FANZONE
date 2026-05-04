@@ -50,7 +50,8 @@ class OrderPlacementNotifier extends StateNotifier<OrderPlacementState> {
   /// Place the current cart as an order.
   Future<OrderModel?> placeOrder({
     required String venueId,
-    required String tableId,
+    String? tableId,
+    String? tablePublicCode,
     required PaymentMethod paymentMethod,
     required String currencyCode,
   }) async {
@@ -69,6 +70,7 @@ class OrderPlacementNotifier extends StateNotifier<OrderPlacementState> {
       final dto = CreateOrderDto(
         venueId: venueId,
         tableId: tableId,
+        tablePublicCode: tablePublicCode,
         paymentMethod: paymentMethod,
         currencyCode: currencyCode,
         items: cart.items.map((item) => item.toOrderItemDto()).toList(),
@@ -203,19 +205,50 @@ final activeOrdersProvider = FutureProvider.autoDispose<List<OrderModel>>((
   return orders.where((o) => o.status.isActive).toList();
 });
 
+bool canSubmitPaymentForOrder(OrderModel order) {
+  final hasExternalPayment = switch (order.paymentMethod) {
+    PaymentMethod.momo ||
+    PaymentMethod.revolut ||
+    PaymentMethod.card ||
+    PaymentMethod.other => true,
+    PaymentMethod.cash => false,
+  };
+
+  return hasExternalPayment &&
+      order.status != OrderStatus.cancelled &&
+      (order.paymentStatus == PaymentStatus.pending ||
+          order.paymentStatus == PaymentStatus.unpaid);
+}
+
+Future<void> submitPaymentForOrder(WidgetRef ref, OrderModel order) async {
+  await ref
+      .read(orderGatewayProvider)
+      .submitPayment(orderId: order.id, method: order.paymentMethod);
+
+  ref.invalidate(orderDetailProvider(order.id));
+  ref.invalidate(orderRealtimeProvider(order.id));
+  ref.invalidate(orderHistoryProvider);
+  ref.invalidate(activeOrdersProvider);
+}
+
 /// Convenience: place order using the current venue context.
 Future<OrderModel?> placeOrderFromContext(
   WidgetRef ref, {
   required PaymentMethod paymentMethod,
 }) {
   final context = ref.read(venueContextProvider);
-  if (!context.hasVenue || !context.hasTable) return Future.value(null);
+  if (!context.hasVenue ||
+      (!context.hasTable &&
+          (context.tableNumber == null || context.tableNumber!.isEmpty))) {
+    return Future.value(null);
+  }
 
   return ref
       .read(orderPlacementProvider.notifier)
       .placeOrder(
         venueId: context.venueId!,
-        tableId: context.tableId!,
+        tableId: context.tableId,
+        tablePublicCode: context.tableNumber,
         paymentMethod: paymentMethod,
         currencyCode: context.currencyCode,
       );

@@ -8,6 +8,8 @@ import 'core/runtime/app_runtime_state.dart';
 import 'features/auth/screens/guest_upgrade_screen.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/whatsapp_login_screen.dart';
+import 'features/games/screens/game_detail_screen.dart';
+import 'features/games/screens/games_screen.dart';
 import 'features/home/screens/global_search_screen.dart';
 import 'features/home/screens/home_feed_screen.dart';
 import 'features/home/screens/match_detail_screen.dart';
@@ -40,10 +42,13 @@ String governedAppRouteForPath(String targetPath, {String? fallback}) {
   var path = targetPath.trim();
   if (path.isEmpty) return fallback ?? '/home';
 
-  const hostedPrefix = 'https://fanzone.ikanisa.com';
-  if (path.startsWith(hostedPrefix)) {
-    path = path.substring(hostedPrefix.length);
-    if (path.isEmpty) return fallback ?? '/home';
+  const hostedPrefixes = ['https://fanzone.ikanisa.com', 'https://fanzone.app'];
+  for (final hostedPrefix in hostedPrefixes) {
+    if (path.startsWith(hostedPrefix)) {
+      path = path.substring(hostedPrefix.length);
+      if (path.isEmpty) return fallback ?? '/home';
+      break;
+    }
   }
 
   final access = runtimePlatformFeatureAccess();
@@ -110,6 +115,22 @@ final GoRouter router = GoRouter(
       builder: (context, state) => VenueEntryWrapper(
         venueSlug: state.pathParameters['venueSlug']!,
         tableNumber: state.uri.queryParameters['t'],
+      ),
+    ),
+    GoRoute(
+      name: 'venue_table_entry',
+      path: '/v/:venueSlug/table/:tableNumber',
+      builder: (context, state) => VenueEntryWrapper(
+        venueSlug: state.pathParameters['venueSlug']!,
+        tableNumber: state.pathParameters['tableNumber'],
+      ),
+    ),
+    GoRoute(
+      name: 'venue_table_entry_legacy',
+      path: '/venues/:venueSlug/table/:tableNumber',
+      builder: (context, state) => VenueEntryWrapper(
+        venueSlug: state.pathParameters['venueSlug']!,
+        tableNumber: state.pathParameters['tableNumber'],
       ),
     ),
     GoRoute(
@@ -268,6 +289,14 @@ final GoRouter router = GoRouter(
         ),
       ),
     ),
+    GoRoute(
+      name: 'game_detail',
+      path: '/game/:gameId',
+      pageBuilder: (context, state) => _fadeSlideTransition(
+        state,
+        GameDetailScreen(sessionId: state.pathParameters['gameId']!),
+      ),
+    ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => AppShell(
         navigationShell: navigationShell,
@@ -301,6 +330,12 @@ final GoRouter router = GoRouter(
               path: '/pools',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const PoolsScreen()),
+            ),
+            GoRoute(
+              name: 'games',
+              path: '/games',
+              pageBuilder: (context, state) =>
+                  _fadeSlideTransition(state, const GamesScreen()),
             ),
           ],
         ),

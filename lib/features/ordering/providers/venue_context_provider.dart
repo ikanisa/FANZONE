@@ -64,7 +64,7 @@ class VenueContextNotifier extends StateNotifier<VenueContext> {
     if (tableNumber != null) {
       final tables = await _gateway.getVenueTables(venue.id);
       table = tables.cast<VenueTableModel?>().firstWhere(
-        (t) => t!.tableNumber.toString() == tableNumber,
+        (t) => t != null && _tableMatches(t, tableNumber),
         orElse: () => null,
       );
     }
@@ -82,7 +82,7 @@ class VenueContextNotifier extends StateNotifier<VenueContext> {
     if (tableNumber != null) {
       final tables = await _gateway.getVenueTables(venue.id);
       table = tables.cast<VenueTableModel?>().firstWhere(
-        (t) => t!.tableNumber.toString() == tableNumber,
+        (t) => t != null && _tableMatches(t, tableNumber),
         orElse: () => null,
       );
     }
@@ -106,6 +106,28 @@ final venueContextProvider =
     StateNotifierProvider<VenueContextNotifier, VenueContext>((ref) {
       return VenueContextNotifier(ref.watch(venueGatewayProvider));
     });
+
+bool _tableMatches(VenueTableModel table, String rawValue) {
+  final value = Uri.decodeComponent(rawValue).trim();
+  if (value.isEmpty) return false;
+
+  final candidates = <String>{
+    table.id,
+    table.tableNumber,
+    table.qrCodeUrl ?? '',
+    table.deepLinkUri ?? '',
+  }.map((item) => item.trim()).where((item) => item.isNotEmpty).toSet();
+
+  if (candidates.contains(value)) return true;
+
+  return candidates.any((candidate) {
+    final uri = Uri.tryParse(candidate);
+    if (uri == null) return false;
+    return uri.queryParameters['t'] == value ||
+        uri.queryParameters['table'] == value ||
+        (uri.pathSegments.isNotEmpty && uri.pathSegments.last == value);
+  });
+}
 
 // ═══════════════════════════════════════════════════════════
 // MENU DATA PROVIDERS

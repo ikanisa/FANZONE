@@ -195,19 +195,25 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     }
 
     try {
-      final rows = await client
-          .from(_curatedMatchesView)
-          .select()
-          .eq('competition_id', competitionId)
-          .order('date', ascending: false)
-          .limit(limit);
+      final rows = await _fetchProjectedMatchRows(
+        projection: _curatedMatchesView,
+        filter: MatchesFilter(competitionId: competitionId, limit: limit),
+      );
       return _parseMatchRows(rows);
     } catch (error) {
-      AppLogger.d('Failed to load competition matches: $error');
-      throw SportsDataQueryException(
-        'Failed to load competition fixtures for $competitionId.',
-        cause: error,
-      );
+      AppLogger.d('Failed to load curated competition matches: $error');
+      try {
+        final rows = await _fetchProjectedMatchRows(
+          projection: 'app_matches',
+          filter: MatchesFilter(competitionId: competitionId, limit: limit),
+        );
+        return _parseMatchRows(rows);
+      } catch (fallbackError) {
+        throw SportsDataQueryException(
+          'Failed to load competition fixtures for $competitionId.',
+          cause: fallbackError,
+        );
+      }
     }
   }
 
@@ -221,19 +227,25 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     }
 
     try {
-      final rows = await client
-          .from(_curatedMatchesView)
-          .select()
-          .or('home_team_id.eq.$teamId,away_team_id.eq.$teamId')
-          .order('date', ascending: false)
-          .limit(limit);
+      final rows = await _fetchProjectedMatchRows(
+        projection: _curatedMatchesView,
+        filter: MatchesFilter(teamId: teamId, limit: limit),
+      );
       return _parseMatchRows(rows);
     } catch (error) {
-      AppLogger.d('Failed to load team matches: $error');
-      throw SportsDataQueryException(
-        'Failed to load team fixtures for $teamId.',
-        cause: error,
-      );
+      AppLogger.d('Failed to load curated team matches: $error');
+      try {
+        final rows = await _fetchProjectedMatchRows(
+          projection: 'app_matches',
+          filter: MatchesFilter(teamId: teamId, limit: limit),
+        );
+        return _parseMatchRows(rows);
+      } catch (fallbackError) {
+        throw SportsDataQueryException(
+          'Failed to load team fixtures for $teamId.',
+          cause: fallbackError,
+        );
+      }
     }
   }
 
@@ -252,12 +264,115 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
       'p_team_id': filter.teamId,
       'p_limit': filter.limit,
     };
-    final rows = await client.rpc(_curatedMatchesRpc, params: params);
 
+    try {
+      final rows = await client.rpc(_curatedMatchesRpc, params: params);
+      return _normalizeRows(rows);
+    } catch (error) {
+      AppLogger.d('Failed to load curated matches RPC: $error');
+    }
+
+    try {
+      return await _fetchProjectedMatchRows(
+        projection: _curatedMatchesView,
+        filter: filter,
+      );
+    } catch (error) {
+      AppLogger.d('Failed to load curated matches view: $error');
+    }
+
+    if (filter.countryCode != null || filter.venueId != null) {
+      throw SportsDataQueryException(
+        'Failed to load venue-scoped curated matches.',
+      );
+    }
+
+    return _fetchProjectedMatchRows(projection: 'app_matches', filter: filter);
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchProjectedMatchRows({
+    required String projection,
+    required MatchesFilter filter,
+  }) async {
+    final client = _connection.client;
+    if (client == null) {
+      _throwUnavailable('match loading');
+    }
+
+    dynamic request = client.from(projection).select();
+
+    final competitionId = filter.competitionId?.trim();
+    if (competitionId != null && competitionId.isNotEmpty) {
+      request = request.eq('competition_id', competitionId);
+    }
+
+    final teamId = filter.teamId?.trim();
+    if (teamId != null && teamId.isNotEmpty) {
+      request = request.or('home_team_id.eq.$teamId,away_team_id.eq.$teamId');
+    }
+
+    final dateFrom = filter.dateFrom?.trim();
+    if (dateFrom != null && dateFrom.isNotEmpty) {
+      request = request.gte('date', dateFrom);
+    }
+
+    final dateTo = filter.dateTo?.trim();
+    if (dateTo != null && dateTo.isNotEmpty) {
+      request = request.lte('date', dateTo);
+    }
+
+    final statusValues = _statusFilterValues(filter.status);
+    if (statusValues.isNotEmpty) {
+      request = request.inFilter('status', statusValues);
+    }
+
+    if (projection == _curatedMatchesView) {
+      final countryCode = filter.countryCode?.trim().toUpperCase();
+      if (countryCode != null && countryCode.isNotEmpty) {
+        request = request.or(
+          'curation_country_code.eq.$countryCode,is_global_featured.eq.true',
+        );
+      }
+
+      final venueId = filter.venueId?.trim();
+      if (venueId != null && venueId.isNotEmpty) {
+        request = request.eq('curation_venue_id', venueId);
+      }
+    }
+
+    final rows = await request
+        .order('date', ascending: filter.ascending)
+        .limit(filter.limit.clamp(1, 500).toInt());
+    return _normalizeRows(rows);
+  }
+
+  List<Map<String, dynamic>> _normalizeRows(dynamic rows) {
     return (rows as List)
         .whereType<Map>()
         .map(Map<String, dynamic>.from)
         .toList(growable: false);
+  }
+
+  List<String> _statusFilterValues(String? status) {
+    final normalized = _normalizeStatus(status ?? '');
+    switch (normalized) {
+      case 'scheduled':
+        return const ['scheduled', 'upcoming', 'not_started', 'pending'];
+      case 'live':
+        return const ['live', 'in_play', 'in_progress', 'playing'];
+      case 'final':
+        return const [
+          'final',
+          'finished',
+          'complete',
+          'completed',
+          'full_time',
+        ];
+      case '':
+        return const <String>[];
+      default:
+        return [normalized];
+    }
   }
 
   @override
@@ -269,8 +384,13 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
       }
 
       try {
-        final row = await client
+        var row = await client
             .from(_curatedMatchesView)
+            .select()
+            .eq('id', matchId)
+            .maybeSingle();
+        row ??= await client
+            .from('app_matches')
             .select()
             .eq('id', matchId)
             .maybeSingle();

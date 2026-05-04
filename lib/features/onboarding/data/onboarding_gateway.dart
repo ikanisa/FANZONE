@@ -14,6 +14,16 @@ abstract class OnboardingGateway {
 
   List<OnboardingTeam> popularTeamsForRegion(String region);
 
+  Future<List<OnboardingTeam>> browseTeams({
+    String query = '',
+    String? region,
+    bool popularOnly = false,
+    bool nationalOnly = false,
+    int limit = 20,
+  });
+
+  Future<OnboardingTeam?> resolveTeam(String teamId);
+
   Future<void> saveOnboardingTeams({
     OnboardingTeam? localTeam,
     Set<String> popularTeamIds = const <String>{},
@@ -43,6 +53,10 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
   SupabaseOnboardingGateway(this._catalog, this._cache, this._connection);
 
   static const _favoriteTeamsCacheKey = 'favorite_teams_cache_v1';
+  static const _teamSelectColumns =
+      'id, name, short_name, country, country_code, league_name, region, '
+      'team_type, logo_url, crest_url, aliases, search_terms, is_featured, '
+      'is_active, is_popular_pick, popular_pick_rank';
 
   final TeamSearchCatalog _catalog;
   final CacheService _cache;
@@ -70,6 +84,52 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
   @override
   List<OnboardingTeam> popularTeamsForRegion(String region) {
     return _resolvedCatalog.popularForRegion(region);
+  }
+
+  @override
+  Future<List<OnboardingTeam>> browseTeams({
+    String query = '',
+    String? region,
+    bool popularOnly = false,
+    bool nationalOnly = false,
+    int limit = 20,
+  }) async {
+    final remote = await _fetchRemoteTeams(
+      query: query,
+      region: region,
+      popularOnly: popularOnly,
+      nationalOnly: nationalOnly,
+      limit: limit,
+    );
+    if (remote != null) return remote;
+    return const <OnboardingTeam>[];
+  }
+
+  @override
+  Future<OnboardingTeam?> resolveTeam(String teamId) async {
+    final normalizedId = teamId.trim();
+    if (normalizedId.isEmpty) return null;
+
+    final cached = _resolvedCatalog.byId(normalizedId);
+    if (cached != null) return cached;
+
+    final client = _connection.client;
+    if (client == null) return null;
+
+    try {
+      final row = await client
+          .from('teams')
+          .select(_teamSelectColumns)
+          .eq('id', normalizedId)
+          .eq('is_active', true)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 8));
+      if (row == null) return null;
+      return _teamFromRow(Map<String, dynamic>.from(row));
+    } catch (error) {
+      AppLogger.d('Failed to resolve team $teamId: $error');
+      return null;
+    }
   }
 
   @override
@@ -109,7 +169,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     var sortOrder = 10;
     for (final teamId in topEuropeanTeamIds) {
       if (usedTeamIds.contains(teamId)) continue;
-      final row = _favoriteRecordForTeamId(
+      final row = await _favoriteRecordForTeamId(
         teamId,
         cachedById: cachedById,
         source: FanProfileTeamCategory.topEuropean.source,
@@ -124,7 +184,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     sortOrder = 20;
     for (final teamId in nationalTeamIds) {
       if (usedTeamIds.contains(teamId)) continue;
-      final row = _favoriteRecordForTeamId(
+      final row = await _favoriteRecordForTeamId(
         teamId,
         cachedById: cachedById,
         source: FanProfileTeamCategory.national.source,
@@ -288,13 +348,13 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     );
   }
 
-  FavoriteTeamRecordDto? _favoriteRecordForTeamId(
+  Future<FavoriteTeamRecordDto?> _favoriteRecordForTeamId(
     String teamId, {
     required Map<String, FavoriteTeamRecordDto> cachedById,
     required String source,
     required int sortOrder,
-  }) {
-    final team = _resolvedCatalog.byId(teamId);
+  }) async {
+    final team = await resolveTeam(teamId);
     if (team != null) {
       return _teamToRecord(team, source: source, sortOrder: sortOrder);
     }
@@ -314,6 +374,162 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
       sortOrder: sortOrder,
       updatedAt: DateTime.now(),
     );
+  }
+
+  Future<List<OnboardingTeam>>? _fetchRemoteTeams({
+    required String query,
+    required String? region,
+    required bool popularOnly,
+    required bool nationalOnly,
+    required int limit,
+  }) {
+    final client = _connection.client;
+    if (client == null) return null;
+
+    return _fetchRemoteTeamsWithClient(
+      client,
+      query: query,
+      region: region,
+      popularOnly: popularOnly,
+      nationalOnly: nationalOnly,
+      limit: limit,
+    );
+  }
+
+  Future<List<OnboardingTeam>> _fetchRemoteTeamsWithClient(
+    SupabaseClient client, {
+    required String query,
+    required String? region,
+    required bool popularOnly,
+    required bool nationalOnly,
+    required int limit,
+  }) async {
+    try {
+      final normalizedRegion = region?.trim().toLowerCase();
+      final normalizedQuery = _normalizedSearchQuery(query);
+      final safeLimit = limit.clamp(1, 100).toInt();
+
+      var request = client
+          .from('teams')
+          .select(_teamSelectColumns)
+          .eq('is_active', true);
+
+      if (normalizedRegion != null && normalizedRegion.isNotEmpty) {
+        request = request.eq('region', normalizedRegion);
+      }
+
+      if (popularOnly) {
+        request = request.or('is_popular_pick.eq.true,is_featured.eq.true');
+      }
+
+      if (nationalOnly) {
+        request = request.eq('team_type', 'national');
+      }
+
+      if (normalizedQuery.isNotEmpty) {
+        final pattern = '%$normalizedQuery%';
+        request = request.or(
+          'name.ilike.$pattern,short_name.ilike.$pattern,'
+          'country.ilike.$pattern,league_name.ilike.$pattern',
+        );
+      }
+
+      final rows = await request
+          .order('popular_pick_rank', ascending: true)
+          .order('name', ascending: true)
+          .limit(safeLimit)
+          .timeout(const Duration(seconds: 10));
+
+      final teams = (rows as List)
+          .whereType<Map>()
+          .map((row) => _teamFromRow(Map<String, dynamic>.from(row)))
+          .whereType<OnboardingTeam>()
+          .toList(growable: false);
+
+      return _rankTeamsForBrowsing(teams, popularOnly: popularOnly);
+    } catch (error) {
+      AppLogger.d('Failed to browse Supabase teams: $error');
+      return const <OnboardingTeam>[];
+    }
+  }
+
+  OnboardingTeam? _teamFromRow(Map<String, dynamic> row) {
+    final id = row['id']?.toString().trim();
+    final name = row['name']?.toString().trim();
+    if (id == null || id.isEmpty || name == null || name.isEmpty) {
+      return null;
+    }
+
+    final aliases = <String>{
+      ..._stringList(row['aliases']),
+      ..._stringList(row['search_terms']),
+    }.toList(growable: false);
+
+    return OnboardingTeam(
+      id: id,
+      name: name,
+      country: row['country']?.toString() ?? '',
+      league: row['league_name']?.toString(),
+      aliases: aliases,
+      region: row['region']?.toString() ?? 'global',
+      isPopular:
+          row['is_popular_pick'] == true ||
+          row['is_featured'] == true ||
+          row['popular_pick_rank'] is num,
+      shortNameOverride: row['short_name']?.toString(),
+      crestUrl: _firstNonEmptyString(row, const ['crest_url', 'logo_url']),
+      countryCodeOverride: row['country_code']?.toString(),
+      popularRank: (row['popular_pick_rank'] as num?)?.toInt(),
+    );
+  }
+
+  List<String> _stringList(dynamic value) {
+    if (value is List) {
+      return value
+          .map((item) => item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .toList(growable: false);
+    }
+    if (value is String) {
+      return value
+          .split(',')
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty)
+          .toList(growable: false);
+    }
+    return const <String>[];
+  }
+
+  String? _firstNonEmptyString(Map<String, dynamic> row, List<String> keys) {
+    for (final key in keys) {
+      final value = row[key]?.toString().trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+    return null;
+  }
+
+  String _normalizedSearchQuery(String query) {
+    return query
+        .trim()
+        .replaceAll(RegExp(r'[,()]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  List<OnboardingTeam> _rankTeamsForBrowsing(
+    List<OnboardingTeam> teams, {
+    required bool popularOnly,
+  }) {
+    final sorted = List<OnboardingTeam>.from(teams);
+    sorted.sort((left, right) {
+      if (popularOnly) {
+        final rankCompare = (left.popularRank ?? 1 << 20).compareTo(
+          right.popularRank ?? 1 << 20,
+        );
+        if (rankCompare != 0) return rankCompare;
+      }
+      return left.name.toLowerCase().compareTo(right.name.toLowerCase());
+    });
+    return sorted;
   }
 
   Future<void> _writeCachedTeams(List<FavoriteTeamRecordDto> rows) async {

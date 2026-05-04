@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../design_system/components/app_button.dart';
+import '../../design_system/tokens/app_colors.dart';
+import '../../design_system/tokens/app_radii.dart';
+import '../../design_system/tokens/app_spacing.dart';
+import '../../design_system/typography/app_typography.dart';
 import '../../services/app_telemetry.dart';
-import '../../theme/colors.dart';
 import '../../widgets/common/fz_brand_logo.dart';
 
 class AppErrorBoundary extends StatefulWidget {
@@ -66,81 +70,63 @@ class _AppBuildFailureView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? FzColors.darkBg : FzColors.lightBg;
-    final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
-    final text = isDark ? FzColors.darkText : FzColors.lightText;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-
     return Material(
-      color: bg,
+      color: AppColors.background,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 360),
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xxl),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                color: surface,
-                borderRadius: BorderRadius.circular(24),
+                color: AppColors.surface,
+                borderRadius: AppRadii.cardRadius,
                 border: Border.all(
-                  color: FzColors.error.withValues(alpha: 0.22),
+                  color: AppColors.danger.withValues(alpha: 0.22),
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(AppSpacing.xxl),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const FzBrandLogo(width: 52, height: 52, preferCdn: true),
-                    const SizedBox(height: 18),
-                    Text(
+                    const SizedBox(height: AppSpacing.xl),
+                    const Text(
                       'Something broke',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: text,
-                      ),
+                      style: AppTypography.cardTitle,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       'FANZONE hit an unexpected render error. Retry the screen to continue.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: muted,
-                        height: 1.45,
+                      style: AppTypography.secondary.copyWith(
+                        color: AppColors.muted,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
-                        color: FzColors.error.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(14),
+                        color: AppColors.danger.withValues(alpha: 0.08),
+                        borderRadius: AppRadii.inputRadius,
                       ),
                       child: Text(
                         details.exceptionAsString(),
                         maxLines: 4,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: muted,
-                          height: 1.35,
+                        style: AppTypography.secondary.copyWith(
+                          color: AppColors.muted,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: AppSpacing.xl),
                     SizedBox(
                       width: double.infinity,
-                      child: FilledButton(
+                      child: AppButton(
+                        label: 'Retry screen',
                         onPressed: onRetry,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: FzColors.secondary,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Retry screen'),
                       ),
                     ),
                   ],

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/hospitality/menu_category_model.dart';
@@ -17,7 +19,20 @@ abstract interface class VenueGateway {
   Future<List<VenueModel>> listActiveVenues({String? countryCode, int limit});
 
   /// Search venues by name.
-  Future<List<VenueModel>> searchVenues(String query, {int limit});
+  Future<List<VenueModel>> searchVenues(
+    String query, {
+    String? countryCode,
+    int limit,
+  });
+
+  /// List active venues ordered by distance from a foreground device location.
+  Future<List<VenueModel>> listNearbyVenues({
+    required double latitude,
+    required double longitude,
+    double radiusKm,
+    String query,
+    int limit,
+  });
 
   /// Fetch tables for a venue.
   Future<List<VenueTableModel>> getVenueTables(String venueId);
@@ -117,18 +132,35 @@ class SupabaseVenueGateway implements VenueGateway {
   }
 
   @override
-  Future<List<VenueModel>> searchVenues(String query, {int limit = 20}) async {
+  Future<List<VenueModel>> searchVenues(
+    String query, {
+    String? countryCode,
+    int limit = 20,
+  }) async {
     final client = _connection.client;
     if (client == null) return const [];
 
     try {
-      final rows = await client
+      var request = client
           .from('venues')
           .select()
           .eq('is_active', true)
-          .ilike('name', '%$query%')
-          .order('name')
-          .limit(limit);
+          .eq('is_open', true);
+
+      if (countryCode != null && countryCode.trim().isNotEmpty) {
+        request = request.eq('country_code', countryCode.trim().toUpperCase());
+      }
+
+      final normalizedQuery = query.trim();
+      if (normalizedQuery.isNotEmpty) {
+        final pattern = '%$normalizedQuery%';
+        request = request.or(
+          'name.ilike.$pattern,city.ilike.$pattern,'
+          'address_line1.ilike.$pattern,primary_category.ilike.$pattern',
+        );
+      }
+
+      final rows = await request.order('name').limit(limit);
 
       return (rows as List)
           .whereType<Map>()
@@ -141,13 +173,60 @@ class SupabaseVenueGateway implements VenueGateway {
   }
 
   @override
+  Future<List<VenueModel>> listNearbyVenues({
+    required double latitude,
+    required double longitude,
+    double radiusKm = 20,
+    String query = '',
+    int limit = 40,
+  }) async {
+    final client = _connection.client;
+    if (client == null) return const [];
+
+    try {
+      final rows = await client.rpc(
+        'search_nearby_venues',
+        params: {
+          'p_latitude': latitude,
+          'p_longitude': longitude,
+          'p_limit': math.max(limit, 80),
+        },
+      );
+
+      final venues = (rows as List)
+          .whereType<Map>()
+          .map((row) => VenueModel.fromJson(Map<String, dynamic>.from(row)))
+          .where(
+            (venue) =>
+                (venue.distanceKmFrom(latitude, longitude) ??
+                    double.infinity) <=
+                radiusKm,
+          )
+          .where((venue) => _matchesVenueQuery(venue, query))
+          .take(limit)
+          .toList(growable: false);
+      return venues;
+    } catch (error) {
+      AppLogger.w('Failed to load nearby venues via RPC: $error');
+      return _listNearbyVenuesClientSide(
+        connection: _connection,
+        latitude: latitude,
+        longitude: longitude,
+        radiusKm: radiusKm,
+        query: query,
+        limit: limit,
+      );
+    }
+  }
+
+  @override
   Future<List<VenueTableModel>> getVenueTables(String venueId) async {
     final client = _connection.client;
     if (client == null) return const [];
 
     try {
       final rows = await client
-          .from('tables')
+          .from('venue_tables')
           .select()
           .eq('venue_id', venueId)
           .eq('is_active', true)
@@ -155,9 +234,7 @@ class SupabaseVenueGateway implements VenueGateway {
 
       return (rows as List)
           .whereType<Map>()
-          .map(
-            (row) => VenueTableModel.fromJson(Map<String, dynamic>.from(row)),
-          )
+          .map((row) => VenueTableModel.fromJson(_normalizeVenueTableRow(row)))
           .toList(growable: false);
     } catch (error) {
       AppLogger.w('Failed to load venue tables: $error');
@@ -260,4 +337,104 @@ class SupabaseVenueGateway implements VenueGateway {
       return const [];
     }
   }
+}
+
+extension VenueDistance on VenueModel {
+  double? distanceKmFrom(double latitude, double longitude) {
+    final venueLat = this.latitude;
+    final venueLng = this.longitude;
+    if (venueLat == null || venueLng == null) return null;
+    return _distanceKm(latitude, longitude, venueLat, venueLng);
+  }
+}
+
+Future<List<VenueModel>> _listNearbyVenuesClientSide({
+  required SupabaseConnection connection,
+  required double latitude,
+  required double longitude,
+  required double radiusKm,
+  required String query,
+  required int limit,
+}) async {
+  final client = connection.client;
+  if (client == null) return const [];
+
+  try {
+    final request = client
+        .from('venues')
+        .select()
+        .eq('is_active', true)
+        .eq('is_open', true)
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null);
+
+    final rows = await request.limit(500);
+    final venues = (rows as List)
+        .whereType<Map>()
+        .map((row) => VenueModel.fromJson(Map<String, dynamic>.from(row)))
+        .where(
+          (venue) =>
+              (venue.distanceKmFrom(latitude, longitude) ?? double.infinity) <=
+              radiusKm,
+        )
+        .where((venue) => _matchesVenueQuery(venue, query))
+        .toList(growable: false);
+
+    venues.sort((left, right) {
+      final leftDistance = left.distanceKmFrom(latitude, longitude);
+      final rightDistance = right.distanceKmFrom(latitude, longitude);
+      if (leftDistance == null && rightDistance == null) {
+        return left.name.compareTo(right.name);
+      }
+      if (leftDistance == null) return 1;
+      if (rightDistance == null) return -1;
+      final distanceCompare = leftDistance.compareTo(rightDistance);
+      if (distanceCompare != 0) return distanceCompare;
+      return left.name.compareTo(right.name);
+    });
+
+    return venues.take(limit).toList(growable: false);
+  } catch (error) {
+    AppLogger.w('Failed to load nearby venues client-side: $error');
+    return const [];
+  }
+}
+
+bool _matchesVenueQuery(VenueModel venue, String rawQuery) {
+  final query = rawQuery.trim().toLowerCase();
+  if (query.isEmpty) return true;
+  final haystack = [
+    venue.name,
+    venue.city ?? '',
+    venue.addressLine1 ?? '',
+    venue.primaryCategory ?? '',
+  ].join(' ').toLowerCase();
+  return haystack.contains(query);
+}
+
+double _distanceKm(
+  double fromLatitude,
+  double fromLongitude,
+  double toLatitude,
+  double toLongitude,
+) {
+  const earthRadiusKm = 6371.0;
+  final dLat = _degreesToRadians(toLatitude - fromLatitude);
+  final dLng = _degreesToRadians(toLongitude - fromLongitude);
+  final lat1 = _degreesToRadians(fromLatitude);
+  final lat2 = _degreesToRadians(toLatitude);
+
+  final a =
+      math.sin(dLat / 2) * math.sin(dLat / 2) +
+      math.cos(lat1) * math.cos(lat2) * math.sin(dLng / 2) * math.sin(dLng / 2);
+  final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  return earthRadiusKm * c;
+}
+
+double _degreesToRadians(double degrees) => degrees * math.pi / 180;
+
+Map<String, dynamic> _normalizeVenueTableRow(Map<dynamic, dynamic> row) {
+  final data = Map<String, dynamic>.from(row);
+  data['qr_code_url'] ??= data['qr_url'];
+  return data;
 }

@@ -59,6 +59,11 @@ Future<List<OnboardingTeam>> searchTeamsAsync(
   String query, {
   int limit = 10,
 }) async {
+  if (_gateway != null) {
+    try {
+      return _gateway!.browseTeams(query: query, limit: limit);
+    } catch (_) {}
+  }
   return searchTeams(query, limit: limit);
 }
 
@@ -66,6 +71,15 @@ Future<List<OnboardingTeam>> searchPopularTeamsAsync(
   String query, {
   int limit = 10,
 }) async {
+  if (_gateway != null) {
+    try {
+      return _gateway!.browseTeams(
+        query: query,
+        popularOnly: true,
+        limit: limit,
+      );
+    } catch (_) {}
+  }
   return searchPopularTeams(query, limit: limit);
 }
 
@@ -76,4 +90,20 @@ List<OnboardingTeam> popularTeamsForRegion(String region) {
     } catch (_) {}
   }
   return activeTeamSearchCatalog.popularForRegion(region);
+}
+
+Future<List<OnboardingTeam>> popularTeamsForRegionAsync(
+  String region, {
+  int limit = 20,
+}) async {
+  if (_gateway != null) {
+    try {
+      return _gateway!.browseTeams(
+        region: region,
+        popularOnly: true,
+        limit: limit,
+      );
+    } catch (_) {}
+  }
+  return popularTeamsForRegion(region).take(limit).toList(growable: false);
 }
