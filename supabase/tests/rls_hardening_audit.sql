@@ -121,6 +121,74 @@ END;
 $$;
 
 DO $$
+DECLARE
+  unsafe_functions text[];
+BEGIN
+  SELECT array_agg(signature ORDER BY signature)
+  INTO unsafe_functions
+  FROM (
+    VALUES
+      ('public.find_auth_user_by_phone(text)'),
+      ('public.resolve_auth_user_phone(uuid)'),
+      ('public.credit_welcome_fet(uuid,text)'),
+      ('public.reconcile_fet_wallet(uuid)')
+  ) AS restricted(signature)
+  WHERE has_function_privilege('anon', restricted.signature, 'EXECUTE');
+
+  IF unsafe_functions IS NOT NULL THEN
+    RAISE EXCEPTION 'Anonymous role can execute auth/wallet helper functions: %', array_to_string(unsafe_functions, ', ');
+  END IF;
+END;
+$$;
+
+DO $$
+DECLARE
+  unsafe_functions text[];
+BEGIN
+  SELECT array_agg(signature ORDER BY signature)
+  INTO unsafe_functions
+  FROM (
+    VALUES
+      ('public.find_auth_user_by_phone(text)'),
+      ('public.resolve_auth_user_phone(uuid)'),
+      ('public.credit_welcome_fet(uuid,text)'),
+      ('public.reconcile_fet_wallet(uuid)')
+  ) AS restricted(signature)
+  WHERE has_function_privilege('authenticated', restricted.signature, 'EXECUTE');
+
+  IF unsafe_functions IS NOT NULL THEN
+    RAISE EXCEPTION 'Authenticated role can execute backend-only auth/wallet helper functions: %', array_to_string(unsafe_functions, ', ');
+  END IF;
+END;
+$$;
+
+DO $$
+DECLARE
+  unsafe_default_acls text[];
+BEGIN
+  SELECT array_agg(
+    format(
+      '%s grants %s on future %s to %s',
+      d.defaclrole::regrole,
+      acl.privilege_type,
+      d.defaclobjtype,
+      acl.grantee::regrole
+    )
+    ORDER BY d.defaclobjtype, acl.grantee::regrole::text, acl.privilege_type
+  )
+  INTO unsafe_default_acls
+  FROM pg_default_acl AS d
+  CROSS JOIN LATERAL aclexplode(d.defaclacl) AS acl
+  WHERE d.defaclnamespace = 'public'::regnamespace
+    AND acl.grantee IN ('anon'::regrole, 'authenticated'::regrole);
+
+  IF unsafe_default_acls IS NOT NULL THEN
+    RAISE EXCEPTION 'Default privileges grant future public objects to client roles: %', array_to_string(unsafe_default_acls, '; ');
+  END IF;
+END;
+$$;
+
+DO $$
 BEGIN
   IF NOT has_function_privilege('anon', 'public.get_game_session_question(uuid,integer)', 'EXECUTE') THEN
     RAISE EXCEPTION 'Anonymous TV role must be able to execute the prompt/options-only live question RPC';

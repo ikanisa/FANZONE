@@ -44,38 +44,6 @@ const createOrderSchema = z.object({
 
 type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
-function authenticatedUserIdFromJwt(req: Request): string | null {
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const token = authHeader.match(/^Bearer\s+(.+)$/i)?.[1];
-  const payloadSegment = token?.split(".")[1];
-  if (!payloadSegment) return null;
-
-  try {
-    const payload = JSON.parse(
-      new TextDecoder().decode(base64UrlDecode(payloadSegment)),
-    ) as { sub?: unknown; role?: unknown; exp?: unknown };
-    const expiresAt = typeof payload.exp === "number" ? payload.exp : 0;
-    if (payload.role !== "authenticated" || expiresAt <= Date.now() / 1000) {
-      return null;
-    }
-    return typeof payload.sub === "string" && payload.sub.length > 0
-      ? payload.sub
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-function base64UrlDecode(value: string): Uint8Array {
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64.padEnd(
-    base64.length + (4 - base64.length % 4) % 4,
-    "=",
-  );
-  const binary = atob(padded);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
-}
-
 Deno.serve(async (req) => {
   const startTime = Date.now();
   const requestId = getOrCreateRequestId(req);
@@ -95,9 +63,9 @@ Deno.serve(async (req) => {
     // Initialize admin client
     const supabaseAdmin = createAdminClient();
 
-    // Authentication required — FANZONE mandates auth.uid() on all orders
+    // Authentication required — FANZONE mandates a verified Supabase user.
     const authResult = await optionalAuth(req, logger);
-    const userId = authResult?.user?.id || authenticatedUserIdFromJwt(req);
+    const userId = authResult?.user?.id ?? null;
 
     if (!userId) {
       return errorResponse("Authentication required to place orders", 401);

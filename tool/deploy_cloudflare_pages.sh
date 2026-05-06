@@ -45,6 +45,30 @@ export VITE_PUBLIC_APP_URL="${VITE_PUBLIC_APP_URL:-https://fanzone.ikanisa.com}"
 export VITE_TV_DISPLAY_URL="${VITE_TV_DISPLAY_URL:-https://fanzone-tv-display.pages.dev}"
 
 BRANCH="${CLOUDFLARE_PAGES_BRANCH:-main}"
+ALLOW_DIRTY="${FANZONE_ALLOW_DIRTY_DEPLOY:-false}"
+REQUESTED_APPS=()
+
+for arg in "$@"; do
+  case "${arg}" in
+    --allow-dirty)
+      ALLOW_DIRTY="true"
+      ;;
+    *)
+      REQUESTED_APPS+=("${arg}")
+      ;;
+  esac
+done
+
+if [[ "${ALLOW_DIRTY}" != "true" ]] && [[ -n "$(git status --porcelain)" ]]; then
+  git status --short
+  echo "Refusing Cloudflare Pages deploy from a dirty worktree. Commit/stash changes, or rerun with --allow-dirty for an explicit local preview." >&2
+  exit 1
+fi
+
+WRANGLER_DIRTY_ARGS=()
+if [[ "${ALLOW_DIRTY}" == "true" ]]; then
+  WRANGLER_DIRTY_ARGS=(--commit-dirty=true)
+fi
 
 deploy_app() {
   local app="$1"
@@ -87,16 +111,15 @@ deploy_app() {
   npx wrangler pages deploy "${dist_dir}" \
     --project-name="${project_name}" \
     --branch="${BRANCH}" \
-    --commit-dirty=true
+    "${WRANGLER_DIRTY_ARGS[@]}"
 }
 
-if [[ "${1:-all}" == "all" ]]; then
+if [[ "${REQUESTED_APPS[0]:-all}" == "all" ]]; then
   APPS=(website admin venue-portal tv-display)
 else
-  APPS=("$@")
+  APPS=("${REQUESTED_APPS[@]}")
 fi
 
 for app in "${APPS[@]}"; do
   deploy_app "${app}"
 done
-
