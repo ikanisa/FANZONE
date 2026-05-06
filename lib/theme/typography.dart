@@ -124,10 +124,7 @@ abstract final class FzTypography {
 
   /// Hero score — Bebas Neue condensed, 64–84px.
   /// Used for massive score displays on match detail screens.
-  static TextStyle heroScore({
-    double size = 72,
-    Color? color,
-  }) {
+  static TextStyle heroScore({double size = 72, Color? color}) {
     return TextStyle(
       fontFamily: _bebasFamily,
       fontSize: size,
@@ -140,10 +137,7 @@ abstract final class FzTypography {
 
   /// Hero FET number — Bebas Neue, 34–44px.
   /// Used for large FET balance displays.
-  static TextStyle heroFet({
-    double size = 40,
-    Color? color,
-  }) {
+  static TextStyle heroFet({double size = 40, Color? color}) {
     return TextStyle(
       fontFamily: _bebasFamily,
       fontSize: size,

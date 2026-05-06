@@ -26,14 +26,22 @@ export interface VenueSessionSnapshot {
 }
 
 function storageAvailable() {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  return typeof window !== "undefined" &&
+    typeof window.sessionStorage !== "undefined";
+}
+
+function clearLegacyLocalSession() {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  window.localStorage.removeItem(venueSessionStorageKey);
 }
 
 export function readStoredVenueSession(): VenueSessionSnapshot | null {
+  clearLegacyLocalSession();
+
   if (!storageAvailable()) return null;
 
   try {
-    const raw = window.localStorage.getItem(venueSessionStorageKey);
+    const raw = window.sessionStorage.getItem(venueSessionStorageKey);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<VenueSessionSnapshot>;
     if (
@@ -60,13 +68,17 @@ export function readStoredVenueSession(): VenueSessionSnapshot | null {
 }
 
 export function persistVenueSession(session: VenueSessionSnapshot) {
+  clearLegacyLocalSession();
+
   if (!storageAvailable()) return;
-  window.localStorage.setItem(venueSessionStorageKey, JSON.stringify(session));
+  window.sessionStorage.setItem(venueSessionStorageKey, JSON.stringify(session));
 }
 
 export function clearStoredVenueSession() {
+  clearLegacyLocalSession();
+
   if (!storageAvailable()) return;
-  window.localStorage.removeItem(venueSessionStorageKey);
+  window.sessionStorage.removeItem(venueSessionStorageKey);
 }
 
 export function isVenueSessionExpired(session: VenueSessionSnapshot, leadMs = 0) {

@@ -43,7 +43,10 @@ class AppFetBadge extends StatelessWidget {
           const SizedBox(width: 3),
           Text(
             'FET',
-            style: FzTypography.chipLabel(size: size * 0.45, color: color.withValues(alpha: 0.7)),
+            style: FzTypography.chipLabel(
+              size: size * 0.45,
+              color: color.withValues(alpha: 0.7),
+            ),
           ),
         ],
       ),

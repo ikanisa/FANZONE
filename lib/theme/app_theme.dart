@@ -104,13 +104,8 @@ abstract final class FzTheme {
           disabledBackgroundColor: FzColors.accent.withValues(alpha: 0.35),
           disabledForegroundColor: FzColors.onAction.withValues(alpha: 0.7),
           minimumSize: const Size(64, 56),
-          shape: const RoundedRectangleBorder(
-            borderRadius: FzRadii.fullRadius,
-          ),
-          textStyle: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-          ),
+          shape: const RoundedRectangleBorder(borderRadius: FzRadii.fullRadius),
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
         ),
       ),
 
@@ -122,13 +117,8 @@ abstract final class FzTheme {
           disabledBackgroundColor: FzColors.accent.withValues(alpha: 0.35),
           disabledForegroundColor: FzColors.onAction.withValues(alpha: 0.7),
           minimumSize: const Size(64, 56),
-          shape: const RoundedRectangleBorder(
-            borderRadius: FzRadii.fullRadius,
-          ),
-          textStyle: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-          ),
+          shape: const RoundedRectangleBorder(borderRadius: FzRadii.fullRadius),
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           elevation: 0,
         ),
       ),
@@ -139,13 +129,8 @@ abstract final class FzTheme {
           foregroundColor: FzColors.darkText,
           side: const BorderSide(color: FzColors.darkBorder),
           minimumSize: const Size(64, 56),
-          shape: const RoundedRectangleBorder(
-            borderRadius: FzRadii.fullRadius,
-          ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w900,
-          ),
+          shape: const RoundedRectangleBorder(borderRadius: FzRadii.fullRadius),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
         ),
       ),
 

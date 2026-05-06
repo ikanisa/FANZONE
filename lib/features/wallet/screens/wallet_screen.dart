@@ -48,10 +48,7 @@ class WalletScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Text(
             'WALLET',
-            style: FzTypography.sportsTitle(
-              size: 36,
-              color: FzColors.darkText,
-            ),
+            style: FzTypography.sportsTitle(size: 36, color: FzColors.darkText),
           ),
           const SizedBox(height: 18),
           _WalletHero(
@@ -286,10 +283,7 @@ class _WalletHero extends StatelessWidget {
             children: [
               Text(
                 'FET BALANCE',
-                style: FzTypography.chipLabel(
-                  size: 12,
-                  color: Colors.white70,
-                ),
+                style: FzTypography.chipLabel(size: 12, color: Colors.white70),
               ),
               const SizedBox(height: 8),
               balanceAsync.when(
@@ -318,17 +312,11 @@ class _WalletHero extends StatelessWidget {
                 ),
                 loading: () => Text(
                   '...',
-                  style: FzTypography.heroFet(
-                    size: 48,
-                    color: Colors.white70,
-                  ),
+                  style: FzTypography.heroFet(size: 48, color: Colors.white70),
                 ),
                 error: (_, _) => Text(
                   '—',
-                  style: FzTypography.heroFet(
-                    size: 48,
-                    color: Colors.white70,
-                  ),
+                  style: FzTypography.heroFet(size: 48, color: Colors.white70),
                 ),
               ),
               const SizedBox(height: 18),
@@ -487,17 +475,31 @@ class _WalletStatsUnavailable extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           children: [
-            const Icon(LucideIcons.alertTriangle, size: 14, color: FzColors.orange),
+            const Icon(
+              LucideIcons.alertTriangle,
+              size: 14,
+              color: FzColors.orange,
+            ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text('Unavailable.', style: AppTypography.secondary.copyWith(color: FzColors.darkMuted)),
+              child: Text(
+                'Unavailable.',
+                style: AppTypography.secondary.copyWith(
+                  color: FzColors.darkMuted,
+                ),
+              ),
             ),
             TextButton(
               onPressed: onRetry,
               style: TextButton.styleFrom(
                 foregroundColor: FzColors.cyan,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
               child: const Text('Retry'),
             ),
@@ -518,9 +520,17 @@ class _StatCardPlaceholder extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 68, height: 10, child: ColoredBox(color: FzColors.darkSurface3)),
+          SizedBox(
+            width: 68,
+            height: 10,
+            child: ColoredBox(color: FzColors.darkSurface3),
+          ),
           SizedBox(height: 12),
-          SizedBox(width: 96, height: 14, child: ColoredBox(color: FzColors.darkSurface3)),
+          SizedBox(
+            width: 96,
+            height: 14,
+            child: ColoredBox(color: FzColors.darkSurface3),
+          ),
         ],
       ),
     );
@@ -541,7 +551,10 @@ class _StatUnavailableCard extends StatelessWidget {
         children: [
           Text(label, style: AppTypography.status(color: FzColors.darkMuted)),
           const SizedBox(height: AppSpacing.sm),
-          Text('—', style: AppTypography.label.copyWith(color: FzColors.orange)),
+          Text(
+            '—',
+            style: AppTypography.label.copyWith(color: FzColors.orange),
+          ),
         ],
       ),
     );

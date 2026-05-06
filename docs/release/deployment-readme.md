@@ -46,6 +46,16 @@ supabase functions deploy menu_ingest_worker
 supabase functions deploy menu_ocr_parse
 ```
 
+Before deploying Edge Functions, confirm `supabase/.env.production` includes
+the production browser allowlist:
+
+```bash
+FANZONE_EDGE_ALLOWED_ORIGINS=https://fanzone.ikanisa.com,https://admin.example.com,https://venues.example.com,https://screen.example.com
+FANZONE_EDGE_ALLOW_WILDCARD_CORS=false
+```
+
+Use exact deployed origins. Do not use `*` for production CORS.
+
 Run backend release probes after deployment:
 
 ```bash

@@ -97,9 +97,10 @@ Security/supply chain:
 
 ## CI/CD Summary
 
-- `.github/workflows/ci.yml` contains useful Flutter, web, and Supabase checks but is configured for `workflow_dispatch` only.
-- `.github/workflows/secret-regex-scan.yml` is also manual only.
-- This matches the documented free-account release model but is a production-readiness risk unless branch protection/manual release discipline is enforced.
+- `.github/workflows/ci.yml` contains Flutter, web, Supabase, dependency audit, and secret-regex checks and now runs on pull requests, pushes to `main`, and manual dispatch.
+- `.github/workflows/secret-regex-scan.yml` also runs on pull requests, pushes to `main`, and manual dispatch.
+- Deployment workflows remain manual to preserve the local/free-account release model.
+- Repository branch protection still needs to require the validation workflows before production release.
 
 ## Areas To Preserve
 

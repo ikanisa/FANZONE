@@ -50,7 +50,11 @@ class AppVenueCard extends StatelessWidget {
                   borderRadius: FzRadii.buttonRadius,
                   border: Border.all(color: FzColors.darkBorder),
                 ),
-                child: const Icon(LucideIcons.store, size: 22, color: FzColors.darkMuted),
+                child: const Icon(
+                  LucideIcons.store,
+                  size: 22,
+                  color: FzColors.darkMuted,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -61,7 +65,8 @@ class AppVenueCard extends StatelessWidget {
                       children: [
                         if (isLive)
                           Container(
-                            width: 7, height: 7,
+                            width: 7,
+                            height: 7,
                             margin: const EdgeInsets.only(right: 8),
                             decoration: const BoxDecoration(
                               color: FzColors.green,
@@ -69,27 +74,59 @@ class AppVenueCard extends StatelessWidget {
                             ),
                           ),
                         Expanded(
-                          child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                         ),
                       ],
                     ),
                     if (city != null) ...[
                       const SizedBox(height: 4),
-                      Text(city!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: FzColors.darkMuted)),
+                      Text(
+                        city!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: FzColors.darkMuted,
+                        ),
+                      ),
                     ],
                     if (poolCount > 0) ...[
                       const SizedBox(height: 6),
-                      Row(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(LucideIcons.trophy, size: 14, color: FzColors.cyan),
-                        const SizedBox(width: 4),
-                        Text('$poolCount', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: FzColors.cyan)),
-                      ]),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            LucideIcons.trophy,
+                            size: 14,
+                            color: FzColors.cyan,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$poolCount',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: FzColors.cyan,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ],
                 ),
               ),
-              const Icon(LucideIcons.chevronRight, size: 18, color: FzColors.darkMuted),
+              const Icon(
+                LucideIcons.chevronRight,
+                size: 18,
+                color: FzColors.darkMuted,
+              ),
             ],
           ),
         ),

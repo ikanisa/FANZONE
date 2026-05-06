@@ -54,7 +54,10 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
               const SizedBox(height: 24),
               Text(
                 'BARS',
-                style: FzTypography.sportsTitle(size: 38, color: FzColors.darkText),
+                style: FzTypography.sportsTitle(
+                  size: 38,
+                  color: FzColors.darkText,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(

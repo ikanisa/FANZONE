@@ -40,16 +40,9 @@ void main() {
     await tester.enterText(find.byType(TextFormField), '79123456');
     await tester.pump();
 
+    expect(find.text('Ready.'), findsOneWidget);
     expect(
-      find.text('Ready.'),
-      findsOneWidget,
-    );
-    expect(
-      tester
-              .widget<InkWell>(
-                find.widgetWithText(InkWell, 'Send OTP'),
-              )
-              .onTap !=
+      tester.widget<InkWell>(find.widgetWithText(InkWell, 'Send OTP')).onTap !=
           null,
       isTrue,
     );

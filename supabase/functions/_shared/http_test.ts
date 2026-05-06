@@ -33,6 +33,18 @@ Deno.test("buildCorsHeaders preserves explicit origin and header list", () => {
   }
 });
 
+Deno.test("buildCorsHeaders uses allowlisted origins instead of wildcard by default", () => {
+  const headers = buildCorsHeaders("authorization, content-type");
+
+  if (headers["Access-Control-Allow-Origin"] === "*") {
+    throw new Error("Expected default HTTP CORS headers to avoid wildcard");
+  }
+
+  if (headers["Vary"] !== "Origin") {
+    throw new Error("Expected default HTTP CORS headers to vary by Origin");
+  }
+});
+
 Deno.test("isAuthorizedByServiceRole accepts service role bearer or shared secret", () => {
   const bearerRequest = new Request("https://example.com", {
     headers: { Authorization: "Bearer service-role-key" },

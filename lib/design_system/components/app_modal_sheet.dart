@@ -16,7 +16,11 @@ class AppModalSheet extends StatelessWidget {
   final String? title;
   final EdgeInsets padding;
 
-  static Future<T?> show<T>(BuildContext context, {required Widget child, String? title}) {
+  static Future<T?> show<T>(
+    BuildContext context, {
+    required Widget child,
+    String? title,
+  }) {
     return showModalBottomSheet<T>(
       context: context,
       isScrollControlled: true,
@@ -38,7 +42,8 @@ class AppModalSheet extends StatelessWidget {
         children: [
           const SizedBox(height: 12),
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             decoration: BoxDecoration(
               color: FzColors.darkMuted.withValues(alpha: 0.4),
               borderRadius: FzRadii.fullRadius,
@@ -46,14 +51,14 @@ class AppModalSheet extends StatelessWidget {
           ),
           if (title != null) ...[
             const SizedBox(height: 18),
-            Text(title!, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+            Text(
+              title!,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+            ),
           ],
           const SizedBox(height: 18),
           Flexible(
-            child: SingleChildScrollView(
-              padding: padding,
-              child: child,
-            ),
+            child: SingleChildScrollView(padding: padding, child: child),
           ),
         ],
       ),

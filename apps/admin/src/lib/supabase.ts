@@ -25,10 +25,18 @@ const ADMIN_SESSION_STORAGE_KEY = "fanzone-admin-session";
 let supabaseClient: AdminSupabaseClient | null = null;
 let supabaseAuthClient: AdminSupabaseClient | null = null;
 
-function canUseLocalStorage() {
+function canUseSessionStorage() {
   return (
-    typeof window !== "undefined" && typeof window.localStorage !== "undefined"
+    typeof window !== "undefined" &&
+    typeof window.sessionStorage !== "undefined"
   );
+}
+
+function clearLegacyLocalSession() {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  window.localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
 }
 
 function isAdminSessionSnapshot(value: unknown): value is AdminSessionSnapshot {
@@ -60,11 +68,13 @@ export function isAdminRefreshExpired(session: AdminSessionSnapshot | null) {
 }
 
 export function readStoredAdminSession(): AdminSessionSnapshot | null {
-  if (!canUseLocalStorage()) {
+  clearLegacyLocalSession();
+
+  if (!canUseSessionStorage()) {
     return null;
   }
 
-  const raw = window.localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
+  const raw = window.sessionStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
   if (!raw) {
     return null;
   }
@@ -87,20 +97,24 @@ export function readStoredAdminSession(): AdminSessionSnapshot | null {
 }
 
 export function persistAdminSession(session: AdminSessionSnapshot) {
-  if (!canUseLocalStorage()) {
+  clearLegacyLocalSession();
+
+  if (!canUseSessionStorage()) {
     return;
   }
-  window.localStorage.setItem(
+  window.sessionStorage.setItem(
     ADMIN_SESSION_STORAGE_KEY,
     JSON.stringify(session),
   );
 }
 
 export function clearStoredAdminSession() {
-  if (!canUseLocalStorage()) {
+  clearLegacyLocalSession();
+
+  if (!canUseSessionStorage()) {
     return;
   }
-  window.localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+  window.sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
 }
 
 export function createScopedSupabaseClient(

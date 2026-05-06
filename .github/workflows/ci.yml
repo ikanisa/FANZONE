@@ -1,8 +1,10 @@
 name: FANZONE CI
 
-# Automatic GitHub Actions are disabled for the free-account release model.
-# Use local scripts in tool/ for verification; this workflow remains manual only.
 on:
+  pull_request:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -12,6 +14,54 @@ env:
   FLUTTER_VERSION: '3.38.9'
 
 jobs:
+  security-audit:
+    name: Dependency And Secret Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            scripts/package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Audit root workspace dependencies
+        run: npm audit --audit-level=moderate
+
+      - name: Install scripts dependencies
+        working-directory: scripts
+        run: npm ci --ignore-scripts
+
+      - name: Audit scripts dependencies
+        working-directory: scripts
+        run: npm audit --audit-level=moderate
+
+      - name: Block obvious live credentials
+        run: |
+          set -euo pipefail
+
+          PATTERN='(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|sbp_[A-Za-z0-9_-]{20,}|postgresql://[^[:space:]]+:[^[:space:]]+@)'
+
+          if git grep -nE "$PATTERN" -- \
+            ':!.github/workflows/ci.yml' \
+            ':!.github/workflows/secret-regex-scan.yml' \
+            ':!docs/free-account-release.md' \
+            ':!docs/secret-rotation-runbook.md' \
+            ':!.env*.example' \
+            ':!**/.env*.example' \
+            ':!**/package-lock.json'; then
+            echo "Potential live credential found. Rotate it and remove it from git."
+            exit 1
+          fi
+
   supabase-contracts:
     name: Supabase Contracts
     runs-on: ubuntu-latest
@@ -97,38 +147,11 @@ jobs:
           ./tool/supabase_fet_supply_smoke.sh
 
       - name: Check Edge Function formatting
-        run: |
-          deno fmt --check \
-            supabase/functions/_shared/auth.ts \
-            supabase/functions/_shared/auth_test.ts \
-            supabase/functions/_shared/cors.ts \
-            supabase/functions/_shared/cors_test.ts \
-            supabase/functions/_shared/off_platform_payment.ts \
-            supabase/functions/_shared/off_platform_payment_test.ts \
-            supabase/functions/whatsapp-otp/index.ts \
-            supabase/functions/import-football-data/index.ts \
-            supabase/functions/push-notify/index.ts \
-            supabase/functions/dispatch-match-alerts/index.ts \
-            supabase/functions/dispatch-match-alerts/dispatch.ts \
-            supabase/functions/dispatch-match-alerts/dispatch_test.ts \
-            supabase/functions/generate-pool-social-card/index.ts \
-            supabase/functions/settle-match-pools/index.ts \
-            supabase/functions/menu_ingest_create/index.ts \
-            supabase/functions/menu_ingest_worker/index.ts \
-            supabase/functions/payment-hub/index.ts
+        run: deno fmt --check supabase/functions
 
       - name: Type-check Edge Functions
         run: |
-          deno check \
-            supabase/functions/whatsapp-otp/index.ts \
-            supabase/functions/import-football-data/index.ts \
-            supabase/functions/push-notify/index.ts \
-            supabase/functions/dispatch-match-alerts/index.ts \
-            supabase/functions/generate-pool-social-card/index.ts \
-            supabase/functions/settle-match-pools/index.ts \
-            supabase/functions/menu_ingest_create/index.ts \
-            supabase/functions/menu_ingest_worker/index.ts \
-            supabase/functions/payment-hub/index.ts
+          find supabase/functions -name '*.ts' -print0 | xargs -0 deno check
 
       - name: Run Edge Function tests
         run: deno test --allow-env supabase/functions
@@ -275,7 +298,7 @@ jobs:
           )
 
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed lib test tool
+        run: dart format --output=none --set-exit-if-changed lib test integration_test tool
 
       - name: Analyze
         run: ./tool/flutter_analyze_release.sh

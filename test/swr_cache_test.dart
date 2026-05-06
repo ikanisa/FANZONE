@@ -75,46 +75,47 @@ void main() {
       },
     );
 
-    test(
-      'cache hit (stale) — fetches fresh data and updates cache',
-      () async {
-        // Write already-expired data
-        await StructuredCacheStore.writeList(
-          'matches:stale:stale',
-          [
-            {'id': 'm_stale', 'homeTeam': 'OldData'},
-          ],
-          ttl: const Duration(milliseconds: -1), // Already expired
-        );
+    test('cache hit (stale) — fetches fresh data and updates cache', () async {
+      // Write already-expired data
+      await StructuredCacheStore.writeList(
+        'matches:stale:stale',
+        [
+          {'id': 'm_stale', 'homeTeam': 'OldData'},
+        ],
+        ttl: const Duration(milliseconds: -1), // Already expired
+      );
 
-        var fetchCalled = false;
+      var fetchCalled = false;
 
-        final result = await StaleWhileRevalidateCache.list(
-          cacheKey: 'matches:stale:stale',
-          ttl: const Duration(minutes: 5),
-          fetch: () async {
-            fetchCalled = true;
-            return [
-              {'id': 'm_fresh', 'homeTeam': 'FreshData'},
-            ];
-          },
-        );
+      final result = await StaleWhileRevalidateCache.list(
+        cacheKey: 'matches:stale:stale',
+        ttl: const Duration(minutes: 5),
+        fetch: () async {
+          fetchCalled = true;
+          return [
+            {'id': 'm_fresh', 'homeTeam': 'FreshData'},
+          ];
+        },
+      );
 
-        // Should return fresh data (stale cache triggers live fetch)
-        expect(result, hasLength(1));
-        expect(result[0]['homeTeam'], 'FreshData');
-        expect(fetchCalled, isTrue, reason: 'Fetch should be called for stale cache');
+      // Should return fresh data (stale cache triggers live fetch)
+      expect(result, hasLength(1));
+      expect(result[0]['homeTeam'], 'FreshData');
+      expect(
+        fetchCalled,
+        isTrue,
+        reason: 'Fetch should be called for stale cache',
+      );
 
-        // The cache should now have fresh data
-        await Future<void>.delayed(const Duration(milliseconds: 50));
-        final freshSnapshot = await StructuredCacheStore.readList(
-          'matches:stale:stale',
-          allowExpired: false,
-        );
-        expect(freshSnapshot, isNotNull);
-        expect(freshSnapshot!.payload[0]['homeTeam'], 'FreshData');
-      },
-    );
+      // The cache should now have fresh data
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final freshSnapshot = await StructuredCacheStore.readList(
+        'matches:stale:stale',
+        allowExpired: false,
+      );
+      expect(freshSnapshot, isNotNull);
+      expect(freshSnapshot!.payload[0]['homeTeam'], 'FreshData');
+    });
 
     test(
       'cache hit (stale) + fetch error — returns stale data as fallback',

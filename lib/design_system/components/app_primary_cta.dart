@@ -31,8 +31,9 @@ class AppPrimaryCta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveColor = enabled ? color : color.withValues(alpha: 0.35);
-    final effectiveTextColor =
-        enabled ? textColor : textColor.withValues(alpha: 0.7);
+    final effectiveTextColor = enabled
+        ? textColor
+        : textColor.withValues(alpha: 0.7);
 
     return SizedBox(
       width: double.infinity,

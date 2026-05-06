@@ -19,6 +19,7 @@ Read these documents in order:
 9. [Go-Live Checklist](release/go-live-checklist.md)
 10. [Rollback](release/rollback.md)
 11. [QA/UAT](testing/qa-uat.md)
+12. [Incident Runbooks](operations/incident-runbooks.md)
 
 ## Repository Map
 
@@ -54,6 +55,8 @@ No live secrets belong in git.
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | `push-notify` | Firebase service account JSON. |
 | `GEMINI_API_KEY` | menu OCR/import | AI OCR provider key. |
 | `FANZONE_JWT_SECRET` | `whatsapp-otp` | JWT signing secret for custom WhatsApp sessions. |
+| `FANZONE_EDGE_ALLOWED_ORIGINS` | Edge Functions | Comma-separated browser origins allowed to call Edge Functions. |
+| `FANZONE_EDGE_ALLOW_WILDCARD_CORS` | Edge Functions | Keep `false` in production; wildcard CORS requires explicit opt-in. |
 | `WHATSAPP_AUTH_TEST_PHONE`, `WHATSAPP_AUTH_TEST_OTP`, `WHATSAPP_AUTH_TEST_EXPIRY` | reviewer/test OTP path | Optional controlled test account only. |
 | `FANZONE_EDGE_EXPOSE_ERROR_DETAILS` | Edge shared errors | Keep false in production. |
 | `SUPABASE_DB_URL`, `SUPABASE_DB_PASSWORD` | SQL smoke scripts | Operator-only local shell or CI secret. |

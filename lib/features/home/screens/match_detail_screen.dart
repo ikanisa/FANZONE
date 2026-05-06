@@ -178,10 +178,7 @@ class _MatchPoolsLoadingState extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
         children: [
-          FzBackHeader(
-            title: 'MATCH',
-            subtitle: 'Pools for this fixture',
-          ),
+          FzBackHeader(title: 'MATCH', subtitle: 'Pools for this fixture'),
           Expanded(child: Center(child: CircularProgressIndicator())),
         ],
       ),
@@ -273,7 +270,10 @@ class _MatchPoolsList extends ConsumerWidget {
           children: [
             Text(
               'OPEN POOLS',
-              style: FzTypography.sportsTitle(size: 22, color: FzColors.darkText),
+              style: FzTypography.sportsTitle(
+                size: 22,
+                color: FzColors.darkText,
+              ),
             ),
             const SizedBox(height: 10),
             ...pools.map(

@@ -349,10 +349,10 @@ class _TeamsStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final visible = teams.take(8).toList(growable: false);
     if (visible.isEmpty) {
-      return FzCard(
-        padding: const EdgeInsets.all(16),
+      return const FzCard(
+        padding: EdgeInsets.all(16),
         borderRadius: FzRadii.card,
-        child: const Text(
+        child: Text(
           'Pick teams.',
           style: TextStyle(
             color: FzColors.darkMuted,

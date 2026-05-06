@@ -33,13 +33,13 @@ abstract final class FzColors {
   // ════════════════════════════════════════════
   // Primary accents — cyan/orange/red sports-gaming palette
   // ════════════════════════════════════════════
-  static const accent = Color(0xFF27D8F2);   // cyan — primary action
-  static const accent2 = Color(0xFFFF7A4D);  // orange — FET / reward
-  static const accent3 = Color(0xFFFFD166);  // gold — tertiary / warning
-  static const success = Color(0xFF5BE06B);  // green — open / eligible
-  static const danger = Color(0xFFFF4D57);   // red — live / error
-  static const teal = Color(0xFF19D6F2);     // active border cyan
-  static const warning = Color(0xFFFFD166);  // gold
+  static const accent = Color(0xFF27D8F2); // cyan — primary action
+  static const accent2 = Color(0xFFFF7A4D); // orange — FET / reward
+  static const accent3 = Color(0xFFFFD166); // gold — tertiary / warning
+  static const success = Color(0xFF5BE06B); // green — open / eligible
+  static const danger = Color(0xFFFF4D57); // red — live / error
+  static const teal = Color(0xFF19D6F2); // active border cyan
+  static const warning = Color(0xFFFFD166); // gold
   static const whatsapp = Color(0xFF25D366);
 
   // Compatibility aliases used across the Flutter codebase.

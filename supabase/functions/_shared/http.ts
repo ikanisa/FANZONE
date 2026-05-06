@@ -1,3 +1,5 @@
+import { resolveEdgeCorsOrigin } from "./cors_allowlist.ts";
+
 interface SharedSecretOption {
   header: string;
   value?: string;
@@ -21,21 +23,19 @@ interface AuthorizationOptions {
 
 export function buildCorsHeaders(
   allowedHeaders: string,
-  allowedOrigin = readOptionalEnv("ALLOWED_ORIGIN") || "*",
+  allowedOrigin = resolveEdgeCorsOrigin(),
 ) {
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "POST",
     "Access-Control-Allow-Headers": allowedHeaders,
+    "Vary": "Origin",
   };
-}
 
-function readOptionalEnv(name: string): string | undefined {
-  try {
-    return Deno.env.get(name)?.trim() || undefined;
-  } catch {
-    return undefined;
+  if (allowedOrigin) {
+    headers["Access-Control-Allow-Origin"] = allowedOrigin;
   }
+
+  return headers;
 }
 
 export function readBearerToken(req: Request): string | null {

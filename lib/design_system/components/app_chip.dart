@@ -32,7 +32,8 @@ class AppChip extends StatelessWidget {
         children: [
           if (showDot) ...[
             Container(
-              width: 6, height: 6,
+              width: 6,
+              height: 6,
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 7),
@@ -46,6 +47,10 @@ class AppChip extends StatelessWidget {
     );
 
     if (onTap == null) return content;
-    return InkWell(onTap: onTap, borderRadius: FzRadii.fullRadius, child: content);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: FzRadii.fullRadius,
+      child: content,
+    );
   }
 }

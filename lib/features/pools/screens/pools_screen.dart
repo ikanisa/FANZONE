@@ -73,7 +73,10 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
               const SizedBox(height: 24),
               Text(
                 'PLAY',
-                style: FzTypography.sportsTitle(size: 42, color: FzColors.darkText),
+                style: FzTypography.sportsTitle(
+                  size: 42,
+                  color: FzColors.darkText,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(

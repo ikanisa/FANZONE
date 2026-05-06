@@ -34,7 +34,10 @@ class OrdersScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               Text(
                 'ORDERS',
-                style: FzTypography.sportsTitle(size: 38, color: FzColors.darkText),
+                style: FzTypography.sportsTitle(
+                  size: 38,
+                  color: FzColors.darkText,
+                ),
               ),
               const SizedBox(height: 8),
               const Text(

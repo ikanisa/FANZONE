@@ -39,8 +39,7 @@ class AppMatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor =
-        isLive ? FzColors.activeBorderRed : FzColors.darkBorder;
+    final borderColor = isLive ? FzColors.activeBorderRed : FzColors.darkBorder;
 
     return Material(
       color: Colors.transparent,
@@ -183,10 +182,7 @@ class AppMatchCard extends StatelessWidget {
     }
     return Text(
       'VS',
-      style: FzTypography.sportsTitle(
-        size: 22,
-        color: FzColors.darkMuted,
-      ),
+      style: FzTypography.sportsTitle(size: 22, color: FzColors.darkMuted),
     );
   }
 

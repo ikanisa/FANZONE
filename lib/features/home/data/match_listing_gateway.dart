@@ -282,7 +282,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
     }
 
     if (filter.countryCode != null || filter.venueId != null) {
-      throw SportsDataQueryException(
+      throw const SportsDataQueryException(
         'Failed to load venue-scoped curated matches.',
       );
     }

@@ -23,10 +23,7 @@ class AppSectionHeader extends StatelessWidget {
         Expanded(
           child: Text(
             title.toUpperCase(),
-            style: FzTypography.sportsTitle(
-              size: 24,
-              color: FzColors.darkText,
-            ),
+            style: FzTypography.sportsTitle(size: 24, color: FzColors.darkText),
           ),
         ),
         if (actionLabel != null && onAction != null)

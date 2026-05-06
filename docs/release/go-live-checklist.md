@@ -24,6 +24,8 @@ Use this checklist for production launch or major release promotion.
 - Confirm new RPC grants are least privilege.
 - Confirm RLS remains enabled on client-exposed tables.
 - Confirm Edge Function secrets are configured.
+- Confirm `FANZONE_EDGE_ALLOWED_ORIGINS` contains the production website, admin, venue portal, and TV display origins.
+- Confirm `FANZONE_EDGE_ALLOW_WILDCARD_CORS=false`.
 - Deploy required Edge Functions.
 - Rotate any Supabase access tokens, database passwords, anon keys, and service-role keys that were copied into chats, tickets, logs, or terminals outside approved secret storage.
 
@@ -35,6 +37,7 @@ Use this checklist for production launch or major release promotion.
 - TV display build passes.
 - Website release metadata validation passes.
 - Cloudflare Pages projects exist and `tool/deploy_cloudflare_pages.sh all` succeeds from a local/free release machine.
+- Browser smoke tests confirm Edge Function CORS from website, admin, venue portal, and TV display production origins.
 - Android `assetlinks.json` has production SHA-256 fingerprints.
 - Apple app site association is valid.
 - PWA manifest names, icons, start URL, and theme color are final.
@@ -56,6 +59,7 @@ Use this checklist for production launch or major release promotion.
 - Push notification credentials are present.
 - WhatsApp OTP reviewer/test values are configured only when required.
 - Incident response owner and escalation channel are named.
+- Incident runbooks in `docs/operations/incident-runbooks.md` are reviewed by the release owner.
 - Rollback point is tagged.
 
 ## Monitoring
@@ -78,4 +82,5 @@ Do not launch with:
 - missing production release metadata;
 - enabled demo mode in admin;
 - service-role keys in client config;
-- untested rollback path.
+- untested rollback path;
+- wildcard Edge Function CORS in production.

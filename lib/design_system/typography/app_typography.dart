@@ -13,8 +13,10 @@ abstract final class AppTypography {
   // ════════════════════════════════════════════
 
   /// Hero score — 64–84px Bebas Neue for massive score displays.
-  static TextStyle heroScore({double size = 72, Color color = AppColors.text}) =>
-      FzTypography.heroScore(size: size, color: color);
+  static TextStyle heroScore({
+    double size = 72,
+    Color color = AppColors.text,
+  }) => FzTypography.heroScore(size: size, color: color);
 
   /// Hero FET number — 34–44px Bebas Neue for large balance displays.
   static TextStyle heroFet({double size = 40, Color color = AppColors.text}) =>
