@@ -164,7 +164,7 @@ $$;
 
 DO $$
 DECLARE
-  unsafe_default_acls text[];
+  unsafe_app_default_acls text[];
 BEGIN
   SELECT array_agg(
     format(
@@ -176,14 +176,44 @@ BEGIN
     )
     ORDER BY d.defaclobjtype, acl.grantee::regrole::text, acl.privilege_type
   )
-  INTO unsafe_default_acls
+  INTO unsafe_app_default_acls
   FROM pg_default_acl AS d
   CROSS JOIN LATERAL aclexplode(d.defaclacl) AS acl
   WHERE d.defaclnamespace = 'public'::regnamespace
+    -- Supabase owns immutable platform defaults for supabase_admin. App
+    -- migrations run as postgres, so fail only on defaults we can control.
+    AND d.defaclrole <> 'supabase_admin'::regrole
     AND acl.grantee IN ('anon'::regrole, 'authenticated'::regrole);
 
-  IF unsafe_default_acls IS NOT NULL THEN
-    RAISE EXCEPTION 'Default privileges grant future public objects to client roles: %', array_to_string(unsafe_default_acls, '; ');
+  IF unsafe_app_default_acls IS NOT NULL THEN
+    RAISE EXCEPTION 'App-owned default privileges grant future public objects to client roles: %', array_to_string(unsafe_app_default_acls, '; ');
+  END IF;
+END;
+$$;
+
+DO $$
+DECLARE
+  platform_default_acls text[];
+BEGIN
+  SELECT array_agg(
+    format(
+      '%s grants %s on future %s to %s',
+      d.defaclrole::regrole,
+      acl.privilege_type,
+      d.defaclobjtype,
+      acl.grantee::regrole
+    )
+    ORDER BY d.defaclobjtype, acl.grantee::regrole::text, acl.privilege_type
+  )
+  INTO platform_default_acls
+  FROM pg_default_acl AS d
+  CROSS JOIN LATERAL aclexplode(d.defaclacl) AS acl
+  WHERE d.defaclnamespace = 'public'::regnamespace
+    AND d.defaclrole = 'supabase_admin'::regrole
+    AND acl.grantee IN ('anon'::regrole, 'authenticated'::regrole);
+
+  IF platform_default_acls IS NOT NULL THEN
+    RAISE NOTICE 'Supabase-managed default privileges observed; continue enforcing explicit app grants/RLS on created objects: %', array_to_string(platform_default_acls, '; ');
   END IF;
 END;
 $$;
