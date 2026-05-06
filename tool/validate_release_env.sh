@@ -66,6 +66,42 @@ require_key() {
   esac
 }
 
+require_jwt_role() {
+  local name="$1"
+  local expected_role="$2"
+  local value="${!name:-}"
+
+  if ! command -v node >/dev/null 2>&1; then
+    echo "node is required to validate ${name} JWT role." >&2
+    failures=$((failures + 1))
+    return
+  fi
+
+  if ! JWT_VALUE="${value}" EXPECTED_ROLE="${expected_role}" node <<'NODE'
+const token = process.env.JWT_VALUE ?? "";
+const expectedRole = process.env.EXPECTED_ROLE ?? "";
+
+try {
+  const parts = token.split(".");
+  if (parts.length !== 3 || parts.some((part) => part.length === 0)) {
+    process.exit(2);
+  }
+
+  const payload = JSON.parse(
+    Buffer.from(parts[1], "base64url").toString("utf8"),
+  );
+  const role = typeof payload.role === "string" ? payload.role : "";
+  process.exit(role === expectedRole ? 0 : 3);
+} catch (_error) {
+  process.exit(2);
+}
+NODE
+  then
+    echo "${name} must be a Supabase JWT with role '${expected_role}'." >&2
+    failures=$((failures + 1))
+  fi
+}
+
 require_client() {
   require_key SUPABASE_URL
   require_key SUPABASE_ANON_KEY
@@ -87,6 +123,8 @@ require_client() {
     echo "VITE_SUPABASE_ANON_KEY does not look like a Supabase JWT" >&2
     failures=$((failures + 1))
   }
+  require_jwt_role SUPABASE_ANON_KEY anon
+  require_jwt_role VITE_SUPABASE_ANON_KEY anon
 }
 
 require_server() {

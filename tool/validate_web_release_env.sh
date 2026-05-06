@@ -53,6 +53,41 @@ for pattern in "${BLOCKED_PATTERNS[@]}"; do
   done < <(env)
 done
 
+require_jwt_role() {
+  local name="$1"
+  local expected_role="$2"
+  local value="${!name:-}"
+
+  if ! command -v node >/dev/null 2>&1; then
+    echo "node is required to validate ${name} JWT role." >&2
+    exit 1
+  fi
+
+  if ! JWT_VALUE="${value}" EXPECTED_ROLE="${expected_role}" node <<'NODE'
+const token = process.env.JWT_VALUE ?? "";
+const expectedRole = process.env.EXPECTED_ROLE ?? "";
+
+try {
+  const parts = token.split(".");
+  if (parts.length !== 3 || parts.some((part) => part.length === 0)) {
+    process.exit(2);
+  }
+
+  const payload = JSON.parse(
+    Buffer.from(parts[1], "base64url").toString("utf8"),
+  );
+  const role = typeof payload.role === "string" ? payload.role : "";
+  process.exit(role === expectedRole ? 0 : 3);
+} catch (_error) {
+  process.exit(2);
+}
+NODE
+  then
+    echo "${name} must be a Supabase JWT with role '${expected_role}'." >&2
+    exit 1
+  fi
+}
+
 case "${VITE_SUPABASE_URL:-}" in
   https://*.supabase.co) ;;
   *)
@@ -65,5 +100,7 @@ if [[ "${VITE_SUPABASE_ANON_KEY:-}" != eyJ* ]]; then
   echo "VITE_SUPABASE_ANON_KEY does not look like a Supabase JWT anon key." >&2
   exit 1
 fi
+
+require_jwt_role VITE_SUPABASE_ANON_KEY anon
 
 echo "Web release env OK for ${APP_NAME}."

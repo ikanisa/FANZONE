@@ -24,6 +24,9 @@ Audit date: 2026-05-06
 | `npm run lint --workspaces --if-present` | Passed | All workspace lint scripts completed. |
 | `npm run test --workspaces --if-present` | Passed | Admin: 22 tests across 8 files. Website: 6 tests across 2 files. Other workspaces had no test script/matching tests. |
 | `npm run build --workspaces --if-present` | Passed | Admin, TV display, venue portal, and website production builds completed. |
+| `bash -n tool/validate_web_release_env.sh tool/validate_release_env.sh` | Passed | Release env validators are syntactically valid after JWT role hardening. |
+| `tool/validate_web_release_env.sh website` with synthetic anon/service-role JWTs | Passed | Synthetic anon-role JWT passed; synthetic service-role JWT was rejected without printing token contents. |
+| `tool/validate_release_env.sh <temp-file> --client` with synthetic anon/service-role JWTs | Passed | Synthetic client anon-role JWTs passed; synthetic service-role `SUPABASE_ANON_KEY` was rejected. |
 | `deno fmt --check supabase/functions` | Passed | 41 files checked after Edge changes. |
 | `find supabase/functions -name '*.ts' -print0 \| xargs -0 deno check` | Passed | Every Supabase function/shared TypeScript file type-checked. |
 | `deno test --allow-env supabase/functions` | Passed | 34 tests passed, 0 failed. |
@@ -43,7 +46,7 @@ Audit date: 2026-05-06
 - Flutter dependency resolution and static analysis.
 - Web workspace typecheck, lint, tests, production builds, and moderate npm audits.
 - Supabase Edge Function formatting, type checking, and unit tests.
-- Static secret-regex scanning over tracked files.
+- Static secret-regex scanning over tracked files and release env role validation with synthetic JWTs.
 - Current branch/commit and initial worktree cleanliness.
 
 ## Blocked Or Not Locally Proven
@@ -63,5 +66,6 @@ Audit date: 2026-05-06
 3. Start local Supabase or use staging credentials, then run `supabase db lint --db-url "$SUPABASE_DB_URL" --schema public --fail-on error`.
 4. Apply migrations to a throwaway/staging database and run `psql "$SUPABASE_DB_URL" -f supabase/tests/rls_hardening_audit.sql`.
 5. Deploy updated Edge Functions and run `tool/supabase_release_probe.sh`, `tool/supabase_whatsapp_auth_smoke.sh`, and cron/job smoke scripts.
-6. Add full-history secret scanning with `gitleaks` or `trufflehog` and run it before launch.
-7. Verify deployed web headers with `curl -I` for each origin, including `/index.html` and static assets.
+6. Extend JWT role validation to `tool/preflight_build_check.sh` and any release smoke scripts that accept `SUPABASE_ANON_KEY`.
+7. Add full-history secret scanning with `gitleaks` or `trufflehog` and run it before launch.
+8. Verify deployed web headers with `curl -I` for each origin, including `/index.html` and static assets.
