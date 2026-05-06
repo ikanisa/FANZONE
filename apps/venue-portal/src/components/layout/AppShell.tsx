@@ -20,6 +20,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { StatusChip } from '../console/StatusChip';
+import { useBellRequests } from '../../hooks/useBellRequests';
 import { useOrders } from '../../hooks/useOrders';
 import { useVenue } from '../../hooks/useVenueContext';
 import { useVenueStats } from '../../hooks/useVenueStats';
@@ -141,6 +142,7 @@ export const AppShell = () => {
   const venueId = venue?.id || '';
   const { stats } = useVenueStats(venueId);
   const { orders } = useOrders(venueId);
+  const { bells } = useBellRequests(venueId);
   const [quickOpen, setQuickOpen] = useState(false);
   const venueName = venue?.name ?? 'Venue';
   const venueInitials = useMemo(
@@ -181,6 +183,7 @@ export const AppShell = () => {
               <HeaderPill label="Time" value={<HeaderClock />} />
               <HeaderPill label="Orders" value={`${activeOrders} active`} tone={activeOrders ? 'primary' : 'neutral'} />
               <HeaderPill label="Payments" value={`${pendingPayments} pending`} tone={pendingPayments ? 'warning' : 'neutral'} />
+              <HeaderPill label="Staff" value={`${bells.length} bells`} tone={bells.length ? 'warning' : 'neutral'} />
               <HeaderPill label="Games/Pools" value={`Games pending · ${stats.active_pools} pools`} tone={stats.active_pools ? 'primary' : 'neutral'} />
               <HeaderPill label="FET wallet" value="Ledger needed" icon={<Coins size={16} />} />
             </div>

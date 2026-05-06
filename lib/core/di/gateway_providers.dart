@@ -34,6 +34,7 @@ import '../../features/settings/data/notification_settings_gateway.dart';
 import '../../features/wallet/data/wallet_gateway.dart';
 
 // ── Ordering / venue gateways ──────────────────────────────
+import '../../features/ordering/data/bell_gateway.dart';
 import '../../features/ordering/data/order_gateway.dart';
 import '../../features/ordering/data/venue_gateway.dart';
 
@@ -434,6 +435,10 @@ final walletGatewayProvider = Provider<WalletGateway>((ref) {
 
 final venueGatewayProvider = Provider<VenueGateway>((ref) {
   return SupabaseVenueGateway(ref.watch(supabaseConnectionProvider));
+});
+
+final bellGatewayProvider = Provider<BellGateway>((ref) {
+  return SupabaseBellGateway(ref.watch(supabaseConnectionProvider));
 });
 
 final orderGatewayProvider = Provider<OrderGateway>((ref) {

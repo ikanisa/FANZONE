@@ -43,6 +43,18 @@ export interface VenueTable {
   updatedAt: string;
 }
 
+export interface BellRequest {
+  id: string;
+  venueId: string;
+  tableId: string;
+  tableNumber: string | null;
+  userId: string;
+  message: string | null;
+  acknowledgedAt: string | null;
+  acknowledgedBy: string | null;
+  createdAt: string;
+}
+
 export interface VenueMenuRows {
   categories: MenuCategoryRow[];
   items: MenuItemRow[];
@@ -80,6 +92,18 @@ export interface VenueMenuItemUpdateInput {
 
 type OrderWithRelations = OrderRow & {
   items?: OrderItemRow[] | null;
+  table?: { table_number?: string | null } | Array<{ table_number?: string | null }> | null;
+};
+
+type BellRequestRow = {
+  id: string;
+  venue_id: string;
+  table_id: string;
+  user_id: string;
+  message: string | null;
+  acknowledged_at: string | null;
+  acknowledged_by: string | null;
+  created_at: string;
   table?: { table_number?: string | null } | Array<{ table_number?: string | null }> | null;
 };
 
@@ -326,6 +350,26 @@ function relationTableNumber(row: OrderWithRelations): string | null {
   return row.table.table_number ?? null;
 }
 
+function bellTableNumber(row: BellRequestRow): string | null {
+  if (!row.table) return null;
+  if (Array.isArray(row.table)) return row.table[0]?.table_number ?? null;
+  return row.table.table_number ?? null;
+}
+
+function mapBellRequest(row: BellRequestRow): BellRequest {
+  return {
+    id: row.id,
+    venueId: row.venue_id,
+    tableId: row.table_id,
+    tableNumber: bellTableNumber(row),
+    userId: row.user_id,
+    message: row.message,
+    acknowledgedAt: row.acknowledged_at,
+    acknowledgedBy: row.acknowledged_by,
+    createdAt: row.created_at,
+  };
+}
+
 export function mapOrder(row: OrderWithRelations): Order {
   return {
     id: row.id,
@@ -389,6 +433,32 @@ export async function fetchVenueOrders(venueId: string): Promise<Order[]> {
 
   if (error) throw error;
   return ((data ?? []) as unknown as OrderWithRelations[]).map(mapOrder);
+}
+
+export async function fetchActiveBellRequests(venueId: string): Promise<BellRequest[]> {
+  const { data, error } = await supabase
+    .from('bell_requests')
+    .select('*, table:tables(table_number)')
+    .eq('venue_id', venueId)
+    .is('acknowledged_at', null)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) throw error;
+  return ((data ?? []) as unknown as BellRequestRow[]).map(mapBellRequest);
+}
+
+export async function acknowledgeBellRequest(bellId: string) {
+  const { data: userData } = await supabase.auth.getUser();
+  const { error } = await supabase
+    .from('bell_requests')
+    .update({
+      acknowledged_at: new Date().toISOString(),
+      acknowledged_by: userData.user?.id ?? null,
+    })
+    .eq('id', bellId);
+
+  if (error) throw error;
 }
 
 export async function fetchVenueOrderDetail(venueId: string, orderId: string): Promise<OrderDetail> {

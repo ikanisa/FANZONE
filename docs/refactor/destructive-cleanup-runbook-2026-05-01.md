@@ -1,6 +1,8 @@
 # Destructive Cleanup Runbook - 2026-05-01
 
-Scope: retired DineIn assistance objects, old standings helpers, competition-following tables, prediction tables, and fantasy tables that are outside the simplified sports-bar pool product.
+Scope: old standings helpers, competition-following tables, prediction tables, and fantasy tables that are outside the simplified sports-bar pool product.
+
+`public.bell_requests` and the `ring_bell` Edge Function are active table-assistance surfaces and are explicitly out of scope for this cleanup.
 
 This cleanup is intentionally not part of the normal migration chain. Run it only after backup and dependency review.
 
@@ -26,11 +28,10 @@ pg_restore --list "backups/fanzone-public-before-retired-cleanup-2026-05-01.dump
 Run these checks against the target database before executing the cleanup:
 
 ```sql
-select dependent_schema, dependent_object_name
+select view_schema, view_name, table_name
 from information_schema.view_table_usage
 where table_schema = 'public'
   and table_name in (
-    'bell_requests',
     'standings',
     'team_form_features',
     'user_followed_competitions',
@@ -43,7 +44,6 @@ select routine_schema, routine_name
 from information_schema.routines
 where routine_schema = 'public'
   and routine_definition ilike any (array[
-    '%bell_requests%',
     '%standings%',
     '%team_form_features%',
     '%user_followed_competitions%',
@@ -78,7 +78,7 @@ Also verify:
 - mobile app can open Bar, Pools, Wallet, and Profile;
 - venue portal can update orders, menu, rewards, pools, and tables;
 - admin can view curated matches, wallets, settlements, audit logs, and feature flags;
-- no production jobs reference `ring_bell`, standings, individual predictions, or fantasy tables.
+- no production jobs reference retired standings, individual predictions, or fantasy tables.
 
 ## Rollback
 

@@ -448,6 +448,18 @@ export interface VenueTableRow {
   updated_at: string;
 }
 
+export interface BellRequestRow {
+  [key: string]: unknown;
+  id: string;
+  venue_id: string;
+  table_id: string;
+  user_id: string;
+  message: string | null;
+  acknowledged_at: string | null;
+  acknowledged_by: string | null;
+  created_at: string;
+}
+
 export interface VenueFetWalletRow {
   [key: string]: unknown;
   venue_id: string;
@@ -838,6 +850,7 @@ export interface Database {
       order_items: TableDefinition<OrderItemRow>;
       payment_events: TableDefinition<PaymentEventRow>;
       tables: TableDefinition<VenueTableRow>;
+      bell_requests: TableDefinition<BellRequestRow>;
       venue_fet_wallets: TableDefinition<VenueFetWalletRow>;
       venue_fet_wallet_transactions: TableDefinition<VenueFetWalletTransactionRow>;
       match_pools: TableDefinition<MatchPoolRow>;

@@ -20,7 +20,7 @@ No destructive database migration should be applied without a backup. The curren
 | Flutter `profile` feature | KEEP | Supports profile, country/favorite-team personalization, notifications, and responsible settings surface. |
 | Flutter Home screen | KEEP | FANZONEUI-aligned launch surface for FET balance, venue discovery, Arena entry, profile, and featured matches. |
 | Flutter `venue_dashboard` feature | REMOVE | Mobile guest app must not contain venue console operations; venue operations live in `apps/venue-portal`. |
-| Flutter bell/ring-bell models/gateway | REMOVE | Table assistance is old DineIn clutter and not part of ordering, wallet, pools, venue ops, or admin ops. |
+| Flutter bell/ring-bell models/gateway | KEEP | Guest table assistance is part of the venue ordering flow and is handled through the `ring_bell` Edge Function plus venue portal acknowledgement. |
 | Flutter standings providers/widgets | REMOVE | Deleted from the mobile guest app; standings are not part of pool-only gameplay. |
 | Flutter competition/followed-competition preferences | REMOVE | Public competition following was replaced by country/favorite-team personalization and pool discovery. |
 | Flutter legacy routes `/league`, `/fixtures`, `/team`, `/today`, `/venue-dashboard` | REMOVE | Removed from the production router; app-generated destinations now point to Home, Venues, Arena, Orders, Wallet, Match detail, or Pool detail. |
@@ -34,7 +34,7 @@ No destructive database migration should be applied without a backup. The curren
 | Supabase pool engine tables/RPCs | KEEP | `match_pools`, camps, entries, invites, settlement, sharing, aliases, and tests support pool-only gameplay. |
 | Supabase wallet ledger | KEEP | `fet_wallets` plus `fet_wallet_transactions`/`fet_ledger` view are the wallet source of truth. |
 | Supabase curation model | KEEP | `countries`, `competitions`, `teams`, `matches`, `curated_matches`, and curation RPCs support curated match discovery. |
-| Supabase `bell_requests` and `ring_bell` | REMOVE | Runtime files are removed; database drops are gated in `supabase/destructive/20260501_retired_dinein_fanzone_cleanup.sql`. |
+| Supabase `bell_requests` and `ring_bell` | KEEP | Staff call requests are restored as an active ordering/venue-ops surface. Do not include these objects in destructive cleanup. |
 | Supabase standings/team form features | REMOVE | Mobile helpers are removed; database drops are gated because they are destructive. |
 
 ## Route Cleanup Map
@@ -70,7 +70,7 @@ No destructive database migration should be applied without a backup. The curren
 | `order_gateway`, `venue_gateway`, cart/order providers | KEEP | Guest ordering and venue context. |
 | `pools_repository` | KEEP | Pool list/detail/create/join/share. |
 | `wallet_gateway`, `wallet_service` | KEEP | Wallet reads and RPC-backed writes. |
-| `bell_gateway` | REMOVE | Old DineIn assistance flow. |
+| `bell_gateway` | KEEP | Guest ordering uses it to call `ring_bell`; venue portal reads `bell_requests` for staff acknowledgement. |
 | competition catalog/search gateways | KEEP | Curated match discovery remains; public standings/full competition browsing paths were removed. |
 | Admin data hooks for active IA | KEEP | Admin PWA operations. |
 | Admin token/user/analytics hooks | REMOVE | Replaced by wallet oversight, audit logs, and overview. |
@@ -84,7 +84,7 @@ No destructive database migration should be applied without a backup. The curren
 | `match_pools`, `match_pool_camps`, `match_pool_entries` | KEEP | Canonical pool engine; `pools`, `pool_camps`, `pool_entries` views provide requested naming compatibility. |
 | `fet_wallets`, `fet_wallet_transactions`, `fet_ledger` | KEEP | Ledger-backed wallet source of truth. |
 | `reward_rules`, `settlement_runs`/`match_pool_settlements`, `audit_logs` | KEEP | Required for rewards, settlement monitoring, auditability. |
-| `bell_requests`, `ring_bell` | REMOVE | App/Edge code removed; DB objects are covered by the guarded destructive cleanup script. |
+| `bell_requests`, `ring_bell` | KEEP | Active guest-to-staff assistance flow for table service. |
 | `standings`, `team_form_features` | REMOVE | Not in product scope; DB objects are covered by the guarded destructive cleanup script. |
 | generic moderation/user/account deletion tables | ADMIN-ONLY / REFACTOR | Keep only where required for risk, privacy, and support obligations. |
 
@@ -92,7 +92,7 @@ No destructive database migration should be applied without a backup. The curren
 
 1. Delete only files that are unreferenced by active routes/build imports.
 2. Replace stale mobile tab structure and remove legacy mobile route aliases.
-3. Remove mobile venue-dashboard and bell code from the Flutter DI graph.
+3. Keep mobile venue-dashboard operations out of the Flutter app; keep the guest bell gateway in the ordering graph.
 4. Keep destructive DB drops outside the normal migration chain.
 5. Run the live dependency search in `docs/refactor/destructive-cleanup-runbook-2026-05-01.md` before any DB drop.
 6. For destructive DB cleanup, require backup, guarded execution, rollback planning, and a production maintenance window.
@@ -102,7 +102,7 @@ No destructive database migration should be applied without a backup. The curren
 - Fix Flutter primary tab stack to exactly Home, Venues, Arena, Orders, Wallet.
 - Remove `/today` and other old mobile aliases from production routing.
 - Delete dead admin pages not referenced by active admin routes.
-- Delete dead mobile venue dashboard/bell files and DI provider.
+- Delete dead mobile venue dashboard files while preserving the guest bell gateway and `ring_bell` Edge Function.
 - Restrict backend-only pool locking and order reward helpers to service execution.
 - Update documentation and run build/analyze/test where possible.
 

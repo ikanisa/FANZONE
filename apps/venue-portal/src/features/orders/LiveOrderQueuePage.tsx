@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertCircle,
+  BellRing,
   CheckCircle2,
   Clock3,
   Loader2,
@@ -14,8 +15,10 @@ import { EmptyState } from '../../components/console/EmptyState';
 import { StatusChip } from '../../components/console/StatusChip';
 import { readableStatus } from '../../components/console/status';
 import { useVenue } from '../../hooks/useVenueContext';
+import { useBellRequests } from '../../hooks/useBellRequests';
 import { useOrders } from '../../hooks/useOrders';
 import { ManualMarkPaidModal } from './ManualMarkPaidModal';
+import type { BellRequest } from '../../services/venueOperations';
 
 const activeServiceStatuses: OrderStatus[] = ['placed', 'received', 'preparing'];
 const serviceStatuses: OrderStatus[] = ['placed', 'received', 'preparing', 'served', 'cancelled'];
@@ -228,11 +231,73 @@ function OrderCard({
   );
 }
 
+function BellRequestPanel({
+  bells,
+  busyId,
+  onAcknowledge,
+}: {
+  bells: BellRequest[];
+  busyId: string | null;
+  onAcknowledge: (bellId: string) => Promise<void>;
+}) {
+  if (bells.length === 0) return null;
+
+  return (
+    <section className="ops-card border-warning/30 bg-warning/10 p-5">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-2xl bg-warning/20 text-warning flex items-center justify-center">
+            <BellRing size={24} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-warning uppercase tracking-widest">Staff requests</p>
+            <h2 className="text-2xl font-black text-text">{bells.length} active bell{bells.length === 1 ? '' : 's'}</h2>
+          </div>
+        </div>
+        <p className="text-sm font-bold text-textSecondary">Acknowledge requests once staff has responded.</p>
+      </div>
+
+      <div className="mt-4 grid gap-3 xl:grid-cols-2">
+        {bells.map((bell) => (
+          <article key={bell.id} className="rounded-2xl border border-border bg-surface/80 p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-lg font-black text-text">
+                Table {bell.tableNumber ?? bell.tableId.slice(0, 6).toUpperCase()}
+              </p>
+              <p className="text-sm font-bold text-textSecondary">
+                {ageLabel(bell.createdAt)} ago · User {bell.userId.replace(/-/g, '').slice(-6).toUpperCase()}
+              </p>
+              {bell.message && <p className="mt-2 text-sm font-bold text-text">{bell.message}</p>}
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={busyId === bell.id}
+              onClick={() => onAcknowledge(bell.id)}
+            >
+              {busyId === bell.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+              Acknowledge
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export const LiveOrderQueuePage: React.FC = () => {
   const { venue } = useVenue();
   const { orders, loading, error, refresh, updateOrderStatus, updatePaymentStatus } = useOrders(venue?.id || '');
+  const {
+    bells,
+    loading: bellsLoading,
+    error: bellsError,
+    refresh: refreshBells,
+    acknowledge,
+  } = useBellRequests(venue?.id || '');
   const [drafts, setDrafts] = useState<Record<string, PaymentDraft>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [busyBellId, setBusyBellId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [markPaidOrder, setMarkPaidOrder] = useState<Order | null>(null);
   const [markPaidError, setMarkPaidError] = useState<string | null>(null);
@@ -270,6 +335,18 @@ export const LiveOrderQueuePage: React.FC = () => {
       setActionError(err instanceof Error ? err.message : 'Action failed.');
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function runBellAction(bellId: string) {
+    setBusyBellId(bellId);
+    setActionError(null);
+    try {
+      await acknowledge(bellId);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Could not acknowledge bell request.');
+    } finally {
+      setBusyBellId(null);
     }
   }
 
@@ -322,11 +399,21 @@ export const LiveOrderQueuePage: React.FC = () => {
             Handle live service and manual payment confirmation in seconds.
           </p>
         </div>
-        <button type="button" className="btn btn-secondary w-fit" onClick={refresh} disabled={loading}>
-          <RefreshCcw size={16} className={loading ? 'animate-spin' : ''} />
+        <button
+          type="button"
+          className="btn btn-secondary w-fit"
+          onClick={() => {
+            void refresh();
+            void refreshBells();
+          }}
+          disabled={loading || bellsLoading}
+        >
+          <RefreshCcw size={16} className={loading || bellsLoading ? 'animate-spin' : ''} />
           Refresh
         </button>
       </div>
+
+      <BellRequestPanel bells={bells} busyId={busyBellId} onAcknowledge={runBellAction} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {counts.map(({ status, count }) => (
@@ -350,6 +437,11 @@ export const LiveOrderQueuePage: React.FC = () => {
       {actionError && (
         <div className="bg-danger/10 border border-danger/20 text-danger rounded-2xl px-5 py-4 font-bold">
           {actionError}
+        </div>
+      )}
+      {bellsError && (
+        <div className="bg-warning/10 border border-warning/20 text-warning rounded-2xl px-5 py-4 font-bold">
+          Failed to load bell requests: {bellsError}
         </div>
       )}
 

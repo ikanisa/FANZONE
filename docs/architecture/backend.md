@@ -101,13 +101,14 @@ Destructive retired-object cleanup is intentionally outside this migration inven
 | `order_update_status` | Updates order service status. | Venue role checked; transition validated. |
 | `payment-hub` | Off-platform payment guidance/status helper. | Validated request; no provider API execution. |
 | `push-notify` | Sends push notifications. | `x-push-notify-secret`. |
+| `ring_bell` | Creates authenticated guest staff-call requests for a venue table. | Client auth, venue/table validation, and rate limit. |
 | `settle-match-pools` | Runs idempotent pool settlement. | `x-cron-secret` or service role. |
 | `submit_claim` | Submits venue claim. | Public/authenticated with validation. |
 | `tables_generate` | Generates table QR records. | Venue owner/manager. |
 | `venue_claim` | Venue claim workflow endpoint. | Validated request and policy checks. |
 | `whatsapp-otp` | WhatsApp OTP send/verify and custom session issuance. | Public action endpoint with rate limits and secrets. |
 
-Deprecated DineIn-era functions such as `ring_bell` are intentionally excluded from active deployment. The backing database objects should only be dropped in a later destructive-cleanup phase after a live dependency check and backup.
+Deprecated DineIn-era functions are intentionally excluded from active deployment. `ring_bell` is not deprecated: it backs the active table-assistance flow and `public.bell_requests` must not be included in destructive cleanup.
 
 ## Database Verification
 

@@ -1,4 +1,7 @@
--- Destructive cleanup for retired DineIn/FANZONE objects.
+-- Destructive cleanup for retired FANZONE objects.
+--
+-- public.bell_requests is an active table-assistance surface used by the
+-- ring_bell Edge Function and venue portal staff queue. Do not drop it here.
 --
 -- DO NOT place this file in supabase/migrations.
 -- DO NOT run without a fresh backup and a live dependency check.
@@ -30,7 +33,6 @@ BEGIN
       NULL,
       jsonb_build_object(
         'retired_objects', ARRAY[
-          'bell_requests',
           'standings',
           'team_form_features',
           'user_followed_competitions',
@@ -46,7 +48,6 @@ BEGIN
 END;
 $$;
 
-DROP TABLE IF EXISTS public.bell_requests CASCADE;
 DROP TABLE IF EXISTS public.standings CASCADE;
 DROP TABLE IF EXISTS public.team_form_features CASCADE;
 DROP TABLE IF EXISTS public.user_followed_competitions CASCADE;

@@ -401,6 +401,9 @@ verify_jwt = false
 [functions.generate-pool-social-card]
 verify_jwt = true
 
+[functions.ring_bell]
+verify_jwt = true
+
 [analytics]
 enabled = false
 port = 54327
