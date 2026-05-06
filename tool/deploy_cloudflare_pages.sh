@@ -108,10 +108,17 @@ deploy_app() {
   npm run build -w "${package_name}"
 
   echo "Deploying ${app} to Cloudflare Pages project ${project_name}..."
-  npx wrangler pages deploy "${dist_dir}" \
-    --project-name="${project_name}" \
-    --branch="${BRANCH}" \
-    "${WRANGLER_DIRTY_ARGS[@]}"
+  local -a deploy_args=(
+    pages
+    deploy
+    "${dist_dir}"
+    "--project-name=${project_name}"
+    "--branch=${BRANCH}"
+  )
+  if [[ "${#WRANGLER_DIRTY_ARGS[@]}" -gt 0 ]]; then
+    deploy_args+=("${WRANGLER_DIRTY_ARGS[@]}")
+  fi
+  npx wrangler "${deploy_args[@]}"
 }
 
 if [[ "${REQUESTED_APPS[0]:-all}" == "all" ]]; then
