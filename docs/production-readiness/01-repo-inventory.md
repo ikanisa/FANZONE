@@ -4,116 +4,110 @@ Audit date: 2026-05-06
 
 ## Repository State
 
-- Current branch: `main`
-- Latest commit at audit start: `e21b2c2 chore(repo): config, docs, env examples, QA reports, remaining tests`
-- Worktree state at audit start/end: dirty. Several Flutter files and untracked `assets/data/`/temporary screenshots were already present and were not reverted.
-- No `AGENTS.md` file was found in the repo.
+- Current branch at audit start: `main`
+- Latest commit at audit start: `c2fdd73 test: account for managed supabase defaults`
+- Worktree at audit start: clean.
+- Worktree after implementation: modified only by the documented production-readiness pass.
+- No repo-level `AGENTS.md` was found outside dependencies.
 
-## Top-Level Boundaries
+## Application Boundaries
 
-- Flutter mobile app: `lib/`, `test/`, `integration_test/`, `android/`, `ios/`, `pubspec.yaml`.
+- Flutter mobile app:
+  - `lib/` application code
+  - `test/` unit/widget tests
+  - `integration_test/` smoke/integration tests
+  - `android/` and `ios/` native projects
+  - `pubspec.yaml` and `pubspec.lock`
 - Web/admin apps:
-  - `apps/admin`: React/Vite admin PWA.
-  - `apps/venue-portal`: React/Vite venue portal.
-  - `apps/website`: React/Vite public website.
-  - `apps/tv-display`: React/Vite display app.
-  - `packages/core`: shared web package.
-- Supabase backend: `supabase/config.toml`, `supabase/migrations`, `supabase/functions`, `supabase/tests`, `supabase/seed.sql`.
-- Release and operations tooling: `tool/`, `scripts/`, `.github/workflows/`, `docs/`.
+  - `apps/admin`: React/Vite admin PWA
+  - `apps/website`: React/Vite public website
+  - `apps/venue-portal`: React/Vite venue portal
+  - `apps/tv-display`: React/Vite display surface
+  - `packages/core`: shared TypeScript package
+- Supabase backend:
+  - `supabase/config.toml`
+  - `supabase/migrations`
+  - `supabase/functions`
+  - `supabase/tests`
+  - `supabase/seed.sql`
+- Release, CI, and operations:
+  - `.github/workflows`
+  - `tool/`
+  - `scripts/`
+  - `docs/`
+  - app-level `_headers`, manifests, and Wrangler configs
 
-## Existing Architecture
+## Architecture Observed
 
-- Flutter uses feature-oriented modules under `lib/features`, shared UI/design-system code under `lib/core` and `lib/widgets`, and repository/provider style access around Supabase-backed domains.
-- Supabase is the backend security boundary. Docs explicitly require RLS/server-side authorization and forbid service-role keys in clients.
-- Supabase Edge Functions use shared helpers under `supabase/functions/_shared`, Deno checks/tests, and service-role access where server-only behavior is required.
-- Web apps are separate Vite workspaces with their own `src`, `public`, build configs, and `_headers` deployment metadata.
-- Release scripts in `tool/` cover Flutter release env resolution, Android/iOS builds, Supabase probes, Cloudflare Pages deploys, and SQL audits.
+- Flutter is feature-oriented, with reusable core services under `lib/core`, feature repositories/providers under `lib/features`, and Supabase initialization/config in shared app layers.
+- Custom WhatsApp auth creates a Supabase client with an `accessToken` callback in `RuntimeAuthSessionManager`. Some repositories still need review for direct `client.auth.currentUser` usage during custom sessions.
+- Web apps are independent Vite workspaces. Admin and venue use custom browser session helpers; website uses the standard Supabase browser client.
+- Supabase Edge Functions share helpers under `supabase/functions/_shared` for auth, CORS, logging, errors, and Supabase clients.
+- Postgres authorization is intended to be enforced through RLS, grants, and trusted Edge/RPC paths. This remains the main backend security boundary.
+- Deployment tooling favors static Cloudflare Pages deployments for web apps and Supabase CLI/scripts for backend probes and jobs.
 
-## Package Managers And Runtime Versions
+## Runtime And Tool Versions
 
-Validated local tool versions:
+Validated locally:
 
 - Flutter `3.38.9`
 - Dart `3.10.8`
 - Node `v22.22.2`
 - npm `11.8.0`
 - Deno `2.7.5`
-- Supabase CLI `2.90.0`
+- Supabase CLI `2.90.0` (`2.98.2` available)
+- Docker server `28.4.0`
 
-Package management:
+Unavailable locally:
 
-- Flutter/Dart: `pubspec.yaml` and `pubspec.lock`.
-- Web workspaces: root npm workspace with package files under `apps/*` and `packages/core`.
-- Scripts workspace: `scripts/package.json` and lockfile.
-- Supabase functions: Deno imports and Supabase CLI config.
+- `gitleaks`
+- `trufflehog`
 
-## Commands Discovered
+## Package Managers And Scripts
 
-Flutter:
-
-- `flutter pub get`
-- `dart format --set-exit-if-changed .`
-- `flutter analyze`
-- `flutter test`
-- `flutter test --coverage`
-- `flutter build apk --debug`
-- Release helpers in `tool/build_android_release_from_env.sh`, `tool/build_android_aab_from_env.sh`, and `tool/build_ios_release_from_env.sh`.
-
-Web:
-
-- `npm run typecheck --workspaces --if-present`
-- `npm run lint --workspaces --if-present`
-- `npm run test --workspaces --if-present`
-- `npm run build --workspaces --if-present`
-- Per-app Vite build/test/typecheck scripts.
-
-Supabase/Deno:
-
-- `supabase db lint --local --schema public --fail-on error`
-- `deno fmt --check supabase/functions`
-- `deno check ...`
-- `deno test --allow-env supabase/functions`
-- SQL audit helpers in `tool/supabase_rls_audit.sh`, `tool/supabase_fet_supply_smoke.sh`, and related release probe scripts.
-
-Security/supply chain:
-
-- `.github/workflows/secret-regex-scan.yml`
-- `npm audit --audit-level=moderate`
-- Optional `gitleaks`/`trufflehog` were checked but are not installed locally.
+- Flutter/Dart: `flutter pub get`, `dart format`, `flutter analyze`, `flutter test`, Flutter build commands.
+- npm workspaces: root `package.json` coordinates app/package scripts with per-app lockfiles where present.
+- Web validation: `npm run typecheck --workspaces --if-present`, `npm run lint --workspaces --if-present`, `npm run test --workspaces --if-present`, `npm run build --workspaces --if-present`.
+- Deno/Supabase validation: `deno fmt --check supabase/functions`, `deno check`, `deno test --allow-env supabase/functions`, `supabase db lint`.
+- Release/security tooling: `tool/validate_release_env.sh`, `tool/validate_web_release_env.sh`, `tool/preflight_build_check.sh`, `tool/supabase_release_probe.sh`, `tool/supabase_rls_audit.sh`, `tool/run_supabase_cron_job.sh`, `.github/workflows/secret-regex-scan.yml`.
 
 ## Environment Strategy
 
-- Env examples are tracked and sanitized.
-- Production env JSON files, signing files, Firebase files, and local secrets are ignored and expected to be supplied from secure local storage or CI/hosting secrets.
-- `.env` exists locally but is ignored.
-- `android/key.properties` exists locally and is ignored; values were not printed or copied.
-- Docs identify prior Supabase credential disclosure as a release blocker requiring rotation.
+- Tracked env examples are sanitized placeholders.
+- `.env`, `.env.*`, production env JSON files, signing files, Firebase configs, and Supabase env files are ignored.
+- Local ignored env files exist and were not printed.
+- Supabase anon/publishable keys are treated as public only when RLS is correct; service-role and secret keys must remain server-side.
+- Release docs still identify prior credential disclosure as a blocker requiring external rotation proof.
 
-## Deployment Targets
+## Database And Supabase Inventory
 
-- Flutter Android/iOS release via local/CI signing environment.
-- React/Vite apps deploy as static PWAs, with Cloudflare Pages tooling present.
-- Supabase schema and functions deploy through versioned migrations, Edge Function deploys, and release probe scripts.
+- Migrations are versioned under `supabase/migrations`.
+- RLS/grant audit SQL exists under `supabase/tests`.
+- Edge Functions are TypeScript/Deno functions under `supabase/functions`.
+- Local Supabase was not running during this audit, so migrations, grants, policies, advisors, and storage policies were not validated against a live local database.
+- A new migration, `20260506130000_audit_helper_grant_hardening.sql`, revokes direct client execution of `sports_bar_write_audit(...)`.
 
 ## CI/CD Summary
 
-- `.github/workflows/ci.yml` contains Flutter, web, Supabase, dependency audit, and secret-regex checks and now runs on pull requests, pushes to `main`, and manual dispatch.
-- `.github/workflows/secret-regex-scan.yml` also runs on pull requests, pushes to `main`, and manual dispatch.
-- Deployment workflows remain manual to preserve the local/free-account release model.
-- Repository branch protection still needs to require the validation workflows before production release.
+- Main CI exists in `.github/workflows/ci.yml` and covers Flutter, web, Supabase/Deno, dependency audits, release probes, and secret regex checks where secrets are present.
+- Secret regex scanning exists in `.github/workflows/secret-regex-scan.yml`.
+- Cron workflows are manual-only fallbacks; docs defer production scheduling to Supabase/platform cron or local scheduled jobs.
+- Web deploy workflows are manual and use Cloudflare secrets; repo-visible GitHub Environment gates are not yet configured in code.
+- Branch protection and required checks cannot be proven from static repo files.
 
-## Areas To Preserve
+## What Must Be Preserved
 
-- Existing product rule that payments remain off-platform/manual confirmation.
-- Supabase/RLS as the authorization boundary.
-- Service-role key usage restricted to trusted backend/Edge Function contexts.
-- Existing feature-oriented Flutter structure and workspace boundaries.
-- Existing ignored-secret strategy for signing files and production environment files.
+- Existing product behavior and off-platform/manual payment rules.
+- Supabase/RLS as the backend authorization layer.
+- Service-role usage only in trusted server/Edge Function contexts.
+- Feature-oriented Flutter boundaries and independent web workspace boundaries.
+- Versioned migrations over dashboard-only schema changes.
+- Ignored-secret strategy for local credentials, signing material, and production env files.
 
-## Unclear Or Risky Areas
+## Risky Or Unclear Areas
 
-- Production/staging Supabase project state cannot be proven from static files alone.
-- Dashboard-only database changes, if any, cannot be detected without comparing a live DB dump.
-- Admin authorization appears distributed across frontend, RLS, and functions; object-level enforcement needs live policy tests.
-- Web session storage is still high-risk for admin/venue surfaces until XSS/session hardening is reviewed end to end.
-- Observability and incident-response readiness are not complete enough for a high-confidence launch.
+- External credential rotation cannot be proven from the repo.
+- Live Supabase state may differ from migrations if dashboard changes exist.
+- Privileged sessions still reside in client-readable storage on mobile/web.
+- Admin role/permission granularity needs server-side enforcement beyond active-admin checks.
+- Scheduled jobs, alerting, branch protection, deployment approvals, backups, and restore drills require provider-side verification.

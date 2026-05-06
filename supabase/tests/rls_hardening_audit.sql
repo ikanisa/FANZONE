@@ -131,7 +131,8 @@ BEGIN
       ('public.find_auth_user_by_phone(text)'),
       ('public.resolve_auth_user_phone(uuid)'),
       ('public.credit_welcome_fet(uuid,text)'),
-      ('public.reconcile_fet_wallet(uuid)')
+      ('public.reconcile_fet_wallet(uuid)'),
+      ('public.sports_bar_write_audit(text,text,text,jsonb,jsonb,uuid)')
   ) AS restricted(signature)
   WHERE has_function_privilege('anon', restricted.signature, 'EXECUTE');
 
@@ -152,7 +153,8 @@ BEGIN
       ('public.find_auth_user_by_phone(text)'),
       ('public.resolve_auth_user_phone(uuid)'),
       ('public.credit_welcome_fet(uuid,text)'),
-      ('public.reconcile_fet_wallet(uuid)')
+      ('public.reconcile_fet_wallet(uuid)'),
+      ('public.sports_bar_write_audit(text,text,text,jsonb,jsonb,uuid)')
   ) AS restricted(signature)
   WHERE has_function_privilege('authenticated', restricted.signature, 'EXECUTE');
 

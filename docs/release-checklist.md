@@ -61,8 +61,8 @@
 - Check `public.fet_supply_overview.remaining_mintable` before any manual grant, promo credit, or reward backfill.
 - Validate WhatsApp OTP delivery, expiry, and rate-limit behaviour in the production `whatsapp-otp` function.
 - Confirm `WABA_ACCESS_TOKEN`, `WABA_PHONE_NUMBER_ID`, and `SUPABASE_JWT_SECRET` are present in the deployed Edge Function secrets.
-- For store submission builds, also confirm `WHATSAPP_AUTH_TEST_PHONE=+35699711145` and `WHATSAPP_AUTH_TEST_OTP=123456` are present in the deployed `whatsapp-otp` secrets.
-- Run `WHATSAPP_AUTH_TEST_PHONE=+35699711145 WHATSAPP_AUTH_TEST_OTP=123456 ./tool/supabase_whatsapp_auth_smoke.sh` and keep the successful output with the release ticket.
+- For store submission builds, also confirm `WHATSAPP_AUTH_TEST_PHONE=+35699711145`, `WHATSAPP_AUTH_TEST_OTP=123456`, and a short-lived `WHATSAPP_AUTH_TEST_EXPIRY` are present in the deployed `whatsapp-otp` secrets.
+- Run `WHATSAPP_AUTH_TEST_PHONE=+35699711145 WHATSAPP_AUTH_TEST_OTP=123456 WHATSAPP_AUTH_TEST_EXPIRY=<future-iso-timestamp> ./tool/supabase_whatsapp_auth_smoke.sh` and keep the successful output with the release ticket.
 
 ## Reviewer app access
 

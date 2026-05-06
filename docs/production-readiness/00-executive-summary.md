@@ -1,68 +1,98 @@
 # Production Readiness Executive Summary
 
 Audit date: 2026-05-06
+Audit start branch/commit: `main` at `c2fdd73 test: account for managed supabase defaults`
 
-Overall readiness: Yellow/Red
-Recommendation: No-go for production launch until the human-held P0/P1 items below are closed or explicitly accepted with owners and mitigations. Repo-local implementation blockers are reduced, but credentials, deployment, and live database validation still require operator access.
+Overall readiness: Red
+Go/no-go recommendation: No-go for production launch until the credential-rotation blocker, live Supabase/RLS validation, and privileged-session risks are closed or explicitly accepted with owners and mitigations.
 
 ## Scope Reviewed
 
-- Flutter mobile app at `lib/`, `test/`, `integration_test/`, Android/iOS project files, and release tooling in `tool/`.
-- Admin and companion web apps at `apps/admin`, `apps/website`, `apps/venue-portal`, `apps/tv-display`, and shared package code at `packages/core`.
-- Supabase backend at `supabase/`, including migrations, Edge Functions, RLS test scripts, config, and operational scripts.
-- CI/CD and release tooling at `.github/workflows/`, `tool/`, `scripts/`, env examples, and docs.
+- Flutter mobile app: `lib/`, `test/`, `integration_test/`, `android/`, `ios/`, `tool/`, and release env examples.
+- Web surfaces: `apps/admin`, `apps/website`, `apps/venue-portal`, `apps/tv-display`, and `packages/core`.
+- Supabase backend: `supabase/config.toml`, migrations, Edge Functions, RLS/audit SQL, seeds, and release probes.
+- CI/CD, release, and operations: `.github/workflows`, `tool/`, `scripts/`, `docs/`, env examples, and deployment metadata.
 
-The repo already has meaningful production hardening: Supabase/RLS is documented as the backend authorization boundary, service-role keys are not intended for clients, off-platform payments are an explicit product rule, Edge Functions have Deno tests, Flutter has a broad test suite, and the web workspaces build cleanly.
+The repo already has meaningful production structure: Flutter is feature-oriented, web apps are split by surface, Supabase/RLS is documented as the backend authorization boundary, service-role usage is intended to stay in trusted functions, and Deno/web checks are available. The remaining launch risk is concentrated in human-held credentials, live environment verification, privileged session storage, and operational controls.
 
 ## Safe Refactor Passes Completed
 
-1. Edge auth hardening: removed the unsigned JWT fallback from `supabase/functions/order_create/index.ts`; order creation now requires a verified Supabase auth result.
-2. Database grant hardening: added migration `supabase/migrations/20260506120000_release_auth_grant_hardening.sql` to revoke sensitive helper RPCs from public, anon, and authenticated roles and restrict them to `service_role`.
-3. RLS audit coverage: extended `supabase/tests/rls_hardening_audit.sql` to assert auth and wallet helper RPCs are not executable by anon/authenticated roles and that future default grants are not broadly exposed.
-4. Web hardening: added baseline CSP headers to each static web app and disabled production sourcemaps for the admin app.
-5. Release tooling hardening: made `tool/deploy_cloudflare_pages.sh` refuse dirty-worktree deploys unless explicitly allowed.
-6. Secret scan tuning: adjusted `.github/workflows/secret-regex-scan.yml` to avoid false positives from sanitized top-level env examples.
-7. CI/security gates: enabled PR/main validation triggers and added dependency/secret audit coverage to the main CI workflow.
-8. CORS hardening: moved shared Edge Function helpers away from wildcard CORS by default and documented `FANZONE_EDGE_ALLOWED_ORIGINS`.
-9. Admin/venue session hardening: moved custom browser sessions from `localStorage` to `sessionStorage` and clear legacy persisted tokens.
+1. Request-scoped Edge CORS: `buildCorsHeaders` now accepts a `Request` and reflects only allowlisted request origins for browser calls while preserving existing explicit-origin behavior. The WhatsApp OTP and pool social-card functions now pass the current request into CORS responses.
+2. WhatsApp reviewer OTP hardening: fixed reviewer OTPs now require `WHATSAPP_AUTH_TEST_EXPIRY` with a valid future timestamp. Missing, invalid, or expired expiry disables the fixed OTP path.
+3. Database grant hardening: added a migration to revoke direct client execution of `public.sports_bar_write_audit(...)` from `PUBLIC`, `anon`, and `authenticated`, while preserving trusted `service_role` execution.
+4. RLS audit coverage: extended `supabase/tests/rls_hardening_audit.sql` so future audits assert `sports_bar_write_audit(...)` is not executable by `anon` or `authenticated`.
+5. Release checklist hardening: updated the store-review WhatsApp OTP checklist to require a short-lived expiry and smoke-test it explicitly.
 
-## Launch Blockers And High Findings
+## Top Findings
 
 | Severity | Area | Finding | Evidence | Risk | Recommended fix | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| P0 | Secrets | Supabase credentials were previously shared during assistant release work and must be rotated before launch. | `docs/README.md:68` | Compromised credentials could allow backend/API access even if no tracked secret is present now. | Rotate Supabase access token, DB password, anon key, and service-role key; update CI/hosting secrets. | Needs human action |
-| P0 | Supabase Auth | `order_create` accepted an unverified decoded JWT fallback before this pass. | `supabase/functions/order_create/index.ts:66` | Forged bearer tokens could impersonate users for order creation. | Removed fallback; deploy function and rerun release probes. | Fixed in repo, needs deploy |
-| P0 | Database Grants | Sensitive wallet/auth helper RPCs were callable by roles beyond trusted server contexts. | `supabase/migrations/20260506120000_release_auth_grant_hardening.sql` | Direct RPC execution could bypass intended server-only flows. | Apply migration, run RLS audit against target DB. | Fixed in repo, needs DB apply |
-| P1 | Supabase Validation | Local Supabase DB lint/audit could not run because Docker/Postgres was unavailable. | `supabase db lint --local --schema public --fail-on error` failed: `127.0.0.1:54322` refused. | SQL grants/policies need live DB verification. | Start local Supabase or run against staging with operator secrets. | Not fixed |
-| P1 | CI/CD | Main CI and secret scan workflows were manual only. | `.github/workflows/ci.yml`, `.github/workflows/secret-regex-scan.yml` | PRs could merge without automated lint/test/build/security gates. | PR/main triggers and dependency/secret audit job added; branch protection still needs repository configuration. | Partially fixed |
-| P1 | Edge CORS | Shared Edge Function CORS allowed `*` by default. | `supabase/functions/_shared/cors.ts`, `supabase/functions/_shared/cors_allowlist.ts` | Privileged functions were easier to call from unintended origins. | Environment-aware allowlist added; deployed secrets must set exact production origins. | Partially fixed |
-| P1 | Web Sessions | Admin and venue apps used browser local storage for custom sessions. | `apps/admin/src/lib/supabase.ts`, `apps/venue-portal/src/lib/supabase.ts` | XSS could expose long-lived tokens across browser restarts. | Session storage now uses `sessionStorage` and clears legacy `localStorage`; MFA/server mediation still needs product decision. | Partially fixed |
-| P1 | Flutter Release Validation | Flutter tests passed, but format/analyze failed and debug APK build hung in this environment. | See `02-validation-baseline.md`. | Release confidence was incomplete. | Format/analyze fixed locally; Android/iOS release builds still need target build environment. | Partially fixed |
-| P2 | Supply Chain | `scripts` workspace had one moderate npm advisory. | `npm audit --audit-level=moderate` in `scripts` | Non-app tooling dependency had a known advisory. | Stale scripts lockfile dependencies removed by `npm audit fix`; audit now passes. | Fixed |
-| P2 | Observability | Runbooks and production alerting were incomplete for auth outage, DB migration failure, slow DB, and high error rate. | `docs/operations/incident-runbooks.md` | Incidents would be slower to detect and recover from. | Runbook skeleton added; real alert routing/dashboard ownership still needs operator configuration. | Partially fixed |
+| P0 | Secrets | Documented Supabase credential exposure is not provably closed from the repo. | `docs/secret-rotation-runbook.md:3`, `docs/secret-rotation-runbook.md:9` | Compromised anon/service-role keys, DB credentials, or PATs can remain valid outside git. | Rotate Supabase anon/service-role keys, DB password/URLs, PATs, CI/provider secrets, and local env copies; record provider-side rotation evidence. | Needs human action |
+| P1 | Flutter auth storage | Custom WhatsApp sessions, including refresh/access tokens, are persisted through the general Hive-backed cache. | `lib/core/auth/runtime_auth_session_manager.dart:16`, `lib/core/auth/runtime_auth_session_manager.dart:90`, `lib/core/auth/runtime_auth_session_manager.dart:193` | Device compromise or broad cache inspection exposes auth material. | Move auth material to Keychain/Keystore secure storage and migrate/delete legacy `custom_auth_session_v1`. | Not fixed |
+| P1 | Web privileged sessions | Admin and venue refresh tokens are stored in browser-readable `sessionStorage`. | `apps/admin/src/lib/supabase.ts:10`, `apps/admin/src/lib/supabase.ts:77`, `apps/admin/src/lib/supabase.ts:105`, `apps/venue-portal/src/lib/supabase.ts:44`, `apps/venue-portal/src/lib/supabase.ts:74` | XSS or malicious extensions can exfiltrate privileged bearer/refresh tokens. | Prefer HttpOnly cookie/BFF mediation for admin and venue sessions; add CSP/Trusted Types hardening if browser tokens remain. | Not fixed |
+| P1 | Admin authorization | Shared admin authorization checks only confirm an active admin record, while `admin_user_management` can create admins including `super_admin`. | `supabase/functions/_shared/auth.ts:101`, `supabase/functions/_shared/auth.ts:143`, `supabase/functions/admin_user_management/index.ts:20`, `supabase/functions/admin_user_management/index.ts:123` | Lower-privileged admins may be able to perform actions that should require role-specific authorization. | Add role-specific server checks such as `requireAdminRole`/`requireSuperAdmin`, and add RLS/Edge tests by role. | Not fixed |
+| P1 | Web release env validation | `VITE_SUPABASE_ANON_KEY` validation only checks for a JWT-looking prefix. | `tool/validate_web_release_env.sh:64` | A service-role JWT could be misnamed and shipped to browsers. | Decode JWT payload during validation and require role `anon`; reject `service_role`, `supabase_admin`, or unexpected roles. | Not fixed |
+| P1 | WhatsApp reviewer OTP | Fixed OTPs for store review could become a standing public login path if left configured indefinitely. | `supabase/functions/whatsapp-otp/index.ts:32`, `supabase/functions/whatsapp-otp/index.ts:122`, `supabase/functions/whatsapp-otp/index_test.ts:136`, `docs/release-checklist.md:64` | A leaked/reused reviewer phone and OTP bypasses normal OTP delivery and rate-limit intent. | Require short-lived `WHATSAPP_AUTH_TEST_EXPIRY`, rotate/remove reviewer secrets after review, redeploy function secrets. | Fixed in repo, needs deploy/secrets |
+| P1 | Edge CORS | Some browser-callable Edge responses were not request-scoped, risking wrong-origin CORS headers when multiple origins are configured. | `supabase/functions/_shared/http.ts:24`, `supabase/functions/_shared/http_test.ts:42`, `supabase/functions/whatsapp-otp/index.ts:77`, `supabase/functions/generate-pool-social-card/index.ts:253` | Browser access can fail for valid origins or accidentally expose responses to an unintended configured origin. | Pass `Request` to CORS helpers from browser-callable functions and verify deployed `FANZONE_EDGE_ALLOWED_ORIGINS`. | Fixed in repo, needs deploy |
+| P1 | Audit helper grants | Historical migrations grant `sports_bar_write_audit(...)` to `authenticated`, allowing actor spoofing if callable directly. | `supabase/migrations/20260501155500_remote_audit_helper_dynamic_sql.sql:86`, `supabase/migrations/20260506130000_audit_helper_grant_hardening.sql:5`, `supabase/tests/rls_hardening_audit.sql:135` | Authenticated clients could write audit records outside product RPCs/functions. | Apply the new revoke migration and run RLS/grant audit against staging/prod. | Fixed in repo, needs DB apply |
+| P1 | Supabase live validation | Local Supabase is not running and live DB credentials were not used. | `supabase status` failed: `No such container: supabase_db_FANZONE` | Static review cannot prove deployed RLS, grants, migrations, storage policies, or dashboard drift. | Start local Supabase when disk permits or run `supabase db lint` and SQL audits against staging/prod. | Blocked |
+| P1 | Scheduled jobs | Production cron ownership is procedural; repo workflows for settlement and match alerts are manual-only fallbacks. | `.github/workflows/cron-settle.yml:9`, `.github/workflows/cron-match-alerts.yml:9`, `docs/release/go-live-checklist.md:58` | Pool settlement or match-alert dispatch can silently stop. | Define scheduler config as code or provider-controlled schedules with missed-run alerts and owner escalation. | Not fixed |
+| P1 | Deploy gates | Cloudflare deploy workflows are manual and production-secret backed, with no repo-visible environment approval gate. | `.github/workflows/deploy-website.yml:6`, `tool/deploy_cloudflare_pages.sh:41` | A manual dispatch from the wrong ref can promote production assets without required review. | Add GitHub Environments, required reviewers, concurrency, branch/tag restrictions, and post-deploy smoke gates. | Not fixed |
+| P1 | Flutter validation | `flutter test` could not complete in this environment because the system volume was full. | `02-validation-baseline.md` | Mobile regression confidence remains incomplete for this run. | Free system disk or move Dart temp/cache paths, then rerun `flutter test` and coverage. | Blocked |
+| P2 | Public URL rendering | URL fields from Supabase are rendered as image/link targets without a shared allowlist helper. | `apps/website/src/services/api.ts:193`, `apps/website/src/components/MatchPools.tsx:219`, `apps/website/src/components/MatchPools.tsx:328`, `apps/venue-portal/src/features/settings/QRFactoryPage.tsx:257` | Malformed or compromised DB values can create malicious click targets or tracking URLs. | Add shared `safeHref`/`safeImageUrl` validation and DB constraints for generated URLs. | Not fixed |
+| P2 | Error isolation | React roots do not have app-level error boundaries. | `apps/admin/src/main.tsx:28`, `apps/website/src/main.tsx:6`, `apps/venue-portal/src/main.tsx:6`, `apps/tv-display/src/main.tsx:12` | One render exception can blank a critical admin, venue, or display surface. | Add root and route-level error boundaries with telemetry and reload/retry affordances. | Not fixed |
+| P2 | Secret scanning depth | CI uses a narrow regex scan; full-history tools are not installed locally. | `.github/workflows/secret-regex-scan.yml:21`, `02-validation-baseline.md` | Historical or non-JWT secrets may be missed. | Add `gitleaks` or `trufflehog` full-history scanning with explicit allowlists. | Not fixed |
 
-## Go/No-Go Criteria
+## High-Leverage Improvements
 
-Do not launch until:
+1. Prove credential rotation externally and redeploy all affected clients/functions.
+2. Move mobile auth material to secure storage and delete the legacy cache key.
+3. Replace admin/venue browser refresh-token storage with server-mediated sessions.
+4. Add role-specific admin authorization in Edge Functions and regression tests.
+5. Decode and validate Supabase JWT role in web/mobile release env validators.
+6. Apply the audit-helper grant-hardening migration and run RLS audits against staging/prod.
+7. Make production schedulers visible, monitored, and alerting-backed.
+8. Add deployment approvals, branch restrictions, and post-deploy smoke gates.
+9. Add shared safe URL rendering helpers for browser apps.
+10. Add root error boundaries and basic accessibility/security test gates for each web surface.
 
-- Credentials in the documented rotation blocker are rotated.
-- The new Supabase grant-hardening migration is applied to staging/prod and the SQL/RLS audit scripts pass.
-- Edge Functions are redeployed, especially `order_create`.
-- GitHub branch protection requires the now-enabled CI and secret/dependency audit checks.
-- Flutter mobile release builds are verified in the target Android/iOS build environment.
+## Deployment Checklist
+
+Pre-prod:
+- Rotate compromised credentials and confirm provider-side creation timestamps.
+- Free local disk or use a clean CI runner, then rerun Flutter tests and coverage.
+- Apply all migrations to a throwaway database and run SQL/RLS audit scripts.
+- Decode env Supabase keys and verify only anon keys enter client bundles.
+
+Staging:
+- Deploy updated Edge Functions, especially `whatsapp-otp` and `generate-pool-social-card`.
+- Set `FANZONE_EDGE_ALLOWED_ORIGINS` and short-lived WhatsApp reviewer OTP secrets.
+- Run web builds, mobile smoke tests, Supabase release probes, and cron smoke jobs.
+- Verify CORS/CSP/cache headers from deployed origins.
+
+Production:
+- Require GitHub Environment approval and protected refs before deploy.
+- Apply migrations with rollback plan and backup checkpoint.
+- Confirm scheduler history, alert routes, and incident owners.
+- Remove or expire reviewer OTP secrets after store review.
+
+Rollback:
+- Revert web deployment to prior Cloudflare Pages build.
+- Redeploy prior Edge Function bundle if needed.
+- Use the documented migration rollback/restore plan; do not run destructive DB reset commands against production.
 
 ## Roadmap
 
 0-7 days:
-- Rotate Supabase credentials, deploy Edge Functions, apply the new grant-hardening migration, and rerun SQL/RLS audits.
-- Configure GitHub branch protection for the now-enabled CI checks.
-- Rerun Android/iOS release smoke builds in the supported build environment.
+- Complete credential rotation, deploy Edge fixes, apply audit-helper grant migration, and rerun Supabase SQL/RLS audits.
+- Fix local/CI disk constraints and rerun full Flutter tests/coverage.
+- Add JWT role validation to web/mobile release env scripts.
 
 8-30 days:
-- Verify deployed Edge Function CORS allowlists from every production browser origin.
-- Require MFA/least-privilege checks for sensitive admin and venue operations.
-- Add pgTAP/RLS tests for owner, non-owner, anon, authenticated, and admin scenarios.
+- Implement secure mobile auth storage and admin/venue server-mediated sessions.
+- Add role-specific admin Edge authorization and regression tests.
+- Add scheduler alerts and GitHub deployment environment gates.
 
 31-90 days:
-- Add production observability dashboards, backup/restore exercises, performance budgets, and accessibility regression checks.
-- Review dependency drift and automate dependency/security update cadence.
+- Add full-history secret scanning, dependency update automation, root React error boundaries, accessibility checks, and production observability dashboards.
+- Run backup/restore exercises, load/performance checks, and legal/privacy review for PII retention/export/deletion.

@@ -23,8 +23,13 @@ interface AuthorizationOptions {
 
 export function buildCorsHeaders(
   allowedHeaders: string,
-  allowedOrigin = resolveEdgeCorsOrigin(),
+  requestOrOrigin?: Request | string | null,
 ) {
+  const allowedOrigin = requestOrOrigin instanceof Request
+    ? resolveEdgeCorsOrigin(requestOrOrigin.headers.get("origin"))
+    : typeof requestOrOrigin === "string"
+    ? requestOrOrigin
+    : resolveEdgeCorsOrigin();
   const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "POST",
     "Access-Control-Allow-Headers": allowedHeaders,

@@ -33,6 +33,27 @@ Deno.test("buildCorsHeaders preserves explicit origin and header list", () => {
   }
 });
 
+Deno.test("buildCorsHeaders reflects allowlisted request origins", () => {
+  Deno.env.set(
+    "FANZONE_EDGE_ALLOWED_ORIGINS",
+    "https://admin.fanzone.test, https://venue.fanzone.test",
+  );
+  try {
+    const request = new Request("https://edge.fanzone.test", {
+      headers: { origin: "https://venue.fanzone.test" },
+    });
+    const headers = buildCorsHeaders("authorization, content-type", request);
+
+    if (
+      headers["Access-Control-Allow-Origin"] !== "https://venue.fanzone.test"
+    ) {
+      throw new Error("Expected request origin to be reflected");
+    }
+  } finally {
+    Deno.env.delete("FANZONE_EDGE_ALLOWED_ORIGINS");
+  }
+});
+
 Deno.test("buildCorsHeaders uses allowlisted origins instead of wildcard by default", () => {
   const headers = buildCorsHeaders("authorization, content-type");
 

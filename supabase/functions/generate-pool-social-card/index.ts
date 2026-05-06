@@ -250,7 +250,7 @@ function bearerIsServiceRole(req: Request): boolean {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", {
-      headers: buildCorsHeaders("authorization, apikey, content-type"),
+      headers: buildCorsHeaders("authorization, apikey, content-type", req),
     });
   }
 
@@ -262,7 +262,7 @@ Deno.serve(async (req: Request) => {
   if (!authHeader) {
     return Response.json(
       { success: false, error: "Unauthorized" },
-      { status: 401, headers: buildCorsHeaders("content-type") },
+      { status: 401, headers: buildCorsHeaders("content-type", req) },
     );
   }
 
@@ -272,14 +272,14 @@ Deno.serve(async (req: Request) => {
     if (poolId && !/^[0-9a-f-]{36}$/i.test(poolId)) {
       return Response.json(
         { success: false, error: "Valid pool_id is required" },
-        { status: 400, headers: buildCorsHeaders("content-type") },
+        { status: 400, headers: buildCorsHeaders("content-type", req) },
       );
     }
 
     if (!poolId && !(slug?.trim())) {
       return Response.json(
         { success: false, error: "pool_id or slug is required" },
-        { status: 400, headers: buildCorsHeaders("content-type") },
+        { status: 400, headers: buildCorsHeaders("content-type", req) },
       );
     }
 
@@ -299,7 +299,7 @@ Deno.serve(async (req: Request) => {
       if (userError || !userResult.user) {
         return Response.json(
           { success: false, error: "Unauthorized" },
-          { status: 401, headers: buildCorsHeaders("content-type") },
+          { status: 401, headers: buildCorsHeaders("content-type", req) },
         );
       }
       actorUserId = userResult.user.id;
@@ -324,7 +324,7 @@ Deno.serve(async (req: Request) => {
     if (!poolId || !/^[0-9a-f-]{36}$/i.test(poolId)) {
       return Response.json(
         { success: false, error: "Pool could not be resolved" },
-        { status: 404, headers: buildCorsHeaders("content-type") },
+        { status: 404, headers: buildCorsHeaders("content-type", req) },
       );
     }
 
@@ -351,7 +351,7 @@ Deno.serve(async (req: Request) => {
           social_card_url: cardPayload.social_card_url,
           fingerprint,
         },
-        { headers: buildCorsHeaders("content-type") },
+        { headers: buildCorsHeaders("content-type", req) },
       );
     }
 
@@ -407,12 +407,12 @@ Deno.serve(async (req: Request) => {
         fingerprint,
         update: updateResult,
       },
-      { headers: buildCorsHeaders("content-type") },
+      { headers: buildCorsHeaders("content-type", req) },
     );
   } catch (error) {
     return Response.json(
       { success: false, error: getErrorMessage(error) },
-      { status: 500, headers: buildCorsHeaders("content-type") },
+      { status: 500, headers: buildCorsHeaders("content-type", req) },
     );
   }
 });

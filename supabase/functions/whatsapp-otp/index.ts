@@ -29,6 +29,7 @@
 //   WHATSAPP_SESSION_REFRESH_EXPIRY_SECONDS — Refresh token validity (default: 2592000)
 //   WHATSAPP_AUTH_TEST_PHONE             — Optional reviewer/test phone with fixed OTP
 //   WHATSAPP_AUTH_TEST_OTP               — Optional fixed OTP for reviewer/test phone
+//   WHATSAPP_AUTH_TEST_EXPIRY            - Required ISO expiry for fixed OTP
 
 import {
   createClient,
@@ -70,9 +71,12 @@ const MAX_OTP_REQUESTS_PER_IP = parseInt(
   Deno.env.get("MAX_OTP_REQUESTS_PER_IP") || "10",
   10,
 );
-const CORS_HEADERS = buildCorsHeaders(
-  "authorization, content-type, apikey, x-client-info",
-);
+const CORS_ALLOWED_HEADERS =
+  "authorization, content-type, apikey, x-client-info";
+
+function corsHeaders(req?: Request): Record<string, string> {
+  return buildCorsHeaders(CORS_ALLOWED_HEADERS, req);
+}
 
 type UserSummary = {
   id: string;
@@ -119,25 +123,22 @@ export function resolveConfiguredTestOtp(
   phone: string,
   configuredPhone: string | null | undefined,
   configuredOtp: string | null | undefined,
+  configuredExpiry: string | null | undefined = WHATSAPP_AUTH_TEST_EXPIRY,
 ): string | null {
-  // Check if test mode has expired
-  if (WHATSAPP_AUTH_TEST_EXPIRY) {
-    try {
-      const expiryDate = new Date(WHATSAPP_AUTH_TEST_EXPIRY);
-      if (isNaN(expiryDate.getTime()) || expiryDate.getTime() < Date.now()) {
-        return null;
-      }
-    } catch (_e) {
-      return null;
-    }
-  }
-
   const reviewerPhone = configuredPhone?.trim()
     ? normalizePhone(configuredPhone)
     : "";
   const reviewerOtp = configuredOtp?.trim() || "";
 
   if (!reviewerPhone || !/^\d{6}$/.test(reviewerOtp)) {
+    return null;
+  }
+
+  const expiry = configuredExpiry?.trim() || "";
+  if (!expiry) return null;
+
+  const expiryDate = new Date(expiry);
+  if (isNaN(expiryDate.getTime()) || expiryDate.getTime() < Date.now()) {
     return null;
   }
 
@@ -368,6 +369,7 @@ async function buildSessionResponse(
 }
 
 async function createCustomSession(
+  req: Request,
   supabase: SupabaseClient,
   userId: string,
   phone: string,
@@ -375,7 +377,7 @@ async function createCustomSession(
   if (!SUPABASE_JWT_SECRET) {
     return Response.json(
       { error: "JWT signing secret is not configured for WhatsApp auth." },
-      { status: 503, headers: CORS_HEADERS },
+      { status: 503, headers: corsHeaders(req) },
     );
   }
 
@@ -402,7 +404,7 @@ async function createCustomSession(
     console.error("Failed to persist WhatsApp auth session:", error);
     return Response.json(
       { error: "Failed to create authenticated session." },
-      { status: 500, headers: CORS_HEADERS },
+      { status: 500, headers: corsHeaders(req) },
     );
   }
 
@@ -412,10 +414,11 @@ async function createCustomSession(
     refreshToken,
   );
 
-  return Response.json(payload, { headers: CORS_HEADERS });
+  return Response.json(payload, { headers: corsHeaders(req) });
 }
 
 async function rotateSession(
+  req: Request,
   supabase: SupabaseClient,
   sessionRow: SessionRow,
 ): Promise<Response> {
@@ -444,7 +447,7 @@ async function rotateSession(
     console.error("Failed to rotate WhatsApp auth session:", error);
     return Response.json(
       { error: "Failed to refresh authenticated session." },
-      { status: 500, headers: CORS_HEADERS },
+      { status: 500, headers: corsHeaders(req) },
     );
   }
 
@@ -453,7 +456,7 @@ async function rotateSession(
     sessionRow,
     refreshToken,
   );
-  return Response.json(payload, { headers: CORS_HEADERS });
+  return Response.json(payload, { headers: corsHeaders(req) });
 }
 
 async function resolveUserIdForPhone(
@@ -480,7 +483,7 @@ async function handleSend(req: Request, phone: string): Promise<Response> {
   if (!/^\+\d{7,15}$/.test(normalized)) {
     return Response.json(
       { error: "Invalid phone number format" },
-      { status: 400, headers: CORS_HEADERS },
+      { status: 400, headers: corsHeaders(req) },
     );
   }
 
@@ -504,7 +507,7 @@ async function handleSend(req: Request, phone: string): Promise<Response> {
     if ((count ?? 0) >= 3) {
       return Response.json(
         { error: "Too many OTP requests. Please wait a minute." },
-        { status: 429, headers: CORS_HEADERS },
+        { status: 429, headers: corsHeaders(req) },
       );
     }
 
@@ -518,7 +521,7 @@ async function handleSend(req: Request, phone: string): Promise<Response> {
       if ((ipCount ?? 0) >= MAX_OTP_REQUESTS_PER_IP) {
         return Response.json(
           { error: "Too many OTP requests from this network. Please wait." },
-          { status: 429, headers: CORS_HEADERS },
+          { status: 429, headers: corsHeaders(req) },
         );
       }
     }
@@ -549,7 +552,7 @@ async function handleSend(req: Request, phone: string): Promise<Response> {
     console.error("OTP insert error:", insertError);
     return Response.json(
       { error: "Failed to generate OTP" },
-      { status: 500, headers: CORS_HEADERS },
+      { status: 500, headers: corsHeaders(req) },
     );
   }
 
@@ -558,24 +561,28 @@ async function handleSend(req: Request, phone: string): Promise<Response> {
     if (!sendResult.success) {
       return Response.json(
         { error: sendResult.error || "Failed to send WhatsApp message" },
-        { status: 502, headers: CORS_HEADERS },
+        { status: 502, headers: corsHeaders(req) },
       );
     }
   }
 
   return Response.json(
     { success: true, message: "OTP sent via WhatsApp" },
-    { headers: CORS_HEADERS },
+    { headers: corsHeaders(req) },
   );
 }
 
-async function handleVerify(phone: string, otp: string): Promise<Response> {
+async function handleVerify(
+  req: Request,
+  phone: string,
+  otp: string,
+): Promise<Response> {
   const normalized = normalizePhone(phone);
 
   if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
     return Response.json(
       { error: "OTP must be exactly 6 digits" },
-      { status: 400, headers: CORS_HEADERS },
+      { status: 400, headers: corsHeaders(req) },
     );
   }
 
@@ -594,7 +601,7 @@ async function handleVerify(phone: string, otp: string): Promise<Response> {
   if (fetchError || !otpRecord) {
     return Response.json(
       { error: "No valid OTP found. Please request a new code." },
-      { status: 400, headers: CORS_HEADERS },
+      { status: 400, headers: corsHeaders(req) },
     );
   }
 
@@ -606,7 +613,7 @@ async function handleVerify(phone: string, otp: string): Promise<Response> {
 
     return Response.json(
       { error: "Too many attempts. Please request a new code." },
-      { status: 429, headers: CORS_HEADERS },
+      { status: 429, headers: corsHeaders(req) },
     );
   }
 
@@ -620,7 +627,7 @@ async function handleVerify(phone: string, otp: string): Promise<Response> {
     const remaining = MAX_OTP_ATTEMPTS - otpRecord.attempts - 1;
     return Response.json(
       { error: `Invalid code. ${remaining} attempts remaining.` },
-      { status: 400, headers: CORS_HEADERS },
+      { status: 400, headers: corsHeaders(req) },
     );
   }
 
@@ -663,14 +670,14 @@ async function handleVerify(phone: string, otp: string): Promise<Response> {
           );
           return Response.json(
             { error: "Failed to create user account" },
-            { status: 500, headers: CORS_HEADERS },
+            { status: 500, headers: corsHeaders(req) },
           );
         }
       } catch (retryError) {
         console.error("Retry lookup error:", retryError);
         return Response.json(
           { error: "Failed to create user account" },
-          { status: 500, headers: CORS_HEADERS },
+          { status: 500, headers: corsHeaders(req) },
         );
       }
     } else {
@@ -681,7 +688,7 @@ async function handleVerify(phone: string, otp: string): Promise<Response> {
   if (!userId) {
     return Response.json(
       { error: "Failed to resolve user" },
-      { status: 500, headers: CORS_HEADERS },
+      { status: 500, headers: corsHeaders(req) },
     );
   }
 
@@ -698,11 +705,11 @@ async function handleVerify(phone: string, otp: string): Promise<Response> {
     );
     return Response.json(
       { error: "Failed to prepare user profile." },
-      { status: 500, headers: CORS_HEADERS },
+      { status: 500, headers: corsHeaders(req) },
     );
   }
 
-  return await createCustomSession(supabase, userId, normalized);
+  return await createCustomSession(req, supabase, userId, normalized);
 }
 
 async function findSessionByRefreshToken(
@@ -726,11 +733,14 @@ async function findSessionByRefreshToken(
   return data as SessionRow | null;
 }
 
-async function handleRefresh(refreshToken: string): Promise<Response> {
+async function handleRefresh(
+  req: Request,
+  refreshToken: string,
+): Promise<Response> {
   if (!refreshToken || refreshToken.trim().length === 0) {
     return Response.json(
       { error: "Missing refresh token." },
-      { status: 400, headers: CORS_HEADERS },
+      { status: 400, headers: corsHeaders(req) },
     );
   }
 
@@ -739,7 +749,7 @@ async function handleRefresh(refreshToken: string): Promise<Response> {
   if (!sessionRow || sessionRow.revoked_at != null) {
     return Response.json(
       { error: "Session is invalid. Please sign in again." },
-      { status: 401, headers: CORS_HEADERS },
+      { status: 401, headers: corsHeaders(req) },
     );
   }
 
@@ -756,18 +766,21 @@ async function handleRefresh(refreshToken: string): Promise<Response> {
 
     return Response.json(
       { error: "Session expired. Please sign in again." },
-      { status: 401, headers: CORS_HEADERS },
+      { status: 401, headers: corsHeaders(req) },
     );
   }
 
-  return await rotateSession(supabase, sessionRow);
+  return await rotateSession(req, supabase, sessionRow);
 }
 
-async function handleLogout(refreshToken: string): Promise<Response> {
+async function handleLogout(
+  req: Request,
+  refreshToken: string,
+): Promise<Response> {
   if (!refreshToken || refreshToken.trim().length === 0) {
     return Response.json(
       { error: "Missing refresh token." },
-      { status: 400, headers: CORS_HEADERS },
+      { status: 400, headers: corsHeaders(req) },
     );
   }
 
@@ -785,19 +798,19 @@ async function handleLogout(refreshToken: string): Promise<Response> {
       .is("revoked_at", null);
   }
 
-  return Response.json({ success: true }, { headers: CORS_HEADERS });
+  return Response.json({ success: true }, { headers: corsHeaders(req) });
 }
 
 if (import.meta.main) {
   Deno.serve(async (req: Request) => {
     if (req.method === "OPTIONS") {
-      return new Response("ok", { headers: CORS_HEADERS });
+      return new Response("ok", { headers: corsHeaders(req) });
     }
 
     if (req.method !== "POST") {
       return new Response("Method not allowed", {
         status: 405,
-        headers: CORS_HEADERS,
+        headers: corsHeaders(req),
       });
     }
 
@@ -814,7 +827,7 @@ if (import.meta.main) {
             error:
               "Missing 'action' field. Use 'send', 'verify', 'refresh', or 'logout'.",
           },
-          { status: 400, headers: CORS_HEADERS },
+          { status: 400, headers: corsHeaders(req) },
         );
       }
 
@@ -823,7 +836,7 @@ if (import.meta.main) {
           if (!phone) {
             return Response.json(
               { error: "Missing 'phone' field" },
-              { status: 400, headers: CORS_HEADERS },
+              { status: 400, headers: corsHeaders(req) },
             );
           }
           return await handleSend(req, phone);
@@ -832,28 +845,28 @@ if (import.meta.main) {
           if (!phone) {
             return Response.json(
               { error: "Missing 'phone' field" },
-              { status: 400, headers: CORS_HEADERS },
+              { status: 400, headers: corsHeaders(req) },
             );
           }
-          return await handleVerify(phone, otp ?? "");
+          return await handleVerify(req, phone, otp ?? "");
 
         case "refresh":
-          return await handleRefresh(refreshToken ?? "");
+          return await handleRefresh(req, refreshToken ?? "");
 
         case "logout":
-          return await handleLogout(refreshToken ?? "");
+          return await handleLogout(req, refreshToken ?? "");
 
         default:
           return Response.json(
             { error: `Unknown action: ${action}` },
-            { status: 400, headers: CORS_HEADERS },
+            { status: 400, headers: corsHeaders(req) },
           );
       }
     } catch (error: unknown) {
       console.error("WhatsApp OTP error:", error);
       return Response.json(
         { error: getErrorMessage(error) },
-        { status: 500, headers: CORS_HEADERS },
+        { status: 500, headers: corsHeaders(req) },
       );
     }
   });
