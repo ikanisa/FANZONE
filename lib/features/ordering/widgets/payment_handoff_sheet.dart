@@ -83,40 +83,27 @@ Future<void> showPaymentHandoffSheet(
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          const SizedBox(height: 5),
-                          const Text(
-                            'Awaiting venue.',
-                            style: TextStyle(
-                              color: FzColors.darkMuted,
-                              fontSize: 13,
-                              height: 1.35,
-                              fontWeight: FontWeight.w700,
+                          if (handoff.requiresStaffConfirmation) ...[
+                            const SizedBox(height: 5),
+                            const Text(
+                              'Staff confirms payment.',
+                              style: TextStyle(
+                                color: FzColors.darkMuted,
+                                fontSize: 12,
+                                height: 1.3,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _PaymentMetric(
-                        label: 'Amount',
-                        value: '${handoff.currency} ${handoff.amount}'.trim(),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _PaymentMetric(
-                        label: 'Status',
-                        value: handoff.requiresStaffConfirmation
-                            ? 'Staff check'
-                            : 'External',
-                      ),
-                    ),
-                  ],
+                _PaymentMetric(
+                  label: 'Amount',
+                  value: '${handoff.currency} ${handoff.amount}'.trim(),
                 ),
                 if (handoff.instructions.isNotEmpty) ...[
                   const SizedBox(height: 18),
@@ -134,7 +121,7 @@ Future<void> showPaymentHandoffSheet(
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              _compactWords(instruction, 5),
+                              instruction,
                               style: const TextStyle(
                                 color: FzColors.darkText,
                                 fontSize: 13,
@@ -181,6 +168,7 @@ class _PaymentMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: FzColors.darkSurface2,
@@ -200,7 +188,7 @@ class _PaymentMetric extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            value.isEmpty ? 'Ready' : value,
+            value.isEmpty ? '-' : value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -213,9 +201,4 @@ class _PaymentMetric extends StatelessWidget {
       ),
     );
   }
-}
-
-String _compactWords(String value, int maxWords) {
-  final words = value.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
-  return words.take(maxWords).join(' ');
 }

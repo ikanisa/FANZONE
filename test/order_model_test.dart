@@ -99,6 +99,15 @@ void main() {
         expect(
           canSubmitPaymentForOrder(
             buildOrder(
+              method: PaymentMethod.revolut,
+              paymentStatus: PaymentStatus.paid,
+            ),
+          ),
+          isFalse,
+        );
+        expect(
+          canSubmitPaymentForOrder(
+            buildOrder(
               method: PaymentMethod.momo,
               paymentStatus: PaymentStatus.pending,
               status: OrderStatus.cancelled,

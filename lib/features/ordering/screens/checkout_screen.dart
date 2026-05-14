@@ -33,8 +33,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool _useFetSpend = false;
   bool _submitting = false;
 
-  bool _hasText(String? value) => value != null && value.trim().isNotEmpty;
-
   Future<void> _placeOrder() async {
     if (_submitting) return;
     final fetSpendAmount = _useFetSpend
@@ -96,13 +94,25 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               );
           if (!mounted) return;
           await showPaymentHandoffSheet(context, handoff: handoff);
-          await _launchPaymentHandoff(handoff);
+          final launched = await _launchPaymentHandoff(handoff);
+          if (!launched && mounted) {
+            await showFzNoticeSheet(
+              context,
+              title: 'Payment handoff ready',
+              message:
+                  'Order placed. Open ${handoff.method.label} from your phone, then tap I paid after sending payment.',
+              icon: LucideIcons.externalLink,
+              iconColor: FzColors.warning,
+              primaryLabel: 'Continue',
+            );
+          }
         } catch (error) {
           if (mounted) {
             await showFzNoticeSheet(
               context,
-              title: 'Payment unavailable',
-              message: 'Ask venue staff.',
+              title: 'Payment handoff unavailable',
+              message:
+                  'Order placed. Ask venue staff for payment instructions, then tap I paid after sending payment.',
               icon: LucideIcons.alertTriangle,
               iconColor: FzColors.warning,
               primaryLabel: 'Continue',
@@ -119,8 +129,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final errorMessage = placementState.errorMessage;
       await showFzNoticeSheet(
         context,
-        title: errorMessage == null ? 'Scan a table QR' : 'Order unavailable',
-        message: errorMessage ?? 'Scan table QR.',
+        title: errorMessage == null ? 'Choose a bar' : 'Order unavailable',
+        message: errorMessage ?? 'Open a bar menu before ordering.',
         icon: errorMessage == null
             ? LucideIcons.qrCode
             : LucideIcons.alertTriangle,
@@ -136,26 +146,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
   }
 
-  Future<void> _launchPaymentHandoff(PaymentHandoff handoff) async {
-    final Uri? uri;
-    if (handoff.method == PaymentMethod.momo) {
-      final ussd = handoff.ussdString;
-      if (ussd == null || ussd.isEmpty) return;
-      uri = Uri.parse("tel:${ussd.replaceAll('#', '%23')}");
-    } else {
-      final paymentUrl = handoff.paymentUrl;
-      if (paymentUrl == null || paymentUrl.isEmpty) return;
-      uri = Uri.tryParse(paymentUrl);
-    }
+  Future<bool> _launchPaymentHandoff(PaymentHandoff handoff) async {
+    final uri = paymentHandoffLaunchUri(handoff);
+    if (uri == null) return false;
 
-    if (uri != null && await canLaunchUrl(uri)) {
-      await launchUrl(
+    if (await canLaunchUrl(uri)) {
+      return launchUrl(
         uri,
         mode: handoff.method == PaymentMethod.revolut
             ? LaunchMode.externalApplication
             : LaunchMode.platformDefault,
       );
     }
+    return false;
   }
 
   @override
@@ -171,17 +174,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final venue = ref.watch(venueContextProvider).venue;
     final acceptsFetSpend = _venueAcceptsFetSpend(venue);
 
-    final isRwanda = venue?.countryCode == CountryCode.rw;
-    final isMalta = venue?.countryCode == CountryCode.mt;
-    final hasMomoHandoff =
-        isRwanda && (_hasText(venue?.momoCode) || _hasText(venue?.whatsapp));
-    final hasRevolutHandoff = isMalta && _hasText(venue?.revolutLink);
+    final hasMomoHandoff = venueSupportsPaymentMethod(
+      venue,
+      PaymentMethod.momo,
+    );
+    final hasRevolutHandoff = venueSupportsPaymentMethod(
+      venue,
+      PaymentMethod.revolut,
+    );
 
-    if ((_paymentMethod == PaymentMethod.momo && !hasMomoHandoff) ||
-        (_paymentMethod == PaymentMethod.revolut && !hasRevolutHandoff)) {
+    final resolvedPaymentMethod = preferredCheckoutPaymentMethod(
+      current: _paymentMethod,
+      venue: venue,
+    );
+    if (resolvedPaymentMethod != _paymentMethod) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          setState(() => _paymentMethod = PaymentMethod.cash);
+          setState(() => _paymentMethod = resolvedPaymentMethod);
         }
       });
     }
@@ -282,48 +291,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'NOTES',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                letterSpacing: 1,
-              ),
-            ),
-            const SizedBox(height: 12),
             TextField(
               controller: _notesController,
               maxLines: 3,
               onChanged: (value) =>
                   ref.read(cartProvider.notifier).setSpecialInstructions(value),
-              decoration: const InputDecoration(hintText: 'Notes'),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'FET',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                letterSpacing: 1,
-              ),
-            ),
-            const SizedBox(height: 12),
-            FzCard(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  const Icon(LucideIcons.coins, color: FzColors.accent2),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      '+${cart.estimatedFet} FET after confirm.',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: FzColors.lightMuted,
-                      ),
-                    ),
-                  ),
-                ],
+              decoration: const InputDecoration(
+                hintText: 'Special instructions',
               ),
             ),
             if (acceptsFetSpend) ...[
@@ -449,6 +423,58 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     return false;
   }
 }
+
+@visibleForTesting
+bool venueSupportsPaymentMethod(VenueModel? venue, PaymentMethod method) {
+  if (venue == null) return method == PaymentMethod.cash;
+
+  switch (method) {
+    case PaymentMethod.cash:
+      return true;
+    case PaymentMethod.momo:
+      return venue.countryCode == CountryCode.rw &&
+          (_hasCheckoutText(venue.momoCode) ||
+              _hasCheckoutText(venue.whatsapp));
+    case PaymentMethod.revolut:
+      return venue.countryCode == CountryCode.mt &&
+          _hasCheckoutText(venue.revolutLink);
+    case PaymentMethod.card:
+    case PaymentMethod.other:
+      return false;
+  }
+}
+
+@visibleForTesting
+PaymentMethod preferredCheckoutPaymentMethod({
+  required PaymentMethod current,
+  required VenueModel? venue,
+}) {
+  if (venueSupportsPaymentMethod(venue, current)) return current;
+  return PaymentMethod.cash;
+}
+
+@visibleForTesting
+Uri? paymentHandoffLaunchUri(PaymentHandoff handoff) {
+  switch (handoff.method) {
+    case PaymentMethod.momo:
+      final ussd = handoff.ussdString?.trim();
+      if (ussd == null || ussd.isEmpty) return null;
+      return Uri.parse("tel:${ussd.replaceAll('#', '%23')}");
+    case PaymentMethod.revolut:
+      final paymentUrl = handoff.paymentUrl?.trim();
+      if (paymentUrl == null || paymentUrl.isEmpty) return null;
+      final uri = Uri.tryParse(paymentUrl);
+      if (uri == null || !uri.hasScheme) return null;
+      return uri;
+    case PaymentMethod.cash:
+    case PaymentMethod.card:
+    case PaymentMethod.other:
+      return null;
+  }
+}
+
+bool _hasCheckoutText(String? value) =>
+    value != null && value.trim().isNotEmpty;
 
 class _PaymentMethodTile extends StatelessWidget {
   const _PaymentMethodTile({
