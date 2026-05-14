@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { safeImageUrl } from "@fanzone/core";
 
 interface TeamLogoProps {
   teamName: string;
@@ -14,6 +15,7 @@ export function TeamLogo({
   className = "",
 }: TeamLogoProps) {
   const [error, setError] = useState(false);
+  const imageSrc = useMemo(() => safeImageUrl(src), [src]);
   const initials = useMemo(() => {
     const tokens = teamName
       .split(/\s+/)
@@ -25,10 +27,14 @@ export function TeamLogo({
     return tokens.map((token) => token[0]?.toUpperCase() ?? "").join("");
   }, [teamName]);
 
-  if (src?.trim() && !error) {
+  useEffect(() => {
+    setError(false);
+  }, [imageSrc]);
+
+  if (imageSrc && !error) {
     return (
       <img
-        src={src.trim()}
+        src={imageSrc}
         alt={`${teamName} logo`}
         width={size}
         height={size}

@@ -291,12 +291,6 @@ abstract class S {
   /// **'Sign Out'**
   String get profileSignOut;
 
-  /// No description provided for @profileGuest.
-  ///
-  /// In en, this message translates to:
-  /// **'Guest User'**
-  String get profileGuest;
-
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
@@ -453,12 +447,6 @@ abstract class S {
   /// **'Verify Code'**
   String get loginVerify;
 
-  /// No description provided for @loginSkip.
-  ///
-  /// In en, this message translates to:
-  /// **'Continue as Guest'**
-  String get loginSkip;
-
   /// No description provided for @onboardingWelcome.
   ///
   /// In en, this message translates to:
@@ -468,7 +456,7 @@ abstract class S {
   /// No description provided for @onboardingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Order. Pool. Earn.'**
+  /// **'PLAY . CHEERS . ENJOY'**
   String get onboardingSubtitle;
 
   /// No description provided for @onboardingNext.

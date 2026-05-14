@@ -6,7 +6,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../models/platform/notification_model.dart';
 import '../../../services/notification_service.dart';
 import '../../../theme/colors.dart';
-import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
@@ -35,60 +34,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 16, 20, 10),
-              child: FzReferenceHeader(title: 'FZ', showNotifications: false),
-            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Alerts',
-                      style: FzTypography.display(
-                        size: 36,
-                        color: isDark ? FzColors.darkText : FzColors.lightText,
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () async {
-                      try {
-                        await ref
-                            .read(notificationServiceProvider.notifier)
-                            .markAllRead();
-                      } catch (_) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Mark failed.')),
-                        );
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(999),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? FzColors.darkSurface2
-                            : FzColors.lightSurface2,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isDark
-                              ? FzColors.darkBorder
-                              : FzColors.lightBorder,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        LucideIcons.badgeCheck,
-                        size: 18,
-                        color: muted,
-                      ),
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+              child: FzBackHeader(
+                title: 'Notifications',
+                subtitle: 'Alerts and updates',
+                onClose: () => context.go('/home'),
               ),
             ),
             Expanded(
@@ -121,12 +72,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   return ListView(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
                     children: [
-                      _CriticalAlertCard(
-                        count: notifications
-                            .where((item) => item.readAt == null)
-                            .length,
-                      ),
-                      const SizedBox(height: 16),
+                      _MarkAllReadButton(muted: muted, isDark: isDark),
+                      const SizedBox(height: 12),
+                      if (notifications.any((item) => item.readAt == null)) ...[
+                        _CriticalAlertCard(
+                          count: notifications
+                              .where((item) => item.readAt == null)
+                              .length,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       const FzSectionHeader(title: 'Recent'),
                       const SizedBox(height: 10),
                       for (final item in notifications)
@@ -294,31 +249,21 @@ class _CriticalAlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasUnread = count > 0;
     return FzCard(
       padding: const EdgeInsets.all(16),
       borderRadius: 18,
-      color: hasUnread
-          ? FzColors.accent.withValues(alpha: 0.12)
-          : FzColors.darkSurface,
-      borderColor: hasUnread
-          ? FzColors.accent.withValues(alpha: 0.42)
-          : FzColors.darkBorder,
+      color: FzColors.accent.withValues(alpha: 0.12),
+      borderColor: FzColors.accent.withValues(alpha: 0.42),
       child: Row(
         children: [
           Container(
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: hasUnread
-                  ? FzColors.accent.withValues(alpha: 0.14)
-                  : FzColors.darkSurface2,
+              color: FzColors.accent.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(
-              hasUnread ? LucideIcons.zap : LucideIcons.badgeCheck,
-              color: hasUnread ? FzColors.accent : FzColors.success,
-            ),
+            child: const Icon(LucideIcons.zap, color: FzColors.accent),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -326,16 +271,16 @@ class _CriticalAlertCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  hasUnread ? '$count unread' : 'All clear',
+                  '$count unread',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  hasUnread ? 'Review updates.' : 'No action.',
-                  style: const TextStyle(
+                const Text(
+                  'Review updates.',
+                  style: TextStyle(
                     color: FzColors.darkMuted,
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
@@ -345,6 +290,44 @@ class _CriticalAlertCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MarkAllReadButton extends ConsumerWidget {
+  const _MarkAllReadButton({required this.muted, required this.isDark});
+
+  final Color muted;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: IconButton(
+        tooltip: 'Mark all read',
+        onPressed: () async {
+          try {
+            await ref.read(notificationServiceProvider.notifier).markAllRead();
+          } catch (_) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Mark failed.')));
+          }
+        },
+        style: IconButton.styleFrom(
+          backgroundColor: isDark
+              ? FzColors.darkSurface2
+              : FzColors.lightSurface2,
+          foregroundColor: muted,
+          shape: const CircleBorder(),
+          side: BorderSide(
+            color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+          ),
+        ),
+        icon: const Icon(LucideIcons.badgeCheck, size: 18),
       ),
     );
   }

@@ -31,7 +31,6 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
   final _minStakeController = TextEditingController(text: '100');
   final _maxStakeController = TextEditingController(text: '5000');
   var _step = 0;
-  var _scope = 'venue';
   var _query = '';
   String? _selectedMatchId;
   String? _error;
@@ -181,10 +180,8 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
                       if (_step == 1)
                         _TermsStep(
                           venueContext: venueContext,
-                          scope: _scope,
                           minController: _minStakeController,
                           maxController: _maxStakeController,
-                          onScope: (scope) => setState(() => _scope = scope),
                         ),
                       if (_step == 2)
                         _ReviewStep(
@@ -198,7 +195,7 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
                               int.tryParse(_maxStakeController.text.trim()) ??
                               5000,
                         ),
-                      if (_step == 3) _CreatedStep(result: _createdPool),
+                      if (_step == 3) const _CreatedStep(),
                       if (_error != null) ...[
                         const SizedBox(height: 14),
                         _ErrorStrip(message: _error!),
@@ -456,17 +453,13 @@ class _MatchChoiceCard extends StatelessWidget {
 class _TermsStep extends StatelessWidget {
   const _TermsStep({
     required this.venueContext,
-    required this.scope,
     required this.minController,
     required this.maxController,
-    required this.onScope,
   });
 
   final VenueContext venueContext;
-  final String scope;
   final TextEditingController minController;
   final TextEditingController maxController;
-  final ValueChanged<String> onScope;
 
   @override
   Widget build(BuildContext context) {
@@ -486,19 +479,6 @@ class _TermsStep extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 18),
-        Row(
-          children: [
-            Expanded(
-              child: _ScopeCard(
-                label: venueContext.hasVenue ? 'This Bar' : 'Pick Bar',
-                icon: LucideIcons.mapPin,
-                selected: scope == 'venue' && venueContext.hasVenue,
-                onTap: () => onScope('venue'),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
         FzCard(
           padding: const EdgeInsets.all(16),
           borderRadius: FzRadii.card,
@@ -536,18 +516,6 @@ class _TermsStep extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 14),
-        const FzCard(
-          padding: EdgeInsets.all(16),
-          borderRadius: FzRadii.card,
-          child: Row(
-            children: [
-              Icon(LucideIcons.shieldCheck, color: FzColors.success),
-              SizedBox(width: 12),
-              Expanded(child: Text('Ledger reserves FET.')),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -566,38 +534,6 @@ class _StakeField extends StatelessWidget {
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       decoration: InputDecoration(labelText: label, suffixText: 'FET'),
-    );
-  }
-}
-
-class _ScopeCard extends StatelessWidget {
-  const _ScopeCard({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return FzCard(
-      onTap: onTap,
-      padding: const EdgeInsets.all(16),
-      borderRadius: FzRadii.compact,
-      borderColor: selected ? FzColors.accent : FzColors.darkBorder,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: selected ? FzColors.accent : FzColors.darkMuted),
-          const SizedBox(height: 10),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
-        ],
-      ),
     );
   }
 }
@@ -680,8 +616,6 @@ class _ReviewStep extends StatelessWidget {
               ),
               const Divider(height: 24),
               _ReviewRow(label: 'Stake', value: '$minStake-$maxStake FET'),
-              const Divider(height: 24),
-              const _ReviewRow(label: 'Invites', value: 'After create'),
             ],
           ),
         ),
@@ -716,14 +650,10 @@ class _ReviewRow extends StatelessWidget {
 }
 
 class _CreatedStep extends StatelessWidget {
-  const _CreatedStep({required this.result});
-
-  final Map<String, dynamic>? result;
+  const _CreatedStep();
 
   @override
   Widget build(BuildContext context) {
-    final shareUrl = result?['share_url']?.toString();
-
     return Column(
       children: [
         const SizedBox(height: 30),
@@ -755,22 +685,6 @@ class _CreatedStep extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        if (shareUrl != null && shareUrl.isNotEmpty) ...[
-          const SizedBox(height: 18),
-          FzCard(
-            padding: const EdgeInsets.all(16),
-            borderRadius: FzRadii.card,
-            child: Text(
-              shareUrl,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: FzColors.darkMuted,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }

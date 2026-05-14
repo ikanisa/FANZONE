@@ -4,23 +4,18 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_wordmark.dart';
-import 'onboarding_step_chrome.dart';
 
 class OnboardingAuthChoiceStep extends StatelessWidget {
   const OnboardingAuthChoiceStep({
     super.key,
     required this.textColor,
     required this.muted,
-    required this.isDark,
     required this.onWhatsApp,
-    required this.onGuest,
   });
 
   final Color textColor;
   final Color muted;
-  final bool isDark;
   final VoidCallback onWhatsApp;
-  final VoidCallback onGuest;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +46,7 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Choose how you want to continue',
+              'Verify with WhatsApp to continue',
               style: TextStyle(fontSize: 14, color: muted, height: 1.45),
             ),
             const SizedBox(height: 40),
@@ -86,60 +81,6 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Center(
-              child: Text(
-                'Verify your phone to unlock all features',
-                style: TextStyle(fontSize: 12, color: muted),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Divider
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 1,
-                    color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'OR',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: muted,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    height: 1,
-                    color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Guest CTA
-            OnboardingPrimaryButton(
-              label: 'CONTINUE AS GUEST',
-              onTap: onGuest,
-              tone: OnboardingButtonTone.secondary,
-            ),
-            const SizedBox(height: 10),
-            Center(
-              child: Text(
-                'Browse matches and teams • Sign in anytime',
-                style: TextStyle(fontSize: 12, color: muted),
-              ),
-            ),
 
             const Spacer(),
 

@@ -166,12 +166,11 @@ enable_refresh_token_rotation = true
 # Requires enable_refresh_token_rotation = true.
 refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project. FANZONE keeps this enabled
-# because the mobile app supports anonymous guest sessions and the custom
-# `whatsapp-otp` function creates phone users through admin APIs. Interactive
-# built-in auth providers remain disabled below.
+# because the custom `whatsapp-otp` function creates phone users through admin
+# APIs. Interactive built-in auth providers remain disabled below.
 enable_signup = true
-# Allow/disallow anonymous sign-ins to your project.
-enable_anonymous_sign_ins = true
+# Anonymous sign-ins are disabled; FANZONE uses WhatsApp OTP/custom sessions.
+enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts
 enable_manual_linking = false
 # Password-based auth is disabled for FANZONE. Supabase still requires these

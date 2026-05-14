@@ -47,6 +47,7 @@ enum PaymentMethod {
   revolut,
   @JsonValue('cash')
   cash,
+  // Legacy persisted value. Card is not supported for new MVP payments.
   @JsonValue('card')
   card,
   @JsonValue('other')
@@ -61,7 +62,7 @@ enum PaymentMethod {
       case PaymentMethod.cash:
         return 'Cash';
       case PaymentMethod.card:
-        return 'Card';
+        return 'Card (unsupported)';
       case PaymentMethod.other:
         return 'Other';
     }

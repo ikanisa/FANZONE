@@ -96,8 +96,48 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   String get _localPhoneDigits =>
       _phoneController.text.replaceAll(RegExp(r'\D'), '');
 
-  bool get _isPhoneNumberValid =>
-      _localPhoneDigits.length >= _selectedCountry.preset.minDigits;
+  int get _expectedPhoneDigits => maxPhoneDigitsForHint(
+    _selectedCountry.preset.hint,
+    minDigits: _selectedCountry.preset.minDigits,
+  );
+
+  bool get _isGenericPhoneCountry =>
+      _selectedCountry.countryCode == 'INTL' ||
+      _selectedCountry.preset.dialCode == '+';
+
+  bool get _isPhoneNumberValid {
+    final length = _localPhoneDigits.length;
+    if (length < _selectedCountry.preset.minDigits) return false;
+    if (_isGenericPhoneCountry) return length <= 15;
+    return length == _expectedPhoneDigits;
+  }
+
+  bool get _phoneHelpIsError =>
+      _localPhoneDigits.isNotEmpty && !_isPhoneNumberValid;
+
+  String get _phoneHelpText {
+    final country = _selectedCountry.countryName;
+    final digits = _localPhoneDigits.length;
+    final minDigits = _selectedCountry.preset.minDigits;
+
+    if (digits == 0) {
+      return '$country: ${_selectedCountry.preset.example}';
+    }
+
+    if (_isPhoneNumberValid) {
+      return 'Ready: ${_selectedCountry.preset.dialCode} ${_phoneController.text}';
+    }
+
+    if (digits < minDigits) {
+      return '$country numbers need at least $minDigits digits.';
+    }
+
+    if (!_isGenericPhoneCountry) {
+      return '$country numbers use $_expectedPhoneDigits digits.';
+    }
+
+    return 'International numbers can use up to 15 digits.';
+  }
 
   void _setStep(int step) {
     HapticFeedback.lightImpact();
@@ -108,17 +148,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _handlePhoneChanged(String value) {
+    final pastedInternational = value.trimLeft().startsWith('+');
+    final nextCountry = pastedInternational
+        ? resolveCountryFromPhoneInput(value, fallback: _selectedCountry)
+        : _selectedCountry;
     var digits = value.replaceAll(RegExp(r'\D'), '');
 
+    if (pastedInternational && nextCountry.dialDigits.isNotEmpty) {
+      if (digits.startsWith(nextCountry.dialDigits)) {
+        digits = digits.substring(nextCountry.dialDigits.length);
+      }
+    }
+
     final maxDigits = maxPhoneDigitsForHint(
-      _selectedCountry.preset.hint,
-      minDigits: _selectedCountry.preset.minDigits,
+      nextCountry.preset.hint,
+      minDigits: nextCountry.preset.minDigits,
     );
     if (digits.length > maxDigits) {
       digits = digits.substring(0, maxDigits);
     }
 
-    final formatted = formatPhoneDigits(digits, _selectedCountry.preset.hint);
+    final formatted = formatPhoneDigits(digits, nextCountry.preset.hint);
     if (_phoneController.text != formatted) {
       _phoneController.value = TextEditingValue(
         text: formatted,
@@ -127,6 +177,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     setState(() {
+      _selectedCountry = nextCountry;
+      _error = null;
+    });
+  }
+
+  void _handleCountryChanged(CountryEntry country) {
+    var digits = _localPhoneDigits;
+    final maxDigits = maxPhoneDigitsForHint(
+      country.preset.hint,
+      minDigits: country.preset.minDigits,
+    );
+    if (digits.length > maxDigits) {
+      digits = digits.substring(0, maxDigits);
+    }
+    final formatted = formatPhoneDigits(digits, country.preset.hint);
+
+    setState(() {
+      _selectedCountry = country;
+      _phoneController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
       _error = null;
     });
   }
@@ -389,7 +461,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           isDark: isDark,
           phoneController: _phoneController,
           selectedCountry: _selectedCountry,
+          onCountryChanged: _handleCountryChanged,
           onChanged: _handlePhoneChanged,
+          phoneHelpText: _phoneHelpText,
+          phoneHelpIsError: _phoneHelpIsError,
           canContinue: _loading ? false : (_canUseOtp && _isPhoneNumberValid),
           onBack: () => _setStep(_welcomeStep),
           onNext: _handlePhoneContinue,

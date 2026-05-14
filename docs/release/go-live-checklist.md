@@ -19,8 +19,7 @@ Use this checklist for production launch or major release promotion.
 - Backup production database before destructive or high-risk migration work.
 - Run `supabase db push` from a clean branch.
 - Run `supabase db push --dry-run` and confirm the target database is up to date.
-- Run `supabase db lint --db-url "$SUPABASE_DB_URL" --schema public --fail-on error` against the release target.
-- Run SQL verification scripts in `supabase/tests/`.
+- Run `tool/supabase_live_validation.sh` against the release target. It uses `SUPABASE_DB_URL` when present and otherwise falls back to the linked Supabase CLI project.
 - Confirm new RPC grants are least privilege.
 - Confirm RLS remains enabled on client-exposed tables.
 - Confirm Edge Function secrets are configured.

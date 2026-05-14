@@ -55,8 +55,7 @@
 - Confirm feature flags match the live backend, especially notifications, deep linking, venue ordering, and pool rollout.
 - Validate `fet_wallets`, `fet_wallet_transactions`, `match_pools`, `match_pool_entries`, `match_pool_settlements`, and `pool_operation_audit_logs` exist and are covered by policy.
 - Confirm built-in Supabase email, phone OTP, magic link/OAuth, and third-party auth providers are disabled for the production project. Anonymous sign-in may remain enabled only for the mobile guest flow.
-- Run `./tool/supabase_rls_audit.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
-- Run `./tool/supabase_fet_supply_smoke.sh` with `SUPABASE_DB_PASSWORD` set and keep the successful output with the release ticket.
+- Run `./tool/supabase_live_validation.sh` with `SUPABASE_DB_URL`, `SUPABASE_DB_PASSWORD`, or an authenticated linked Supabase CLI profile, and keep the successful output with the release ticket.
 - Review `docs/fet-supply-governance.md` before any manual minting or promotional credit.
 - Check `public.fet_supply_overview.remaining_mintable` before any manual grant, promo credit, or reward backfill.
 - Validate WhatsApp OTP delivery, expiry, and rate-limit behaviour in the production `whatsapp-otp` function.

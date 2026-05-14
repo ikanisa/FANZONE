@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../config/app_config.dart';
 import '../../../core/di/gateway_providers.dart';
 import '../../../providers/profile_country_provider.dart';
 
@@ -391,6 +392,7 @@ class SupabasePoolsRepository implements PoolsRepository {
     String source = 'direct',
     String? inviteCode,
   }) async {
+    _assertReviewMutationAllowed('Pool staking');
     final client = ref.watch(supabaseConnectionProvider).client;
     if (client == null) {
       throw StateError('Pool staking is unavailable right now.');
@@ -411,6 +413,7 @@ class SupabasePoolsRepository implements PoolsRepository {
 
   @override
   Future<Map<String, dynamic>> createPool(PoolCreateRequest request) async {
+    _assertReviewMutationAllowed('Pool creation');
     final client = ref.watch(supabaseConnectionProvider).client;
     if (client == null) {
       throw StateError('Pool creation is unavailable right now.');
@@ -452,6 +455,7 @@ class SupabasePoolsRepository implements PoolsRepository {
 
   @override
   Future<Map<String, dynamic>> createInvite(String poolId) async {
+    _assertReviewMutationAllowed('Pool invite creation');
     final client = ref.watch(supabaseConnectionProvider).client;
     if (client == null) {
       throw StateError('Pool sharing is unavailable right now.');
@@ -466,6 +470,7 @@ class SupabasePoolsRepository implements PoolsRepository {
 
   @override
   Future<Map<String, dynamic>> ensureSocialCard(String poolId) async {
+    _assertReviewMutationAllowed('Pool social-card generation');
     final client = ref.watch(supabaseConnectionProvider).client;
     if (client == null) {
       throw StateError('Pool share cards are unavailable right now.');
@@ -537,6 +542,13 @@ class SupabasePoolsRepository implements PoolsRepository {
     return pools
         .map((pool) => pool.withMyEntry(enteredPoolIds.contains(pool.id)))
         .toList(growable: false);
+  }
+
+  void _assertReviewMutationAllowed(String action) {
+    if (!AppConfig.isReviewMode) return;
+    throw StateError(
+      '$action is disabled in the FANZONE review PWA. Use staging-safe test data for browser review.',
+    );
   }
 }
 

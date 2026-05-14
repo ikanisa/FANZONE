@@ -1,5 +1,6 @@
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
@@ -40,24 +41,6 @@ class FeatureUnavailableScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: FzColors.accent.withValues(alpha: 0.12),
-                      borderRadius: FzRadii.fullRadius,
-                      border: Border.all(
-                        color: FzColors.accent.withValues(alpha: 0.24),
-                      ),
-                    ),
-                    child: Text(
-                      'UNAVAILABLE',
-                      style: FzTypography.metaLabel(color: FzColors.accent),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Container(
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
@@ -73,11 +56,11 @@ class FeatureUnavailableScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    '$featureName IS NOT LIVE',
+                    '$featureName unavailable',
                     style: FzTypography.display(
                       size: 24,
                       color: text,
-                      letterSpacing: 1.6,
+                      letterSpacing: 0,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -90,6 +73,32 @@ class FeatureUnavailableScreen extends StatelessWidget {
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 22),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go('/home');
+                            }
+                          },
+                          icon: const Icon(LucideIcons.chevronLeft, size: 16),
+                          label: const Text('Back'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => context.go('/home'),
+                          icon: const Icon(LucideIcons.home, size: 16),
+                          label: const Text('Home'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

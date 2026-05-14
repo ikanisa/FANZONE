@@ -7,6 +7,20 @@ import { errorResponse } from "./cors.ts";
 import { AuthContext, RateLimitConfig } from "./types.ts";
 import { Logger } from "./logger.ts";
 
+export type AdminRole = "viewer" | "moderator" | "admin" | "super_admin";
+
+export interface ActiveAdminRecord {
+  id: string;
+  role: AdminRole;
+}
+
+const adminRoleRank: Record<AdminRole, number> = {
+  viewer: 1,
+  moderator: 2,
+  admin: 3,
+  super_admin: 4,
+};
+
 declare const Deno: {
   env: {
     get(key: string): string | undefined;
@@ -90,6 +104,54 @@ export async function optionalAuth(
   return await getAuthenticatedUser(req, logger);
 }
 
+function isAdminRole(value: unknown): value is AdminRole {
+  return value === "viewer" || value === "moderator" || value === "admin" ||
+    value === "super_admin";
+}
+
+/**
+ * Fetch the caller's active admin record, including role, through the service-role client.
+ */
+export async function getActiveAdminRecord(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  logger?: Logger,
+): Promise<ActiveAdminRecord | null> {
+  const { data: adminRecord, error } = await supabaseAdmin
+    .from("admin_users")
+    .select("id, role")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .single();
+
+  if (error || !adminRecord) {
+    logger?.debug("Admin record check", {
+      userId,
+      isAdmin: false,
+      error: error?.message,
+    });
+    return null;
+  }
+
+  if (!isAdminRole(adminRecord.role)) {
+    logger?.warn("Admin record has unsupported role", {
+      userId,
+      role: adminRecord.role,
+    });
+    return null;
+  }
+
+  logger?.debug("Admin record check", {
+    userId,
+    isAdmin: true,
+    role: adminRecord.role,
+  });
+  return {
+    id: adminRecord.id,
+    role: adminRecord.role,
+  };
+}
+
 /**
  * Check if user is an admin
  */
@@ -98,14 +160,8 @@ export async function isAdmin(
   userId: string,
   logger?: Logger,
 ): Promise<boolean> {
-  const { data: adminRecord } = await supabaseAdmin
-    .from("admin_users")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .single();
-
-  const result = !!adminRecord;
+  const result = await getActiveAdminRecord(supabaseAdmin, userId, logger) !==
+    null;
   logger?.debug("Admin check", { userId, isAdmin: result });
   return result;
 }
@@ -151,6 +207,33 @@ export async function requireAdmin(
     return errorResponse("Forbidden - admin access required", 403);
   }
   return true;
+}
+
+/**
+ * Require a minimum active admin role or return an error response.
+ */
+export async function requireAdminRole(
+  supabaseAdmin: SupabaseClient,
+  userId: string,
+  minimumRole: AdminRole,
+  logger?: Logger,
+): Promise<ActiveAdminRecord | Response> {
+  const admin = await getActiveAdminRecord(supabaseAdmin, userId, logger);
+  if (!admin) {
+    logger?.warn("Admin access denied", { userId, minimumRole });
+    return errorResponse("Forbidden - admin access required", 403);
+  }
+
+  if (adminRoleRank[admin.role] < adminRoleRank[minimumRole]) {
+    logger?.warn("Admin role access denied", {
+      userId,
+      role: admin.role,
+      minimumRole,
+    });
+    return errorResponse(`Forbidden - ${minimumRole} access required`, 403);
+  }
+
+  return admin;
 }
 
 /**

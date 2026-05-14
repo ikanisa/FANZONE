@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../config/app_config.dart';
 import '../../../core/di/gateway_providers.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../providers/profile_country_provider.dart';
 
 class GameSessionSummary {
@@ -256,6 +258,8 @@ class SupabaseGamesRepository implements GamesRepository {
     return client;
   }
 
+  String? get _currentUserId => ref.watch(currentUserProvider)?.id;
+
   @override
   Future<List<GameSessionSummary>> listGames({String? countryCode}) async {
     var request = _client
@@ -285,7 +289,7 @@ class SupabaseGamesRepository implements GamesRepository {
 
   @override
   Future<Set<String>> myJoinedSessionIds() async {
-    final userId = _client.auth.currentUser?.id;
+    final userId = _currentUserId;
     if (userId == null) return const <String>{};
 
     final rows = await _client
@@ -315,7 +319,8 @@ class SupabaseGamesRepository implements GamesRepository {
     final question = session.isLive && session.usesQuestions
         ? await _loadCurrentQuestion(session)
         : null;
-    final bingoCard = session.isMusicBingo && myTeam != null
+    final bingoCard =
+        !AppConfig.isReviewMode && session.isMusicBingo && myTeam != null
         ? await _getOrCreateBingoCard(session.id, myTeam.id)
         : null;
     final isEligible = await _loadEligibility(session);
@@ -335,6 +340,7 @@ class SupabaseGamesRepository implements GamesRepository {
     required String sessionId,
     required String name,
   }) async {
+    _assertReviewMutationAllowed('Game team creation');
     final result = await _client.rpc(
       'create_game_team',
       params: {'p_session_id': sessionId, 'p_name': name},
@@ -344,6 +350,7 @@ class SupabaseGamesRepository implements GamesRepository {
 
   @override
   Future<Map<String, dynamic>> joinTeam(String teamId) async {
+    _assertReviewMutationAllowed('Game team joining');
     final result = await _client.rpc(
       'join_game_team',
       params: {'p_team_id': teamId},
@@ -358,6 +365,7 @@ class SupabaseGamesRepository implements GamesRepository {
     required String teamId,
     required String answer,
   }) async {
+    _assertReviewMutationAllowed('Game answer submission');
     final result = await _client.rpc(
       'submit_game_answer',
       params: {
@@ -376,6 +384,7 @@ class SupabaseGamesRepository implements GamesRepository {
     required String tileKey,
     required bool marked,
   }) async {
+    _assertReviewMutationAllowed('Music bingo marking');
     final result = await _client.rpc(
       'mark_music_bingo_tile',
       params: {'p_card_id': cardId, 'p_tile_key': tileKey, 'p_marked': marked},
@@ -395,6 +404,7 @@ class SupabaseGamesRepository implements GamesRepository {
 
   @override
   Future<Map<String, dynamic>> submitBingoClaim(String cardId) async {
+    _assertReviewMutationAllowed('Music bingo claims');
     final result = await _client.rpc(
       'submit_music_bingo_claim',
       params: {
@@ -420,7 +430,7 @@ class SupabaseGamesRepository implements GamesRepository {
   }
 
   Future<GameTeam?> _loadMyTeam(String sessionId) async {
-    final userId = _client.auth.currentUser?.id;
+    final userId = _currentUserId;
     if (userId == null) return null;
 
     final rows = await _client
@@ -453,6 +463,7 @@ class SupabaseGamesRepository implements GamesRepository {
     String sessionId,
     String teamId,
   ) async {
+    _assertReviewMutationAllowed('Music bingo card creation');
     final result = await _client.rpc(
       'get_or_create_music_bingo_card',
       params: {'p_session_id': sessionId, 'p_team_id': teamId},
@@ -460,8 +471,15 @@ class SupabaseGamesRepository implements GamesRepository {
     return MusicBingoCard.fromRpc(Map<String, dynamic>.from(result as Map));
   }
 
+  void _assertReviewMutationAllowed(String action) {
+    if (!AppConfig.isReviewMode) return;
+    throw StateError(
+      '$action is disabled in the FANZONE review PWA. Use staging-safe test data for browser review.',
+    );
+  }
+
   Future<bool> _loadEligibility(GameSessionSummary session) async {
-    final userId = _client.auth.currentUser?.id;
+    final userId = _currentUserId;
     if (userId == null) return false;
     final result = await _client.rpc(
       'user_has_qualifying_order',

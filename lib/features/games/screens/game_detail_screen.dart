@@ -8,7 +8,6 @@ import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
-import '../../../widgets/common/fz_eligibility_rule_card.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
@@ -82,8 +81,6 @@ class _GameDetailContent extends ConsumerWidget {
           ),
           const SizedBox(height: 18),
           _GameHero(detail: detail),
-          const SizedBox(height: 16),
-          const FzEligibilityRuleCard(),
           const SizedBox(height: 16),
           _EligibilityCard(detail: detail),
           const SizedBox(height: 16),
@@ -205,7 +202,7 @@ class _EligibilityCard extends StatelessWidget {
         ? 'Join team.'
         : detail.isEligible
         ? 'Order linked.'
-        : 'Order unlocks rewards.';
+        : 'Order required.';
 
     return FzCard(
       padding: const EdgeInsets.all(16),
@@ -618,6 +615,8 @@ class _LeaderboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (teams.isEmpty) return const SizedBox.shrink();
+
     return FzCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -628,34 +627,28 @@ class _LeaderboardCard extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 12),
-          if (teams.isEmpty)
-            const Text(
-              'Teams join here.',
-              style: TextStyle(color: FzColors.darkMuted),
-            )
-          else
-            ...teams.map(
-              (team) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        team.name,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
+          ...teams.map(
+            (team) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      team.name,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
-                    Text(
-                      '${team.scoreFet} FET',
-                      style: const TextStyle(
-                        color: FzColors.success,
-                        fontWeight: FontWeight.w900,
-                      ),
+                  ),
+                  Text(
+                    '${team.scoreFet} FET',
+                    style: const TextStyle(
+                      color: FzColors.success,
+                      fontWeight: FontWeight.w900,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );

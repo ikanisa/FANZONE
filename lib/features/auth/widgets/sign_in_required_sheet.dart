@@ -13,6 +13,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
+import '../../onboarding/widgets/country_code_picker.dart';
 
 Future<void> showSignInRequiredSheet(
   BuildContext context, {
@@ -56,18 +57,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
   _AuthSheetStep _step = _AuthSheetStep.phone;
   bool _loading = false;
   String? _error;
-  String? _anonymousUserId;
-  String? _anonymousUpgradeClaim;
-
-  @override
-  void initState() {
-    super.initState();
-    final authService = ref.read(authServiceProvider);
-    if (authService.isAnonymousUser) {
-      _anonymousUserId = authService.currentUser?.id;
-      unawaited(_prepareAnonymousUpgradeClaim());
-    }
-  }
+  String _selectedCountryCode = '';
 
   @override
   void dispose() {
@@ -81,61 +71,44 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
     super.dispose();
   }
 
-  PhonePreset get _phonePreset =>
-      preferredPhoneCountry(config: ref.read(bootstrapConfigProvider)).preset;
+  PhoneCountryEntry get _selectedCountry => preferredPhoneCountry(
+    config: ref.read(bootstrapConfigProvider),
+    explicitCountryCode: _selectedCountryCode,
+  );
 
-  String get _fullPhone {
-    final digits = _phoneController.text.replaceAll(RegExp(r'\D'), '');
-    if (digits.isEmpty) return '';
-    return '${_phonePreset.dialCode}$digits';
+  PhonePreset get _phonePreset => _selectedCountry.preset;
+
+  String get _localDigits =>
+      _phoneController.text.replaceAll(RegExp(r'\D'), '');
+
+  int get _maxDigits => maxPhoneDigitsForHint(
+    _phonePreset.hint,
+    minDigits: _phonePreset.minDigits,
+  );
+
+  bool get _isGenericPhoneCountry =>
+      _selectedCountry.countryCode == 'INTL' || _phonePreset.dialCode == '+';
+
+  bool get _isPhoneValid {
+    final length = _localDigits.length;
+    if (length < _phonePreset.minDigits) return false;
+    if (_isGenericPhoneCountry) return length <= 15;
+    return length == _maxDigits;
   }
 
-  int get _phoneLength =>
-      _phoneController.text.replaceAll(RegExp(r'\D'), '').length;
+  String get _fullPhone {
+    if (_localDigits.isEmpty) return '';
+    return '${_phonePreset.dialCode}$_localDigits';
+  }
 
   int get _otpLength => _otpControllers.fold<int>(
     0,
     (count, controller) => count + controller.text.length,
   );
 
-  Future<void> _prepareAnonymousUpgradeClaim() async {
-    try {
-      final claim = await ref
-          .read(authServiceProvider)
-          .issueAnonymousUpgradeClaim();
-      if (!mounted) return;
-      setState(() => _anonymousUpgradeClaim = claim);
-    } catch (_) {
-      // Keep the modal usable even if the merge-prep call fails.
-    }
-  }
-
-  Future<void> _continueAsGuest() async {
-    final authService = ref.read(authServiceProvider);
-    if (authService.currentUser == null) {
-      setState(() {
-        _loading = true;
-        _error = null;
-      });
-      try {
-        await authService.signInAnonymously();
-      } catch (_) {
-        if (!mounted) return;
-        setState(() {
-          _error = 'Could not continue as guest right now. Please try again.';
-          _loading = false;
-        });
-        return;
-      }
-    }
-
-    if (!mounted) return;
-    Navigator.of(context).pop();
-  }
-
   Future<void> _sendOtp() async {
-    if (_phoneLength < _phonePreset.minDigits) {
-      setState(() => _error = 'Enter your WhatsApp number.');
+    if (!_isPhoneValid) {
+      setState(() => _error = 'Enter a valid WhatsApp number.');
       return;
     }
 
@@ -178,18 +151,6 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
       final otp = _otpControllers.map((controller) => controller.text).join();
       await ref.read(authServiceProvider).verifyOtp(_fullPhone, otp);
 
-      final authService = ref.read(authServiceProvider);
-      final newUserId = authService.currentUser?.id;
-      if (_anonymousUserId != null &&
-          _anonymousUpgradeClaim != null &&
-          newUserId != null &&
-          _anonymousUserId != newUserId) {
-        await authService.mergeAnonymousToAuthenticated(
-          _anonymousUserId!,
-          _anonymousUpgradeClaim!,
-        );
-      }
-
       if (!mounted) return;
       Navigator.of(context).pop();
     } on AuthException catch (error) {
@@ -205,6 +166,81 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
     }
   }
 
+  Future<void> _pickCountry() async {
+    final picked = await showCountryCodePicker(
+      context,
+      selected: _selectedCountry,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _selectedCountryCode = picked.countryCode;
+      _error = null;
+      _reformatPhoneForPreset(picked.preset);
+    });
+  }
+
+  void _handlePhoneChanged(String value) {
+    final config = ref.read(bootstrapConfigProvider);
+    final resolved = resolvePhoneCountryFromPhoneInput(
+      value,
+      fallback: _selectedCountry,
+      config: config,
+    );
+    var digits = value.replaceAll(RegExp(r'\D'), '');
+    if (value.trimLeft().startsWith('+')) {
+      final dialDigits = resolved.dialDigits;
+      if (dialDigits.isNotEmpty && digits.startsWith(dialDigits)) {
+        digits = digits.substring(dialDigits.length);
+      }
+    }
+
+    final maxDigits = maxPhoneDigitsForHint(
+      resolved.preset.hint,
+      minDigits: resolved.preset.minDigits,
+    );
+    if (digits.length > maxDigits) digits = digits.substring(0, maxDigits);
+
+    final formatted = formatPhoneDigits(digits, resolved.preset.hint);
+    if (_phoneController.text != formatted) {
+      _phoneController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+    }
+
+    setState(() {
+      _selectedCountryCode = resolved.countryCode;
+      _error = null;
+    });
+  }
+
+  void _reformatPhoneForPreset(PhonePreset preset) {
+    var digits = _localDigits;
+    final maxDigits = maxPhoneDigitsForHint(
+      preset.hint,
+      minDigits: preset.minDigits,
+    );
+    if (digits.length > maxDigits) digits = digits.substring(0, maxDigits);
+    final formatted = formatPhoneDigits(digits, preset.hint);
+    _phoneController.value = TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+
+  String get _phoneHelpText {
+    if (_localDigits.isEmpty) {
+      return '${_selectedCountry.countryName} ${_phonePreset.dialCode} · ${_phonePreset.hint}';
+    }
+    if (_isPhoneValid) return 'Ready.';
+    if (_localDigits.length < _phonePreset.minDigits) {
+      final remaining = _phonePreset.minDigits - _localDigits.length;
+      return '$remaining more digit${remaining == 1 ? '' : 's'}.';
+    }
+    if (_isGenericPhoneCountry) return 'Use 7 to 15 digits.';
+    return '${_selectedCountry.countryName} numbers use $_maxDigits digits.';
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(bootstrapConfigProvider);
@@ -214,7 +250,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
     final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
     final textColor = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final canSend = !_loading && _phoneLength >= _phonePreset.minDigits;
+    final canSend = !_loading && _isPhoneValid;
     final canVerify = !_loading && _otpLength == 6;
 
     return Container(
@@ -341,25 +377,39 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                     children: [
                       Row(
                         children: [
-                          Container(
-                            width: 92,
-                            height: 56,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: surface,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: border),
-                            ),
-                            child: Text(
-                              _phonePreset.dialCode,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: textColor,
-                                fontFamily: FzTypography.score(
-                                  size: 16,
-                                  color: textColor,
-                                ).fontFamily,
+                          InkWell(
+                            onTap: _loading ? null : _pickCountry,
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              width: 92,
+                              height: 56,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: surface,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: border),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    _selectedCountry.flagEmoji,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _phonePreset.dialCode,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      color: textColor,
+                                      fontFamily: FzTypography.score(
+                                        size: 16,
+                                        color: textColor,
+                                      ).fontFamily,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -369,37 +419,10 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                               controller: _phoneController,
                               autofocus: true,
                               keyboardType: TextInputType.phone,
-                              onChanged: (value) {
-                                var digits = value.replaceAll(
-                                  RegExp(r'\D'),
-                                  '',
-                                );
-                                final maxDigits = maxPhoneDigitsForHint(
-                                  _phonePreset.hint,
-                                  minDigits: _phonePreset.minDigits,
-                                );
-                                if (digits.length > maxDigits) {
-                                  digits = digits.substring(0, maxDigits);
-                                }
-
-                                final formatted = formatPhoneDigits(
-                                  digits,
-                                  _phonePreset.hint,
-                                );
-                                if (_phoneController.text != formatted) {
-                                  _phoneController.value = TextEditingValue(
-                                    text: formatted,
-                                    selection: TextSelection.collapsed(
-                                      offset: formatted.length,
-                                    ),
-                                  );
-                                }
-
-                                setState(() => _error = null);
-                              },
+                              onChanged: _handlePhoneChanged,
                               inputFormatters: [
                                 FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9\s]'),
+                                  RegExp(r'[0-9+\s-]'),
                                 ),
                               ],
                               style: FzTypography.score(
@@ -430,6 +453,17 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _phoneHelpText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.35,
+                          color: _isPhoneValid || _localDigits.isEmpty
+                              ? muted
+                              : FzColors.coral,
+                        ),
+                      ),
                       const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
@@ -451,20 +485,6 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                           ),
                           child: Text(
                             _loading ? 'SENDING...' : 'SEND CODE VIA WHATSAPP',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Center(
-                        child: TextButton(
-                          onPressed: _loading ? null : _continueAsGuest,
-                          child: Text(
-                            'Continue as Guest',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: muted,
-                            ),
                           ),
                         ),
                       ),

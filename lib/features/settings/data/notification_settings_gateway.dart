@@ -1,3 +1,4 @@
+import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/config/platform_feature_access.dart';
 import '../../../core/logging/app_logger.dart';
@@ -97,6 +98,10 @@ class SupabaseNotificationSettingsGateway
     String userId,
     NotificationPreferences preferences,
   ) async {
+    if (AppConfig.isReviewMode) {
+      await _cacheNotificationPreferences(userId, preferences);
+      return;
+    }
     if (!_hasVerifiedSession) {
       throw StateError(
         'Verify your WhatsApp number before managing notification preferences.',
@@ -145,7 +150,7 @@ class SupabaseNotificationSettingsGateway
     await _cache.setStringList(key, next.toList()..sort());
 
     final client = _connection.client;
-    if (client == null || userId == null) return;
+    if (AppConfig.isReviewMode || client == null || userId == null) return;
     if (!runtimePlatformFeatureActionAvailable('notifications')) return;
 
     try {
@@ -173,7 +178,7 @@ class SupabaseNotificationSettingsGateway
     await _cache.setStringList(key, next);
 
     final client = _connection.client;
-    if (client == null || userId == null) return;
+    if (AppConfig.isReviewMode || client == null || userId == null) return;
     if (!runtimePlatformFeatureActionAvailable('notifications')) return;
 
     try {
@@ -191,6 +196,7 @@ class SupabaseNotificationSettingsGateway
   Future<void> markNotificationAsRead(String notificationId) async {
     final userId = _connection.currentUser?.id;
     final client = _connection.client;
+    if (AppConfig.isReviewMode) return;
     if (userId == null || client == null) {
       throw StateError('Notifications are unavailable right now.');
     }
@@ -223,6 +229,7 @@ class SupabaseNotificationSettingsGateway
   @override
   Future<void> markAllNotificationsRead(String userId) async {
     final client = _connection.client;
+    if (AppConfig.isReviewMode) return;
     if (client == null) {
       throw StateError('Notifications are unavailable right now.');
     }
@@ -265,7 +272,7 @@ class SupabaseNotificationSettingsGateway
       );
     }
 
-    if (client != null && userId != null) {
+    if (!AppConfig.isReviewMode && client != null && userId != null) {
       try {
         if (enabled) {
           await client.from('match_alert_subscriptions').upsert({

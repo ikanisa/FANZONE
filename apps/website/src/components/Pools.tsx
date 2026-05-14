@@ -9,6 +9,7 @@ import {
   Trophy,
   UserRound,
 } from "lucide-react";
+import { safeImageUrl } from "@fanzone/core";
 import { api } from "../services/api";
 import type { Match, MatchPoolEntrySummary, MatchPoolSummary } from "../types";
 import MatchPools, { PoolList } from "./MatchPools";
@@ -93,9 +94,10 @@ export default function Pools() {
     setMetaTag("og:description", description, "property");
     setMetaTag("twitter:title", title);
     setMetaTag("twitter:description", description);
-    if (pool.socialCardUrl) {
-      setMetaTag("og:image", pool.socialCardUrl, "property");
-      setMetaTag("twitter:image", pool.socialCardUrl);
+    const socialCardUrl = safeImageUrl(pool.socialCardUrl);
+    if (socialCardUrl) {
+      setMetaTag("og:image", socialCardUrl, "property");
+      setMetaTag("twitter:image", socialCardUrl);
     }
     setMetaTag("og:url", window.location.href, "property");
   }, [match, pools, slug]);

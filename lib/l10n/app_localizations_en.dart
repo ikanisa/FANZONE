@@ -110,9 +110,6 @@ class SEn extends S {
   String get profileSignOut => 'Sign Out';
 
   @override
-  String get profileGuest => 'Guest User';
-
-  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -197,13 +194,10 @@ class SEn extends S {
   String get loginVerify => 'Verify Code';
 
   @override
-  String get loginSkip => 'Continue as Guest';
-
-  @override
   String get onboardingWelcome => 'Welcome to FANZONE';
 
   @override
-  String get onboardingSubtitle => 'Order. Pool. Earn.';
+  String get onboardingSubtitle => 'PLAY . CHEERS . ENJOY';
 
   @override
   String get onboardingNext => 'Next';

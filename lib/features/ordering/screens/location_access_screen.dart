@@ -179,13 +179,6 @@ class _LocationAccessScreenState extends ConsumerState<LocationAccessScreen> {
                 label: const Text('Turn Off'),
               ),
             ],
-            OutlinedButton(
-              onPressed: () => context.go('/home'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-              ),
-              child: const Text('Skip'),
-            ),
           ],
         ),
       ),

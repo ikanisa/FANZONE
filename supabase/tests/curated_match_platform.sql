@@ -9,6 +9,8 @@ DECLARE
   v_feed_def text;
   v_score_def text;
   v_settle_def text;
+  v_create_game_def text;
+  v_music_bingo_def text;
 BEGIN
   SELECT array_agg(required_object ORDER BY required_object)
   INTO missing_objects
@@ -19,6 +21,7 @@ BEGIN
       ('public.get_curated_matches(text,uuid,timestamp with time zone,timestamp with time zone,text,text,text,integer)'::text),
       ('public.admin_curate_match_control(text,text,uuid,integer,text,jsonb,timestamp with time zone,timestamp with time zone,boolean)'::text),
       ('public.admin_set_curated_match_active(uuid,boolean)'::text),
+      ('public.admin_set_curated_match_pool_eligible(uuid,boolean)'::text),
       ('public.update_match_live_score(text,integer,integer,text,text)'::text)
   ) AS expected(required_object)
   WHERE (
@@ -36,9 +39,29 @@ BEGIN
   v_feed_def := pg_get_viewdef('public.curated_active_matches'::regclass, true);
   IF v_feed_def NOT ILIKE '%curated_matches%'
      OR v_feed_def NOT ILIKE '%cm.is_active = true%'
+     OR v_feed_def NOT ILIKE '%is_pool_eligible%'
      OR v_feed_def NOT ILIKE '%hidden%'
      OR v_feed_def NOT ILIKE '%final%' THEN
-    RAISE EXCEPTION 'curated_active_matches must expose only active curated matches with canonical final status';
+    RAISE EXCEPTION 'curated_active_matches must expose active curated matches, pool eligibility, and canonical final status';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'curated_matches'
+      AND column_name = 'is_pool_eligible'
+  ) THEN
+    RAISE EXCEPTION 'curated_matches.is_pool_eligible is missing';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_trigger
+    WHERE tgname = 'match_pool_requires_pool_eligible_match_trigger'
+      AND NOT tgisinternal
+  ) THEN
+    RAISE EXCEPTION 'match_pools must enforce admin pool eligibility at the database boundary';
   END IF;
 
   v_score_def := pg_get_functiondef('public.update_match_live_score(text,integer,integer,text,text)'::regprocedure);
@@ -56,6 +79,18 @@ BEGIN
      OR v_settle_def NOT ILIKE '%settling%'
      OR v_settle_def NOT ILIKE '%status = ''completed''%' THEN
     RAISE EXCEPTION 'settle_finished_match_pools must cover all active pool states and preserve idempotency logging';
+  END IF;
+
+  v_create_game_def := pg_get_functiondef('public.create_game_session(uuid,text,timestamp with time zone,bigint)'::regprocedure);
+  IF v_create_game_def NOT ILIKE '%uat_fixture%'
+     OR v_create_game_def NOT ILIKE '%Not enough production-approved questions%' THEN
+    RAISE EXCEPTION 'create_game_session must exclude UAT question banks from production game sessions';
+  END IF;
+
+  v_music_bingo_def := pg_get_functiondef('public.get_or_create_music_bingo_card(uuid,uuid)'::regprocedure);
+  IF v_music_bingo_def ILIKE '%Track %'
+     OR v_music_bingo_def NOT ILIKE '%at least 24 approved active tracks%' THEN
+    RAISE EXCEPTION 'music bingo cards must require real approved tracks and must not generate placeholder track labels';
   END IF;
 
   IF NOT EXISTS (

@@ -5,15 +5,26 @@ name: Deploy Venue Dashboard
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-venue-portal-production
+  cancel-in-progress: false
+
 env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_VENUE_PORTAL_PROJECT_NAME: ${{ secrets.CLOUDFLARE_VENUE_PORTAL_PROJECT_NAME }}
+  VITE_PRIVILEGED_SESSION_MODE: bff
 
 jobs:
   build-and-deploy:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    environment:
+      name: production
 
     steps:
       - name: Checkout
@@ -65,6 +76,7 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_GUEST_APP_URL: ${{ secrets.VITE_GUEST_APP_URL }}
           VITE_TV_DISPLAY_URL: ${{ secrets.VITE_TV_DISPLAY_URL }}
+          VITE_PRIVILEGED_SESSION_MODE: bff
 
       - name: Build
         run: npm run build -w @fanzone/venue-portal
@@ -73,6 +85,7 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_GUEST_APP_URL: ${{ secrets.VITE_GUEST_APP_URL }}
           VITE_TV_DISPLAY_URL: ${{ secrets.VITE_TV_DISPLAY_URL }}
+          VITE_PRIVILEGED_SESSION_MODE: bff
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

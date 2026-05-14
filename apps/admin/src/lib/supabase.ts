@@ -8,8 +8,8 @@ export const adminEnvError =
 type AdminSupabaseClient = SupabaseClient;
 
 export interface AdminSessionSnapshot {
-  accessToken: string;
-  refreshToken: string;
+  accessToken?: string | null;
+  refreshToken?: string | null;
   userId: string;
   expiresAt: number;
   refreshExpiresAt: number;
@@ -24,37 +24,52 @@ const ADMIN_SESSION_STORAGE_KEY = "fanzone-admin-session";
 
 let supabaseClient: AdminSupabaseClient | null = null;
 let supabaseAuthClient: AdminSupabaseClient | null = null;
+let activeAdminSession: AdminSessionSnapshot | null = null;
 
-function canUseSessionStorage() {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.sessionStorage !== "undefined"
-  );
+const configuredSessionMode = (
+  import.meta.env.VITE_PRIVILEGED_SESSION_MODE || ""
+)
+  .toString()
+  .toLowerCase();
+
+export const privilegedSessionMode =
+  configuredSessionMode === "browser"
+    ? "browser"
+    : configuredSessionMode === "bff"
+      ? "bff"
+      : import.meta.env.PROD
+        ? "bff"
+        : "browser";
+
+export const isBffSessionMode = privilegedSessionMode === "bff";
+
+interface BffAuthPayload {
+  success?: boolean;
+  authenticated?: boolean;
+  error?: string;
+  message?: string;
+  expires_at?: number;
+  refresh_expires_at?: number;
+  user?: {
+    id?: string;
+    phone?: string | null;
+  } | null;
 }
 
-function clearLegacyLocalSession() {
-  if (typeof window === "undefined" || !window.localStorage) {
+function clearLegacyBrowserSession() {
+  if (typeof window === "undefined") {
     return;
   }
-  window.localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
-}
-
-function isAdminSessionSnapshot(value: unknown): value is AdminSessionSnapshot {
-  if (!value || typeof value !== "object") {
-    return false;
+  try {
+    window.localStorage?.removeItem(ADMIN_SESSION_STORAGE_KEY);
+  } catch {
+    // Best-effort cleanup for locked-down browser storage.
   }
-
-  const candidate = value as Record<string, unknown>;
-  return (
-    typeof candidate.accessToken === "string" &&
-    candidate.accessToken.length > 0 &&
-    typeof candidate.refreshToken === "string" &&
-    candidate.refreshToken.length > 0 &&
-    typeof candidate.userId === "string" &&
-    candidate.userId.length > 0 &&
-    typeof candidate.expiresAt === "number" &&
-    typeof candidate.refreshExpiresAt === "number"
-  );
+  try {
+    window.sessionStorage?.removeItem(ADMIN_SESSION_STORAGE_KEY);
+  } catch {
+    // Best-effort cleanup for locked-down browser storage.
+  }
 }
 
 export function isAdminSessionExpired(session: AdminSessionSnapshot | null) {
@@ -68,66 +83,142 @@ export function isAdminRefreshExpired(session: AdminSessionSnapshot | null) {
 }
 
 export function readStoredAdminSession(): AdminSessionSnapshot | null {
-  clearLegacyLocalSession();
+  clearLegacyBrowserSession();
+  if (!activeAdminSession || isAdminRefreshExpired(activeAdminSession)) {
+    activeAdminSession = null;
+    return null;
+  }
+  return activeAdminSession;
+}
 
-  if (!canUseSessionStorage()) {
+function adminSessionFromBffPayload(
+  payload: BffAuthPayload | null,
+): AdminSessionSnapshot | null {
+  if (!payload || payload.authenticated === false) return null;
+  if (!payload.user?.id || !payload.expires_at || !payload.refresh_expires_at) {
     return null;
   }
 
-  const raw = window.sessionStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
-  if (!raw) {
-    return null;
-  }
+  return {
+    accessToken: null,
+    refreshToken: null,
+    userId: payload.user.id,
+    expiresAt: payload.expires_at,
+    refreshExpiresAt: payload.refresh_expires_at,
+    phone: payload.user.phone ?? null,
+  };
+}
 
+async function fetchBffJson<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<{ data: T | null; error: Error | null }> {
+  const response = await fetch(path, {
+    ...init,
+    credentials: "same-origin",
+    headers: {
+      accept: "application/json",
+      ...(init.body ? { "content-type": "application/json" } : {}),
+      ...init.headers,
+    },
+  });
+  let payload: T | null = null;
   try {
-    const parsed = JSON.parse(raw);
-    if (!isAdminSessionSnapshot(parsed)) {
-      clearStoredAdminSession();
-      return null;
-    }
-    if (isAdminRefreshExpired(parsed)) {
-      clearStoredAdminSession();
-      return null;
-    }
-    return parsed;
+    payload = (await response.json()) as T;
   } catch {
-    clearStoredAdminSession();
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const message =
+      typeof payload === "object" &&
+      payload &&
+      "error" in payload &&
+      typeof payload.error === "string"
+        ? payload.error
+        : "BFF request failed.";
+    return { data: payload, error: new Error(message) };
+  }
+
+  return { data: payload, error: null };
+}
+
+export async function readCurrentAdminSession(): Promise<AdminSessionSnapshot | null> {
+  if (!isBffSessionMode) {
+    return readStoredAdminSession();
+  }
+
+  const { data, error } =
+    await fetchBffJson<BffAuthPayload>("/api/auth/session");
+  if (error) {
+    activeAdminSession = null;
     return null;
   }
+
+  const session = adminSessionFromBffPayload(data);
+  activeAdminSession = session;
+  return session;
+}
+
+export async function invokeAdminAuthAction<T>(
+  body: Record<string, unknown>,
+): Promise<{ data: T | null; error: Error | null }> {
+  if (!isBffSessionMode) {
+    const { data, error } = await getSupabaseAuthClient().functions.invoke<T>(
+      "whatsapp-otp",
+      { body },
+    );
+    return {
+      data: data ?? null,
+      error:
+        error instanceof Error
+          ? error
+          : error
+            ? new Error(error.message)
+            : null,
+    };
+  }
+
+  return fetchBffJson<T>("/api/auth/whatsapp-otp", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
 }
 
 export function persistAdminSession(session: AdminSessionSnapshot) {
-  clearLegacyLocalSession();
-
-  if (!canUseSessionStorage()) {
-    return;
-  }
-  window.sessionStorage.setItem(
-    ADMIN_SESSION_STORAGE_KEY,
-    JSON.stringify(session),
-  );
+  clearLegacyBrowserSession();
+  activeAdminSession = session;
 }
 
 export function clearStoredAdminSession() {
-  clearLegacyLocalSession();
-
-  if (!canUseSessionStorage()) {
-    return;
-  }
-  window.sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+  activeAdminSession = null;
+  clearLegacyBrowserSession();
 }
 
 export function createScopedSupabaseClient(
   accessToken?: string | null,
 ): AdminSupabaseClient {
-  return createClient(env.supabaseUrl, env.supabaseAnonKey, {
+  const supabaseUrl =
+    isBffSessionMode && typeof window !== "undefined"
+      ? `${window.location.origin}/api/supabase`
+      : env.supabaseUrl;
+
+  return createClient(supabaseUrl, env.supabaseAnonKey, {
     accessToken: async () =>
-      accessToken ?? readStoredAdminSession()?.accessToken ?? null,
+      isBffSessionMode
+        ? null
+        : (accessToken ?? readStoredAdminSession()?.accessToken ?? null),
     auth: {
       autoRefreshToken: false,
       persistSession: false,
       detectSessionInUrl: false,
     },
+    global: isBffSessionMode
+      ? {
+          fetch: (input, init) =>
+            fetch(input, { ...init, credentials: "same-origin" }),
+        }
+      : undefined,
   });
 }
 

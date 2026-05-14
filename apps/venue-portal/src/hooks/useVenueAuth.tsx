@@ -11,10 +11,12 @@ import {
 
 import {
   clearStoredVenueSession,
-  getSupabaseAuthClient,
+  invokeVenueAuthAction,
+  isBffSessionMode,
   isVenueRefreshExpired,
   isVenueSessionExpired,
   persistVenueSession,
+  readCurrentVenueSession,
   readStoredVenueSession,
   resetSupabaseClient,
   type VenueSessionSnapshot,
@@ -49,21 +51,25 @@ function normalizePhone(phone: string) {
   return trimmed.startsWith("+") ? trimmed : `+${trimmed}`;
 }
 
-function sessionFromResponse(data: WhatsAppOtpResponse, phone: string): VenueSessionSnapshot {
+function sessionFromResponse(
+  data: WhatsAppOtpResponse,
+  phone: string,
+): VenueSessionSnapshot {
   if (
     data.success !== true ||
-    !data.access_token ||
-    !data.refresh_token ||
+    (!isBffSessionMode && (!data.access_token || !data.refresh_token)) ||
     !data.user?.id ||
     !data.expires_at ||
     !data.refresh_expires_at
   ) {
-    throw new Error(data.error || "Server did not return a valid venue session.");
+    throw new Error(
+      data.error || "Server did not return a valid venue session.",
+    );
   }
 
   return {
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token,
+    accessToken: data.access_token ?? null,
+    refreshToken: data.refresh_token ?? null,
     userId: data.user.id,
     expiresAt: data.expires_at,
     refreshExpiresAt: data.refresh_expires_at,
@@ -83,16 +89,19 @@ export function VenueAuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const applySession = useCallback((nextSession: VenueSessionSnapshot | null) => {
-    if (nextSession) {
-      persistVenueSession(nextSession);
-    } else {
-      clearStoredVenueSession();
-    }
-    resetSupabaseClient();
-    setSession(nextSession);
-    window.dispatchEvent(new Event("fanzone:venue-auth-change"));
-  }, []);
+  const applySession = useCallback(
+    (nextSession: VenueSessionSnapshot | null) => {
+      if (nextSession) {
+        persistVenueSession(nextSession);
+      } else {
+        clearStoredVenueSession();
+      }
+      resetSupabaseClient();
+      setSession(nextSession);
+      window.dispatchEvent(new Event("fanzone:venue-auth-change"));
+    },
+    [],
+  );
 
   const refreshSession = useCallback(
     async (currentSession: VenueSessionSnapshot) => {
@@ -102,22 +111,16 @@ export function VenueAuthProvider({ children }: { children: ReactNode }) {
       }
 
       const { data, error: invokeError } =
-        await getSupabaseAuthClient().functions.invoke<WhatsAppOtpResponse>(
-          "whatsapp-otp",
-          {
-            body: {
-              action: "refresh",
-              refresh_token: currentSession.refreshToken,
-            },
-          },
-        );
+        await invokeVenueAuthAction<WhatsAppOtpResponse>({
+          action: "refresh",
+          ...(!isBffSessionMode
+            ? { refresh_token: currentSession.refreshToken }
+            : {}),
+        });
 
       if (invokeError) throw invokeError;
 
-      const nextSession = sessionFromResponse(
-        data ?? {},
-        currentSession.phone,
-      );
+      const nextSession = sessionFromResponse(data ?? {}, currentSession.phone);
       applySession(nextSession);
       return nextSession;
     },
@@ -128,7 +131,7 @@ export function VenueAuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function loadStoredSession() {
-      const stored = readStoredVenueSession();
+      const stored = await readCurrentVenueSession();
       try {
         if (!stored) {
           if (!cancelled) applySession(null);
@@ -148,7 +151,9 @@ export function VenueAuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         if (!cancelled) {
           applySession(null);
-          setError(authErrorMessage(err, "Venue session expired. Sign in again."));
+          setError(
+            authErrorMessage(err, "Venue session expired. Sign in again."),
+          );
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -166,12 +171,10 @@ export function VenueAuthProvider({ children }: { children: ReactNode }) {
     const normalized = normalizePhone(phone);
     try {
       const { data, error: invokeError } =
-        await getSupabaseAuthClient().functions.invoke<WhatsAppOtpResponse>(
-          "whatsapp-otp",
-          {
-            body: { action: "send", phone: normalized },
-          },
-        );
+        await invokeVenueAuthAction<WhatsAppOtpResponse>({
+          action: "send",
+          phone: normalized,
+        });
 
       if (invokeError) throw invokeError;
       if (data?.success !== true) {
@@ -191,12 +194,11 @@ export function VenueAuthProvider({ children }: { children: ReactNode }) {
       const normalized = normalizePhone(phone);
       try {
         const { data, error: invokeError } =
-          await getSupabaseAuthClient().functions.invoke<WhatsAppOtpResponse>(
-            "whatsapp-otp",
-            {
-              body: { action: "verify", phone: normalized, otp },
-            },
-          );
+          await invokeVenueAuthAction<WhatsAppOtpResponse>({
+            action: "verify",
+            phone: normalized,
+            otp,
+          });
 
         if (invokeError) throw invokeError;
         const nextSession = sessionFromResponse(data ?? {}, normalized);
@@ -213,14 +215,14 @@ export function VenueAuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     const currentSession = readStoredVenueSession();
     applySession(null);
-    if (!currentSession?.refreshToken) return;
+    if (!isBffSessionMode && !currentSession?.refreshToken) return;
 
     try {
-      await getSupabaseAuthClient().functions.invoke("whatsapp-otp", {
-        body: {
-          action: "logout",
-          refresh_token: currentSession.refreshToken,
-        },
+      await invokeVenueAuthAction({
+        action: "logout",
+        ...(!isBffSessionMode
+          ? { refresh_token: currentSession?.refreshToken }
+          : {}),
       });
     } catch {
       // Local logout already completed.

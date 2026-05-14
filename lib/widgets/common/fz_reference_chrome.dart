@@ -7,6 +7,7 @@ import '../../providers/currency_provider.dart';
 import '../../theme/colors.dart';
 import '../../theme/radii.dart';
 import '../../theme/typography.dart';
+import 'fz_brand_logo.dart';
 
 class FzReferenceHeader extends ConsumerWidget {
   const FzReferenceHeader({
@@ -27,6 +28,7 @@ class FzReferenceHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fanId = ref.watch(userFanIdProvider).valueOrNull;
+    final showBrandLogo = title == null || title!.trim().toUpperCase() == 'FZ';
 
     return Row(
       children: [
@@ -53,15 +55,18 @@ class FzReferenceHeader extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title ?? 'FANZONE',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: FzTypography.sportsTitle(
-                  size: 20,
-                  color: FzColors.darkText,
+              if (showBrandLogo)
+                const FzBrandLogo(width: 36, height: 36, preferCdn: true)
+              else
+                Text(
+                  title!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: FzTypography.sportsTitle(
+                    size: 20,
+                    color: FzColors.darkText,
+                  ),
                 ),
-              ),
               const SizedBox(height: 2),
               Text(
                 subtitle ??

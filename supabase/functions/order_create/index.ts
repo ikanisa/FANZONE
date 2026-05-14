@@ -14,33 +14,37 @@ import {
 } from "../_shared/mod.ts";
 
 // --- Input Validation Schema ---
-const orderItemSchema = z.object({
-  menu_item_id: z.string().uuid(),
-  quantity: z.number().int().positive().optional(),
-  qty: z.number().int().positive().optional(),
-  add_ons: z.unknown().optional(),
-  modifiers_json: z.unknown().optional(),
-}).refine((item) => item.quantity !== undefined || item.qty !== undefined, {
-  message: "quantity is required",
-});
+const orderItemSchema = z
+  .object({
+    menu_item_id: z.string().uuid(),
+    quantity: z.number().int().positive().optional(),
+    qty: z.number().int().positive().optional(),
+    add_ons: z.unknown().optional(),
+    modifiers_json: z.unknown().optional(),
+  })
+  .refine((item) => item.quantity !== undefined || item.qty !== undefined, {
+    message: "quantity is required",
+  });
 
-const createOrderSchema = z.object({
-  venue_id: z.string().uuid(),
-  table_id: z.string().uuid().optional(),
-  table_public_code: z.string().min(1).optional(),
-  payment_method: z.enum(["cash", "momo", "revolut", "card", "other"]).default(
-    "cash",
-  ),
-  items: z.array(orderItemSchema).min(1),
-  special_instructions: z.string().max(1000).nullable().optional(),
-  notes: z.string().max(1000).nullable().optional(),
-}).refine(
-  (input) =>
-    input.table_id !== undefined || input.table_public_code !== undefined,
-  {
-    message: "table_id or table_public_code is required",
-  },
-);
+const createOrderSchema = z
+  .object({
+    venue_id: z.string().uuid(),
+    table_id: z.string().uuid().optional(),
+    table_public_code: z.string().min(1).optional(),
+    payment_method: z
+      .enum(["cash", "momo", "revolut", "other"])
+      .default("cash"),
+    items: z.array(orderItemSchema).min(1),
+    special_instructions: z.string().max(1000).nullable().optional(),
+    notes: z.string().max(1000).nullable().optional(),
+  })
+  .refine(
+    (input) =>
+      input.table_id !== undefined || input.table_public_code !== undefined,
+    {
+      message: "table_id or table_public_code is required",
+    },
+  );
 
 type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
@@ -337,14 +341,17 @@ Deno.serve(async (req) => {
     const durationMs = Date.now() - startTime;
     logger.requestEnd(201, durationMs);
 
-    return jsonResponse({
-      success: true,
-      requestId,
-      order: {
-        ...order,
-        items: insertedItems,
+    return jsonResponse(
+      {
+        success: true,
+        requestId,
+        order: {
+          ...order,
+          items: insertedItems,
+        },
       },
-    }, 201);
+      201,
+    );
   } catch (error) {
     const durationMs = Date.now() - startTime;
     logger.error("Order creation error", { error: String(error), durationMs });

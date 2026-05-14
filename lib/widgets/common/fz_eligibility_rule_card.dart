@@ -10,7 +10,7 @@ import 'fz_card.dart';
 class FzEligibilityRuleCard extends StatelessWidget {
   const FzEligibilityRuleCard({
     super.key,
-    this.title = 'Order unlocks rewards',
+    this.title = 'Eligibility',
     this.description = '2h order needed',
   });
 
@@ -79,7 +79,7 @@ class FzEligibilityRuleCard extends StatelessWidget {
                 Icon(LucideIcons.receipt, color: FzColors.accent2),
                 SizedBox(width: 10),
                 Text(
-                  'Reward Rule',
+                  'Eligibility',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
                 ),
               ],

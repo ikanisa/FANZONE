@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../config/app_config.dart';
 import '../logging/app_logger.dart';
 import '../runtime/app_runtime_state.dart';
+import '../storage/secure_auth_session_store.dart';
 import '../storage/structured_cache_store.dart';
 
 class RuntimeAuthSessionManager {
@@ -13,7 +14,8 @@ class RuntimeAuthSessionManager {
   static final RuntimeAuthSessionManager instance =
       RuntimeAuthSessionManager._();
 
-  static const _sessionCacheKey = 'custom_auth_session_v1';
+  static const _sessionStorageKey = 'custom_auth_session_v1';
+  static const _legacySessionCacheKey = _sessionStorageKey;
   static const _refreshLeadTime = Duration(seconds: 45);
 
   final StreamController<AuthState> _authStates =
@@ -87,7 +89,8 @@ class RuntimeAuthSessionManager {
 
     final previousUserId = _customSession?.user.id;
     _customSession = session;
-    await StructuredCacheStore.writeMap(_sessionCacheKey, session.toJson());
+    await SecureAuthSessionStore.writeMap(_sessionStorageKey, session.toJson());
+    await StructuredCacheStore.delete(_legacySessionCacheKey);
 
     final event = previousUserId == session.user.id
         ? AuthChangeEvent.tokenRefreshed
@@ -183,20 +186,19 @@ class RuntimeAuthSessionManager {
     _refreshTimer?.cancel();
     _refreshTimer = null;
     _customSession = null;
-    await StructuredCacheStore.delete(_sessionCacheKey);
+    await _deleteStoredCustomSession();
     if (emitEvent) {
       _emit(AuthChangeEvent.signedOut, null);
     }
   }
 
   Future<void> _restoreCustomSession() async {
-    final snapshot = await StructuredCacheStore.readMap(_sessionCacheKey);
-    final raw = snapshot?.payload;
+    final raw = await _readStoredCustomSession();
     if (raw == null) return;
 
     final session = Session.fromJson(raw);
     if (session == null) {
-      await StructuredCacheStore.delete(_sessionCacheKey);
+      await _deleteStoredCustomSession();
       return;
     }
 
@@ -211,6 +213,28 @@ class RuntimeAuthSessionManager {
 
     _scheduleRefresh(session);
     _emit(AuthChangeEvent.initialSession, session);
+  }
+
+  Future<Map<String, dynamic>?> _readStoredCustomSession() async {
+    final secureSession = await SecureAuthSessionStore.readMap(
+      _sessionStorageKey,
+    );
+    if (secureSession != null) return secureSession;
+
+    final legacySnapshot = await StructuredCacheStore.readMap(
+      _legacySessionCacheKey,
+    );
+    final legacySession = legacySnapshot?.payload;
+    if (legacySession == null) return null;
+
+    await SecureAuthSessionStore.writeMap(_sessionStorageKey, legacySession);
+    await StructuredCacheStore.delete(_legacySessionCacheKey);
+    return legacySession;
+  }
+
+  Future<void> _deleteStoredCustomSession() async {
+    await SecureAuthSessionStore.delete(_sessionStorageKey);
+    await StructuredCacheStore.delete(_legacySessionCacheKey);
   }
 
   bool _hasRefreshToken(Session session) {

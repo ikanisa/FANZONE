@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../app_router.dart' show governedAppRouteForPath, router;
@@ -175,7 +175,7 @@ class PushNotificationService {
     final userId = _authGateway.currentUser?.id;
     if (userId == null) return;
 
-    final platform = Platform.isIOS ? 'ios' : 'android';
+    final platform = kIsWeb ? 'web' : defaultTargetPlatform.name;
     try {
       await _preferencesGateway.registerDeviceToken(
         userId: userId,

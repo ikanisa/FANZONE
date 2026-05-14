@@ -13,75 +13,176 @@ type VenueSupabaseClient = SupabaseClient<Database>;
 
 let supabaseClient: VenueSupabaseClient | null = null;
 let supabaseAuthClient: VenueSupabaseClient | null = null;
+let activeVenueSession: VenueSessionSnapshot | null = null;
 
 const venueSessionStorageKey = "fanzone.venue.session.v1";
 
 export interface VenueSessionSnapshot {
-  accessToken: string;
-  refreshToken: string;
+  accessToken?: string | null;
+  refreshToken?: string | null;
   userId: string;
   expiresAt: number;
   refreshExpiresAt: number;
   phone: string;
 }
 
-function storageAvailable() {
-  return typeof window !== "undefined" &&
-    typeof window.sessionStorage !== "undefined";
+const configuredSessionMode = (
+  import.meta.env.VITE_PRIVILEGED_SESSION_MODE || ""
+)
+  .toString()
+  .toLowerCase();
+
+export const privilegedSessionMode =
+  configuredSessionMode === "browser"
+    ? "browser"
+    : configuredSessionMode === "bff"
+      ? "bff"
+      : import.meta.env.PROD
+        ? "bff"
+        : "browser";
+
+export const isBffSessionMode = privilegedSessionMode === "bff";
+
+interface BffAuthPayload {
+  success?: boolean;
+  authenticated?: boolean;
+  error?: string;
+  expires_at?: number;
+  refresh_expires_at?: number;
+  user?: {
+    id?: string;
+    phone?: string | null;
+  } | null;
 }
 
-function clearLegacyLocalSession() {
-  if (typeof window === "undefined" || !window.localStorage) return;
-  window.localStorage.removeItem(venueSessionStorageKey);
-}
-
-export function readStoredVenueSession(): VenueSessionSnapshot | null {
-  clearLegacyLocalSession();
-
-  if (!storageAvailable()) return null;
-
+function clearLegacyBrowserSession() {
+  if (typeof window === "undefined") return;
   try {
-    const raw = window.sessionStorage.getItem(venueSessionStorageKey);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<VenueSessionSnapshot>;
-    if (
-      typeof parsed.accessToken !== "string" ||
-      typeof parsed.refreshToken !== "string" ||
-      typeof parsed.userId !== "string" ||
-      typeof parsed.expiresAt !== "number" ||
-      typeof parsed.refreshExpiresAt !== "number"
-    ) {
-      return null;
-    }
-
-    return {
-      accessToken: parsed.accessToken,
-      refreshToken: parsed.refreshToken,
-      userId: parsed.userId,
-      expiresAt: parsed.expiresAt,
-      refreshExpiresAt: parsed.refreshExpiresAt,
-      phone: typeof parsed.phone === "string" ? parsed.phone : "",
-    };
+    window.localStorage?.removeItem(venueSessionStorageKey);
   } catch {
-    return null;
+    // Best-effort cleanup for locked-down browser storage.
+  }
+  try {
+    window.sessionStorage?.removeItem(venueSessionStorageKey);
+  } catch {
+    // Best-effort cleanup for locked-down browser storage.
   }
 }
 
-export function persistVenueSession(session: VenueSessionSnapshot) {
-  clearLegacyLocalSession();
+export function readStoredVenueSession(): VenueSessionSnapshot | null {
+  clearLegacyBrowserSession();
+  if (!activeVenueSession || isVenueRefreshExpired(activeVenueSession)) {
+    activeVenueSession = null;
+    return null;
+  }
+  return activeVenueSession;
+}
 
-  if (!storageAvailable()) return;
-  window.sessionStorage.setItem(venueSessionStorageKey, JSON.stringify(session));
+function venueSessionFromBffPayload(
+  payload: BffAuthPayload | null,
+): VenueSessionSnapshot | null {
+  if (!payload || payload.authenticated === false) return null;
+  if (!payload.user?.id || !payload.expires_at || !payload.refresh_expires_at) {
+    return null;
+  }
+
+  return {
+    accessToken: null,
+    refreshToken: null,
+    userId: payload.user.id,
+    expiresAt: payload.expires_at,
+    refreshExpiresAt: payload.refresh_expires_at,
+    phone: payload.user.phone ?? "",
+  };
+}
+
+async function fetchBffJson<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<{ data: T | null; error: Error | null }> {
+  const response = await fetch(path, {
+    ...init,
+    credentials: "same-origin",
+    headers: {
+      accept: "application/json",
+      ...(init.body ? { "content-type": "application/json" } : {}),
+      ...init.headers,
+    },
+  });
+  let payload: T | null = null;
+  try {
+    payload = (await response.json()) as T;
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    const errorPayload = payload as { error?: string } | null;
+    return {
+      data: payload,
+      error: new Error(errorPayload?.error || "BFF request failed."),
+    };
+  }
+
+  return { data: payload, error: null };
+}
+
+export async function readCurrentVenueSession(): Promise<VenueSessionSnapshot | null> {
+  if (!isBffSessionMode) {
+    return readStoredVenueSession();
+  }
+
+  const { data, error } =
+    await fetchBffJson<BffAuthPayload>("/api/auth/session");
+  if (error) {
+    activeVenueSession = null;
+    return null;
+  }
+
+  const session = venueSessionFromBffPayload(data);
+  activeVenueSession = session;
+  return session;
+}
+
+export async function invokeVenueAuthAction<T>(
+  body: Record<string, unknown>,
+): Promise<{ data: T | null; error: Error | null }> {
+  if (!isBffSessionMode) {
+    const { data, error } = await getSupabaseAuthClient().functions.invoke<T>(
+      "whatsapp-otp",
+      { body },
+    );
+    return {
+      data: data ?? null,
+      error:
+        error instanceof Error
+          ? error
+          : error
+            ? new Error(error.message)
+            : null,
+    };
+  }
+
+  return fetchBffJson<T>("/api/auth/whatsapp-otp", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function persistVenueSession(session: VenueSessionSnapshot) {
+  clearLegacyBrowserSession();
+  activeVenueSession = session;
 }
 
 export function clearStoredVenueSession() {
-  clearLegacyLocalSession();
-
-  if (!storageAvailable()) return;
-  window.sessionStorage.removeItem(venueSessionStorageKey);
+  activeVenueSession = null;
+  clearLegacyBrowserSession();
 }
 
-export function isVenueSessionExpired(session: VenueSessionSnapshot, leadMs = 0) {
+export function isVenueSessionExpired(
+  session: VenueSessionSnapshot,
+  leadMs = 0,
+) {
   return session.expiresAt * 1000 <= Date.now() + leadMs;
 }
 
@@ -95,18 +196,29 @@ export function resetSupabaseClient() {
 
 function createVenueClient(): VenueSupabaseClient {
   const session = readStoredVenueSession();
+  const clientUrl =
+    isBffSessionMode && typeof window !== "undefined"
+      ? `${window.location.origin}/api/supabase`
+      : supabaseUrl;
   const headers =
-    session && !isVenueSessionExpired(session)
+    !isBffSessionMode && session && !isVenueSessionExpired(session)
       ? { Authorization: `Bearer ${session.accessToken}` }
       : undefined;
 
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createClient<Database>(clientUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
       storageKey: "fanzone-venue-data-auth",
     },
-    global: headers ? { headers } : undefined,
+    global: isBffSessionMode
+      ? {
+          fetch: (input, init) =>
+            fetch(input, { ...init, credentials: "same-origin" }),
+        }
+      : headers
+        ? { headers }
+        : undefined,
   });
 }
 

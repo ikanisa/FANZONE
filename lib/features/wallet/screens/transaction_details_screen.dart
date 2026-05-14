@@ -133,8 +133,6 @@ class _TransactionContent extends StatelessWidget {
           borderRadius: FzRadii.card,
           child: Column(
             children: [
-              const _DetailRow(label: 'Status', value: 'Settled'),
-              const Divider(height: 24),
               _DetailRow(label: 'Date', value: transaction.dateStr),
               const Divider(height: 24),
               _DetailRow(label: 'Reference', value: transaction.id),

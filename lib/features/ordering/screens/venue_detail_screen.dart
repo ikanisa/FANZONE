@@ -100,25 +100,10 @@ class _VenueDetailContent extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 18),
-        Row(
-          children: [
-            Expanded(
-              child: FzMetricTile(
-                label: 'Type',
-                value: venue.venueType.label,
-                icon: LucideIcons.store,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: FzMetricTile(
-                label: 'Currency',
-                value: venue.currencyCode,
-                icon: LucideIcons.coins,
-                color: FzColors.success,
-              ),
-            ),
-          ],
+        FzMetricTile(
+          label: 'Type',
+          value: venue.venueType.label,
+          icon: LucideIcons.store,
         ),
         const SizedBox(height: 12),
         FzCard(
@@ -139,15 +124,6 @@ class _VenueDetailContent extends ConsumerWidget {
                 label: 'Status',
                 value: venue.isOpen ? 'Open' : 'Closed',
               ),
-              if (venue.websiteUrl != null &&
-                  venue.websiteUrl!.trim().isNotEmpty) ...[
-                const Divider(height: 24),
-                _VenueInfoRow(
-                  icon: LucideIcons.globe2,
-                  label: 'Website',
-                  value: venue.websiteUrl!,
-                ),
-              ],
             ],
           ),
         ),

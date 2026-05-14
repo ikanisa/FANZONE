@@ -45,15 +45,30 @@ const SUPABASE_JWT_SECRET = Deno.env.get("FANZONE_JWT_SECRET")?.trim() || "";
 
 const WABA_ACCESS_TOKEN = Deno.env.get("WABA_ACCESS_TOKEN")?.trim() || "";
 const WABA_PHONE_NUMBER_ID = Deno.env.get("WABA_PHONE_NUMBER_ID")?.trim() || "";
+const WABA_GRAPH_API_VERSION = Deno.env.get("WABA_GRAPH_API_VERSION")?.trim() ||
+  "v21.0";
 const WABA_TEMPLATE_NAME = Deno.env.get("WABA_OTP_TEMPLATE_NAME")?.trim() ||
+  Deno.env.get("WABA_TEMPLATE_NAME")?.trim() ||
   "gikundiro";
+const WABA_TEMPLATE_LANGUAGE = Deno.env.get("WABA_TEMPLATE_LANGUAGE")?.trim() ||
+  "en_US";
+const WABA_TEMPLATE_INCLUDE_COPY_CODE_BUTTON =
+  (Deno.env.get("WABA_TEMPLATE_INCLUDE_COPY_CODE_BUTTON")?.trim() || "true")
+    .toLowerCase() !== "false";
 const WHATSAPP_AUTH_TEST_PHONE = Deno.env.get("WHATSAPP_AUTH_TEST_PHONE") ||
   "";
 const WHATSAPP_AUTH_TEST_OTP = Deno.env.get("WHATSAPP_AUTH_TEST_OTP") || "";
 const WHATSAPP_AUTH_TEST_EXPIRY = Deno.env.get("WHATSAPP_AUTH_TEST_EXPIRY") ||
   "";
+const otpExpiryFromMinutes = parseInt(
+  Deno.env.get("WABA_OTP_EXPIRY_MINUTES") || "",
+  10,
+);
 const OTP_EXPIRY_SECONDS = parseInt(
-  Deno.env.get("OTP_EXPIRY_SECONDS") || "600",
+  Deno.env.get("OTP_EXPIRY_SECONDS") ||
+    (Number.isFinite(otpExpiryFromMinutes)
+      ? String(otpExpiryFromMinutes * 60)
+      : "600"),
   10,
 );
 const SESSION_ACCESS_EXPIRY_SECONDS = parseInt(
@@ -237,8 +252,26 @@ async function sendWhatsAppOtp(
     return { success: false, error: "WhatsApp API not configured" };
   }
 
+  const graphVersion = WABA_GRAPH_API_VERSION.startsWith("v")
+    ? WABA_GRAPH_API_VERSION
+    : `v${WABA_GRAPH_API_VERSION}`;
   const url =
-    `https://graph.facebook.com/v21.0/${WABA_PHONE_NUMBER_ID}/messages`;
+    `https://graph.facebook.com/${graphVersion}/${WABA_PHONE_NUMBER_ID}/messages`;
+  const components: Array<Record<string, unknown>> = [
+    {
+      type: "body",
+      parameters: [{ type: "text", text: otp }],
+    },
+  ];
+
+  if (WABA_TEMPLATE_INCLUDE_COPY_CODE_BUTTON) {
+    components.push({
+      type: "button",
+      sub_type: "url",
+      index: "0",
+      parameters: [{ type: "text", text: otp }],
+    });
+  }
 
   const body = {
     messaging_product: "whatsapp",
@@ -246,19 +279,8 @@ async function sendWhatsAppOtp(
     type: "template",
     template: {
       name: WABA_TEMPLATE_NAME,
-      language: { code: "en_US" },
-      components: [
-        {
-          type: "body",
-          parameters: [{ type: "text", text: otp }],
-        },
-        {
-          type: "button",
-          sub_type: "url",
-          index: "0",
-          parameters: [{ type: "text", text: otp }],
-        },
-      ],
+      language: { code: WABA_TEMPLATE_LANGUAGE },
+      components,
     },
   };
 

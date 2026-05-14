@@ -103,4 +103,11 @@ fi
 
 require_jwt_role VITE_SUPABASE_ANON_KEY anon
 
+if [[ "${APP_NAME}" == "admin" || "${APP_NAME}" == "venue-portal" ]]; then
+  if [[ "${VITE_APP_ENV:-production}" == "production" && "${VITE_PRIVILEGED_SESSION_MODE:-bff}" == "browser" ]]; then
+    echo "Production ${APP_NAME} releases must use VITE_PRIVILEGED_SESSION_MODE=bff so privileged tokens stay behind HttpOnly cookies." >&2
+    exit 1
+  fi
+fi
+
 echo "Web release env OK for ${APP_NAME}."

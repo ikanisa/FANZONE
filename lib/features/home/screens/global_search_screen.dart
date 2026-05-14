@@ -83,11 +83,6 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
                     onTap: () => setState(() => _filter = _SearchFilter.bars),
                   ),
                   _FilterChip(
-                    label: 'Teams',
-                    selected: _filter == _SearchFilter.teams,
-                    onTap: () => setState(() => _filter = _SearchFilter.teams),
-                  ),
-                  _FilterChip(
                     label: 'Pools',
                     selected: _filter == _SearchFilter.pools,
                     onTap: () => setState(() => _filter = _SearchFilter.pools),
@@ -97,25 +92,7 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
             ),
             const SizedBox(height: 22),
             if (!hasQuery) ...[
-              const FzSectionHeader(title: 'Recent'),
-              const SizedBox(height: 10),
-              const _StaticSearchItem(
-                icon: LucideIcons.mapPin,
-                title: 'Browse sports bars',
-                subtitle: 'Open venue discovery',
-                route: '/venues',
-              ),
-              const SizedBox(height: 10),
-              const _StaticSearchItem(
-                icon: LucideIcons.trophy,
-                title: 'Arena pools',
-                subtitle: 'Live and upcoming match pools',
-                route: '/pools',
-              ),
-              const SizedBox(height: 22),
-              const FzSectionHeader(title: 'Hot Right Now'),
-              const SizedBox(height: 10),
-              const _HotCard(),
+              const _SearchPrompt(),
             ] else ...[
               if (_filter == _SearchFilter.all || _filter == _SearchFilter.bars)
                 venueAsync.when(
@@ -124,7 +101,6 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
                   error: (_, _) => const SizedBox.shrink(),
                 ),
               if (_filter == _SearchFilter.all ||
-                  _filter == _SearchFilter.teams ||
                   _filter == _SearchFilter.pools)
                 searchAsync.when(
                   data: (results) =>
@@ -145,7 +121,7 @@ class _GlobalSearchScreenState extends ConsumerState<GlobalSearchScreen> {
   }
 }
 
-enum _SearchFilter { all, bars, teams, pools }
+enum _SearchFilter { all, bars, pools }
 
 class _FilterChip extends StatelessWidget {
   const _FilterChip({
@@ -206,8 +182,6 @@ class _CatalogResults extends StatelessWidget {
     final items = <SearchResultModel>[
       if (filter == _SearchFilter.all || filter == _SearchFilter.pools)
         ...results.competitions,
-      if (filter == _SearchFilter.all || filter == _SearchFilter.teams)
-        ...results.teams,
       ...results.matches,
     ];
 
@@ -344,25 +318,22 @@ class _StaticSearchItem extends StatelessWidget {
   }
 }
 
-class _HotCard extends StatelessWidget {
-  const _HotCard();
+class _SearchPrompt extends StatelessWidget {
+  const _SearchPrompt();
 
   @override
   Widget build(BuildContext context) {
     return FzCard(
-      onTap: () => context.push('/pools'),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       borderRadius: FzRadii.card,
-      color: FzColors.accent.withValues(alpha: 0.13),
-      borderColor: FzColors.accent.withValues(alpha: 0.35),
       child: Row(
         children: [
-          const Icon(LucideIcons.flame, color: FzColors.accent3),
+          const Icon(LucideIcons.search, color: FzColors.darkMuted),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Live pools and venue rewards are the fastest way into the Arena.',
-              style: FzTypography.display(size: 19, color: FzColors.darkText),
+              'Search bars and pools.',
+              style: FzTypography.display(size: 18, color: FzColors.darkText),
             ),
           ),
         ],

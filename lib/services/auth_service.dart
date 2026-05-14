@@ -46,7 +46,7 @@ class AuthService {
     }
   }
 
-  /// Sign in as an anonymous/guest user via Supabase anonymous auth.
+  /// Anonymous/guest signup is disabled for FANZONE.
   Future<AuthResponse> signInAnonymously() async {
     try {
       return await _gateway.signInAnonymously();

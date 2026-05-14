@@ -10,8 +10,10 @@ class DeepLinkService {
   DeepLinkService._();
 
   static final DeepLinkService instance = DeepLinkService._();
+  static const _guestHost = 'fanzone.guest.ikanisa.com';
   static const _host = 'fanzone.ikanisa.com';
   static const _legacyQrHost = 'fanzone.app';
+  static const _allowedHosts = {_guestHost, _host, _legacyQrHost};
 
   final AppLinks _appLinks = AppLinks();
   StreamSubscription<Uri>? _subscription;
@@ -61,7 +63,7 @@ class DeepLinkService {
       case 'https':
       case 'http':
         final host = uri.host.toLowerCase();
-        if (host != _host && host != _legacyQrHost) {
+        if (!_allowedHosts.contains(host)) {
           return null;
         }
         return _governedRoute(uri);

@@ -10,8 +10,10 @@ void main() {
       const MaterialApp(home: FeatureUnavailableScreen(featureName: 'Archive')),
     );
 
-    expect(find.text('Archive IS NOT LIVE'), findsOneWidget);
-    expect(find.text('UNAVAILABLE'), findsOneWidget);
+    expect(find.text('Archive unavailable'), findsOneWidget);
+    expect(find.text('UNAVAILABLE'), findsNothing);
     expect(find.textContaining('Archive'), findsOneWidget);
+    expect(find.text('Back'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
   });
 }

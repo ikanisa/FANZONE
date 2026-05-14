@@ -14,13 +14,10 @@ import '../../../services/wallet_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
-import '../../../widgets/common/fz_card.dart';
-import '../../../widgets/common/fz_empty_state.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/team_crest.dart';
-import '../../../widgets/common/state_view.dart';
+import '../data/home_match_curator.dart';
 import '../../ordering/providers/venue_context_provider.dart';
-import '../../ordering/providers/venue_discovery_provider.dart';
 import '../../pools/data/pools_repository.dart';
 
 class HomeFeedScreen extends ConsumerWidget {
@@ -54,7 +51,6 @@ class HomeFeedScreen extends ConsumerWidget {
     final teamsAsync = ref.watch(homeDefaultTeamsProvider);
     final matchesAsync = ref.watch(homeFeedMatchesProvider(filter));
     final poolsAsync = ref.watch(poolsProvider);
-    final venuesAsync = ref.watch(activeVenuesProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -64,18 +60,17 @@ class HomeFeedScreen extends ConsumerWidget {
             ref.invalidate(homeDefaultTeamsProvider);
             ref.invalidate(homeFeedMatchesProvider(filter));
             ref.invalidate(poolsProvider);
-            ref.invalidate(activeVenuesProvider);
             await Future.wait([
               ref.read(walletBalanceProvider.future),
+              ref.read(homeDefaultTeamsProvider.future),
               ref.read(homeFeedMatchesProvider(filter).future),
               ref.read(poolsProvider.future),
-              ref.read(activeVenuesProvider.future),
             ]);
           },
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
             children: [
-              const FzReferenceHeader(title: 'FZ'),
+              const FzReferenceHeader(),
               const SizedBox(height: 20),
               walletAsync.when(
                 data: (wallet) => _BalanceHero(
@@ -86,109 +81,131 @@ class HomeFeedScreen extends ConsumerWidget {
                 error: (_, _) => const _BalanceHero(available: 0, pending: 0),
               ),
               const SizedBox(height: 18),
-              _ActionGrid(
+              _ActionRail(
                 onBrowseVenues: () => context.go('/venues'),
                 onJoinPool: () => context.go('/pools'),
-                onJoinGame: () => context.go('/pools'),
-                onCreate: () => context.push('/pools/create'),
+                onJoinGame: () => context.go('/games'),
               ),
-              const SizedBox(height: 28),
-              AppSectionHeader(
-                title: 'My Teams',
-                actionLabel: 'Edit',
-                onAction: () => context.push('/profile'),
+              ..._teamsSection(context: context, teamsAsync: teamsAsync),
+              ..._selectedVenueSection(
+                context: context,
+                venue: venueContext.venue,
               ),
-              const SizedBox(height: 10),
-              teamsAsync.when(
-                data: (teams) => _TeamsStrip(teams: teams),
-                loading: () => const _TeamsLoadingStrip(),
-                error: (_, _) => const _TeamsStrip(teams: []),
-              ),
-              const SizedBox(height: 28),
-              AppSectionHeader(
-                title: 'Live Now',
-                actionLabel: 'Bars',
-                onAction: () => context.go('/venues'),
-              ),
-              const SizedBox(height: 10),
-              venuesAsync.when(
-                data: (venues) =>
-                    _LiveVenueCard(venue: venues.isEmpty ? null : venues.first),
-                loading: () => const _LiveVenueCard(venue: null),
-                error: (_, _) => const _LiveVenueCard(venue: null),
-              ),
-              const SizedBox(height: 18),
-              poolsAsync.when(
-                data: (pools) {
-                  PoolSummary? openPool;
-                  for (final pool in pools) {
-                    if (pool.status == 'open') {
-                      openPool = pool;
-                      break;
-                    }
-                  }
-                  return _EligiblePoolCard(pool: openPool);
-                },
-                loading: () => const _EligiblePoolCard(pool: null),
-                error: (_, _) => const _EligiblePoolCard(pool: null),
-              ),
-              const SizedBox(height: 28),
-              const AppSectionHeader(title: 'Matches'),
-              const SizedBox(height: 10),
-              matchesAsync.when(
-                data: (selection) {
-                  final matches = [
-                    ...selection.liveMatches,
-                    ...selection.upcomingMatches,
-                  ].take(4).toList(growable: false);
-                  if (matches.isEmpty) {
-                    return FzEmptyState(
-                      title: 'No matches',
-                      description: 'Check soon.',
-                      icon: const Icon(LucideIcons.calendar),
-                      actionLabel: 'Play',
-                      onAction: () => context.go('/pools'),
-                    );
-                  }
-                  return Column(
-                    children: [
-                      for (final match in matches)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: AppMatchCard(
-                            homeTeam: match.homeTeam,
-                            awayTeam: match.awayTeam,
-                            homeLogoUrl: match.homeLogoUrl,
-                            awayLogoUrl: match.awayLogoUrl,
-                            competitionName: match.competitionName,
-                            kickoffLabel: match.kickoffLabel,
-                            homeScore: match.ftHome,
-                            awayScore: match.ftAway,
-                            isLive: match.isLive,
-                            liveMinute: match.isLive
-                                ? match.kickoffLabel
-                                : null,
-                            onTap: () => context.push('/match/${match.id}'),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-                loading: () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 34),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (error, _) => StateView.error(
-                  title: 'Load failed',
-                  subtitle: error.toString(),
-                  onRetry: () =>
-                      ref.invalidate(homeFeedMatchesProvider(filter)),
-                ),
-              ),
+              ..._poolSection(context: context, poolsAsync: poolsAsync),
+              ..._matchesSection(context: context, matchesAsync: matchesAsync),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  List<Widget> _teamsSection({
+    required BuildContext context,
+    required AsyncValue<List<OnboardingTeam>> teamsAsync,
+  }) {
+    return teamsAsync.when(
+      data: (teams) {
+        if (teams.isEmpty) return const <Widget>[];
+        return [
+          const SizedBox(height: 24),
+          AppSectionHeader(
+            title: 'My Teams',
+            actionLabel: 'Edit',
+            onAction: () => context.push('/profile'),
+          ),
+          const SizedBox(height: 10),
+          _TeamsStrip(teams: teams),
+        ];
+      },
+      loading: () => const <Widget>[],
+      error: (_, _) => const <Widget>[],
+    );
+  }
+
+  List<Widget> _selectedVenueSection({
+    required BuildContext context,
+    required VenueModel? venue,
+  }) {
+    if (venue == null) return const <Widget>[];
+    return [
+      const SizedBox(height: 28),
+      AppSectionHeader(
+        title: 'Current Venue',
+        actionLabel: 'Bars',
+        onAction: () => context.go('/venues'),
+      ),
+      const SizedBox(height: 10),
+      _LiveVenueCard(venue: venue),
+    ];
+  }
+
+  List<Widget> _poolSection({
+    required BuildContext context,
+    required AsyncValue<List<PoolSummary>> poolsAsync,
+  }) {
+    return poolsAsync.when(
+      data: (pools) {
+        PoolSummary? openPool;
+        for (final pool in pools) {
+          if (pool.status == 'open') {
+            openPool = pool;
+            break;
+          }
+        }
+        if (openPool == null) return const <Widget>[];
+        return [
+          const SizedBox(height: 28),
+          AppSectionHeader(
+            title: 'Open Pool',
+            actionLabel: 'Pools',
+            onAction: () => context.go('/pools'),
+          ),
+          const SizedBox(height: 10),
+          _EligiblePoolCard(pool: openPool),
+        ];
+      },
+      loading: () => const <Widget>[],
+      error: (_, _) => const <Widget>[],
+    );
+  }
+
+  List<Widget> _matchesSection({
+    required BuildContext context,
+    required AsyncValue<HomeFeedSelection> matchesAsync,
+  }) {
+    return matchesAsync.when(
+      data: (selection) {
+        final matches = [
+          ...selection.liveMatches,
+          ...selection.upcomingMatches,
+        ].take(4).toList(growable: false);
+        if (matches.isEmpty) return const <Widget>[];
+        return [
+          const SizedBox(height: 28),
+          const AppSectionHeader(title: 'Matches'),
+          const SizedBox(height: 10),
+          for (final match in matches)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AppMatchCard(
+                homeTeam: match.homeTeam,
+                awayTeam: match.awayTeam,
+                homeLogoUrl: match.homeLogoUrl,
+                awayLogoUrl: match.awayLogoUrl,
+                competitionName: match.competitionName,
+                kickoffLabel: match.kickoffLabel,
+                homeScore: match.ftHome,
+                awayScore: match.ftAway,
+                isLive: match.isLive,
+                liveMinute: match.isLive ? match.kickoffLabel : null,
+                onTap: () => context.push('/match/${match.id}'),
+              ),
+            ),
+        ];
+      },
+      loading: () => const <Widget>[],
+      error: (_, _) => const <Widget>[],
     );
   }
 }
@@ -242,8 +259,11 @@ class _BalanceHero extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _HeroPill(icon: LucideIcons.timer, label: '$pending pending'),
-                  const _HeroPill(icon: LucideIcons.zap, label: 'Ready'),
+                  if (pending > 0)
+                    _HeroPill(
+                      icon: LucideIcons.timer,
+                      label: '$pending pending',
+                    ),
                 ],
               ),
             ],
@@ -288,54 +308,80 @@ class _HeroPill extends StatelessWidget {
   }
 }
 
-class _ActionGrid extends StatelessWidget {
-  const _ActionGrid({
+class _ActionRail extends StatelessWidget {
+  const _ActionRail({
     required this.onBrowseVenues,
     required this.onJoinPool,
     required this.onJoinGame,
-    required this.onCreate,
   });
 
   final VoidCallback onBrowseVenues;
   final VoidCallback onJoinPool;
   final VoidCallback onJoinGame;
-  final VoidCallback onCreate;
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      childAspectRatio: 1.05,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        AppQuickAction(
+        _ActionRailItem(
           icon: AppIconName.bars,
           label: 'Bars',
           color: FzColors.cyan,
           onTap: onBrowseVenues,
         ),
-        AppQuickAction(
+        _ActionRailItem(
           icon: AppIconName.pool,
           label: 'Pools',
           color: FzColors.orange,
           onTap: onJoinPool,
         ),
-        AppQuickAction(
+        _ActionRailItem(
           icon: AppIconName.game,
           label: 'Games',
           color: FzColors.danger,
           onTap: onJoinGame,
         ),
-        AppQuickAction(
-          icon: AppIconName.plus,
-          label: 'Create',
-          color: FzColors.green,
-          onTap: onCreate,
-        ),
       ],
+    );
+  }
+}
+
+class _ActionRailItem extends StatelessWidget {
+  const _ActionRailItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final AppIconName icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: FzColors.darkSurface2,
+              border: Border.all(color: FzColors.darkBorder),
+            ),
+            child: Center(child: AppSvgIcon(icon, color: color, size: 24)),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -348,20 +394,6 @@ class _TeamsStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final visible = teams.take(8).toList(growable: false);
-    if (visible.isEmpty) {
-      return const FzCard(
-        padding: EdgeInsets.all(16),
-        borderRadius: FzRadii.card,
-        child: Text(
-          'Pick teams.',
-          style: TextStyle(
-            color: FzColors.darkMuted,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      );
-    }
-
     return SizedBox(
       height: 82,
       child: ListView.separated(
@@ -401,39 +433,19 @@ class _TeamsStrip extends StatelessWidget {
   }
 }
 
-class _TeamsLoadingStrip extends StatelessWidget {
-  const _TeamsLoadingStrip();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-      height: 82,
-      child: Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
 class _LiveVenueCard extends StatelessWidget {
   const _LiveVenueCard({required this.venue});
 
-  final VenueModel? venue;
+  final VenueModel venue;
 
   @override
   Widget build(BuildContext context) {
-    if (venue == null) {
-      return AppVenueCard(
-        name: 'Find bars',
-        isLive: false,
-        onTap: () => context.go('/venues'),
-      );
-    }
-
     return AppVenueCard(
-      name: venue!.name,
-      city: venue!.city ?? venue!.countryCode.label,
-      coverUrl: venue!.coverUrl,
+      name: venue.name,
+      city: venue.city ?? venue.countryCode.label,
+      coverUrl: venue.coverUrl,
       isLive: true,
-      onTap: () => context.push('/venue/${venue!.id}'),
+      onTap: () => context.push('/venue/${venue.id}'),
     );
   }
 }
@@ -441,38 +453,18 @@ class _LiveVenueCard extends StatelessWidget {
 class _EligiblePoolCard extends StatelessWidget {
   const _EligiblePoolCard({required this.pool});
 
-  final PoolSummary? pool;
+  final PoolSummary pool;
 
   @override
   Widget build(BuildContext context) {
-    if (pool == null) {
-      return FzCard(
-        onTap: () => context.go('/pools'),
-        padding: const EdgeInsets.all(18),
-        borderRadius: FzRadii.card,
-        child: const Row(
-          children: [
-            Icon(LucideIcons.trophy, color: FzColors.green),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'No live pools.',
-                style: TextStyle(fontWeight: FontWeight.w900),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     return AppPoolCard(
-      title: pool!.title,
-      status: pool!.status,
-      totalStakedFet: pool!.totalStakedFet,
-      totalMembers: pool!.totalMembers,
-      defaultStakeFet: pool!.defaultStakeFet,
-      onTap: () => context.push('/pool/${pool!.id}'),
-      onJoin: () => context.push('/pool/${pool!.id}/join'),
+      title: pool.title,
+      status: pool.status,
+      totalStakedFet: pool.totalStakedFet,
+      totalMembers: pool.totalMembers,
+      defaultStakeFet: pool.defaultStakeFet,
+      onTap: () => context.push('/pool/${pool.id}'),
+      onJoin: () => context.push('/pool/${pool.id}/join'),
     );
   }
 }

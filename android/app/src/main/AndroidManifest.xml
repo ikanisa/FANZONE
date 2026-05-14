@@ -33,7 +33,38 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <!-- Deep linking: Android App Links (verified domain) -->
+            <!-- Deep linking: Android App Links (guest app domain) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.guest.ikanisa.com"
+                    android:pathPrefix="/predict" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.guest.ikanisa.com"
+                    android:pathPrefix="/v" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.guest.ikanisa.com"
+                    android:pathPrefix="/venues" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.guest.ikanisa.com"
+                    android:pathPrefix="/bar" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.guest.ikanisa.com"
+                    android:pathPrefix="/pool" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.guest.ikanisa.com"
+                    android:pathPrefix="/pools" />
+            </intent-filter>
+
+            <!-- Deep linking: legacy root-domain app links -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>

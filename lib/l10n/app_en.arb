@@ -53,7 +53,6 @@
   "profileSignIn": "Sign in to unlock all features",
   "profileSignInCta": "Sign In",
   "profileSignOut": "Sign Out",
-  "profileGuest": "Guest User",
 
   "settingsTitle": "Settings",
   "settingsTheme": "Theme",
@@ -90,10 +89,9 @@
   "loginOtpHint": "Enter WhatsApp verification code",
   "loginSendOtp": "Send Code Via WhatsApp",
   "loginVerify": "Verify Code",
-  "loginSkip": "Continue as Guest",
 
   "onboardingWelcome": "Welcome to FANZONE",
-  "onboardingSubtitle": "Order. Pool. Earn.",
+  "onboardingSubtitle": "PLAY . CHEERS . ENJOY",
   "onboardingNext": "Next",
   "onboardingDone": "Get Started",
 

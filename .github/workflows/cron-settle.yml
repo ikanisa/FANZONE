@@ -8,15 +8,36 @@ name: Match Pool Settlement Cron
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: cron-settle-production
+  cancel-in-progress: false
+
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   CRON_SECRET: ${{ secrets.CRON_SECRET }}
 
 jobs:
   settle-match-pools:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment:
+      name: production-operations
     steps:
+      - name: Validate cron configuration
+        run: |
+          test -n "${SUPABASE_URL}" || {
+            echo "Missing SUPABASE_URL secret." >&2
+            exit 1
+          }
+          test -n "${CRON_SECRET}" || {
+            echo "Missing CRON_SECRET secret." >&2
+            exit 1
+          }
+
       - name: Settle finished match pools
         run: |
           echo "Settling finished match pools at $(date -u)"

@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { CheckCircle2, EyeOff, Plus, Search, Save } from "lucide-react";
+import { CheckCircle2, EyeOff, Plus, Search, Save, ShieldCheck } from "lucide-react";
 
 import { PageHeader } from "../../components/layout/PageHeader";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
@@ -13,6 +13,7 @@ import {
   useCuratedMatches,
   useCurationMatchOptions,
   useSetCuratedMatchActive,
+  useSetCuratedMatchPoolEligible,
   useUpdateMatchState,
   type CuratedMatch,
   type MatchStateInput,
@@ -32,6 +33,7 @@ interface CurationFormState {
   tag_venue_relevant: boolean;
   tag_featured: boolean;
   tag_hidden: boolean;
+  pool_eligible: boolean;
 }
 
 const initialForm: CurationFormState = {
@@ -47,6 +49,7 @@ const initialForm: CurationFormState = {
   tag_venue_relevant: false,
   tag_featured: false,
   tag_hidden: false,
+  pool_eligible: false,
 };
 
 const initialMatchState: MatchStateInput["status"] = "live";
@@ -83,6 +86,7 @@ export function MatchCurationPage() {
   const matchOptions = useCurationMatchOptions(optionSearch);
   const createCuratedMatch = useCreateCuratedMatch();
   const setActive = useSetCuratedMatchActive();
+  const setPoolEligible = useSetCuratedMatchPoolEligible();
   const updateMatchState = useUpdateMatchState();
 
   const curatedMatches = result?.data ?? [];
@@ -107,6 +111,7 @@ export function MatchCurationPage() {
       starts_at: fromDateTimeLocalValue(form.starts_at),
       expires_at: fromDateTimeLocalValue(form.expires_at),
       is_active: !form.tag_hidden,
+      is_pool_eligible: form.pool_eligible,
       metadata: buildCuratedMatchMetadata({
         global: form.tag_global,
         country: form.tag_country,
@@ -143,7 +148,7 @@ export function MatchCurationPage() {
     <div>
       <PageHeader
         title="Curated Matches"
-        subtitle="Data-driven fixture curation for global, country, and venue pool discovery"
+        subtitle="Data-driven fixture visibility and explicit pool eligibility"
       />
 
       <form
@@ -155,7 +160,7 @@ export function MatchCurationPage() {
           <div>
               <h2 className="font-semibold">Curate a Match</h2>
             <p className="text-sm text-muted">
-              Select imported matches and make them eligible for pool discovery.
+              Select imported matches, set visibility, then enable pool eligibility only for approved games.
             </p>
           </div>
           <button
@@ -272,6 +277,19 @@ export function MatchCurationPage() {
         </div>
 
         <div className="filter-bar">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.pool_eligible}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  pool_eligible: event.target.checked,
+                }))
+              }
+            />
+            Pool eligible
+          </label>
           {[
             ["tag_global", "Global"],
             ["tag_country", "Country"],
@@ -349,6 +367,7 @@ export function MatchCurationPage() {
                 <th>Country</th>
                 <th>Venue</th>
                 <th>Priority</th>
+                <th>Pool</th>
                 <th>Tags</th>
                 <th>Status</th>
                 <th>Window</th>
@@ -372,6 +391,9 @@ export function MatchCurationPage() {
                   <td className="mono text-xs">{row.venue_id ?? "Platform"}</td>
                   <td>{row.priority_score}</td>
                   <td>
+                    <StatusBadge status={row.is_pool_eligible ? "eligible" : "visibility only"} />
+                  </td>
+                  <td>
                     <div className="flex flex-wrap gap-1">
                       {Array.isArray(row.metadata?.tags) && row.metadata.tags.length > 0 ? (
                         row.metadata.tags.map((tag) => (
@@ -391,6 +413,20 @@ export function MatchCurationPage() {
                     {row.expires_at ? formatDateTime(row.expires_at) : "No expiry"}
                   </td>
                   <td className="cell-actions">
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      disabled={setPoolEligible.isPending}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void setPoolEligible.mutateAsync({
+                          id: row.id,
+                          is_pool_eligible: !row.is_pool_eligible,
+                        });
+                      }}
+                    >
+                      <ShieldCheck size={14} />
+                      {row.is_pool_eligible ? "Pool off" : "Pool on"}
+                    </button>
                     <button
                       className="btn btn-ghost btn-sm"
                       disabled={setActive.isPending}
@@ -438,6 +474,7 @@ export function MatchCurationPage() {
               <DrawerField label="Country" value={selected.country_code ?? "Global"} />
               <DrawerField label="Venue" value={selected.venue_id ?? "Platform"} />
               <DrawerField label="Priority" value={selected.priority_score} />
+              <DrawerField label="Pool eligibility" value={<StatusBadge status={selected.is_pool_eligible ? "eligible" : "visibility only"} />} />
               <DrawerField label="Status" value={<StatusBadge status={selected.is_active ? "active" : "inactive"} />} />
             </DrawerSection>
             <DrawerSection title="Window">
@@ -493,8 +530,8 @@ export function MatchCurationPage() {
         title={pendingActiveChange?.is_active ? "Disable curated match?" : "Enable curated match?"}
         description={
           pendingActiveChange?.is_active
-            ? "This removes the match from guest pool discovery. Existing pools remain auditable."
-            : "This makes the match eligible for guest pool discovery again."
+            ? "This removes the match from curated discovery and pool options. Existing pools remain auditable."
+            : "This makes the match visible in curated discovery again. Pool eligibility is controlled separately."
         }
         confirmLabel={pendingActiveChange?.is_active ? "Disable" : "Enable"}
         danger={pendingActiveChange?.is_active}

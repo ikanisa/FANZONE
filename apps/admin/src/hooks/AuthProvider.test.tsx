@@ -11,6 +11,8 @@ const {
   fetchAdminMeMock,
   fetchAdminMeWithAccessTokenMock,
   readStoredAdminSessionMock,
+  readCurrentAdminSessionMock,
+  invokeAdminAuthActionMock,
   persistAdminSessionMock,
   clearStoredAdminSessionMock,
   isAdminSessionExpiredMock,
@@ -20,6 +22,8 @@ const {
   fetchAdminMeMock: vi.fn(),
   fetchAdminMeWithAccessTokenMock: vi.fn(),
   readStoredAdminSessionMock: vi.fn(),
+  readCurrentAdminSessionMock: vi.fn(),
+  invokeAdminAuthActionMock: vi.fn(),
   persistAdminSessionMock: vi.fn(),
   clearStoredAdminSessionMock: vi.fn(),
   isAdminSessionExpiredMock: vi.fn(),
@@ -28,12 +32,15 @@ const {
 
 vi.mock("../lib/supabase", () => ({
   isSupabaseConfigured: true,
+  isBffSessionMode: false,
+  invokeAdminAuthAction: invokeAdminAuthActionMock,
   supabaseAuth: {
     functions: {
       invoke: invokeMock,
     },
   },
   readStoredAdminSession: readStoredAdminSessionMock,
+  readCurrentAdminSession: readCurrentAdminSessionMock,
   persistAdminSession: persistAdminSessionMock,
   clearStoredAdminSession: clearStoredAdminSessionMock,
   isAdminSessionExpired: isAdminSessionExpiredMock,
@@ -62,6 +69,11 @@ describe("AuthProvider", () => {
     latestAuthState = null;
 
     readStoredAdminSessionMock.mockReturnValue(null);
+    readCurrentAdminSessionMock.mockResolvedValue(null);
+    invokeAdminAuthActionMock.mockImplementation(async (body) => {
+      const { data, error } = await invokeMock("whatsapp-otp", { body });
+      return { data, error };
+    });
     isAdminSessionExpiredMock.mockImplementation((session) => !session);
     isAdminRefreshExpiredMock.mockImplementation((session) => !session);
 
@@ -117,7 +129,7 @@ describe("AuthProvider", () => {
     });
   });
 
-  it("verifies the WhatsApp OTP and persists the custom bearer session", async () => {
+  it("verifies the WhatsApp OTP and retains the custom bearer session", async () => {
     invokeMock.mockResolvedValue({
       data: {
         success: true,

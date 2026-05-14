@@ -20,7 +20,8 @@ type DatasetType =
   | "teams"
   | "team_aliases"
   | "matches"
-  | "standings";
+  | "standings"
+  | "official_fixture_rows";
 
 type CsvRecord = Record<string, string>;
 
@@ -30,6 +31,11 @@ interface ImportPayload {
   rows?: Record<string, unknown>[];
   mode?: "manual" | "scheduled";
   sourceId?: string;
+  resourceId?: string;
+  timezone?: string;
+  timezoneName?: string;
+  applyToMatches?: boolean;
+  apply_to_matches?: boolean;
 }
 
 interface ImportErrorRow {
@@ -400,6 +406,8 @@ Deno.serve(async (req: Request) => {
     const teamCache = new Map<string, string>();
     const upserts: Record<string, unknown>[] = [];
     const sourceId = readString(payload as Record<string, unknown>, [
+      "resourceId",
+      "resource_id",
       "sourceId",
       "source_id",
     ]) ?? "manual_admin";
@@ -411,11 +419,64 @@ Deno.serve(async (req: Request) => {
           ? "Manual admin curation/import"
           : sourceId,
         source_type: payload.mode === "scheduled" ? "api" : "admin_import",
-        is_approved: sourceId === "manual_admin",
+        is_approved: sourceId === "manual_admin" ||
+          datasetType === "official_fixture_rows",
         is_active: true,
       },
       { onConflict: "id" },
     );
+
+    if (datasetType === "official_fixture_rows") {
+      const resourceId = readString(payload as Record<string, unknown>, [
+        "resourceId",
+        "resource_id",
+        "sourceId",
+        "source_id",
+      ]) ?? sourceId;
+      const timezoneName = readString(payload as Record<string, unknown>, [
+        "timezoneName",
+        "timezone_name",
+        "timezone",
+      ]);
+
+      const staged = await supabase.rpc("admin_stage_official_fixture_rows", {
+        p_resource_id: resourceId,
+        p_rows: rows,
+        p_sync_run_id: null,
+        p_timezone: timezoneName,
+      });
+      if (staged.error) {
+        throw staged.error;
+      }
+
+      let applied: unknown = null;
+      if (
+        toBoolean(payload.applyToMatches ?? payload.apply_to_matches, false)
+      ) {
+        const appliedResult = await supabase.rpc(
+          "admin_apply_official_fixture_staging_batch",
+          {
+            p_resource_id: resourceId,
+            p_limit: Math.min(rows.length || 500, 1000),
+          },
+        );
+        if (appliedResult.error) {
+          throw appliedResult.error;
+        }
+        applied = appliedResult.data;
+      }
+
+      return Response.json(
+        {
+          datasetType,
+          resourceId,
+          received_rows: rows.length,
+          staged: staged.data,
+          applied,
+        },
+        { headers: buildCorsHeaders("content-type") },
+      );
+    }
 
     if (datasetType === "competitions") {
       rows.forEach((row, index) => {

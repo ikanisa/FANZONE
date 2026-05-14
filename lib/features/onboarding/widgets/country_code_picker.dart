@@ -49,6 +49,9 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
   void initState() {
     super.initState();
     _searchController.addListener(_onSearch);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocusNode.requestFocus();
+    });
   }
 
   @override
@@ -92,153 +95,156 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
     final maxHeight = MediaQuery.of(context).size.height * 0.72;
     final totalCountries = _allCountries().length;
 
-    return Container(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: border,
-              borderRadius: BorderRadius.circular(2),
+    return SafeArea(
+      top: false,
+      child: Container(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text(
-                  'Select Country',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: textColor,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: border.withValues(alpha: 0.5),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Text(
+                    'Country code',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: textColor,
+                      letterSpacing: -0.3,
                     ),
-                    child: Icon(LucideIcons.x, size: 16, color: muted),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              style: TextStyle(fontSize: 15, color: textColor),
-              decoration: InputDecoration(
-                hintText: 'Search country or dial code...',
-                hintStyle: TextStyle(fontSize: 14, color: muted),
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.only(left: 14, right: 10),
-                  child: Icon(LucideIcons.search, size: 18, color: muted),
-                ),
-                prefixIconConstraints: const BoxConstraints(
-                  minWidth: 20,
-                  minHeight: 20,
-                ),
-                filled: true,
-                fillColor: isDark
-                    ? FzColors.darkSurface2
-                    : FzColors.lightSurface2,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: border),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: border),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: FzColors.primary),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _searchController.text.isEmpty
-                    ? '$totalCountries countries'
-                    : '${_filtered.length} results',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: muted,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Expanded(
-            child: _filtered.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(LucideIcons.searchX, size: 40, color: muted),
-                          const SizedBox(height: 12),
-                          Text(
-                            'No countries match your search',
-                            style: TextStyle(fontSize: 14, color: muted),
-                          ),
-                        ],
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: border.withValues(alpha: 0.5),
                       ),
+                      child: Icon(LucideIcons.x, size: 16, color: muted),
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    itemCount: _filtered.length,
-                    itemBuilder: (ctx, index) {
-                      final entry = _filtered[index];
-                      final isSelected =
-                          widget.selected?.countryCode == entry.countryCode;
-                      return _CountryTile(
-                        entry: entry,
-                        isSelected: isSelected,
-                        isDark: isDark,
-                        textColor: textColor,
-                        muted: muted,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          Navigator.pop(context, entry);
-                        },
-                      );
-                    },
                   ),
-          ),
-        ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextField(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                style: TextStyle(fontSize: 15, color: textColor),
+                decoration: InputDecoration(
+                  hintText: 'Search country, code, or +dial',
+                  hintStyle: TextStyle(fontSize: 14, color: muted),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.only(left: 14, right: 10),
+                    child: Icon(LucideIcons.search, size: 18, color: muted),
+                  ),
+                  prefixIconConstraints: const BoxConstraints(
+                    minWidth: 20,
+                    minHeight: 20,
+                  ),
+                  filled: true,
+                  fillColor: isDark
+                      ? FzColors.darkSurface2
+                      : FzColors.lightSurface2,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: FzColors.primary),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _searchController.text.isEmpty
+                      ? '$totalCountries countries. Suggested markets appear first.'
+                      : '${_filtered.length} results',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: muted,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Expanded(
+              child: _filtered.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(LucideIcons.searchX, size: 40, color: muted),
+                            const SizedBox(height: 12),
+                            Text(
+                              'No countries match your search',
+                              style: TextStyle(fontSize: 14, color: muted),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      itemCount: _filtered.length,
+                      itemBuilder: (ctx, index) {
+                        final entry = _filtered[index];
+                        final isSelected =
+                            widget.selected?.countryCode == entry.countryCode;
+                        return _CountryTile(
+                          entry: entry,
+                          isSelected: isSelected,
+                          isDark: isDark,
+                          textColor: textColor,
+                          muted: muted,
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            Navigator.pop(context, entry);
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -263,59 +269,65 @@ class _CountryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: isSelected
-          ? FzColors.primary.withValues(alpha: 0.1)
-          : Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label:
+          '${entry.countryName}, ${entry.preset.dialCode}, example ${entry.preset.hint}',
+      child: Material(
+        color: isSelected
+            ? FzColors.primary.withValues(alpha: 0.1)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-          child: Row(
-            children: [
-              Text(entry.flagEmoji, style: const TextStyle(fontSize: 24)),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.countryName,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: textColor,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            child: Row(
+              children: [
+                Text(entry.flagEmoji, style: const TextStyle(fontSize: 24)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.countryName,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: textColor,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      entry.countryCode,
-                      style: TextStyle(fontSize: 12, color: muted),
-                    ),
-                  ],
+                      const SizedBox(height: 1),
+                      Text(
+                        'Example ${entry.preset.hint}',
+                        style: TextStyle(fontSize: 12, color: muted),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Text(
-                entry.preset.dialCode,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: isSelected ? FzColors.primary : muted,
+                Text(
+                  entry.preset.dialCode,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? FzColors.primary : muted,
+                  ),
                 ),
-              ),
-              if (isSelected) ...[
-                const SizedBox(width: 8),
-                const Icon(
-                  LucideIcons.checkCircle2,
-                  size: 18,
-                  color: FzColors.primary,
-                ),
+                if (isSelected) ...[
+                  const SizedBox(width: 8),
+                  const Icon(
+                    LucideIcons.checkCircle2,
+                    size: 18,
+                    color: FzColors.primary,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/hospitality/bell_request_model.dart';
@@ -38,6 +39,7 @@ class SupabaseBellGateway implements BellGateway {
     required String tableId,
     String? message,
   }) async {
+    _assertReviewMutationAllowed('Staff bell requests');
     final client = _connection.client;
     if (client == null) {
       throw StateError('Cannot ring bell: no connection');
@@ -68,6 +70,7 @@ class SupabaseBellGateway implements BellGateway {
 
   @override
   Future<void> acknowledgeBell(String bellId) async {
+    _assertReviewMutationAllowed('Staff bell acknowledgement');
     final client = _connection.client;
     if (client == null) {
       throw StateError('Cannot acknowledge bell: no connection');
@@ -77,7 +80,7 @@ class SupabaseBellGateway implements BellGateway {
         .from('bell_requests')
         .update({
           'acknowledged_at': DateTime.now().toUtc().toIso8601String(),
-          'acknowledged_by': client.auth.currentUser?.id,
+          'acknowledged_by': _connection.currentUser?.id,
         })
         .eq('id', bellId);
   }
@@ -144,5 +147,12 @@ class SupabaseBellGateway implements BellGateway {
           },
         )
         .subscribe();
+  }
+
+  void _assertReviewMutationAllowed(String action) {
+    if (!AppConfig.isReviewMode) return;
+    throw StateError(
+      '$action are disabled in the FANZONE review PWA. Use staging-safe test data for browser review.',
+    );
   }
 }

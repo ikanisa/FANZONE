@@ -40,15 +40,18 @@ export {
   checkRateLimit,
   createAdminClient,
   createUserClient,
+  getActiveAdminRecord,
   getAuthenticatedUser,
   getAuthHeader,
   isAdmin,
   isVendorMember,
   optionalAuth,
   requireAdmin,
+  requireAdminRole,
   requireAuth,
   requireVendorOrAdmin,
 } from "./auth.ts";
+export type { ActiveAdminRecord, AdminRole } from "./auth.ts";
 
 // Audit logging
 export { createAuditLogger, writeAuditLog } from "./audit.ts";

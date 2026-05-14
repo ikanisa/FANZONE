@@ -92,7 +92,10 @@ class _BottomNavBar extends ConsumerWidget {
               child: Tooltip(
                 message: item.label,
                 child: InkWell(
-                  onTap: () => navigationShell.goBranch(item.branchIndex),
+                  onTap: () => navigationShell.goBranch(
+                    item.branchIndex,
+                    initialLocation: isSelected,
+                  ),
                   borderRadius: AppRadii.cardRadius,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),

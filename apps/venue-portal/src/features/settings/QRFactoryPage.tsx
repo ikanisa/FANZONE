@@ -1,28 +1,38 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Download, Loader2, Maximize2, QrCode, RefreshCcw, Share2, ShieldCheck } from 'lucide-react';
-import QRCode from 'qrcode';
-import { EmptyState } from '../../components/console/EmptyState';
-import { StatusChip } from '../../components/console/StatusChip';
-import { useVenue } from '../../hooks/useVenueContext';
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Download,
+  Loader2,
+  Maximize2,
+  QrCode,
+  RefreshCcw,
+  Share2,
+  ShieldCheck,
+} from "lucide-react";
+import QRCode from "qrcode";
+import { safeHref } from "@fanzone/core";
+import { EmptyState } from "../../components/console/EmptyState";
+import { StatusChip } from "../../components/console/StatusChip";
+import { useVenue } from "../../hooks/useVenueContext";
 import {
   fetchVenueTables,
   generateVenueTableQr,
   setVenueTableActive,
   type VenueTable,
-} from '../../services/venueOperations';
+} from "../../services/venueOperations";
 
 export const QRFactoryPage: React.FC = () => {
   const { venue, member } = useVenue();
   const venueId = venue?.id;
-  const [startRange, setStartRange] = useState('1');
-  const [endRange, setEndRange] = useState('10');
+  const [startRange, setStartRange] = useState("1");
+  const [endRange, setEndRange] = useState("10");
   const [tables, setTables] = useState<VenueTable[]>([]);
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [qrImages, setQrImages] = useState<Record<string, string>>({});
 
-  const canManageTables = member?.role === 'owner' || member?.role === 'manager';
+  const canManageTables =
+    member?.role === "owner" || member?.role === "manager";
 
   const loadTables = useCallback(async () => {
     if (!venueId) return;
@@ -31,7 +41,9 @@ export const QRFactoryPage: React.FC = () => {
     try {
       setTables(await fetchVenueTables(venueId));
     } catch (err) {
-      setStatusMessage(err instanceof Error ? err.message : 'Failed to load venue tables.');
+      setStatusMessage(
+        err instanceof Error ? err.message : "Failed to load venue tables.",
+      );
     } finally {
       setLoading(false);
     }
@@ -49,24 +61,28 @@ export const QRFactoryPage: React.FC = () => {
     let isMounted = true;
     const timer = window.setTimeout(async () => {
       const entries = await Promise.all(
-        tables
-          .filter((table) => !!table.qrUrl)
-          .map(async (table) => [
+        tables.map(async (table) => {
+          const qrUrl = safeHref(table.qrUrl);
+          if (!qrUrl) return null;
+          return [
             table.id,
-            await QRCode.toDataURL(table.qrUrl ?? '', {
+            await QRCode.toDataURL(qrUrl, {
               width: 420,
               margin: 2,
-              errorCorrectionLevel: 'M',
+              errorCorrectionLevel: "M",
               color: {
-                dark: '#111111',
-                light: '#FFFFFF',
+                dark: "#111111",
+                light: "#FFFFFF",
               },
             }),
-          ] as const),
+          ] as const;
+        }),
       );
 
       if (isMounted) {
-        setQrImages(Object.fromEntries(entries));
+        setQrImages(
+          Object.fromEntries(entries.filter((entry) => entry !== null)),
+        );
       }
     }, 0);
 
@@ -81,8 +97,14 @@ export const QRFactoryPage: React.FC = () => {
 
     const start = Number.parseInt(startRange, 10);
     const end = Number.parseInt(endRange, 10);
-    if (!Number.isFinite(start) || !Number.isFinite(end) || start < 1 || end < start || end - start > 150) {
-      setStatusMessage('Use a valid table range up to 150 tables.');
+    if (
+      !Number.isFinite(start) ||
+      !Number.isFinite(end) ||
+      start < 1 ||
+      end < start ||
+      end - start > 150
+    ) {
+      setStatusMessage("Use a valid table range up to 150 tables.");
       return;
     }
 
@@ -93,9 +115,13 @@ export const QRFactoryPage: React.FC = () => {
         await generateVenueTableQr(venueId, String(table));
       }
       await loadTables();
-      setStatusMessage('Table QR codes generated.');
+      setStatusMessage("Table QR codes generated.");
     } catch (err) {
-      setStatusMessage(err instanceof Error ? err.message : 'Failed to generate table QR codes.');
+      setStatusMessage(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate table QR codes.",
+      );
     } finally {
       setWorking(false);
     }
@@ -108,23 +134,26 @@ export const QRFactoryPage: React.FC = () => {
       await setVenueTableActive(table.id, !table.isActive);
       await loadTables();
     } catch (err) {
-      setStatusMessage(err instanceof Error ? err.message : 'Failed to update table.');
+      setStatusMessage(
+        err instanceof Error ? err.message : "Failed to update table.",
+      );
     } finally {
       setWorking(false);
     }
   };
 
   const shareTable = async (table: VenueTable) => {
-    if (!table.qrUrl) return;
+    const qrUrl = safeHref(table.qrUrl);
+    if (!qrUrl) return;
     if (navigator.share) {
       await navigator.share({
-        title: `${venue?.name ?? 'Venue'} table ${table.tableNumber}`,
-        url: table.qrUrl,
+        title: `${venue?.name ?? "Venue"} table ${table.tableNumber}`,
+        url: qrUrl,
       });
       return;
     }
-    await navigator.clipboard.writeText(table.qrUrl);
-    setStatusMessage('Table link copied.');
+    await navigator.clipboard.writeText(qrUrl);
+    setStatusMessage("Table link copied.");
   };
 
   return (
@@ -136,8 +165,13 @@ export const QRFactoryPage: React.FC = () => {
             Secure table links generated from Supabase table tokens.
           </p>
         </div>
-        <button type="button" className="btn btn-secondary w-fit" onClick={loadTables} disabled={loading}>
-          <RefreshCcw size={16} className={loading ? 'animate-spin' : ''} />
+        <button
+          type="button"
+          className="btn btn-secondary w-fit"
+          onClick={loadTables}
+          disabled={loading}
+        >
+          <RefreshCcw size={16} className={loading ? "animate-spin" : ""} />
           Refresh
         </button>
       </div>
@@ -151,13 +185,17 @@ export const QRFactoryPage: React.FC = () => {
               </div>
               <div>
                 <h2 className="font-black text-xl">Generator</h2>
-                <p className="text-sm text-textSecondary font-bold">Owner or manager access</p>
+                <p className="text-sm text-textSecondary font-bold">
+                  Owner or manager access
+                </p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-textSecondary uppercase tracking-widest mb-2 block">Table range</label>
+                <label className="text-xs font-bold text-textSecondary uppercase tracking-widest mb-2 block">
+                  Table range
+                </label>
                 <div className="flex items-center gap-3">
                   <input
                     type="number"
@@ -184,7 +222,11 @@ export const QRFactoryPage: React.FC = () => {
                 disabled={working || !canManageTables}
                 className="btn btn-primary w-full h-14"
               >
-                {working ? <Loader2 size={20} className="animate-spin" /> : <QrCode size={20} />}
+                {working ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <QrCode size={20} />
+                )}
                 Generate Codes
               </button>
             </div>
@@ -198,7 +240,9 @@ export const QRFactoryPage: React.FC = () => {
               </p>
             </div>
             {statusMessage && (
-              <p className="text-sm font-bold text-text mt-4">{statusMessage}</p>
+              <p className="text-sm font-bold text-text mt-4">
+                {statusMessage}
+              </p>
             )}
           </div>
         </aside>
@@ -216,62 +260,82 @@ export const QRFactoryPage: React.FC = () => {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {tables.map((table) => (
-                <article key={table.id} className="bg-white p-6 rounded-[28px] border border-border shadow-sm">
-                  <div className="flex justify-between items-start gap-4 mb-5">
-                    <div>
-                      <p className="text-[10px] font-bold text-textSecondary uppercase tracking-widest">Table</p>
-                      <h3 className="text-4xl font-black">{table.tableNumber}</h3>
+              {tables.map((table) => {
+                const qrUrl = safeHref(table.qrUrl);
+                return (
+                  <article
+                    key={table.id}
+                    className="bg-white p-6 rounded-[28px] border border-border shadow-sm"
+                  >
+                    <div className="flex justify-between items-start gap-4 mb-5">
+                      <div>
+                        <p className="text-[10px] font-bold text-textSecondary uppercase tracking-widest">
+                          Table
+                        </p>
+                        <h3 className="text-4xl font-black">
+                          {table.tableNumber}
+                        </h3>
+                      </div>
+                      <StatusChip
+                        status={table.isActive ? "active" : "inactive"}
+                      />
                     </div>
-                    <StatusChip status={table.isActive ? 'active' : 'inactive'} />
-                  </div>
 
-                  <div className="qr-paper aspect-square border border-border rounded-2xl flex items-center justify-center p-4">
-                    {qrImages[table.id] ? (
-                      <img src={qrImages[table.id]} className="w-full h-full object-contain" alt={`QR code for table ${table.tableNumber}`} />
-                    ) : (
-                      <QrCode size={64} className="text-textSecondary" />
-                    )}
-                  </div>
+                    <div className="qr-paper aspect-square border border-border rounded-2xl flex items-center justify-center p-4">
+                      {qrImages[table.id] ? (
+                        <img
+                          src={qrImages[table.id]}
+                          className="w-full h-full object-contain"
+                          alt={`QR code for table ${table.tableNumber}`}
+                        />
+                      ) : (
+                        <QrCode size={64} className="text-textSecondary" />
+                      )}
+                    </div>
 
-                  <p className="text-[10px] text-textSecondary font-bold truncate w-full text-center mt-4">
-                    {table.qrUrl ?? 'No active QR link'}
-                  </p>
+                    <p className="text-[10px] text-textSecondary font-bold truncate w-full text-center mt-4">
+                      {table.qrUrl ?? "No active QR link"}
+                    </p>
 
-                  <div className="grid grid-cols-2 gap-3 mt-5">
-                    <a
-                      className="btn btn-secondary"
-                      href={qrImages[table.id]}
-                      download={`table-${table.tableNumber}-qr.png`}
-                      aria-disabled={!qrImages[table.id]}
-                    >
-                      <Download size={16} />
-                      Download
-                    </a>
-                    <button className="btn btn-secondary" onClick={() => shareTable(table)} disabled={!table.qrUrl}>
-                      <Share2 size={16} />
-                      Share
-                    </button>
-                    <a
-                      className="btn btn-secondary"
-                      href={table.qrUrl ?? undefined}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-disabled={!table.qrUrl}
-                    >
-                      <Maximize2 size={16} />
-                      Open
-                    </a>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => toggleTable(table)}
-                      disabled={working || !canManageTables}
-                    >
-                      {table.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                  </div>
-                </article>
-              ))}
+                    <div className="grid grid-cols-2 gap-3 mt-5">
+                      <a
+                        className="btn btn-secondary"
+                        href={qrImages[table.id]}
+                        download={`table-${table.tableNumber}-qr.png`}
+                        aria-disabled={!qrImages[table.id]}
+                      >
+                        <Download size={16} />
+                        Download
+                      </a>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => shareTable(table)}
+                        disabled={!qrUrl}
+                      >
+                        <Share2 size={16} />
+                        Share
+                      </button>
+                      <a
+                        className="btn btn-secondary"
+                        href={qrUrl ?? undefined}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-disabled={!qrUrl}
+                      >
+                        <Maximize2 size={16} />
+                        Open
+                      </a>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => toggleTable(table)}
+                        disabled={working || !canManageTables}
+                      >
+                        {table.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>

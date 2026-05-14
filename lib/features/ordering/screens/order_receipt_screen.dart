@@ -108,24 +108,10 @@ class _ReceiptContent extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: FzMetricTile(
-                      label: 'Total',
-                      value: order.totalDisplay,
-                      color: FzColors.accent,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FzMetricTile(
-                      label: 'FET Earned',
-                      value: '+${order.earnedFetDisplayAmount}',
-                      color: FzColors.success,
-                    ),
-                  ),
-                ],
+              FzMetricTile(
+                label: 'Total',
+                value: order.totalDisplay,
+                color: FzColors.accent,
               ),
             ],
           ),

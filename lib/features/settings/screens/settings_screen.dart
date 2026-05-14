@@ -67,17 +67,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            const _SectionHeader(title: 'Appearance'),
-            const SizedBox(height: 8),
-            const FzCard(
-              padding: EdgeInsets.zero,
-              child: _SettingsStaticTile(
-                icon: LucideIcons.moon,
-                label: 'Theme',
-                value: 'Dark only',
-              ),
-            ),
-            const SizedBox(height: 24),
             const _SectionHeader(title: 'Notifications'),
             const SizedBox(height: 8),
             if (!isVerified)
@@ -291,46 +280,6 @@ class _SettingsToggle extends StatelessWidget {
         onChanged: onChanged,
         activeThumbColor: FzColors.primary,
         activeTrackColor: FzColors.primary.withValues(alpha: 0.35),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-    );
-  }
-}
-
-class _SettingsStaticTile extends StatelessWidget {
-  const _SettingsStaticTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
-    final textColor = isDark ? FzColors.darkText : FzColors.lightText;
-
-    return ListTile(
-      leading: _LeadingIcon(icon: icon, color: muted),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          color: textColor,
-        ),
-      ),
-      trailing: Text(
-        value,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: muted,
-        ),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
     );

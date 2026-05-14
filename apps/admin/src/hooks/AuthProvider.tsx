@@ -7,12 +7,13 @@ import {
 
 import {
   clearStoredAdminSession,
+  invokeAdminAuthAction,
+  isBffSessionMode,
   isAdminRefreshExpired,
   isAdminSessionExpired,
   isSupabaseConfigured,
   persistAdminSession,
-  readStoredAdminSession,
-  supabaseAuth,
+  readCurrentAdminSession,
   type AdminSessionSnapshot,
 } from "../lib/supabase";
 import { fetchAdminMe, fetchAdminMeWithAccessToken } from "../lib/adminData";
@@ -144,9 +145,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const fetchAdminProfile = useCallback(
     async (accessToken?: string): Promise<AdminProfileResult> => {
       try {
-        const admin = accessToken
-          ? await fetchAdminMeWithAccessToken(accessToken)
-          : await fetchAdminMe();
+        const admin =
+          !isBffSessionMode && accessToken
+            ? await fetchAdminMeWithAccessToken(accessToken)
+            : await fetchAdminMe();
         if (!admin) {
           return {
             admin: null,
@@ -178,8 +180,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const buildSessionSnapshot = useCallback(
     (data: WhatsAppOtpVerifyResponse, phone: string): AdminSessionSnapshot => {
       if (
-        !data.access_token ||
-        !data.refresh_token ||
+        (!isBffSessionMode && (!data.access_token || !data.refresh_token)) ||
         !data.user?.id ||
         !data.expires_at ||
         !data.refresh_expires_at
@@ -188,8 +189,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       return {
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token,
+        accessToken: data.access_token ?? null,
+        refreshToken: data.refresh_token ?? null,
         userId: data.user.id,
         expiresAt: data.expires_at,
         refreshExpiresAt: data.refresh_expires_at,
@@ -205,15 +206,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     ): Promise<AdminSessionSnapshot | null> => {
       try {
         const { data, error: invokeError } =
-          await supabaseAuth.functions.invoke<WhatsAppOtpVerifyResponse>(
-            "whatsapp-otp",
-            {
-              body: {
-                action: "refresh",
-                refresh_token: currentSession.refreshToken,
-              },
-            },
-          );
+          await invokeAdminAuthAction<WhatsAppOtpVerifyResponse>({
+            action: "refresh",
+            ...(!isBffSessionMode
+              ? { refresh_token: currentSession.refreshToken }
+              : {}),
+          });
 
         if (invokeError) {
           throw new Error(
@@ -234,7 +232,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           data,
           data.user?.phone ?? currentSession.phone ?? "",
         );
-        const profile = await fetchAdminProfile(nextSession.accessToken);
+        const profile = await fetchAdminProfile(
+          nextSession.accessToken ?? undefined,
+        );
         if (!profile.admin) {
           clearAuthState(
             profile.error ?? "Access denied. You are not an admin.",
@@ -268,7 +268,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let isActive = true;
 
     const restore = async () => {
-      const storedSession = readStoredAdminSession();
+      const storedSession = await readCurrentAdminSession();
       if (!storedSession || isAdminRefreshExpired(storedSession)) {
         if (!isActive) return;
         clearAuthState(
@@ -298,7 +298,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!isActive) return;
       setIsLoading(true);
 
-      const profile = await fetchAdminProfile(activeSession.accessToken);
+      const profile = await fetchAdminProfile(
+        activeSession.accessToken ?? undefined,
+      );
       if (!isActive) return;
 
       if (!profile.admin) {
@@ -349,15 +351,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     try {
       const { data, error: invokeError } =
-        await supabaseAuth.functions.invoke<WhatsAppOtpSendResponse>(
-          "whatsapp-otp",
-          {
-            body: {
-              action: "send",
-              phone,
-            },
-          },
-        );
+        await invokeAdminAuthAction<WhatsAppOtpSendResponse>({
+          action: "send",
+          phone,
+        });
 
       if (invokeError) {
         throw new Error(
@@ -400,16 +397,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       try {
         const { data, error: invokeError } =
-          await supabaseAuth.functions.invoke<WhatsAppOtpVerifyResponse>(
-            "whatsapp-otp",
-            {
-              body: {
-                action: "verify",
-                phone,
-                otp,
-              },
-            },
-          );
+          await invokeAdminAuthAction<WhatsAppOtpVerifyResponse>({
+            action: "verify",
+            phone,
+            otp,
+          });
 
         if (invokeError) {
           throw new Error(
@@ -425,7 +417,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
 
         const nextSession = buildSessionSnapshot(data, phone);
-        const profile = await fetchAdminProfile(nextSession.accessToken);
+        const profile = await fetchAdminProfile(
+          nextSession.accessToken ?? undefined,
+        );
         if (!profile.admin) {
           clearAuthState(
             profile.error ?? "Access denied. You are not an admin.",
@@ -455,13 +449,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   const signOut = useCallback(async () => {
-    if (session?.refreshToken) {
+    if (isBffSessionMode || session?.refreshToken) {
       try {
-        await supabaseAuth.functions.invoke("whatsapp-otp", {
-          body: {
-            action: "logout",
-            refresh_token: session.refreshToken,
-          },
+        await invokeAdminAuthAction({
+          action: "logout",
+          ...(!isBffSessionMode
+            ? { refresh_token: session?.refreshToken }
+            : {}),
         });
       } catch {
         // Clear local state even if the revoke request fails.

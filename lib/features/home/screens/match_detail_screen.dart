@@ -56,8 +56,6 @@ class MatchDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 18),
                 _MatchHeroCard(match: match),
                 const SizedBox(height: 14),
-                _PoolEntryCard(match: match),
-                const SizedBox(height: 14),
                 _MatchPoolsList(matchId: match.id),
               ],
             );
@@ -186,56 +184,6 @@ class _MatchPoolsLoadingState extends StatelessWidget {
   }
 }
 
-class _PoolEntryCard extends StatelessWidget {
-  const _PoolEntryCard({required this.match});
-
-  final MatchModel match;
-
-  @override
-  Widget build(BuildContext context) {
-    return FzCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Join a venue-linked pool for this match.',
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.45,
-              fontWeight: FontWeight.w600,
-              color: FzColors.darkText,
-            ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => context.push('/pools/create'),
-              icon: const Icon(LucideIcons.plus, size: 16),
-              label: const Text('Create pool'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: FzColors.accent2,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => context.go('/pools'),
-              icon: const Icon(LucideIcons.trophy, size: 16),
-              label: const Text('Open match pools'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _MatchPoolsList extends ConsumerWidget {
   const _MatchPoolsList({required this.matchId});
 
@@ -248,16 +196,33 @@ class _MatchPoolsList extends ConsumerWidget {
     return poolsAsync.when(
       data: (pools) {
         if (pools.isEmpty) {
-          return const FzCard(
-            padding: EdgeInsets.all(16),
-            child: Row(
+          return FzCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(LucideIcons.trophy, color: FzColors.darkMuted),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'No pools are open for this match yet.',
-                    style: TextStyle(fontSize: 13, color: FzColors.darkMuted),
+                const Row(
+                  children: [
+                    Icon(LucideIcons.trophy, color: FzColors.darkMuted),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'No pools are open for this match yet.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: FzColors.darkMuted,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => context.push('/pools/create'),
+                    icon: const Icon(LucideIcons.plus, size: 16),
+                    label: const Text('Create pool'),
                   ),
                 ),
               ],

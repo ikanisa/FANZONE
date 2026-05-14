@@ -5,7 +5,6 @@ import 'core/accessibility/motion.dart';
 import 'core/auth/runtime_auth_session_manager.dart';
 import 'core/config/platform_feature_access.dart';
 import 'core/runtime/app_runtime_state.dart';
-import 'features/auth/screens/guest_upgrade_screen.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'features/auth/screens/whatsapp_login_screen.dart';
 import 'features/games/screens/game_detail_screen.dart';
@@ -42,7 +41,11 @@ String governedAppRouteForPath(String targetPath, {String? fallback}) {
   var path = targetPath.trim();
   if (path.isEmpty) return fallback ?? '/home';
 
-  const hostedPrefixes = ['https://fanzone.ikanisa.com', 'https://fanzone.app'];
+  const hostedPrefixes = [
+    'https://fanzone.guest.ikanisa.com',
+    'https://fanzone.ikanisa.com',
+    'https://fanzone.app',
+  ];
   for (final hostedPrefix in hostedPrefixes) {
     if (path.startsWith(hostedPrefix)) {
       path = path.substring(hostedPrefix.length);
@@ -100,14 +103,11 @@ final GoRouter router = GoRouter(
     GoRoute(
       name: 'upgrade',
       path: '/upgrade',
-      pageBuilder: (context, state) => _fadeSlideTransition(
-        state,
-        GuestUpgradeScreen(
-          returnTo: state.uri.queryParameters['from'] != null
-              ? Uri.decodeComponent(state.uri.queryParameters['from']!)
-              : null,
-        ),
-      ),
+      redirect: (context, state) {
+        final returnTo = state.uri.queryParameters['from'];
+        if (returnTo == null || returnTo.isEmpty) return '/login';
+        return '/login?from=${Uri.encodeComponent(Uri.decodeComponent(returnTo))}';
+      },
     ),
     GoRoute(
       name: 'venue_entry',

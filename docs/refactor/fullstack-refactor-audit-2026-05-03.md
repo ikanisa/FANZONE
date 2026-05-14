@@ -66,7 +66,7 @@ Indexes added in this pass:
 ## Security Notes
 
 - No dangerous React HTML/code execution sinks were found in the scanned app code.
-- Browser `localStorage` is used for custom WhatsApp OTP sessions in admin/venue flows. This is an accepted architecture tradeoff for the current client-side PWA model, but it must be documented and paired with short token lifetimes, strong CSP, and credential rotation.
+- Browser custom WhatsApp OTP sessions in production admin/venue flows now use a Cloudflare Pages BFF with same-origin `/api/auth/*` routes, `/api/supabase/*` proxying, and HttpOnly cookies. Local development may still opt into browser-memory mode with `VITE_PRIVILEGED_SESSION_MODE=browser`.
 - The reviewer OTP fixture is time-bound UAT support and must not be treated as a production bypass.
 - Supabase service role secrets and DB credentials exposed during review must be rotated before production.
 

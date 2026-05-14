@@ -16,7 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Verifies that the Riverpod DI graph resolves all providers without errors.
 /// This is a structural/wiring test — it ensures the provider dependency
-/// graph is correctly connected after the GetIt → Riverpod migration.
+/// graph is correctly connected through Riverpod.
 void main() {
   late ProviderContainer container;
 

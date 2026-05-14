@@ -1,7 +1,7 @@
 /// Riverpod providers for ALL gateways & core services.
 ///
-/// Phase 2 DI migration: replaces `getIt<T>()` with `ref.read(tProvider)`.
-/// Each provider mirrors one lazySingleton from injection.config.dart.
+/// ProviderScope overrides supply runtime singletons that need async startup;
+/// feature gateways are resolved directly through Riverpod.
 library;
 
 import 'dart:ui' show PlatformDispatcher;

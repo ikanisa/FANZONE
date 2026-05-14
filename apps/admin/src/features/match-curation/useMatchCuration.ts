@@ -16,6 +16,7 @@ export interface CuratedMatch {
   priority_score: number;
   reason: string | null;
   is_active: boolean;
+  is_pool_eligible: boolean;
   starts_at: string | null;
   expires_at: string | null;
   metadata: Record<string, unknown>;
@@ -33,6 +34,7 @@ export interface CuratedMatchInput {
   expires_at?: string | null;
   metadata?: Record<string, unknown>;
   is_active?: boolean;
+  is_pool_eligible?: boolean;
 }
 
 export interface MatchStateInput {
@@ -116,7 +118,10 @@ export function useCreateCuratedMatch() {
         p_starts_at: cleanNullable(input.starts_at),
         p_expires_at: cleanNullable(input.expires_at),
         p_is_active: input.is_active ?? true,
-        p_metadata: input.metadata ?? {},
+        p_metadata: {
+          ...(input.metadata ?? {}),
+          pool_eligible: input.is_pool_eligible ?? false,
+        },
       });
 
       if (error) throw new Error(error.message);
@@ -140,6 +145,23 @@ export function useSetCuratedMatchActive() {
     },
     invalidateKeys: [["match-curation"], ["dashboard-kpis"]],
     successMessage: "Curation status updated.",
+  });
+}
+
+export function useSetCuratedMatchPoolEligible() {
+  return useSupabaseMutation<{ id: string; is_pool_eligible: boolean }>({
+    mutationFn: async ({ id, is_pool_eligible }) => {
+      if (!isSupabaseConfigured) return throwMissingAdminEnv();
+
+      const { error } = await supabase.rpc("admin_set_curated_match_pool_eligible", {
+        p_curated_match_id: id,
+        p_is_pool_eligible: is_pool_eligible,
+      });
+
+      if (error) throw new Error(error.message);
+    },
+    invalidateKeys: [["match-curation"], ["dashboard-kpis"]],
+    successMessage: "Pool eligibility updated.",
   });
 }
 

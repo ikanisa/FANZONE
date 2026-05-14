@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../core/config/platform_feature_access.dart';
 import '../../../models/auth_and_user/privacy_settings_model.dart';
@@ -142,77 +141,54 @@ class _PrivacySettingsScreenState extends ConsumerState<PrivacySettingsScreen> {
                               ),
                             ],
                             Text(
-                              'Core Guarantees'.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: muted,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            const PrivacySourceCard(
-                              child: Column(
-                                children: [
-                                  GuaranteeRow(
-                                    icon: LucideIcons.smartphone,
-                                    iconColor: FzColors.primary,
-                                    title: 'Phone Number Hidden',
-                                    description:
-                                        'Your WhatsApp/Phone number is encrypted and stored server-side only. It is never exposed to other users, club admins, or public pool activity.',
-                                    showDivider: true,
-                                  ),
-                                  GuaranteeRow(
-                                    icon: LucideIcons.shield,
-                                    iconColor: FzColors.primary,
-                                    title: 'Anonymous Rewards',
-                                    description:
-                                        'Pool rewards, venue rewards, and token transfers are logged using your Fan ID and reward or amount metadata only. Exact phone numbers are not exposed publicly.',
-                                    showDivider: false,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 28),
-                            Text(
                               'Visibility Controls'.toUpperCase(),
                               style: FzTypography.sectionLabel(
                                 Theme.of(context).brightness,
                               ).copyWith(color: muted),
                             ),
                             const SizedBox(height: 12),
-                            PrivacySourceCard(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                children: [
-                                  VisibilityControlRow(
-                                    title: 'Display Name in Pool Activity',
-                                    description:
-                                        'Show your custom display name instead of your anonymous Fan ID on public pool and share-card surfaces.',
-                                    value: _showNameInPoolActivity,
-                                    enabled: isVerified && !_saving,
-                                    showDivider: false,
-                                    onChanged: (value) => _updateSettings(
-                                      showNameInPoolActivity: value,
+                            if (!isVerified)
+                              PrivacySourceCard(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Verify WhatsApp to manage privacy controls.',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (!isVerified) ...[
-                              const SizedBox(height: 12),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
+                                    const SizedBox(height: 12),
+                                    FilledButton(
+                                      onPressed: () => context.go(
+                                        '/login?from=${Uri.encodeComponent('/settings/privacy')}',
+                                      ),
+                                      child: const Text('Verify WhatsApp'),
+                                    ),
+                                  ],
                                 ),
-                                child: Text(
-                                  '* Verification required to change visibility settings.',
-                                  style: FzTypography.statusLabel(
-                                    color: FzColors.coral,
-                                  ),
+                              )
+                            else
+                              PrivacySourceCard(
+                                padding: const EdgeInsets.all(8),
+                                child: Column(
+                                  children: [
+                                    VisibilityControlRow(
+                                      title: 'Display Name in Pool Activity',
+                                      description:
+                                          'Show your display name instead of your Fan ID on pool and share-card surfaces.',
+                                      value: _showNameInPoolActivity,
+                                      enabled: !_saving,
+                                      showDivider: false,
+                                      onChanged: (value) => _updateSettings(
+                                        showNameInPoolActivity: value,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
                           ],
                         ),
                       ),

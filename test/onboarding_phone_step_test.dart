@@ -21,6 +21,9 @@ void main() {
             canContinue: false,
             onBack: () {},
             onNext: () {},
+            onCountryChanged: (_) {},
+            phoneHelpText: 'Test Country: +111 9XX XXX XXX',
+            phoneHelpIsError: false,
             selectedCountry: const CountryEntry(
               countryCode: 'AA',
               countryName: 'Test Country',
@@ -38,7 +41,10 @@ void main() {
     );
 
     expect(find.text('WHATSAPP'), findsOneWidget);
-    expect(find.text('No name needed.'), findsOneWidget);
+    expect(
+      find.text('Select your country code and enter a valid WhatsApp number.'),
+      findsOneWidget,
+    );
     expect(find.text('SEND OTP TO WHATSAPP'), findsOneWidget);
   });
 
@@ -59,6 +65,9 @@ void main() {
             canContinue: true,
             onBack: () {},
             onNext: () {},
+            onCountryChanged: (_) {},
+            phoneHelpText: 'Ready: +111 7718 6193',
+            phoneHelpIsError: false,
             selectedCountry: const CountryEntry(
               countryCode: 'AA',
               countryName: 'Test Country',
@@ -76,5 +85,6 @@ void main() {
     );
 
     expect(find.text('+111'), findsOneWidget);
+    expect(find.text('AA'), findsNothing);
   });
 }

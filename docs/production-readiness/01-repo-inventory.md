@@ -92,7 +92,7 @@ Unavailable locally:
 - Main CI exists in `.github/workflows/ci.yml` and covers Flutter, web, Supabase/Deno, dependency audits, release probes, and secret regex checks where secrets are present.
 - Secret regex scanning exists in `.github/workflows/secret-regex-scan.yml`.
 - Cron workflows are manual-only fallbacks; docs defer production scheduling to Supabase/platform cron or local scheduled jobs.
-- Web deploy workflows are manual and use Cloudflare secrets; repo-visible GitHub Environment gates are not yet configured in code.
+- Web deploy workflows are manual and use Cloudflare secrets; GitHub Environment gates, branch restrictions, and concurrency controls are configured for production deploys.
 - Branch protection and required checks cannot be proven from static repo files.
 
 ## What Must Be Preserved

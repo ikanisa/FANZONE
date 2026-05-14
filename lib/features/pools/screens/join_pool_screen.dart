@@ -145,7 +145,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
                 children: [
-                  const FzBackHeader(title: 'Join', subtitle: 'Pick camp'),
+                  const FzBackHeader(title: 'Join'),
                   const SizedBox(height: 48),
                   StateView.empty(
                     title: 'Pool not found',
@@ -165,7 +165,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
               data: (wallet) => ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
                 children: [
-                  const FzBackHeader(title: 'Join', subtitle: 'Pick camp'),
+                  const FzBackHeader(title: 'Join'),
                   const SizedBox(height: 18),
                   _JoinHero(pool: pool, availableFet: wallet.availableFet),
                   const SizedBox(height: 16),
@@ -290,25 +290,10 @@ class _JoinHero extends StatelessWidget {
               letterSpacing: 0,
             ),
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Pick camp. Stake FET.',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 13,
-              height: 1.35,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
           const SizedBox(height: 12),
           Row(
             children: [
               _HeroMetric(label: 'Available', value: '$availableFet FET'),
-              const SizedBox(width: 10),
-              _HeroMetric(
-                label: 'Default',
-                value: '${pool.defaultStakeFet} FET',
-              ),
             ],
           ),
         ],
@@ -326,7 +311,7 @@ class _JoinLoadingState extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
         children: [
-          FzBackHeader(title: 'Join', subtitle: 'Pick camp'),
+          FzBackHeader(title: 'Join'),
           Expanded(child: Center(child: CircularProgressIndicator())),
         ],
       ),

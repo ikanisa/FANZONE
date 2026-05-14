@@ -52,11 +52,9 @@ class _NoVenueState extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
       children: [
-        const FzReferenceHeader(title: 'FZ'),
-        const SizedBox(height: 24),
         FzEmptyState(
-          title: 'Scan a table QR',
-          description: 'Scan or pick bar.',
+          title: 'Choose a bar',
+          description: 'Open a bar menu.',
           icon: const Icon(LucideIcons.qrCode),
           actionLabel: 'Bars',
           onAction: () => context.go('/venues'),
@@ -90,7 +88,15 @@ class _BarContent extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    const Expanded(child: FzReferenceHeader(title: 'FZ')),
+                    Expanded(
+                      child: Text(
+                        'Menu',
+                        style: FzTypography.display(
+                          size: 38,
+                          color: FzColors.darkText,
+                        ),
+                      ),
+                    ),
                     IconButton(
                       tooltip: 'Leave venue',
                       onPressed: () {
@@ -102,28 +108,8 @@ class _BarContent extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 22),
-                Text(
-                  'Menu',
-                  style: FzTypography.display(
-                    size: 38,
-                    color: FzColors.darkText,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Order unlocks rewards.',
-                  style: TextStyle(
-                    color: FzColors.darkMuted,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
                 const SizedBox(height: 16),
                 _VenueContextCard(cart: cart),
-                const SizedBox(height: 12),
-                const _PaymentGuidanceCard(),
-                const SizedBox(height: 18),
-                const _SectionTitle(title: 'Menu'),
               ],
             ),
           ),
@@ -233,11 +219,6 @@ class _VenueContextCard extends ConsumerWidget {
                 label: 'Cart',
                 value: cart.isEmpty ? 'Empty' : cart.totalDisplay,
               ),
-              const SizedBox(width: 10),
-              _ContextMetric(
-                label: 'Earn',
-                value: cart.isEmpty ? 'Add' : '${cart.estimatedFet} FET',
-              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -259,7 +240,7 @@ class _VenueContextCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const _RingBellButton(),
+          if (venueContext.hasTable) const _RingBellButton(),
         ],
       ),
     );
@@ -412,44 +393,6 @@ class _StatusStrip extends StatelessWidget {
   }
 }
 
-class _PaymentGuidanceCard extends StatelessWidget {
-  const _PaymentGuidanceCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return const FzCard(
-      padding: EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(LucideIcons.badgeCheck, color: FzColors.success),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Staff confirms rewards.',
-              style: TextStyle(fontSize: 13, height: 1.4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-    );
-  }
-}
-
 class _CategorySection extends StatelessWidget {
   const _CategorySection({required this.category, required this.items});
 
@@ -494,44 +437,16 @@ class _MenuItemCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final quantity = ref.watch(cartProvider.notifier).getQuantity(item.id);
-    final estimatedFet = _estimatedFetForItem(item);
-
     return FzCard(
       padding: EdgeInsets.zero,
       borderRadius: FzRadii.card,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            children: [
-              FzImageSurface(
-                imageUrl: item.imageUrl,
-                icon: LucideIcons.utensils,
-                height: 132,
-              ),
-              Positioned(
-                right: 12,
-                top: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: FzColors.success,
-                    borderRadius: FzRadii.fullRadius,
-                  ),
-                  child: Text(
-                    estimatedFet > 0 ? '+$estimatedFet FET' : 'FET',
-                    style: const TextStyle(
-                      color: FzColors.darkBg,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          FzImageSurface(
+            imageUrl: item.imageUrl,
+            icon: LucideIcons.utensils,
+            height: 132,
           ),
           Padding(
             padding: const EdgeInsets.all(14),
@@ -574,38 +489,7 @@ class _MenuItemCard extends ConsumerWidget {
                               color: FzColors.action,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: FzColors.success.withValues(alpha: 0.10),
-                              borderRadius: FzRadii.fullRadius,
-                              border: Border.all(
-                                color: FzColors.success.withValues(alpha: 0.20),
-                              ),
-                            ),
-                            child: Text(
-                              estimatedFet > 0 ? '~$estimatedFet FET' : 'FET',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                color: FzColors.success,
-                              ),
-                            ),
-                          ),
                         ],
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'After staff confirms.',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: FzColors.darkMuted,
-                        ),
                       ),
                     ],
                   ),
@@ -737,7 +621,7 @@ class _CartPill extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${cart.totalItemCount} items • +${cart.estimatedFet} FET',
+                    '${cart.totalItemCount} items',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -763,12 +647,6 @@ class _CartPill extends StatelessWidget {
       ),
     );
   }
-}
-
-int _estimatedFetForItem(MenuItemModel item) {
-  if (item.currencyCode == 'EUR') return (item.price * 100).floor();
-  if (item.currencyCode == 'RWF') return ((item.price / 1500) * 100).floor();
-  return 0;
 }
 
 String _compactWords(String value, int maxWords) {

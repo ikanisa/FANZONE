@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../../config/app_config.dart';
 import '../../../core/config/platform_feature_access.dart';
 import '../../../data/team_search_database.dart';
 import '../../../providers/auth_provider.dart';
@@ -14,7 +12,6 @@ import '../../../providers/profile_country_provider.dart';
 import '../../../services/push_notification_service.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
-import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
@@ -58,57 +55,16 @@ class ProfileScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           children: [
             const SizedBox(height: 14),
-            const FzReferenceHeader(title: 'FZ'),
+            FzBackHeader(
+              title: 'Profile',
+              subtitle: fanId == null || fanId.isEmpty
+                  ? 'FANZONE profile'
+                  : '#$fanId',
+              onClose: () => context.go('/home'),
+            ),
             const SizedBox(height: 24),
 
-            // Header title
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'PROFILE',
-                      style: FzTypography.sportsTitle(
-                        size: 36,
-                        color: FzColors.darkText,
-                      ),
-                    ),
-                  ),
-                  if (showSettings)
-                    Tooltip(
-                      message: 'Open settings',
-                      child: InkWell(
-                        onTap: () => context.push(settingsRoute),
-                        borderRadius: FzRadii.fullRadius,
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? FzColors.darkSurface2
-                                : FzColors.lightSurface2,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isDark
-                                  ? FzColors.darkBorder
-                                  : FzColors.lightBorder,
-                            ),
-                          ),
-                          child: Icon(
-                            LucideIcons.settings,
-                            size: 18,
-                            color: muted,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
             ProfileHeaderCard(
-              hasSession: hasSession,
               isVerified: isVerified,
               fanId: fanId,
               isDark: isDark,
@@ -124,11 +80,6 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 12),
 
             ProfileDetailsCard(
-              countryLabel: 'Country',
-              countryDetail: _countryDetail(
-                favoriteTeams,
-                loading: favoriteTeamsAsync.isLoading,
-              ),
               favoriteTeamsLabel: 'Favorite teams',
               favoriteTeamsDetail: _favoriteTeamsDetail(
                 favoriteTeams,
@@ -162,17 +113,8 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 12),
 
             ProfileAccountLinksCard(
-              onHelp: () =>
-                  _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
               showInbox: showInbox,
               showSettings: showSettings,
-              showVerifyAction: !isVerified,
-              onVerifyPhone: () => showSignInRequiredSheet(
-                context,
-                title: 'Verify WhatsApp',
-                message: 'Unlock wallet and pools.',
-                from: '/profile',
-              ),
               showSignOut: hasSession,
               onInboxTap: () => context.push(notificationsRoute),
               onSettingsTap: () => context.push(settingsRoute),
@@ -188,53 +130,11 @@ class ProfileScreen extends ConsumerWidget {
                 }
               },
             ),
-
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.only(top: 24, bottom: 100),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
-                  ),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    '${AppConfig.appName} v${AppConfig.appVersion}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      letterSpacing: 1.6,
-                      fontWeight: FontWeight.w700,
-                      color: muted,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 120),
           ],
         ),
       ),
     );
-  }
-
-  static String _countryDetail(
-    List<FavoriteTeamRecordDto> teams, {
-    required bool loading,
-  }) {
-    if (loading) return 'Loading...';
-    final team = _firstTeamWithCountry(teams);
-    final country = team?.teamCountry?.trim();
-    final countryCode = team?.teamCountryCode?.trim().toUpperCase();
-    if (country != null && country.isNotEmpty) {
-      return country;
-    }
-    if (countryCode != null && countryCode.isNotEmpty) {
-      return countryCode;
-    }
-    return 'Pick teams.';
   }
 
   static String _favoriteTeamsDetail(
@@ -291,27 +191,6 @@ class ProfileScreen extends ConsumerWidget {
 
     if (saved == true) {
       ref.invalidate(favoriteTeamRecordsProvider);
-    }
-  }
-
-  static FavoriteTeamRecordDto? _firstTeamWithCountry(
-    List<FavoriteTeamRecordDto> teams,
-  ) {
-    for (final team in teams) {
-      final country = team.teamCountry?.trim();
-      final countryCode = team.teamCountryCode?.trim();
-      if ((country != null && country.isNotEmpty) ||
-          (countryCode != null && countryCode.isNotEmpty)) {
-        return team;
-      }
-    }
-    return null;
-  }
-
-  static Future<void> _launchUrl(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 }

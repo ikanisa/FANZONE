@@ -1,4 +1,4 @@
-export type MatchStatus = 'upcoming' | 'live' | 'finished' | string;
+export type MatchStatus = "upcoming" | "live" | "finished" | string;
 
 export interface User {
   id: string;
@@ -148,37 +148,67 @@ export interface ViewerNotification {
   readAt?: string | null;
 }
 
-export type OrderStatus = 'placed' | 'received' | 'preparing' | 'served' | 'cancelled';
-export type PaymentMethod = 'momo' | 'revolut' | 'cash' | 'card' | 'other';
+export type OrderStatus =
+  | "placed"
+  | "received"
+  | "preparing"
+  | "served"
+  | "cancelled";
+export type PaymentMethod = "momo" | "revolut" | "cash" | "card" | "other";
+export type SupportedPaymentMethod = Exclude<PaymentMethod, "card">;
 export type PaymentStatus =
-  | 'unpaid'
-  | 'payment_submitted'
-  | 'paid'
-  | 'partially_paid'
-  | 'refunded'
-  | 'disputed'
-  | 'pending'
-  | 'failed'
-  | 'cancelled';
-export type VenueUserRole = 'owner' | 'manager' | 'staff';
-export type MatchPoolScope = 'global' | 'country' | 'venue';
-export type MatchPoolStatus = 'draft' | 'open' | 'locked' | 'live' | 'settling' | 'settled' | 'cancelled';
-export type MatchPoolEntryStatus = 'active' | 'cancelled' | 'won' | 'lost' | 'refunded';
-export type GameTemplateCategory = 'trivia' | 'music_bingo' | 'song_guess';
-export type GameSessionStatus = 'scheduled' | 'lobby' | 'live' | 'ended' | 'settled' | 'cancelled';
-export type GameTeamMemberRole = 'captain' | 'member';
-export type MusicBingoClaimStatus = 'submitted' | 'verified' | 'rejected';
+  | "unpaid"
+  | "payment_submitted"
+  | "paid"
+  | "partially_paid"
+  | "refunded"
+  | "disputed"
+  | "pending"
+  | "failed"
+  | "cancelled";
+export type VenueUserRole = "owner" | "manager" | "staff";
+export type MatchPoolScope = "global" | "country" | "venue";
+export type MatchPoolStatus =
+  | "draft"
+  | "open"
+  | "locked"
+  | "live"
+  | "settling"
+  | "settled"
+  | "cancelled";
+export type MatchPoolEntryStatus =
+  | "active"
+  | "cancelled"
+  | "won"
+  | "lost"
+  | "refunded";
+export type GameTemplateCategory = "trivia" | "music_bingo" | "song_guess";
+export type GameSessionStatus =
+  | "scheduled"
+  | "lobby"
+  | "live"
+  | "ended"
+  | "settled"
+  | "cancelled";
+export type GameTeamMemberRole = "captain" | "member";
+export type MusicBingoClaimStatus = "submitted" | "verified" | "rejected";
 export type VenueScreenMode =
-  | 'welcome'
-  | 'qr'
-  | 'pool'
-  | 'game_lobby'
-  | 'game_question'
-  | 'leaderboard'
-  | 'winners'
-  | 'menu'
-  | 'promo';
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+  | "welcome"
+  | "qr"
+  | "pool"
+  | "game_lobby"
+  | "game_question"
+  | "leaderboard"
+  | "winners"
+  | "menu"
+  | "promo";
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
 
 export interface Venue {
   id: string;
@@ -475,9 +505,9 @@ export interface VenueFetWalletTransactionRow {
   id: string;
   venue_id: string;
   transaction_type: string;
-  direction: 'credit' | 'debit';
+  direction: "credit" | "debit";
   amount_fet: number;
-  balance_bucket: 'available' | 'staked' | 'pending';
+  balance_bucket: "available" | "staked" | "pending";
   balance_before_fet: number;
   balance_after_fet: number;
   reference_type: string | null;
@@ -486,7 +516,7 @@ export interface VenueFetWalletTransactionRow {
   game_session_id: string | null;
   idempotency_key: string | null;
   title: string | null;
-  status: 'posted' | 'pending' | 'voided';
+  status: "posted" | "pending" | "voided";
   metadata: Json;
   created_by: string | null;
   created_at: string;
@@ -695,7 +725,7 @@ export interface MatchPoolSettlementRow {
   [key: string]: unknown;
   id: string;
   pool_id: string;
-  status: 'running' | 'completed' | 'failed';
+  status: "running" | "completed" | "failed";
   result_camp_id: string | null;
   winners_count: number;
   losing_stake_fet: number;
@@ -922,7 +952,11 @@ export interface Database {
         Returns: Json;
       };
       venue_reject_pool: {
-        Args: { p_pool_id: string; p_venue_id: string; p_reason?: string | null };
+        Args: {
+          p_pool_id: string;
+          p_venue_id: string;
+          p_reason?: string | null;
+        };
         Returns: Json;
       };
       sports_bar_is_venue_member: {
@@ -994,7 +1028,7 @@ export interface Database {
         Args: {
           p_venue_id: string;
           p_reward_percent?: number | null;
-          p_reward_trigger?: 'paid' | 'served' | null;
+          p_reward_trigger?: "paid" | "served" | null;
           p_accepts_fet_spend?: boolean | null;
           p_redemption_fet_per_currency?: number | null;
           p_max_fet_spend_per_order?: number | null;
@@ -1034,7 +1068,7 @@ export interface Database {
       update_game_session_lifecycle: {
         Args: {
           p_session_id: string;
-          p_action: 'start' | 'pause' | 'resume' | 'next_round' | 'end';
+          p_action: "start" | "pause" | "resume" | "next_round" | "end";
           p_note?: string | null;
         };
         Returns: Json;

@@ -13,6 +13,8 @@ import {
   fixedOrDefaultStake,
   getPoolJoinAvailability,
   poolStatusLabel,
+  safeHref,
+  safeImageUrl,
 } from "@fanzone/core";
 import { api } from "../services/api";
 import { useAppStore } from "../store/useAppStore";
@@ -118,6 +120,8 @@ export function PoolCard({
   const outcomeEstimate = selectedCamp
     ? estimatePoolOutcome(pool, selectedCamp, entryAmount)
     : null;
+  const socialCardUrl = safeImageUrl(pool.socialCardUrl);
+  const deepLinkUrl = safeHref(pool.deepLinkUrl);
 
   useEffect(() => {
     setStakeAmount(fixedOrDefaultStake(pool));
@@ -215,9 +219,9 @@ export function PoolCard({
         </button>
       </div>
 
-      {pool.socialCardUrl && (
+      {socialCardUrl && (
         <img
-          src={pool.socialCardUrl}
+          src={socialCardUrl}
           alt={`${pool.title} share card`}
           className="mb-4 aspect-[1200/630] w-full rounded-2xl border border-border object-cover"
           loading="lazy"
@@ -323,9 +327,9 @@ export function PoolCard({
           {poolStatusLabel(pool.status).toUpperCase()}
         </Badge>
         {pool.isOfficial && <Badge variant="ghost">OFFICIAL</Badge>}
-        {pool.deepLinkUrl && (
+        {deepLinkUrl && (
           <a
-            href={pool.deepLinkUrl}
+            href={deepLinkUrl}
             className="ml-auto text-xs font-black uppercase tracking-widest text-accent2 hover:text-accent"
           >
             Open in app

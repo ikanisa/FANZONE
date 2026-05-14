@@ -1,7 +1,5 @@
 import type {
   Json,
-  MenuCategoryRow,
-  MenuItemRow,
   Order,
   OrderItem,
   OrderItemRow,
@@ -11,26 +9,32 @@ import type {
   PaymentStatus,
   VenueOperationalInsights,
   VenueTableRow,
-} from '@fanzone/core';
-import { supabase } from '../lib/supabase';
-
-export interface RewardConfig {
-  venue_id?: string;
-  reward_percent: number;
-  reward_trigger: 'paid' | 'served';
-  accepts_fet_spend: boolean;
-  redemption_fet_per_currency: number | null;
-  max_fet_spend_per_order: number | null;
-  reward_campaign_active: boolean;
-  platform_default_reward_percent?: number;
-  platform_default_reward_trigger?: string;
-}
-
-export interface RewardSummary {
-  order_earned_today_fet: number;
-  order_spent_today_fet: number;
-  pending_settlements_fet: number;
-}
+} from "@fanzone/core";
+import { readStoredVenueSession, supabase } from "../lib/supabase";
+export type {
+  VenueMenuCategoryCreateInput,
+  VenueMenuItemCreateInput,
+  VenueMenuItemUpdateInput,
+  VenueMenuRows,
+} from "./venueMenuOperations";
+export {
+  createVenueMenuCategory,
+  createVenueMenuItem,
+  createVenueMenuItems,
+  deleteVenueMenuItem,
+  fetchVenueMenuRows,
+  setVenueMenuCategoryVisibility,
+  setVenueMenuItemAvailability,
+  updateVenueMenuCategoryOrder,
+  updateVenueMenuItem,
+} from "./venueMenuOperations";
+export type { RewardConfig, RewardSummary } from "./venueRewardOperations";
+export {
+  fetchRewardConfig,
+  fetchRewardSummary,
+  mapRewardConfig,
+  saveRewardConfig,
+} from "./venueRewardOperations";
 
 export interface VenueTable {
   id: string;
@@ -55,44 +59,12 @@ export interface BellRequest {
   createdAt: string;
 }
 
-export interface VenueMenuRows {
-  categories: MenuCategoryRow[];
-  items: MenuItemRow[];
-}
-
-export interface VenueMenuCategoryCreateInput {
-  venueId: string;
-  name: string;
-  displayOrder: number;
-  isVisible?: boolean;
-}
-
-export interface VenueMenuItemCreateInput {
-  venueId: string;
-  categoryId: string;
-  name: string;
-  description?: string | null;
-  price: number;
-  currencyCode: string;
-  imageUrl?: string | null;
-  fetEarnPercentOverride?: number | null;
-  isAvailable?: boolean;
-  displayOrder: number;
-  metadata?: Json | null;
-}
-
-export interface VenueMenuItemUpdateInput {
-  itemId: string;
-  name: string;
-  description?: string | null;
-  price: number;
-  imageUrl?: string | null;
-  fetEarnPercentOverride?: number | null;
-}
-
 type OrderWithRelations = OrderRow & {
   items?: OrderItemRow[] | null;
-  table?: { table_number?: string | null } | Array<{ table_number?: string | null }> | null;
+  table?:
+    | { table_number?: string | null }
+    | Array<{ table_number?: string | null }>
+    | null;
 };
 
 type BellRequestRow = {
@@ -104,7 +76,10 @@ type BellRequestRow = {
   acknowledged_at: string | null;
   acknowledged_by: string | null;
   created_at: string;
-  table?: { table_number?: string | null } | Array<{ table_number?: string | null }> | null;
+  table?:
+    | { table_number?: string | null }
+    | Array<{ table_number?: string | null }>
+    | null;
 };
 
 type PaymentEventRow = {
@@ -157,7 +132,7 @@ export interface VenueFetLedgerEntry {
   id: string;
   venueId: string;
   transactionType: string;
-  direction: 'credit' | 'debit';
+  direction: "credit" | "debit";
   amountFet: number;
   balanceBucket: string;
   balanceBeforeFet: number;
@@ -235,15 +210,15 @@ export interface VenueGameControl {
 }
 
 export type VenueScreenMode =
-  | 'welcome'
-  | 'qr'
-  | 'pool'
-  | 'game_lobby'
-  | 'game_question'
-  | 'leaderboard'
-  | 'winners'
-  | 'menu'
-  | 'promo';
+  | "welcome"
+  | "qr"
+  | "pool"
+  | "game_lobby"
+  | "game_question"
+  | "leaderboard"
+  | "winners"
+  | "menu"
+  | "promo";
 
 export interface VenueScreenState {
   venueId: string;
@@ -308,8 +283,10 @@ export interface VenuePoolDetail {
   settlement: VenuePoolSettlement | null;
 }
 
-function asRecord(value: Json | null | undefined): Record<string, Json | undefined> {
-  return value && typeof value === 'object' && !Array.isArray(value)
+function asRecord(
+  value: Json | null | undefined,
+): Record<string, Json | undefined> {
+  return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, Json | undefined>)
     : {};
 }
@@ -319,7 +296,7 @@ function asArray(value: Json | null | undefined): Json[] {
 }
 
 function stringOrNull(value: unknown): string | null {
-  return typeof value === 'string' && value.length > 0 ? value : null;
+  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -328,8 +305,8 @@ function toNumber(value: unknown, fallback = 0): number {
 }
 
 function normalizePaymentStatus(status: PaymentStatus): PaymentStatus {
-  if (status === 'pending') return 'unpaid';
-  if (status === 'failed' || status === 'cancelled') return 'disputed';
+  if (status === "pending") return "unpaid";
+  if (status === "failed" || status === "cancelled") return "disputed";
   return status;
 }
 
@@ -410,13 +387,20 @@ function mapPaymentEvent(row: PaymentEventRow): PaymentAuditEvent {
     status: normalizePaymentStatus(row.status),
     externalReference: row.external_reference,
     amountReceived:
-      request.amount_received == null ? null : toNumber(request.amount_received),
+      request.amount_received == null
+        ? null
+        : toNumber(request.amount_received),
     orderTotalAmount:
-      request.order_total_amount == null ? null : toNumber(request.order_total_amount),
-    note: typeof request.note === 'string' ? request.note : null,
-    actorUserId: typeof request.marked_by === 'string' ? request.marked_by : null,
-    beforeStatus: typeof request.before_status === 'string' ? request.before_status : null,
-    afterStatus: typeof request.after_status === 'string' ? request.after_status : null,
+      request.order_total_amount == null
+        ? null
+        : toNumber(request.order_total_amount),
+    note: typeof request.note === "string" ? request.note : null,
+    actorUserId:
+      typeof request.marked_by === "string" ? request.marked_by : null,
+    beforeStatus:
+      typeof request.before_status === "string" ? request.before_status : null,
+    afterStatus:
+      typeof request.after_status === "string" ? request.after_status : null,
     providerApiUsed: Boolean(response.provider_api_used),
     createdAt: row.created_at,
   };
@@ -425,23 +409,25 @@ function mapPaymentEvent(row: PaymentEventRow): PaymentAuditEvent {
 export async function fetchVenueOrders(venueId: string): Promise<Order[]> {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
-    .from('orders')
-    .select('*, items:order_items(*), table:tables(table_number)')
-    .eq('venue_id', venueId)
-    .gte('created_at', since)
-    .order('created_at', { ascending: false });
+    .from("orders")
+    .select("*, items:order_items(*), table:tables(table_number)")
+    .eq("venue_id", venueId)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return ((data ?? []) as unknown as OrderWithRelations[]).map(mapOrder);
 }
 
-export async function fetchActiveBellRequests(venueId: string): Promise<BellRequest[]> {
+export async function fetchActiveBellRequests(
+  venueId: string,
+): Promise<BellRequest[]> {
   const { data, error } = await supabase
-    .from('bell_requests')
-    .select('*, table:tables(table_number)')
-    .eq('venue_id', venueId)
-    .is('acknowledged_at', null)
-    .order('created_at', { ascending: false })
+    .from("bell_requests")
+    .select("*, table:tables(table_number)")
+    .eq("venue_id", venueId)
+    .is("acknowledged_at", null)
+    .order("created_at", { ascending: false })
     .limit(50);
 
   if (error) throw error;
@@ -449,34 +435,37 @@ export async function fetchActiveBellRequests(venueId: string): Promise<BellRequ
 }
 
 export async function acknowledgeBellRequest(bellId: string) {
-  const { data: userData } = await supabase.auth.getUser();
+  const userId = readStoredVenueSession()?.userId ?? null;
   const { error } = await supabase
-    .from('bell_requests')
+    .from("bell_requests")
     .update({
       acknowledged_at: new Date().toISOString(),
-      acknowledged_by: userData.user?.id ?? null,
+      acknowledged_by: userId,
     })
-    .eq('id', bellId);
+    .eq("id", bellId);
 
   if (error) throw error;
 }
 
-export async function fetchVenueOrderDetail(venueId: string, orderId: string): Promise<OrderDetail> {
+export async function fetchVenueOrderDetail(
+  venueId: string,
+  orderId: string,
+): Promise<OrderDetail> {
   const { data, error } = await supabase
-    .from('orders')
-    .select('*, items:order_items(*), table:tables(table_number)')
-    .eq('venue_id', venueId)
-    .eq('id', orderId)
+    .from("orders")
+    .select("*, items:order_items(*), table:tables(table_number)")
+    .eq("venue_id", venueId)
+    .eq("id", orderId)
     .maybeSingle();
 
   if (error) throw error;
-  if (!data) throw new Error('Order not found for this venue.');
+  if (!data) throw new Error("Order not found for this venue.");
 
   const { data: events, error: eventError } = await supabase
-    .from('payment_events')
-    .select('*')
-    .eq('order_id', orderId)
-    .order('created_at', { ascending: false });
+    .from("payment_events")
+    .select("*")
+    .eq("order_id", orderId)
+    .order("created_at", { ascending: false });
 
   if (eventError) throw eventError;
 
@@ -486,8 +475,11 @@ export async function fetchVenueOrderDetail(venueId: string, orderId: string): P
   };
 }
 
-export async function setOrderServiceStatus(orderId: string, status: OrderStatus) {
-  const { error } = await supabase.functions.invoke('order_update_status', {
+export async function setOrderServiceStatus(
+  orderId: string,
+  status: OrderStatus,
+) {
+  const { error } = await supabase.functions.invoke("order_update_status", {
     body: { order_id: orderId, status },
   });
 
@@ -501,219 +493,20 @@ export async function setOrderPaymentStatus(
   note?: string,
   details?: ManualPaymentDetails,
 ) {
-  const { data, error } = await supabase.rpc('venue_update_order_payment_status', {
-    p_order_id: orderId,
-    p_payment_status: normalizePaymentStatus(paymentStatus),
-    p_payment_method: paymentMethod,
-    p_actor_note: note?.trim() || null,
-    p_amount_received: details?.amountReceived ?? null,
-    p_external_reference: details?.externalReference?.trim() || null,
-  });
+  const { data, error } = await supabase.rpc(
+    "venue_update_order_payment_status",
+    {
+      p_order_id: orderId,
+      p_payment_status: normalizePaymentStatus(paymentStatus),
+      p_payment_method: paymentMethod,
+      p_actor_note: note?.trim() || null,
+      p_amount_received: details?.amountReceived ?? null,
+      p_external_reference: details?.externalReference?.trim() || null,
+    },
+  );
 
   if (error) throw error;
   return data;
-}
-
-function menuItemInsertPayload(input: VenueMenuItemCreateInput) {
-  return {
-    venue_id: input.venueId,
-    category_id: input.categoryId,
-    name: input.name,
-    description: input.description ?? null,
-    price: input.price,
-    currency_code: input.currencyCode,
-    image_url: input.imageUrl ?? null,
-    fet_earn_percent_override: input.fetEarnPercentOverride ?? null,
-    is_available: input.isAvailable ?? true,
-    display_order: input.displayOrder,
-    metadata: input.metadata ?? null,
-  };
-}
-
-export async function fetchVenueMenuRows(venueId: string): Promise<VenueMenuRows> {
-  const [categoryResult, itemResult] = await Promise.all([
-    supabase
-      .from('menu_categories')
-      .select('*')
-      .eq('venue_id', venueId)
-      .order('display_order', { ascending: true }),
-    supabase
-      .from('menu_items')
-      .select('*')
-      .eq('venue_id', venueId)
-      .order('display_order', { ascending: true }),
-  ]);
-
-  if (categoryResult.error) throw categoryResult.error;
-  if (itemResult.error) throw itemResult.error;
-
-  return {
-    categories: (categoryResult.data ?? []) as MenuCategoryRow[],
-    items: (itemResult.data ?? []) as MenuItemRow[],
-  };
-}
-
-export async function createVenueMenuCategory(
-  input: VenueMenuCategoryCreateInput,
-): Promise<MenuCategoryRow> {
-  const { data, error } = await supabase
-    .from('menu_categories')
-    .insert({
-      venue_id: input.venueId,
-      name: input.name,
-      display_order: input.displayOrder,
-      is_visible: input.isVisible ?? true,
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data as MenuCategoryRow;
-}
-
-export async function updateVenueMenuCategoryOrder(
-  categoryId: string,
-  displayOrder: number,
-): Promise<void> {
-  const { error } = await supabase
-    .from('menu_categories')
-    .update({ display_order: displayOrder })
-    .eq('id', categoryId);
-
-  if (error) throw error;
-}
-
-export async function setVenueMenuCategoryVisibility(
-  categoryId: string,
-  isVisible: boolean,
-): Promise<void> {
-  const { error } = await supabase
-    .from('menu_categories')
-    .update({ is_visible: isVisible })
-    .eq('id', categoryId);
-
-  if (error) throw error;
-}
-
-export async function createVenueMenuItem(
-  input: VenueMenuItemCreateInput,
-): Promise<MenuItemRow> {
-  const { data, error } = await supabase
-    .from('menu_items')
-    .insert(menuItemInsertPayload(input))
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data as MenuItemRow;
-}
-
-export async function createVenueMenuItems(items: VenueMenuItemCreateInput[]): Promise<void> {
-  if (items.length === 0) return;
-
-  const { error } = await supabase
-    .from('menu_items')
-    .insert(items.map(menuItemInsertPayload));
-
-  if (error) throw error;
-}
-
-export async function updateVenueMenuItem(input: VenueMenuItemUpdateInput): Promise<void> {
-  const { error } = await supabase
-    .from('menu_items')
-    .update({
-      name: input.name,
-      price: input.price,
-      description: input.description ?? null,
-      image_url: input.imageUrl ?? null,
-      fet_earn_percent_override: input.fetEarnPercentOverride ?? null,
-    })
-    .eq('id', input.itemId);
-
-  if (error) throw error;
-}
-
-export async function setVenueMenuItemAvailability(
-  itemId: string,
-  isAvailable: boolean,
-): Promise<void> {
-  const { error } = await supabase
-    .from('menu_items')
-    .update({ is_available: isAvailable })
-    .eq('id', itemId);
-
-  if (error) throw error;
-}
-
-export async function deleteVenueMenuItem(itemId: string): Promise<void> {
-  const { error } = await supabase.from('menu_items').delete().eq('id', itemId);
-
-  if (error) throw error;
-}
-
-export function mapRewardConfig(value: Partial<RewardConfig> | Json | null | undefined): RewardConfig {
-  const record = asRecord(value as Json);
-  return {
-    venue_id: typeof record.venue_id === 'string' ? record.venue_id : undefined,
-    reward_percent: toNumber(record.reward_percent, 10),
-    reward_trigger: record.reward_trigger === 'served' ? 'served' : 'paid',
-    accepts_fet_spend: Boolean(record.accepts_fet_spend),
-    redemption_fet_per_currency:
-      record.redemption_fet_per_currency == null
-        ? null
-        : toNumber(record.redemption_fet_per_currency, 0),
-    max_fet_spend_per_order:
-      record.max_fet_spend_per_order == null
-        ? null
-        : toNumber(record.max_fet_spend_per_order, 0),
-    reward_campaign_active: record.reward_campaign_active !== false,
-    platform_default_reward_percent:
-      record.platform_default_reward_percent == null
-        ? undefined
-        : toNumber(record.platform_default_reward_percent, 10),
-    platform_default_reward_trigger:
-      typeof record.platform_default_reward_trigger === 'string'
-        ? record.platform_default_reward_trigger
-        : undefined,
-  };
-}
-
-export async function fetchRewardConfig(venueId: string): Promise<RewardConfig> {
-  const { data, error } = await supabase.rpc('get_venue_fet_reward_config', {
-    p_venue_id: venueId,
-  });
-
-  if (error) throw new Error(error.message ?? 'Failed to load reward configuration.');
-  return mapRewardConfig(data);
-}
-
-export async function fetchRewardSummary(venueId: string): Promise<RewardSummary> {
-  const { data, error } = await supabase.rpc('get_venue_fet_reward_summary', {
-    p_venue_id: venueId,
-  });
-
-  if (error) throw new Error(error.message ?? 'Failed to load reward summary.');
-  const record = asRecord(data);
-  return {
-    order_earned_today_fet: toNumber(record.order_earned_today_fet),
-    order_spent_today_fet: toNumber(record.order_spent_today_fet),
-    pending_settlements_fet: toNumber(record.pending_settlements_fet),
-  };
-}
-
-export async function saveRewardConfig(venueId: string, config: RewardConfig): Promise<RewardConfig> {
-  const { data, error } = await supabase.rpc('update_venue_fet_reward_config', {
-    p_venue_id: venueId,
-    p_reward_percent: config.reward_percent,
-    p_reward_trigger: config.reward_trigger,
-    p_accepts_fet_spend: config.accepts_fet_spend,
-    p_redemption_fet_per_currency: config.redemption_fet_per_currency,
-    p_max_fet_spend_per_order: config.max_fet_spend_per_order,
-    p_reward_campaign_active: config.reward_campaign_active,
-  });
-
-  if (error) throw new Error(error.message ?? 'Failed to save reward configuration.');
-  return mapRewardConfig(data);
 }
 
 function mapVenueTable(row: VenueTableRow): VenueTable {
@@ -731,32 +524,37 @@ function mapVenueTable(row: VenueTableRow): VenueTable {
 
 export async function fetchVenueTables(venueId: string): Promise<VenueTable[]> {
   const { data, error } = await supabase
-    .from('venue_tables')
-    .select('*')
-    .eq('venue_id', venueId)
-    .order('table_number', { ascending: true });
+    .from("venue_tables")
+    .select("*")
+    .eq("venue_id", venueId)
+    .order("table_number", { ascending: true });
 
   if (error) throw error;
   return ((data ?? []) as VenueTableRow[]).map(mapVenueTable);
 }
 
-export async function generateVenueTableQr(venueId: string, tableNumber: string): Promise<VenueTable> {
-  const baseUrl = String(import.meta.env.VITE_GUEST_APP_URL || 'https://fanzone.ikanisa.com');
-  const { data, error } = await supabase.rpc('generate_table_qr', {
+export async function generateVenueTableQr(
+  venueId: string,
+  tableNumber: string,
+): Promise<VenueTable> {
+  const baseUrl = String(
+    import.meta.env.VITE_GUEST_APP_URL || "https://fanzone.guest.ikanisa.com",
+  );
+  const { data, error } = await supabase.rpc("generate_table_qr", {
     p_venue_id: venueId,
     p_table_number: tableNumber.trim(),
     p_base_url: baseUrl,
   });
 
-  if (error) throw new Error(error.message ?? 'Failed to generate table QR.');
+  if (error) throw new Error(error.message ?? "Failed to generate table QR.");
 
   const record = asRecord(data);
   return {
-    id: String(record.table_id ?? ''),
+    id: String(record.table_id ?? ""),
     venueId,
     tableNumber,
-    qrToken: typeof record.qr_token === 'string' ? record.qr_token : null,
-    qrUrl: typeof record.qr_url === 'string' ? record.qr_url : null,
+    qrToken: typeof record.qr_token === "string" ? record.qr_token : null,
+    qrUrl: typeof record.qr_url === "string" ? record.qr_url : null,
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -765,9 +563,9 @@ export async function generateVenueTableQr(venueId: string, tableNumber: string)
 
 export async function setVenueTableActive(tableId: string, isActive: boolean) {
   const { error } = await supabase
-    .from('tables')
+    .from("tables")
     .update({ is_active: isActive, updated_at: new Date().toISOString() })
-    .eq('id', tableId);
+    .eq("id", tableId);
 
   if (error) throw error;
 }
@@ -790,8 +588,10 @@ function mapVenueWallet(row: VenueWalletRpcRow): VenueFetWallet {
   };
 }
 
-export async function fetchVenueFetWallet(venueId: string): Promise<VenueFetWallet> {
-  const { data, error } = await supabase.rpc('get_venue_fet_wallet', {
+export async function fetchVenueFetWallet(
+  venueId: string,
+): Promise<VenueFetWallet> {
+  const { data, error } = await supabase.rpc("get_venue_fet_wallet", {
     p_venue_id: venueId,
   });
 
@@ -814,7 +614,7 @@ type VenueLedgerRow = {
   id: string;
   venue_id: string;
   transaction_type: string;
-  direction: 'credit' | 'debit';
+  direction: "credit" | "debit";
   amount_fet: number;
   balance_bucket: string;
   balance_before_fet: number;
@@ -855,10 +655,10 @@ export async function fetchVenueFetLedger(
   limit = 50,
 ): Promise<VenueFetLedgerEntry[]> {
   const { data, error } = await supabase
-    .from('venue_fet_wallet_transactions')
-    .select('*')
-    .eq('venue_id', venueId)
-    .order('created_at', { ascending: false })
+    .from("venue_fet_wallet_transactions")
+    .select("*")
+    .eq("venue_id", venueId)
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) throw error;
@@ -870,7 +670,7 @@ export async function requestVenueFetTopUp(
   amountFet: number,
   note: string | null,
 ): Promise<Json | null> {
-  const { data, error } = await supabase.rpc('request_venue_fet_top_up', {
+  const { data, error } = await supabase.rpc("request_venue_fet_top_up", {
     p_venue_id: venueId,
     p_amount_fet: Math.max(1, Math.round(amountFet)),
     p_note: note?.trim() || null,
@@ -889,10 +689,10 @@ type GameTemplateRow = {
 
 export async function fetchGameTemplates(): Promise<GameTemplate[]> {
   const { data, error } = await supabase
-    .from('game_templates')
-    .select('id, name, category, is_active')
-    .eq('is_active', true)
-    .order('name', { ascending: true });
+    .from("game_templates")
+    .select("id, name, category, is_active")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
 
   if (error) throw error;
   return ((data ?? []) as GameTemplateRow[]).map((row) => ({
@@ -916,14 +716,20 @@ type GameSessionRow = {
   current_question_ordinal: number | null;
   metadata: Json | null;
   created_at: string;
-  template?: { name?: string | null; category?: string | null } | Array<{ name?: string | null; category?: string | null }> | null;
+  template?:
+    | { name?: string | null; category?: string | null }
+    | Array<{ name?: string | null; category?: string | null }>
+    | null;
 };
 
-function relationTemplate(row: GameSessionRow): { name: string; category: string } {
+function relationTemplate(row: GameSessionRow): {
+  name: string;
+  category: string;
+} {
   const template = Array.isArray(row.template) ? row.template[0] : row.template;
   return {
     name: template?.name ?? row.template_id,
-    category: template?.category ?? 'game',
+    category: template?.category ?? "game",
   };
 }
 
@@ -941,18 +747,23 @@ function mapGameSession(row: GameSessionRow): VenueGameSession {
     endedAt: row.ended_at,
     rewardFet: toNumber(row.reward_fet),
     selectedQuestionCount: toNumber(row.selected_question_count),
-    currentQuestionOrdinal: row.current_question_ordinal == null ? null : toNumber(row.current_question_ordinal),
+    currentQuestionOrdinal:
+      row.current_question_ordinal == null
+        ? null
+        : toNumber(row.current_question_ordinal),
     metadata: row.metadata,
     createdAt: row.created_at,
   };
 }
 
-export async function fetchVenueGameSessions(venueId: string): Promise<VenueGameSession[]> {
+export async function fetchVenueGameSessions(
+  venueId: string,
+): Promise<VenueGameSession[]> {
   const { data, error } = await supabase
-    .from('game_sessions')
-    .select('*, template:game_templates(name, category)')
-    .eq('venue_id', venueId)
-    .order('scheduled_start_at', { ascending: false });
+    .from("game_sessions")
+    .select("*, template:game_templates(name, category)")
+    .eq("venue_id", venueId)
+    .order("scheduled_start_at", { ascending: false });
 
   if (error) throw error;
   return ((data ?? []) as unknown as GameSessionRow[]).map(mapGameSession);
@@ -996,7 +807,7 @@ function mapGameTeam(row: GameTeamRow): VenueGameTeam {
 
 function relationTeamName(row: BingoClaimRow): string {
   const team = Array.isArray(row.team) ? row.team[0] : row.team;
-  return team?.name ?? 'Team';
+  return team?.name ?? "Team";
 }
 
 function mapBingoClaim(row: BingoClaimRow): VenueBingoClaim {
@@ -1013,40 +824,44 @@ function mapBingoClaim(row: BingoClaimRow): VenueBingoClaim {
   };
 }
 
-export async function fetchVenueGameTeams(venueId: string): Promise<VenueGameTeam[]> {
+export async function fetchVenueGameTeams(
+  venueId: string,
+): Promise<VenueGameTeam[]> {
   const { data, error } = await supabase
-    .from('game_teams')
-    .select('*, members:game_team_members(user_id)')
-    .eq('venue_id', venueId)
-    .order('created_at', { ascending: false });
+    .from("game_teams")
+    .select("*, members:game_team_members(user_id)")
+    .eq("venue_id", venueId)
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return ((data ?? []) as unknown as GameTeamRow[]).map(mapGameTeam);
 }
 
-export async function fetchGameSessionControl(sessionId: string): Promise<VenueGameControl> {
+export async function fetchGameSessionControl(
+  sessionId: string,
+): Promise<VenueGameControl> {
   const { data: sessionData, error: sessionError } = await supabase
-    .from('game_sessions')
-    .select('*, template:game_templates(name, category)')
-    .eq('id', sessionId)
+    .from("game_sessions")
+    .select("*, template:game_templates(name, category)")
+    .eq("id", sessionId)
     .maybeSingle();
 
   if (sessionError) throw sessionError;
-  if (!sessionData) throw new Error('Game session not found.');
+  if (!sessionData) throw new Error("Game session not found.");
 
   const session = mapGameSession(sessionData as unknown as GameSessionRow);
   const { data: teamRows, error: teamError } = await supabase
-    .from('game_teams')
-    .select('*, members:game_team_members(user_id)')
-    .eq('session_id', sessionId)
-    .order('score_fet', { ascending: false });
+    .from("game_teams")
+    .select("*, members:game_team_members(user_id)")
+    .eq("session_id", sessionId)
+    .order("score_fet", { ascending: false });
 
   if (teamError) throw teamError;
 
   let currentQuestion: VenueGameQuestion | null = null;
   if (session.currentQuestionOrdinal) {
     const { data: questionRows, error: questionError } = await supabase.rpc(
-      'get_game_session_question',
+      "get_game_session_question",
       {
         p_session_id: sessionId,
         p_ordinal: session.currentQuestionOrdinal,
@@ -1073,15 +888,17 @@ export async function fetchGameSessionControl(sessionId: string): Promise<VenueG
   }
 
   let bingoClaims: VenueBingoClaim[] = [];
-  if (session.templateId === 'music_bingo') {
+  if (session.templateId === "music_bingo") {
     const { data: claimRows, error: claimError } = await supabase
-      .from('music_bingo_claims')
-      .select('*, team:game_teams(name)')
-      .eq('session_id', sessionId)
-      .order('created_at', { ascending: false });
+      .from("music_bingo_claims")
+      .select("*, team:game_teams(name)")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: false });
 
     if (claimError) throw claimError;
-    bingoClaims = ((claimRows ?? []) as unknown as BingoClaimRow[]).map(mapBingoClaim);
+    bingoClaims = ((claimRows ?? []) as unknown as BingoClaimRow[]).map(
+      mapBingoClaim,
+    );
   }
 
   return {
@@ -1098,7 +915,7 @@ export async function createVenueGameSession(input: {
   scheduledStartAt: string;
   rewardFet: number;
 }): Promise<Json | null> {
-  const { data, error } = await supabase.rpc('create_game_session', {
+  const { data, error } = await supabase.rpc("create_game_session", {
     p_venue_id: input.venueId,
     p_template_id: input.templateId,
     p_scheduled_start_at: input.scheduledStartAt,
@@ -1111,10 +928,10 @@ export async function createVenueGameSession(input: {
 
 export async function updateGameSessionLifecycle(
   sessionId: string,
-  action: 'start' | 'pause' | 'resume' | 'next_round' | 'end',
+  action: "start" | "pause" | "resume" | "next_round" | "end",
   note?: string,
 ): Promise<Json | null> {
-  const { data, error } = await supabase.rpc('update_game_session_lifecycle', {
+  const { data, error } = await supabase.rpc("update_game_session_lifecycle", {
     p_session_id: sessionId,
     p_action: action,
     p_note: note?.trim() || null,
@@ -1130,7 +947,7 @@ export async function verifyMusicBingoClaim(
   awardFet: number,
   note?: string,
 ): Promise<Json | null> {
-  const { data, error } = await supabase.rpc('verify_music_bingo_claim', {
+  const { data, error } = await supabase.rpc("verify_music_bingo_claim", {
     p_claim_id: claimId,
     p_approved: approved,
     p_award_fet: Math.max(0, Math.round(awardFet)),
@@ -1141,8 +958,10 @@ export async function verifyMusicBingoClaim(
   return data as Json | null;
 }
 
-export async function settleVenueGameSession(sessionId: string): Promise<Json | null> {
-  const { data, error } = await supabase.rpc('venue_settle_game_session', {
+export async function settleVenueGameSession(
+  sessionId: string,
+): Promise<Json | null> {
+  const { data, error } = await supabase.rpc("venue_settle_game_session", {
     p_session_id: sessionId,
   });
 
@@ -1172,11 +991,13 @@ function mapScreenState(row: ScreenStateRow): VenueScreenState {
   };
 }
 
-export async function fetchVenueScreenState(venueId: string): Promise<VenueScreenState | null> {
+export async function fetchVenueScreenState(
+  venueId: string,
+): Promise<VenueScreenState | null> {
   const { data, error } = await supabase
-    .from('venue_screen_states')
-    .select('*')
-    .eq('venue_id', venueId)
+    .from("venue_screen_states")
+    .select("*")
+    .eq("venue_id", venueId)
     .maybeSingle();
 
   if (error) throw error;
@@ -1190,7 +1011,7 @@ export async function setVenueScreenState(input: {
   activeGameSessionId?: string | null;
   payload?: Json | null;
 }): Promise<Json | null> {
-  const { data, error } = await supabase.rpc('set_venue_screen_state', {
+  const { data, error } = await supabase.rpc("set_venue_screen_state", {
     p_venue_id: input.venueId,
     p_mode: input.mode,
     p_active_pool_id: input.activePoolId ?? null,
@@ -1202,8 +1023,11 @@ export async function setVenueScreenState(input: {
   return data as Json | null;
 }
 
-export async function closeVenuePoolJoining(poolId: string, note?: string): Promise<Json | null> {
-  const { data, error } = await supabase.rpc('venue_close_match_pool', {
+export async function closeVenuePoolJoining(
+  poolId: string,
+  note?: string,
+): Promise<Json | null> {
+  const { data, error } = await supabase.rpc("venue_close_match_pool", {
     p_pool_id: poolId,
     p_note: note?.trim() || null,
   });
@@ -1213,7 +1037,7 @@ export async function closeVenuePoolJoining(poolId: string, note?: string): Prom
 }
 
 export async function settleVenuePool(poolId: string): Promise<Json | null> {
-  const { data, error } = await supabase.rpc('venue_settle_match_pool', {
+  const { data, error } = await supabase.rpc("venue_settle_match_pool", {
     p_pool_id: poolId,
   });
 
@@ -1263,14 +1087,14 @@ export async function fetchVenuePoolDetail(
   poolId: string,
 ): Promise<VenuePoolDetail> {
   const { data: poolRow, error: poolError } = await supabase
-    .from('match_pool_stats')
-    .select('*')
-    .eq('venue_id', venueId)
-    .eq('id', poolId)
+    .from("match_pool_stats")
+    .select("*")
+    .eq("venue_id", venueId)
+    .eq("id", poolId)
     .maybeSingle();
 
   if (poolError) throw poolError;
-  if (!poolRow) throw new Error('Prediction pool not found for this venue.');
+  if (!poolRow) throw new Error("Prediction pool not found for this venue.");
 
   const pool = poolRow as MatchPoolStatsDetailRow;
   const [
@@ -1279,19 +1103,19 @@ export async function fetchVenuePoolDetail(
     { data: settlementRow, error: settlementError },
   ] = await Promise.all([
     supabase
-      .from('app_matches')
-      .select('competition_name, match_date, home_team, away_team')
-      .eq('id', pool.match_id)
+      .from("app_matches")
+      .select("competition_name, match_date, home_team, away_team")
+      .eq("id", pool.match_id)
       .limit(1),
     supabase
-      .from('match_pool_entries')
-      .select('*')
-      .eq('pool_id', poolId)
-      .order('created_at', { ascending: false }),
+      .from("match_pool_entries")
+      .select("*")
+      .eq("pool_id", poolId)
+      .order("created_at", { ascending: false }),
     supabase
-      .from('match_pool_settlements')
-      .select('*')
-      .eq('pool_id', poolId)
+      .from("match_pool_settlements")
+      .select("*")
+      .eq("pool_id", poolId)
       .maybeSingle(),
   ]);
 
@@ -1309,15 +1133,16 @@ export async function fetchVenuePoolDetail(
   const camps = asArray(pool.camps).map((item) => {
     const camp = asRecord(item);
     return {
-      id: String(camp.id ?? ''),
-      label: String(camp.label ?? 'Camp'),
+      id: String(camp.id ?? ""),
+      label: String(camp.label ?? "Camp"),
       resultCode: stringOrNull(camp.result_code),
       memberCount: toNumber(camp.member_count),
       totalStakedFet: toNumber(camp.total_staked_fet),
       isWinningCamp: camp.is_winning_camp === true,
     };
   });
-  const settlement = settlementRow as unknown as MatchPoolSettlementDetailRow | null;
+  const settlement =
+    settlementRow as unknown as MatchPoolSettlementDetailRow | null;
 
   return {
     pool: {
@@ -1326,7 +1151,7 @@ export async function fetchVenuePoolDetail(
       matchLabel:
         matchRecord?.home_team && matchRecord?.away_team
           ? `${matchRecord.home_team} vs ${matchRecord.away_team}`
-          : pool.title ?? 'Prediction pool',
+          : (pool.title ?? "Prediction pool"),
       competitionName: matchRecord?.competition_name ?? null,
       status: pool.status,
       title: pool.title,
@@ -1365,18 +1190,20 @@ export async function fetchVenuePoolDetail(
   };
 }
 
-export async function fetchVenueOperationalInsights(venueId: string): Promise<VenueOperationalInsights> {
-  const { data, error } = await supabase.rpc('get_venue_operational_insights', {
+export async function fetchVenueOperationalInsights(
+  venueId: string,
+): Promise<VenueOperationalInsights> {
+  const { data, error } = await supabase.rpc("get_venue_operational_insights", {
     p_venue_id: venueId,
   });
 
-  if (error) throw new Error(error.message ?? 'Failed to load venue insights.');
+  if (error) throw new Error(error.message ?? "Failed to load venue insights.");
   const record = asRecord(data);
   const topItems = Array.isArray(record.top_menu_items)
     ? record.top_menu_items.map((item) => {
         const itemRecord = asRecord(item);
         return {
-          name: String(itemRecord.name ?? 'Item'),
+          name: String(itemRecord.name ?? "Item"),
           quantity: toNumber(itemRecord.quantity),
           revenue: toNumber(itemRecord.revenue),
         };
@@ -1386,13 +1213,19 @@ export async function fetchVenueOperationalInsights(venueId: string): Promise<Ve
   const matchRecord = asRecord(record.most_active_match as Json | null);
   const mostActiveMatch = Object.keys(matchRecord).length
     ? {
-        pool_id: String(matchRecord.pool_id ?? ''),
-        match_id: String(matchRecord.match_id ?? ''),
-        title: String(matchRecord.title ?? 'Venue pool'),
+        pool_id: String(matchRecord.pool_id ?? ""),
+        match_id: String(matchRecord.match_id ?? ""),
+        title: String(matchRecord.title ?? "Venue pool"),
         competition_name:
-          typeof matchRecord.competition_name === 'string' ? matchRecord.competition_name : null,
-        match_label: String(matchRecord.match_label ?? matchRecord.title ?? 'Match pool'),
-        status: String(matchRecord.status ?? 'open') as NonNullable<VenueOperationalInsights['most_active_match']>['status'],
+          typeof matchRecord.competition_name === "string"
+            ? matchRecord.competition_name
+            : null,
+        match_label: String(
+          matchRecord.match_label ?? matchRecord.title ?? "Match pool",
+        ),
+        status: String(matchRecord.status ?? "open") as NonNullable<
+          VenueOperationalInsights["most_active_match"]
+        >["status"],
         total_members: toNumber(matchRecord.total_members),
         total_staked_fet: toNumber(matchRecord.total_staked_fet),
       }

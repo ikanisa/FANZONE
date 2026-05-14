@@ -69,48 +69,12 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 150),
             children: [
-              const FzReferenceHeader(title: 'FZ'),
-              const SizedBox(height: 24),
               Text(
-                'PLAY',
+                'POOLS',
                 style: FzTypography.sportsTitle(
                   size: 42,
                   color: FzColors.darkText,
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Pools. Games. FET.',
-                style: TextStyle(
-                  color: FzColors.darkMuted,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(LucideIcons.trophy, size: 16),
-                      label: const Text('Pools'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.go('/games'),
-                      icon: const Icon(LucideIcons.gamepad2, size: 16),
-                      label: const Text('Games'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
               ),
               const SizedBox(height: 14),
               SingleChildScrollView(
@@ -295,16 +259,6 @@ class _ArenaPoolCard extends StatelessWidget {
                 color: pool.isOpen ? FzColors.green : FzColors.gold,
                 selected: true,
               ),
-              const Spacer(),
-              const Text(
-                'BAR',
-                style: TextStyle(
-                  color: FzColors.darkMuted,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.1,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -385,24 +339,13 @@ class _ArenaPoolCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onOpen,
-                  icon: const Icon(LucideIcons.eye, size: 16),
-                  label: const Text('View'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: pool.isOpen ? () => onJoin(primaryCamp) : null,
-                  icon: const Icon(LucideIcons.trophy, size: 16),
-                  label: const Text('Join'),
-                ),
-              ),
-            ],
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: pool.isOpen ? () => onJoin(primaryCamp) : null,
+              icon: const Icon(LucideIcons.trophy, size: 16),
+              label: const Text('Join'),
+            ),
           ),
         ],
       ),

@@ -8,15 +8,36 @@ name: Match Alert Dispatch Cron
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: cron-match-alerts-production
+  cancel-in-progress: false
+
 env:
   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
   CRON_SECRET: ${{ secrets.CRON_SECRET }}
 
 jobs:
   dispatch-match-alerts:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment:
+      name: production-operations
     steps:
+      - name: Validate cron configuration
+        run: |
+          test -n "${SUPABASE_URL}" || {
+            echo "Missing SUPABASE_URL secret." >&2
+            exit 1
+          }
+          test -n "${CRON_SECRET}" || {
+            echo "Missing CRON_SECRET secret." >&2
+            exit 1
+          }
+
       - name: Trigger match alert dispatch
         run: |
           echo "🔔 Triggering match-alert dispatch at $(date -u)"

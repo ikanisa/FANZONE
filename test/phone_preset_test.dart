@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fanzone/core/config/bootstrap_config.dart';
 import 'package:fanzone/core/config/runtime_bootstrap.dart';
 import 'package:fanzone/core/constants/phone_presets.dart';
+import 'package:fanzone/core/utils/phone_country_catalog.dart';
 
 BootstrapConfig _bootstrapConfig() {
   return BootstrapConfig(
@@ -112,6 +113,20 @@ void main() {
       final preset = phonePresetForRegion('unknown_region');
       expect(preset.dialCode, isNotEmpty);
       expect(preset.dialCode.startsWith('+'), true);
+    });
+  });
+
+  group('phoneCountryCatalog', () {
+    test('uses Malta first when bootstrap data is unavailable', () {
+      final catalog = phoneCountryCatalog();
+      final preferred = preferredPhoneCountry();
+
+      expect(catalog.length, greaterThan(100));
+      expect(catalog.first.countryCode, 'MT');
+      expect(catalog.first.countryName, 'Malta');
+      expect(catalog.first.preset.dialCode, '+356');
+      expect(catalog.first.preset.hint, '0000 0000');
+      expect(preferred.countryCode, 'MT');
     });
   });
 }

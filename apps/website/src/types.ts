@@ -1,4 +1,4 @@
-export type MatchStatus = 'upcoming' | 'live' | 'finished' | string;
+export type MatchStatus = "upcoming" | "live" | "finished" | string;
 
 export interface User {
   id: string;
@@ -47,7 +47,7 @@ export interface MatchPoolCamp {
   id: string;
   poolId: string;
   code: string;
-  campKey?: 'home' | 'draw' | 'away' | 'custom' | string;
+  campKey?: "home" | "draw" | "away" | "custom" | string;
   label: string;
   resultCode?: string | null;
   teamId?: string | null;
@@ -60,7 +60,7 @@ export interface MatchPoolCamp {
 export interface MatchPoolSummary {
   id: string;
   matchId: string;
-  scope: 'global' | 'country' | 'venue' | string;
+  scope: "global" | "country" | "venue" | string;
   countryCode?: string | null;
   venueId?: string | null;
   title: string;
@@ -135,18 +135,24 @@ export interface ViewerNotification {
   readAt?: string | null;
 }
 
-export type OrderStatus = 'placed' | 'received' | 'preparing' | 'served' | 'cancelled';
-export type PaymentMethod = 'momo' | 'revolut' | 'cash' | 'card' | 'other';
+export type OrderStatus =
+  | "placed"
+  | "received"
+  | "preparing"
+  | "served"
+  | "cancelled";
+export type PaymentMethod = "momo" | "revolut" | "cash" | "card" | "other";
+export type SupportedPaymentMethod = Exclude<PaymentMethod, "card">;
 export type PaymentStatus =
-  | 'unpaid'
-  | 'payment_submitted'
-  | 'pending'
-  | 'paid'
-  | 'partially_paid'
-  | 'failed'
-  | 'cancelled'
-  | 'refunded'
-  | 'disputed';
+  | "unpaid"
+  | "payment_submitted"
+  | "pending"
+  | "paid"
+  | "partially_paid"
+  | "failed"
+  | "cancelled"
+  | "refunded"
+  | "disputed";
 
 export interface Venue {
   id: string;

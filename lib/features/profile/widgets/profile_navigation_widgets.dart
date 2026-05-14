@@ -10,8 +10,6 @@ import '../../../widgets/common/fz_card.dart';
 class ProfileDetailsCard extends StatelessWidget {
   const ProfileDetailsCard({
     super.key,
-    required this.countryLabel,
-    required this.countryDetail,
     required this.favoriteTeamsLabel,
     required this.favoriteTeamsDetail,
     required this.linkedVenueLabel,
@@ -19,8 +17,6 @@ class ProfileDetailsCard extends StatelessWidget {
     this.onFavoriteTeamsTap,
   });
 
-  final String countryLabel;
-  final String countryDetail;
   final String favoriteTeamsLabel;
   final String favoriteTeamsDetail;
   final String linkedVenueLabel;
@@ -36,12 +32,6 @@ class ProfileDetailsCard extends StatelessWidget {
         const SizedBox(height: 8),
         ProfileSectionCard(
           children: [
-            ProfileLinkRow(
-              icon: LucideIcons.flag,
-              label: countryLabel,
-              subtitle: countryDetail,
-            ),
-            const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(
               icon: LucideIcons.star,
               label: favoriteTeamsLabel,
@@ -65,22 +55,16 @@ class ProfileDetailsCard extends StatelessWidget {
 class ProfileAccountLinksCard extends StatelessWidget {
   const ProfileAccountLinksCard({
     super.key,
-    required this.onHelp,
     required this.showInbox,
     required this.showSettings,
-    required this.showVerifyAction,
-    required this.onVerifyPhone,
     required this.showSignOut,
     required this.onSignOut,
     required this.onInboxTap,
     required this.onSettingsTap,
   });
 
-  final VoidCallback onHelp;
   final bool showInbox;
   final bool showSettings;
-  final bool showVerifyAction;
-  final VoidCallback onVerifyPhone;
   final bool showSignOut;
   final VoidCallback onSignOut;
   final VoidCallback onInboxTap;
@@ -95,8 +79,6 @@ class ProfileAccountLinksCard extends StatelessWidget {
         const SizedBox(height: 8),
         ProfileSectionCard(
           children: [
-            if (showVerifyAction) VerifyAccountRow(onTap: onVerifyPhone),
-            if (showVerifyAction) const Divider(height: 0.5, indent: 56),
             ProfileLinkRow(
               icon: LucideIcons.lock,
               label: 'Privacy',
@@ -117,12 +99,6 @@ class ProfileAccountLinksCard extends StatelessWidget {
                 onTap: onSettingsTap,
               ),
             if (showSettings) const Divider(height: 0.5, indent: 56),
-            if (showSettings)
-              ProfileLinkRow(
-                icon: LucideIcons.helpCircle,
-                label: 'Help',
-                onTap: onHelp,
-              ),
             if (showSignOut) const Divider(height: 0.5, indent: 56),
             if (showSignOut)
               ProfileLinkRow(

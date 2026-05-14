@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,7 @@ import 'firebase_options.dart';
 import 'services/app_telemetry.dart';
 import 'services/deep_link_service.dart';
 import 'services/product_analytics_service.dart';
+import 'shells/web_mobile_shell.dart';
 import 'theme/colors.dart';
 
 StreamSubscription<AuthState>? _authStateSubscription;
@@ -76,9 +78,17 @@ Future<void> main() async {
   await DeepLinkService.instance.initialize();
 
   runApp(
-    ProviderScope(overrides: _providerOverrides, child: const FanzoneApp()),
+    ProviderScope(
+      overrides: _providerOverrides,
+      child: FanzoneApp(shellBuilder: _webShellBuilder),
+    ),
   );
   startup.start();
+}
+
+Widget Function(BuildContext context, Widget child)? get _webShellBuilder {
+  if (!kIsWeb) return null;
+  return (context, child) => WebMobileShell(child: child);
 }
 
 Future<void> _initializeCriticalServices() async {

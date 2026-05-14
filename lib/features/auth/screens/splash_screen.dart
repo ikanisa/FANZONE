@@ -5,13 +5,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/auth/runtime_auth_session_manager.dart';
 import '../../../core/cache/shared_preferences_cache_service.dart';
-import '../../../core/logging/app_logger.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_wordmark.dart';
 
-/// Splash screen — logo animation → wait for init → route guest-first.
+/// Splash screen — logo animation → wait for init → route local-first.
 ///
 /// Onboarding is local-first and no longer blocked behind authentication.
 class SplashScreen extends StatefulWidget {
@@ -68,7 +67,6 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToNextScreen() async {
-    await _ensureGuestSession();
     final onboardingDone = await _resolveOnboardingState();
 
     if (!mounted) return;
@@ -80,21 +78,6 @@ class _SplashScreenState extends State<SplashScreen>
         : '/onboarding';
     context.go(nextRoute);
     markAppInteractive();
-  }
-
-  Future<void> _ensureGuestSession() async {
-    if (!appRuntime.supabaseInitialized) return;
-    final manager = RuntimeAuthSessionManager.instance;
-    final currentSession = manager.currentSession;
-    if (currentSession != null && !currentSession.isExpired) return;
-
-    try {
-      await manager.guestClient?.auth.signInAnonymously().timeout(
-        const Duration(seconds: 8),
-      );
-    } catch (error) {
-      AppLogger.d('Guest session resolver could not create a session: $error');
-    }
   }
 
   String? _qrRoute() {
@@ -200,32 +183,14 @@ class _SplashScreenState extends State<SplashScreen>
                         letterSpacing: 0,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: FzColors.darkSurface2,
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: FzColors.darkBorder),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const _PulseDot(color: FzColors.primary),
-                          const SizedBox(width: 10),
-                          Text(
-                            'SPORTS BAR ENTERTAINMENT',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 12,
-                              color: FzColors.darkMuted,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.6,
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 10),
+                    Text(
+                      'PLAY . CHEERS . ENJOY',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontSize: 12,
+                        color: FzColors.primary,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 3,
                       ),
                     ),
                   ],
@@ -233,60 +198,6 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Pulsing dot matching the reference's `animate-pulse` CSS effect.
-class _PulseDot extends StatefulWidget {
-  const _PulseDot({required this.color});
-  final Color color;
-
-  @override
-  State<_PulseDot> createState() => _PulseDotState();
-}
-
-class _PulseDotState extends State<_PulseDot>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (_, child) => Opacity(
-        opacity: 0.4 + (_ctrl.value * 0.6),
-        child: Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: widget.color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: widget.color.withValues(alpha: 0.5 * _ctrl.value),
-                blurRadius: 8,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
         ),
       ),
     );

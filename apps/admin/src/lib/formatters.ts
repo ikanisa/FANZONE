@@ -83,7 +83,7 @@ export function capitalize(s: string): string {
 
 export function statusColor(status: string): string {
   const s = status.toLowerCase();
-  if (['active', 'approved', 'fulfilled', 'completed', 'settled', 'published', 'sent', 'resolved'].includes(s)) return 'success';
+  if (['active', 'approved', 'fulfilled', 'completed', 'settled', 'published', 'sent', 'resolved', 'eligible'].includes(s)) return 'success';
   if (['pending', 'draft', 'open', 'scheduled', 'investigating', 'review'].includes(s)) return 'warning';
   if (['rejected', 'cancelled', 'suspended', 'failed', 'error', 'critical', 'escalated', 'disputed', 'archived'].includes(s)) return 'error';
   if (['live', 'locked'].includes(s)) return 'info';

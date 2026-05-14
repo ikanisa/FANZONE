@@ -34,6 +34,8 @@ void main() {
     tester.takeException();
 
     expect(find.text('WHATSAPP'), findsOneWidget);
+    expect(find.byTooltip('Back'), findsOneWidget);
+    expect(find.byTooltip('Close'), findsOneWidget);
     expect(find.text('Send OTP'), findsOneWidget);
     expect(find.text('Test Country • +111 • e.g. 99XX XXXX'), findsOneWidget);
 

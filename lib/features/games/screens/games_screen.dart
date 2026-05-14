@@ -8,7 +8,6 @@ import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_empty_state.dart';
-import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
 import '../data/games_repository.dart';
 
@@ -39,8 +38,6 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 150),
             children: [
-              const FzReferenceHeader(title: 'FZ'),
-              const SizedBox(height: 24),
               Text(
                 'GAMES',
                 style: FzTypography.sportsTitle(
@@ -50,37 +47,11 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Bar games. FET.',
+                'Bar games.',
                 style: TextStyle(
                   color: FzColors.darkMuted,
                   fontWeight: FontWeight.w700,
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(LucideIcons.gamepad2, size: 16),
-                      label: const Text('Games'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => context.go('/pools'),
-                      icon: const Icon(LucideIcons.trophy, size: 16),
-                      label: const Text('Pools'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
               ),
               const SizedBox(height: 14),
               SingleChildScrollView(

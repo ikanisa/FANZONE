@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:country_picker/country_picker.dart' as country_picker;
+
 import '../config/bootstrap_config.dart';
 import '../config/runtime_bootstrap.dart';
 import '../constants/phone_presets.dart';
@@ -21,18 +23,32 @@ class PhoneCountryEntry {
   String get dialDigits => preset.dialCode.replaceAll('+', '');
 }
 
-const _genericPhonePreset = PhonePreset(
-  dialCode: '+',
-  hint: '000 000 000',
-  minDigits: 7,
-);
-
-const _genericPhoneCountry = PhoneCountryEntry(
-  countryCode: 'INTL',
-  countryName: 'International',
-  flagEmoji: '🌍',
-  preset: _genericPhonePreset,
-);
+const _fallbackPhoneCountries = <PhoneCountryEntry>[
+  PhoneCountryEntry(
+    countryCode: 'MT',
+    countryName: 'Malta',
+    flagEmoji: '🇲🇹',
+    preset: PhonePreset(dialCode: '+356', hint: '0000 0000', minDigits: 8),
+  ),
+  PhoneCountryEntry(
+    countryCode: 'RW',
+    countryName: 'Rwanda',
+    flagEmoji: '🇷🇼',
+    preset: PhonePreset(dialCode: '+250', hint: '000 000 000', minDigits: 9),
+  ),
+  PhoneCountryEntry(
+    countryCode: 'GB',
+    countryName: 'United Kingdom',
+    flagEmoji: '🇬🇧',
+    preset: PhonePreset(dialCode: '+44', hint: '0000 000000', minDigits: 10),
+  ),
+  PhoneCountryEntry(
+    countryCode: 'US',
+    countryName: 'United States',
+    flagEmoji: '🇺🇸',
+    preset: PhonePreset(dialCode: '+1', hint: '000 000 0000', minDigits: 10),
+  ),
+];
 
 BootstrapConfig _resolvedConfig(BootstrapConfig? config) {
   return config ?? runtimeBootstrapStore.config;
@@ -72,16 +88,20 @@ List<String> priorityPhoneCountryCodes({BootstrapConfig? config}) {
   final configured = _stringListConfigValue(
     resolved.appConfig['priority_phone_country_codes'],
   );
-  final defaultCountry = resolved.appConfig['default_phone_country_code']
+  final configuredDefault = resolved.appConfig['default_phone_country_code']
       ?.toString()
       .trim()
       .toUpperCase();
+  final defaultCountry =
+      configuredDefault != null && configuredDefault.isNotEmpty
+      ? configuredDefault
+      : 'MT';
   final localeCountry = PlatformDispatcher.instance.locale.countryCode
       ?.trim()
       .toUpperCase();
 
   return {
-    if (defaultCountry != null && defaultCountry.isNotEmpty) defaultCountry,
+    defaultCountry,
     if (localeCountry != null && localeCountry.isNotEmpty) localeCountry,
     ...configured,
   }.toList(growable: false);
@@ -89,31 +109,38 @@ List<String> priorityPhoneCountryCodes({BootstrapConfig? config}) {
 
 List<PhoneCountryEntry> phoneCountryCatalog({BootstrapConfig? config}) {
   final resolved = _resolvedConfig(config);
-  final availableCodes = resolved.phonePresets.keys
-      .map((code) => code.toUpperCase())
-      .toSet();
+  final priorities = priorityPhoneCountryCodes(config: resolved);
+  final entriesByCode = <String, PhoneCountryEntry>{};
 
-  if (availableCodes.isEmpty) {
-    return const <PhoneCountryEntry>[_genericPhoneCountry];
+  for (final country in country_picker.CountryService().getAll()) {
+    final countryCode = country.countryCode.trim().toUpperCase();
+    if (!RegExp(r'^[A-Z]{2}$').hasMatch(countryCode)) continue;
+    entriesByCode[countryCode] = _entryFromPackageCountry(country, resolved);
   }
 
-  final priorities = priorityPhoneCountryCodes(config: resolved);
-  final entries = availableCodes
-      .map((countryCode) {
-        final preset =
-            phonePresetForCountryDynamic(countryCode, resolved) ??
-            _genericPhonePreset;
-        return PhoneCountryEntry(
-          countryCode: countryCode,
-          countryName: resolved.countryNameForCode(countryCode) ?? countryCode,
-          flagEmoji: _flagEmojiForCountryCode(
-            countryCode,
-            fallback: resolved.flagEmojiForCountryCode(countryCode),
-          ),
-          preset: preset,
-        );
-      })
-      .toList(growable: false);
+  for (final entry in _fallbackPhoneCountries) {
+    entriesByCode.putIfAbsent(entry.countryCode, () => entry);
+  }
+
+  for (final override in resolved.phonePresets.entries) {
+    final countryCode = override.key.trim().toUpperCase();
+    if (countryCode.isEmpty) continue;
+    final existing = entriesByCode[countryCode];
+    entriesByCode[countryCode] = PhoneCountryEntry(
+      countryCode: countryCode,
+      countryName:
+          resolved.countryNameForCode(countryCode) ??
+          existing?.countryName ??
+          countryCode,
+      flagEmoji: _flagEmojiForCountryCode(
+        countryCode,
+        fallback: resolved.flagEmojiForCountryCode(countryCode),
+      ),
+      preset: PhonePreset.fromInfo(override.value),
+    );
+  }
+
+  final entries = entriesByCode.values.toList(growable: false);
 
   entries.sort((left, right) {
     final leftPriority = priorities.indexOf(left.countryCode);
@@ -129,13 +156,73 @@ List<PhoneCountryEntry> phoneCountryCatalog({BootstrapConfig? config}) {
   return entries;
 }
 
+PhoneCountryEntry _entryFromPackageCountry(
+  country_picker.Country country,
+  BootstrapConfig resolved,
+) {
+  final countryCode = country.countryCode.trim().toUpperCase();
+  return PhoneCountryEntry(
+    countryCode: countryCode,
+    countryName: resolved.countryNameForCode(countryCode) ?? country.name,
+    flagEmoji: _flagEmojiForCountryCode(
+      countryCode,
+      fallback: resolved.flagEmojiForCountryCode(countryCode),
+    ),
+    preset:
+        phonePresetForCountryDynamic(countryCode, resolved) ??
+        _phonePresetFromPackageCountry(country),
+  );
+}
+
+PhonePreset _phonePresetFromPackageCountry(country_picker.Country country) {
+  final dialDigits = country.phoneCode.replaceAll(RegExp(r'\D'), '');
+  final exampleDigits = country.example.replaceAll(RegExp(r'\D'), '');
+  final minDigits = exampleDigits.isEmpty
+      ? 7
+      : exampleDigits.length.clamp(5, 15).toInt();
+
+  return PhonePreset(
+    dialCode: dialDigits.isEmpty ? '+' : '+$dialDigits',
+    hint: _phoneHintFromExample(country.example),
+    minDigits: minDigits,
+  );
+}
+
+String _phoneHintFromExample(String example) {
+  final cleaned = example.trim();
+  final digits = cleaned.replaceAll(RegExp(r'\D'), '');
+  if (digits.isEmpty) return '000 000 000';
+
+  final masked = cleaned.replaceAll(RegExp(r'\d'), '0');
+  if (masked.contains(RegExp(r'[\s-]'))) {
+    return masked.replaceAll('-', ' ');
+  }
+
+  return _groupedZeroHint(digits.length);
+}
+
+String _groupedZeroHint(int length) {
+  if (length <= 4) return _zeros(length);
+  if (length == 5) return '00 000';
+  if (length == 6) return '000 000';
+  if (length == 7) return '000 0000';
+  if (length == 8) return '0000 0000';
+  if (length == 9) return '000 000 000';
+  if (length == 10) return '000 000 0000';
+  if (length == 11) return '000 0000 0000';
+  if (length == 12) return '0000 0000 0000';
+  return '${_zeros(length - 8)} 0000 0000';
+}
+
+String _zeros(int count) => List.filled(math.max(0, count), '0').join();
+
 PhoneCountryEntry preferredPhoneCountry({
   BootstrapConfig? config,
   String? explicitCountryCode,
 }) {
   final catalog = phoneCountryCatalog(config: config);
   if (catalog.isEmpty) {
-    return _genericPhoneCountry;
+    return _fallbackPhoneCountries.first;
   }
 
   final resolved = _resolvedConfig(config);
@@ -144,6 +231,10 @@ PhoneCountryEntry preferredPhoneCountry({
     for (final country in catalog) {
       if (country.countryCode == requested) return country;
     }
+  }
+
+  if (resolved.phonePresets.isEmpty) {
+    return catalog.first;
   }
 
   final defaultCountry = resolved.appConfig['default_phone_country_code']

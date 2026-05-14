@@ -11,7 +11,7 @@ const SOCIAL_CARD_BUCKET = Deno.env.get("POOL_SOCIAL_CARD_BUCKET")?.trim() ||
 const PUBLIC_SITE_URL = (
   Deno.env.get("PUBLIC_SITE_URL")?.trim() ||
   Deno.env.get("APP_PUBLIC_URL")?.trim() ||
-  "https://fanzone.ikanisa.com"
+  "https://fanzone.guest.ikanisa.com"
 ).replace(/\/+$/, "");
 
 interface PoolSocialCardPayload {

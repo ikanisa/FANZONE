@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../config/app_config.dart';
 import '../../../core/auth/runtime_auth_session_manager.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -30,7 +31,7 @@ abstract class AuthGateway {
   /// Returns the session data on success.
   Future<void> verifyOtp(String phone, String otp);
 
-  /// Sign in as an anonymous/guest user.
+  /// Anonymous/guest signup is disabled for FANZONE.
   Future<AuthResponse> signInAnonymously();
 
   /// Creates a short-lived claim proving control of the current anonymous user.
@@ -77,6 +78,7 @@ class SupabaseAuthGateway implements AuthGateway {
 
   @override
   Future<bool> sendOtp(String phone) async {
+    _assertReviewMutationAllowed('WhatsApp OTP delivery');
     final data = await _invokeWhatsappOtp(
       action: 'send',
       body: {'phone': phone},
@@ -97,6 +99,7 @@ class SupabaseAuthGateway implements AuthGateway {
 
   @override
   Future<void> verifyOtp(String phone, String otp) async {
+    _assertReviewMutationAllowed('WhatsApp OTP verification');
     final data = await _invokeWhatsappOtp(
       action: 'verify',
       body: {'phone': phone, 'otp': otp},
@@ -128,7 +131,7 @@ class SupabaseAuthGateway implements AuthGateway {
         await guestClient!.auth.signOut();
       } catch (error) {
         AppLogger.d(
-          'Guest session cleanup after WhatsApp login failed: $error',
+          'Base Supabase session cleanup after WhatsApp login failed: $error',
         );
       }
     }
@@ -136,20 +139,14 @@ class SupabaseAuthGateway implements AuthGateway {
 
   @override
   Future<AuthResponse> signInAnonymously() async {
-    final client = _requireClient();
-    final response = await client.auth.signInAnonymously().timeout(_timeout);
-
-    if (response.session == null) {
-      throw const AuthException(
-        'Could not create guest session. Please try again.',
-      );
-    }
-
-    return response;
+    throw const AuthException(
+      'Guest access is disabled. Please verify with WhatsApp to continue.',
+    );
   }
 
   @override
   Future<String?> issueAnonymousUpgradeClaim() async {
+    _assertReviewMutationAllowed('account upgrade claims');
     final client = _requireClient();
     final result = await client
         .rpc('issue_anonymous_upgrade_claim')
@@ -199,6 +196,7 @@ class SupabaseAuthGateway implements AuthGateway {
     String anonId,
     String claimToken,
   ) async {
+    _assertReviewMutationAllowed('account upgrade merge');
     final client = _requireClient();
     await client
         .rpc(
@@ -244,5 +242,12 @@ class SupabaseAuthGateway implements AuthGateway {
         ),
       );
     }
+  }
+
+  void _assertReviewMutationAllowed(String action) {
+    if (!AppConfig.isReviewMode) return;
+    throw AuthException(
+      '$action is disabled in the FANZONE review PWA. Use seeded staging sessions for browser review.',
+    );
   }
 }

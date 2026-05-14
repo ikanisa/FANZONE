@@ -9,7 +9,6 @@ import '../../../widgets/common/fz_card.dart';
 class ProfileHeaderCard extends StatelessWidget {
   const ProfileHeaderCard({
     super.key,
-    required this.hasSession,
     required this.isVerified,
     required this.fanId,
     required this.isDark,
@@ -17,7 +16,6 @@ class ProfileHeaderCard extends StatelessWidget {
     required this.onVerifyPhone,
   });
 
-  final bool hasSession;
   final bool isVerified;
   final String? fanId;
   final bool isDark;
@@ -86,8 +84,7 @@ class ProfileHeaderCard extends StatelessWidget {
                                     fontFamily: 'monospace',
                                   ),
                                 )
-                              : hasSession
-                              ? Text.rich(
+                              : Text.rich(
                                   TextSpan(
                                     children: FzWordmark.spansForText(
                                       'FANZONE Fan',
@@ -97,14 +94,6 @@ class ProfileHeaderCard extends StatelessWidget {
                                         fontFamily: 'monospace',
                                       ),
                                     ),
-                                  ),
-                                )
-                              : const Text(
-                                  'Guest',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: 'monospace',
                                   ),
                                 ),
                         ),
@@ -128,7 +117,9 @@ class ProfileHeaderCard extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        isVerified ? 'Verified profile' : 'Basic profile',
+                        isVerified
+                            ? 'Verified profile'
+                            : 'Verification required',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,

@@ -18,6 +18,7 @@ import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_brand_logo.dart';
 import '../../../widgets/common/fz_card.dart';
+import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/fz_wordmark.dart';
 
 /// Accent used on the phone verification screen.
@@ -69,7 +70,19 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
 
   String get _localDigits =>
       _phoneController.text.replaceAll(RegExp(r'\D'), '');
-  bool get _isPhoneValid => _localDigits.length >= _phonePreset.minDigits;
+  int get _maxDigits => maxPhoneDigitsForHint(
+    _phonePreset.hint,
+    minDigits: _phonePreset.minDigits,
+  );
+  bool get _isGenericPhoneCountry =>
+      _selectedCountryCode == 'INTL' || _phonePreset.dialCode == '+';
+  bool get _isPhoneValid {
+    final length = _localDigits.length;
+    if (length < _phonePreset.minDigits) return false;
+    if (_isGenericPhoneCountry) return length <= 15;
+    return length == _maxDigits;
+  }
+
   int get _remainingDigits =>
       math.max(0, _phonePreset.minDigits - _localDigits.length);
 
@@ -80,7 +93,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
   Future<void> _sendOtp() async {
     final phone = _fullPhone;
     if (!phone.startsWith('+') || !_isPhoneValid) {
-      setState(() => _error = 'Enter WhatsApp number.');
+      setState(() => _error = 'Enter a valid WhatsApp number.');
       return;
     }
 
@@ -344,6 +357,12 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    FzBackHeader(
+                      title: 'Sign in',
+                      subtitle: 'WhatsApp verification',
+                      onClose: () => context.go('/home'),
+                    ),
+                    const SizedBox(height: 20),
                     const SizedBox(height: 12),
                     const Center(child: FzBrandLogo(width: 76, height: 76)),
                     const SizedBox(height: 18),
@@ -353,7 +372,9 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _otpSent ? 'Enter 6 digits.' : 'WhatsApp secures access.',
+                      _otpSent
+                          ? 'Enter the 6-digit code.'
+                          : 'Select your country code and enter your WhatsApp number.',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: mutedColor,
@@ -419,7 +440,11 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         ? '${selectedCountry.countryName} • ${selectedCountry.preset.dialCode} • e.g. ${selectedCountry.preset.hint}'
         : _isPhoneValid
         ? 'Ready.'
-        : '$_remainingDigits more digit${_remainingDigits == 1 ? '' : 's'}.';
+        : _localDigits.length < _phonePreset.minDigits
+        ? '$_remainingDigits more digit${_remainingDigits == 1 ? '' : 's'}.'
+        : _isGenericPhoneCountry
+        ? 'Use 7 to 15 digits.'
+        : '${selectedCountry.countryName} numbers use $_maxDigits digits.';
 
     return Column(
       key: const ValueKey('phone_step'),
@@ -1091,7 +1116,7 @@ class _SmartPhoneCountryPickerSheetState
                                       ),
                                       const SizedBox(height: 1),
                                       Text(
-                                        entry.countryCode,
+                                        'Example ${entry.preset.hint}',
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: muted,

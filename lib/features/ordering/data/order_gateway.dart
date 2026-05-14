@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/hospitality/order_model.dart';
@@ -180,6 +181,7 @@ class SupabaseOrderGateway implements OrderGateway {
 
   @override
   Future<OrderModel> placeOrder(CreateOrderDto request) async {
+    _assertReviewMutationAllowed('Order creation');
     final client = _connection.client;
     if (client == null) {
       throw StateError('Cannot place order: no connection');
@@ -225,13 +227,16 @@ class SupabaseOrderGateway implements OrderGateway {
     required String venueId,
     required PaymentMethod method,
   }) async {
+    _assertReviewMutationAllowed('Payment handoff creation');
     final client = _connection.client;
     if (client == null) {
       throw StateError('Cannot create payment handoff: no connection');
     }
 
-    if (method == PaymentMethod.cash) {
-      throw ArgumentError('Cash payments do not need an external handoff');
+    if (method == PaymentMethod.cash || method == PaymentMethod.card) {
+      throw ArgumentError(
+        'This payment method does not need an external handoff',
+      );
     }
 
     final response = await client.functions.invoke(
@@ -259,6 +264,7 @@ class SupabaseOrderGateway implements OrderGateway {
     String? externalReference,
     String? note,
   }) async {
+    _assertReviewMutationAllowed('Payment submission');
     final client = _connection.client;
     if (client == null) {
       throw StateError('Cannot submit payment: no connection');
@@ -280,6 +286,7 @@ class SupabaseOrderGateway implements OrderGateway {
     required String orderId,
     required int amountFet,
   }) async {
+    _assertReviewMutationAllowed('FET order spending');
     final client = _connection.client;
     if (client == null) {
       throw StateError('Cannot spend FET: no connection');
@@ -378,6 +385,7 @@ class SupabaseOrderGateway implements OrderGateway {
 
   @override
   Future<void> updateOrderStatus(String orderId, OrderStatus newStatus) async {
+    _assertReviewMutationAllowed('Order status updates');
     final client = _connection.client;
     if (client == null) {
       throw StateError('Cannot update order: no connection');
@@ -395,6 +403,7 @@ class SupabaseOrderGateway implements OrderGateway {
     String orderId,
     PaymentStatus newStatus,
   ) async {
+    _assertReviewMutationAllowed('Payment status updates');
     final client = _connection.client;
     if (client == null) {
       throw StateError('Cannot update payment: no connection');
@@ -516,5 +525,12 @@ class SupabaseOrderGateway implements OrderGateway {
       ..remove('items');
     final order = OrderModel.fromJson(orderData);
     return order.copyWith(items: items);
+  }
+
+  void _assertReviewMutationAllowed(String action) {
+    if (!AppConfig.isReviewMode) return;
+    throw StateError(
+      '$action is disabled in the FANZONE review PWA. Use staging-safe test data for browser review.',
+    );
   }
 }

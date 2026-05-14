@@ -1,4 +1,5 @@
 import 'preferences_gateway_shared.dart';
+import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -69,7 +70,7 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
     String? feedback,
   }) async {
     final client = _connection.client;
-    if (client == null) {
+    if (AppConfig.isReviewMode || client == null) {
       final request = AccountDeletionRequestModel(
         id: 'delete_${DateTime.now().millisecondsSinceEpoch}',
         status: 'pending',
@@ -114,7 +115,7 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
   @override
   Future<void> cancelAccountDeletionRequest(String userId) async {
     final client = _connection.client;
-    if (client != null) {
+    if (!AppConfig.isReviewMode && client != null) {
       try {
         await client
             .from('account_deletion_requests')
@@ -181,7 +182,7 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
     await _cachePrivacySettings(userId, settings);
 
     final client = _connection.client;
-    if (client == null) return;
+    if (AppConfig.isReviewMode || client == null) return;
 
     try {
       await client

@@ -60,16 +60,35 @@ Run backend release probes after deployment:
 
 ```bash
 tool/supabase_release_probe.sh
-tool/supabase_rls_audit.sh
-tool/supabase_fet_supply_smoke.sh
+tool/supabase_live_validation.sh
 tool/supabase_edge_job_smoke.sh settle-match-pools
 tool/supabase_edge_job_smoke.sh dispatch-match-alerts
 ```
+
+`tool/supabase_live_validation.sh` uses `SUPABASE_DB_URL` when available.
+If a DB URL is not available, it falls back to the linked Supabase CLI project
+and runs SQL audits through `supabase db query --linked`. This still requires a
+locally authenticated Supabase CLI profile with access to the release project.
 
 ## Web/PWA
 
 Cloudflare Pages is the configured release path. The deploy script loads
 ignored env files and refuses browser env that exposes backend secrets.
+Admin and venue dashboard production builds emit a Pages `_worker.js` BFF that
+mediates privileged Supabase access through same-origin HttpOnly cookies.
+Configure each Cloudflare Pages project with runtime variables available to
+Functions/Workers:
+
+```bash
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_PRIVILEGED_SESSION_MODE=bff
+```
+
+Do not set `VITE_PRIVILEGED_SESSION_MODE=browser` for production admin or
+venue releases.
 
 ```bash
 npm ci
@@ -78,11 +97,11 @@ tool/deploy_cloudflare_pages.sh website venue-portal tv-display admin
 
 Expected production domains:
 
-- Public PWA: `https://fanzone.ikanisa.com`
-- Venue dashboard: configured Cloudflare Pages/custom domain.
-- TV display: configured Cloudflare Pages/custom domain, commonly
-  `https://screen.fanzone.ikanisa.com`.
-- Admin: internal operations domain only.
+- Guest PWA: `https://fanzone.guest.ikanisa.com`
+- Public website: `https://fanzone.ikanisa.com`
+- Venue dashboard: `https://fanzone.venue.ikanisa.com`
+- TV display: `https://fanzonetv.ikanisa.com`
+- Admin: `https://fanzoneadmin.ikanisa.com`
 
 ## Flutter Mobile
 

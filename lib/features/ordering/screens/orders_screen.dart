@@ -30,21 +30,11 @@ class OrdersScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
             children: [
-              const FzReferenceHeader(title: 'FZ'),
-              const SizedBox(height: 24),
               Text(
                 'ORDERS',
                 style: FzTypography.sportsTitle(
                   size: 38,
                   color: FzColors.darkText,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Orders and FET.',
-                style: TextStyle(
-                  color: FzColors.darkMuted,
-                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 18),
@@ -76,13 +66,15 @@ class OrdersScreen extends ConsumerWidget {
                           ),
                         const SizedBox(height: 8),
                       ],
-                      const FzSectionHeader(title: 'Recent'),
-                      const SizedBox(height: 10),
-                      for (final order in past.isEmpty ? orders : past)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _OrderCard(order: order),
-                        ),
+                      if (past.isNotEmpty) ...[
+                        const FzSectionHeader(title: 'Recent'),
+                        const SizedBox(height: 10),
+                        for (final order in past)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _OrderCard(order: order),
+                          ),
+                      ],
                     ],
                   );
                 },

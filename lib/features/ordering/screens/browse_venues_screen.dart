@@ -50,8 +50,6 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 140),
             children: [
-              const FzReferenceHeader(title: 'FZ'),
-              const SizedBox(height: 24),
               Text(
                 'BARS',
                 style: FzTypography.sportsTitle(
@@ -87,23 +85,15 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    FzPill(
-                      label: 'Within 20 km',
-                      icon: LucideIcons.navigation,
-                      selected: locationState.hasFreshLocation,
-                      onTap: () => context.push('/venues/location'),
-                    ),
-                    const SizedBox(width: 8),
-                    const FzPill(label: 'Open', icon: LucideIcons.clock),
-                    const SizedBox(width: 8),
-                    const FzPill(label: 'Live', icon: LucideIcons.tv),
-                    const SizedBox(width: 8),
-                    const FzPill(label: 'FET', icon: LucideIcons.coins),
-                  ],
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FzPill(
+                  label: locationState.hasFreshLocation
+                      ? 'Near me'
+                      : 'Use location',
+                  icon: LucideIcons.navigation,
+                  selected: locationState.hasFreshLocation,
+                  onTap: () => context.push('/venues/location'),
                 ),
               ),
               const SizedBox(height: 18),
@@ -254,25 +244,13 @@ class _VenueDiscoveryCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
-                Row(
-                  children: [
-                    const Expanded(
-                      child: FzMetricTile(
-                        label: 'Rewards',
-                        value: 'FET',
-                        icon: LucideIcons.coins,
-                        color: FzColors.green,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: onOrder,
-                        icon: const Icon(LucideIcons.utensils, size: 16),
-                        label: const Text('Order'),
-                      ),
-                    ),
-                  ],
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton.filled(
+                    tooltip: 'Open menu',
+                    onPressed: onOrder,
+                    icon: const Icon(LucideIcons.utensils, size: 18),
+                  ),
                 ),
               ],
             ),

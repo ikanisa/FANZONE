@@ -1,3 +1,4 @@
+import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -64,7 +65,7 @@ class SupabaseMarketPreferencesGateway implements MarketPreferencesGateway {
 
     final userId = _connection.currentUser?.id;
     final client = _connection.client;
-    if (client == null || userId == null) return;
+    if (AppConfig.isReviewMode || client == null || userId == null) return;
 
     try {
       await client.from('user_market_preferences').upsert({
@@ -78,6 +79,7 @@ class SupabaseMarketPreferencesGateway implements MarketPreferencesGateway {
 
   @override
   Future<void> syncCachedMarketPreferencesIfAuthenticated() async {
+    if (AppConfig.isReviewMode) return;
     final userId = _connection.currentUser?.id;
     final client = _connection.client;
     if (client == null || userId == null) return;

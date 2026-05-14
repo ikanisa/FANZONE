@@ -17,13 +17,16 @@ import 'services/push_notification_service.dart';
 
 /// Root FANZONE application widget.
 class FanzoneApp extends ConsumerWidget {
-  const FanzoneApp({super.key});
+  const FanzoneApp({super.key, this.shellBuilder});
+
+  final Widget Function(BuildContext context, Widget child)? shellBuilder;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (ref
-        .watch(platformFeatureAccessProvider)
-        .isVisible('notifications', surface: PlatformSurface.route)) {
+    if (!AppConfig.isReviewMode &&
+        ref
+            .watch(platformFeatureAccessProvider)
+            .isVisible('notifications', surface: PlatformSurface.route)) {
       ref.watch(pushNotificationInitProvider);
     }
 
@@ -44,12 +47,15 @@ class FanzoneApp extends ConsumerWidget {
       locale: const Locale('en'), // Default until user can pick
 
       builder: (context, child) {
-        return AppErrorBoundary(
+        final guardedChild = AppErrorBoundary(
           child: AppLifecycleObserverWidget(
             onForeground: () => _handleForegroundResume(ref),
             child: _SessionExpiryGuard(child: child ?? const SizedBox.shrink()),
           ),
         );
+        final wrapper = shellBuilder;
+        if (wrapper == null) return guardedChild;
+        return wrapper(context, guardedChild);
       },
     );
   }

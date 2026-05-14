@@ -5,6 +5,13 @@ name: Deploy Website
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-website-production
+  cancel-in-progress: false
+
 env:
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -15,8 +22,12 @@ env:
 
 jobs:
   build-and-deploy:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment:
+      name: production
+      url: https://fanzone.ikanisa.com
 
     steps:
       - name: Checkout
@@ -49,7 +60,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: apps/website/package-lock.json
 
       - name: Install dependencies

@@ -89,24 +89,10 @@ class OrderSuccessScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => context.push('/order/$orderId/receipt'),
-                    icon: const Icon(LucideIcons.receipt, size: 16),
-                    label: const Text('Receipt'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => context.go('/venues'),
-                    icon: const Icon(LucideIcons.store, size: 16),
-                    label: const Text('Bars'),
-                  ),
-                ),
-              ],
+            OutlinedButton.icon(
+              onPressed: () => context.push('/order/$orderId/receipt'),
+              icon: const Icon(LucideIcons.receipt, size: 16),
+              label: const Text('Receipt'),
             ),
           ],
         ),
@@ -316,16 +302,7 @@ class _PaymentSubmitCardState extends ConsumerState<_PaymentSubmitCard> {
             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Staff confirms rewards.',
-            style: TextStyle(
-              color: FzColors.darkMuted,
-              fontSize: 12,
-              height: 1.35,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(

@@ -28,7 +28,7 @@ class OrderTrackingScreen extends ConsumerWidget {
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
                 children: [
-                  const FzBackHeader(title: 'Order', subtitle: 'FET reward'),
+                  const FzBackHeader(title: 'Order'),
                   const SizedBox(height: 48),
                   StateView.empty(
                     title: 'Order not found',
@@ -46,7 +46,7 @@ class OrderTrackingScreen extends ConsumerWidget {
           error: (e, _) => ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
             children: [
-              const FzBackHeader(title: 'Order', subtitle: 'FET reward'),
+              const FzBackHeader(title: 'Order'),
               const SizedBox(height: 48),
               StateView.error(
                 subtitle: e.toString(),
@@ -70,9 +70,7 @@ class _TrackingContent extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
       children: [
-        const FzBackHeader(title: 'Order', subtitle: 'FET reward'),
-        const SizedBox(height: 18),
-        _FetEarnedCard(order: order),
+        const FzBackHeader(title: 'Order'),
         const SizedBox(height: 18),
         _StatusTimeline(status: order.status),
         const SizedBox(height: 18),
@@ -168,47 +166,8 @@ class _OrderTrackingLoadingState extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
         children: [
-          FzBackHeader(title: 'Order', subtitle: 'FET reward'),
+          FzBackHeader(title: 'Order'),
           Expanded(child: Center(child: CircularProgressIndicator())),
-        ],
-      ),
-    );
-  }
-}
-
-class _FetEarnedCard extends StatelessWidget {
-  const _FetEarnedCard({required this.order});
-
-  final OrderModel order;
-
-  @override
-  Widget build(BuildContext context) {
-    return FzCard(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(LucideIcons.coins, color: FzColors.success),
-              SizedBox(width: AppSpacing.md),
-              Text('FET', style: AppTypography.cardTitle),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            '+${order.earnedFetDisplayAmount} FET',
-            style: AppTypography.metric(size: 38, color: FzColors.success),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            order.paymentStatus.isPaid
-                ? (order.earnedFetDisplayAmount > 0
-                      ? 'Credited.'
-                      : 'No reward.')
-                : 'Awaiting venue.',
-            style: AppTypography.secondary.copyWith(color: AppColors.muted),
-          ),
         ],
       ),
     );
@@ -226,7 +185,7 @@ class _StatusTimeline extends StatelessWidget {
       children: [
         _TimelineItem(
           label: 'Received',
-          subtitle: 'Venue received.',
+          subtitle: '',
           icon: LucideIcons.checkCircle2,
           isActive: true,
           isCompleted:
@@ -240,7 +199,7 @@ class _StatusTimeline extends StatelessWidget {
         ),
         _TimelineItem(
           label: 'Preparing',
-          subtitle: 'Kitchen active.',
+          subtitle: '',
           icon: LucideIcons.loader,
           isActive: status == OrderStatus.preparing,
           isCompleted:
@@ -249,7 +208,7 @@ class _StatusTimeline extends StatelessWidget {
         _TimelineConnector(isActive: status == OrderStatus.served),
         _TimelineItem(
           label: 'Served',
-          subtitle: 'Served.',
+          subtitle: '',
           icon: LucideIcons.badgeCheck,
           isActive: status == OrderStatus.served,
           isCompleted: status == OrderStatus.served,
@@ -259,7 +218,7 @@ class _StatusTimeline extends StatelessWidget {
           const _TimelineConnector(isActive: true),
           const _TimelineItem(
             label: 'Cancelled',
-            subtitle: 'Cancelled.',
+            subtitle: '',
             icon: LucideIcons.xCircle,
             isActive: true,
             isCompleted: true,
@@ -363,10 +322,6 @@ class _PaymentStatusCardState extends ConsumerState<_PaymentStatusCard> {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Staff confirms rewards.',
-              style: AppTypography.secondary.copyWith(color: AppColors.muted),
-            ),
           ] else if (status == PaymentStatus.paymentSubmitted) ...[
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -443,13 +398,14 @@ class _TimelineItem extends StatelessWidget {
                   color: isActive ? null : FzColors.lightMuted,
                 ),
               ),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: FzColors.lightMuted,
+              if (subtitle.isNotEmpty)
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: FzColors.lightMuted,
+                  ),
                 ),
-              ),
               if (!isLast) const SizedBox(height: 12),
             ],
           ),

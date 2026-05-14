@@ -5,6 +5,8 @@ import 'package:fanzone/core/config/bootstrap_config.dart';
 import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/features/home/screens/match_detail_screen.dart';
 import 'package:fanzone/features/ordering/screens/venue_menu_screen.dart';
+import 'package:fanzone/features/pools/data/pools_repository.dart'
+    show matchPoolsProvider;
 import 'package:fanzone/features/pools/screens/pools_screen.dart';
 import 'package:fanzone/features/profile/screens/notifications_screen.dart';
 import 'package:fanzone/features/profile/screens/profile_screen.dart';
@@ -24,11 +26,11 @@ import 'support/test_fixtures.dart';
 
 void main() {
   group('screen widgets', () {
-    testWidgets('bar screen guides guests to scan a table QR', (tester) async {
+    testWidgets('bar screen guides users to choose a bar', (tester) async {
       await pumpAppScreen(tester, const VenueMenuScreen());
       await tester.pumpAndSettle();
 
-      expect(find.text('Scan a table QR'), findsOneWidget);
+      expect(find.text('Choose a bar'), findsOneWidget);
       expect(find.text('Bars'), findsOneWidget);
     });
 
@@ -74,7 +76,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('PLAY'), findsOneWidget);
+      expect(find.text('POOLS'), findsOneWidget);
       expect(find.text('Derby pool'), findsOneWidget);
       // FzPill renders camp labels uppercased
       expect(find.text('TEST CLUB A'), findsAtLeastNWidgets(1));
@@ -145,10 +147,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('PROFILE'), findsOneWidget);
+      expect(find.byTooltip('Back'), findsOneWidget);
+      expect(find.byTooltip('Close'), findsOneWidget);
       expect(find.text('Fan ID 123456'), findsOneWidget);
       // ProfileDetailsCard section title is 'Profile'
-      expect(find.text('Profile'), findsOneWidget);
+      expect(find.text('Profile'), findsAtLeastNWidgets(1));
       expect(find.text('Country'), findsAtLeastNWidgets(1));
       expect(find.text('Favorite teams'), findsOneWidget);
       expect(find.text('Linked venues'), findsOneWidget);
@@ -176,19 +179,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Privacy'), findsOneWidget);
-      expect(find.text('Phone Number Hidden'), findsOneWidget);
-      expect(find.text('Anonymous Rewards'), findsOneWidget);
-      expect(find.text('Display Name in Pool Activity'), findsOneWidget);
-      expect(find.text('Allow Friends to Find Me'), findsNothing);
-      const verificationCopy =
-          '* Verification required to change visibility settings.';
-      await tester.scrollUntilVisible(
-        find.text(verificationCopy),
-        120,
-        scrollable: find.byType(Scrollable).first,
+      expect(
+        find.text('Verify WhatsApp to manage privacy controls.'),
+        findsOneWidget,
       );
-      await tester.pumpAndSettle();
-      expect(find.text(verificationCopy), findsOneWidget);
+      expect(find.text('Allow Friends to Find Me'), findsNothing);
+      expect(find.text('Verify WhatsApp'), findsOneWidget);
     });
 
     testWidgets('notifications screen keeps the canonical alerts language', (
@@ -213,7 +209,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Alerts'), findsOneWidget);
+      expect(find.text('Notifications'), findsOneWidget);
+      expect(find.byTooltip('Back'), findsOneWidget);
+      expect(find.byTooltip('Close'), findsOneWidget);
       expect(find.text('Pool settled'), findsOneWidget);
     });
 
@@ -235,6 +233,7 @@ void main() {
           matchDetailProvider(
             match.id,
           ).overrideWith((ref) => Stream.value(match)),
+          matchPoolsProvider(match.id).overrideWith((ref) async => const []),
         ],
       );
       // Use explicit pump() instead of pumpAndSettle() because stream-based
@@ -247,7 +246,7 @@ void main() {
       expect(find.text('Test Club A'), findsAtLeastNWidgets(1));
       expect(find.text('Test Club B'), findsAtLeastNWidgets(1));
       expect(find.text('Match Pools'), findsAtLeastNWidgets(1));
-      expect(find.text('Open match pools'), findsOneWidget);
+      expect(find.text('Create pool'), findsOneWidget);
       expect(find.text('Recent form'), findsNothing);
       expect(find.text('Standings snapshot'), findsNothing);
     });

@@ -132,7 +132,8 @@ class PoolDetailScreen extends ConsumerWidget {
                   entryAsync.when(
                     data: (entry) => Column(
                       children: [
-                        _EntryStateCard(pool: pool, entry: entry),
+                        if (entry != null)
+                          _EntryStateCard(pool: pool, entry: entry),
                         if (entry != null && entry.payoutFet > 0) ...[
                           const SizedBox(height: 14),
                           _WinnerRewardCard(
@@ -145,17 +146,18 @@ class PoolDetailScreen extends ConsumerWidget {
                       ],
                     ),
                     loading: () => const _EntryStateLoading(),
-                    error: (_, _) =>
-                        const _EntryStateCard(pool: null, entry: null),
+                    error: (_, _) => const SizedBox.shrink(),
                   ),
                   const SizedBox(height: 14),
                   const FzEligibilityRuleCard(),
                   const SizedBox(height: 14),
                   _CampsSection(pool: pool),
-                  const SizedBox(height: 14),
-                  _LiveTimeline(pool: pool),
-                  const SizedBox(height: 14),
-                  _SettlementCard(pool: pool),
+                  if (!pool.isOpen) ...[
+                    const SizedBox(height: 14),
+                    _LiveTimeline(pool: pool),
+                    const SizedBox(height: 14),
+                    _SettlementCard(pool: pool),
+                  ],
                   const SizedBox(height: 18),
                   Row(
                     children: [
@@ -200,7 +202,7 @@ String _absolutePoolShareUrl(String value) {
     return trimmed;
   }
   final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
-  return 'https://fanzone.ikanisa.com$path';
+  return 'https://fanzone.guest.ikanisa.com$path';
 }
 
 String _withSource(String value, String source) {
@@ -232,13 +234,7 @@ class _PoolHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              _StatusPill(status: pool.status),
-              const SizedBox(width: 8),
-              const _ScopePill(),
-            ],
-          ),
+          Row(children: [_StatusPill(status: pool.status)]),
           const SizedBox(height: 16),
           Text(
             pool.title,
@@ -705,29 +701,6 @@ class _StatusPill extends StatelessWidget {
           fontSize: 12,
           fontWeight: FontWeight.w900,
           color: color,
-        ),
-      ),
-    );
-  }
-}
-
-class _ScopePill extends StatelessWidget {
-  const _ScopePill();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: FzRadii.fullRadius,
-      ),
-      child: const Text(
-        'BAR POOL',
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
         ),
       ),
     );

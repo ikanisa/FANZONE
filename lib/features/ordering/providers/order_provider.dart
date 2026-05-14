@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/di/gateway_providers.dart';
 import '../../../services/app_telemetry.dart';
 import '../../../models/hospitality/order_model.dart';
+import '../../../providers/auth_provider.dart';
 import '../data/order_gateway.dart';
 import 'cart_provider.dart';
 import 'venue_context_provider.dart';
@@ -183,10 +184,7 @@ final orderRealtimeProvider = StreamProvider.autoDispose
 final orderHistoryProvider = FutureProvider.autoDispose<List<OrderModel>>((
   ref,
 ) async {
-  final client = ref.watch(supabaseConnectionProvider).client;
-  if (client == null) return const [];
-
-  final userId = client.auth.currentUser?.id;
+  final userId = ref.watch(currentUserProvider)?.id;
   if (userId == null) return const [];
 
   final gateway = ref.watch(orderGatewayProvider);
@@ -207,11 +205,8 @@ final activeOrdersProvider = FutureProvider.autoDispose<List<OrderModel>>((
 
 bool canSubmitPaymentForOrder(OrderModel order) {
   final hasExternalPayment = switch (order.paymentMethod) {
-    PaymentMethod.momo ||
-    PaymentMethod.revolut ||
-    PaymentMethod.card ||
-    PaymentMethod.other => true,
-    PaymentMethod.cash => false,
+    PaymentMethod.momo || PaymentMethod.revolut || PaymentMethod.other => true,
+    PaymentMethod.cash || PaymentMethod.card => false,
   };
 
   return hasExternalPayment &&

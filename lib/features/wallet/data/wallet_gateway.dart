@@ -1,3 +1,4 @@
+import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/config/platform_feature_access.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -169,6 +170,11 @@ class SupabaseWalletGateway implements WalletGateway {
 
   @override
   Future<void> transferByFanId(WalletTransferByFanIdDto request) async {
+    if (AppConfig.isReviewMode) {
+      throw StateError(
+        'FET transfers are disabled in the FANZONE review PWA. Use staging-safe test data for browser review.',
+      );
+    }
     final client = _connection.client;
     if (client == null) {
       _throwUnavailable('FET transfer');

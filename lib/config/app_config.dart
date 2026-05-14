@@ -4,17 +4,31 @@ import '../core/config/runtime_bootstrap.dart';
 
 enum AppEnvironment { development, staging, production }
 
+enum AppRuntimeMode { mobile, webReview, webProductionOptional }
+
 /// Build-time application configuration loaded via `--dart-define`.
 class AppConfig {
+  static AppRuntimeMode? runtimeModeOverride;
+
   static const appName = 'FANZONE';
   static const appVersion = String.fromEnvironment(
     'APP_VERSION',
     defaultValue: '1.1.0',
   );
+  static const appSlug = String.fromEnvironment(
+    'APP_SLUG',
+    defaultValue: 'fanzone',
+  );
   static const environmentName = String.fromEnvironment(
     'APP_ENV',
     defaultValue: kReleaseMode ? 'production' : 'development',
   );
+  static const runtimeModeName = String.fromEnvironment(
+    'APP_RUNTIME_MODE',
+    defaultValue: 'mobile',
+  );
+  static const gitBranch = String.fromEnvironment('GIT_BRANCH');
+  static const gitCommit = String.fromEnvironment('GIT_COMMIT');
 
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
@@ -82,8 +96,27 @@ class AppConfig {
     }
   }
 
+  static AppRuntimeMode get runtimeMode {
+    final override = runtimeModeOverride;
+    if (override != null) return override;
+
+    switch (runtimeModeName.toLowerCase()) {
+      case 'web_review':
+      case 'webreview':
+      case 'review':
+        return AppRuntimeMode.webReview;
+      case 'web_production':
+      case 'webproduction':
+      case 'web':
+        return AppRuntimeMode.webProductionOptional;
+      default:
+        return AppRuntimeMode.mobile;
+    }
+  }
+
   static bool get isDevelopment => environment == AppEnvironment.development;
   static bool get isProduction => environment == AppEnvironment.production;
+  static bool get isReviewMode => runtimeMode == AppRuntimeMode.webReview;
   static bool get hasSupabaseConfig =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
   static bool get hasImageCdn => imageCdnBaseUrl.trim().startsWith('http');

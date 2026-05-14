@@ -13,7 +13,6 @@ import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_animated_counter.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_empty_state.dart';
-import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../../../services/wallet_service.dart';
@@ -32,20 +31,11 @@ class WalletScreen extends ConsumerWidget {
     final transactionsAsync = ref.watch(transactionServiceProvider);
     final isVerified = ref.watch(isFullyAuthenticatedProvider);
     final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
-    final transactions = transactionsAsync.valueOrNull ?? const [];
-    final orderEarned = transactions
-        .where((tx) => tx.type == 'order_earn')
-        .fold<int>(0, (sum, tx) => sum + tx.amount);
-    final poolEarned = transactions
-        .where((tx) => tx.type == 'pool_win' || tx.type == 'creator_reward')
-        .fold<int>(0, (sum, tx) => sum + tx.amount);
 
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
         children: [
-          const FzReferenceHeader(title: 'FZ'),
-          const SizedBox(height: 24),
           Text(
             'WALLET',
             style: FzTypography.sportsTitle(size: 36, color: FzColors.darkText),
@@ -125,30 +115,6 @@ class WalletScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: WalletSummaryCard(
-                        label: 'Orders',
-                        amount: orderEarned,
-                        positive: true,
-                        icon: LucideIcons.utensils,
-                        color: FzColors.green,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: WalletSummaryCard(
-                        label: 'Pools',
-                        amount: poolEarned,
-                        positive: true,
-                        icon: LucideIcons.trophy,
-                        color: FzColors.cyan,
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
             loading: () => const _WalletStatsSkeleton(),
@@ -157,36 +123,6 @@ class WalletScreen extends ConsumerWidget {
                 ref.invalidate(walletBalanceProvider);
                 ref.invalidate(transactionServiceProvider);
               },
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Earn section — compact icon tiles
-          FzCard(
-            padding: const EdgeInsets.all(16),
-            borderRadius: FzRadii.card,
-            child: Row(
-              children: [
-                _EarnTile(
-                  icon: LucideIcons.utensils,
-                  label: 'Order',
-                  color: FzColors.green,
-                  onTap: () => context.go('/venues'),
-                ),
-                const SizedBox(width: 14),
-                _EarnTile(
-                  icon: LucideIcons.trophy,
-                  label: 'Pools',
-                  color: FzColors.cyan,
-                  onTap: () => context.go('/pools'),
-                ),
-                const SizedBox(width: 14),
-                _EarnTile(
-                  icon: LucideIcons.send,
-                  label: 'Invite',
-                  color: FzColors.orange,
-                  onTap: () {},
-                ),
-              ],
             ),
           ),
           const SizedBox(height: 28),
@@ -385,52 +321,6 @@ class _HeroActionButton extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w900,
                 color: labelColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EarnTile extends StatelessWidget {
-  const _EarnTile({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadii.buttonRadius,
-        child: Column(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: AppRadii.buttonRadius,
-              ),
-              child: Icon(icon, size: 20, color: color),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                color: FzColors.darkText,
               ),
             ),
           ],

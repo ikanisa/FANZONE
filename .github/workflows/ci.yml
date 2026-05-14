@@ -90,14 +90,13 @@ jobs:
             echo "Missing SUPABASE_ANON_KEY secret for release probe verification." >&2
             exit 1
           }
-          test -n "${SUPABASE_BOOTSTRAP_DB_URL}" || {
-            echo "Missing SUPABASE_BOOTSTRAP_DB_URL secret for SQL bootstrap verification." >&2
-            exit 1
-          }
           test -n "${SUPABASE_DB_URL}" || {
             echo "Missing SUPABASE_DB_URL secret for SQL policy verification." >&2
             exit 1
           }
+          if [[ -z "${SUPABASE_BOOTSTRAP_DB_URL}" ]]; then
+            echo "SUPABASE_BOOTSTRAP_DB_URL is not set; disposable bootstrap verification will be skipped." >&2
+          fi
 
       - name: Validate shell tooling
         run: |
@@ -105,6 +104,7 @@ jobs:
             tool/supabase_bootstrap_smoke.sh \
             tool/supabase_edge_job_smoke.sh \
             tool/supabase_whatsapp_auth_smoke.sh \
+            tool/supabase_live_validation.sh \
             tool/supabase_rls_audit.sh \
             tool/supabase_fet_supply_smoke.sh \
             tool/resolve_dart_define_file.sh \
@@ -119,7 +119,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: Run Supabase bootstrap smoke
-        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.SUPABASE_BOOTSTRAP_DB_URL != '' }}
         env:
           SUPABASE_BOOTSTRAP_DB_URL: ${{ secrets.SUPABASE_BOOTSTRAP_DB_URL }}
         run: ./tool/supabase_bootstrap_smoke.sh

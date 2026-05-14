@@ -20,6 +20,8 @@ Read these documents in order:
 10. [Rollback](release/rollback.md)
 11. [QA/UAT](testing/qa-uat.md)
 12. [Incident Runbooks](operations/incident-runbooks.md)
+13. [Flutter Review PWA](REVIEW_PWA_GUIDE.md)
+14. [UI Review Protocol](UI_REVIEW_PROTOCOL.md)
 
 ## Repository Map
 
@@ -46,6 +48,7 @@ No live secrets belong in git.
 | `SUPABASE_ANON_KEY` | Flutter, web apps, smoke scripts | Public anon key. Never use service role in clients. |
 | `VITE_SUPABASE_URL` | Admin, website, venue portal, TV display | Browser-safe Supabase URL. |
 | `VITE_SUPABASE_ANON_KEY` | Admin, website, venue portal, TV display | Browser-safe anon key. |
+| `VITE_PRIVILEGED_SESSION_MODE` | Admin, venue portal | Use `bff` in production. `browser` is only for local development without Cloudflare Pages Functions. |
 | `VITE_GUEST_APP_URL` | Venue portal | Base URL for table QR deep links. |
 | `VITE_PUBLIC_APP_URL` | TV display | Base URL used in TV QR joins. |
 | `VITE_TV_DISPLAY_URL` | Venue portal | Base URL for venue screen links. |
@@ -59,14 +62,14 @@ No live secrets belong in git.
 | `FANZONE_EDGE_ALLOW_WILDCARD_CORS` | Edge Functions | Keep `false` in production; wildcard CORS requires explicit opt-in. |
 | `WHATSAPP_AUTH_TEST_PHONE`, `WHATSAPP_AUTH_TEST_OTP`, `WHATSAPP_AUTH_TEST_EXPIRY` | reviewer/test OTP path | Optional controlled test account only. |
 | `FANZONE_EDGE_EXPOSE_ERROR_DETAILS` | Edge shared errors | Keep false in production. |
-| `SUPABASE_DB_URL`, `SUPABASE_DB_PASSWORD` | SQL smoke scripts | Operator-only local shell or CI secret. |
+| `SUPABASE_DB_URL`, `SUPABASE_DB_PASSWORD` | SQL smoke scripts | Operator-only local shell or CI secret. If absent locally, linked Supabase CLI validation can run through `supabase db query --linked`. |
 
 ## Known Issues Classified
 
 | Item | Classification | Required action |
 | --- | --- | --- |
 | Website release metadata can fail if `assetlinks.json` still has the all-zero fingerprint. | Release blocker | Replace with production Android SHA-256 before public web deploy. |
-| `supabase db lint --local` needs local Supabase Postgres on `127.0.0.1:54322`. | Local environment blocker | Run `supabase start` before database linting. |
+| `supabase db lint --local` needs local Supabase Postgres on `127.0.0.1:54322`. | Local environment blocker | Run `supabase start`, use `SUPABASE_DB_URL`, or run `tool/supabase_live_validation.sh` with an authenticated linked Supabase CLI profile. |
 | Production `env/*.json`, signing files, and Firebase files are ignored. | Expected security posture | Supply through secure local store or CI secrets. |
 | Supabase credentials were shared in an assistant conversation during release work. | Release blocker | Rotate the access token, database password, anon key, and service-role key before production launch. |
 | No in-repo production agent workspaces were found. | Intentional | Use [Agents](architecture/agents.md) and [Agent Ops](operations/agent-ops.md) before adding one. |

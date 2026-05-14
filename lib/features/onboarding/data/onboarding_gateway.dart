@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../data/team_search_database.dart';
+import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
@@ -226,6 +227,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
 
   @override
   Future<void> syncCachedTeamsIfAuthenticated() async {
+    if (AppConfig.isReviewMode) return;
     final client = _connection.client;
     final userId = _connection.currentUser?.id;
     if (client == null || userId == null) return;
@@ -309,7 +311,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
 
     final client = _connection.client;
     final userId = _connection.currentUser?.id;
-    if (client == null || userId == null) return;
+    if (AppConfig.isReviewMode || client == null || userId == null) return;
 
     try {
       await client
@@ -546,7 +548,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
   }) async {
     final client = _connection.client;
     final userId = _connection.currentUser?.id;
-    if (client == null || userId == null) return;
+    if (AppConfig.isReviewMode || client == null || userId == null) return;
 
     try {
       await _upsertFavoriteRows(

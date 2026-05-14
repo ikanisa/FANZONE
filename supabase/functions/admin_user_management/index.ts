@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import {
+  type AdminRole,
   AuditAction,
   createAdminClient,
   createAuditLogger,
@@ -10,7 +11,7 @@ import {
   getOrCreateRequestId,
   handleCors,
   jsonResponse,
-  requireAdmin,
+  requireAdminRole,
   requireAuth,
 } from "../_shared/mod.ts";
 
@@ -96,6 +97,24 @@ const requestSchema = z.union([
   listCountriesSchema,
 ]);
 
+type AdminUserManagementInput = z.infer<typeof requestSchema>;
+
+function minimumRoleForAction(input: AdminUserManagementInput): AdminRole {
+  switch (input.action) {
+    case "create_admin":
+    case "list_admins":
+    case "toggle_admin_status":
+      return "super_admin";
+    case "create_vendor":
+    case "update_vendor":
+    case "delete_vendor":
+    case "list_venues":
+      return "admin";
+    case "list_countries":
+      return "viewer";
+  }
+}
+
 Deno.serve(async (req) => {
   const startTime = Date.now();
   const requestId = getOrCreateRequestId(req);
@@ -119,10 +138,6 @@ Deno.serve(async (req) => {
     if (authResult instanceof Response) return authResult;
     const { user } = authResult;
 
-    // Require admin access for all operations
-    const adminResult = await requireAdmin(supabaseAdmin, user.id, logger);
-    if (adminResult instanceof Response) return adminResult;
-
     // Parse + validate input
     const body = await req.json();
     const parsed = requestSchema.safeParse(body);
@@ -132,6 +147,15 @@ Deno.serve(async (req) => {
     }
 
     const input = parsed.data;
+    const requiredRole = minimumRoleForAction(input);
+    const adminResult = await requireAdminRole(
+      supabaseAdmin,
+      user.id,
+      requiredRole,
+      logger,
+    );
+    if (adminResult instanceof Response) return adminResult;
+
     const audit = createAuditLogger(supabaseAdmin, user.id, requestId, logger);
 
     // Route to appropriate handler
@@ -549,6 +573,52 @@ async function handleToggleAdminStatus(
     adminId: input.admin_id,
     isActive: input.is_active,
   });
+
+  const { data: existingAdmin, error: existingError } = await supabaseAdmin
+    .from("admin_users")
+    .select("id, role, is_active")
+    .eq("id", input.admin_id)
+    .single();
+
+  if (existingError || !existingAdmin) {
+    logger.error("Failed to load admin before status update", {
+      error: existingError?.message,
+    });
+    return errorResponse("Admin user not found", 404, existingError?.message);
+  }
+
+  if (
+    existingAdmin.role === "super_admin" &&
+    existingAdmin.is_active === true &&
+    input.is_active === false
+  ) {
+    const { count, error: countError } = await supabaseAdmin
+      .from("admin_users")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "super_admin")
+      .eq("is_active", true);
+
+    if (countError) {
+      logger.error("Failed to count active super admins", {
+        error: countError.message,
+      });
+      return errorResponse(
+        "Failed to validate active super admin count",
+        500,
+        countError.message,
+      );
+    }
+
+    if ((count ?? 0) <= 1) {
+      logger.warn("Refused to deactivate the last active super admin", {
+        adminId: input.admin_id,
+      });
+      return errorResponse(
+        "Cannot deactivate the last active super admin",
+        409,
+      );
+    }
+  }
 
   const { data: admin, error } = await supabaseAdmin
     .from("admin_users")

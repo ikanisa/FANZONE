@@ -60,20 +60,7 @@ class _VenueEntryWrapperState extends ConsumerState<VenueEntryWrapper> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
-            child: Column(
-              children: [
-                FzBackHeader(
-                  title: 'Venue Entry',
-                  subtitle: 'Resolving FANZONE link',
-                ),
-                Expanded(child: Center(child: CircularProgressIndicator())),
-              ],
-            ),
-          ),
-        ),
+        body: SafeArea(child: Center(child: CircularProgressIndicator())),
       );
     }
 
@@ -84,13 +71,12 @@ class _VenueEntryWrapperState extends ConsumerState<VenueEntryWrapper> {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 120),
             children: [
               FzBackHeader(
-                title: 'Venue Entry',
-                subtitle: 'Resolving FANZONE link',
+                title: 'Bar link',
                 onClose: () => context.go('/venues'),
               ),
               const SizedBox(height: 48),
               StateView.error(
-                title: 'Venue link unavailable',
+                title: 'Bar link unavailable',
                 subtitle: _error!,
                 onRetry: () {
                   setState(() {

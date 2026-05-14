@@ -45,32 +45,8 @@ class FzBrandLogo extends StatelessWidget {
       width: width,
       height: height,
       fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) => _fallbackMark(context),
-    );
-  }
-
-  Widget _fallbackMark(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF111827) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(width < 48 ? 12 : 24),
-        border: Border.all(
-          color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0),
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        'FZ',
-        style: TextStyle(
-          fontSize: width * 0.28,
-          fontWeight: FontWeight.w800,
-          letterSpacing: width * 0.02,
-          color: isDark ? Colors.white : const Color(0xFF0F172A),
-        ),
-      ),
+      errorBuilder: (context, error, stackTrace) =>
+          SizedBox(width: width, height: height),
     );
   }
 }

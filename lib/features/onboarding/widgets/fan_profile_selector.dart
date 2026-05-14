@@ -24,8 +24,7 @@ class FanProfileSelector extends StatefulWidget {
     this.onSkip,
     this.onBack,
     this.title = 'FAN PROFILE',
-    this.description =
-        'Choose your local team, top European teams, and national teams.',
+    this.description = 'Add the teams you love.',
     this.saveLabel = 'SAVE FAN PROFILE',
     this.skipLabel = 'SKIP FOR NOW',
   });
@@ -102,6 +101,7 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
     _localTeam = localRows.isEmpty ? null : _teamFromRecord(localRows.first);
     _topEuropeanTeams = topRows.map(_teamFromRecord).toList(growable: false);
     _nationalTeams = nationalRows.map(_teamFromRecord).toList(growable: false);
+    _activeCategory = _nextCategoryForProgress();
   }
 
   FanProfileSelection get _selection => FanProfileSelection(
@@ -116,19 +116,40 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
     ..._nationalTeams.map((team) => team.id),
   };
 
-  void _selectCategory(FanProfileTeamCategory category) {
-    HapticFeedback.selectionClick();
-    setState(() {
-      _activeCategory = category;
-      _error = null;
+  int get _totalSelectedCount =>
+      (_localTeam == null ? 0 : 1) +
+      _topEuropeanTeams.length +
+      _nationalTeams.length;
+
+  int get _maxSelectedCount => FanProfileTeamCategory.values.fold<int>(
+    0,
+    (total, category) => total + category.maxSelections,
+  );
+
+  bool get _fanProfileFull => _totalSelectedCount >= _maxSelectedCount;
+
+  FanProfileTeamCategory _nextCategoryForProgress() {
+    if (_localTeam == null) return FanProfileTeamCategory.local;
+    if (_topEuropeanTeams.length <
+        FanProfileTeamCategory.topEuropean.maxSelections) {
+      return FanProfileTeamCategory.topEuropean;
+    }
+    return FanProfileTeamCategory.national;
+  }
+
+  void _syncActiveCategoryToProgress({required bool clearSearch}) {
+    final nextCategory = _nextCategoryForProgress();
+    if (_activeCategory == nextCategory) return;
+    _activeCategory = nextCategory;
+    if (clearSearch) {
       _searchController.clear();
-    });
-    _loadResults();
+    }
   }
 
   void _selectTeam(OnboardingTeam team) {
     if (team.id.isEmpty) return;
 
+    var selectionChanged = false;
     setState(() {
       _error = null;
       switch (_activeCategory) {
@@ -139,43 +160,48 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
           _nationalTeams = _nationalTeams
               .where((existing) => existing.id != team.id)
               .toList(growable: false);
+          selectionChanged = _localTeam?.id != team.id;
           _localTeam = team;
           break;
         case FanProfileTeamCategory.topEuropean:
-          _addTeamToList(
+          selectionChanged = _addTeamToList(
             team,
             current: _topEuropeanTeams,
             onChanged: (next) => _topEuropeanTeams = next,
           );
           break;
         case FanProfileTeamCategory.national:
-          _addTeamToList(
+          selectionChanged = _addTeamToList(
             team,
             current: _nationalTeams,
             onChanged: (next) => _nationalTeams = next,
           );
           break;
       }
+      if (selectionChanged) {
+        HapticFeedback.selectionClick();
+        _syncActiveCategoryToProgress(clearSearch: true);
+      }
     });
     _loadResults();
   }
 
-  void _addTeamToList(
+  bool _addTeamToList(
     OnboardingTeam team, {
     required List<OnboardingTeam> current,
     required ValueChanged<List<OnboardingTeam>> onChanged,
   }) {
-    if (current.any((existing) => existing.id == team.id)) return;
+    if (current.any((existing) => existing.id == team.id)) return false;
     if (_selectedTeamIds.contains(team.id)) {
       _error = 'That team is already selected in another category.';
-      return;
+      return false;
     }
     if (current.length >= _activeCategory.maxSelections) {
-      _error =
-          '${_activeCategory.title} allows ${_activeCategory.maxSelections} selections.';
-      return;
+      _error = 'This step allows ${_activeCategory.maxSelections} selections.';
+      return false;
     }
     onChanged([...current, team]);
+    return true;
   }
 
   void _removeTeam(FanProfileTeamCategory category, String teamId) {
@@ -196,6 +222,7 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
               .toList(growable: false);
           break;
       }
+      _syncActiveCategoryToProgress(clearSearch: true);
     });
     _loadResults();
   }
@@ -271,7 +298,16 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
               widget.description,
               style: TextStyle(fontSize: 14, color: widget.muted, height: 1.45),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 10),
+            Text(
+              '$_totalSelectedCount/$_maxSelectedCount teams added',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: widget.muted,
+              ),
+            ),
+            const SizedBox(height: 14),
             _SelectedTeamsSummary(
               localTeam: _localTeam,
               topEuropeanTeams: _topEuropeanTeams,
@@ -280,29 +316,9 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
               isDark: widget.isDark,
               onRemove: _removeTeam,
             ),
-            const SizedBox(height: 14),
-            SegmentedButton<FanProfileTeamCategory>(
-              showSelectedIcon: false,
-              segments: FanProfileTeamCategory.values
-                  .map(
-                    (category) => ButtonSegment(
-                      value: category,
-                      label: Text(category.shortTitle),
-                    ),
-                  )
-                  .toList(growable: false),
-              selected: {_activeCategory},
-              onSelectionChanged: (selection) =>
-                  _selectCategory(selection.first),
-              style: ButtonStyle(
-                textStyle: WidgetStateProperty.all(
-                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
+            if (_totalSelectedCount > 0) const SizedBox(height: 14),
             Text(
-              _activeCategory.helperText,
+              _activeInstruction,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -310,33 +326,34 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
               ),
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: _searchController,
-              textInputAction: TextInputAction.search,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: widget.textColor,
+            if (!_fanProfileFull)
+              TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: widget.textColor,
+                ),
+                decoration: InputDecoration(
+                  hintText: _searchHint,
+                  prefixIcon: const Icon(LucideIcons.search, size: 18),
+                  filled: true,
+                  fillColor: surfaceColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: FzColors.primary),
+                  ),
+                ),
               ),
-              decoration: InputDecoration(
-                hintText: _searchHint,
-                prefixIcon: const Icon(LucideIcons.search, size: 18),
-                filled: true,
-                fillColor: surfaceColor,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: borderColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: borderColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: FzColors.primary),
-                ),
-              ),
-            ),
             const SizedBox(height: 12),
             if (_error != null)
               Padding(
@@ -351,7 +368,9 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
                 ),
               ),
             Expanded(
-              child: _loadingResults
+              child: _fanProfileFull
+                  ? _FanProfileCompleteState(muted: widget.muted)
+                  : _loadingResults
                   ? Center(
                       child: CircularProgressIndicator(
                         color: widget.textColor,
@@ -404,11 +423,26 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
   String get _searchHint {
     switch (_activeCategory) {
       case FanProfileTeamCategory.local:
-        return 'Search for your local team';
+        return 'Search clubs and teams';
       case FanProfileTeamCategory.topEuropean:
-        return 'Search top European clubs';
+        return 'Search top clubs';
       case FanProfileTeamCategory.national:
-        return 'Search national teams';
+        return 'Search World Cup teams';
+    }
+  }
+
+  String get _activeInstruction {
+    if (_fanProfileFull) {
+      return 'Your team list is ready. Save it or remove a chip to change it.';
+    }
+
+    switch (_activeCategory) {
+      case FanProfileTeamCategory.local:
+        return 'Pick 1 team to start.';
+      case FanProfileTeamCategory.topEuropean:
+        return 'Add up to 2 top clubs.';
+      case FanProfileTeamCategory.national:
+        return 'Add up to 2 World Cup teams.';
     }
   }
 
@@ -526,117 +560,56 @@ class _SelectedTeamsSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _SelectedCategoryRow(
-          label: 'Local',
-          teams: [?localTeam],
-          max: FanProfileTeamCategory.local.maxSelections,
-          muted: muted,
-          isDark: isDark,
-          onRemove: (teamId) => onRemove(FanProfileTeamCategory.local, teamId),
+    final chips = <_SelectedTeamChip>[
+      if (localTeam != null)
+        _SelectedTeamChip(
+          team: localTeam!,
+          category: FanProfileTeamCategory.local,
         ),
-        const SizedBox(height: 8),
-        _SelectedCategoryRow(
-          label: 'Europe',
-          teams: topEuropeanTeams,
-          max: FanProfileTeamCategory.topEuropean.maxSelections,
-          muted: muted,
-          isDark: isDark,
-          onRemove: (teamId) =>
-              onRemove(FanProfileTeamCategory.topEuropean, teamId),
+      ...topEuropeanTeams.map(
+        (team) => _SelectedTeamChip(
+          team: team,
+          category: FanProfileTeamCategory.topEuropean,
         ),
-        const SizedBox(height: 8),
-        _SelectedCategoryRow(
-          label: 'National',
-          teams: nationalTeams,
-          max: FanProfileTeamCategory.national.maxSelections,
-          muted: muted,
-          isDark: isDark,
-          onRemove: (teamId) =>
-              onRemove(FanProfileTeamCategory.national, teamId),
+      ),
+      ...nationalTeams.map(
+        (team) => _SelectedTeamChip(
+          team: team,
+          category: FanProfileTeamCategory.national,
         ),
-      ],
+      ),
+    ];
+
+    if (chips.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: chips
+          .map(
+            (chip) => InputChip(
+              label: Text(chip.team.shortName),
+              avatar: const Icon(LucideIcons.shield, size: 14),
+              onDeleted: () => onRemove(chip.category, chip.team.id),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              backgroundColor: isDark
+                  ? FzColors.darkSurface3
+                  : FzColors.lightSurface2,
+              side: BorderSide(
+                color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+              ),
+            ),
+          )
+          .toList(growable: false),
     );
   }
 }
 
-class _SelectedCategoryRow extends StatelessWidget {
-  const _SelectedCategoryRow({
-    required this.label,
-    required this.teams,
-    required this.max,
-    required this.muted,
-    required this.isDark,
-    required this.onRemove,
-  });
+class _SelectedTeamChip {
+  const _SelectedTeamChip({required this.team, required this.category});
 
-  final String label;
-  final List<OnboardingTeam> teams;
-  final int max;
-  final Color muted;
-  final bool isDark;
-  final ValueChanged<String> onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 76,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              '$label ${teams.length}/$max',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: muted,
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          child: teams.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    'Not set',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: muted,
-                    ),
-                  ),
-                )
-              : Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: teams
-                      .map(
-                        (team) => InputChip(
-                          label: Text(team.shortName),
-                          avatar: const Icon(LucideIcons.shield, size: 14),
-                          onDeleted: () => onRemove(team.id),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          backgroundColor: isDark
-                              ? FzColors.darkSurface3
-                              : FzColors.lightSurface2,
-                          side: BorderSide(
-                            color: isDark
-                                ? FzColors.darkBorder
-                                : FzColors.lightBorder,
-                          ),
-                        ),
-                      )
-                      .toList(growable: false),
-                ),
-        ),
-      ],
-    );
-  }
+  final OnboardingTeam team;
+  final FanProfileTeamCategory category;
 }
 
 class _TeamResultTile extends StatelessWidget {
@@ -704,9 +677,28 @@ class _FanProfileEmptyState extends StatelessWidget {
     final hasQuery = query.trim().isNotEmpty;
     return Center(
       child: Text(
-        hasQuery
-            ? 'No matching teams found.'
-            : 'Search to add ${category.shortTitle.toLowerCase()} teams.',
+        hasQuery ? 'No matching teams found.' : 'Search to add teams.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: muted,
+        ),
+      ),
+    );
+  }
+}
+
+class _FanProfileCompleteState extends StatelessWidget {
+  const _FanProfileCompleteState({required this.muted});
+
+  final Color muted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'All set. Save your profile or remove a chip to make changes.',
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 13,
