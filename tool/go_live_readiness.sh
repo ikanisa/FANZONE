@@ -51,6 +51,8 @@ if git grep -nE "${SECRET_PATTERN}" -- \
   exit 1
 fi
 
+run tool/full_history_secret_scan.sh
+
 run flutter analyze
 run flutter test
 
@@ -67,6 +69,7 @@ run bash -n \
   tool/validate_release_env.sh \
   tool/validate_web_release_env.sh \
   tool/preflight_build_check.sh \
+  tool/full_history_secret_scan.sh \
   tool/supabase_live_validation.sh \
   tool/supabase_rls_audit.sh \
   tool/supabase_fet_supply_smoke.sh \
