@@ -28,6 +28,7 @@ rm -f /tmp/fanzone-browser-session-mode.txt
 
 if git grep -n 'FANZONE_EDGE_ALLOW_WILDCARD_CORS=true' -- \
   ':!docs/**' \
+  ':!tool/audit_repo_hygiene.sh' \
   ':!*.example' \
   ':!**/*.example' >/tmp/fanzone-wildcard-cors.txt; then
   fail "Production code/config enables wildcard CORS:
