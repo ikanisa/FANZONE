@@ -1,4 +1,5 @@
 const AUTH_PREFIX = "/api/auth";
+const HEALTH_PATH = "/api/health";
 const SUPABASE_PROXY_PREFIX = "/api/supabase";
 const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 const TOKEN_REFRESH_LEAD_SECONDS = 45;
@@ -18,6 +19,21 @@ function getSupabaseConfig(env) {
   const supabaseAnonKey =
     env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY || "";
   return { supabaseUrl, supabaseAnonKey };
+}
+
+function getRuntimeHealth(surface, env) {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig(env);
+  const cookiePrefix = env.FANZONE_BFF_COOKIE_PREFIX || `fz_${surface}`;
+
+  return {
+    ok: Boolean(supabaseUrl && supabaseAnonKey && cookiePrefix),
+    surface,
+    bff: true,
+    supabaseUrlConfigured: Boolean(supabaseUrl),
+    supabaseAnonKeyConfigured: Boolean(supabaseAnonKey),
+    cookiePrefixConfigured: Boolean(cookiePrefix),
+    privilegedSessionMode: "bff",
+  };
 }
 
 function parseCookies(header) {
@@ -490,6 +506,11 @@ export function createPrivilegedBffWorker({ surface }) {
   return {
     async fetch(request, env) {
       const url = new URL(request.url);
+
+      if (url.pathname === HEALTH_PATH) {
+        const payload = getRuntimeHealth(surface, env);
+        return jsonResponse(payload, { status: payload.ok ? 200 : 500 });
+      }
 
       if (url.pathname.startsWith(AUTH_PREFIX)) {
         return handleAuth(request, surface, env);

@@ -52,6 +52,7 @@ if git grep -nE "${SECRET_PATTERN}" -- \
 fi
 
 run tool/full_history_secret_scan.sh
+run tool/audit_repo_hygiene.sh
 
 run flutter analyze
 run flutter test
@@ -59,6 +60,7 @@ run flutter test
 run npm run typecheck --workspaces --if-present
 run npm run lint --workspaces --if-present
 run npm run test --workspaces --if-present
+run node tool/test_bff_health.mjs
 run npm run build --workspaces --if-present
 
 run deno fmt --check supabase/functions
@@ -69,11 +71,18 @@ run bash -n \
   tool/validate_release_env.sh \
   tool/validate_web_release_env.sh \
   tool/preflight_build_check.sh \
+  tool/audit_repo_hygiene.sh \
   tool/full_history_secret_scan.sh \
+  tool/verify_deployed_web_surface.sh \
+  tool/verify_production_envs.sh \
+  tool/create_supabase_backup_evidence.sh \
+  tool/collect_world_class_evidence.sh \
+  tool/check_world_class_evidence.sh \
   tool/supabase_live_validation.sh \
   tool/supabase_rls_audit.sh \
   tool/supabase_fet_supply_smoke.sh \
   tool/run_supabase_cron_job.sh
+run node --check tool/test_bff_health.mjs
 
 echo
 echo "Local go-live checks passed."

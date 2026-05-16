@@ -32,7 +32,7 @@ Allowed statuses:
 
 | Control | Flutter app | Bars/Venue PWA | Admin PWA | TV PWA | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| Deployed BFF/runtime verification | N/A | PENDING | PENDING | N/A | `tool/verify_deployed_web_surface.sh admin <url>`; `tool/verify_deployed_web_surface.sh venue-portal <url>`; login/refresh/logout smoke required |
+| Deployed BFF/runtime verification | N/A | PENDING | PENDING | N/A | `node tool/test_bff_health.mjs`; `tool/verify_deployed_web_surface.sh admin <url>`; `tool/verify_deployed_web_surface.sh venue-portal <url>`; `/api/health`, login, refresh, logout smoke required |
 | Deployed CORS and security headers | PENDING | PENDING | PENDING | PENDING | `tool/verify_deployed_web_surface.sh <surface> <url>` for every production origin required |
 | Scheduler and cron monitoring | PENDING | PENDING | PENDING | PENDING | `tool/run_supabase_cron_job.sh settle-match-pools`; `tool/run_supabase_cron_job.sh dispatch-match-alerts`; scheduler history and alert evidence required |
 | Android release artifact | PENDING | N/A | N/A | N/A | Signed AAB/APK, Play signing, install, production env, and deep-link smoke required |

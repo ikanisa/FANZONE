@@ -74,6 +74,29 @@ case "${surface}" in
 esac
 
 if [[ "${surface}" == "admin" || "${surface}" == "venue-portal" ]]; then
+  health_headers="${tmp_dir}/${surface}.health.headers"
+  health_body="${tmp_dir}/${surface}.health.body"
+  health_code="$(
+    curl -sS -D "${health_headers}" -o "${health_body}" -w '%{http_code}' \
+      "${base_url}/api/health"
+  )"
+  if [[ "${health_code}" -ne 200 ]]; then
+    echo "${surface} BFF health endpoint returned HTTP ${health_code}." >&2
+    exit 1
+  fi
+  if ! grep -Eq '"ok"[[:space:]]*:[[:space:]]*true' "${health_body}"; then
+    echo "${surface} BFF health endpoint did not report ok=true." >&2
+    exit 1
+  fi
+  if ! grep -Eq '"bff"[[:space:]]*:[[:space:]]*true' "${health_body}"; then
+    echo "${surface} BFF health endpoint did not report bff=true." >&2
+    exit 1
+  fi
+  if grep -Eiq '(eyJ[A-Za-z0-9_-]{20,}\.|refresh_token|access_token|service_role|postgresql://)' "${health_body}"; then
+    echo "${surface} BFF health response appears to expose secret material." >&2
+    exit 1
+  fi
+
   bff_headers="${tmp_dir}/${surface}.bff.headers"
   bff_body="${tmp_dir}/${surface}.bff.body"
   bff_code="$(
