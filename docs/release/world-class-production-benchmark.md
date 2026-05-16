@@ -113,6 +113,9 @@ P1 controls.
 FANZONE can move from `NO-GO` to `GO` only after:
 
 - every row in the global 100% gate is `PASS` for every applicable surface;
+- `docs/release/world-class-evidence-matrix.md` is 100% PASS for P0 and P1
+  controls;
+- `tool/check_world_class_evidence.sh` passes;
 - all P0 and P1 tasks in `docs/release/production-go-live-task-register.md` are
   complete with evidence;
 - `tool/go_live_readiness.sh --local` passes on a clean checkout;
