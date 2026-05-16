@@ -77,7 +77,7 @@ class FzReferenceHeader extends ConsumerWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 12,
-                  color: FzColors.darkMuted,
+                  color: FzColors.darkTextSecondary,
                   fontWeight: FontWeight.w800,
                 ),
               ),

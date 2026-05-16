@@ -389,27 +389,31 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: border),
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    _selectedCountry.flagEmoji,
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    _phonePreset.dialCode,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w800,
-                                      color: textColor,
-                                      fontFamily: FzTypography.score(
-                                        size: 16,
-                                        color: textColor,
-                                      ).fontFamily,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      _selectedCountry.flagEmoji,
+                                      style: const TextStyle(fontSize: 16),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _phonePreset.dialCode,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        color: textColor,
+                                        fontFamily: FzTypography.score(
+                                          size: 16,
+                                          color: textColor,
+                                        ).fontFamily,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

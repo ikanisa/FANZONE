@@ -1,6 +1,9 @@
 # Go-Live Checklist
 
 Use this checklist for production launch or major release promotion.
+The authoritative task register is
+`docs/release/production-go-live-task-register.md`; do not mark FANZONE ready
+until the register has evidence for every P0 task.
 
 ## Code And Builds
 
@@ -11,6 +14,7 @@ Use this checklist for production launch or major release promotion.
 - `npm run build --workspaces --if-present` passes.
 - `flutter analyze` passes.
 - `flutter test` passes.
+- `tool/go_live_readiness.sh --local` passes on a clean checkout.
 - Android and iOS release builds use ignored production config and signing files.
 
 ## Supabase
