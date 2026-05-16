@@ -44,6 +44,7 @@ if git grep -nE "${SECRET_PATTERN}" -- \
   ':!docs/free-account-release.md' \
   ':!docs/secret-rotation-runbook.md' \
   ':!tool/go_live_readiness.sh' \
+  ':!tool/full_history_secret_scan.sh' \
   ':!.env*.example' \
   ':!**/.env*.example' \
   ':!**/package-lock.json'; then
