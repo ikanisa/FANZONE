@@ -4,6 +4,8 @@ Use this checklist for production launch or major release promotion.
 The authoritative task register is
 `docs/release/production-go-live-task-register.md`; do not mark FANZONE ready
 until the register has evidence for every P0 task.
+The launch benchmark is `docs/release/world-class-production-benchmark.md`;
+Flutter app, bars/venue PWA, admin PWA, and TV PWA must all be 100% PASS.
 
 ## Code And Builds
 

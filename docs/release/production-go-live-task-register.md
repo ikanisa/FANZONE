@@ -3,8 +3,10 @@
 Last updated: 2026-05-16
 
 This register turns the production-readiness findings into launch tasks with
-required evidence. FANZONE must remain `NO-GO` until every P0 task is complete
-and every P1 task is either complete or explicitly waived by the release owner.
+required evidence. FANZONE must remain `NO-GO` until every P0 and P1 task is
+complete with evidence. The platform must also satisfy the world-class benchmark
+in `docs/release/world-class-production-benchmark.md` across the Flutter app,
+bars/venue PWA, admin PWA, and TV PWA.
 
 ## P0 Launch Blockers
 
@@ -17,6 +19,7 @@ and every P1 task is either complete or explicitly waived by the release owner.
 | P0-05 | Prove Supabase Edge Functions and SQL authorization are release-target clean. | Backend owner | Deno test logs, deployed function versions, target project ref, RLS/grant audit output, FET supply smoke output. | `deno test --allow-env supabase/functions`; `tool/supabase_live_validation.sh` |
 | P0-06 | Back up production database and record restore point before release. | Backend owner | Backup timestamp, restore point, owner approval, rollback decision path. | `docs/release/rollback.md` |
 | P0-07 | Verify production client envs never expose service-role or backend secrets. | Release owner | Passing release env validation for mobile and web env files without printing values. | `tool/validate_release_env.sh production --client`; `tool/validate_web_release_env.sh website`; repeat for admin/venue/TV envs |
+| P0-08 | Complete the world-class benchmark across Flutter app, bars/venue PWA, admin PWA, and TV PWA. | Release owner | 100% PASS evidence for every applicable row and surface; no P0/P1 waivers. | `docs/release/world-class-production-benchmark.md` |
 
 ## P1 Deployment Readiness
 
@@ -45,8 +48,8 @@ and every P1 task is either complete or explicitly waived by the release owner.
 
 Launch only when:
 
-- all P0 tasks are complete with evidence;
-- P1 tasks are complete or formally waived by the release owner;
+- all P0 and P1 tasks are complete with evidence;
+- the world-class benchmark is 100% PASS for Flutter app, bars/venue PWA, admin PWA, and TV PWA;
 - `tool/go_live_readiness.sh --local` passes on a clean checkout;
 - production credentials are rotated and stored only in approved secret stores;
 - production backup, rollback, monitoring, and incident ownership are proven.
