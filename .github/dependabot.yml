@@ -1,0 +1,97 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    groups:
+      root-web-tooling:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/apps/admin"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    groups:
+      admin-pwa:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/apps/venue-portal"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    groups:
+      venue-pwa:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/apps/tv-display"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    groups:
+      tv-pwa:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/apps/website"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    groups:
+      website-pwa:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/scripts"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    groups:
+      flutter-app:
+        patterns:
+          - "*"
