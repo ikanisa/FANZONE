@@ -46,7 +46,7 @@ Allowed statuses:
 | Control | Flutter app | Bars/Venue PWA | Admin PWA | TV PWA | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | Dependency update automation | PASS | PASS | PASS | PASS | `.github/dependabot.yml` |
-| MASVS-style mobile security review | PENDING | N/A | N/A | N/A | Secure storage, network, permissions, privacy, logging, crash handling review required |
+| MASVS-style mobile security review | PARTIAL | N/A | N/A | N/A | `tool/mobile_release_static_audit.sh`; static repo checks pass, but real-device security review and crash-reporting evidence remain required |
 | API authorization abuse tests | PENDING | PENDING | PENDING | PENDING | Negative cross-user, cross-venue, and admin-role tests required |
 | Load and reliability smoke | PENDING | PENDING | PENDING | PENDING | Latency/error-budget/load-smoke evidence required |
 | Privacy/legal review | PENDING | PENDING | PENDING | PENDING | Retention, deletion, export, support access, and public policy evidence required |

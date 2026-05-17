@@ -39,7 +39,7 @@ bars/venue PWA, admin PWA, and TV PWA.
 | ID | Task | Owner | Evidence required | Repo command or artifact |
 | --- | --- | --- | --- | --- |
 | P2-01 | Add dependency update automation and scheduled vulnerability reporting. | Security owner | Enabled provider workflow or bot configuration. | GitHub Dependabot or equivalent |
-| P2-02 | Run mobile MASVS-style review for local storage, network, platform permissions, privacy, and resilience. | Security owner | Findings and remediations tracked before broad public scale. | `pubspec.yaml`; `android/`; `ios/`; secure-storage code |
+| P2-02 | Run mobile MASVS-style review for local storage, network, platform permissions, privacy, and resilience. | Security owner | Static repo audit plus findings and remediations tracked before broad public scale; real-device and crash-reporting evidence still required before marking complete. | `tool/mobile_release_static_audit.sh`; `pubspec.yaml`; `android/`; `ios/`; secure-storage code |
 | P2-03 | Run API authorization abuse tests for object-level and function-level access. | Backend owner | Negative tests for cross-venue, cross-user, and unauthorized admin access. | Supabase SQL/RLS tests and Edge Function auth tests |
 | P2-04 | Run load and reliability smoke on ordering, wallet ledger, pools, and admin queues. | Operations owner | Load-test summary, latency/error budget, rollback threshold. | External load-test evidence |
 | P2-05 | Complete privacy/legal review for retention, deletion, data export, and support access. | Compliance owner | Approved policy links, retention schedule, support access procedure. | Public policy URLs and admin audit logs |

@@ -54,6 +54,7 @@ fi
 
 run tool/full_history_secret_scan.sh
 run tool/audit_repo_hygiene.sh
+run tool/mobile_release_static_audit.sh
 
 run flutter analyze
 run flutter test
@@ -73,6 +74,7 @@ run bash -n \
   tool/validate_web_release_env.sh \
   tool/preflight_build_check.sh \
   tool/audit_repo_hygiene.sh \
+  tool/mobile_release_static_audit.sh \
   tool/full_history_secret_scan.sh \
   tool/verify_deployed_web_surface.sh \
   tool/verify_production_envs.sh \

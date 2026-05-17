@@ -10,7 +10,7 @@ fail() {
 }
 
 tracked_generated="$(
-  git ls-files | rg '(^build/|/dist/|\.log$|\.env$|\.jks$|\.keystore$|google-services\.json|GoogleService-Info\.plist|node_modules|\.dart_tool|coverage/)' || true
+  git ls-files | rg '(^build/|/dist/|\.log$|(^|/)\.DS_Store$|^test/failures/|\.env$|\.jks$|\.keystore$|google-services\.json|GoogleService-Info\.plist|node_modules|\.dart_tool|coverage/)' || true
 )"
 if [[ -n "${tracked_generated}" ]]; then
   fail "Generated, secret, or local build artifacts are tracked:

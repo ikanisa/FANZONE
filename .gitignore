@@ -34,6 +34,7 @@ migrate_working_dir/
 /admin/node_modules/
 /node_modules/
 /coverage/
+/test/failures/
 /ios/Pods/
 /android/vendor/
 /supabase/.temp/
