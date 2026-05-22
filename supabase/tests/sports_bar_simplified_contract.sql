@@ -16,6 +16,7 @@ BEGIN
     'public.menu_items',
     'public.orders',
     'public.order_items',
+    'public.order_state_events',
     'public.competitions',
     'public.teams',
     'public.matches',
@@ -45,10 +46,10 @@ BEGIN
     'public.spend_fet_on_order(uuid,bigint,text)',
     'public.reconcile_wallet(uuid)',
     'public.generate_pool_share_card(uuid,text,jsonb)',
-    'public.generate_table_qr(uuid,text,text)',
     'public.admin_curate_match(text,text,uuid,integer,text,jsonb,timestamp with time zone,timestamp with time zone,boolean)',
     'public.venue_endorse_pool(uuid,uuid)',
     'public.manual_mark_order_paid(uuid,text,text)',
+    'public.venue_transition_order_status(uuid,text,text,jsonb)',
     'public.refund_pool_for_cancelled_match(uuid)',
     'public.reverse_or_refund_pool_if_match_cancelled(uuid)'
   ] LOOP

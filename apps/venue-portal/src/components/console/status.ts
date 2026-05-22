@@ -12,6 +12,7 @@ export function statusTone(status: string): StatusTone {
   if ([
     'paid',
     'served',
+    'completed',
     'active',
     'endorsed',
     'settled',
@@ -21,7 +22,9 @@ export function statusTone(status: string): StatusTone {
   ].includes(status)) return 'success';
   if ([
     'received',
+    'accepted',
     'preparing',
+    'ready',
     'partially_paid',
     'partial',
     'pending',
@@ -40,7 +43,7 @@ export function statusTone(status: string): StatusTone {
     'ineligible',
     'disconnected',
   ].includes(status)) return 'danger';
-  if (['placed', 'unpaid', 'draft', 'scheduled', 'live'].includes(status)) return 'primary';
+  if (['placed', 'submitted', 'unpaid', 'draft', 'scheduled', 'live'].includes(status)) return 'primary';
   return 'neutral';
 }
 

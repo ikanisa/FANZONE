@@ -146,6 +146,74 @@ void main() {
       );
     });
 
+    test('removes retired table context from venue links', () {
+      final retiredTablePath = [
+        'https://fanzone.ikanisa.com',
+        'v',
+        'stadium-sports-bar',
+        'table',
+        'T1',
+      ].join('/');
+      expect(governedAppRouteForPath(retiredTablePath), '/venues');
+      expect(
+        governedAppRouteForPath('/v/stadium-sports-bar?t=T1'),
+        '/v/stadium-sports-bar',
+      );
+      expect(
+        governedAppRouteForPath('/bar?v=venue_1&table=T1'),
+        '/bar?v=venue_1',
+      );
+    });
+
+    test('gates disabled dynamic route templates', () {
+      runtimeBootstrapStore.update(
+        BootstrapConfig(
+          platformConfigVersion: 'cfg-router-disabled-test',
+          platformFeatures: [
+            PlatformFeatureInfo.fromJson({
+              'feature_key': 'match_center',
+              'display_name': 'Match Center',
+              'status': 'disabled',
+              'is_enabled': false,
+              'default_route_key': '/match/:matchId',
+              'channels': {
+                'mobile': {
+                  'channel': 'mobile',
+                  'is_visible': false,
+                  'is_enabled': false,
+                  'show_in_navigation': false,
+                  'show_on_home': false,
+                  'sort_order': 30,
+                  'route_key': '/match/:matchId',
+                },
+              },
+              'resolved_state': {
+                'is_operational': false,
+                'is_visible': false,
+                'is_available': false,
+                'show_in_navigation': false,
+                'show_on_home': false,
+                'route_key': '/match/:matchId',
+                'sort_order': 30,
+              },
+            }),
+          ],
+        ),
+      );
+
+      expect(
+        governedAppRouteForPath('/match/match_42?entry=notification'),
+        '/feature-unavailable?f=match_center',
+      );
+      expect(
+        governedAppRouteForPath(
+          'https://fanzone.ikanisa.com/match/match_42',
+          fallback: '/home',
+        ),
+        '/home',
+      );
+    });
+
     test('preserves relative in-app locations and falls back safely', () {
       expect(
         governedAppRouteForPath('/wallet?tab=history'),

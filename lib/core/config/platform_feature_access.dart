@@ -12,6 +12,7 @@ enum PlatformSurface { navigation, home, route, action }
 
 const _guestFeatureKeys = {
   'home',
+  'match_center',
   'pools',
   'ordering',
   'venues',
@@ -93,12 +94,13 @@ class PlatformFeatureAccess {
   }
 
   String? routeKeyForPath(String path) {
+    final normalizedPath = _pathOnly(path);
     for (final feature in _config.platformFeatures) {
       final featureRoute =
           feature.channel(channel).routeKey ??
           feature.resolvedState.routeKey ??
           feature.defaultRouteKey;
-      if (featureRoute != null && path.startsWith(featureRoute)) {
+      if (featureRoute != null && _routeMatches(featureRoute, normalizedPath)) {
         return feature.featureKey;
       }
     }
@@ -150,6 +152,40 @@ class PlatformFeatureAccess {
         .toList(growable: false)
       ..sort((left, right) => left.sortOrder.compareTo(right.sortOrder));
   }
+}
+
+String _pathOnly(String path) {
+  final trimmed = path.trim();
+  if (trimmed.isEmpty) return '/';
+
+  final parsed = Uri.tryParse(trimmed);
+  final parsedPath = parsed?.path;
+  if (parsedPath != null && parsedPath.isNotEmpty) return parsedPath;
+
+  final queryStart = trimmed.indexOf('?');
+  return queryStart == -1 ? trimmed : trimmed.substring(0, queryStart);
+}
+
+bool _routeMatches(String routeTemplate, String path) {
+  final templateSegments = _pathSegments(routeTemplate);
+  final pathSegments = _pathSegments(path);
+  if (templateSegments.isEmpty) return pathSegments.isEmpty;
+  if (templateSegments.length > pathSegments.length) return false;
+
+  for (var index = 0; index < templateSegments.length; index++) {
+    final templateSegment = templateSegments[index];
+    if (templateSegment.startsWith(':')) continue;
+    if (templateSegment != pathSegments[index]) return false;
+  }
+
+  return true;
+}
+
+List<String> _pathSegments(String path) {
+  return path
+      .split('/')
+      .where((segment) => segment.trim().isNotEmpty)
+      .toList(growable: false);
 }
 
 final platformFeatureAccessProvider = Provider<PlatformFeatureAccess>((ref) {

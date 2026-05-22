@@ -243,7 +243,7 @@ export function LoginPage() {
         }
         .login-subtitle {
           font-size: var(--fz-text-sm);
-          color: var(--fz-muted);
+          color: var(--fz-muted-2);
           margin-top: var(--fz-sp-1);
         }
         .login-form {
@@ -322,7 +322,7 @@ export function LoginPage() {
         .login-footer {
           text-align: center;
           font-size: var(--fz-text-xs);
-          color: var(--fz-muted-2);
+          color: var(--fz-muted);
           margin-top: var(--fz-sp-8);
         }
         .spin { animation: spin 1s linear infinite; }

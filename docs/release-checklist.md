@@ -38,6 +38,8 @@
 - Open the Runner target in Xcode and confirm signing, push notifications, and background remote notifications resolve without manual overrides.
 - Archive a production build and validate install on a physical device.
 - Validate push delivery and notification tap routing on at least one physical iPhone.
+- Record signed-release evidence in `release/ios/testflight-readiness.json`.
+- Confirm `node tool/validate_ios_testflight_evidence.mjs` passes before marking iOS release readiness complete.
 
 ## Web and PWA release
 

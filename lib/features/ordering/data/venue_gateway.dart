@@ -5,11 +5,10 @@ import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/hospitality/menu_category_model.dart';
 import '../../../models/hospitality/menu_item_model.dart';
 import '../../../models/hospitality/venue_model.dart';
-import '../../../models/hospitality/venue_table_model.dart';
 
 /// Gateway for venue and menu data access via Supabase.
 abstract interface class VenueGateway {
-  /// Fetch a single venue by slug (QR deep-link entry).
+  /// Fetch a single venue by slug.
   Future<VenueModel?> getVenueBySlug(String slug);
 
   /// Fetch a single venue by ID.
@@ -33,9 +32,6 @@ abstract interface class VenueGateway {
     String query,
     int limit,
   });
-
-  /// Fetch tables for a venue.
-  Future<List<VenueTableModel>> getVenueTables(String venueId);
 
   /// Fetch menu categories for a venue (ordered).
   Future<List<MenuCategoryModel>> getMenuCategories(String venueId);
@@ -216,29 +212,6 @@ class SupabaseVenueGateway implements VenueGateway {
         query: query,
         limit: limit,
       );
-    }
-  }
-
-  @override
-  Future<List<VenueTableModel>> getVenueTables(String venueId) async {
-    final client = _connection.client;
-    if (client == null) return const [];
-
-    try {
-      final rows = await client
-          .from('venue_tables')
-          .select()
-          .eq('venue_id', venueId)
-          .eq('is_active', true)
-          .order('table_number');
-
-      return (rows as List)
-          .whereType<Map>()
-          .map((row) => VenueTableModel.fromJson(_normalizeVenueTableRow(row)))
-          .toList(growable: false);
-    } catch (error) {
-      AppLogger.w('Failed to load venue tables: $error');
-      return const [];
     }
   }
 
@@ -432,9 +405,3 @@ double _distanceKm(
 }
 
 double _degreesToRadians(double degrees) => degrees * math.pi / 180;
-
-Map<String, dynamic> _normalizeVenueTableRow(Map<dynamic, dynamic> row) {
-  final data = Map<String, dynamic>.from(row);
-  data['qr_code_url'] ??= data['qr_url'];
-  return data;
-}

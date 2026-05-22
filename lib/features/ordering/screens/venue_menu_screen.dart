@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../core/di/gateway_providers.dart';
 import '../../../models/hospitality/menu_category_model.dart';
 import '../../../models/hospitality/menu_item_model.dart';
 import '../../../theme/colors.dart';
@@ -55,7 +54,7 @@ class _NoVenueState extends StatelessWidget {
         FzEmptyState(
           title: 'Choose a bar',
           description: 'Open a bar menu.',
-          icon: const Icon(LucideIcons.qrCode),
+          icon: const Icon(LucideIcons.mapPin),
           actionLabel: 'Bars',
           onAction: () => context.go('/venues'),
         ),
@@ -196,11 +195,7 @@ class _VenueContextCard extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      venueContext.table?.tableNumber != null
-                          ? 'Table ${venueContext.table!.tableNumber}'
-                          : venueContext.tableNumber != null
-                          ? 'Table ${venueContext.tableNumber}'
-                          : 'Ask staff',
+                      'Order from the app',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -239,82 +234,7 @@ class _VenueContextCard extends ConsumerWidget {
               value: 'Refresh.',
             ),
           ),
-          const SizedBox(height: 10),
-          if (venueContext.hasTable) const _RingBellButton(),
         ],
-      ),
-    );
-  }
-}
-
-class _RingBellButton extends ConsumerStatefulWidget {
-  const _RingBellButton();
-
-  @override
-  ConsumerState<_RingBellButton> createState() => _RingBellButtonState();
-}
-
-class _RingBellButtonState extends ConsumerState<_RingBellButton> {
-  bool _submitting = false;
-
-  Future<void> _ringBell() async {
-    final venueContext = ref.read(venueContextProvider);
-    final venueId = venueContext.venueId;
-    final tableId = venueContext.tableId;
-    if (venueId == null || tableId == null || _submitting) return;
-
-    setState(() => _submitting = true);
-    try {
-      await ref
-          .read(bellGatewayProvider)
-          .ringBell(venueId: venueId, tableId: tableId);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Staff have been notified.')),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Could not notify staff: $error')));
-    } finally {
-      if (mounted) setState(() => _submitting = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final venueContext = ref.watch(venueContextProvider);
-    final canRing = venueContext.hasVenue && venueContext.hasTable;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: canRing && !_submitting ? _ringBell : null,
-        icon: _submitting
-            ? const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(LucideIcons.bellRing, size: 18),
-        label: Text(
-          _submitting
-              ? 'Notifying staff'
-              : canRing
-              ? 'Ring staff'
-              : 'Select table',
-        ),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: isDark ? FzColors.darkText : FzColors.lightText,
-          side: BorderSide(color: FzColors.primary.withValues(alpha: 0.55)),
-          shape: const RoundedRectangleBorder(
-            borderRadius: FzRadii.compactRadius,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
-        ),
       ),
     );
   }

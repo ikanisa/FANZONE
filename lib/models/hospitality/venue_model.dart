@@ -38,8 +38,6 @@ enum OnboardingStatus {
   locationComplete,
   @JsonValue('menu_pending')
   menuPending,
-  @JsonValue('qr_generated')
-  qrGenerated,
   @JsonValue('live')
   live,
 }

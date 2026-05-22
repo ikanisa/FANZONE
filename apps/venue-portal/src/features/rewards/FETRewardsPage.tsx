@@ -270,7 +270,7 @@ export const FETRewardsPage: React.FC = () => {
                   <tr key={order.id} className="border-b border-border last:border-0">
                     <td className="px-6 py-4">
                       <p className="font-black">#{order.orderCode}</p>
-                      <p className="text-xs text-textSecondary">Table {order.tableNumber || order.tableId.slice(0, 6)}</p>
+                      <p className="text-xs text-textSecondary">{order.tableNumber ? `Table ${order.tableNumber}` : "App order"}</p>
                     </td>
                     <td className="px-6 py-4">
                       <StatusChip status={order.paymentStatus} />

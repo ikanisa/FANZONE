@@ -20,12 +20,12 @@ Audience: guests and mobile venue users.
 Primary flows:
 
 - onboarding and WhatsApp OTP;
-- QR/table venue entry;
+- in-app venue entry;
 - venue menu and checkout;
 - off-platform payment guidance;
 - order tracking;
-- FET wallet;
-- match pool discovery, joining, and sharing;
+- FET non-cash loyalty balance;
+- match challenge discovery, joining, and sharing;
 - profile, notifications, privacy, and settings.
 
 Commands:
@@ -85,7 +85,7 @@ npm run preview
 Notes:
 
 - orders use audited payment RPCs and service-status Edge Function calls;
-- table QR payloads come from Supabase `generate_table_qr`;
+- venue ordering is selected in-app;
 - FET reward edits are owner/manager gated;
 - insights come from `get_venue_operational_insights`;
 - screen control pushes state to `venue_screen_states` and opens the standalone TV display PWA.
@@ -100,9 +100,9 @@ Primary operations:
 
 - countries, competitions, teams, venues;
 - match curation;
-- pool operations;
+- challenge operations;
 - reward rules;
-- wallet oversight;
+- loyalty-ledger oversight;
 - audit logs;
 - admin access;
 - platform controls and settings.
@@ -133,8 +133,8 @@ Audience: venue screens and TVs.
 Primary display modes:
 
 - venue welcome;
-- QR join screen;
-- active prediction pool;
+- app join screen;
+- active prediction challenge;
 - game lobby;
 - live question;
 - leaderboard;
@@ -162,7 +162,7 @@ Notes:
 - the TV app is unauthenticated and must read only screen-safe venue-scoped data;
 - it uses `venue_screen_states` as the display source of truth;
 - it must never show another venue's pool, game, menu, or leaderboard;
-- QR URLs must resolve to the linked venue, pool, or game context.
+- App links must resolve to the linked venue, pool, or game context.
 
 ## Public Website PWA
 
@@ -172,11 +172,11 @@ Audience: guests and public web users.
 
 Primary flows:
 
-- public landing and pool discovery;
+- public landing and challenge discovery;
 - match detail;
-- pool creation/joining;
-- wallet;
-- QR ordering and venue entry;
+- challenge creation/joining;
+- loyalty balance;
+- in-app ordering and venue entry;
 - profile, notifications, settings, privacy.
 
 Commands:

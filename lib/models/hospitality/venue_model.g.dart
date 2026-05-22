@@ -116,6 +116,5 @@ const _$OnboardingStatusEnumMap = {
   OnboardingStatus.profileComplete: 'profile_complete',
   OnboardingStatus.locationComplete: 'location_complete',
   OnboardingStatus.menuPending: 'menu_pending',
-  OnboardingStatus.qrGenerated: 'qr_generated',
   OnboardingStatus.live: 'live',
 };

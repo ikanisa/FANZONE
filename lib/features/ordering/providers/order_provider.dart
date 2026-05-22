@@ -51,8 +51,7 @@ class OrderPlacementNotifier extends StateNotifier<OrderPlacementState> {
   /// Place the current cart as an order.
   Future<OrderModel?> placeOrder({
     required String venueId,
-    String? tableId,
-    String? tablePublicCode,
+    required String tableNumber,
     required PaymentMethod paymentMethod,
     required String currencyCode,
   }) async {
@@ -70,8 +69,7 @@ class OrderPlacementNotifier extends StateNotifier<OrderPlacementState> {
     try {
       final dto = CreateOrderDto(
         venueId: venueId,
-        tableId: tableId,
-        tablePublicCode: tablePublicCode,
+        tableNumber: tableNumber,
         paymentMethod: paymentMethod,
         currencyCode: currencyCode,
         items: cart.items.map((item) => item.toOrderItemDto()).toList(),
@@ -210,7 +208,7 @@ bool canSubmitPaymentForOrder(OrderModel order) {
   };
 
   return hasExternalPayment &&
-      order.status != OrderStatus.cancelled &&
+      !order.status.isTerminal &&
       (order.paymentStatus == PaymentStatus.pending ||
           order.paymentStatus == PaymentStatus.unpaid);
 }
@@ -230,11 +228,10 @@ Future<void> submitPaymentForOrder(WidgetRef ref, OrderModel order) async {
 Future<OrderModel?> placeOrderFromContext(
   WidgetRef ref, {
   required PaymentMethod paymentMethod,
+  required String tableNumber,
 }) {
   final context = ref.read(venueContextProvider);
-  if (!context.hasVenue ||
-      (!context.hasTable &&
-          (context.tableNumber == null || context.tableNumber!.isEmpty))) {
+  if (!context.hasVenue) {
     return Future.value(null);
   }
 
@@ -242,8 +239,7 @@ Future<OrderModel?> placeOrderFromContext(
       .read(orderPlacementProvider.notifier)
       .placeOrder(
         venueId: context.venueId!,
-        tableId: context.tableId,
-        tablePublicCode: context.tableNumber,
+        tableNumber: tableNumber,
         paymentMethod: paymentMethod,
         currencyCode: context.currencyCode,
       );

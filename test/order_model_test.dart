@@ -30,6 +30,43 @@ void main() {
       expect(order.estimatedFetEarned, isNot(42));
     });
 
+    test('parses target and legacy hospitality lifecycle statuses', () {
+      OrderModel build(String status) {
+        return OrderModel.fromJson({
+          'id': 'order_$status',
+          'venue_id': 'venue_1',
+          'table_id': 'table_1',
+          'user_id': 'user_1',
+          'order_code': 'FZ-$status',
+          'status': status,
+          'payment_method': 'cash',
+          'payment_status': 'pending',
+          'currency_code': 'EUR',
+          'subtotal_amount': 10,
+          'tax_amount': 0,
+          'tip_amount': 0,
+          'payment_fet_amount': 0,
+          'fet_earned': 0,
+          'payment_fet_converted_amount': 0,
+          'total_amount': 10,
+        });
+      }
+
+      expect(build('placed').status, OrderStatus.placed);
+      expect(build('received').status, OrderStatus.received);
+      expect(build('submitted').status, OrderStatus.submitted);
+      expect(build('accepted').status, OrderStatus.accepted);
+      expect(build('ready').status, OrderStatus.ready);
+      expect(build('completed').status, OrderStatus.completed);
+      expect(build('refunded').status, OrderStatus.refunded);
+      expect(build('disputed').status, OrderStatus.disputed);
+
+      expect(build('submitted').status.isActive, isTrue);
+      expect(build('ready').status.isReadyOrLater, isTrue);
+      expect(build('completed').status.isTerminal, isTrue);
+      expect(build('refunded').status.isTerminal, isTrue);
+    });
+
     test(
       'customer payment submission is only available before staff confirms',
       () {

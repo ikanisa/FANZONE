@@ -42,14 +42,12 @@ Current app shell and routes:
   - venue-linked pool management surface
 - `apps/venue-portal/src/features/rewards/FETRewardsPage.tsx`
   - FET reward configuration surface
-- `apps/venue-portal/src/features/settings/QRFactoryPage.tsx`
-  - table QR management surface
 - `apps/venue-portal/src/features/settings/VenueSettingsPage.tsx`
   - venue settings surface
 - `docs/venue-dashboard-uat.md`
-  - current UAT checklist for orders, menu, pools, rewards, QR, insights, and responsive behavior
+  - current UAT checklist for orders, menu, pools, rewards, insights, and responsive behavior
 
-Current implementation is useful but incomplete for the requested product. It has Orders, Menu, Pools, FET Rewards, Tables/QR, Insights, and Settings, but it does not yet provide the target command center, game sessions, teams, participants, TV screen control, buy FET flow, detailed wallet ledger, pool settlement workflow, staff permissions UI, notifications center, or complete modal/state system.
+Current implementation is useful but incomplete for the requested product. It has Orders, Menu, Pools, FET Rewards, Insights, and Settings, but it does not yet provide the target command center, game sessions, teams, participants, TV screen control, buy FET flow, detailed wallet ledger, pool settlement workflow, staff permissions UI, notifications center, or complete modal/state system.
 
 ### Where This Fits
 
@@ -126,7 +124,7 @@ Key UX changes:
 
 - Some requested modules may need backend schema/RPC work before full implementation.
 - Existing pool code uses older concepts such as min/max stake and creator reward; target design replaces that with bar stake plus participant stake for venue-created pools.
-- Existing `/rewards` and `/tables` routes overlap with target `/wallet` and `/screen`; implementation should migrate them without losing current settings/QR capabilities.
+- Existing `/rewards` and `/screen` routes overlap with target `/wallet` and screen-control work; implementation should migrate them without losing current operational settings.
 - Staff permissions must be enforced server-side, not only hidden in UI.
 - Manual payment confirmation must write audit records.
 - Eligibility must be calculated consistently across orders, pools, games, teams, participants, and settlement.
@@ -401,7 +399,7 @@ Participants should be accessible from Teams, Games, Pools, Overview alerts, and
 | `/menu` | `/menu` | Keep and refactor into menu overview plus item create/edit. |
 | `/pools` | `/pools` | Keep and replace older pool model UI with bar stake plus participant stake flow. |
 | `/rewards` | `/wallet` or `/settings/fet-rewards` | Migrate reward settings into Wallet and Settings. |
-| `/tables` | `/screen` and `/settings/screen` | Keep QR utility but move TV/live screen control to Screen module. |
+| `/screen` | `/screen` and `/settings/screen` | Keep TV/live screen control in the Screen module. |
 | `/insights` | `/overview` and `/insights` | Split command center from deeper insights. |
 | `/settings` | `/settings/*` | Keep and add payment, staff, screen, FET reward settings. |
 
@@ -1492,7 +1490,7 @@ Winner preview:
 - winning team/camp
 - FET won
 - celebration animation state
-- QR to join next game or order
+- CTA to join next game or order from the app
 
 Preview rules:
 
@@ -1784,7 +1782,7 @@ Examples:
 
 Required empty states:
 
-- No active orders: CTA "View Menu QR"
+- No active orders: CTA "View Menu"
 - No active games: CTA "Start Game"
 - No active pools: CTA "Create Pool"
 - No teams yet: CTA "Open Game Lobby"
@@ -1874,7 +1872,7 @@ The dashboard cannot:
 
 ### Screen Control
 
-TV control must be treated as an operations module, not just a QR table utility.
+TV control must be treated as an operations module.
 
 Core jobs:
 
@@ -2039,4 +2037,3 @@ The design is implementation-ready when:
 - empty/loading/error states have clear CTAs
 - responsive behavior is specified for desktop, tablet, and mobile
 - implementation preserves existing portal architecture and replaces conflicting legacy pool/reward/table concepts cleanly
-

@@ -10,12 +10,12 @@ _$OrderModelImpl _$$OrderModelImplFromJson(Map<String, dynamic> json) =>
     _$OrderModelImpl(
       id: json['id'] as String,
       venueId: json['venue_id'] as String,
-      tableId: json['table_id'] as String,
+      tableId: json['table_id'] as String?,
       userId: json['user_id'] as String,
       orderCode: json['order_code'] as String,
       status:
           $enumDecodeNullable(_$OrderStatusEnumMap, json['status']) ??
-          OrderStatus.placed,
+          OrderStatus.submitted,
       paymentMethod: $enumDecode(
         _$PaymentMethodEnumMap,
         json['payment_method'],
@@ -86,11 +86,18 @@ Map<String, dynamic> _$$OrderModelImplToJson(_$OrderModelImpl instance) =>
     };
 
 const _$OrderStatusEnumMap = {
+  OrderStatus.draft: 'draft',
   OrderStatus.placed: 'placed',
   OrderStatus.received: 'received',
+  OrderStatus.submitted: 'submitted',
+  OrderStatus.accepted: 'accepted',
   OrderStatus.preparing: 'preparing',
+  OrderStatus.ready: 'ready',
   OrderStatus.served: 'served',
+  OrderStatus.completed: 'completed',
   OrderStatus.cancelled: 'cancelled',
+  OrderStatus.refunded: 'refunded',
+  OrderStatus.disputed: 'disputed',
 };
 
 const _$PaymentMethodEnumMap = {

@@ -1,6 +1,6 @@
 🎉 Welcome to FANZONE v1.0!
 
-• Venue QR ordering and bar menu browsing
+• In-app venue ordering and bar menu browsing
 • Match pools with FET wallet settlement
 • Major European competitions and curated football moments
 • FET wallet with transfer history

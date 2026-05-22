@@ -91,11 +91,6 @@
     border-radius: var(--fz-radius-lg);
   }
 
-  .qr-paper {
-    background: #ffffff !important;
-    color: #09090b;
-  }
-
   .shadow-sm {
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
   }

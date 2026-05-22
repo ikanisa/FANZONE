@@ -54,6 +54,8 @@ String governedAppRouteForPath(String targetPath, {String? fallback}) {
     }
   }
 
+  path = _removeRetiredQrOrderingContext(path, fallback: fallback);
+
   final access = runtimePlatformFeatureAccess();
   final routeKey = access.routeKeyForPath(path);
   if (routeKey == null) return path;
@@ -63,6 +65,32 @@ String governedAppRouteForPath(String targetPath, {String? fallback}) {
   }
 
   return fallback ?? '/feature-unavailable?f=$routeKey';
+}
+
+String _removeRetiredQrOrderingContext(String path, {String? fallback}) {
+  final uri = Uri.tryParse(path);
+  if (uri == null) return path;
+
+  final segments = uri.pathSegments;
+  final isRetiredTablePath =
+      segments.length >= 4 &&
+      ((segments[0] == 'v' && segments[2] == 'table') ||
+          (segments[0] == 'venues' && segments[2] == 'table'));
+  if (isRetiredTablePath) return fallback ?? '/venues';
+
+  final hasRetiredTableQuery =
+      uri.queryParameters.containsKey('t') ||
+      uri.queryParameters.containsKey('table');
+  if (!hasRetiredTableQuery) return path;
+
+  final cleanQuery = Map<String, String>.from(uri.queryParameters)
+    ..remove('t')
+    ..remove('table');
+  return Uri(
+    path: uri.path,
+    queryParameters: cleanQuery.isEmpty ? null : cleanQuery,
+    fragment: uri.fragment.isEmpty ? null : uri.fragment,
+  ).toString();
 }
 
 final GoRouter router = GoRouter(
@@ -78,9 +106,6 @@ final GoRouter router = GoRouter(
         venueSlug:
             state.uri.queryParameters['venueSlug'] ??
             state.uri.queryParameters['slug'],
-        tableNumber:
-            state.uri.queryParameters['table'] ??
-            state.uri.queryParameters['t'],
       ),
     ),
     GoRoute(
@@ -112,26 +137,8 @@ final GoRouter router = GoRouter(
     GoRoute(
       name: 'venue_entry',
       path: '/v/:venueSlug',
-      builder: (context, state) => VenueEntryWrapper(
-        venueSlug: state.pathParameters['venueSlug']!,
-        tableNumber: state.uri.queryParameters['t'],
-      ),
-    ),
-    GoRoute(
-      name: 'venue_table_entry',
-      path: '/v/:venueSlug/table/:tableNumber',
-      builder: (context, state) => VenueEntryWrapper(
-        venueSlug: state.pathParameters['venueSlug']!,
-        tableNumber: state.pathParameters['tableNumber'],
-      ),
-    ),
-    GoRoute(
-      name: 'venue_table_entry_legacy',
-      path: '/venues/:venueSlug/table/:tableNumber',
-      builder: (context, state) => VenueEntryWrapper(
-        venueSlug: state.pathParameters['venueSlug']!,
-        tableNumber: state.pathParameters['tableNumber'],
-      ),
+      builder: (context, state) =>
+          VenueEntryWrapper(venueSlug: state.pathParameters['venueSlug']!),
     ),
     GoRoute(
       name: 'bar',
@@ -143,16 +150,9 @@ final GoRouter router = GoRouter(
         final venueSlug =
             state.uri.queryParameters['venueSlug'] ??
             state.uri.queryParameters['slug'];
-        final tableNumber =
-            state.uri.queryParameters['table'] ??
-            state.uri.queryParameters['t'];
         final child = venueId == null && venueSlug == null
             ? const VenueMenuScreen()
-            : VenueEntryWrapper(
-                venueId: venueId,
-                venueSlug: venueSlug,
-                tableNumber: tableNumber,
-              );
+            : VenueEntryWrapper(venueId: venueId, venueSlug: venueSlug);
         return _fadeSlideTransition(state, child);
       },
     ),

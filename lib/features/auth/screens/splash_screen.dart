@@ -14,18 +14,11 @@ import '../../../widgets/common/fz_wordmark.dart';
 ///
 /// Onboarding is local-first and no longer blocked behind authentication.
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({
-    super.key,
-    this.returnTo,
-    this.venueId,
-    this.venueSlug,
-    this.tableNumber,
-  });
+  const SplashScreen({super.key, this.returnTo, this.venueId, this.venueSlug});
 
   final String? returnTo;
   final String? venueId;
   final String? venueSlug;
-  final String? tableNumber;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -71,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
     final nextRoute = onboardingDone
-        ? (_qrRoute() ??
+        ? (_venueRoute() ??
               widget.returnTo ??
               appRuntime.consumePendingAppRoute() ??
               '/home')
@@ -80,22 +73,15 @@ class _SplashScreenState extends State<SplashScreen>
     markAppInteractive();
   }
 
-  String? _qrRoute() {
-    final encodedTable = widget.tableNumber == null
-        ? null
-        : Uri.encodeQueryComponent(widget.tableNumber!);
+  String? _venueRoute() {
     final venueSlug = widget.venueSlug?.trim();
     if (venueSlug != null && venueSlug.isNotEmpty) {
-      return encodedTable == null
-          ? '/v/$venueSlug'
-          : '/v/$venueSlug?t=$encodedTable';
+      return '/v/$venueSlug';
     }
 
     final venueId = widget.venueId?.trim();
     if (venueId != null && venueId.isNotEmpty) {
-      return encodedTable == null
-          ? '/bar?v=${Uri.encodeQueryComponent(venueId)}'
-          : '/bar?v=${Uri.encodeQueryComponent(venueId)}&table=$encodedTable';
+      return '/bar?v=${Uri.encodeQueryComponent(venueId)}';
     }
 
     return null;

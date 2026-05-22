@@ -72,8 +72,7 @@ abstract interface class OrderGateway {
 class CreateOrderDto {
   const CreateOrderDto({
     required this.venueId,
-    this.tableId,
-    this.tablePublicCode,
+    required this.tableNumber,
     required this.paymentMethod,
     required this.currencyCode,
     required this.items,
@@ -84,8 +83,7 @@ class CreateOrderDto {
   });
 
   final String venueId;
-  final String? tableId;
-  final String? tablePublicCode;
+  final String tableNumber;
   final PaymentMethod paymentMethod;
   final String currencyCode;
   final List<CreateOrderItemDto> items;
@@ -192,9 +190,7 @@ class SupabaseOrderGateway implements OrderGateway {
       headers: _authHeaders,
       body: {
         'venue_id': request.venueId,
-        if (request.tableId != null) 'table_id': request.tableId,
-        if (request.tablePublicCode != null)
-          'table_public_code': request.tablePublicCode,
+        'table_number': request.tableNumber,
         'payment_method': request.paymentMethod.name,
         'special_instructions': request.specialInstructions,
         'items': request.items

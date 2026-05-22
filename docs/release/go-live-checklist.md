@@ -54,14 +54,14 @@ release decision with `tool/check_world_class_evidence.sh`.
 - `env/production.json` is supplied locally/CI and not committed.
 - Android keystore and Play service account are supplied securely.
 - iOS `GoogleService-Info.plist` and signing config are supplied securely.
-- Deep links open QR order flow from cold and warm app states.
+- Venue links open the selected bar from cold and warm app states.
 - Anonymous session, WhatsApp OTP upgrade, wallet, ordering, and pool flows pass UAT.
 
 ## Operations
 
 - Admin users and emergency owners are configured.
 - Venue owner/manager/staff test accounts are configured.
-- Guest UAT accounts and QR/table fixtures are configured.
+- Guest UAT accounts and in-app venue fixtures are configured.
 - Supabase/platform cron or local scheduled jobs call `tool/run_supabase_cron_job.sh settle-match-pools` and `tool/run_supabase_cron_job.sh dispatch-match-alerts`.
 - Push notification credentials are present.
 - WhatsApp OTP reviewer/test values are configured only when required.

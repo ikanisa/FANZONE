@@ -8,7 +8,6 @@ import type {
   PaymentMethod,
   PaymentStatus,
   VenueOperationalInsights,
-  VenueTableRow,
 } from "@fanzone/core";
 import { readStoredVenueSession, supabase } from "../lib/supabase";
 export type {
@@ -35,17 +34,6 @@ export {
   mapRewardConfig,
   saveRewardConfig,
 } from "./venueRewardOperations";
-
-export interface VenueTable {
-  id: string;
-  venueId: string;
-  tableNumber: string;
-  qrToken: string | null;
-  qrUrl: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface BellRequest {
   id: string;
@@ -110,9 +98,36 @@ export interface PaymentAuditEvent {
   createdAt: string;
 }
 
+type OrderStateEventRow = {
+  id: string;
+  order_id: string;
+  venue_id: string;
+  actor_user_id: string | null;
+  previous_status: string | null;
+  next_status: OrderStatus;
+  reason: string | null;
+  source: string;
+  metadata: Json;
+  created_at: string;
+};
+
+export interface OrderStateEvent {
+  id: string;
+  orderId: string;
+  venueId: string;
+  actorUserId: string | null;
+  previousStatus: string | null;
+  nextStatus: OrderStatus;
+  reason: string | null;
+  source: string;
+  metadata: Json;
+  createdAt: string;
+}
+
 export interface OrderDetail {
   order: Order;
   paymentEvents: PaymentAuditEvent[];
+  stateEvents: OrderStateEvent[];
 }
 
 export interface ManualPaymentDetails {
@@ -310,6 +325,12 @@ function normalizePaymentStatus(status: PaymentStatus): PaymentStatus {
   return status;
 }
 
+function normalizeOrderStatus(status: OrderStatus): OrderStatus {
+  if (status === "placed") return "submitted";
+  if (status === "received") return "accepted";
+  return status;
+}
+
 function mapOrderItem(row: OrderItemRow): OrderItem {
   return {
     id: row.id,
@@ -355,7 +376,7 @@ export function mapOrder(row: OrderWithRelations): Order {
     userId: row.user_id,
     tableNumber: relationTableNumber(row),
     orderCode: row.order_code,
-    status: row.status,
+    status: normalizeOrderStatus(row.status),
     paymentMethod: row.payment_method,
     paymentStatus: normalizePaymentStatus(row.payment_status),
     currencyCode: row.currency_code,
@@ -374,6 +395,21 @@ export function mapOrder(row: OrderWithRelations): Order {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     items: row.items?.map(mapOrderItem) ?? [],
+  };
+}
+
+function mapOrderStateEvent(row: OrderStateEventRow): OrderStateEvent {
+  return {
+    id: row.id,
+    orderId: row.order_id,
+    venueId: row.venue_id,
+    actorUserId: row.actor_user_id,
+    previousStatus: row.previous_status,
+    nextStatus: normalizeOrderStatus(row.next_status),
+    reason: row.reason,
+    source: row.source,
+    metadata: row.metadata,
+    createdAt: row.created_at,
   };
 }
 
@@ -469,18 +505,35 @@ export async function fetchVenueOrderDetail(
 
   if (eventError) throw eventError;
 
+  const { data: stateEvents, error: stateEventError } = await supabase
+    .from("order_state_events")
+    .select("*")
+    .eq("order_id", orderId)
+    .order("created_at", { ascending: true });
+
+  if (stateEventError) throw stateEventError;
+
   return {
     order: mapOrder(data as unknown as OrderWithRelations),
     paymentEvents: ((events ?? []) as PaymentEventRow[]).map(mapPaymentEvent),
+    stateEvents: ((stateEvents ?? []) as OrderStateEventRow[]).map(
+      mapOrderStateEvent,
+    ),
   };
 }
 
 export async function setOrderServiceStatus(
   orderId: string,
   status: OrderStatus,
+  reason?: string,
 ) {
   const { error } = await supabase.functions.invoke("order_update_status", {
-    body: { order_id: orderId, status },
+    body: {
+      order_id: orderId,
+      status,
+      reason,
+      metadata: { surface: "venue-portal" },
+    },
   });
 
   if (error) throw error;
@@ -507,67 +560,6 @@ export async function setOrderPaymentStatus(
 
   if (error) throw error;
   return data;
-}
-
-function mapVenueTable(row: VenueTableRow): VenueTable {
-  return {
-    id: row.id,
-    venueId: row.venue_id,
-    tableNumber: row.table_number,
-    qrToken: row.qr_token ?? null,
-    qrUrl: row.qr_url ?? row.deep_link_uri ?? null,
-    isActive: row.is_active,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-export async function fetchVenueTables(venueId: string): Promise<VenueTable[]> {
-  const { data, error } = await supabase
-    .from("venue_tables")
-    .select("*")
-    .eq("venue_id", venueId)
-    .order("table_number", { ascending: true });
-
-  if (error) throw error;
-  return ((data ?? []) as VenueTableRow[]).map(mapVenueTable);
-}
-
-export async function generateVenueTableQr(
-  venueId: string,
-  tableNumber: string,
-): Promise<VenueTable> {
-  const baseUrl = String(
-    import.meta.env.VITE_GUEST_APP_URL || "https://fanzone.guest.ikanisa.com",
-  );
-  const { data, error } = await supabase.rpc("generate_table_qr", {
-    p_venue_id: venueId,
-    p_table_number: tableNumber.trim(),
-    p_base_url: baseUrl,
-  });
-
-  if (error) throw new Error(error.message ?? "Failed to generate table QR.");
-
-  const record = asRecord(data);
-  return {
-    id: String(record.table_id ?? ""),
-    venueId,
-    tableNumber,
-    qrToken: typeof record.qr_token === "string" ? record.qr_token : null,
-    qrUrl: typeof record.qr_url === "string" ? record.qr_url : null,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-}
-
-export async function setVenueTableActive(tableId: string, isActive: boolean) {
-  const { error } = await supabase
-    .from("tables")
-    .update({ is_active: isActive, updated_at: new Date().toISOString() })
-    .eq("id", tableId);
-
-  if (error) throw error;
 }
 
 type VenueWalletRpcRow = {

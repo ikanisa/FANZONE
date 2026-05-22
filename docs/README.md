@@ -2,7 +2,7 @@
 
 This directory is the release-readiness entry point for FANZONE, the sports-bar entertainment platform for venues, lounges, fan zones, and hospitality operators.
 
-FANZONE uses the standalone `FANZONEUI` export as the primary UI and product reference for the Flutter client. Production implementation must wire those concepts to real app data, Supabase gateways, loading states, and empty states rather than static mock export data. The current production surface includes guest venue discovery, bar ordering, off-platform payment guidance, manual payment confirmation, FET rewards, FET wallets, Arena pools, admin curation, settlement, audit, and operations tooling.
+FANZONE uses the standalone `FANZONEUI` export as the primary UI and product reference for the Flutter client. Production implementation must wire those concepts to real app data, Supabase gateways, loading states, and empty states rather than static mock export data. The current production surface includes guest venue discovery, bar ordering, off-platform payment guidance, manual payment confirmation, FET loyalty rewards, Arena challenges, admin curation, settlement, audit, and operations tooling.
 
 ## One-Hour Senior Developer Onboarding
 
@@ -11,17 +11,18 @@ Read these documents in order:
 1. [Architecture Overview](architecture/overview.md)
 2. [Apps](architecture/apps.md)
 3. [Backend](architecture/backend.md)
-4. [Permissions And RLS](security/permissions-rls.md)
-5. [Audit Logs](security/audit-logs.md)
-6. [Admin Guide](operations/admin-guide.md)
-7. [Channels](integrations/channels.md)
-8. [Payments](integrations/payments.md)
-9. [Go-Live Checklist](release/go-live-checklist.md)
-10. [Rollback](release/rollback.md)
-11. [QA/UAT](testing/qa-uat.md)
-12. [Incident Runbooks](operations/incident-runbooks.md)
-13. [Flutter Review PWA](REVIEW_PWA_GUIDE.md)
-14. [UI Review Protocol](UI_REVIEW_PROTOCOL.md)
+4. [Hospitality Implementation Plan](architecture/implementation-plan.md)
+5. [Permissions And RLS](security/permissions-rls.md)
+6. [Audit Logs](security/audit-logs.md)
+7. [Admin Guide](operations/admin-guide.md)
+8. [Channels](integrations/channels.md)
+9. [Payments](integrations/payments.md)
+10. [Go-Live Checklist](release/go-live-checklist.md)
+11. [Rollback](release/rollback.md)
+12. [QA/UAT](testing/qa-uat.md)
+13. [Incident Runbooks](operations/incident-runbooks.md)
+14. [Flutter Review PWA](REVIEW_PWA_GUIDE.md)
+15. [UI Review Protocol](UI_REVIEW_PROTOCOL.md)
 
 ## Repository Map
 
@@ -49,7 +50,7 @@ No live secrets belong in git.
 | `VITE_SUPABASE_URL` | Admin, website, venue portal, TV display | Browser-safe Supabase URL. |
 | `VITE_SUPABASE_ANON_KEY` | Admin, website, venue portal, TV display | Browser-safe anon key. |
 | `VITE_PRIVILEGED_SESSION_MODE` | Admin, venue portal | Use `bff` in production. `browser` is only for local development without Cloudflare Pages Functions. |
-| `VITE_GUEST_APP_URL` | Venue portal | Base URL for table QR deep links. |
+| `VITE_GUEST_APP_URL` | Venue portal | Base URL for guest app links. |
 | `VITE_PUBLIC_APP_URL` | TV display | Base URL used in TV QR joins. |
 | `VITE_TV_DISPLAY_URL` | Venue portal | Base URL for venue screen links. |
 | `SUPABASE_SERVICE_ROLE_KEY` or `EDGE_SERVICE_ROLE_KEY` | Edge Functions | Server only. Never expose through `VITE_` or Flutter config. |
@@ -78,6 +79,6 @@ No live secrets belong in git.
 ## Roadmap
 
 1. Launch hardening: rotate exposed Supabase credentials, finish release metadata, supply store signing/Firebase files, and complete venue/admin/guest UAT.
-2. Operational scale: add settlement latency, wallet ledger drift, QR scan conversion, and failed Edge Function alerts.
+2. Operational scale: add settlement latency, loyalty-ledger drift, venue-order conversion, and failed Edge Function alerts.
 3. Market expansion: add country-specific copy, currency display rules, venue onboarding templates, and curated match playbooks.
 4. Agent readiness: add explicit agent workspaces only after permissions, tool scopes, memory boundaries, and audit outputs are reviewed.

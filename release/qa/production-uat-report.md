@@ -1,6 +1,6 @@
 # Production UAT Report
 
-Status: Automated release checks and Pixel 4a authenticated UAT are mostly complete. Final live multi-device UAT, iOS signing/TestFlight, TV custom-domain DNS, and store-console submissions are still required before public launch.
+Status: Automated release checks and Pixel 4a authenticated UAT are mostly complete. Final live multi-device UAT, fresh Android artifact regeneration, iOS signing/TestFlight, and store-console submissions are still required before public launch.
 
 ## Automated Checks Completed
 
@@ -45,20 +45,20 @@ Status: Automated release checks and Pixel 4a authenticated UAT are mostly compl
 - Fix applied: added and pushed `20260504153000_seed_mobile_runtime_bootstrap.sql`, seeding `MT`, `RW`, `GB`, and `US` country/phone/currency bootstrap data plus `default_phone_country_code=MT`.
 - WhatsApp login UI after fix: fresh app state now shows `+356`, formats Malta number `99711145` as `9971 1145`, and enables `SEND OTP TO WHATSAPP`.
 - Test account setup: WhatsApp test phone `+35699711145` verifies with the production-isolated UAT OTP path. The test secret expiry is `2026-06-30T23:59:59Z`.
-- Authenticated mobile UAT status: passed login using the UAT phone/OTP, notification permission prompt, optional fan profile skip, home load, wallet load, venue browse, menu browse, table QR checkout, Arena pool browse, Arena Entries browse, and pool stake.
+- Authenticated mobile UAT status: passed login using the UAT phone/OTP, notification permission prompt, optional fan profile skip, home load, wallet load, venue browse, menu browse, in-app checkout, Arena pool browse, Arena Entries browse, and pool stake.
 - Test user: generated 6-digit fan ID `526626`; no name, email, username, first name, or last name was required.
 - Wallet initial state: welcome credit created a ledgered 50 FET balance.
 - Wallet after pool stake: app and database show 25 FET available, 25 FET staked, 0 pending, one active pool entry, and three wallet ledger rows.
 - Update APK smoke: a plain `flutter build apk --release` without production dart-defines produced a misconfigured build, so the device was reinstalled with `tool/build_android_release_from_env.sh production`; the corrected `1.1.3+11` build shows `+356`, authenticates the UAT account, and lands on the expected 25 FET available home state.
 - Venue browse: `UAT Live Sports Bar` renders as open with FET rewards and an order CTA.
-- Menu/checkout: `UAT Zero Beer` can be added to cart, checkout shows Cash/Revolut external payment options, and authenticated table QR order placement succeeds.
+- Menu/checkout: `UAT Zero Beer` can be added to cart, checkout shows Cash/Revolut external payment options, and authenticated in-app order placement succeeds.
 - Order placement UAT: after fixing table public-code resolution and custom WhatsApp JWT auth handling in `order_create`, the Pixel placed `Order #FZ-Y7CX-QCM1` for `€4.50`; status shows Cash / Unpaid and FET reward pending venue confirmation.
 - Pool UAT data refresh: the seeded UAT match was stale (`2026-05-03`), so the linked UAT match timestamp was moved to `2026-05-06` to permit the live join-path test.
 - Pool stake: the test user joined the Draw camp for 25 FET; pool totals updated from 2 members/50 FET to 3 members/75 FET.
 - Pool detail issue fixed in source: pool summaries now annotate authenticated entries via the runtime WhatsApp session and the Entries filter is no longer hardcoded empty.
 - Arena Entries smoke: the Arena screen shows the UAT venue-linked pool with the existing active entry context after tapping Entries.
-- Table QR/deep-link issue fixed: Android manifest/router now handle `https://fanzone.app/v/:slug/table/:table`, `https://fanzone.ikanisa.com/v/:slug/table/:table`, legacy `/venues/:slug/table/:table`, and custom-scheme venue/table links.
-- Edge Function fix: `order_create` now accepts nullable notes from installed clients, resolves table public codes/QR URLs server-side, and accepts signed FANZONE WhatsApp JWT claims for custom authenticated sessions.
+- Venue-link issue fixed: Android manifest/router now handle venue and pool links from the installed app.
+- Edge Function fix: `order_create` now accepts nullable notes from installed clients and accepts signed FANZONE WhatsApp JWT claims for custom authenticated sessions.
 - App Links: package verifier reports `fanzone.ikanisa.com: verified`, but this device shows the domain under user selection state `Disabled`; verify Android App Link behavior on a clean reviewer/internal-test device.
 - Device network: Wi-Fi validated and usable during test.
 - Screenshots captured locally under `/tmp`: `fanzone_after_seed_start.png`, `fanzone_malta_phone_entered.png`, `fanzone_home_after_login.png`, `fanzone_order_menu_current.png`, `fanzone_order_scrolled.png`, `fanzone_pool_detail_after_stake.png`, `fanzone_wallet_after_pool_stake.png`, `fanzone_113_home_after_login.png`.
@@ -70,15 +70,16 @@ Status: Automated release checks and Pixel 4a authenticated UAT are mostly compl
 - Android release version: `1.1.3+11`
 - Android AAB SHA-256: `0788a27fc5b179879a63f0ba47a7f45b34c2e011f5527c0c9b8b9cf69f95ae43`
 - Website deploy: `https://2fdf640b.fanzone-website.pages.dev`
-- Admin deploy: `https://d68abe9b.fanzone-admin.pages.dev`
+- Admin deploy: `https://b6eb314b.fanzone-admin.pages.dev`
+- Admin production custom domain: `https://fanzoneadmin.ikanisa.com`
 - Venue dashboard deploy: `https://945a5815.fanzone-venue-portal.pages.dev`
 - TV display deploy: `https://3078ac01.fanzone-tv-display.pages.dev`
 
 ## Remaining Blockers
 
 - Configure Apple Developer account in Xcode and provisioning for `com.fanzone.fanzone`.
-- Configure the TV DNS CNAME for `screen.fanzone.ikanisa.com`; the Cloudflare Pages custom-domain binding has already been created.
 - Provide `CRON_SECRET` and `PUSH_NOTIFY_SECRET` locally or in secret manager to run Edge job auth smoke.
+- Regenerate fresh Android APK/AAB from the current source on a clean Android build environment; the 2026-05-21 local rebuild stalled and left only the May 18 artifacts.
 - Rotate production secrets exposed during release support and keep only secret-manager copies.
 - Replace or hide visible UAT production data before public launch.
 - Review and submit the Google Play internal testing draft in Play Console.
@@ -100,7 +101,7 @@ Status: Automated release checks and Pixel 4a authenticated UAT are mostly compl
 - [x] Fan profile setup optional and skippable.
 - [x] Browse venues.
 - [x] View menu.
-- [x] Place order from table QR.
+- [x] Place order from the app.
 - [x] View Cash/Revolut/external payment instructions.
 - [ ] Venue marks paid. Order exists; venue payment confirmation not yet exercised on device.
 - [ ] User earns order FET through ledgered transaction. Pending venue payment confirmation.

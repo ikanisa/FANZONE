@@ -454,29 +454,17 @@ INSERT INTO public.tables (
   id,
   venue_id,
   table_number,
-  qr_code_url,
-  deep_link_uri,
-  qr_token,
-  qr_url,
   is_active
 )
 VALUES (
   '00000000-0000-4000-8000-000000000302',
   '00000000-0000-4000-8000-000000000301',
   'UAT-1',
-  'https://fanzone.app/v/uat-live-sports-bar/table/UAT-1',
-  'fanzone://venues/uat-live-sports-bar/table/UAT-1',
-  'uat-live-sports-bar-table-1',
-  'https://fanzone.app/v/uat-live-sports-bar/table/UAT-1',
   true
 )
 ON CONFLICT (id) DO UPDATE
 SET venue_id = EXCLUDED.venue_id,
     table_number = EXCLUDED.table_number,
-    qr_code_url = EXCLUDED.qr_code_url,
-    deep_link_uri = EXCLUDED.deep_link_uri,
-    qr_token = EXCLUDED.qr_token,
-    qr_url = EXCLUDED.qr_url,
     is_active = true,
     updated_at = timezone('utc', now());
 
@@ -560,6 +548,29 @@ SET status = EXCLUDED.status,
     created_at = EXCLUDED.created_at,
     fet_earned = EXCLUDED.fet_earned,
     updated_at = timezone('utc', now());
+
+INSERT INTO public.order_state_events (
+  id,
+  order_id,
+  venue_id,
+  actor_user_id,
+  previous_status,
+  next_status,
+  reason,
+  source,
+  metadata,
+  created_at
+)
+VALUES
+  ('00000000-0000-4000-8000-000000000311', '00000000-0000-4000-8000-000000000306', '00000000-0000-4000-8000-000000000301', '00000000-0000-4000-8000-000000000102', 'submitted', 'accepted', 'UAT seed accepted paid order', 'uat_seed', '{"uat_fixture":true}'::jsonb, timezone('utc', now()) - interval '8 minutes'),
+  ('00000000-0000-4000-8000-000000000312', '00000000-0000-4000-8000-000000000307', '00000000-0000-4000-8000-000000000301', '00000000-0000-4000-8000-000000000102', 'submitted', 'accepted', 'UAT seed accepted unpaid order', 'uat_seed', '{"uat_fixture":true}'::jsonb, timezone('utc', now()) - interval '8 minutes')
+ON CONFLICT (id) DO UPDATE
+SET previous_status = EXCLUDED.previous_status,
+    next_status = EXCLUDED.next_status,
+    reason = EXCLUDED.reason,
+    source = EXCLUDED.source,
+    metadata = EXCLUDED.metadata,
+    created_at = EXCLUDED.created_at;
 
 INSERT INTO public.order_items (
   id,

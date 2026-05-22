@@ -188,38 +188,49 @@ class _StatusTimeline extends StatelessWidget {
           subtitle: '',
           icon: LucideIcons.checkCircle2,
           isActive: true,
-          isCompleted:
-              status == OrderStatus.received ||
-              status == OrderStatus.preparing ||
-              status == OrderStatus.served,
+          isCompleted: status.isAcceptedOrLater,
         ),
-        _TimelineConnector(
-          isActive:
-              status == OrderStatus.preparing || status == OrderStatus.served,
-        ),
+        _TimelineConnector(isActive: status.isPreparingOrLater),
         _TimelineItem(
           label: 'Preparing',
           subtitle: '',
           icon: LucideIcons.loader,
           isActive: status == OrderStatus.preparing,
-          isCompleted:
-              status == OrderStatus.preparing || status == OrderStatus.served,
+          isCompleted: status.isPreparingOrLater,
         ),
-        _TimelineConnector(isActive: status == OrderStatus.served),
+        _TimelineConnector(isActive: status.isReadyOrLater),
+        _TimelineItem(
+          label: 'Ready',
+          subtitle: '',
+          icon: LucideIcons.bell,
+          isActive: status == OrderStatus.ready,
+          isCompleted: status.isReadyOrLater,
+        ),
+        _TimelineConnector(isActive: status.isServedOrLater),
         _TimelineItem(
           label: 'Served',
           subtitle: '',
           icon: LucideIcons.badgeCheck,
           isActive: status == OrderStatus.served,
-          isCompleted: status == OrderStatus.served,
-          isLast: status != OrderStatus.cancelled,
+          isCompleted: status.isServedOrLater,
+          isLast: !{
+            OrderStatus.cancelled,
+            OrderStatus.refunded,
+            OrderStatus.disputed,
+          }.contains(status),
         ),
-        if (status == OrderStatus.cancelled) ...[
+        if ({
+          OrderStatus.cancelled,
+          OrderStatus.refunded,
+          OrderStatus.disputed,
+        }.contains(status)) ...[
           const _TimelineConnector(isActive: true),
-          const _TimelineItem(
-            label: 'Cancelled',
+          _TimelineItem(
+            label: status.label,
             subtitle: '',
-            icon: LucideIcons.xCircle,
+            icon: status == OrderStatus.disputed
+                ? LucideIcons.alertTriangle
+                : LucideIcons.xCircle,
             isActive: true,
             isCompleted: true,
             isLast: true,

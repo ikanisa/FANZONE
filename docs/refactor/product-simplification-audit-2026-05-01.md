@@ -2,7 +2,7 @@
 
 Scope: merged DineIn plus FANZONE repository at `/Volumes/PRO-G40/FANZONE`.
 
-Target product: sports-bar entertainment platform for venue menu ordering, FET wallet rewards, curated match pools, venue operations, admin control, QR/deep-link entry, pool sharing, and settlement.
+Target product: sports-bar entertainment platform for venue menu ordering, FET wallet rewards, curated match pools, venue operations, admin control, app-link entry, pool sharing, and settlement.
 
 ## Executive Summary
 
@@ -42,7 +42,7 @@ No destructive database migration should be applied without a backup. The curren
 | Surface | Current | Target | Action |
 | --- | --- | --- | --- |
 | Flutter primary nav | Home, Venues, Arena, Orders, Wallet | same | Keep the FANZONEUI-aligned bottom nav. |
-| Flutter root | `/` -> `/home` | same | Splash routes to QR/current venue context when present; otherwise Home. |
+| Flutter root | `/` -> `/home` | same | Splash routes to current in-app venue context when present; otherwise Home. |
 | Flutter legacy football routes | removed | removed | Production app code no longer generates `/league`, `/fixtures`, or `/team` destinations. |
 | Flutter venue dashboard route | removed | removed | Venue operations live in `apps/venue-portal`; the mobile app keeps guest venue discovery only. |
 | Venue portal | `/orders`, `/menu`, `/pools`, `/rewards`, `/tables`, `/insights`, `/settings` | same | Keep. |
@@ -79,7 +79,7 @@ No destructive database migration should be applied without a backup. The curren
 
 | Data object | Classification | Notes |
 | --- | --- | --- |
-| `countries`, `venues`, `tables`/`venue_tables`, menu/order tables | KEEP | Required for rollout, QR, ordering, venue operations. |
+| `countries`, `venues`, `tables`/`venue_tables`, menu/order tables | KEEP | Required for rollout, ordering, and venue operations. |
 | `competitions`, `teams`, `matches`, `curated_matches` | KEEP | Required for data-driven match curation. |
 | `match_pools`, `match_pool_camps`, `match_pool_entries` | KEEP | Canonical pool engine; `pools`, `pool_camps`, `pool_entries` views provide requested naming compatibility. |
 | `fet_wallets`, `fet_wallet_transactions`, `fet_ledger` | KEEP | Ledger-backed wallet source of truth. |

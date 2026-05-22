@@ -12,7 +12,7 @@ Use this checklist before releasing the sports-bar operational console.
 
 ## Orders
 
-- Place a guest order from a table QR flow and confirm it appears in Orders.
+- Place a guest order from the app and confirm it appears in Orders.
 - Confirm order number, table, time, items, service status, payment status, total, FET earned, and FET spent are visible.
 - Mark a placed order as received.
 - Mark a received order as served.
@@ -52,12 +52,10 @@ Use this checklist before releasing the sports-bar operational console.
 - Confirm changes are written through `update_venue_fet_reward_config` and audit logged.
 - Confirm staff users cannot save reward configuration.
 
-## Tables / QR
+## Venue Ordering
 
-- Generate table QR codes for a small range.
-- Confirm each table has a server-generated token and secure deep link.
-- Open a QR link and confirm the guest app receives venue and table context.
-- Download a QR image.
+- Confirm app-created venue orders appear in the live order queue.
+- Confirm orders are created from the app without physical table entry.
 - Share or copy a table link.
 - Deactivate and reactivate a table.
 
@@ -74,5 +72,5 @@ Use this checklist before releasing the sports-bar operational console.
 
 - Test desktop width, tablet width, and mobile width.
 - Confirm the mobile navigation is usable horizontally.
-- Confirm all order actions and QR cards fit without text overlap.
+- Confirm all order actions fit without text overlap.
 - Confirm forms remain usable with long venue, category, item, and match names.

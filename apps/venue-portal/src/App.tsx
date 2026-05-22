@@ -60,11 +60,6 @@ const FETRewardsPage = lazy(() =>
     default: module.FETRewardsPage,
   })),
 );
-const QRFactoryPage = lazy(() =>
-  import("./features/settings/QRFactoryPage").then((module) => ({
-    default: module.QRFactoryPage,
-  })),
-);
 const VenueSettingsPage = lazy(() =>
   import("./features/settings/VenueSettingsPage").then((module) => ({
     default: module.VenueSettingsPage,
@@ -145,10 +140,8 @@ function VenueRoutes() {
             <Route path="settings/permissions" element={<StaffPermissionsPage />} />
             <Route path="settings/screen" element={<SettingsSubsectionPage />} />
             <Route path="settings/fet-rewards" element={lazyPage(<FETRewardsPage />)} />
-            <Route path="settings/tables" element={lazyPage(<QRFactoryPage />)} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="rewards" element={<Navigate to="/settings/fet-rewards" replace />} />
-            <Route path="tables" element={<Navigate to="/settings/tables" replace />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/overview" replace />} />

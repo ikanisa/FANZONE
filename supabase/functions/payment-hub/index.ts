@@ -27,7 +27,9 @@ Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
-  if (req.method !== "POST") return errorResponse("Method not allowed", 405);
+  if (req.method !== "POST") {
+    return errorResponse("Method not allowed", 405, undefined, req);
+  }
 
   try {
     const supabaseAdmin = createAdminClient();
@@ -38,7 +40,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const parsed = paymentSchema.safeParse(body);
     if (!parsed.success) {
-      return errorResponse("Invalid request", 400, parsed.error.issues);
+      return errorResponse("Invalid request", 400, parsed.error.issues, req);
     }
 
     const { order_id, venue_id, method } = parsed.data;
@@ -49,16 +51,21 @@ Deno.serve(async (req) => {
       .select("id, venue_id, user_id, total_amount, status, currency_code")
       .eq("id", order_id).eq("venue_id", venue_id).single();
 
-    if (!order) return errorResponse("Order not found", 404);
+    if (!order) return errorResponse("Order not found", 404, undefined, req);
     if (order.user_id !== user.id) {
       logger.warn("Unauthorized payment attempt", {
         user_id: user.id,
         order_id,
       });
-      return errorResponse("You are not authorized to pay for this order", 403);
+      return errorResponse(
+        "You are not authorized to pay for this order",
+        403,
+        undefined,
+        req,
+      );
     }
     if (order.status === "cancelled") {
-      return errorResponse("Cannot pay cancelled order", 400);
+      return errorResponse("Cannot pay cancelled order", 400, undefined, req);
     }
 
     // 2. Fetch venue payment metadata. This function only creates external
@@ -72,7 +79,7 @@ Deno.serve(async (req) => {
       .eq("id", venue_id)
       .single();
 
-    if (!venue) return errorResponse("Venue not found", 404);
+    if (!venue) return errorResponse("Venue not found", 404, undefined, req);
 
     const audit = createAuditLogger(supabaseAdmin, user.id, requestId, logger);
 
@@ -92,6 +99,8 @@ Deno.serve(async (req) => {
       return errorResponse(
         error instanceof Error ? error.message : "Payment handoff unavailable",
         400,
+        undefined,
+        req,
       );
     }
 
@@ -121,13 +130,17 @@ Deno.serve(async (req) => {
       },
     });
 
-    return jsonResponse({
-      success: true,
-      order_id,
-      ...handoff,
-    });
+    return jsonResponse(
+      {
+        success: true,
+        order_id,
+        ...handoff,
+      },
+      200,
+      req,
+    );
   } catch (error) {
     logger.error("Payment hub error", { error: String(error) });
-    return errorResponse("Internal server error", 500, String(error));
+    return errorResponse("Internal server error", 500, String(error), req);
   }
 });

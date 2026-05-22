@@ -49,7 +49,7 @@ The current route map is derived from the canonical source app.
 | `/privacy` | Privacy settings |
 | `/bar` | Venue ordering |
 | `/ordering` | Legacy redirect to `/bar` |
-| `/v/:slug` | Venue QR ordering |
+| `/v/:slug` | Venue ordering |
 | `/notifications` | Notifications |
 | `*` | Pool discovery fallback |
 

@@ -45,6 +45,7 @@ if git grep -nE "${SECRET_PATTERN}" -- \
   ':!docs/secret-rotation-runbook.md' \
   ':!tool/go_live_readiness.sh' \
   ':!tool/full_history_secret_scan.sh' \
+  ':!tool/mobile_release_static_audit.sh' \
   ':!.env*.example' \
   ':!**/.env*.example' \
   ':!**/package-lock.json'; then
@@ -54,6 +55,7 @@ fi
 
 run tool/full_history_secret_scan.sh
 run tool/audit_repo_hygiene.sh
+run tool/product_boundary_scan.sh
 run tool/mobile_release_static_audit.sh
 
 run flutter analyze
@@ -74,6 +76,7 @@ run bash -n \
   tool/validate_web_release_env.sh \
   tool/preflight_build_check.sh \
   tool/audit_repo_hygiene.sh \
+  tool/product_boundary_scan.sh \
   tool/mobile_release_static_audit.sh \
   tool/full_history_secret_scan.sh \
   tool/verify_deployed_web_surface.sh \

@@ -95,7 +95,7 @@
                     android:pathPrefix="/pools" />
             </intent-filter>
 
-            <!-- Deep linking: legacy QR host used by generated venue table links -->
+            <!-- Deep linking: legacy public app host -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>

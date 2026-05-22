@@ -149,11 +149,18 @@ export interface ViewerNotification {
 }
 
 export type OrderStatus =
+  | "draft"
   | "placed"
   | "received"
+  | "submitted"
+  | "accepted"
   | "preparing"
+  | "ready"
   | "served"
-  | "cancelled";
+  | "completed"
+  | "cancelled"
+  | "refunded"
+  | "disputed";
 export type PaymentMethod = "momo" | "revolut" | "cash" | "card" | "other";
 export type SupportedPaymentMethod = Exclude<PaymentMethod, "card">;
 export type PaymentStatus =
@@ -256,7 +263,7 @@ export interface MenuItem {
 export interface Order {
   id: string;
   venueId: string;
-  tableId: string;
+  tableId?: string | null;
   userId?: string | null;
   tableNumber?: string | null;
   orderCode: string;
@@ -279,6 +286,19 @@ export interface Order {
   createdAt: string;
   updatedAt?: string;
   items?: OrderItem[];
+}
+
+export interface OrderStateEvent {
+  id: string;
+  orderId: string;
+  venueId: string;
+  actorUserId?: string | null;
+  previousStatus?: string | null;
+  nextStatus: OrderStatus;
+  reason?: string | null;
+  source: string;
+  metadata: Json;
+  createdAt: string;
 }
 
 export interface OrderItem {
@@ -427,7 +447,7 @@ export interface OrderRow {
   [key: string]: unknown;
   id: string;
   venue_id: string;
-  table_id: string;
+  table_id: string | null;
   user_id: string;
   order_code: string;
   status: OrderStatus;
@@ -469,10 +489,6 @@ export interface VenueTableRow {
   id: string;
   venue_id: string;
   table_number: string;
-  qr_token?: string | null;
-  qr_url?: string | null;
-  qr_code_url?: string | null;
-  deep_link_uri?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -998,8 +1014,22 @@ export interface Database {
         Returns: Json;
       };
       order_update_status: {
-        Args: { p_order_id: string; p_status: OrderStatus };
+        Args: {
+          p_order_id: string;
+          p_status: OrderStatus;
+          p_reason?: string | null;
+          p_metadata?: Json | null;
+        };
         Returns: boolean;
+      };
+      venue_transition_order_status: {
+        Args: {
+          p_order_id: string;
+          p_next_status: OrderStatus;
+          p_reason?: string | null;
+          p_metadata?: Json | null;
+        };
+        Returns: Json;
       };
       venue_update_order_payment_status: {
         Args: {
@@ -1109,14 +1139,6 @@ export interface Database {
       };
       venue_settle_match_pool: {
         Args: { p_pool_id: string };
-        Returns: Json;
-      };
-      generate_table_qr: {
-        Args: {
-          p_venue_id: string;
-          p_table_number: string;
-          p_base_url?: string;
-        };
         Returns: Json;
       };
     };

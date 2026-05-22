@@ -30,6 +30,13 @@ optional_url_check() {
   run_and_capture "${name}" tool/verify_deployed_web_surface.sh "${surface}" "${url}"
 }
 
+has_env_name() {
+  local name="$1"
+  [[ -n "${!name:-}" ]] && return 0
+  [[ -f ".env" ]] && grep -Eq "^${name}=" ".env" && return 0
+  return 1
+}
+
 echo "FANZONE world-class production evidence run: ${timestamp}" >"${out_dir}/summary.txt"
 echo "secret_values_printed=false" >>"${out_dir}/summary.txt"
 
@@ -52,17 +59,17 @@ optional_url_check "admin_deployed_bff_headers" admin "${FANZONE_ADMIN_URL:-}"
 optional_url_check "venue_deployed_bff_headers" venue-portal "${FANZONE_VENUE_PORTAL_URL:-}"
 optional_url_check "tv_deployed_headers" tv-display "${FANZONE_TV_DISPLAY_URL:-}"
 
-if [[ -n "${SUPABASE_URL:-}" && -n "${CRON_SECRET:-}" ]]; then
+if has_env_name "SUPABASE_URL" && has_env_name "CRON_SECRET"; then
   run_and_capture "cron_settle_match_pools" tool/run_supabase_cron_job.sh settle-match-pools
   run_and_capture "cron_dispatch_match_alerts" tool/run_supabase_cron_job.sh dispatch-match-alerts
 else
-  echo "PENDING cron_smoke (SUPABASE_URL/CRON_SECRET not set)" | tee -a "${out_dir}/summary.txt"
+  echo "PENDING cron_smoke (SUPABASE_URL/CRON_SECRET not set in environment or .env)" | tee -a "${out_dir}/summary.txt"
 fi
 
-if [[ -n "${SUPABASE_DB_URL:-}" ]]; then
+if [[ -n "${SUPABASE_DB_URL:-}" || -f "supabase/.temp/project-ref" ]]; then
   run_and_capture "backup_evidence" tool/create_supabase_backup_evidence.sh
 else
-  echo "PENDING backup_evidence (SUPABASE_DB_URL not set)" | tee -a "${out_dir}/summary.txt"
+  echo "PENDING backup_evidence (SUPABASE_DB_URL/link not available)" | tee -a "${out_dir}/summary.txt"
 fi
 
 echo "Evidence summary: ${out_dir}/summary.txt"

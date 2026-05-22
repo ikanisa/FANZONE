@@ -2,7 +2,7 @@
 
 FANZONE is a sports-bar entertainment platform for venues, lounges, fan zones, and hospitality operators.
 
-The Flutter client uses the standalone `FANZONEUI` export as the primary product and UI reference. Production screens should implement those concepts through real app data, Supabase gateways, loading states, and empty states rather than hardcoded mock export data. Guests order from venue menus, earn FET from venue-configured rewards, join Arena pools, and receive audited wallet ledger credits when pools settle.
+The Flutter client uses the standalone `FANZONEUI` export as the primary product and UI reference. Production screens should implement those concepts through real app data, Supabase gateways, loading states, and empty states rather than hardcoded mock export data. Guests order from venue menus, earn non-cash FET loyalty rewards, join Arena challenges, and receive audited loyalty-ledger credits when challenges settle.
 
 ## Repo Surfaces
 
@@ -46,8 +46,8 @@ The repository is being refactored to the simplified sports-bar product:
 
 - Supabase now has an additive pool engine, camps, entries, invite rewards, settlement audit rows, and curation records.
 - `/pools` is the live gaming surface across mobile and website.
-- Venue portal operations center on menu/order handling, QR setup, and venue pool monitoring.
-- Admin has fixture result entry, platform controls, wallet oversight, and match curation.
+- Venue portal operations center on menu/order handling and venue pool monitoring.
+- Admin has fixture result entry, platform controls, loyalty-ledger oversight, and match curation.
 - External customer payments remain off-system; FANZONE stores instructions and manual confirmation state only.
 
 ## Architecture Summary
@@ -56,12 +56,12 @@ The repository is being refactored to the simplified sports-bar product:
 Flutter app
   -> Riverpod providers / feature gateways
   -> Supabase client
-  -> ordering, wallet, fixtures, and match pool flows
+  -> ordering, loyalty, fixtures, and match challenge flows
 
 Admin app
   -> React Router + TanStack Query
   -> Supabase browser client
-  -> fixture result entry, match curation, platform controls, wallet oversight
+  -> fixture result entry, match curation, platform controls, loyalty-ledger oversight
 
 Website / venue portal
   -> Vite + React workspaces
@@ -71,14 +71,14 @@ Website / venue portal
 Supabase
   -> normalized football schema
   -> RLS policies
-  -> match curation, pool, wallet, menu, and order RPCs
+  -> match curation, challenge, loyalty-ledger, menu, and order RPCs
   -> Edge Functions for import, alerts, menu ingestion, order status, and pool settlement
 ```
 
 ## Key Backend Jobs
 
 - `settle-match-pools`
-  - settles eligible finished pools through idempotent wallet ledger mutations
+  - settles eligible finished pools through idempotent loyalty-ledger mutations
 - `import-football-data`
   - validates and upserts CSV or row payloads into the lean football tables
 - `dispatch-match-alerts`
@@ -151,8 +151,8 @@ Edge runtime notes:
 Runtime config notes:
 
 - the FET:EUR peg is controlled by `app_config_remote.fet_per_eur`
-- the welcome wallet balance is controlled by `app_config_remote.foundation_grant_fet`
-- the daily wallet transfer limit is controlled by `app_config_remote.wallet_transfer_daily_limit`
+- the welcome FET loyalty balance is controlled by `app_config_remote.foundation_grant_fet`
+- the daily legacy transfer limit is controlled by `app_config_remote.wallet_transfer_daily_limit`
 - local currency display derives from that peg plus `currency_rates`, `country_currency_map`, and `currency_display_metadata`
 - `currency_rates` are now treated as database-managed data, not an external AI refresh job
 - external customer payments are off-platform; FANZONE only provides cash, MoMo USSD, or Revolut-link handoff instructions and staff/admin manual confirmation
@@ -167,7 +167,7 @@ Runtime config notes:
 - Run the SQL verification scripts against a migrated database:
   `psql -f supabase/tests/bootstrap_required_objects.sql` and
   `psql -f supabase/tests/rls_hardening_audit.sql`.
-- Verify anonymous users cannot join paid pools, manage notification settings, or transfer FET.
+- Verify anonymous users cannot join restricted challenges, manage notification settings, or transfer FET.
 - Validate deep links on Android and iOS from a cold start and a warm start.
 - Confirm FCM token registration, kickoff/result notifications, and session-expiry handling on real devices.
 - Supply production secrets from secure local or CI-managed files only; do not commit them.

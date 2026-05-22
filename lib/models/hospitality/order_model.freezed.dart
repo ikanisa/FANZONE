@@ -25,7 +25,7 @@ mixin _$OrderModel {
   @JsonKey(name: 'venue_id')
   String get venueId => throw _privateConstructorUsedError;
   @JsonKey(name: 'table_id')
-  String get tableId => throw _privateConstructorUsedError;
+  String? get tableId => throw _privateConstructorUsedError;
   @JsonKey(name: 'user_id')
   String get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'order_code')
@@ -90,7 +90,7 @@ abstract class $OrderModelCopyWith<$Res> {
   $Res call({
     String id,
     @JsonKey(name: 'venue_id') String venueId,
-    @JsonKey(name: 'table_id') String tableId,
+    @JsonKey(name: 'table_id') String? tableId,
     @JsonKey(name: 'user_id') String userId,
     @JsonKey(name: 'order_code') String orderCode,
     OrderStatus status,
@@ -134,7 +134,7 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
   $Res call({
     Object? id = null,
     Object? venueId = null,
-    Object? tableId = null,
+    Object? tableId = freezed,
     Object? userId = null,
     Object? orderCode = null,
     Object? status = null,
@@ -168,10 +168,10 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
                 ? _value.venueId
                 : venueId // ignore: cast_nullable_to_non_nullable
                       as String,
-            tableId: null == tableId
+            tableId: freezed == tableId
                 ? _value.tableId
                 : tableId // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             userId: null == userId
                 ? _value.userId
                 : userId // ignore: cast_nullable_to_non_nullable
@@ -278,7 +278,7 @@ abstract class _$$OrderModelImplCopyWith<$Res>
   $Res call({
     String id,
     @JsonKey(name: 'venue_id') String venueId,
-    @JsonKey(name: 'table_id') String tableId,
+    @JsonKey(name: 'table_id') String? tableId,
     @JsonKey(name: 'user_id') String userId,
     @JsonKey(name: 'order_code') String orderCode,
     OrderStatus status,
@@ -321,7 +321,7 @@ class __$$OrderModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? venueId = null,
-    Object? tableId = null,
+    Object? tableId = freezed,
     Object? userId = null,
     Object? orderCode = null,
     Object? status = null,
@@ -355,10 +355,10 @@ class __$$OrderModelImplCopyWithImpl<$Res>
             ? _value.venueId
             : venueId // ignore: cast_nullable_to_non_nullable
                   as String,
-        tableId: null == tableId
+        tableId: freezed == tableId
             ? _value.tableId
             : tableId // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         userId: null == userId
             ? _value.userId
             : userId // ignore: cast_nullable_to_non_nullable
@@ -458,10 +458,10 @@ class _$OrderModelImpl extends _OrderModel {
   const _$OrderModelImpl({
     required this.id,
     @JsonKey(name: 'venue_id') required this.venueId,
-    @JsonKey(name: 'table_id') required this.tableId,
+    @JsonKey(name: 'table_id') this.tableId,
     @JsonKey(name: 'user_id') required this.userId,
     @JsonKey(name: 'order_code') required this.orderCode,
-    this.status = OrderStatus.placed,
+    this.status = OrderStatus.submitted,
     @JsonKey(name: 'payment_method') required this.paymentMethod,
     @JsonKey(name: 'payment_status') this.paymentStatus = PaymentStatus.pending,
     @JsonKey(name: 'payment_reference') this.paymentReference,
@@ -495,7 +495,7 @@ class _$OrderModelImpl extends _OrderModel {
   final String venueId;
   @override
   @JsonKey(name: 'table_id')
-  final String tableId;
+  final String? tableId;
   @override
   @JsonKey(name: 'user_id')
   final String userId;
@@ -680,7 +680,7 @@ abstract class _OrderModel extends OrderModel {
   const factory _OrderModel({
     required final String id,
     @JsonKey(name: 'venue_id') required final String venueId,
-    @JsonKey(name: 'table_id') required final String tableId,
+    @JsonKey(name: 'table_id') final String? tableId,
     @JsonKey(name: 'user_id') required final String userId,
     @JsonKey(name: 'order_code') required final String orderCode,
     final OrderStatus status,
@@ -717,7 +717,7 @@ abstract class _OrderModel extends OrderModel {
   String get venueId;
   @override
   @JsonKey(name: 'table_id')
-  String get tableId;
+  String? get tableId;
   @override
   @JsonKey(name: 'user_id')
   String get userId;

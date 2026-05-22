@@ -100,6 +100,34 @@ void main() {
       );
     });
 
+    test('defaults to configured off-platform venue payment method', () {
+      const rwandaVenue = VenueModel(
+        id: 'venue-rw',
+        name: 'Kigali Sports Bar',
+        countryCode: CountryCode.rw,
+        venueType: VenueType.bar,
+        currencyCode: 'RWF',
+        momoCode: '123456',
+      );
+      const maltaVenue = VenueModel(
+        id: 'venue-mt',
+        name: 'Valletta Sports Bar',
+        countryCode: CountryCode.mt,
+        venueType: VenueType.bar,
+        currencyCode: 'EUR',
+        revolutLink: 'https://revolut.me/fanzone',
+      );
+
+      expect(defaultCheckoutPaymentMethod(rwandaVenue), PaymentMethod.momo);
+      expect(defaultCheckoutPaymentMethod(maltaVenue), PaymentMethod.revolut);
+    });
+
+    test('normalizes manual table numbers', () {
+      expect(normalizeManualTableNumber('  VIP   2  '), 'VIP 2');
+      expect(normalizeManualTableNumber(''), isNull);
+      expect(normalizeManualTableNumber('x' * 25), isNull);
+    });
+
     test('builds launch URI for MoMo USSD and Revolut links', () {
       const momo = PaymentHandoff(
         method: PaymentMethod.momo,

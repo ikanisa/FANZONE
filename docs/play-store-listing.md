@@ -28,7 +28,7 @@ SPORTS-BAR MATCH POOLS
 Join FET match pools for curated fixtures at participating bars, fan zones, lounges, and hospitality venues.
 
 VENUE MENU & ORDERING
-Scan a venue QR, browse the bar menu, order from your table, and earn FET where the venue has enabled rewards.
+Choose a venue in the app, browse the bar menu, place an order, and earn FET where the venue has enabled rewards.
 
 FET WALLET
 Earn FET from welcome rewards, qualifying orders, creator invite rewards, and settled pool wins. Use FET on venue orders where allowed by the venue.
@@ -37,7 +37,7 @@ GLOBAL FOOTBALL MOMENTS
 Built for sports bars and fan zones across Africa, Europe, the UK, North America, and World Cup markets.
 
 KEY FEATURES:
-* Venue QR entry, bar menu browsing, and ordering
+* In-app venue entry, bar menu browsing, and ordering
 * Curated football fixtures and official match pools
 * Venue, country, and global pool scopes
 * FET wallet for rewards, staking, and eligible venue redemption
@@ -56,7 +56,7 @@ Google Play requires at minimum:
 - **2 phone screenshots** (16:9 or 9:16, min 320px, max 3840px)
 - Recommended: 4–8 screenshots showing key flows:
   1. Home screen with live matches
-  2. Venue menu / QR ordering
+  2. Venue menu / in-app ordering
   3. Match pool detail
   4. Pool discovery
   5. Team profile

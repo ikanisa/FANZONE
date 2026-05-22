@@ -49,6 +49,13 @@ function normalizeStatus(status: unknown): string {
   }
 }
 
+function normalizeOrderStatus(status: unknown): Order["status"] {
+  const value = asString(status, "submitted");
+  if (value === "placed") return "submitted";
+  if (value === "received") return "accepted";
+  return value as Order["status"];
+}
+
 function formatKickoffLabel(
   dateValue: string,
   kickoffTime?: string | null,
@@ -312,9 +319,9 @@ export function mapOrderRow(
   return {
     id: asString(row.id),
     venueId: asString(row.venue_id),
-    tableId: asString(row.table_id),
+    tableId: row.table_id == null ? null : asString(row.table_id),
     orderCode: asString(row.order_code),
-    status: asString(row.status, "placed") as Order["status"],
+    status: normalizeOrderStatus(row.status),
     paymentMethod: asString(
       row.payment_method,
       fallbackPaymentMethod,

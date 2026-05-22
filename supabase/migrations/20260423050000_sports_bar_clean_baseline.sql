@@ -134,7 +134,6 @@ CREATE TYPE public.onboarding_status AS ENUM (
     'profile_complete',
     'location_complete',
     'menu_pending',
-    'qr_generated',
     'live'
 );
 
@@ -4396,67 +4395,6 @@ BEGIN
   END LOOP;
 
   RETURN v_candidate;
-END;
-$$;
-
-
---
--- Name: generate_table_qr(uuid, text, text); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.generate_table_qr(p_venue_id uuid, p_table_number text, p_base_url text DEFAULT 'https://fanzone.app'::text) RETURNS jsonb
-    LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO 'public', 'extensions'
-    AS $$
-DECLARE
-  v_table public.tables%ROWTYPE;
-  v_token text;
-  v_url text;
-BEGIN
-  IF NOT public.venue_user_has_role(p_venue_id, ARRAY['owner', 'manager']::public.venue_user_role[]) THEN
-    RAISE EXCEPTION 'Only venue managers can generate table QR codes';
-  END IF;
-
-  v_token := lower(substr(replace(extensions.gen_random_uuid()::text, '-', ''), 1, 20));
-  v_url := trim(trailing '/' FROM p_base_url) || '/bar?v=' || p_venue_id::text || '&table=' || replace(trim(p_table_number), ' ', '%20') || '&qr=' || v_token;
-
-  INSERT INTO public.tables (
-    venue_id,
-    table_number,
-    qr_token,
-    qr_url,
-    qr_code_url,
-    deep_link_uri,
-    is_active
-  )
-  VALUES (
-    p_venue_id,
-    p_table_number,
-    v_token,
-    v_url,
-    v_url,
-    'fanzone://venue/' || p_venue_id::text || '/table/' || p_table_number,
-    true
-  )
-  ON CONFLICT (venue_id, table_number) DO UPDATE
-  SET qr_token = EXCLUDED.qr_token,
-      qr_url = EXCLUDED.qr_url,
-      qr_code_url = EXCLUDED.qr_code_url,
-      deep_link_uri = EXCLUDED.deep_link_uri,
-      is_active = true,
-      updated_at = timezone('utc', now())
-  RETURNING * INTO v_table;
-
-  PERFORM public.sports_bar_write_audit('generate_table_qr', 'venue_table', v_table.id::text, NULL, to_jsonb(v_table));
-
-  RETURN jsonb_build_object(
-    'status', 'generated',
-    'id', v_table.id,
-    'venue_id', v_table.venue_id,
-    'table_number', v_table.table_number,
-    'qr_token', v_table.qr_token,
-    'qr_url', v_table.qr_url
-  );
 END;
 $$;
 
@@ -11284,13 +11222,9 @@ CREATE TABLE public.tables (
     id uuid DEFAULT extensions.gen_random_uuid() NOT NULL,
     venue_id uuid NOT NULL,
     table_number text NOT NULL,
-    qr_code_url text,
-    deep_link_uri text,
     is_active boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
-    qr_token text,
-    qr_url text,
     CONSTRAINT tables_table_number_check CHECK (((char_length(TRIM(BOTH FROM table_number)) >= 1) AND (char_length(TRIM(BOTH FROM table_number)) <= 24)))
 );
 
@@ -11450,8 +11384,6 @@ CREATE VIEW public.venue_tables WITH (security_invoker='true') AS
  SELECT tables.id,
     tables.venue_id,
     tables.table_number,
-    tables.qr_token,
-    tables.qr_url,
     tables.is_active,
     tables.created_at,
     tables.updated_at
@@ -11462,7 +11394,7 @@ CREATE VIEW public.venue_tables WITH (security_invoker='true') AS
 -- Name: VIEW venue_tables; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON VIEW public.venue_tables IS 'Canonical table/QR surface over the existing public.tables runtime table.';
+COMMENT ON VIEW public.venue_tables IS 'Canonical table surface over the existing public.tables runtime table.';
 
 
 --
@@ -13315,13 +13247,6 @@ CREATE UNIQUE INDEX reward_rules_one_active_platform_idx ON public.reward_rules 
 --
 
 CREATE INDEX reward_rules_venue_idx ON public.reward_rules USING btree (venue_id, is_active);
-
-
---
--- Name: tables_qr_token_unique_idx; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX tables_qr_token_unique_idx ON public.tables USING btree (qr_token) WHERE (qr_token IS NOT NULL);
 
 
 --
@@ -16472,14 +16397,6 @@ GRANT ALL ON FUNCTION public.generate_pool_share_card(p_pool_id uuid, p_social_c
 GRANT ALL ON FUNCTION public.generate_profile_fan_id(p_seed text, p_attempt integer, p_profile_id uuid) TO anon;
 GRANT ALL ON FUNCTION public.generate_profile_fan_id(p_seed text, p_attempt integer, p_profile_id uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.generate_profile_fan_id(p_seed text, p_attempt integer, p_profile_id uuid) TO service_role;
-
-
---
--- Name: FUNCTION generate_table_qr(p_venue_id uuid, p_table_number text, p_base_url text); Type: ACL; Schema: public; Owner: -
---
-
-GRANT ALL ON FUNCTION public.generate_table_qr(p_venue_id uuid, p_table_number text, p_base_url text) TO authenticated;
-GRANT ALL ON FUNCTION public.generate_table_qr(p_venue_id uuid, p_table_number text, p_base_url text) TO service_role;
 
 
 --

@@ -7,16 +7,11 @@ import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
 
 class VenueEntryWrapper extends ConsumerStatefulWidget {
-  const VenueEntryWrapper({
-    super.key,
-    this.venueSlug,
-    this.venueId,
-    this.tableNumber,
-  }) : assert(venueSlug != null || venueId != null);
+  const VenueEntryWrapper({super.key, this.venueSlug, this.venueId})
+    : assert(venueSlug != null || venueId != null);
 
   final String? venueSlug;
   final String? venueId;
-  final String? tableNumber;
 
   @override
   ConsumerState<VenueEntryWrapper> createState() => _VenueEntryWrapperState();
@@ -36,14 +31,8 @@ class _VenueEntryWrapperState extends ConsumerState<VenueEntryWrapper> {
     try {
       final notifier = ref.read(venueContextProvider.notifier);
       final success = widget.venueSlug != null
-          ? await notifier.setVenueBySlug(
-              widget.venueSlug!,
-              tableNumber: widget.tableNumber,
-            )
-          : await notifier.setVenueById(
-              widget.venueId!,
-              tableNumber: widget.tableNumber,
-            );
+          ? await notifier.setVenueBySlug(widget.venueSlug!)
+          : await notifier.setVenueById(widget.venueId!);
       if (!success) {
         setState(() => _error = 'Venue not found');
       }

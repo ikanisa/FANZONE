@@ -8,7 +8,7 @@ Security boundary: Supabase RLS, database constraints, SECURITY DEFINER RPCs, an
 | --- | --- | --- |
 | Guest/authenticated user | Own profile, wallet, orders, pool entries | Place orders, join pools, view own wallet, manage own profile. |
 | Venue staff | Assigned venue | View/manage orders, mark service status, mark manual payment status where policy allows. |
-| Venue manager | Assigned venue | Staff permissions plus menu, table QR, pools, and rewards config. |
+| Venue manager | Assigned venue | Staff permissions plus menu, pools, and rewards config. |
 | Venue owner | Assigned venue | Manager permissions plus venue member and ownership operations. |
 | Admin/operator | Platform | Curation, settlement operations, wallet oversight, reward rules, feature controls, audit review. |
 | Service role | Backend only | Internal Edge Function/RPC execution. Never exposed to clients. |

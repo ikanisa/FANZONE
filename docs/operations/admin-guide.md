@@ -28,7 +28,7 @@ The admin console is the platform operator surface. UI route guards are convenie
 
 ## Venue Operations Support
 
-- Owner/manager can configure FET reward percentage, spend allowance, spend cap, campaign state, table QR, menu, and official venue pools.
+- Owner/manager can configure FET reward percentage, spend allowance, spend cap, campaign state, menu, and official venue pools.
 - Staff can operate orders and manual payment status according to policy.
 - Payment API support is intentionally absent; guide venues to cash, MoMo/USSD, or Revolut-link handoff.
 
@@ -50,7 +50,7 @@ The admin console is the platform operator surface. UI route guards are convenie
 Severity guide:
 
 - P0: wallet ledger corruption, settlement double-pay, auth bypass, cross-tenant data leak, production outage.
-- P1: order creation/payment confirmation broken, QR entry broken, admin unsafe mutation broken.
+- P1: order creation/payment confirmation broken, venue entry broken, admin unsafe mutation broken.
 - P2: degraded notification, menu OCR failure, non-critical reporting issue.
 - P3: copy, layout, or low-impact operational issue.
 

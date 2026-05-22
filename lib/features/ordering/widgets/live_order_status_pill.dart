@@ -90,16 +90,28 @@ class _PillContent extends StatelessWidget {
 
   String _statusText(OrderStatus status) {
     switch (status) {
+      case OrderStatus.draft:
+        return 'Draft Order';
       case OrderStatus.placed:
+      case OrderStatus.submitted:
         return 'Sent to Kitchen';
       case OrderStatus.received:
+      case OrderStatus.accepted:
         return 'Order Received';
       case OrderStatus.preparing:
         return 'Preparing Now';
+      case OrderStatus.ready:
+        return 'Ready for Service';
       case OrderStatus.served:
         return 'Enjoy your meal!';
+      case OrderStatus.completed:
+        return 'Completed';
       case OrderStatus.cancelled:
         return 'Cancelled';
+      case OrderStatus.refunded:
+        return 'Refunded';
+      case OrderStatus.disputed:
+        return 'Needs Review';
     }
   }
 
@@ -117,7 +129,10 @@ class _StatusIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isSpinning =
-        status == OrderStatus.received || status == OrderStatus.preparing;
+        status == OrderStatus.received ||
+        status == OrderStatus.accepted ||
+        status == OrderStatus.preparing ||
+        status == OrderStatus.ready;
 
     return Container(
       width: 32,

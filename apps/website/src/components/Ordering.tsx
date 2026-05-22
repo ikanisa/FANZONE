@@ -38,13 +38,11 @@ export const Ordering: React.FC = () => {
     "idle" | "submitting" | "success"
   >("idle");
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+  const [tableNumber, setTableNumber] = useState("");
 
   // Extract slug from URL or default
   const venueSlug =
     window.location.pathname.split("/").pop() || "stadium-sports-bar";
-  const tableNumber =
-    new URLSearchParams(window.location.search).get("t")?.trim() || "";
-
   useEffect(() => {
     const loadVenueData = async () => {
       try {
@@ -106,16 +104,17 @@ export const Ordering: React.FC = () => {
 
   const handlePlaceOrder = async () => {
     if (!venue) return;
+    const normalizedTableNumber = tableNumber.trim().replace(/\s+/g, " ");
+    if (!normalizedTableNumber || normalizedTableNumber.length > 24) {
+      alert("Enter a valid table number.");
+      return;
+    }
     setOrderStatus("submitting");
 
     try {
-      if (!tableNumber.trim()) {
-        throw new Error("Missing table number. Scan the venue QR code again.");
-      }
-
       const order = await api.placeOrder({
         venueId: venue.id,
-        tablePublicCode: tableNumber,
+        tableNumber: normalizedTableNumber,
         paymentMethod: "cash",
         items: cart.map((i) => ({ menuItemId: i.id, quantity: i.quantity })),
       });
@@ -224,9 +223,7 @@ export const Ordering: React.FC = () => {
               {venue.isOpen ? "OPEN NOW" : "CLOSED"}
             </Badge>
             <span className="text-sm text-textSecondary font-medium">
-              {tableNumber
-                ? `Table ${tableNumber}`
-                : "Scan a table QR to order"}
+              Order from the app
             </span>
           </div>
         </div>
@@ -397,6 +394,19 @@ export const Ordering: React.FC = () => {
                   </p>
                 </div>
 
+                <label className="block mb-8">
+                  <span className="mb-2 block text-xs font-black uppercase tracking-wider text-textSecondary">
+                    Table number
+                  </span>
+                  <input
+                    value={tableNumber}
+                    onChange={(event) => setTableNumber(event.target.value)}
+                    maxLength={24}
+                    placeholder="Example: 12 or VIP 2"
+                    className="h-14 w-full rounded-2xl border border-border bg-surface2 px-4 text-base font-bold text-text outline-none focus:border-primary"
+                  />
+                </label>
+
                 <div className="space-y-3 mb-8 pt-4 border-t border-border">
                   <div className="flex justify-between text-textSecondary">
                     <span>Subtotal</span>
@@ -417,7 +427,7 @@ export const Ordering: React.FC = () => {
                 </div>
 
                 <button
-                  disabled={orderStatus === "submitting" || !tableNumber}
+                  disabled={orderStatus === "submitting"}
                   onClick={handlePlaceOrder}
                   className="w-full h-16 bg-primary text-primaryText font-black text-lg rounded-2xl shadow-xl shadow-primary/20 disabled:opacity-50"
                 >

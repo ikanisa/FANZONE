@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "releaseCandidate": "1.1.3+11",
+  "bundleId": "com.fanzone.fanzone",
+  "appleTeamId": "63STJ5N27W",
+  "apsEnvironment": "production",
+  "archivePath": "build/ios/archive/Runner.xcarchive",
+  "ipaPath": "build/ios/ipa",
+  "signOff": {
+    "mobileOwner": "",
+    "releaseOwner": "",
+    "signedAtUtc": "",
+    "approvedForLaunch": false,
+    "notes": "Do not approve until signed IPA export and TestFlight evidence are attached."
+  },
+  "checks": [
+    {
+      "id": "IOS-CONFIG-001",
+      "scenario": "Ignored AppConfig.xcconfig uses production bundle ID, real Apple Team ID, and production APNs environment",
+      "status": "PASS",
+      "evidenceRefs": [
+        "ios/Flutter/AppConfig.xcconfig",
+        "release/qa/flutter-client-production-readiness-2026-05-21.md"
+      ],
+      "notes": "Verified bundle ID com.fanzone.fanzone, Apple Team ID 63STJ5N27W, and APNs production."
+    },
+    {
+      "id": "IOS-FIREBASE-001",
+      "scenario": "Production GoogleService-Info.plist is present and matches the production iOS app",
+      "status": "PASS",
+      "evidenceRefs": [
+        "ios/Runner/GoogleService-Info.plist",
+        "release/qa/flutter-client-production-readiness-2026-05-21.md"
+      ],
+      "notes": "Verified Firebase plist BUNDLE_ID com.fanzone.fanzone."
+    },
+    {
+      "id": "IOS-ARCHIVE-001",
+      "scenario": "Production Release archive succeeds with signing enabled",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "IOS-IPA-001",
+      "scenario": "Signed App Store Connect IPA export succeeds",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "IOS-INSTALL-001",
+      "scenario": "Signed build installs and launches on a physical iPhone",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "IOS-PUSH-001",
+      "scenario": "Production push permission, delivery, and notification tap routing are verified on iPhone",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "IOS-TESTFLIGHT-001",
+      "scenario": "Build uploads to App Store Connect and is available in TestFlight internal testing",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "IOS-REVIEW-001",
+      "scenario": "App Review notes, privacy labels, screenshots, support URL, privacy URL, and terms URL are ready",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    }
+  ]
+}

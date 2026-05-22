@@ -131,7 +131,6 @@ These tracked files are modified but were not part of the current audit/refactor
 - `supabase/functions/order_mark_paid/index.ts`
 - `supabase/functions/push-notify/payload.ts`
 - `supabase/functions/submit_claim/index.ts`
-- `supabase/functions/tables_generate/index.ts`
 - `supabase/functions/venue_claim/index.ts`
 - `supabase/functions/whatsapp-otp/index.ts`
 - `supabase/functions/whatsapp-otp/index_test.ts`
@@ -181,4 +180,3 @@ Use these groups only after reviewing the mixed files noted above.
 - `supabase db lint --local`: passed
 - `psql ... supabase/tests/release_readiness_hardening.sql`: passed
 - `psql ... supabase/tests/rls_hardening_audit.sql`: passed
-

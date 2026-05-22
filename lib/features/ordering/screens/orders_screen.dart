@@ -104,11 +104,16 @@ class _OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (order.status) {
-      OrderStatus.served => FzColors.success,
-      OrderStatus.cancelled => FzColors.danger,
+      OrderStatus.served || OrderStatus.completed => FzColors.success,
+      OrderStatus.cancelled ||
+      OrderStatus.refunded ||
+      OrderStatus.disputed => FzColors.danger,
+      OrderStatus.ready => FzColors.accent2,
       OrderStatus.preparing => FzColors.warning,
-      OrderStatus.received => FzColors.accent,
-      OrderStatus.placed => FzColors.accent3,
+      OrderStatus.received || OrderStatus.accepted => FzColors.accent,
+      OrderStatus.draft ||
+      OrderStatus.placed ||
+      OrderStatus.submitted => FzColors.accent3,
     };
 
     return FzCard(

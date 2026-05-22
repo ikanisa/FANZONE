@@ -136,11 +136,18 @@ export interface ViewerNotification {
 }
 
 export type OrderStatus =
+  | "draft"
   | "placed"
   | "received"
+  | "submitted"
+  | "accepted"
   | "preparing"
+  | "ready"
   | "served"
-  | "cancelled";
+  | "completed"
+  | "cancelled"
+  | "refunded"
+  | "disputed";
 export type PaymentMethod = "momo" | "revolut" | "cash" | "card" | "other";
 export type SupportedPaymentMethod = Exclude<PaymentMethod, "card">;
 export type PaymentStatus =
@@ -199,7 +206,7 @@ export interface MenuItem {
 export interface Order {
   id: string;
   venueId: string;
-  tableId: string;
+  tableId?: string | null;
   orderCode: string;
   status: OrderStatus;
   paymentMethod: PaymentMethod;

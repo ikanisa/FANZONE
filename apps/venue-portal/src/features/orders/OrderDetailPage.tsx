@@ -34,7 +34,7 @@ function formatMoney(order: Order, amount = order.totalAmount) {
 }
 
 function tableLabel(order: Order) {
-  return order.tableNumber || order.tableId.slice(0, 6).toUpperCase();
+  return order.tableNumber || order.tableId?.slice(0, 6).toUpperCase() || 'App';
 }
 
 function userCode(order: Order) {
@@ -47,6 +47,46 @@ function dateTimeLabel(value: string | null | undefined) {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value));
+}
+
+const transitionLabels: Partial<Record<OrderStatus, string>> = {
+  accepted: 'Accept order',
+  preparing: 'Preparing',
+  ready: 'Ready',
+  served: 'Mark served',
+  completed: 'Complete',
+  cancelled: 'Cancel order',
+  disputed: 'Dispute order',
+  refunded: 'Refunded',
+};
+
+function nextServiceStatuses(status: OrderStatus): OrderStatus[] {
+  switch (status) {
+    case 'draft':
+      return ['submitted'];
+    case 'placed':
+    case 'received':
+    case 'submitted':
+      return ['accepted', 'cancelled', 'disputed'];
+    case 'accepted':
+      return ['preparing', 'ready', 'cancelled', 'disputed'];
+    case 'preparing':
+      return ['ready', 'served', 'cancelled', 'disputed'];
+    case 'ready':
+      return ['served', 'cancelled', 'disputed'];
+    case 'served':
+      return ['completed', 'disputed'];
+    case 'disputed':
+      return ['refunded', 'cancelled', 'completed'];
+    case 'completed':
+    case 'cancelled':
+    case 'refunded':
+      return [];
+  }
+}
+
+function terminalOrder(status: OrderStatus) {
+  return status === 'completed' || status === 'cancelled' || status === 'refunded';
 }
 
 export function OrderDetailPage() {
@@ -141,11 +181,8 @@ export function OrderDetailPage() {
   if (!detail) return null;
 
   const order = detail.order;
-  const canCancel = order.status !== 'cancelled' && order.status !== 'served';
-  const canReceive = order.status === 'placed';
-  const canPrepare = order.status === 'received';
-  const canServe = order.status === 'received' || order.status === 'preparing';
-  const canMarkPaid = order.status !== 'cancelled' && order.paymentStatus !== 'paid';
+  const nextStatuses = nextServiceStatuses(order.status);
+  const canMarkPaid = !terminalOrder(order.status) && order.paymentStatus !== 'paid';
 
   return (
     <div className="max-w-[1500px] mx-auto space-y-6">
@@ -278,29 +315,30 @@ export function OrderDetailPage() {
           <article className="ops-card p-6">
             <h2 className="text-2xl font-black tracking-tight">Staff actions</h2>
             <div className="mt-5 grid grid-cols-1 gap-3">
-              {canReceive && (
-                <button className="btn btn-secondary justify-start" disabled={busy} onClick={() => runServiceAction('received')}>
-                  <Clock3 size={17} /> Mark received
+              {nextStatuses.map((status) => (
+                <button
+                  key={status}
+                  className={
+                    status === 'cancelled' || status === 'disputed' || status === 'refunded'
+                      ? 'btn justify-start border border-danger/20 bg-danger/10 text-danger'
+                      : 'btn btn-secondary justify-start'
+                  }
+                  disabled={busy}
+                  onClick={() => runServiceAction(status)}
+                >
+                  {status === 'cancelled' || status === 'disputed' || status === 'refunded' ? (
+                    <XCircle size={17} />
+                  ) : status === 'served' || status === 'completed' ? (
+                    <CheckCircle2 size={17} />
+                  ) : (
+                    <Clock3 size={17} />
+                  )}
+                  {transitionLabels[status] ?? readableStatus(status)}
                 </button>
-              )}
-              {canPrepare && (
-                <button className="btn btn-secondary justify-start" disabled={busy} onClick={() => runServiceAction('preparing')}>
-                  <Clock3 size={17} /> Preparing
-                </button>
-              )}
-              {canServe && (
-                <button className="btn btn-secondary justify-start" disabled={busy} onClick={() => runServiceAction('served')}>
-                  <CheckCircle2 size={17} /> Mark served
-                </button>
-              )}
+              ))}
               <button className="btn btn-primary justify-start" disabled={busy || !canMarkPaid} onClick={() => setMarkPaidOpen(true)}>
                 <ReceiptText size={17} /> Mark paid
               </button>
-              {canCancel && (
-                <button className="btn justify-start border border-danger/20 bg-danger/10 text-danger" disabled={busy} onClick={() => runServiceAction('cancelled')}>
-                  <XCircle size={17} /> Cancel order
-                </button>
-              )}
             </div>
           </article>
 
@@ -317,9 +355,23 @@ export function OrderDetailPage() {
           <article className="ops-card p-6">
             <h2 className="text-2xl font-black tracking-tight">Service timeline</h2>
             <div className="mt-5 space-y-3">
-              <TimelineRow label="Created" value={dateTimeLabel(order.createdAt)} active />
-              <TimelineRow label="Accepted" value={dateTimeLabel(order.acceptedAt)} active={['received', 'preparing', 'served'].includes(order.status)} />
-              <TimelineRow label="Served" value={dateTimeLabel(order.servedAt)} active={order.status === 'served'} />
+              {detail.stateEvents.length === 0 ? (
+                <>
+                  <TimelineRow label="Created" value={dateTimeLabel(order.createdAt)} active />
+                  <TimelineRow label="Accepted" value={dateTimeLabel(order.acceptedAt)} active={['accepted', 'preparing', 'ready', 'served', 'completed'].includes(order.status)} />
+                  <TimelineRow label="Served" value={dateTimeLabel(order.servedAt)} active={['served', 'completed'].includes(order.status)} />
+                </>
+              ) : (
+                detail.stateEvents.map((event) => (
+                  <TimelineRow
+                    key={event.id}
+                    label={`${event.previousStatus ?? 'created'} -> ${readableStatus(event.nextStatus)}`}
+                    value={dateTimeLabel(event.createdAt)}
+                    active
+                    note={event.reason ?? event.source}
+                  />
+                ))
+              )}
             </div>
           </article>
 
@@ -350,13 +402,14 @@ export function OrderDetailPage() {
   );
 }
 
-function TimelineRow({ label, value, active }: { label: string; value: string; active: boolean }) {
+function TimelineRow({ label, value, active, note }: { label: string; value: string; active: boolean; note?: string | null }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-surface2 px-4 py-3">
       <div className={`h-3 w-3 rounded-full ${active ? 'bg-success' : 'bg-surface3'}`} />
       <div>
         <p className="font-black">{label}</p>
         <p className="text-sm font-bold text-textSecondary">{value}</p>
+        {note && <p className="mt-1 text-xs font-bold text-textSecondary">{note}</p>}
       </div>
     </div>
   );

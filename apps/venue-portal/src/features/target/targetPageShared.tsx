@@ -271,7 +271,11 @@ export function WalletMetrics({ wallet }: { wallet: VenueFetWallet | null }) {
           value: `${safeWallet.pendingBalanceFet.toLocaleString()} FET`,
           detail: "Top-ups or settlement holds.",
         },
-        { label: "Cash-out", value: "Disabled", detail: "No cash-out in MVP." },
+        {
+          label: "Reward scope",
+          value: "Venue-only",
+          detail: "FET stays inside loyalty and coupon flows.",
+        },
       ]}
     />
   );

@@ -3,6 +3,50 @@
 Use these runbooks for production incidents. Record the incident owner, start
 time, affected environment, customer impact, actions taken, and follow-up issue.
 
+Release status: these runbooks are ready for operator review, but the
+`Incident response and rollback readiness` evidence row must remain `PENDING`
+until the release owner records named owners, escalation channels, rollback
+tags, database restore evidence, and review approval.
+
+## Launch Readiness Evidence Required
+
+Before public launch, create a redacted evidence bundle under:
+
+```text
+output/release-evidence/<timestamp>/incident-readiness/
+```
+
+Required files:
+
+- `owners-and-escalation-redacted.txt`: incident commander, technical owner,
+  communications owner, support owner, and escalation channel.
+- `rollback-tag.txt`: immutable git tag or deployment identifier for the release.
+- `database-restore-plan.txt`: backup location, restore owner, restore command,
+  restore validation command, and recovery-time expectation.
+- `runbook-review.txt`: reviewer, review timestamp, reviewed runbooks, and
+  approval decision.
+- `post-deploy-watch.txt`: monitoring owner, watch window, dashboards checked,
+  and rollback threshold.
+
+Required sign-off block:
+
+```text
+release_owner:
+incident_commander:
+technical_owner:
+support_owner:
+escalation_channel:
+release_tag:
+database_backup_manifest:
+database_restore_plan_reviewed: yes/no
+rollback_plan_reviewed: yes/no
+post_deploy_watch_owner:
+approved_for_launch: yes/no
+```
+
+Do not put secret values, private phone numbers, private emails, or customer
+data in tracked documentation.
+
 ## Auth Outage
 
 Signals:

@@ -528,7 +528,7 @@ function EligibilityTicker() {
       <span>
         FET winners need a paid order from this bar within 2 hours before start
       </span>
-      <span>No cash-out</span>
+      <span>Venue rewards only</span>
       <span>Venue-linked play only</span>
     </div>
   );

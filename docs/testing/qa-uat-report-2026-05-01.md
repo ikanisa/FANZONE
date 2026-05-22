@@ -40,10 +40,10 @@ Status key:
 
 | Scenario | Status | Evidence/Next Step |
 | --- | --- | --- |
-| User opens app without QR | PARTIAL | Flutter app/widget tests passed. Needs physical device or simulator smoke against release config. |
-| User opens app from venue/table QR | PARTIAL | QR/session routing code compiles and tests pass. Needs live QR token and seeded venue table. |
+| User opens app | PARTIAL | Flutter app/widget tests passed. Needs physical device or simulator smoke against release config. |
+| User opens a venue in app | PARTIAL | Venue routing code compiles and tests pass. Needs seeded venue data. |
 | User views menu | PARTIAL | Menu UI/repository paths compile and tests pass. Needs seeded Supabase menu data. |
-| User creates order | PARTIAL | Order UI and Edge Function checks pass. Needs live venue/table/user. |
+| User creates order | PARTIAL | Order UI and Edge Function checks pass. Needs live venue/user. |
 | User earns FET from order | BLOCKED | Requires wallet/order RPC execution against DB. |
 | User views FET wallet | PARTIAL | Wallet UI tests and analyzer pass. Live ledger requires DB. |
 | User creates pool | PARTIAL | Pool screens/repository compile and tests pass. Live RPC blocked. |
@@ -74,7 +74,7 @@ Status key:
 | Venue creates venue pool | PARTIAL | Venue pool UI builds. Live RPC blocked. |
 | Venue cannot create duplicate pool for same match | BLOCKED | Requires unique index/RPC assertion against DB. |
 | Venue endorses/rejects user-created venue pool | PARTIAL | UI/RPC path builds. Live permission check blocked. |
-| Venue generates table QR | PARTIAL | UI builds. Live token/QR generation blocked. |
+| Venue receives app order | PARTIAL | UI builds. Live order creation blocked. |
 
 ## Admin PWA UAT Checklist
 
@@ -137,7 +137,7 @@ Status key:
 
 - Full live UAT was not completed because no local or remote Supabase database was available in this environment.
 - SQL RLS, wallet, settlement, creator reward, refund, duplicate-pool, and audit-log tests are present but could not execute.
-- Mobile QR/deep-link flows were not run on a simulator or physical device in this QA pass.
+- Mobile venue-link flows were not run on a simulator or physical device in this QA pass.
 - PWA role UAT was limited to unauthenticated smoke screens because seeded admin/venue sessions were unavailable.
 - Performance findings are static/index based only; no `EXPLAIN ANALYZE` or load test was possible without DB data.
 
@@ -151,15 +151,15 @@ Status key:
    - `psql "$SUPABASE_DB_URL" -f supabase/tests/pool_settlement_engine.sql`
    - `psql "$SUPABASE_DB_URL" -f supabase/tests/pool_sharing_completion.sql`
 2. Complete seeded manual UAT with guest A, guest B, venue owner/manager/staff, and admin.
-3. Validate production/staging env vars for mobile, admin, venue, Edge Functions, storage, social cards, and share/deep links.
+3. Validate production/staging env vars for mobile, admin, venue, Edge Functions, storage, social cards, and share links.
 4. Verify settlement, refund, wallet ledger, manual payment audit, duplicate venue pool prevention, creator reward idempotency, and insufficient-balance handling against live data.
 5. Run DB performance checks with realistic pool, match, order, share-event, and ledger volumes.
 
 ## Recommended Next Sprint
 
-- Add a deterministic UAT seed pack for two guests, one venue, one admin, menus, matches, pools, wallet balances, orders, QR tables, and share invites.
+- Add a deterministic UAT seed pack for two guests, one venue, one admin, menus, matches, pools, wallet balances, orders, and share invites.
 - Add CI for Supabase migrations, db lint, and SQL smoke tests on an ephemeral database.
 - Add Playwright auth fixtures for admin and venue role flows.
-- Add Flutter integration tests pinned to a simulator/device target for QR, ordering, wallet, pool join, and settlement readback.
+- Add Flutter integration tests pinned to a simulator/device target for venue ordering, wallet, pool join, and settlement readback.
 - Add `EXPLAIN`/load checks for pool list, match list, wallet ledger pagination, admin tables, and live pool stats.
 - Add operational monitoring for failed settlement runs, wallet reconciliation deltas, duplicate idempotency attempts, and social card generation failures.

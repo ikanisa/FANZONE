@@ -23,7 +23,7 @@ import { useVenueStats } from '../../hooks/useVenueStats';
 
 const eligibilityRule =
   'To receive FET winnings, the user must place at least one order from this bar within 2 hours before the linked game/pool start time.';
-const activeServiceStatuses = ['placed', 'received', 'preparing'];
+const activeServiceStatuses = ['submitted', 'accepted', 'preparing', 'ready', 'served'];
 
 function moneyLabel(amount: number) {
   return amount.toLocaleString(undefined, {
@@ -45,7 +45,7 @@ export const OverviewPage: React.FC = () => {
   const { orders } = useOrders(venueId);
 
   const activeOrders = orders.filter((order) => activeServiceStatuses.includes(order.status));
-  const servedOrders = orders.filter((order) => order.status === 'served');
+  const servedOrders = orders.filter((order) => ['served', 'completed'].includes(order.status));
   const pendingPayments = orders.filter((order) =>
     ['unpaid', 'payment_submitted', 'pending', 'partially_paid', 'disputed'].includes(order.paymentStatus),
   );

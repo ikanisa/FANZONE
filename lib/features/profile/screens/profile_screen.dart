@@ -169,10 +169,6 @@ class ProfileScreen extends ConsumerWidget {
     if (venue == null) {
       return 'No bar.';
     }
-    final tableNumber = context.table?.tableNumber ?? context.tableNumber;
-    if (tableNumber != null && tableNumber.toString().trim().isNotEmpty) {
-      return '${venue.name}, table $tableNumber';
-    }
     return venue.name;
   }
 

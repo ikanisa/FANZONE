@@ -29,22 +29,14 @@ const orderItemSchema = z
 const createOrderSchema = z
   .object({
     venue_id: z.string().uuid(),
-    table_id: z.string().uuid().optional(),
-    table_public_code: z.string().min(1).optional(),
+    table_number: z.string().trim().min(1).max(24),
     payment_method: z
       .enum(["cash", "momo", "revolut", "other"])
       .default("cash"),
     items: z.array(orderItemSchema).min(1),
     special_instructions: z.string().max(1000).nullable().optional(),
     notes: z.string().max(1000).nullable().optional(),
-  })
-  .refine(
-    (input) =>
-      input.table_id !== undefined || input.table_public_code !== undefined,
-    {
-      message: "table_id or table_public_code is required",
-    },
-  );
+  });
 
 type CreateOrderInput = z.infer<typeof createOrderSchema>;
 
@@ -58,7 +50,7 @@ Deno.serve(async (req) => {
   if (corsResponse) return corsResponse;
 
   if (req.method !== "POST") {
-    return errorResponse("Method not allowed", 405);
+    return errorResponse("Method not allowed", 405, undefined, req);
   }
 
   try {
@@ -72,7 +64,12 @@ Deno.serve(async (req) => {
     const userId = authResult?.user?.id ?? null;
 
     if (!userId) {
-      return errorResponse("Authentication required to place orders", 401);
+      return errorResponse(
+        "Authentication required to place orders",
+        401,
+        undefined,
+        req,
+      );
     }
 
     logger.info("Auth check", { authenticated: true, userId });
@@ -82,12 +79,18 @@ Deno.serve(async (req) => {
     const parsed = createOrderSchema.safeParse(body);
     if (!parsed.success) {
       logger.warn("Validation failed", { errors: parsed.error.issues });
-      return errorResponse("Invalid request data", 400, parsed.error.issues);
+      return errorResponse(
+        "Invalid request data",
+        400,
+        parsed.error.issues,
+        req,
+      );
     }
 
     const input: CreateOrderInput = parsed.data;
     logger.info("Processing order", {
       venueId: input.venue_id,
+      tableNumber: input.table_number,
       itemCount: input.items.length,
     });
 
@@ -105,74 +108,44 @@ Deno.serve(async (req) => {
 
     if (venueError || !venue) {
       logger.warn("Venue not found", { venueId: input.venue_id });
-      return errorResponse("Venue not found", 404);
+      return errorResponse("Venue not found", 404, undefined, req);
     }
 
     if (!venue.is_active) {
       logger.warn("Venue not active", { venueId: input.venue_id });
-      return errorResponse("Venue is not active", 400);
+      return errorResponse("Venue is not active", 400, undefined, req);
     }
 
     // ========================================================================
-    // STEP 2: Validate table belongs to venue and is active
+    // STEP 2: Resolve app-entered table number
     // ========================================================================
-    let table: { id: string; venue_id: string; table_number: string } | null =
-      null;
+    const tableNumber = input.table_number.trim().replace(/\s+/g, " ");
+    const { data: table, error: tableError } = await supabaseAdmin
+      .from("tables")
+      .upsert(
+        {
+          venue_id: input.venue_id,
+          table_number: tableNumber,
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "venue_id,table_number" },
+      )
+      .select("id, table_number")
+      .single();
 
-    if (input.table_id) {
-      const { data: tableById } = await supabaseAdmin
-        .from("tables")
-        .select("id, venue_id, table_number")
-        .eq("id", input.table_id)
-        .eq("venue_id", input.venue_id)
-        .eq("is_active", true)
-        .maybeSingle();
-
-      table = tableById;
-    } else if (input.table_public_code) {
-      const rawTableInput = input.table_public_code.trim();
-      const normalizedTableInput = decodeURIComponent(rawTableInput);
-      const { data: candidateTables } = await supabaseAdmin
-        .from("tables")
-        .select(
-          "id, venue_id, table_number, qr_url, qr_code_url, deep_link_uri",
-        )
-        .eq("venue_id", input.venue_id)
-        .eq("is_active", true)
-        .limit(200);
-
-      table = candidateTables?.find((candidate) =>
-        [
-          candidate.id,
-          candidate.table_number,
-          candidate.qr_url,
-          candidate.qr_code_url,
-          candidate.deep_link_uri,
-        ].some((value) => value === normalizedTableInput)
-      ) ?? null;
-
-      if (!table) {
-        const digitsMatch = normalizedTableInput.match(/\d+/);
-        const tableNumber = digitsMatch ? digitsMatch[0] : normalizedTableInput;
-        const { data: tableByNumber } = await supabaseAdmin
-          .from("tables")
-          .select("id, venue_id, table_number")
-          .eq("table_number", tableNumber)
-          .eq("venue_id", input.venue_id)
-          .eq("is_active", true)
-          .maybeSingle();
-
-        table = tableByNumber;
-      }
-    }
-
-    if (!table) {
-      logger.warn("Table not found", {
-        tableId: input.table_id,
-        tableCode: input.table_public_code,
+    if (tableError || !table) {
+      logger.error("Failed to resolve table number", {
         venueId: input.venue_id,
+        tableNumber,
+        error: tableError?.message,
       });
-      return errorResponse("Table not found or inactive", 404);
+      return errorResponse(
+        "Failed to resolve table number",
+        500,
+        tableError?.message,
+        req,
+      );
     }
 
     // ========================================================================
@@ -189,7 +162,7 @@ Deno.serve(async (req) => {
 
     if (menuItemsError || !menuItems || menuItems.length === 0) {
       logger.warn("Menu items not found", { menuItemIds });
-      return errorResponse("Menu items not found", 404);
+      return errorResponse("Menu items not found", 404, undefined, req);
     }
 
     const menuItemsMap = new Map(menuItems.map((item) => [item.id, item]));
@@ -199,17 +172,26 @@ Deno.serve(async (req) => {
         return errorResponse(
           `Menu item ${inputItem.menu_item_id} not found`,
           404,
+          undefined,
+          req,
         );
       }
       if (!menuItem.is_available) {
         return errorResponse(
           `Menu item ${menuItem.name} is not available`,
           400,
+          undefined,
+          req,
         );
       }
       const quantity = inputItem.quantity ?? inputItem.qty!;
       if (quantity <= 0) {
-        return errorResponse(`Invalid quantity for ${menuItem.name}`, 400);
+        return errorResponse(
+          `Invalid quantity for ${menuItem.name}`,
+          400,
+          undefined,
+          req,
+        );
       }
     }
 
@@ -268,7 +250,12 @@ Deno.serve(async (req) => {
 
     if (codeExists) {
       logger.error("Failed to generate unique order code after retries");
-      return errorResponse("Failed to generate unique order code", 500);
+      return errorResponse(
+        "Failed to generate unique order code",
+        500,
+        undefined,
+        req,
+      );
     }
 
     // ========================================================================
@@ -283,7 +270,7 @@ Deno.serve(async (req) => {
         table_id: table.id,
         user_id: userId,
         order_code: orderCode,
-        status: "placed",
+        status: "submitted",
         payment_method: input.payment_method,
         payment_status: "pending",
         subtotal_amount: totalAmount,
@@ -298,7 +285,42 @@ Deno.serve(async (req) => {
 
     if (orderError || !order) {
       logger.error("Failed to create order", { error: orderError?.message });
-      return errorResponse("Failed to create order", 500, orderError?.message);
+      return errorResponse(
+        "Failed to create order",
+        500,
+        orderError?.message,
+        req,
+      );
+    }
+
+    const { error: stateEventError } = await supabaseAdmin.from(
+      "order_state_events",
+    ).insert({
+      order_id: order.id,
+      venue_id: input.venue_id,
+      actor_user_id: userId,
+      previous_status: null,
+      next_status: "submitted",
+      reason: "Order submitted by customer",
+      source: "order_create",
+      metadata: {
+        request_id: requestId,
+        table_number: tableNumber,
+        item_count: input.items.length,
+      },
+    });
+    if (stateEventError) {
+      logger.error("Failed to write initial order state event", {
+        orderId: order.id,
+        error: stateEventError.message,
+      });
+      await supabaseAdmin.from("orders").delete().eq("id", order.id);
+      return errorResponse(
+        "Failed to create order state event",
+        500,
+        stateEventError.message,
+        req,
+      );
     }
 
     // Insert order items
@@ -321,6 +343,7 @@ Deno.serve(async (req) => {
         "Failed to create order items",
         500,
         itemsError?.message,
+        req,
       );
     }
 
@@ -330,6 +353,7 @@ Deno.serve(async (req) => {
     await audit.log(AuditAction.ORDER_CREATE, EntityType.ORDER, order.id, {
       vendorId: input.venue_id,
       tableId: table.id,
+      tableNumber,
       orderCode,
       totalAmount,
       itemCount: input.items.length,
@@ -351,10 +375,11 @@ Deno.serve(async (req) => {
         },
       },
       201,
+      req,
     );
   } catch (error) {
     const durationMs = Date.now() - startTime;
     logger.error("Order creation error", { error: String(error), durationMs });
-    return errorResponse("Internal server error", 500, String(error));
+    return errorResponse("Internal server error", 500, String(error), req);
   }
 });

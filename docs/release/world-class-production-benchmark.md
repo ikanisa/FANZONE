@@ -68,7 +68,7 @@ P1 controls.
 - Full `flutter test` passes.
 - Android release AAB is signed, installable, and uses production env.
 - iOS archive/TestFlight path is proven.
-- Deep links open QR ordering from cold and warm states.
+- Venue links open bar menus from cold and warm states.
 - WhatsApp OTP upgrade, anonymous session, wallet, ordering, pools, rewards,
   and external payment handoff all pass UAT.
 - Mobile security review covers secure storage, network transport, permissions,
@@ -81,7 +81,7 @@ P1 controls.
 - Venue role boundaries are proven for owner, manager, staff, and unauthorized
   users.
 - Manual payment confirmation remains staff-controlled and auditable.
-- QR/table ordering, live order queue, menu, rewards, pools, and settings pass
+- In-app venue ordering, live order queue, menu, rewards, pools, and settings pass
   deployed browser smoke tests.
 - PWA installability, offline/error states, headers, and CORS are verified.
 

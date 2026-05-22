@@ -89,7 +89,7 @@ export async function requireAuth(
 ): Promise<{ user: User; supabaseUser: SupabaseClient } | Response> {
   const auth = await getAuthenticatedUser(req, logger);
   if (!auth) {
-    return errorResponse("Unauthorized", 401);
+    return errorResponse("Unauthorized", 401, undefined, req);
   }
   return auth;
 }

@@ -1,11 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import {
-  AuditAction,
   createAdminClient,
-  createAuditLogger,
   createLogger,
-  EntityType,
   errorResponse,
   getOrCreateRequestId,
   handleCors,
@@ -20,6 +17,9 @@ const markPaidSchema = z.object({
     .enum(["cash", "momo", "revolut", "other"])
     .optional()
     .default("cash"),
+  amount_received: z.number().nonnegative().optional(),
+  external_reference: z.string().trim().max(120).optional(),
+  note: z.string().trim().max(240).optional(),
 });
 
 Deno.serve(async (req) => {
@@ -51,7 +51,13 @@ Deno.serve(async (req) => {
       return errorResponse("Invalid request", 400, parsed.error.issues);
     }
 
-    const { order_id, payment_method } = parsed.data;
+    const {
+      order_id,
+      payment_method,
+      amount_received,
+      external_reference,
+      note,
+    } = parsed.data;
 
     // ---- Fetch order ----
     const { data: order, error: orderError } = await supabaseAdmin
@@ -87,53 +93,49 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ---- Can only mark paid if order is in valid state ----
-    if (order.status === "cancelled") {
-      return errorResponse("Cannot mark a cancelled order as paid", 400);
-    }
-
-    // ---- Update payment status ----
     // External payments are off-platform. This endpoint records a staff/admin
     // manual confirmation after the customer shows cash, USSD, or Revolut proof.
-    const { data: updatedOrder, error: updateError } = await supabaseAdmin
-      .from("orders")
-      .update({
-        payment_status: "paid",
-        payment_method,
-      })
-      .eq("id", order_id)
-      .select()
-      .single();
+    const { data: paymentRecord, error: paymentError } = await supabaseUser.rpc(
+      "venue_update_order_payment_status",
+      {
+        p_order_id: order_id,
+        p_payment_status: "paid",
+        p_payment_method: payment_method,
+        p_actor_note: note ?? null,
+        p_amount_received: amount_received ?? null,
+        p_external_reference: external_reference ?? null,
+      },
+    );
 
-    if (updateError) {
-      logger.error("Failed to update payment status", {
-        error: updateError.message,
+    if (paymentError) {
+      logger.warn("Failed to record manual payment", {
+        orderId: order_id,
+        error: paymentError.message,
       });
-      return errorResponse("Failed to update payment status", 500);
+      return errorResponse(paymentError.message, 400, undefined, req);
     }
 
     // FET credit is handled by the database trigger when payment_status
     // transitions to paid.
 
-    // ---- Audit ----
-    const audit = createAuditLogger(supabaseAdmin, user.id, requestId, logger);
-    await audit.log(AuditAction.ORDER_MARK_PAID, EntityType.ORDER, order_id, {
-      previousValue: { payment_status: order.payment_status },
-      newValue: { payment_status: "paid", payment_method },
-      vendorId: order.venue_id,
-    });
+    const { data: updatedOrder, error: updatedError } = await supabaseAdmin
+      .from("orders")
+      .select()
+      .eq("id", order_id)
+      .single();
 
-    await supabaseAdmin.from("payment_events").insert({
-      order_id,
-      provider: payment_method,
-      status: "paid",
-      request_payload: { marked_by: user.id, request_id: requestId },
-      response_payload: {
-        source: "order_mark_paid",
-        confirmation_mode: "staff_manual",
-        provider_api_used: false,
-      },
-    });
+    if (updatedError || !updatedOrder) {
+      logger.error("Failed to load paid order", {
+        orderId: order_id,
+        error: updatedError?.message,
+      });
+      return errorResponse(
+        "Payment recorded but order reload failed",
+        500,
+        undefined,
+        req,
+      );
+    }
 
     const durationMs = Date.now() - startTime;
     logger.requestEnd(200, durationMs);
@@ -141,6 +143,7 @@ Deno.serve(async (req) => {
     return jsonResponse({
       success: true,
       requestId,
+      payment: paymentRecord,
       order: updatedOrder,
     });
   } catch (error) {

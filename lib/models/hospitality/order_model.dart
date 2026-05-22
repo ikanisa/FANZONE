@@ -4,39 +4,85 @@ part 'order_model.freezed.dart';
 part 'order_model.g.dart';
 
 /// Order lifecycle statuses. Maps to `public.order_status` enum.
-/// Placed → Received → Preparing → Served, or Cancelled.
+/// Legacy placed/received values are still parsed for existing orders.
 enum OrderStatus {
+  @JsonValue('draft')
+  draft,
   @JsonValue('placed')
   placed,
   @JsonValue('received')
   received,
+  @JsonValue('submitted')
+  submitted,
+  @JsonValue('accepted')
+  accepted,
   @JsonValue('preparing')
   preparing,
+  @JsonValue('ready')
+  ready,
   @JsonValue('served')
   served,
+  @JsonValue('completed')
+  completed,
   @JsonValue('cancelled')
-  cancelled;
+  cancelled,
+  @JsonValue('refunded')
+  refunded,
+  @JsonValue('disputed')
+  disputed;
 
   String get label {
     switch (this) {
+      case OrderStatus.draft:
+        return 'Draft';
       case OrderStatus.placed:
+      case OrderStatus.submitted:
         return 'Placed';
       case OrderStatus.received:
+      case OrderStatus.accepted:
         return 'Received';
       case OrderStatus.preparing:
         return 'Preparing';
+      case OrderStatus.ready:
+        return 'Ready';
       case OrderStatus.served:
         return 'Served';
+      case OrderStatus.completed:
+        return 'Completed';
       case OrderStatus.cancelled:
         return 'Cancelled';
+      case OrderStatus.refunded:
+        return 'Refunded';
+      case OrderStatus.disputed:
+        return 'Disputed';
     }
   }
 
   /// Whether this status represents a terminal state.
-  bool get isTerminal => this == served || this == cancelled;
+  bool get isTerminal =>
+      this == completed || this == cancelled || this == refunded;
 
   /// Whether this status represents an active (in-progress) state.
-  bool get isActive => this == placed || this == received || this == preparing;
+  bool get isActive => !isTerminal;
+
+  bool get isSubmittedOrLater =>
+      this != draft && this != cancelled && this != refunded;
+
+  bool get isAcceptedOrLater =>
+      this == received ||
+      this == accepted ||
+      this == preparing ||
+      this == ready ||
+      this == served ||
+      this == completed;
+
+  bool get isPreparingOrLater =>
+      this == preparing || this == ready || this == served || this == completed;
+
+  bool get isReadyOrLater =>
+      this == ready || this == served || this == completed;
+
+  bool get isServedOrLater => this == served || this == completed;
 }
 
 /// Payment method. Maps to `public.payment_method` enum.
@@ -121,10 +167,10 @@ class OrderModel with _$OrderModel {
   const factory OrderModel({
     required String id,
     @JsonKey(name: 'venue_id') required String venueId,
-    @JsonKey(name: 'table_id') required String tableId,
+    @JsonKey(name: 'table_id') String? tableId,
     @JsonKey(name: 'user_id') required String userId,
     @JsonKey(name: 'order_code') required String orderCode,
-    @Default(OrderStatus.placed) OrderStatus status,
+    @Default(OrderStatus.submitted) OrderStatus status,
     @JsonKey(name: 'payment_method') required PaymentMethod paymentMethod,
     @JsonKey(name: 'payment_status')
     @Default(PaymentStatus.pending)

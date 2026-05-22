@@ -28,6 +28,8 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   PaymentMethod _paymentMethod = PaymentMethod.cash;
+  String? _paymentMethodVenueId;
+  final _tableNumberController = TextEditingController();
   final _notesController = TextEditingController();
   final _fetSpendController = TextEditingController();
   bool _useFetSpend = false;
@@ -35,6 +37,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   Future<void> _placeOrder() async {
     if (_submitting) return;
+    final tableNumber = normalizeManualTableNumber(_tableNumberController.text);
+    if (tableNumber == null) {
+      await showFzNoticeSheet(
+        context,
+        title: 'Add table number',
+        message: 'Enter your table number so venue staff can bring the order.',
+        icon: LucideIcons.hash,
+        iconColor: FzColors.warning,
+        primaryLabel: 'Continue',
+      );
+      return;
+    }
+
     final fetSpendAmount = _useFetSpend
         ? int.tryParse(_fetSpendController.text.trim()) ?? 0
         : 0;
@@ -58,6 +73,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     setState(() => _submitting = true);
     final order = await placeOrderFromContext(
       ref,
+      tableNumber: tableNumber,
       paymentMethod: _paymentMethod,
     );
     if (order != null && mounted) {
@@ -132,7 +148,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         title: errorMessage == null ? 'Choose a bar' : 'Order unavailable',
         message: errorMessage ?? 'Open a bar menu before ordering.',
         icon: errorMessage == null
-            ? LucideIcons.qrCode
+            ? LucideIcons.mapPin
             : LucideIcons.alertTriangle,
         primaryLabel: 'Browse Venues',
         onPrimary: () {
@@ -163,6 +179,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   @override
   void dispose() {
+    _tableNumberController.dispose();
     _notesController.dispose();
     _fetSpendController.dispose();
     super.dispose();
@@ -183,14 +200,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       PaymentMethod.revolut,
     );
 
-    final resolvedPaymentMethod = preferredCheckoutPaymentMethod(
-      current: _paymentMethod,
-      venue: venue,
-    );
+    final resolvedPaymentMethod = _paymentMethodVenueId != venue?.id
+        ? defaultCheckoutPaymentMethod(venue)
+        : preferredCheckoutPaymentMethod(current: _paymentMethod, venue: venue);
     if (resolvedPaymentMethod != _paymentMethod) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          setState(() => _paymentMethod = resolvedPaymentMethod);
+          setState(() {
+            _paymentMethod = resolvedPaymentMethod;
+            _paymentMethodVenueId = venue?.id;
+          });
+        }
+      });
+    } else if (_paymentMethodVenueId != venue?.id) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _paymentMethodVenueId = venue?.id);
         }
       });
     }
@@ -291,6 +316,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               ),
             ),
             const SizedBox(height: 24),
+            TextField(
+              controller: _tableNumberController,
+              textInputAction: TextInputAction.next,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(LucideIcons.hash),
+                labelText: 'Table number',
+                hintText: 'Example: 12 or VIP 2',
+              ),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: _notesController,
               maxLines: 3,
@@ -451,6 +487,24 @@ PaymentMethod preferredCheckoutPaymentMethod({
 }) {
   if (venueSupportsPaymentMethod(venue, current)) return current;
   return PaymentMethod.cash;
+}
+
+@visibleForTesting
+PaymentMethod defaultCheckoutPaymentMethod(VenueModel? venue) {
+  if (venueSupportsPaymentMethod(venue, PaymentMethod.momo)) {
+    return PaymentMethod.momo;
+  }
+  if (venueSupportsPaymentMethod(venue, PaymentMethod.revolut)) {
+    return PaymentMethod.revolut;
+  }
+  return PaymentMethod.cash;
+}
+
+@visibleForTesting
+String? normalizeManualTableNumber(String raw) {
+  final normalized = raw.trim().replaceAll(RegExp(r'\s+'), ' ');
+  if (normalized.isEmpty || normalized.length > 24) return null;
+  return normalized;
 }
 
 @visibleForTesting

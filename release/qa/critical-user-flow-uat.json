@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "releaseCandidate": "TBD",
+  "environment": {
+    "name": "production",
+    "mobileBuild": "TBD",
+    "websiteUrl": "https://fanzone.ikanisa.com",
+    "adminUrl": "https://fanzoneadmin.ikanisa.com",
+    "venuePortalUrl": "https://fanzone.venue.ikanisa.com",
+    "tvDisplayUrl": "https://fanzonetv.ikanisa.com",
+    "supabaseProjectRef": "TBD"
+  },
+  "signOff": {
+    "qaOwner": "",
+    "releaseOwner": "",
+    "signedAtUtc": "",
+    "approvedForLaunch": false,
+    "notes": "Do not approve until every applicable critical flow is PASS with evidence."
+  },
+  "flows": [
+    {
+      "id": "MOB-AUTH-001",
+      "surface": "Flutter app",
+      "scenario": "Anonymous launch, WhatsApp OTP upgrade, optional profile skip, and home load",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "device/build identifier",
+        "OTP send and verify proof",
+        "home/wallet screenshot or log"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "MOB-ORDER-001",
+      "surface": "Flutter app",
+      "scenario": "Browse venue, view menu, place in-app order, and open external payment guidance",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "venue/menu screenshot",
+        "order code",
+        "payment handoff screenshot or log"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "MOB-WALLET-001",
+      "surface": "Flutter app",
+      "scenario": "Wallet balance and ledger update after qualifying venue payment confirmation",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "order code",
+        "payment event or audit log reference",
+        "wallet ledger reconciliation"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "MOB-POOL-001",
+      "surface": "Flutter app",
+      "scenario": "Join prediction pool, see active entry, and verify wallet stake movement",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "pool id",
+        "entry id",
+        "wallet before/after"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "MOB-SETTLEMENT-001",
+      "surface": "Flutter app",
+      "scenario": "Eligible winner receives settlement and ineligible winner is shown without payout",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "eligible user id",
+        "ineligible user id",
+        "settlement id",
+        "ledger rows"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "VENUE-AUTH-001",
+      "surface": "Bars/Venue PWA",
+      "scenario": "Owner, manager, and staff login resolve only their assigned venue",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "role account references",
+        "venue context screenshots",
+        "unauthorized venue rejection proof"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "VENUE-ORDER-001",
+      "surface": "Bars/Venue PWA",
+      "scenario": "Staff receives order, marks payment paid with audit note, and updates service status",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "order code",
+        "payment event id",
+        "audit log id",
+        "queue screenshot"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "VENUE-MENU-001",
+      "surface": "Bars/Venue PWA",
+      "scenario": "Manager creates, edits, hides, and re-enables a menu item without affecting other venues",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "menu item id",
+        "before/after screenshots",
+        "cross-venue isolation proof"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "VENUE-REWARDS-001",
+      "surface": "Bars/Venue PWA",
+      "scenario": "Owner or manager configures FET rewards; staff-only account is blocked",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "reward rule id",
+        "allowed role proof",
+        "blocked role proof"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "VENUE-POOL-001",
+      "surface": "Bars/Venue PWA",
+      "scenario": "Venue creates staked official pool, verifies stake reservation, and settles idempotently",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "pool id",
+        "venue wallet ledger rows",
+        "settlement run ids"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "VENUE-GAME-001",
+      "surface": "Bars/Venue PWA",
+      "scenario": "Venue starts centralized game, assigns teams, records answers, and proves first-correct rule",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "game session id",
+        "team ids",
+        "answer rows",
+        "first-correct proof"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ADMIN-AUTH-001",
+      "surface": "Admin PWA",
+      "scenario": "Admin sign-in works and non-admin or inactive admin users are rejected",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "admin account reference",
+        "rejected account reference",
+        "route rejection proof"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ADMIN-OPS-001",
+      "surface": "Admin PWA",
+      "scenario": "Admin moderation, reward rule, wallet adjustment, and audit-log workflows are reviewed",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "moderation action id",
+        "reward rule id",
+        "wallet adjustment id",
+        "audit log ids"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ADMIN-SETTLEMENT-001",
+      "surface": "Admin PWA",
+      "scenario": "Pool operation queue shows settlement state and duplicate trigger is idempotent",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "pool id",
+        "first settlement result",
+        "duplicate settlement result"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "TV-PAIR-001",
+      "surface": "TV PWA",
+      "scenario": "TV display opens pairing or venue route, remains read-only, and scopes to the selected venue",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "display URL",
+        "venue key",
+        "read-only proof"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "TV-LIVE-001",
+      "surface": "TV PWA",
+      "scenario": "TV shows welcome, active pool, game question, leaderboard, winner, and recovers after refresh",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "screenshots for every TV mode",
+        "refresh/reconnect proof",
+        "browser/device identifier"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "BACKEND-ISO-001",
+      "surface": "Supabase backend",
+      "scenario": "RLS and RPC authorization reject cross-user, cross-venue, anonymous, and wrong-role access",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "SQL/RPC negative test logs",
+        "role matrix",
+        "target project ref"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "BACKEND-REALTIME-001",
+      "surface": "Supabase backend",
+      "scenario": "Realtime order, pool, game, and TV state propagation works across phone, venue, admin, and TV",
+      "status": "PENDING",
+      "tester": "",
+      "executedAtUtc": "",
+      "evidenceRefs": [],
+      "requiredEvidence": [
+        "multi-device test notes",
+        "screenshots or logs from all surfaces",
+        "event timing observations"
+      ],
+      "notes": ""
+    }
+  ]
+}

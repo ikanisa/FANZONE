@@ -1717,8 +1717,8 @@ export function ScreenControlPage() {
       icon={<MonitorPlay size={26} />}
       status={state.data ? "live" : "disconnected"}
       primaryAction={{
-        label: "Open Table QR Settings",
-        to: "/settings/tables",
+        label: "Open Screen Settings",
+        to: "/settings/screen",
       }}
       secondaryAction={{ label: "Open Games", to: "/games" }}
       metrics={[
@@ -1838,8 +1838,7 @@ function TvPreview({ mode }: { mode: VenueScreenMode }) {
                 : "Join the game"}
           </p>
           <p className="mt-4 max-w-2xl text-2xl font-black text-textSecondary">
-            Scan the QR, join a team, order from the bar, and unlock FET
-            eligibility.
+            Join a team, order from the app, and unlock FET eligibility.
           </p>
         </div>
         <div className="flex items-center justify-between gap-4">

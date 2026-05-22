@@ -412,7 +412,7 @@ function CreatePoolPanel({
             className="rounded-xl border border-border bg-surface3 px-3 py-3 text-sm font-bold text-text"
             value={venueId}
             onChange={(event) => setVenueId(event.target.value)}
-            placeholder="Venue UUID from QR/table context"
+            placeholder="Venue UUID"
             required
           />
         </label>

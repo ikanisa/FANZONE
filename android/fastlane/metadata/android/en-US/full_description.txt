@@ -1,10 +1,10 @@
-FANZONE is a sports-bar entertainment app for venues, lounges, fan zones, and hospitality operators. Guests can scan a venue QR code, order from the bar, earn Fan Engagement Tokens (FET), join curated match pools, and manage a FET wallet.
+FANZONE is a sports-bar entertainment app for venues, lounges, fan zones, and hospitality operators. Guests can choose a venue in the app, order from the bar, earn Fan Engagement Tokens (FET), join curated match pools, and manage a FET wallet.
 
 MATCH POOLS
 Join curated football match pools for major competitions and venue-hosted events. Pools are entertainment only: no bookmaker odds, no real-money wagering, and no payment API.
 
 VENUE ORDERING
-Scan a bar or table QR code, browse the menu, and place orders with participating venues. Customer payments happen off-platform through the venue's supported methods such as cash, MoMo/USSD instructions, or Revolut links.
+Choose a participating venue, browse the menu, and place orders from the app. Customer payments happen off-platform through the venue's supported methods such as cash, MoMo/USSD instructions, or Revolut links.
 
 FAN ENGAGEMENT TOKENS (FET)
 Earn FET from venue-configured order rewards, welcome grants, qualified pool creation, invited participant rewards, and pool settlements. FET is an in-app reward, not real currency.
@@ -19,7 +19,7 @@ FET WALLET
 Monitor your FET balance, view your transaction history, and see exactly how each credit or debit was created.
 
 KEY FEATURES:
-• Venue QR and table ordering flows
+• In-app venue ordering flows
 • Curated match pools for major football competitions
 • FET wallet with audited ledger history
 • Venue-configured order rewards

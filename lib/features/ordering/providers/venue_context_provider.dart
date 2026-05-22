@@ -1,8 +1,8 @@
 /// Riverpod provider for active venue context.
 ///
-/// Set when user enters via QR deep link (`/v/:slug?t=:table`)
-/// or selects a venue from discovery. All ordering operations
-/// read from this provider to determine the target venue/table.
+/// Set when a user selects a venue from discovery or opens a venue link.
+/// All ordering operations read from this provider to determine the target
+/// venue.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/hospitality/menu_category_model.dart';
 import '../../../models/hospitality/menu_item_model.dart';
 import '../../../models/hospitality/venue_model.dart';
-import '../../../models/hospitality/venue_table_model.dart';
 import '../data/venue_gateway.dart';
 import '../../../core/di/gateway_providers.dart';
 
@@ -18,31 +17,19 @@ import '../../../core/di/gateway_providers.dart';
 // VENUE CONTEXT STATE
 // ═══════════════════════════════════════════════════════════
 
-/// Holds the active venue + table context for the current ordering session.
+/// Holds the active venue context for the current ordering session.
 class VenueContext {
-  const VenueContext({this.venue, this.table, this.tableNumber});
+  const VenueContext({this.venue});
 
   final VenueModel? venue;
-  final VenueTableModel? table;
-  final String? tableNumber; // from QR param before table lookup
 
   bool get hasVenue => venue != null;
-  bool get hasTable => table != null;
 
   String? get venueId => venue?.id;
-  String? get tableId => table?.id;
   String get currencyCode => venue?.currencyCode ?? 'EUR';
 
-  VenueContext copyWith({
-    VenueModel? venue,
-    VenueTableModel? table,
-    String? tableNumber,
-  }) {
-    return VenueContext(
-      venue: venue ?? this.venue,
-      table: table ?? this.table,
-      tableNumber: tableNumber ?? this.tableNumber,
-    );
+  VenueContext copyWith({VenueModel? venue}) {
+    return VenueContext(venue: venue ?? this.venue);
   }
 
   static const empty = VenueContext();
@@ -54,46 +41,27 @@ class VenueContextNotifier extends StateNotifier<VenueContext> {
 
   final VenueGateway _gateway;
 
-  /// Set venue by slug (from QR deep link).
-  /// Optionally resolves table number to a VenueTableModel.
-  Future<bool> setVenueBySlug(String slug, {String? tableNumber}) async {
+  /// Set venue by slug.
+  Future<bool> setVenueBySlug(String slug) async {
     final venue = await _gateway.getVenueBySlug(slug);
     if (venue == null) return false;
 
-    VenueTableModel? table;
-    if (tableNumber != null) {
-      final tables = await _gateway.getVenueTables(venue.id);
-      table = tables.cast<VenueTableModel?>().firstWhere(
-        (t) => t != null && _tableMatches(t, tableNumber),
-        orElse: () => null,
-      );
-    }
-
-    state = VenueContext(venue: venue, table: table, tableNumber: tableNumber);
+    state = VenueContext(venue: venue);
     return true;
   }
 
   /// Set venue by ID (e.g., from venue list selection).
-  Future<bool> setVenueById(String venueId, {String? tableNumber}) async {
+  Future<bool> setVenueById(String venueId) async {
     final venue = await _gateway.getVenueById(venueId);
     if (venue == null) return false;
 
-    VenueTableModel? table;
-    if (tableNumber != null) {
-      final tables = await _gateway.getVenueTables(venue.id);
-      table = tables.cast<VenueTableModel?>().firstWhere(
-        (t) => t != null && _tableMatches(t, tableNumber),
-        orElse: () => null,
-      );
-    }
-
-    state = VenueContext(venue: venue, table: table, tableNumber: tableNumber);
+    state = VenueContext(venue: venue);
     return true;
   }
 
-  /// Directly set venue and table (when both are already resolved).
-  void setContext(VenueModel venue, {VenueTableModel? table}) {
-    state = VenueContext(venue: venue, table: table);
+  /// Directly set venue.
+  void setContext(VenueModel venue) {
+    state = VenueContext(venue: venue);
   }
 
   /// Clear the venue context (e.g., leaving a venue).
@@ -106,28 +74,6 @@ final venueContextProvider =
     StateNotifierProvider<VenueContextNotifier, VenueContext>((ref) {
       return VenueContextNotifier(ref.watch(venueGatewayProvider));
     });
-
-bool _tableMatches(VenueTableModel table, String rawValue) {
-  final value = Uri.decodeComponent(rawValue).trim();
-  if (value.isEmpty) return false;
-
-  final candidates = <String>{
-    table.id,
-    table.tableNumber,
-    table.qrCodeUrl ?? '',
-    table.deepLinkUri ?? '',
-  }.map((item) => item.trim()).where((item) => item.isNotEmpty).toSet();
-
-  if (candidates.contains(value)) return true;
-
-  return candidates.any((candidate) {
-    final uri = Uri.tryParse(candidate);
-    if (uri == null) return false;
-    return uri.queryParameters['t'] == value ||
-        uri.queryParameters['table'] == value ||
-        (uri.pathSegments.isNotEmpty && uri.pathSegments.last == value);
-  });
-}
 
 // ═══════════════════════════════════════════════════════════
 // MENU DATA PROVIDERS
@@ -162,13 +108,3 @@ final groupedMenuProvider =
       final gateway = ref.watch(venueGatewayProvider);
       return gateway.getFullMenu(context.venueId!);
     });
-
-/// Venue tables for the active venue (venue dashboard use).
-final venueTablesProvider = FutureProvider.autoDispose<List<VenueTableModel>>((
-  ref,
-) async {
-  final context = ref.watch(venueContextProvider);
-  if (!context.hasVenue) return const [];
-  final gateway = ref.watch(venueGatewayProvider);
-  return gateway.getVenueTables(context.venueId!);
-});

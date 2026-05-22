@@ -57,8 +57,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void initState() {
     super.initState();
     _selectedCountry = findCountryByCode(null);
-    ref.read(selectedLaunchRegionProvider.notifier).state = 'global';
-    ref.read(selectedLaunchFocusTagsProvider.notifier).replaceAll({});
+    Future<void>(() {
+      if (!mounted) return;
+      ref.read(selectedLaunchRegionProvider.notifier).state = 'global';
+      ref.read(selectedLaunchFocusTagsProvider.notifier).replaceAll({});
+    });
   }
 
   @override

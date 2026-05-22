@@ -76,8 +76,9 @@ Backend source lives under `supabase/`.
 | `20260501162000_wallet_rpc_grant_hardening.sql` | Keeps the raw wallet ledger mutation primitive service-role only. |
 | `20260501163000_backend_only_pool_wallet_helpers.sql` | Restricts pool-locking and order-reward helper RPCs to backend/service execution so clients cannot directly credit wallets or lock pools. |
 | `20260501163500_remote_contract_alias_views.sql` | Adds canonical contract views over existing runtime tables for venue tables, pool camps, pool entries, FET ledger, and settlement runs. |
-| `20260501163600_contract_rpc_wrappers.sql` | Adds product-facing RPC wrappers for staking, FET order spend, share-card payload/storage, table QR generation, and manual payment confirmation. |
+| `20260501163600_contract_rpc_wrappers.sql` | Adds product-facing RPC wrappers for staking, FET order spend, share-card payload/storage, and manual payment confirmation. |
 | `20260501163700_remote_lint_contract_compat.sql` | Adds missing remote pool-entry source columns, settlement `pending` enum support, and an explicit pgvector search path for legacy legal-document search. |
+| `20260522150000_order_lifecycle_hardening.sql` | Adds the target hospitality order lifecycle, `order_state_events`, scoped RLS, and canonical `venue_transition_order_status` RPC. |
 
 Destructive retired-object cleanup is intentionally outside this migration inventory. See `supabase/destructive/20260501_retired_dinein_fanzone_cleanup.sql` and `docs/refactor/destructive-cleanup-runbook-2026-05-01.md`.
 
@@ -97,18 +98,25 @@ Destructive retired-object cleanup is intentionally outside this migration inven
 | `menu_ingest_worker` | Processes menu OCR jobs and writes review payloads. | Service role or cron secret. |
 | `menu_ocr_parse` | Stateless menu OCR parse endpoint. | Authenticated venue member. |
 | `order_create` | Creates orders from guest/venue context. | Client auth plus RLS/validation. |
-| `order_mark_paid` | Legacy/manual order-paid endpoint. | Venue role checked; prefer current payment RPC for console. |
-| `order_update_status` | Updates order service status. | Venue role checked; transition validated. |
+| `order_mark_paid` | Compatibility wrapper for audited manual payment confirmation. | Venue role checked; delegates to `venue_update_order_payment_status`; no provider API execution. |
+| `order_update_status` | Compatibility wrapper for order service status changes. | Venue role checked; delegates to `venue_transition_order_status`. |
 | `payment-hub` | Off-platform payment guidance/status helper. | Validated request; no provider API execution. |
 | `push-notify` | Sends push notifications. | `x-push-notify-secret`. |
 | `ring_bell` | Creates authenticated guest staff-call requests for a venue table. | Client auth, venue/table validation, and rate limit. |
 | `settle-match-pools` | Runs idempotent pool settlement. | `x-cron-secret` or service role. |
 | `submit_claim` | Submits venue claim. | Public/authenticated with validation. |
-| `tables_generate` | Generates table QR records. | Venue owner/manager. |
 | `venue_claim` | Venue claim workflow endpoint. | Validated request and policy checks. |
 | `whatsapp-otp` | WhatsApp OTP send/verify and custom session issuance. | Public action endpoint with rate limits and secrets. |
 
 Deprecated DineIn-era functions are intentionally excluded from active deployment. `ring_bell` is not deprecated: it backs the active table-assistance flow and `public.bell_requests` must not be included in destructive cleanup.
+
+## Scoped Realtime Contracts
+
+- Customer order tracking subscribes to `orders` with `id=eq.<order_id>`.
+- Venue order boards subscribe to `orders` with `venue_id=eq.<venue_id>`.
+- Staff-call queues subscribe to `bell_requests` with `venue_id=eq.<venue_id>`.
+- TV displays subscribe to venue-owned screen/game rows with `venue_id=eq.<venue_id>`.
+- Do not add whole-table realtime subscriptions for orders, staff calls, games, leaderboards, or TV display state.
 
 ## Database Verification
 
@@ -123,6 +131,7 @@ psql "$SUPABASE_DB_URL" -f supabase/tests/curated_match_platform.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/rls_hardening_audit.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/fet_wallet_reward_engine.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/sports_bar_simplified_contract.sql
+psql "$SUPABASE_DB_URL" -f supabase/tests/order_lifecycle_contract.sql
 ```
 
 If `SUPABASE_DB_URL` is not available, use the Supabase CLI-linked database and run the SQL files through `supabase db query --linked` after stripping psql-only meta commands. The simplified product contract and RLS hardening audit were verified this way on 2026-05-01.

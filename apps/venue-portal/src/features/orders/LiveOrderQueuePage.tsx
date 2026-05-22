@@ -27,16 +27,22 @@ import { ManualMarkPaidModal } from "./ManualMarkPaidModal";
 import type { BellRequest } from "../../services/venueOperations";
 
 const activeServiceStatuses: OrderStatus[] = [
-  "placed",
-  "received",
+  "submitted",
+  "accepted",
   "preparing",
+  "ready",
+  "served",
 ];
 const serviceStatuses: OrderStatus[] = [
-  "placed",
-  "received",
+  "submitted",
+  "accepted",
   "preparing",
+  "ready",
   "served",
+  "completed",
   "cancelled",
+  "refunded",
+  "disputed",
 ];
 const paymentStatuses: PaymentStatus[] = [
   "unpaid",
@@ -67,7 +73,7 @@ function formatMoney(order: Order) {
 }
 
 function tableLabel(order: Order) {
-  return order.tableNumber || order.tableId.slice(0, 6).toUpperCase();
+  return order.tableNumber || order.tableId?.slice(0, 6).toUpperCase() || "App";
 }
 
 function userCode(order: Order) {
@@ -98,6 +104,45 @@ function initialDraft(order: Order): PaymentDraft {
   };
 }
 
+const transitionLabels: Partial<Record<OrderStatus, string>> = {
+  accepted: "Accept order",
+  preparing: "Preparing",
+  ready: "Ready",
+  served: "Serve order",
+  completed: "Complete",
+  cancelled: "Cancel",
+  disputed: "Dispute",
+};
+
+function nextServiceStatuses(status: OrderStatus): OrderStatus[] {
+  switch (status) {
+    case "draft":
+      return ["submitted"];
+    case "placed":
+    case "received":
+    case "submitted":
+      return ["accepted", "cancelled", "disputed"];
+    case "accepted":
+      return ["preparing", "ready", "cancelled", "disputed"];
+    case "preparing":
+      return ["ready", "served", "cancelled", "disputed"];
+    case "ready":
+      return ["served", "cancelled", "disputed"];
+    case "served":
+      return ["completed", "disputed"];
+    case "disputed":
+      return ["refunded", "cancelled", "completed"];
+    case "completed":
+    case "cancelled":
+    case "refunded":
+      return [];
+  }
+}
+
+function terminalOrder(status: OrderStatus) {
+  return status === "completed" || status === "cancelled" || status === "refunded";
+}
+
 function OrderCard({
   order,
   draft,
@@ -115,11 +160,8 @@ function OrderCard({
   onPaymentStatus: (status: PaymentStatus) => Promise<void>;
   onMarkPaid: () => void;
 }) {
-  const canCancel = order.status !== "cancelled" && order.status !== "served";
-  const canPrepare = order.status === "received";
-  const canServe = order.status === "received" || order.status === "preparing";
-  const canReceive = order.status === "placed";
-  const canMarkPaid = order.status !== "cancelled" && draft.status !== "paid";
+  const nextStatuses = nextServiceStatuses(order.status);
+  const canMarkPaid = !terminalOrder(order.status) && draft.status !== "paid";
 
   return (
     <article className="ops-card overflow-hidden">
@@ -256,42 +298,27 @@ function OrderCard({
           </label>
 
           <div className="grid grid-cols-2 gap-3">
-            {canReceive && (
+            {nextStatuses.map((status) => (
               <button
-                className="btn btn-secondary"
+                key={status}
+                className={
+                  status === "cancelled" || status === "disputed" || status === "refunded"
+                    ? "btn bg-danger/10 text-danger border border-danger/20"
+                    : "btn btn-secondary"
+                }
                 disabled={busy}
-                onClick={() => onServiceStatus("received")}
+                onClick={() => onServiceStatus(status)}
               >
-                <Clock3 size={16} /> Mark received
+                {status === "cancelled" || status === "disputed" || status === "refunded" ? (
+                  <XCircle size={16} />
+                ) : status === "served" || status === "completed" ? (
+                  <CheckCircle2 size={16} />
+                ) : (
+                  <Clock3 size={16} />
+                )}
+                {transitionLabels[status] ?? readableStatus(status)}
               </button>
-            )}
-            {canPrepare && (
-              <button
-                className="btn btn-secondary"
-                disabled={busy}
-                onClick={() => onServiceStatus("preparing")}
-              >
-                <Clock3 size={16} /> Preparing
-              </button>
-            )}
-            {canServe && (
-              <button
-                className="btn btn-secondary"
-                disabled={busy}
-                onClick={() => onServiceStatus("served")}
-              >
-                <CheckCircle2 size={16} /> Serve order
-              </button>
-            )}
-            {canCancel && (
-              <button
-                className="btn bg-danger/10 text-danger border border-danger/20"
-                disabled={busy}
-                onClick={() => onServiceStatus("cancelled")}
-              >
-                <XCircle size={16} /> Cancel
-              </button>
-            )}
+            ))}
             <button
               className="btn btn-primary"
               disabled={busy || !canMarkPaid}
@@ -570,7 +597,7 @@ export const LiveOrderQueuePage: React.FC = () => {
           </p>
         </div>
         <p className="text-sm font-bold text-textSecondary">
-          New and received orders stay at the top until served or cancelled.
+          Submitted orders stay at the top until completed, cancelled, or refunded.
         </p>
       </div>
 

@@ -23,6 +23,7 @@ while IFS= read -r rev; do
       ':!docs/production-readiness/02-validation-baseline.md' \
       ':!tool/go_live_readiness.sh' \
       ':!tool/full_history_secret_scan.sh' \
+      ':!tool/mobile_release_static_audit.sh' \
       ':!.env*.example' \
       ':!**/.env*.example' \
       ':!**/package-lock.json' || true

@@ -75,8 +75,7 @@ export async function fetchMenu(
 
 export async function placeOrder(payload: {
   venueId: string;
-  tableId?: string;
-  tablePublicCode?: string;
+  tableNumber: string;
   paymentMethod: PaymentMethod;
   items: Array<{ menuItemId: string; quantity: number }>;
 }): Promise<Order> {
@@ -85,20 +84,13 @@ export async function placeOrder(payload: {
 
   const body: Record<string, unknown> = {
     venue_id: payload.venueId,
+    table_number: payload.tableNumber,
     payment_method: payload.paymentMethod,
     items: payload.items.map((item) => ({
       menu_item_id: item.menuItemId,
       quantity: item.quantity,
     })),
   };
-
-  if (payload.tableId) {
-    body.table_id = payload.tableId;
-  } else if (payload.tablePublicCode) {
-    body.table_public_code = payload.tablePublicCode;
-  } else {
-    throw new Error("Table context is required to place an order");
-  }
 
   const { data, error } = await client.functions.invoke("order_create", {
     body,

@@ -8,15 +8,13 @@ SELECT
   t.id,
   t.venue_id,
   t.table_number,
-  NULL::text AS qr_token,
-  COALESCE(t.qr_code_url, t.deep_link_uri) AS qr_url,
   t.is_active,
   t.created_at,
   t.updated_at
 FROM public.tables t;
 
 COMMENT ON VIEW public.venue_tables IS
-  'Canonical table/QR surface over public.tables for sports-bar QR flows.';
+  'Canonical table surface over public.tables.';
 
 CREATE OR REPLACE VIEW public.pool_camps
 WITH (security_invoker='true') AS

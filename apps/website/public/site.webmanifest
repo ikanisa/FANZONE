@@ -1,7 +1,7 @@
 {
   "name": "FANZONE",
   "short_name": "FANZONE",
-  "description": "Sports-bar match pools, venue ordering, and the FANZONE FET wallet.",
+  "description": "Sports-bar events, venue ordering, free football challenges, and FET loyalty rewards.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090B",

@@ -32,7 +32,7 @@ Key features:
 - Join football prediction pools linked to a specific venue.
 - Join bar entertainment games and teams.
 - Track FET wallet balance, pending rewards, and activity.
-- Scan QR codes for venues, tables, pools, games, and TV screens.
+- Choose venues in the app, join pools and games, and use TV screen pairing where enabled.
 
 FET is a closed-loop engagement and reward point used only inside the FANZONE venue ecosystem. FET is not cash, not crypto trading, not an investment, and cannot be cashed out.
 
@@ -50,4 +50,3 @@ Production readiness release for venue ordering, WhatsApp OTP login, FET wallet 
 - FET is closed-loop and has no cash-out.
 - Prediction pools use FET points only and remain linked to venues.
 - Food and drink payments are external venue instructions only.
-

@@ -39,15 +39,24 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadContext() {
       setLoading(true);
       setError(null);
       try {
         if (!session?.userId) {
+          if (!cancelled) {
+            setVenue(null);
+            setMember(null);
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (!cancelled) {
           setVenue(null);
           setMember(null);
-          setLoading(false);
-          return;
         }
 
         // Fetch venue membership
@@ -60,28 +69,36 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         if (memberError) throw memberError;
         if (!memberData) {
-          setError('You are not associated with any active venue.');
-          setLoading(false);
+          if (!cancelled) {
+            setVenue(null);
+            setMember(null);
+            setError('You are not associated with any active venue.');
+            setLoading(false);
+          }
           return;
         }
 
         const venueUser = memberData as unknown as VenueUserWithVenue;
-        setMember({
+        const nextMember: VenueMember = {
           id: venueUser.id,
           venueId: venueUser.venue_id,
           userId: venueUser.user_id,
           role: venueUser.role,
           isActive: venueUser.is_active,
-        });
+        };
 
         const v = venueUser.venue;
         if (!v) {
-          setError('Venue details are unavailable for this account.');
-          setLoading(false);
+          if (!cancelled) {
+            setVenue(null);
+            setMember(nextMember);
+            setError('Venue details are unavailable for this account.');
+            setLoading(false);
+          }
           return;
         }
 
-        setVenue({
+        const nextVenue: Venue = {
           id: v.id,
           name: v.name,
           slug: v.slug,
@@ -98,12 +115,23 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           primaryCategory: v.primary_category,
           rating: v.rating,
           priceLevel: v.price_level,
-        });
+        };
+
+        if (!cancelled) {
+          setMember(nextMember);
+          setVenue(nextVenue);
+        }
       } catch (err) {
-        console.error('Failed to load venue context:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load venue context.');
+        if (!cancelled) {
+          console.error('Failed to load venue context:', err);
+          setVenue(null);
+          setMember(null);
+          setError(err instanceof Error ? err.message : 'Failed to load venue context.');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
@@ -111,7 +139,10 @@ export const VenueProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const reload = () => void loadContext();
     window.addEventListener('fanzone:venue-auth-change', reload);
-    return () => window.removeEventListener('fanzone:venue-auth-change', reload);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('fanzone:venue-auth-change', reload);
+    };
   }, [session?.userId]);
 
   return (

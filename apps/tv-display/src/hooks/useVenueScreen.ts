@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   fetchGameDisplay,
   fetchMenuHighlights,
@@ -10,6 +10,7 @@ import {
 import type { ScreenData } from "../types";
 
 export function useVenueScreen(venueKey: string | undefined) {
+  const requestIdRef = useRef(0);
   const [data, setData] = useState<ScreenData>({
     venue: null,
     state: null,
@@ -22,8 +23,33 @@ export function useVenueScreen(venueKey: string | undefined) {
   });
 
   const reload = useCallback(async () => {
-    if (!venueKey) return;
-    setData((current) => ({ ...current, loading: true, error: null }));
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+
+    if (!venueKey) {
+      setData({
+        venue: null,
+        state: null,
+        pool: null,
+        game: null,
+        menuItems: [],
+        loading: false,
+        error: null,
+        refreshedAt: null,
+      });
+      return;
+    }
+
+    setData({
+      venue: null,
+      state: null,
+      pool: null,
+      game: null,
+      menuItems: [],
+      loading: true,
+      error: null,
+      refreshedAt: null,
+    });
     try {
       const venue = await resolveVenue(venueKey);
       const state = await fetchScreenState(venue.id);
@@ -40,6 +66,8 @@ export function useVenueScreen(venueKey: string | undefined) {
           : Promise.resolve([]),
       ]);
 
+      if (requestId !== requestIdRef.current) return;
+
       setData({
         venue,
         state,
@@ -51,22 +79,33 @@ export function useVenueScreen(venueKey: string | undefined) {
         refreshedAt: new Date(),
       });
     } catch (error) {
-      setData((current) => ({
-        ...current,
+      if (requestId !== requestIdRef.current) return;
+
+      setData({
+        venue: null,
+        state: null,
+        pool: null,
+        game: null,
+        menuItems: [],
         loading: false,
         error:
           error instanceof Error ? error.message : "Could not load TV display.",
         refreshedAt: new Date(),
-      }));
+      });
     }
   }, [venueKey]);
 
   useEffect(() => {
-    void reload();
+    const timer = window.setTimeout(() => {
+      void reload();
+    }, 0);
     const interval = window.setInterval(() => {
       void reload();
     }, 15000);
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearInterval(interval);
+    };
   }, [reload]);
 
   useEffect(() => {

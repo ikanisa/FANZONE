@@ -4,15 +4,15 @@ Date: 2026-05-04
 
 ## 1. Executive Summary
 
-FANZONE is mostly production-ready for backend, Android, and web/PWA pilot launch. Production Supabase migrations are current, Edge Functions are active on the production Supabase project, web surfaces were deployed to Cloudflare Pages, and Android release artifacts were generated.
+FANZONE is mostly production-ready for backend and web/PWA pilot launch. Production Supabase migrations are current, Edge Functions are active on the production Supabase project, and web surfaces were deployed to Cloudflare Pages. Android has historical signed artifacts, but the 2026-05-21 Flutter go-live pass did not regenerate fresh APK/AAB outputs.
 
-Launch remains blocked for iOS App Store/TestFlight by local Apple account/provisioning setup, and the TV production custom-domain DNS record is not resolving.
+Launch remains blocked for full mobile public release by fresh Android artifact regeneration, physical-device smoke, critical UAT signoff, and iOS App Store/TestFlight evidence.
 
 ## 2. Production Readiness Rating
 
-Ready with minor fixes for Android/web/backend pilot.
+Ready with minor fixes for web/backend pilot and Android source validation.
 
-Blocked for full cross-platform public launch until iOS signing/TestFlight and TV DNS are completed.
+Blocked for full cross-platform public launch until fresh Android artifacts, physical-device smoke, critical UAT signoff, and iOS signing/TestFlight are completed.
 
 ## 3. Mobile App Readiness
 
@@ -36,11 +36,13 @@ TypeScript build blockers were fixed by adding the missing game RPC types and na
 
 ## 6. TV Screen Readiness
 
-Ready on Cloudflare Pages preview deployment:
+Ready on Cloudflare Pages production custom domain:
 
-- `https://3078ac01.fanzone-tv-display.pages.dev`
+- `https://fanzonetv.ikanisa.com`
 
-Blocked for production screen URL until the `screen.fanzone.ikanisa.com` DNS CNAME is configured. The Cloudflare Pages custom-domain binding exists and is pending DNS.
+The TV custom domain now points at `fanzone-tv-display`, returns HTTP 200,
+and passes deployed surface smoke. Full TV operational UAT still needs a real
+production venue slug with active screen state.
 
 ## 7. Supabase Backend Readiness
 
@@ -102,7 +104,7 @@ Rollback notes exist at `docs/release/rollback.md`. Production DB backup before 
 ## 17. Blocking Issues
 
 - Configure Apple Developer/Xcode account and provisioning for `com.fanzone.fanzone`.
-- Configure the `screen.fanzone.ikanisa.com` DNS CNAME; the Pages custom-domain binding has already been created.
+- Regenerate fresh Android APK/AAB from the current source on a clean Android build environment; the 2026-05-21 local rebuild stalled and left only the May 18 artifacts.
 - Provide `CRON_SECRET` and `PUSH_NOTIFY_SECRET` to run Edge job auth smoke.
 - Rotate exposed Supabase service-role, access-token, and database credentials.
 
@@ -111,7 +113,7 @@ Rollback notes exist at `docs/release/rollback.md`. Production DB backup before 
 - Review and submit the Google Play internal testing draft in Play Console.
 - Export signed iOS IPA and upload to TestFlight.
 - Publish live Privacy Policy and Terms URLs.
-- Run final UAT for WhatsApp OTP, order payment marking, FET ledger, pool settlement, game settlement, TV control, and QR join.
+- Run final UAT for WhatsApp OTP, order payment marking, FET ledger, pool settlement, game settlement, and TV control.
 - Take production DB backup.
 
 ## 19. Nice-To-Have After Launch
@@ -160,7 +162,8 @@ Rollback notes exist at `docs/release/rollback.md`. Production DB backup before 
 ## 21. Deployment URLs
 
 - Website: `https://2fdf640b.fanzone-website.pages.dev`
-- Admin: `https://d68abe9b.fanzone-admin.pages.dev`
+- Admin: `https://b6eb314b.fanzone-admin.pages.dev`
+- Admin production custom domain: `https://fanzoneadmin.ikanisa.com`
 - Venue dashboard: `https://945a5815.fanzone-venue-portal.pages.dev`
 - TV display: `https://3078ac01.fanzone-tv-display.pages.dev`
 - Production public web: `https://fanzone.ikanisa.com`
@@ -178,8 +181,8 @@ Rollback notes exist at `docs/release/rollback.md`. Production DB backup before 
 
 1. Rotate exposed production credentials.
 2. Take a production DB backup.
-3. Configure Apple signing/provisioning and rerun `tool/build_ios_release_from_env.sh production`.
-4. Configure the TV DNS CNAME: `screen` -> `fanzone-tv-display.pages.dev`.
+3. Regenerate fresh Android APK/AAB on a clean Android build host.
+4. Configure Apple signing/provisioning and rerun `tool/build_ios_release_from_env.sh production`.
 5. Run Edge job smoke with cron/push secrets.
 6. Review and submit the Google Play internal testing draft.
 7. Upload signed iOS IPA to TestFlight.

@@ -1,11 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import {
-  AuditAction,
   createAdminClient,
-  createAuditLogger,
   createLogger,
-  EntityType,
   errorResponse,
   getOrCreateRequestId,
   handleCors,
@@ -13,24 +10,29 @@ import {
   requireAuth,
   requireVendorOrAdmin,
 } from "../_shared/mod.ts";
-
-/**
- * Valid status transitions:
- *   placed    -> received | preparing | cancelled
- *   received  -> preparing | served | cancelled
- *   preparing -> served | cancelled
- *   served    -> (terminal)
- *   cancelled -> (terminal)
- */
-const VALID_TRANSITIONS: Record<string, string[]> = {
-  placed: ["received", "preparing", "cancelled"],
-  received: ["preparing", "served", "cancelled"],
-  preparing: ["served", "cancelled"],
-};
+import {
+  type AnyOrderStatus,
+  normalizeOrderStatusForTransition,
+  type TargetOrderStatus,
+} from "../_shared/order_lifecycle.ts";
 
 const updateStatusSchema = z.object({
   order_id: z.string().uuid(),
-  status: z.enum(["received", "preparing", "served", "cancelled"]),
+  status: z.enum([
+    "draft",
+    "submitted",
+    "accepted",
+    "preparing",
+    "ready",
+    "served",
+    "completed",
+    "cancelled",
+    "refunded",
+    "disputed",
+    "received",
+  ]),
+  reason: z.string().trim().max(500).optional(),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 Deno.serve(async (req) => {
@@ -62,7 +64,7 @@ Deno.serve(async (req) => {
       return errorResponse("Invalid request", 400, parsed.error.issues);
     }
 
-    const { order_id, status: newStatus } = parsed.data;
+    const { order_id, status: newStatus, reason, metadata } = parsed.data;
 
     // ---- Fetch order ----
     const { data: order, error: orderError } = await supabaseAdmin
@@ -85,55 +87,51 @@ Deno.serve(async (req) => {
     );
     if (rbacResult instanceof Response) return rbacResult;
 
-    // ---- Validate status transition ----
-    const currentStatus = order.status;
-    const allowedNext = VALID_TRANSITIONS[currentStatus] || [];
+    // ---- Canonical transition RPC ----
+    const { data: transition, error: transitionError } = await supabaseUser.rpc(
+      "venue_transition_order_status",
+      {
+        p_order_id: order_id,
+        p_next_status: normalizeOrderStatusForTransition(
+          newStatus as AnyOrderStatus,
+        ) as TargetOrderStatus,
+        p_reason: reason ?? null,
+        p_metadata: {
+          ...(metadata ?? {}),
+          source: "order_update_status",
+          edge_request_id: requestId,
+        },
+      },
+    );
 
-    if (!allowedNext.includes(newStatus)) {
-      logger.warn("Invalid status transition", {
-        currentStatus,
+    if (transitionError) {
+      logger.warn("Failed to transition order status", {
+        error: transitionError.message,
+        currentStatus: order.status,
         newStatus,
         orderId: order_id,
       });
-      return errorResponse(
-        `Invalid status transition: ${currentStatus} -> ${newStatus}. Allowed: ${
-          allowedNext.join(", ")
-        }`,
-        400,
-      );
+      return errorResponse(transitionError.message, 400, undefined, req);
     }
 
-    // ---- Update status ----
-    const updateData: Record<string, unknown> = { status: newStatus };
-    if (newStatus === "served") {
-      updateData.served_at = new Date().toISOString();
-    }
-    const { data: updatedOrder, error: updateError } = await supabaseAdmin
+    const { data: updatedOrder, error: updatedError } = await supabaseAdmin
       .from("orders")
-      .update(updateData)
-      .eq("id", order_id)
       .select()
+      .eq("id", order_id)
       .single();
 
-    if (updateError) {
-      logger.error("Failed to update order status", {
-        error: updateError.message,
+    if (updatedError || !updatedOrder) {
+      logger.error("Failed to load transitioned order", {
+        error: updatedError?.message,
+        orderId: order_id,
       });
-      return errorResponse("Failed to update order status", 500);
+      return errorResponse(
+        "Order status changed but reload failed",
+        500,
+        undefined,
+        req,
+      );
     }
-
-    // ---- Audit ----
-    const audit = createAuditLogger(supabaseAdmin, user.id, requestId, logger);
-    await audit.log(
-      AuditAction.ORDER_STATUS_UPDATE,
-      EntityType.ORDER,
-      order_id,
-      {
-        previousValue: { status: currentStatus },
-        newValue: { status: newStatus },
-        vendorId: order.venue_id,
-      },
-    );
 
     const durationMs = Date.now() - startTime;
     logger.requestEnd(200, durationMs);
@@ -141,6 +139,7 @@ Deno.serve(async (req) => {
     return jsonResponse({
       success: true,
       requestId,
+      transition,
       order: updatedOrder,
     });
   } catch (error) {
