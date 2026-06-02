@@ -669,6 +669,9 @@ Why this goal exists:
 
 - This is the final release decision gate. It should not start until goals 00
   through 13 are complete or explicitly blocked with external evidence.
+- `./tool/check_world_class_evidence.sh` is the final fail-closed local release
+  decision gate for the matrix and backing evidence JSON validators; do not
+  treat a manual matrix edit as sufficient launch proof.
 
 Validation:
 
@@ -690,6 +693,8 @@ git rev-list --left-right --count main...origin/main
 Acceptance:
 
 - P0 and P1 rows are all `PASS` with evidence.
+- The world-class evidence gate verifies both the matrix rows and every backing
+  evidence validator listed in the completion definition.
 - Current release candidate is clean, tagged, and synced.
 - Final report states `GO` only if all gates pass. Otherwise it states `NO-GO`
   with exact blockers and owners.

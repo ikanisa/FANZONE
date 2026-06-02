@@ -7,7 +7,8 @@ until the register has evidence for every P0 task.
 The launch benchmark is `docs/release/world-class-production-benchmark.md`;
 Flutter app, bars/venue PWA, admin PWA, and TV PWA must all be 100% PASS.
 Track proof in `docs/release/world-class-evidence-matrix.md` and verify the
-release decision with `tool/check_world_class_evidence.sh`.
+release decision with `tool/check_world_class_evidence.sh`, which must validate
+both the matrix and backing release-evidence JSON files.
 
 ## Code And Builds
 

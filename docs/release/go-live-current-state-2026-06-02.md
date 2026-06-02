@@ -83,6 +83,11 @@ Open blockers:
 - P1 production observability and alerting remains `PENDING`;
 - P1 incident response and rollback readiness remains `PENDING`.
 
+The world-class evidence gate now also runs the backing evidence validators for
+secret rotation, critical UAT, Android release readiness, iOS/TestFlight
+readiness, operations readiness, privacy/legal readiness, and load/reliability
+readiness. A future release cannot pass this gate by editing the matrix alone.
+
 ### Secret Rotation Evidence
 
 Command:
