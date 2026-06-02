@@ -117,11 +117,16 @@ Scope:
   - `node tool/validate_critical_uat_signoff.mjs`
   - `node tool/validate_ios_testflight_evidence.mjs`
 - Produce `output/release-evidence/<timestamp>/baseline/current-state.md`.
+- Use `tool/generate_release_baseline_inventory.sh` for the baseline inventory.
+  In final approval mode, rerun it with `--fail-on-blockers`.
 
 Acceptance:
 
 - Current-state report lists every open blocker and every existing evidence
   reference.
+- `tool/generate_release_baseline_inventory.sh` writes the report without
+  exposing secrets; `--fail-on-blockers` exits non-zero until every blocker is
+  closed.
 - No `PASS` claim is made without command output or provider proof.
 
 ## Goal 01 - Rotate And Prove All Production Secrets
@@ -682,6 +687,7 @@ Validation:
 ./tool/go_live_readiness.sh --local
 ./tool/check_world_class_evidence.sh
 ./tool/validate_release_evidence_contract.sh
+./tool/generate_release_baseline_inventory.sh --fail-on-blockers
 node tool/validate_secret_rotation_evidence.mjs
 node tool/validate_critical_uat_signoff.mjs
 node tool/validate_ios_testflight_evidence.mjs
@@ -700,6 +706,8 @@ Acceptance:
 - The world-class evidence gate verifies both the matrix rows and every backing
   evidence validator listed in the completion definition.
 - The release evidence contract passes locally and in GitHub CI.
+- The source-commit-bound baseline inventory passes with `--fail-on-blockers`
+  and is attached to the final release evidence bundle.
 - Current release candidate is clean, tagged, and synced.
 - Final report states `GO` only if all gates pass. Otherwise it states `NO-GO`
   with exact blockers and owners.
@@ -735,6 +743,9 @@ The goal pack is complete only when:
 - `./tool/check_world_class_evidence.sh` passes.
 - `./tool/validate_release_evidence_contract.sh` passes locally and in GitHub
   CI.
+- `./tool/generate_release_baseline_inventory.sh --fail-on-blockers` passes and
+  its generated current-state report is attached to the final release evidence
+  bundle.
 - `node tool/validate_secret_rotation_evidence.mjs` passes.
 - `node tool/validate_critical_uat_signoff.mjs` passes.
 - `node tool/validate_ios_testflight_evidence.mjs` passes.

@@ -12,6 +12,10 @@ both the matrix and backing release-evidence JSON files.
 `tool/validate_release_evidence_contract.sh` verifies that the matrix and
 world-class gate agree; the GitHub `Release Evidence Contracts` CI job must pass
 before launch.
+Before final approval, generate a source-commit-bound baseline inventory with
+`tool/generate_release_baseline_inventory.sh --fail-on-blockers` and attach the
+resulting `output/release-evidence/<timestamp>/baseline/current-state.md` report
+to the release evidence bundle.
 
 ## Code And Builds
 
@@ -24,6 +28,8 @@ before launch.
 - `flutter test` passes.
 - `tool/go_live_readiness.sh --local` passes on a clean checkout.
 - `tool/validate_release_evidence_contract.sh` passes locally and in GitHub CI.
+- `tool/generate_release_baseline_inventory.sh --fail-on-blockers` passes and
+  the generated report is attached to the release evidence bundle.
 - Android and iOS release builds use ignored production config and signing files.
 
 ## Supabase

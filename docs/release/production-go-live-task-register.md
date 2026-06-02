@@ -19,7 +19,7 @@ bars/venue PWA, admin PWA, and TV PWA.
 | P0-05 | Prove Supabase Edge Functions and SQL authorization are release-target clean. | Backend owner | Deno test logs, deployed function versions, target project ref, RLS/grant audit output, FET supply smoke output, and Hospitality Core Phase 2 readiness/contract output after migrations are applied. | `deno test --allow-env supabase/functions`; `tool/supabase_live_validation.sh`; `tool/supabase_hospitality_core_phase2.sh --readiness`; `tool/supabase_hospitality_core_phase2.sh --contract` |
 | P0-06 | Back up production database and record restore point before release. | Backend owner | Backup timestamp, restore point, owner approval, rollback decision path. | `tool/create_supabase_backup_evidence.sh`; `docs/release/rollback.md` |
 | P0-07 | Verify production client envs never expose service-role or backend secrets. | Release owner | Passing release env validation for mobile and web env files without printing values. | `tool/verify_production_envs.sh .env.production` |
-| P0-08 | Complete the world-class benchmark across Flutter app, bars/venue PWA, admin PWA, and TV PWA. | Release owner | 100% PASS evidence for every applicable row and surface; no P0/P1 waivers; backing release-evidence validators pass for secrets, UAT, Android, iOS, operations, privacy/legal, and load/reliability; release evidence contract passes locally and in CI. | `docs/release/world-class-production-benchmark.md`; `docs/release/world-class-evidence-matrix.md`; `tool/check_world_class_evidence.sh`; `tool/validate_release_evidence_contract.sh` |
+| P0-08 | Complete the world-class benchmark across Flutter app, bars/venue PWA, admin PWA, and TV PWA. | Release owner | 100% PASS evidence for every applicable row and surface; no P0/P1 waivers; backing release-evidence validators pass for secrets, UAT, Android, iOS, operations, privacy/legal, and load/reliability; release evidence contract passes locally and in CI; source-commit-bound baseline inventory has no blocker signals. | `docs/release/world-class-production-benchmark.md`; `docs/release/world-class-evidence-matrix.md`; `tool/check_world_class_evidence.sh`; `tool/validate_release_evidence_contract.sh`; `tool/generate_release_baseline_inventory.sh --fail-on-blockers` |
 
 ## P1 Deployment Readiness
 
@@ -52,6 +52,8 @@ Launch only when:
 - the world-class benchmark is 100% PASS for Flutter app, bars/venue PWA, admin PWA, and TV PWA;
 - `tool/check_world_class_evidence.sh` passes;
 - `tool/validate_release_evidence_contract.sh` passes locally and in GitHub CI;
+- `tool/generate_release_baseline_inventory.sh --fail-on-blockers` passes and
+  its generated report is attached to the release evidence bundle;
 - `tool/collect_world_class_evidence.sh` passes without `--allow-pending`;
 - `tool/go_live_readiness.sh --local` passes on a clean checkout;
 - production credentials are rotated and stored only in approved secret stores;

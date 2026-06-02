@@ -92,6 +92,17 @@ The aggregate evidence collector now fails by default when any collected item is
 `PENDING` or `FAIL`. `tool/collect_world_class_evidence.sh --allow-pending` is
 reserved for partial inventory snapshots and is not launch approval evidence.
 
+Generate a current source-commit-bound baseline inventory with:
+
+```bash
+tool/generate_release_baseline_inventory.sh
+```
+
+The command writes `output/release-evidence/<timestamp>/baseline/current-state.md`
+with repository state, evidence matrix inventory, and validator logs. Use
+`--fail-on-blockers` only for final release approval; it must remain non-zero
+until all blocker signals are closed.
+
 The repo now also has a release evidence contract check:
 
 ```bash

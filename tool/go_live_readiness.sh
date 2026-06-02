@@ -83,6 +83,7 @@ run bash -n \
   tool/verify_deployed_web_surface.sh \
   tool/verify_production_envs.sh \
   tool/create_supabase_backup_evidence.sh \
+  tool/generate_release_baseline_inventory.sh \
   tool/collect_world_class_evidence.sh \
   tool/check_world_class_evidence.sh \
   tool/validate_release_evidence_contract.sh \

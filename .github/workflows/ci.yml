@@ -172,6 +172,7 @@ jobs:
         run: |
           bash -n \
             tool/check_world_class_evidence.sh \
+            tool/generate_release_baseline_inventory.sh \
             tool/collect_world_class_evidence.sh \
             tool/validate_release_evidence_contract.sh
 
