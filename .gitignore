@@ -37,6 +37,7 @@ migrate_working_dir/
 /test/failures/
 /ios/Pods/
 /android/vendor/
+/android/.kotlin/
 /supabase/.temp/
 /supabase/archive/
 /output/

@@ -10,7 +10,7 @@ fail() {
 }
 
 tracked_generated="$(
-  git ls-files | rg '(^build/|/dist/|\.log$|(^|/)\.DS_Store$|^test/failures/|\.env$|\.jks$|\.keystore$|google-services\.json|GoogleService-Info\.plist|node_modules|\.dart_tool|coverage/)' || true
+  git ls-files | rg '(^build/|/dist/|\.log$|(^|/)\.DS_Store$|^test/failures/|\.env$|\.jks$|\.keystore$|google-services\.json|GoogleService-Info\.plist|node_modules|\.dart_tool|coverage/|^android/\.kotlin/)' || true
 )"
 if [[ -n "${tracked_generated}" ]]; then
   fail "Generated, secret, or local build artifacts are tracked:
@@ -35,6 +35,17 @@ if git grep -n 'FANZONE_EDGE_ALLOW_WILDCARD_CORS=true' -- \
 $(cat /tmp/fanzone-wildcard-cors.txt)"
 fi
 rm -f /tmp/fanzone-wildcard-cors.txt
+
+for ignored in \
+  build/app/outputs/flutter-apk/app-debug.apk \
+  build/ios/iphoneos/Runner.app \
+  android/.kotlin/sessions/kotlin-compiler-session.salive \
+  ios/Pods/Manifest.lock \
+  output/release-evidence/current/baseline/current-state.md; do
+  if ! git check-ignore -q "${ignored}"; then
+    fail "Generated release/build artifact is not ignored: ${ignored}"
+  fi
+done
 
 for required in \
   docs/release/world-class-production-benchmark.md \
