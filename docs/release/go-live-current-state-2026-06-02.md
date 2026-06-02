@@ -188,3 +188,22 @@ next implementation work should focus on closing evidence in this order:
 6. critical user-flow UAT;
 7. scheduler, observability, incident, and rollback proof;
 8. final fail-closed go/no-go rerun.
+
+## Operations Evidence Validator Added
+
+The repo now has a structured operations evidence file:
+
+```bash
+release/operations/operations-readiness-evidence.json
+```
+
+Validate it with:
+
+```bash
+node tool/validate_operations_readiness_evidence.mjs
+```
+
+The validator is fail-closed and currently expected to fail until production
+scheduler history, cron smoke evidence, observability dashboards, alert routes,
+incident ownership, rollback tag, database restore plan, post-deploy watch, a
+sample alert test, and release-owner approval are recorded.

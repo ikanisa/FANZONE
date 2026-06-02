@@ -8,6 +8,18 @@ web surfaces, Supabase validation, backup evidence, and production env
 isolation, but cron smoke remained pending because `CRON_SECRET` was not present
 in exported env or `.env`.
 
+Structured evidence must be recorded in
+`release/operations/operations-readiness-evidence.json` and validated with:
+
+```bash
+node tool/validate_operations_readiness_evidence.mjs
+```
+
+The validator is intentionally fail-closed. It must not pass until all required
+scheduler jobs, observability surfaces, alert routes, monitoring signals,
+incident-readiness checks, and owner signoffs are present with redacted evidence
+references.
+
 ## Scheduler Evidence Required
 
 Required jobs:
@@ -33,6 +45,9 @@ Required files:
   runs for each job.
 - `missed-run-alert-redacted.txt`: alert rule, destination, severity, and owner.
 - `incident-routing-redacted.txt`: escalation channel and backup owner.
+
+The same evidence references must be copied into the relevant `schedulerJobs`
+entries in `release/operations/operations-readiness-evidence.json`.
 
 Run locally only after `SUPABASE_URL` and `CRON_SECRET` are available in the
 environment or ignored `.env`:
@@ -74,6 +89,10 @@ Required files:
   rollback threshold.
 - `sample-alert-test-redacted.txt`: proof that at least one non-destructive test
   alert reached the configured route.
+
+The same evidence references must be copied into the relevant
+`observabilitySurfaces` and `observabilitySignals` entries in
+`release/operations/operations-readiness-evidence.json`.
 
 ## PASS Criteria
 

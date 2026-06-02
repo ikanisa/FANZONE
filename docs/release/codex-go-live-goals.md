@@ -450,12 +450,16 @@ Validation:
 tool/run_supabase_cron_job.sh settle-match-pools
 tool/run_supabase_cron_job.sh dispatch-match-alerts
 tool/collect_world_class_evidence.sh
+node tool/validate_operations_readiness_evidence.mjs
 ```
 
 Acceptance:
 
 - Evidence bundle exists under `output/release-evidence/<timestamp>/scheduler/`
   and `output/release-evidence/<timestamp>/observability/`.
+- `release/operations/operations-readiness-evidence.json` records scheduler,
+  observability surface, signal, alert-route, owner, and signoff evidence.
+- `node tool/validate_operations_readiness_evidence.mjs` passes.
 - Evidence matrix rows can move from `PENDING` to `PASS`.
 
 ## Goal 10 - Prove Backup, Restore, Incident Response, And Rollback Readiness
@@ -475,12 +479,16 @@ Validation:
 tool/create_supabase_backup_evidence.sh
 git tag <release-tag>
 tool/collect_world_class_evidence.sh
+node tool/validate_operations_readiness_evidence.mjs
 ```
 
 Acceptance:
 
 - Evidence exists for owners, escalation, rollback tag, DB restore plan,
   runbook review, post-deploy watch, backup manifest, and restore validation.
+- Incident and rollback evidence is recorded in
+  `release/operations/operations-readiness-evidence.json`.
+- `node tool/validate_operations_readiness_evidence.mjs` passes.
 - No private phone numbers, private emails, customer data, or secret values are
   committed.
 
@@ -587,6 +595,7 @@ Validation:
 node tool/validate_secret_rotation_evidence.mjs
 node tool/validate_critical_uat_signoff.mjs
 node tool/validate_ios_testflight_evidence.mjs
+node tool/validate_operations_readiness_evidence.mjs
 tool/collect_world_class_evidence.sh
 git status --short
 git rev-list --left-right --count main...origin/main
@@ -631,6 +640,7 @@ The goal pack is complete only when:
 - `node tool/validate_secret_rotation_evidence.mjs` passes.
 - `node tool/validate_critical_uat_signoff.mjs` passes.
 - `node tool/validate_ios_testflight_evidence.mjs` passes.
+- `node tool/validate_operations_readiness_evidence.mjs` passes.
 - `tool/collect_world_class_evidence.sh` produces no P0/P1 `PENDING` or `FAIL`
   entries.
 - The final go/no-go report is committed, pushed, and tied to the release

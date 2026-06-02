@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "releaseCandidate": "TBD",
+  "environment": "production",
+  "signOff": {
+    "operationsOwner": "",
+    "releaseOwner": "",
+    "incidentCommander": "",
+    "signedAtUtc": "",
+    "approvedForLaunch": false
+  },
+  "schedulerJobs": [
+    {
+      "id": "settle-match-pools",
+      "status": "PENDING",
+      "provider": "",
+      "scheduleExpression": "",
+      "timezone": "",
+      "owner": "",
+      "backupOwner": "",
+      "smokeEvidenceRefs": [],
+      "historyEvidenceRefs": [],
+      "missedRunAlertEvidenceRefs": []
+    },
+    {
+      "id": "dispatch-match-alerts",
+      "status": "PENDING",
+      "provider": "",
+      "scheduleExpression": "",
+      "timezone": "",
+      "owner": "",
+      "backupOwner": "",
+      "smokeEvidenceRefs": [],
+      "historyEvidenceRefs": [],
+      "missedRunAlertEvidenceRefs": []
+    }
+  ],
+  "observabilitySurfaces": [
+    {
+      "id": "Flutter app",
+      "status": "PENDING",
+      "telemetryProvider": "",
+      "owner": "",
+      "backupOwner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "Website PWA",
+      "status": "PENDING",
+      "telemetryProvider": "",
+      "owner": "",
+      "backupOwner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "Admin PWA",
+      "status": "PENDING",
+      "telemetryProvider": "",
+      "owner": "",
+      "backupOwner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "Bars/Venue PWA",
+      "status": "PENDING",
+      "telemetryProvider": "",
+      "owner": "",
+      "backupOwner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "TV PWA",
+      "status": "PENDING",
+      "telemetryProvider": "",
+      "owner": "",
+      "backupOwner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "Supabase Edge Functions",
+      "status": "PENDING",
+      "telemetryProvider": "",
+      "owner": "",
+      "backupOwner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "Supabase database",
+      "status": "PENDING",
+      "telemetryProvider": "",
+      "owner": "",
+      "backupOwner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "Scheduler",
+      "status": "PENDING",
+      "telemetryProvider": "",
+      "owner": "",
+      "backupOwner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    }
+  ],
+  "observabilitySignals": [
+    {
+      "id": "auth",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "ordering",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "manual-payments",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "fet-ledger",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "pools",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "rewards",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "admin",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "tv-display",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "edge-functions",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "scheduler",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "database-health",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    },
+    {
+      "id": "push-notifications",
+      "status": "PENDING",
+      "owner": "",
+      "dashboardRefs": [],
+      "alertRouteRefs": []
+    }
+  ],
+  "incidentReadinessChecks": [
+    {
+      "id": "OWNERS-ESCALATION",
+      "status": "PENDING",
+      "evidenceRefs": []
+    },
+    {
+      "id": "ROLLBACK-TAG",
+      "status": "PENDING",
+      "evidenceRefs": []
+    },
+    {
+      "id": "DATABASE-RESTORE-PLAN",
+      "status": "PENDING",
+      "evidenceRefs": []
+    },
+    {
+      "id": "RUNBOOK-REVIEW",
+      "status": "PENDING",
+      "evidenceRefs": []
+    },
+    {
+      "id": "POST-DEPLOY-WATCH",
+      "status": "PENDING",
+      "evidenceRefs": []
+    },
+    {
+      "id": "SAMPLE-ALERT-TEST",
+      "status": "PENDING",
+      "evidenceRefs": []
+    }
+  ]
+}

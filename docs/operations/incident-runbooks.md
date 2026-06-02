@@ -44,6 +44,16 @@ post_deploy_watch_owner:
 approved_for_launch: yes/no
 ```
 
+Record the same redacted evidence and launch signoff in
+`release/operations/operations-readiness-evidence.json`, then run:
+
+```bash
+node tool/validate_operations_readiness_evidence.mjs
+```
+
+The validator must pass before the `Incident response and rollback readiness`
+row can move to `PASS`.
+
 Do not put secret values, private phone numbers, private emails, or customer
 data in tracked documentation.
 

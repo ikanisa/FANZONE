@@ -93,8 +93,13 @@ run bash -n \
   tool/supabase_order_lifecycle_smoke.sh \
   tool/supabase_manual_payment_reconciliation_smoke.sh \
   tool/supabase_staff_call_acknowledgement_smoke.sh \
+  tool/supabase_api_authorization_abuse_tests.sh \
   tool/run_supabase_cron_job.sh
 run node --check tool/test_bff_health.mjs
+run node --check tool/validate_secret_rotation_evidence.mjs
+run node --check tool/validate_critical_uat_signoff.mjs
+run node --check tool/validate_ios_testflight_evidence.mjs
+run node --check tool/validate_operations_readiness_evidence.mjs
 
 echo
 echo "Local go-live checks passed."
