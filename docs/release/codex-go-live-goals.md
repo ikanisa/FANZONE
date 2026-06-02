@@ -473,6 +473,11 @@ Acceptance:
 Why this goal exists:
 
 - Scheduler and production observability are `PENDING` in the evidence matrix.
+- The operations validator is fail-closed for release source commit, production
+  target URLs, tested Supabase project ref, evidence capture window, scheduler
+  and observability evidence bundle roots, exact scheduler smoke commands,
+  dashboard refs, alert-route refs, owner coverage, and live credential
+  patterns.
 
 Required tools:
 
@@ -493,6 +498,8 @@ Acceptance:
 
 - Evidence bundle exists under `output/release-evidence/<timestamp>/scheduler/`
   and `output/release-evidence/<timestamp>/observability/`.
+- Evidence is bound to an existing release source commit, production target
+  metadata, tested Supabase project ref, and evidence capture window.
 - `release/operations/operations-readiness-evidence.json` records scheduler,
   observability surface, signal, alert-route, owner, and signoff evidence.
 - `node tool/validate_operations_readiness_evidence.mjs` passes.
@@ -508,6 +515,9 @@ Why this goal exists:
 
 - Incident response and rollback readiness is `PENDING`.
 - Backup/restore evidence must be tied to the current release candidate.
+- The operations validator requires source-commit-bound incident-readiness
+  evidence, production target metadata, evidence capture window, durable
+  incident evidence bundle root, and resolvable evidence refs.
 
 Validation:
 
@@ -522,6 +532,9 @@ Acceptance:
 
 - Evidence exists for owners, escalation, rollback tag, DB restore plan,
   runbook review, post-deploy watch, backup manifest, and restore validation.
+- Evidence is bound to an existing release source commit, production target
+  metadata, tested Supabase project ref, evidence capture window, and durable
+  incident-readiness evidence bundle root.
 - Incident and rollback evidence is recorded in
   `release/operations/operations-readiness-evidence.json`.
 - `node tool/validate_operations_readiness_evidence.mjs` passes.

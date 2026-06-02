@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 
 const defaultPath = "release/operations/operations-readiness-evidence.json";
 const targetPath = process.argv[2] || defaultPath;
@@ -12,6 +13,10 @@ const allowedStatuses = new Set(["PASS", "FAIL", "BLOCKED", "PENDING", "N/A"]);
 const requiredSchedulerJobs = new Set([
   "settle-match-pools",
   "dispatch-match-alerts",
+]);
+const requiredSchedulerCommands = new Map([
+  ["settle-match-pools", "tool/run_supabase_cron_job.sh settle-match-pools"],
+  ["dispatch-match-alerts", "tool/run_supabase_cron_job.sh dispatch-match-alerts"],
 ]);
 const requiredSurfaces = new Set([
   "Flutter app",
@@ -45,6 +50,17 @@ const requiredIncidentChecks = new Set([
   "POST-DEPLOY-WATCH",
   "SAMPLE-ALERT-TEST",
 ]);
+const requiredEvidenceBundleFields = [
+  "schedulerEvidenceBundleRoot",
+  "observabilityEvidenceBundleRoot",
+  "incidentEvidenceBundleRoot",
+];
+const requiredEnvironmentUrls = [
+  "websiteUrl",
+  "adminUrl",
+  "venuePortalUrl",
+  "tvDisplayUrl",
+];
 const credentialPattern =
   /(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|sbp_[A-Za-z0-9_-]{20,}|postgresql:\/\/[^:\s]+:[^@\s]+@)/;
 
@@ -67,6 +83,37 @@ function isIsoDateTime(value) {
 
 function refsArePresent(value) {
   return Array.isArray(value) && value.length > 0 && value.every(hasText);
+}
+
+function repoRefExists(ref) {
+  if (!hasText(ref)) return false;
+  if (/^https?:\/\//.test(ref)) return true;
+  return fs.existsSync(path.resolve(process.cwd(), ref));
+}
+
+function gitCommitExists(value) {
+  if (!hasText(value) || value === "TBD") return false;
+  try {
+    execFileSync("git", ["cat-file", "-e", `${value}^{commit}`], {
+      cwd: process.cwd(),
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function validateEvidenceRefs(label, fieldName, refs, errors) {
+  if (!refsArePresent(refs)) {
+    errors.push(`${label}.${fieldName} must include evidence refs for PASS.`);
+    return;
+  }
+  for (const ref of refs) {
+    if (!repoRefExists(ref)) {
+      errors.push(`${label}.${fieldName} contains missing repo ref: ${ref}.`);
+    }
+  }
 }
 
 function validateRequiredSet(items, requiredIds, label, errors) {
@@ -104,7 +151,42 @@ function validate(data) {
   if (!hasText(data.releaseCandidate) || data.releaseCandidate === "TBD") {
     errors.push("releaseCandidate must name the release build, tag, or commit.");
   }
-  if (data.environment !== "production") errors.push('environment must be "production".');
+  if (!gitCommitExists(data.sourceCommit)) {
+    errors.push("sourceCommit must name an existing git commit for the release candidate.");
+  }
+
+  const environment = data.environment || {};
+  if (environment.name !== "production") errors.push('environment.name must be "production".');
+  if (!hasText(environment.supabaseProjectRef) || environment.supabaseProjectRef === "TBD") {
+    errors.push("environment.supabaseProjectRef must name the tested Supabase project ref.");
+  }
+  for (const key of requiredEnvironmentUrls) {
+    if (!/^https:\/\/.+/.test(environment[key] || "")) {
+      errors.push(`environment.${key} must be an https URL.`);
+    }
+  }
+
+  const evidenceWindow = data.evidenceWindow || {};
+  if (!isIsoDateTime(evidenceWindow.startedAtUtc)) {
+    errors.push("evidenceWindow.startedAtUtc must be an ISO UTC timestamp ending in Z.");
+  }
+  if (!isIsoDateTime(evidenceWindow.endedAtUtc)) {
+    errors.push("evidenceWindow.endedAtUtc must be an ISO UTC timestamp ending in Z.");
+  }
+  if (
+    isIsoDateTime(evidenceWindow.startedAtUtc) &&
+    isIsoDateTime(evidenceWindow.endedAtUtc) &&
+    Date.parse(evidenceWindow.endedAtUtc) <= Date.parse(evidenceWindow.startedAtUtc)
+  ) {
+    errors.push("evidenceWindow.endedAtUtc must be later than evidenceWindow.startedAtUtc.");
+  }
+  for (const key of requiredEvidenceBundleFields) {
+    if (!hasText(evidenceWindow[key]) || evidenceWindow[key].includes("TBD")) {
+      errors.push(`evidenceWindow.${key} must name a durable evidence bundle root.`);
+    } else if (!repoRefExists(evidenceWindow[key])) {
+      errors.push(`evidenceWindow.${key} must exist as a repo path or be a URL.`);
+    }
+  }
 
   const signOff = data.signOff || {};
   if (!hasText(signOff.operationsOwner)) errors.push("signOff.operationsOwner is required.");
@@ -124,11 +206,14 @@ function validate(data) {
       errors.push(`${label} is ${job?.status || "missing"}; scheduler readiness requires PASS.`);
       continue;
     }
+    if (requiredSchedulerCommands.has(job?.id) && job.command !== requiredSchedulerCommands.get(job.id)) {
+      errors.push(`${label}.command must be ${requiredSchedulerCommands.get(job.id)}.`);
+    }
     for (const field of ["provider", "scheduleExpression", "timezone", "owner", "backupOwner"]) {
       if (!hasText(job[field])) errors.push(`${label}.${field} is required for PASS.`);
     }
     for (const field of ["smokeEvidenceRefs", "historyEvidenceRefs", "missedRunAlertEvidenceRefs"]) {
-      if (!refsArePresent(job[field])) errors.push(`${label}.${field} must include evidence refs for PASS.`);
+      validateEvidenceRefs(label, field, job[field], errors);
     }
   }
 
@@ -143,7 +228,7 @@ function validate(data) {
       if (!hasText(surface[field])) errors.push(`${label}.${field} is required for PASS.`);
     }
     for (const field of ["dashboardRefs", "alertRouteRefs"]) {
-      if (!refsArePresent(surface[field])) errors.push(`${label}.${field} must include evidence refs for PASS.`);
+      validateEvidenceRefs(label, field, surface[field], errors);
     }
   }
 
@@ -156,7 +241,7 @@ function validate(data) {
     }
     if (!hasText(signal.owner)) errors.push(`${label}.owner is required for PASS.`);
     for (const field of ["dashboardRefs", "alertRouteRefs"]) {
-      if (!refsArePresent(signal[field])) errors.push(`${label}.${field} must include evidence refs for PASS.`);
+      validateEvidenceRefs(label, field, signal[field], errors);
     }
   }
 
@@ -167,9 +252,7 @@ function validate(data) {
       errors.push(`${label} is ${check?.status || "missing"}; incident and rollback readiness requires PASS.`);
       continue;
     }
-    if (!refsArePresent(check.evidenceRefs)) {
-      errors.push(`${label}.evidenceRefs must include evidence refs for PASS.`);
-    }
+    validateEvidenceRefs(label, "evidenceRefs", check.evidenceRefs, errors);
   }
 
   return errors;

@@ -1,7 +1,23 @@
 {
   "schemaVersion": 1,
   "releaseCandidate": "TBD",
-  "environment": "production",
+  "sourceCommit": "TBD",
+  "environment": {
+    "name": "production",
+    "websiteUrl": "https://fanzone.ikanisa.com",
+    "adminUrl": "https://fanzoneadmin.ikanisa.com",
+    "venuePortalUrl": "https://fanzone.venue.ikanisa.com",
+    "tvDisplayUrl": "https://fanzonetv.ikanisa.com",
+    "supabaseProjectRef": "TBD"
+  },
+  "evidenceWindow": {
+    "startedAtUtc": "TBD",
+    "endedAtUtc": "TBD",
+    "schedulerEvidenceBundleRoot": "output/release-evidence/TBD/scheduler",
+    "observabilityEvidenceBundleRoot": "output/release-evidence/TBD/observability",
+    "incidentEvidenceBundleRoot": "output/release-evidence/TBD/incident-readiness",
+    "notes": "Do not approve until scheduler, observability, incident, rollback, and alert evidence is captured without live credentials in this file."
+  },
   "signOff": {
     "operationsOwner": "",
     "releaseOwner": "",
@@ -12,6 +28,7 @@
   "schedulerJobs": [
     {
       "id": "settle-match-pools",
+      "command": "tool/run_supabase_cron_job.sh settle-match-pools",
       "status": "PENDING",
       "provider": "",
       "scheduleExpression": "",
@@ -24,6 +41,7 @@
     },
     {
       "id": "dispatch-match-alerts",
+      "command": "tool/run_supabase_cron_job.sh dispatch-match-alerts",
       "status": "PENDING",
       "provider": "",
       "scheduleExpression": "",

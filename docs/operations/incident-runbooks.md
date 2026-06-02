@@ -7,6 +7,9 @@ Release status: these runbooks are ready for operator review, but the
 `Incident response and rollback readiness` evidence row must remain `PENDING`
 until the release owner records named owners, escalation channels, rollback
 tags, database restore evidence, and review approval.
+The operations evidence file must also record the release source commit,
+production target metadata, evidence capture window, and durable redacted
+incident-readiness evidence bundle root before signoff.
 
 ## Launch Readiness Evidence Required
 
@@ -34,6 +37,9 @@ Required sign-off block:
 release_owner:
 incident_commander:
 technical_owner:
+source_commit:
+evidence_window_started_at_utc:
+evidence_window_ended_at_utc:
 support_owner:
 escalation_channel:
 release_tag:

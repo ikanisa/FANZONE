@@ -20,6 +20,11 @@ scheduler jobs, observability surfaces, alert routes, monitoring signals,
 incident-readiness checks, and owner signoffs are present with redacted evidence
 references.
 
+The evidence file must also be bound to the release source commit, production
+target URLs, tested Supabase project ref, evidence capture window, and durable
+redacted evidence bundle roots for scheduler, observability, and incident
+readiness evidence.
+
 ## Scheduler Evidence Required
 
 Required jobs:
@@ -48,6 +53,9 @@ Required files:
 
 The same evidence references must be copied into the relevant `schedulerJobs`
 entries in `release/operations/operations-readiness-evidence.json`.
+Each scheduler entry must keep the expected smoke command:
+`tool/run_supabase_cron_job.sh settle-match-pools` or
+`tool/run_supabase_cron_job.sh dispatch-match-alerts`.
 
 Run locally only after `SUPABASE_URL` and `CRON_SECRET` are available in the
 environment or ignored `.env`:
@@ -101,6 +109,8 @@ alerting` as `PASS` in `docs/release/world-class-evidence-matrix.md` until:
 
 - both cron smoke commands pass against the production target;
 - provider scheduler history proves recent successful runs;
+- evidence is tied to the release source commit, production URLs, tested
+  Supabase project ref, and evidence capture window;
 - missed-run alerts are configured and tested;
 - telemetry and dashboards cover all launch surfaces;
 - alert routing has named primary and backup owners;

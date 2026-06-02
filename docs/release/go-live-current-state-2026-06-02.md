@@ -226,6 +226,13 @@ scheduler history, cron smoke evidence, observability dashboards, alert routes,
 incident ownership, rollback tag, database restore plan, post-deploy watch, a
 sample alert test, and release-owner approval are recorded.
 
+The validator now also rejects missing source-commit metadata, missing
+production target URLs or Supabase project ref, missing or unordered evidence
+window timestamps, missing or unresolved scheduler/observability/incident
+evidence bundle roots, incorrect scheduler smoke commands, missing or unresolved
+dashboard/alert/smoke/history evidence refs, and live credential patterns in the
+evidence file.
+
 ## Privacy/Legal Evidence Validator Added
 
 The repo now has a structured privacy and legal evidence file:
