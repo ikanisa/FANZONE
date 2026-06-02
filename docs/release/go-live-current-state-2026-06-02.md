@@ -274,6 +274,12 @@ entertainment entry and settlement, admin live queues, TV recovery, realtime
 propagation, Edge Function error budget, database RLS under concurrent access,
 rollback thresholds, and performance/operations/release owner signoff.
 
+The validator now also rejects missing source-commit metadata, missing
+production target URLs or Supabase project ref, missing or unordered test-window
+timestamps, missing or unresolved evidence bundle roots, misplaced scenario
+surfaces, missing or unresolved scenario evidence refs, threshold violations,
+and live credential patterns in the evidence file.
+
 ## Android Release Evidence Validator Added
 
 The repo now has a structured Android release evidence file:

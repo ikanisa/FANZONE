@@ -1,13 +1,22 @@
 {
   "schemaVersion": 1,
   "releaseCandidate": "TBD",
-  "environment": "production",
+  "sourceCommit": "TBD",
+  "environment": {
+    "name": "production",
+    "websiteUrl": "https://fanzone.ikanisa.com",
+    "adminUrl": "https://fanzoneadmin.ikanisa.com",
+    "venuePortalUrl": "https://fanzone.venue.ikanisa.com",
+    "tvDisplayUrl": "https://fanzonetv.ikanisa.com",
+    "supabaseProjectRef": "TBD"
+  },
   "testWindow": {
     "startedAtUtc": "TBD",
     "endedAtUtc": "TBD",
     "durationMinutes": 0,
     "tool": "TBD",
     "targetBaseUrl": "https://fanzone.ikanisa.com",
+    "evidenceBundleRoot": "output/release-evidence/TBD/load-reliability",
     "notes": "Do not approve until release-target load and reliability smoke evidence covers all required scenarios without live credentials in this file."
   },
   "thresholds": {

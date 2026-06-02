@@ -3,26 +3,28 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 
 const defaultPath = "release/performance/load-reliability-evidence.json";
 const targetPath = process.argv[2] || defaultPath;
 const absolutePath = path.resolve(process.cwd(), targetPath);
 
 const allowedStatuses = new Set(["PASS", "FAIL", "BLOCKED", "PENDING", "N/A"]);
-const requiredScenarioIds = new Set([
-  "ORDERING-SUBMIT",
-  "PAYMENT-HANDOFF",
-  "STAFF-CALL-ACK",
-  "FET-LEDGER-ACCRUAL",
-  "REWARD-REDEMPTION",
-  "ENTERTAINMENT-ENTRY",
-  "ENTERTAINMENT-SETTLEMENT",
-  "ADMIN-LIVE-QUEUE",
-  "TV-DISPLAY-RECOVERY",
-  "REALTIME-PROPAGATION",
-  "EDGE-FUNCTION-ERROR-BUDGET",
-  "DATABASE-RLS-UNDER-LOAD",
+const requiredScenarioSurfaces = new Map([
+  ["ORDERING-SUBMIT", "Flutter app"],
+  ["PAYMENT-HANDOFF", "Flutter app"],
+  ["STAFF-CALL-ACK", "Bars/Venue PWA"],
+  ["FET-LEDGER-ACCRUAL", "Supabase database"],
+  ["REWARD-REDEMPTION", "Flutter app"],
+  ["ENTERTAINMENT-ENTRY", "Flutter app"],
+  ["ENTERTAINMENT-SETTLEMENT", "Supabase Edge Functions"],
+  ["ADMIN-LIVE-QUEUE", "Admin PWA"],
+  ["TV-DISPLAY-RECOVERY", "TV PWA"],
+  ["REALTIME-PROPAGATION", "All surfaces"],
+  ["EDGE-FUNCTION-ERROR-BUDGET", "Supabase Edge Functions"],
+  ["DATABASE-RLS-UNDER-LOAD", "Supabase database"],
 ]);
+const requiredScenarioIds = new Set(requiredScenarioSurfaces.keys());
 const requiredSurfaces = new Set([
   "Flutter app",
   "Bars/Venue PWA",
@@ -32,6 +34,12 @@ const requiredSurfaces = new Set([
   "Supabase database",
   "All surfaces",
 ]);
+const requiredEnvironmentUrls = [
+  "websiteUrl",
+  "adminUrl",
+  "venuePortalUrl",
+  "tvDisplayUrl",
+];
 const credentialPattern =
   /(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|sbp_[A-Za-z0-9_-]{20,}|postgresql:\/\/[^:\s]+:[^@\s]+@)/;
 
@@ -68,6 +76,19 @@ function repoRefExists(ref) {
   if (!hasText(ref)) return false;
   if (/^https?:\/\//.test(ref)) return true;
   return fs.existsSync(path.resolve(process.cwd(), ref));
+}
+
+function gitCommitExists(value) {
+  if (!hasText(value) || value === "TBD") return false;
+  try {
+    execFileSync("git", ["cat-file", "-e", `${value}^{commit}`], {
+      cwd: process.cwd(),
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function validateThresholds(thresholds, errors) {
@@ -108,7 +129,20 @@ function validate(data) {
   if (!hasText(data.releaseCandidate) || data.releaseCandidate === "TBD") {
     errors.push("releaseCandidate must name the release build, tag, or commit.");
   }
-  if (data.environment !== "production") errors.push('environment must be "production".');
+  if (!gitCommitExists(data.sourceCommit)) {
+    errors.push("sourceCommit must name an existing git commit for the release candidate.");
+  }
+
+  const environment = data.environment || {};
+  if (environment.name !== "production") errors.push('environment.name must be "production".');
+  if (!hasText(environment.supabaseProjectRef) || environment.supabaseProjectRef === "TBD") {
+    errors.push("environment.supabaseProjectRef must name the tested Supabase project ref.");
+  }
+  for (const key of requiredEnvironmentUrls) {
+    if (!/^https:\/\/.+/.test(environment[key] || "")) {
+      errors.push(`environment.${key} must be an https URL.`);
+    }
+  }
 
   const testWindow = data.testWindow || {};
   if (!isIsoDateTime(testWindow.startedAtUtc)) {
@@ -116,6 +150,13 @@ function validate(data) {
   }
   if (!isIsoDateTime(testWindow.endedAtUtc)) {
     errors.push("testWindow.endedAtUtc must be an ISO UTC timestamp ending in Z.");
+  }
+  if (
+    isIsoDateTime(testWindow.startedAtUtc) &&
+    isIsoDateTime(testWindow.endedAtUtc) &&
+    Date.parse(testWindow.endedAtUtc) <= Date.parse(testWindow.startedAtUtc)
+  ) {
+    errors.push("testWindow.endedAtUtc must be later than testWindow.startedAtUtc.");
   }
   if (!isPositiveNumber(testWindow.durationMinutes)) {
     errors.push("testWindow.durationMinutes must be a positive number.");
@@ -125,6 +166,11 @@ function validate(data) {
   }
   if (!/^https:\/\/.+/.test(testWindow.targetBaseUrl || "")) {
     errors.push("testWindow.targetBaseUrl must be an https URL.");
+  }
+  if (!hasText(testWindow.evidenceBundleRoot) || testWindow.evidenceBundleRoot.includes("TBD")) {
+    errors.push("testWindow.evidenceBundleRoot must name the durable load/reliability evidence bundle root.");
+  } else if (!repoRefExists(testWindow.evidenceBundleRoot)) {
+    errors.push("testWindow.evidenceBundleRoot must exist as a repo path or be a URL.");
   }
 
   validateThresholds(data.thresholds || {}, errors);
@@ -158,6 +204,12 @@ function validate(data) {
 
     if (!requiredSurfaces.has(scenario?.surface)) {
       errors.push(`${label}.surface must be one of the required production surfaces.`);
+    }
+    if (
+      requiredScenarioSurfaces.has(scenario?.id) &&
+      scenario.surface !== requiredScenarioSurfaces.get(scenario.id)
+    ) {
+      errors.push(`${label}.surface must be ${requiredScenarioSurfaces.get(scenario.id)}.`);
     }
     if (!allowedStatuses.has(scenario?.status)) {
       errors.push(`${label} status must be PASS, FAIL, BLOCKED, PENDING, or N/A.`);

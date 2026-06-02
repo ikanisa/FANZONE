@@ -583,6 +583,11 @@ Why this goal exists:
 
 - The world-class benchmark requires accessibility and performance evidence.
 - Load and reliability smoke is `PENDING`.
+- The load/reliability validator is fail-closed for release source commit,
+  production target URLs, tested Supabase project ref, evidence bundle root,
+  ordered test window, exact scenario-to-surface mapping, latency/error
+  thresholds, rollback thresholds, sample sizes, owner signoff, and live
+  credential patterns.
 
 Required tools:
 
@@ -601,6 +606,11 @@ Acceptance:
 
 - Evidence covers every production surface.
 - Latency/error-budget thresholds and rollback thresholds are documented.
+- Evidence is bound to an existing release source commit, production target
+  URLs, tested Supabase project ref, test window, and durable evidence bundle
+  root.
+- Each required scenario remains on its expected Flutter, venue, admin, TV,
+  Supabase Edge Function, Supabase database, or all-surface target.
 - `release/performance/load-reliability-evidence.json` records the release
   candidate, test window, target URL, scenario-level sample sizes, latency,
   error-rate observations, and evidence references.
