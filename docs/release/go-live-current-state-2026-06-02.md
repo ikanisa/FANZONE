@@ -178,6 +178,22 @@ commits:
   `FANZONE_SMOKE_VENUE_ID`, `FANZONE_SMOKE_VENUE_SLUG`,
   `FANZONE_SMOKE_POOL_ID`, `FANZONE_SMOKE_POOL_SHARE_SLUG`,
   `FANZONE_SMOKE_INVITE_CODE`, and `FANZONE_SMOKE_CAMP_ID`.
+- Android reviewer metadata copy was tightened after comparing the tracked Play
+  drafts to the production manifest and product boundary. `release/android`
+  store copy now uses FET reward-point/rewards-ledger language instead of FET
+  wallet language, explicitly states that prediction pools and games are
+  free-to-play with no wagers, cash prizes, monetary prizes, odds, or cash-out,
+  reduces payment wording to off-platform venue instructions, and declares
+  location collection when the user enables nearby venue discovery because the
+  Android manifest declares coarse and fine location permissions. Tracked
+  app-access instructions no longer include reviewer phone/OTP fixture values;
+  the actual reviewer values must be entered privately in Play Console or the
+  private release evidence bundle. `tool/validate_android_review_metadata.mjs`
+  captures these repo-owned checks, and
+  `output/release-evidence/android-review-metadata/20260602T224943Z.log`
+  records public privacy/terms URL checks returning HTTP 200. The metadata
+  validator still fails until actual Play screenshot and feature-graphic assets
+  are attached under `release/android`.
 
 Validator rerun after the metadata refresh:
 

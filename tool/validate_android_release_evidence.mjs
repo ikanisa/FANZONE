@@ -29,6 +29,8 @@ const requiredGuidanceRefs = new Set([
   "https://developer.android.com/guide/app-bundle",
   "https://support.google.com/googleplay/android-developer/answer/9842756",
   "https://support.google.com/googleplay/android-developer/answer/9845334",
+  "https://support.google.com/googleplay/android-developer/answer/10787469",
+  "https://support.google.com/googleplay/android-developer/answer/9859455",
 ]);
 const credentialPattern =
   /(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|sbp_[A-Za-z0-9_-]{20,}|postgresql:\/\/[^:\s]+:[^@\s]+@)/;

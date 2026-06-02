@@ -104,6 +104,7 @@ run node --check tool/validate_secret_rotation_evidence.mjs
 run node --check tool/validate_critical_uat_signoff.mjs
 run node --check tool/validate_ios_testflight_evidence.mjs
 run node --check tool/validate_android_release_evidence.mjs
+run node --check tool/validate_android_review_metadata.mjs
 run node --check tool/validate_operations_readiness_evidence.mjs
 run node --check tool/validate_privacy_legal_readiness_evidence.mjs
 run node --check tool/validate_load_reliability_evidence.mjs
