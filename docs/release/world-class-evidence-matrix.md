@@ -1,6 +1,6 @@
 # FANZONE World-Class Evidence Matrix
 
-Last updated: 2026-05-21
+Last updated: 2026-06-02
 
 This is the release evidence matrix for the Flutter app, bars/venue PWA, admin
 PWA, and TV PWA. `PASS` requires a concrete evidence reference. `PENDING`,
@@ -22,7 +22,7 @@ Allowed statuses:
 | --- | --- | --- | --- | --- | --- |
 | Credential rotation and secret inventory | PENDING | PENDING | PENDING | PENDING | `release/security/secret-rotation-evidence.json`; `tool/validate_secret_rotation_evidence.mjs`; `docs/secret-rotation-runbook.md`; provider rotation and old-key revocation evidence required |
 | Tracked and full-history secret scanning | PASS | PASS | PASS | PASS | `output/release-evidence/20260521T094013Z/summary.txt`; `tool/full_history_secret_scan.sh` passed |
-| Repo-local quality gates | PASS | PASS | PASS | PASS | 2026-05-21 local gates passed: `npm run typecheck`; `npm run lint`; `npm run test --workspaces --if-present`; `npm run build`; Flutter analyze/test and Pixel smoke passed; release still requires clean-worktree `tool/go_live_readiness.sh --local` |
+| Repo-local quality gates | PASS | PASS | PASS | PASS | 2026-06-02 clean checkout at `c19011b`: `./tool/go_live_readiness.sh --local` passed; see `docs/release/go-live-current-state-2026-06-02.md` |
 | Production Supabase RLS/RPC authorization | PASS | PASS | PASS | PASS | `output/release-evidence/20260521T094013Z/summary.txt`; `tool/supabase_live_validation.sh` passed |
 | Production backup and restore point | PASS | PASS | PASS | PASS | `output/release-evidence/20260521T094013Z/summary.txt`; backup manifest `output/release-evidence/20260521T094051Z/backup/backup-manifest.txt`; restore list `output/release-evidence/20260521T094051Z/backup/restore-list.txt` |
 | Production client env secret isolation | PASS | PASS | PASS | PASS | `output/release-evidence/20260521T094013Z/summary.txt`; `tool/verify_production_envs.sh .env.production` passed |
@@ -47,6 +47,6 @@ Allowed statuses:
 | --- | --- | --- | --- | --- | --- |
 | Dependency update automation | PASS | PASS | PASS | PASS | `.github/dependabot.yml` |
 | MASVS-style mobile security review | PARTIAL | N/A | N/A | N/A | `tool/mobile_release_static_audit.sh`; static repo checks pass, but real-device security review and crash-reporting evidence remain required |
-| API authorization abuse tests | PENDING | PENDING | PENDING | PENDING | Negative cross-user, cross-venue, and admin-role tests required |
+| API authorization abuse tests | PARTIAL | PARTIAL | PARTIAL | PARTIAL | `tool/supabase_api_authorization_abuse_tests.sh`; existing RLS audit and Hospitality Core Phase 2 contracts cover negative client grants, restricted functions, cross-venue staff/order/reconciliation/staff-call access, customer mutation rejection, direct table mutation denial, unsupported payment rejection, and admin-only surface checks; requires release-target `--contract` evidence before `PASS` |
 | Load and reliability smoke | PENDING | PENDING | PENDING | PENDING | Latency/error-budget/load-smoke evidence required |
 | Privacy/legal review | PENDING | PENDING | PENDING | PENDING | Retention, deletion, export, support access, and public policy evidence required |

@@ -1,6 +1,6 @@
 # FANZONE Production Go-Live Task Register
 
-Last updated: 2026-05-23
+Last updated: 2026-06-02
 
 This register turns the production-readiness findings into launch tasks with
 required evidence. FANZONE must remain `NO-GO` until every P0 and P1 task is
@@ -14,8 +14,8 @@ bars/venue PWA, admin PWA, and TV PWA.
 | --- | --- | --- | --- | --- |
 | P0-01 | Rotate every exposed or chat-shared Supabase anon key, service-role key, DB password/connection string, Supabase PAT, CI secret, deployment provider variable, and local operator env copy. | Release owner | Provider screenshots or export showing new creation/rotation timestamps, plus confirmation old values no longer work. | `release/security/secret-rotation-evidence.json`; `node tool/validate_secret_rotation_evidence.mjs`; `docs/secret-rotation-runbook.md` |
 | P0-02 | Re-run secret scans after rotation, including tracked-file regex scan, repo-owned full-history scan, and external `gitleaks` or `trufflehog` evidence where available. | Security owner | Clean scan logs stored outside git or in redacted release evidence. | `tool/go_live_readiness.sh --local`; `tool/full_history_secret_scan.sh`; external scanner output |
-| P0-03 | Prove Flutter release gate is green. | Mobile owner | Passing `flutter analyze` and full `flutter test` logs. | `flutter analyze`; `flutter test` |
-| P0-04 | Prove web/admin/venue/TV workspaces are green. | Web owner | Passing typecheck, lint, test, and production build logs. | `npm run typecheck --workspaces --if-present`; `npm run lint --workspaces --if-present`; `npm run test --workspaces --if-present`; `npm run build --workspaces --if-present` |
+| P0-03 | Prove Flutter release gate is green. | Mobile owner | 2026-06-02 local gate at `c19011b` passed `flutter analyze` and `flutter test` with 249 tests; keep release-candidate rerun evidence for final signoff. | `docs/release/go-live-current-state-2026-06-02.md`; `flutter analyze`; `flutter test` |
+| P0-04 | Prove web/admin/venue/TV workspaces are green. | Web owner | 2026-06-02 local gate at `c19011b` passed workspace typecheck, lint, test, and build; keep release-candidate rerun evidence for final signoff. | `docs/release/go-live-current-state-2026-06-02.md`; `npm run typecheck --workspaces --if-present`; `npm run lint --workspaces --if-present`; `npm run test --workspaces --if-present`; `npm run build --workspaces --if-present` |
 | P0-05 | Prove Supabase Edge Functions and SQL authorization are release-target clean. | Backend owner | Deno test logs, deployed function versions, target project ref, RLS/grant audit output, FET supply smoke output, and Hospitality Core Phase 2 readiness/contract output after migrations are applied. | `deno test --allow-env supabase/functions`; `tool/supabase_live_validation.sh`; `tool/supabase_hospitality_core_phase2.sh --readiness`; `tool/supabase_hospitality_core_phase2.sh --contract` |
 | P0-06 | Back up production database and record restore point before release. | Backend owner | Backup timestamp, restore point, owner approval, rollback decision path. | `tool/create_supabase_backup_evidence.sh`; `docs/release/rollback.md` |
 | P0-07 | Verify production client envs never expose service-role or backend secrets. | Release owner | Passing release env validation for mobile and web env files without printing values. | `tool/verify_production_envs.sh .env.production` |
@@ -40,7 +40,7 @@ bars/venue PWA, admin PWA, and TV PWA.
 | --- | --- | --- | --- | --- |
 | P2-01 | Add dependency update automation and scheduled vulnerability reporting. | Security owner | Enabled provider workflow or bot configuration. | GitHub Dependabot or equivalent |
 | P2-02 | Run mobile MASVS-style review for local storage, network, platform permissions, privacy, and resilience. | Security owner | Static repo audit plus findings and remediations tracked before broad public scale; real-device and crash-reporting evidence still required before marking complete. | `tool/mobile_release_static_audit.sh`; `pubspec.yaml`; `android/`; `ios/`; secure-storage code |
-| P2-03 | Run API authorization abuse tests for object-level and function-level access. | Backend owner | Negative tests for cross-venue, cross-user, and unauthorized admin access. | Supabase SQL/RLS tests and Edge Function auth tests |
+| P2-03 | Run API authorization abuse tests for object-level and function-level access. | Backend owner | 2026-06-02 repo now has a single entrypoint that composes the RLS audit and rollback-based Hospitality Core Phase 2 contracts; release-target evidence still requires a `--contract` run and Edge Function auth-abuse evidence. | `tool/supabase_api_authorization_abuse_tests.sh --contract`; Supabase SQL/RLS tests; Edge Function auth tests |
 | P2-04 | Run load and reliability smoke on ordering, FET rewards ledger, free-to-play entertainment, and admin queues. | Operations owner | Load-test summary, latency/error budget, rollback threshold. | External load-test evidence |
 | P2-05 | Complete privacy/legal review for retention, deletion, data export, and support access. | Compliance owner | Approved policy links, retention schedule, support access procedure. | Public policy URLs and admin audit logs |
 
