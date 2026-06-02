@@ -227,3 +227,24 @@ release candidate has reviewed public policy URLs, Android Data Safety, Apple
 privacy labels, account deletion, retention, data export/access, support access,
 SDK data inventory, no-betting/no-cash-out wording, off-platform payment
 wording, and legal/compliance signoff evidence.
+
+## Load And Reliability Evidence Validator Added
+
+The repo now has a structured load and reliability evidence file:
+
+```text
+release/performance/load-reliability-evidence.json
+```
+
+Validate it with:
+
+```bash
+node tool/validate_load_reliability_evidence.mjs
+```
+
+The validator is fail-closed and currently expected to fail until release-target
+load smoke evidence exists for ordering, off-platform payment handoff,
+staff-call acknowledgement, FET ledger accrual, reward redemption, free-to-play
+entertainment entry and settlement, admin live queues, TV recovery, realtime
+propagation, Edge Function error budget, database RLS under concurrent access,
+rollback thresholds, and performance/operations/release owner signoff.

@@ -541,10 +541,21 @@ Required tools:
 - Flutter integration/device testing.
 - External load-test tool where approved.
 
+Validation:
+
+```bash
+node tool/validate_load_reliability_evidence.mjs
+./tool/go_live_readiness.sh --local
+```
+
 Acceptance:
 
 - Evidence covers every production surface.
 - Latency/error-budget thresholds and rollback thresholds are documented.
+- `release/performance/load-reliability-evidence.json` records the release
+  candidate, test window, target URL, scenario-level sample sizes, latency,
+  error-rate observations, and evidence references.
+- `node tool/validate_load_reliability_evidence.mjs` passes.
 - Code-owned accessibility/performance regressions are fixed.
 
 ## Goal 13 - Complete Privacy, Legal, Store Policy, And Support-Access Review
@@ -602,6 +613,7 @@ node tool/validate_critical_uat_signoff.mjs
 node tool/validate_ios_testflight_evidence.mjs
 node tool/validate_operations_readiness_evidence.mjs
 node tool/validate_privacy_legal_readiness_evidence.mjs
+node tool/validate_load_reliability_evidence.mjs
 tool/collect_world_class_evidence.sh
 git status --short
 git rev-list --left-right --count main...origin/main
@@ -648,6 +660,7 @@ The goal pack is complete only when:
 - `node tool/validate_ios_testflight_evidence.mjs` passes.
 - `node tool/validate_operations_readiness_evidence.mjs` passes.
 - `node tool/validate_privacy_legal_readiness_evidence.mjs` passes.
+- `node tool/validate_load_reliability_evidence.mjs` passes.
 - `tool/collect_world_class_evidence.sh` produces no P0/P1 `PENDING` or `FAIL`
   entries.
 - The final go/no-go report is committed, pushed, and tied to the release
