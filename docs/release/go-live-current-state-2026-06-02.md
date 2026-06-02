@@ -207,3 +207,23 @@ The validator is fail-closed and currently expected to fail until production
 scheduler history, cron smoke evidence, observability dashboards, alert routes,
 incident ownership, rollback tag, database restore plan, post-deploy watch, a
 sample alert test, and release-owner approval are recorded.
+
+## Privacy/Legal Evidence Validator Added
+
+The repo now has a structured privacy and legal evidence file:
+
+```bash
+release/legal/privacy-legal-readiness-evidence.json
+```
+
+Validate it with:
+
+```bash
+node tool/validate_privacy_legal_readiness_evidence.mjs
+```
+
+The validator is fail-closed and currently expected to fail until the final
+release candidate has reviewed public policy URLs, Android Data Safety, Apple
+privacy labels, account deletion, retention, data export/access, support access,
+SDK data inventory, no-betting/no-cash-out wording, off-platform payment
+wording, and legal/compliance signoff evidence.

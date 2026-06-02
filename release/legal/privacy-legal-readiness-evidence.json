@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "releaseCandidate": "TBD",
+  "environment": "production",
+  "signOff": {
+    "complianceOwner": "",
+    "legalReviewer": "",
+    "releaseOwner": "",
+    "signedAtUtc": "",
+    "approvedForLaunch": false
+  },
+  "officialGuidanceRefs": [
+    "https://support.google.com/googleplay/android-developer/answer/10787469",
+    "https://support.google.com/googleplay/android-developer/answer/13327111",
+    "https://developer.apple.com/app-store/app-privacy-details/"
+  ],
+  "publicUrls": {
+    "privacyPolicyUrl": "https://fanzone.ikanisa.com/privacy",
+    "termsUrl": "https://fanzone.ikanisa.com/terms",
+    "supportUrl": "https://fanzone.ikanisa.com/help"
+  },
+  "checks": [
+    {
+      "id": "PUBLIC-PRIVACY-POLICY",
+      "status": "PENDING",
+      "surface": "All",
+      "evidenceRefs": [
+        "docs/privacy-policy.md",
+        "release/legal/privacy-policy.md"
+      ]
+    },
+    {
+      "id": "PUBLIC-TERMS",
+      "status": "PENDING",
+      "surface": "All",
+      "evidenceRefs": [
+        "release/legal/terms.md",
+        "release/legal/fet-reward-terms.md"
+      ]
+    },
+    {
+      "id": "ANDROID-DATA-SAFETY",
+      "status": "PENDING",
+      "surface": "Flutter app",
+      "evidenceRefs": [
+        "release/android/data-safety-notes.md",
+        "release/android/play-store-metadata.md"
+      ]
+    },
+    {
+      "id": "APPLE-PRIVACY-LABELS",
+      "status": "PENDING",
+      "surface": "Flutter app",
+      "evidenceRefs": [
+        "release/ios/privacy-label-notes.md",
+        "release/ios/app-store-metadata.md"
+      ]
+    },
+    {
+      "id": "ACCOUNT-DELETION",
+      "status": "PENDING",
+      "surface": "All",
+      "evidenceRefs": [
+        "docs/privacy-policy.md",
+        "release/android/data-safety-notes.md",
+        "release/ios/app-review-notes.md"
+      ]
+    },
+    {
+      "id": "DATA-RETENTION",
+      "status": "PENDING",
+      "surface": "All",
+      "evidenceRefs": [
+        "docs/privacy-policy.md",
+        "release/android/data-safety-notes.md"
+      ]
+    },
+    {
+      "id": "DATA-EXPORT-ACCESS",
+      "status": "PENDING",
+      "surface": "All",
+      "evidenceRefs": [
+        "docs/privacy-policy.md"
+      ]
+    },
+    {
+      "id": "SUPPORT-ACCESS",
+      "status": "PENDING",
+      "surface": "Admin PWA",
+      "evidenceRefs": [
+        "docs/operations/admin-guide.md",
+        "docs/operations/incident-runbooks.md"
+      ]
+    },
+    {
+      "id": "NO-BETTING-NO-CASHOUT",
+      "status": "PENDING",
+      "surface": "All",
+      "evidenceRefs": [
+        "release/legal/terms.md",
+        "release/legal/fet-reward-terms.md",
+        "release/android/play-store-metadata.md",
+        "release/ios/app-review-notes.md"
+      ]
+    },
+    {
+      "id": "OFF-PLATFORM-PAYMENTS",
+      "status": "PENDING",
+      "surface": "All",
+      "evidenceRefs": [
+        "release/legal/terms.md",
+        "release/android/data-safety-notes.md",
+        "release/ios/app-review-notes.md"
+      ]
+    },
+    {
+      "id": "SDK-DATA-INVENTORY",
+      "status": "PENDING",
+      "surface": "Flutter app",
+      "evidenceRefs": [
+        "release/ios/privacy-label-notes.md",
+        "release/android/data-safety-notes.md",
+        "pubspec.yaml"
+      ]
+    },
+    {
+      "id": "HUMAN-LEGAL-REVIEW",
+      "status": "PENDING",
+      "surface": "All",
+      "evidenceRefs": []
+    }
+  ]
+}

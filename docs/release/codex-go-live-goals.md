@@ -567,6 +567,7 @@ npm run validate:release-metadata -w @fanzone/website
 node tool/validate_pwa_release_metadata.mjs admin
 node tool/validate_pwa_release_metadata.mjs venue-portal
 node tool/validate_pwa_release_metadata.mjs tv-display
+node tool/validate_privacy_legal_readiness_evidence.mjs
 ```
 
 Acceptance:
@@ -574,6 +575,10 @@ Acceptance:
 - Public policy URLs are final.
 - Android and iOS store metadata are consistent with no-cash-out, no-betting,
   off-platform payment, and FET rewards-ledger boundaries.
+- `release/legal/privacy-legal-readiness-evidence.json` records public policy,
+  Data Safety, Apple privacy label, deletion/export, retention, support access,
+  SDK inventory, and legal signoff evidence.
+- `node tool/validate_privacy_legal_readiness_evidence.mjs` passes.
 - Human-review blockers are explicitly recorded.
 
 ## Goal 14 - Close The World-Class Evidence Matrix And Produce Final Go/No-Go
@@ -596,6 +601,7 @@ node tool/validate_secret_rotation_evidence.mjs
 node tool/validate_critical_uat_signoff.mjs
 node tool/validate_ios_testflight_evidence.mjs
 node tool/validate_operations_readiness_evidence.mjs
+node tool/validate_privacy_legal_readiness_evidence.mjs
 tool/collect_world_class_evidence.sh
 git status --short
 git rev-list --left-right --count main...origin/main
@@ -641,6 +647,7 @@ The goal pack is complete only when:
 - `node tool/validate_critical_uat_signoff.mjs` passes.
 - `node tool/validate_ios_testflight_evidence.mjs` passes.
 - `node tool/validate_operations_readiness_evidence.mjs` passes.
+- `node tool/validate_privacy_legal_readiness_evidence.mjs` passes.
 - `tool/collect_world_class_evidence.sh` produces no P0/P1 `PENDING` or `FAIL`
   entries.
 - The final go/no-go report is committed, pushed, and tied to the release

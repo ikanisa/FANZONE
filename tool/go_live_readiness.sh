@@ -100,6 +100,7 @@ run node --check tool/validate_secret_rotation_evidence.mjs
 run node --check tool/validate_critical_uat_signoff.mjs
 run node --check tool/validate_ios_testflight_evidence.mjs
 run node --check tool/validate_operations_readiness_evidence.mjs
+run node --check tool/validate_privacy_legal_readiness_evidence.mjs
 
 echo
 echo "Local go-live checks passed."
