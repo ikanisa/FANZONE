@@ -44,9 +44,9 @@ Results:
 - `tool/product_boundary_scan.sh` passed.
 - `flutter analyze` passed with no issues.
 - `flutter test` passed with 249 tests.
-- `flutter doctor -v` found Android tooling available, but Flutter is on an
-  unknown local channel/source and CocoaPods is not installed, so iOS plugin,
-  archive, and TestFlight readiness cannot be claimed from this environment.
+- `flutter doctor -v` now reports Android tooling, Xcode 26.2, and CocoaPods
+  1.16.2 available. The remaining doctor warning is the nonstandard local
+  Flutter channel/source.
 - `flutter build apk --debug` did not complete in this run. It was terminated
   after 1039.6 seconds with exit code 143 after no fresh debug APK was produced.
   A concurrent unrelated Flutter/Gradle build in another checkout was also
@@ -63,8 +63,18 @@ Results:
   produced the ignored local artifact
   `build/app/outputs/flutter-apk/app-debug.apk` (158 MB,
   SHA-256 `e5fe565f565f98a5ebcff061c559b9431c596c9a52141322cb2b19002c9776d6`).
-  This proves the local debug Android build path only; it is not signed
-  production artifact, device smoke, or Google Play internal-test evidence.
+  The debug APK installed on the connected Pixel 4a (`13111JEC215558`) with
+  `adb install -r`, and `adb shell monkey -p app.fanzone.football -c
+  android.intent.category.LAUNCHER 1` launched
+  `app.fanzone.football/com.fanzone.fanzone.MainActivity`. This proves the
+  local debug Android build and launch path only; it is not signed production
+  artifact or Google Play internal-test evidence.
+- `pod install` completed under `ios/` with 12 dependencies and 21 total pods
+  installed. `flutter build ios --debug --no-codesign` completed and produced
+  `build/ios/iphoneos/Runner.app` (145 MB). This proves local iOS compilation
+  and CocoaPods integration only; signed archive, IPA export, physical iPhone
+  install, push smoke, TestFlight, and App Store Connect evidence remain
+  required before iOS can move to `PASS`.
 
 Release evidence metadata was refreshed in the fail-closed evidence files to
 name release candidate `1.1.3+11`, source commit
