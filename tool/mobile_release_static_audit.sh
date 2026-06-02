@@ -79,12 +79,33 @@ require_contains "${android_gradle}" 'applicationId = "app\.fanzone\.football"' 
   "Android applicationId must be the production package, not a placeholder."
 require_contains "${android_gradle}" 'targetSdk = 35' \
   "Android targetSdk must stay on the documented production target."
+require_contains "${android_gradle}" 'ndkVersion = "28\.2\.13676358"' \
+  "Android NDK version must stay pinned for release artifact reproducibility."
 require_contains "${android_gradle}" 'val requiresReleaseSigning = appEnvironment == "production"' \
   "Production Android signing must fail closed when upload signing is missing."
 require_contains "${android_gradle}" 'isMinifyEnabled = hardenReleaseBuild' \
   "Production Android release builds must enable minification through hardenReleaseBuild."
 require_contains "${android_gradle}" 'isShrinkResources = hardenReleaseBuild' \
   "Production Android release builds must enable resource shrinking through hardenReleaseBuild."
+require_contains "${android_gradle}" 'debugSymbolLevel = "SYMBOL_TABLE"' \
+  "Android debug builds should use lightweight native symbol tables for local build stability."
+require_contains "${android_gradle}" 'debugSymbolLevel = "FULL"' \
+  "Android release builds must emit full native debug symbols for Play upload evidence."
+require_contains "android/gradle.properties" 'kotlin\.compiler\.execution\.strategy=in-process' \
+  "Android Gradle builds must use in-process Kotlin compilation for deterministic local release checks."
+
+if awk '
+  /defaultConfig[[:space:]]*\{/ { in_default=1; depth=1; next }
+  in_default {
+    depth += gsub(/\{/, "{")
+    depth -= gsub(/\}/, "}")
+    if ($0 ~ /debugSymbolLevel/) found=1
+    if (depth <= 0) in_default=0
+  }
+  END { exit found ? 0 : 1 }
+' "${android_gradle}"; then
+  fail "Android native debug symbol settings must be scoped per build type, not defaultConfig."
+fi
 
 require_contains "${ios_info}" 'NSLocationWhenInUseUsageDescription' \
   "iOS location usage description is required for nearby venue discovery."

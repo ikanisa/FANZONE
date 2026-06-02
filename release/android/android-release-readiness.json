@@ -55,9 +55,10 @@
       "status": "PENDING",
       "evidenceRefs": [
         "android/app/build.gradle.kts",
+        "android/gradle.properties",
         "tool/mobile_release_static_audit.sh"
       ],
-      "notes": "Static source checks pass, but release evidence still needs a fresh build for the release candidate."
+      "notes": "Static source checks enforce API 35, production signing fail-closed behavior, minify/resource shrinking, pinned NDK, scoped native debug symbols, and deterministic Kotlin compilation. Release evidence still needs a fresh signed build for the release candidate."
     },
     {
       "id": "ANDROID-PREFLIGHT-001",

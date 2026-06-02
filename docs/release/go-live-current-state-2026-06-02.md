@@ -51,6 +51,20 @@ Results:
   after 1039.6 seconds with exit code 143 after no fresh debug APK was produced.
   A concurrent unrelated Flutter/Gradle build in another checkout was also
   consuming Gradle resources during this attempt.
+- Android Gradle hardening now scopes native debug symbols by build type:
+  lightweight `SYMBOL_TABLE` for debug builds and `FULL` for release builds.
+  `android/gradle.properties` also uses in-process Kotlin compilation for
+  deterministic local release checks. `tool/mobile_release_static_audit.sh`
+  enforces these settings alongside the API 35 target and production signing
+  fail-closed behavior. This is static build-readiness hardening only; signed
+  release AAB/APK, signature verification, physical-device smoke, and Play
+  internal-test evidence remain required before Android can move to `PASS`.
+- After this hardening, `flutter build apk --debug` completed successfully and
+  produced the ignored local artifact
+  `build/app/outputs/flutter-apk/app-debug.apk` (158 MB,
+  SHA-256 `e5fe565f565f98a5ebcff061c559b9431c596c9a52141322cb2b19002c9776d6`).
+  This proves the local debug Android build path only; it is not signed
+  production artifact, device smoke, or Google Play internal-test evidence.
 
 Release evidence metadata was refreshed in the fail-closed evidence files to
 name release candidate `1.1.3+11`, source commit

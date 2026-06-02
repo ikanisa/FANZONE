@@ -149,9 +149,6 @@ android {
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        ndk {
-            debugSymbolLevel = "FULL"
-        }
     }
 
     signingConfigs {
@@ -166,7 +163,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
+        }
         release {
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
             isMinifyEnabled = hardenReleaseBuild
             isShrinkResources = hardenReleaseBuild
             if (hardenReleaseBuild) {
