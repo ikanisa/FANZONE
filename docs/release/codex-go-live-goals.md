@@ -344,7 +344,9 @@ dart format --set-exit-if-changed lib test integration_test
 flutter analyze
 flutter test
 tool/build_android_aab_from_env.sh production
+tool/build_android_release_from_env.sh production
 jarsigner -verify -verbose -certs build/app/outputs/bundle/release/app-release.aab
+node tool/validate_android_release_evidence.mjs
 ```
 
 Acceptance:
@@ -354,6 +356,10 @@ Acceptance:
 - Physical-device smoke covers auth, deep links, venue ordering, payment
   guidance, rewards ledger, and challenge entry.
 - Google Play internal-test or upload evidence is captured.
+- `release/android/android-release-readiness.json` records the release commit,
+  artifact paths, SHA-256 hashes, build timestamps, signature evidence, device
+  smoke evidence, Play internal-test evidence, and reviewer metadata evidence.
+- `node tool/validate_android_release_evidence.mjs` passes.
 
 ## Goal 07 - Complete iOS Archive, IPA, Physical Device, Push, And TestFlight Proof
 
@@ -611,6 +617,7 @@ Validation:
 node tool/validate_secret_rotation_evidence.mjs
 node tool/validate_critical_uat_signoff.mjs
 node tool/validate_ios_testflight_evidence.mjs
+node tool/validate_android_release_evidence.mjs
 node tool/validate_operations_readiness_evidence.mjs
 node tool/validate_privacy_legal_readiness_evidence.mjs
 node tool/validate_load_reliability_evidence.mjs
@@ -658,6 +665,7 @@ The goal pack is complete only when:
 - `node tool/validate_secret_rotation_evidence.mjs` passes.
 - `node tool/validate_critical_uat_signoff.mjs` passes.
 - `node tool/validate_ios_testflight_evidence.mjs` passes.
+- `node tool/validate_android_release_evidence.mjs` passes.
 - `node tool/validate_operations_readiness_evidence.mjs` passes.
 - `node tool/validate_privacy_legal_readiness_evidence.mjs` passes.
 - `node tool/validate_load_reliability_evidence.mjs` passes.

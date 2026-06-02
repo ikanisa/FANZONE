@@ -248,3 +248,24 @@ staff-call acknowledgement, FET ledger accrual, reward redemption, free-to-play
 entertainment entry and settlement, admin live queues, TV recovery, realtime
 propagation, Edge Function error budget, database RLS under concurrent access,
 rollback thresholds, and performance/operations/release owner signoff.
+
+## Android Release Evidence Validator Added
+
+The repo now has a structured Android release evidence file:
+
+```text
+release/android/android-release-readiness.json
+```
+
+Validate it with:
+
+```bash
+node tool/validate_android_release_evidence.mjs
+```
+
+The validator is fail-closed and currently expected to fail until the release
+candidate records a source commit, fresh signed AAB/APK paths, SHA-256 hashes,
+build timestamps, signature verification, production preflight, physical-device
+install smoke, Android App Link/deep-link smoke, core-flow smoke, Google Play
+internal-test evidence, review metadata evidence, and mobile/release owner
+signoff.

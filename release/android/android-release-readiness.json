@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "releaseCandidate": "TBD",
+  "sourceCommit": "TBD",
+  "environment": "production",
+  "applicationId": "app.fanzone.football",
+  "versionName": "1.1.3",
+  "versionCode": 11,
+  "officialGuidanceRefs": [
+    "https://developer.android.com/guide/app-bundle",
+    "https://support.google.com/googleplay/android-developer/answer/9842756",
+    "https://support.google.com/googleplay/android-developer/answer/9845334"
+  ],
+  "artifactPaths": {
+    "aab": "build/app/outputs/bundle/release/app-release.aab",
+    "apk": "build/app/outputs/flutter-apk/app-release.apk"
+  },
+  "artifacts": [
+    {
+      "id": "AAB",
+      "status": "PENDING",
+      "path": "build/app/outputs/bundle/release/app-release.aab",
+      "sha256": "",
+      "sizeBytes": 0,
+      "versionName": "1.1.3",
+      "versionCode": 11,
+      "builtAtUtc": "TBD",
+      "evidenceRefs": [],
+      "notes": "Fresh signed Android App Bundle must be regenerated from the release candidate."
+    },
+    {
+      "id": "APK",
+      "status": "PENDING",
+      "path": "build/app/outputs/flutter-apk/app-release.apk",
+      "sha256": "",
+      "sizeBytes": 0,
+      "versionName": "1.1.3",
+      "versionCode": 11,
+      "builtAtUtc": "TBD",
+      "evidenceRefs": [],
+      "notes": "Fresh signed APK must be regenerated for physical-device install smoke."
+    }
+  ],
+  "signOff": {
+    "mobileOwner": "TBD",
+    "releaseOwner": "TBD",
+    "signedAtUtc": "TBD",
+    "approvedForLaunch": false,
+    "notes": "Do not approve until fresh signed artifacts, install smoke, deep-link smoke, Play internal-test evidence, and reviewer metadata are attached."
+  },
+  "checks": [
+    {
+      "id": "ANDROID-CONFIG-001",
+      "scenario": "Production applicationId, version metadata, minification/resource shrinking, and release signing fail-closed behavior are configured",
+      "status": "PENDING",
+      "evidenceRefs": [
+        "android/app/build.gradle.kts",
+        "tool/mobile_release_static_audit.sh"
+      ],
+      "notes": "Static source checks pass, but release evidence still needs a fresh build for the release candidate."
+    },
+    {
+      "id": "ANDROID-PREFLIGHT-001",
+      "scenario": "Production preflight validates env, Firebase, signing config, package, version, and backend reachability without printing secrets",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "ANDROID-AAB-001",
+      "scenario": "Fresh signed AAB is built from the release candidate for Google Play",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "ANDROID-APK-001",
+      "scenario": "Fresh signed APK is built from the release candidate for install smoke",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "ANDROID-SIGNATURE-001",
+      "scenario": "AAB/APK signatures are verified with jarsigner/apksigner or equivalent tooling",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "ANDROID-FRESHNESS-001",
+      "scenario": "AAB/APK artifact timestamps and hashes prove they were built from the release candidate after the current source revision",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "ANDROID-INSTALL-001",
+      "scenario": "Signed production APK installs and launches on a physical Android device or approved device farm",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "ANDROID-DEEPLINK-001",
+      "scenario": "Production Android App Links and in-app routing work for venue, ordering, and entertainment links on the installed build",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "ANDROID-CORE-SMOKE-001",
+      "scenario": "Physical-device smoke covers auth, venue discovery, table-number ordering, off-platform payment handoff, rewards ledger, and free-to-play entertainment entry",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "ANDROID-PLAY-INTERNAL-001",
+      "scenario": "Fresh AAB is uploaded to Google Play internal testing or equivalent pre-production track with build number and changelog evidence",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "ANDROID-REVIEW-METADATA-001",
+      "scenario": "Play listing, app-access instructions, privacy policy, Data Safety, support URL, screenshots, and no-betting/no-cash-out metadata are ready",
+      "status": "PENDING",
+      "evidenceRefs": [
+        "release/android/play-store-metadata.md",
+        "release/android/data-safety-notes.md",
+        "release/android/app-access-instructions.md"
+      ],
+      "notes": ""
+    }
+  ]
+}
