@@ -30,6 +30,7 @@ ios_entitlements="ios/Runner/Runner.entitlements"
 
 require_file "${android_manifest}"
 require_file "${android_gradle}"
+require_file "tool/android_deep_link_smoke.sh"
 require_file "tool/preflight_build_check.sh"
 require_file "tool/build_android_release_from_env.sh"
 require_file "tool/build_android_aab_from_env.sh"
@@ -100,6 +101,12 @@ require_contains "tool/build_android_release_from_env.sh" '\./tool/preflight_bui
   "Android release APK wrapper must run preflight validation before building."
 require_contains "tool/build_android_aab_from_env.sh" '\./tool/preflight_build_check\.sh "\$\{APP_ENVIRONMENT\}"' \
   "Android AAB wrapper must run preflight validation before building."
+require_contains "tool/android_deep_link_smoke.sh" 'fanzone\.guest\.ikanisa\.com: verified' \
+  "Android deep-link smoke must verify the guest app-link domain."
+require_contains "tool/android_deep_link_smoke.sh" 'fanzone\.ikanisa\.com: verified' \
+  "Android deep-link smoke must verify the root app-link domain."
+require_contains "tool/android_deep_link_smoke.sh" 'https://fanzone\.guest\.ikanisa\.com/predict/share_smoke' \
+  "Android deep-link smoke must cover legacy prediction links that normalize into pools."
 
 if awk '
   /defaultConfig[[:space:]]*\{/ { in_default=1; depth=1; next }

@@ -137,8 +137,11 @@
       "id": "ANDROID-DEEPLINK-001",
       "scenario": "Production Android App Links and in-app routing work for venue, ordering, and entertainment links on the installed build",
       "status": "PENDING",
-      "evidenceRefs": [],
-      "notes": "Release APK launch was proven, but production Android App Links and in-app deep-link routes have not been smoked on the installed build."
+      "evidenceRefs": [
+        "tool/android_deep_link_smoke.sh",
+        "test/app_router_test.dart"
+      ],
+      "notes": "Legacy prediction links now normalize into active pools routes and a device smoke script exists, but production App Links and in-app deep-link routing have not been smoked on a freshly installed release build."
     },
     {
       "id": "ANDROID-CORE-SMOKE-001",

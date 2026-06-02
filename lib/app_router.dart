@@ -54,6 +54,7 @@ String governedAppRouteForPath(String targetPath, {String? fallback}) {
     }
   }
 
+  path = _normalizeLegacyPredictionRoute(path);
   path = _removeRetiredQrOrderingContext(path, fallback: fallback);
 
   final access = runtimePlatformFeatureAccess();
@@ -65,6 +66,21 @@ String governedAppRouteForPath(String targetPath, {String? fallback}) {
   }
 
   return fallback ?? '/feature-unavailable?f=$routeKey';
+}
+
+String _normalizeLegacyPredictionRoute(String path) {
+  final uri = Uri.tryParse(path);
+  if (uri == null) return path;
+
+  final segments = uri.pathSegments;
+  if (segments.isEmpty || segments.first != 'predict') return path;
+
+  final normalizedSegments = ['pools', ...segments.skip(1)];
+  return Uri(
+    path: '/${normalizedSegments.join('/')}',
+    queryParameters: uri.queryParameters.isEmpty ? null : uri.queryParameters,
+    fragment: uri.fragment.isEmpty ? null : uri.fragment,
+  ).toString();
 }
 
 String _removeRetiredQrOrderingContext(String path, {String? fallback}) {

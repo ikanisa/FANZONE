@@ -133,6 +133,13 @@ auth, venue discovery, table-number ordering, off-platform payment handoff,
 rewards ledger, free-to-play entertainment entry, UAT, privacy/legal, provider
 credential rotation, observability, load/reliability, or owner approval.
 
+Android deep-link readiness has one additional repo-owned guardrail: legacy
+`/predict` links now normalize into active `/pools` routes, and
+`tool/android_deep_link_smoke.sh` can verify domain app-link status plus
+representative venue, pool, and custom-scheme launch intents on a connected
+device. This script has not yet been run against a freshly installed release
+build, so `ANDROID-DEEPLINK-001` remains `PENDING`.
+
 Validator rerun after the metadata refresh:
 
 - `node tool/validate_android_release_evidence.mjs` still fails because

@@ -146,6 +146,25 @@ void main() {
       );
     });
 
+    test('normalizes legacy prediction links into active pools routes', () {
+      expect(
+        governedAppRouteForPath(
+          'https://fanzone.guest.ikanisa.com/predict?source=app-link',
+        ),
+        '/pools?source=app-link',
+      );
+      expect(
+        governedAppRouteForPath(
+          'https://fanzone.ikanisa.com/predict/share_42?invite=abc',
+        ),
+        '/pools/share_42?invite=abc',
+      );
+      expect(
+        governedAppRouteForPath('/predict/share_42?invite=abc'),
+        '/pools/share_42?invite=abc',
+      );
+    });
+
     test('removes retired table context from venue links', () {
       final retiredTablePath = [
         'https://fanzone.ikanisa.com',

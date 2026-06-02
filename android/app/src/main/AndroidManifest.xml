@@ -127,6 +127,12 @@
                 <data
                     android:scheme="fanzone"
                     android:host="bar" />
+                <data
+                    android:scheme="fanzone"
+                    android:host="pool" />
+                <data
+                    android:scheme="fanzone"
+                    android:host="pools" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
