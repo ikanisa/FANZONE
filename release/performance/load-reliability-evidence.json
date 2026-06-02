@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "releaseCandidate": "TBD",
-  "sourceCommit": "TBD",
+  "releaseCandidate": "1.1.3+11",
+  "sourceCommit": "c310a6cc0581881d80fcc67e19a0a64686307b1f",
   "environment": {
     "name": "production",
     "websiteUrl": "https://fanzone.ikanisa.com",
     "adminUrl": "https://fanzoneadmin.ikanisa.com",
     "venuePortalUrl": "https://fanzone.venue.ikanisa.com",
     "tvDisplayUrl": "https://fanzonetv.ikanisa.com",
-    "supabaseProjectRef": "TBD"
+    "supabaseProjectRef": "kjuhheobmdvjwgnzlcwx"
   },
   "testWindow": {
     "startedAtUtc": "TBD",

@@ -11,7 +11,71 @@ control in `docs/release/world-class-evidence-matrix.md` is `PASS`, the
 fail-closed evidence validators pass, and production/provider signoffs are
 complete.
 
-## Repository State
+## Mobile Readiness Refresh - Current Checkout
+
+Current local checkout evidence captured during the Flutter deployment-readiness
+pass:
+
+| Item | Evidence |
+| --- | --- |
+| Branch | `main` |
+| Current source HEAD before this metadata edit | `c310a6c` (`c310a6cc0581881d80fcc67e19a0a64686307b1f`) |
+| Flutter release candidate | `1.1.3+11` from `pubspec.yaml` |
+| Linked Supabase project ref | `kjuhheobmdvjwgnzlcwx` from `supabase/.temp/project-ref` |
+| Google Play target API check | Android `targetSdk = 35`, matching the current Google Play requirement that new apps and updates target Android 15 / API 35 or higher |
+| Apple upload readiness check | iOS readiness still requires fresh archive/TestFlight evidence; current Apple guidance requires contemporary Xcode/iOS SDK upload evidence |
+
+Local Flutter/mobile commands run on this checkout:
+
+```bash
+flutter pub get
+./tool/mobile_release_static_audit.sh
+./tool/product_boundary_scan.sh
+flutter analyze
+flutter test
+flutter doctor -v
+flutter build apk --debug
+```
+
+Results:
+
+- `flutter pub get` completed with no tracked lockfile change.
+- `tool/mobile_release_static_audit.sh` passed.
+- `tool/product_boundary_scan.sh` passed.
+- `flutter analyze` passed with no issues.
+- `flutter test` passed with 249 tests.
+- `flutter doctor -v` found Android tooling available, but Flutter is on an
+  unknown local channel/source and CocoaPods is not installed, so iOS plugin,
+  archive, and TestFlight readiness cannot be claimed from this environment.
+- `flutter build apk --debug` did not complete in this run. It was terminated
+  after 1039.6 seconds with exit code 143 after no fresh debug APK was produced.
+  A concurrent unrelated Flutter/Gradle build in another checkout was also
+  consuming Gradle resources during this attempt.
+
+Release evidence metadata was refreshed in the fail-closed evidence files to
+name release candidate `1.1.3+11`, source commit
+`c310a6cc0581881d80fcc67e19a0a64686307b1f`, and production Supabase project ref
+`kjuhheobmdvjwgnzlcwx` where applicable. This is metadata hygiene only: no
+artifact, UAT, credential, monitoring, privacy/legal, load, or owner-signoff
+item was marked `PASS`.
+
+Validator rerun after the metadata refresh:
+
+- `node tool/validate_android_release_evidence.mjs` still fails because signed
+  AAB/APK, signature, freshness, install, deep-link, core smoke, Play internal
+  test, review metadata, timestamp, and launch approval evidence are missing.
+- `node tool/validate_ios_testflight_evidence.mjs` still fails because owner
+  signoff, signed archive, signed IPA, iPhone install, push, TestFlight, App
+  Store Connect processing, export compliance, beta information, review
+  metadata, timestamp, and launch approval evidence are missing.
+- `node tool/validate_critical_uat_signoff.mjs` still fails because the UAT
+  window, durable evidence bundle, owners, signoff, approval, and every required
+  critical flow remain `PENDING`.
+- `./tool/check_world_class_evidence.sh` still fails with 19 launch-readiness
+  issues. The remaining failures are provider/operator evidence gaps, not stale
+  release-candidate or source-commit metadata.
+
+## Previous Full Local-Gate Repository State
 
 | Item | Evidence |
 | --- | --- |
@@ -22,7 +86,7 @@ complete.
 | Divergence | `git rev-list --left-right --count main...origin/main` returned `0 0` |
 | Most recent pushed commit | `7cc4e3e chore: record go-live evidence progress` |
 
-## Repo-Owned Local Gate
+## Previous Full Repo-Owned Local Gate
 
 Command:
 
