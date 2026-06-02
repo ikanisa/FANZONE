@@ -85,6 +85,7 @@ run bash -n \
   tool/create_supabase_backup_evidence.sh \
   tool/collect_world_class_evidence.sh \
   tool/check_world_class_evidence.sh \
+  tool/validate_release_evidence_contract.sh \
   tool/supabase_live_validation.sh \
   tool/supabase_rls_audit.sh \
   tool/supabase_fet_supply_smoke.sh \

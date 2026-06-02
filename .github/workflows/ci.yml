@@ -156,6 +156,38 @@ jobs:
       - name: Run Edge Function tests
         run: deno test --allow-env supabase/functions
 
+  release-evidence-contracts:
+    name: Release Evidence Contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate release evidence tooling syntax
+        run: |
+          bash -n \
+            tool/check_world_class_evidence.sh \
+            tool/collect_world_class_evidence.sh \
+            tool/validate_release_evidence_contract.sh
+
+      - name: Validate release evidence validators parse
+        run: |
+          node --check tool/validate_secret_rotation_evidence.mjs
+          node --check tool/validate_critical_uat_signoff.mjs
+          node --check tool/validate_android_release_evidence.mjs
+          node --check tool/validate_ios_testflight_evidence.mjs
+          node --check tool/validate_operations_readiness_evidence.mjs
+          node --check tool/validate_privacy_legal_readiness_evidence.mjs
+          node --check tool/validate_load_reliability_evidence.mjs
+
+      - name: Validate release evidence contract
+        run: ./tool/validate_release_evidence_contract.sh
+
   admin-build:
     name: Admin Build
     runs-on: ubuntu-latest

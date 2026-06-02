@@ -118,6 +118,8 @@ FANZONE can move from `NO-GO` to `GO` only after:
 - `tool/check_world_class_evidence.sh` passes, including the matrix check and
   the backing secret-rotation, critical-UAT, Android, iOS, operations,
   privacy/legal, and load/reliability evidence validators;
+- `tool/validate_release_evidence_contract.sh` passes locally and in GitHub CI,
+  proving the matrix and world-class gate agree about launch readiness;
 - all P0 and P1 tasks in `docs/release/production-go-live-task-register.md` are
   complete with evidence;
 - `tool/go_live_readiness.sh --local` passes on a clean checkout;

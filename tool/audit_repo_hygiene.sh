@@ -42,7 +42,8 @@ for required in \
   docs/release/production-go-live-task-register.md \
   tool/go_live_readiness.sh \
   tool/check_world_class_evidence.sh \
-  tool/collect_world_class_evidence.sh; do
+  tool/collect_world_class_evidence.sh \
+  tool/validate_release_evidence_contract.sh; do
   [[ -f "${required}" ]] || fail "Missing required production-readiness artifact: ${required}"
 done
 

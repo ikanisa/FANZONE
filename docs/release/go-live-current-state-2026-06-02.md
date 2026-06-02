@@ -92,6 +92,16 @@ The aggregate evidence collector now fails by default when any collected item is
 `PENDING` or `FAIL`. `tool/collect_world_class_evidence.sh --allow-pending` is
 reserved for partial inventory snapshots and is not launch approval evidence.
 
+The repo now also has a release evidence contract check:
+
+```bash
+tool/validate_release_evidence_contract.sh
+```
+
+This check verifies that the P0/P1 matrix and `tool/check_world_class_evidence.sh`
+agree about the current launch state. It is also wired into the GitHub `Release
+Evidence Contracts` CI job.
+
 ### Secret Rotation Evidence
 
 Command:

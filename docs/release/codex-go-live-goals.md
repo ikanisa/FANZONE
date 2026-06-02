@@ -672,12 +672,16 @@ Why this goal exists:
 - `./tool/check_world_class_evidence.sh` is the final fail-closed local release
   decision gate for the matrix and backing evidence JSON validators; do not
   treat a manual matrix edit as sufficient launch proof.
+- `./tool/validate_release_evidence_contract.sh` and the GitHub `Release
+  Evidence Contracts` CI job verify that the matrix and world-class gate agree
+  about the current release state.
 
 Validation:
 
 ```bash
 ./tool/go_live_readiness.sh --local
 ./tool/check_world_class_evidence.sh
+./tool/validate_release_evidence_contract.sh
 node tool/validate_secret_rotation_evidence.mjs
 node tool/validate_critical_uat_signoff.mjs
 node tool/validate_ios_testflight_evidence.mjs
@@ -695,6 +699,7 @@ Acceptance:
 - P0 and P1 rows are all `PASS` with evidence.
 - The world-class evidence gate verifies both the matrix rows and every backing
   evidence validator listed in the completion definition.
+- The release evidence contract passes locally and in GitHub CI.
 - Current release candidate is clean, tagged, and synced.
 - Final report states `GO` only if all gates pass. Otherwise it states `NO-GO`
   with exact blockers and owners.
@@ -728,6 +733,8 @@ The goal pack is complete only when:
 - `main...origin/main` is `0 0`.
 - `./tool/go_live_readiness.sh --local` passes.
 - `./tool/check_world_class_evidence.sh` passes.
+- `./tool/validate_release_evidence_contract.sh` passes locally and in GitHub
+  CI.
 - `node tool/validate_secret_rotation_evidence.mjs` passes.
 - `node tool/validate_critical_uat_signoff.mjs` passes.
 - `node tool/validate_ios_testflight_evidence.mjs` passes.

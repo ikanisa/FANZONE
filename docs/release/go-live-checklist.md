@@ -9,6 +9,9 @@ Flutter app, bars/venue PWA, admin PWA, and TV PWA must all be 100% PASS.
 Track proof in `docs/release/world-class-evidence-matrix.md` and verify the
 release decision with `tool/check_world_class_evidence.sh`, which must validate
 both the matrix and backing release-evidence JSON files.
+`tool/validate_release_evidence_contract.sh` verifies that the matrix and
+world-class gate agree; the GitHub `Release Evidence Contracts` CI job must pass
+before launch.
 
 ## Code And Builds
 
@@ -20,6 +23,7 @@ both the matrix and backing release-evidence JSON files.
 - `flutter analyze` passes.
 - `flutter test` passes.
 - `tool/go_live_readiness.sh --local` passes on a clean checkout.
+- `tool/validate_release_evidence_contract.sh` passes locally and in GitHub CI.
 - Android and iOS release builds use ignored production config and signing files.
 
 ## Supabase
