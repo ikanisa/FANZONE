@@ -253,6 +253,13 @@ privacy labels, account deletion, retention, data export/access, support access,
 SDK data inventory, no-betting/no-cash-out wording, off-platform payment
 wording, and legal/compliance signoff evidence.
 
+The validator now also rejects missing source-commit metadata, missing
+production target URLs, missing or unordered review-window timestamps, missing
+or unresolved privacy/legal evidence bundle roots, missing official guidance
+references, missing public policy URLs, misplaced check surfaces, missing or
+unresolved PASS evidence refs, and live credential patterns in the evidence
+file.
+
 ## Load And Reliability Evidence Validator Added
 
 The repo now has a structured load and reliability evidence file:

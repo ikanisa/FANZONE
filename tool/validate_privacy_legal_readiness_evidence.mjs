@@ -3,26 +3,28 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 
 const defaultPath = "release/legal/privacy-legal-readiness-evidence.json";
 const targetPath = process.argv[2] || defaultPath;
 const absolutePath = path.resolve(process.cwd(), targetPath);
 
 const allowedStatuses = new Set(["PASS", "FAIL", "BLOCKED", "PENDING", "N/A"]);
-const requiredChecks = new Set([
-  "PUBLIC-PRIVACY-POLICY",
-  "PUBLIC-TERMS",
-  "ANDROID-DATA-SAFETY",
-  "APPLE-PRIVACY-LABELS",
-  "ACCOUNT-DELETION",
-  "DATA-RETENTION",
-  "DATA-EXPORT-ACCESS",
-  "SUPPORT-ACCESS",
-  "NO-BETTING-NO-CASHOUT",
-  "OFF-PLATFORM-PAYMENTS",
-  "SDK-DATA-INVENTORY",
-  "HUMAN-LEGAL-REVIEW",
+const requiredCheckSurfaces = new Map([
+  ["PUBLIC-PRIVACY-POLICY", "All"],
+  ["PUBLIC-TERMS", "All"],
+  ["ANDROID-DATA-SAFETY", "Flutter app"],
+  ["APPLE-PRIVACY-LABELS", "Flutter app"],
+  ["ACCOUNT-DELETION", "All"],
+  ["DATA-RETENTION", "All"],
+  ["DATA-EXPORT-ACCESS", "All"],
+  ["SUPPORT-ACCESS", "Admin PWA"],
+  ["NO-BETTING-NO-CASHOUT", "All"],
+  ["OFF-PLATFORM-PAYMENTS", "All"],
+  ["SDK-DATA-INVENTORY", "Flutter app"],
+  ["HUMAN-LEGAL-REVIEW", "All"],
 ]);
+const requiredChecks = new Set(requiredCheckSurfaces.keys());
 const requiredGuidanceRefs = new Set([
   "https://support.google.com/googleplay/android-developer/answer/10787469",
   "https://support.google.com/googleplay/android-developer/answer/13327111",
@@ -32,6 +34,12 @@ const requiredPublicUrls = [
   "privacyPolicyUrl",
   "termsUrl",
   "supportUrl",
+];
+const requiredEnvironmentUrls = [
+  "websiteUrl",
+  "adminUrl",
+  "venuePortalUrl",
+  "tvDisplayUrl",
 ];
 const credentialPattern =
   /(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|sbp_[A-Za-z0-9_-]{20,}|postgresql:\/\/[^:\s]+:[^@\s]+@)/;
@@ -63,6 +71,29 @@ function repoRefExists(ref) {
   return fs.existsSync(path.resolve(process.cwd(), ref));
 }
 
+function gitCommitExists(value) {
+  if (!hasText(value) || value === "TBD") return false;
+  try {
+    execFileSync("git", ["cat-file", "-e", `${value}^{commit}`], {
+      cwd: process.cwd(),
+      stdio: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function validateEvidenceRefs(label, refs, errors) {
+  if (!refsArePresent(refs)) {
+    errors.push(`${label}.evidenceRefs must include at least one evidence reference for PASS.`);
+    return;
+  }
+  for (const ref of refs) {
+    if (!repoRefExists(ref)) errors.push(`${label}.evidenceRefs contains missing repo ref: ${ref}.`);
+  }
+}
+
 function validate(data) {
   const errors = [];
 
@@ -70,7 +101,37 @@ function validate(data) {
   if (!hasText(data.releaseCandidate) || data.releaseCandidate === "TBD") {
     errors.push("releaseCandidate must name the release build, tag, or commit.");
   }
-  if (data.environment !== "production") errors.push('environment must be "production".');
+  if (!gitCommitExists(data.sourceCommit)) {
+    errors.push("sourceCommit must name an existing git commit for the release candidate.");
+  }
+
+  const environment = data.environment || {};
+  if (environment.name !== "production") errors.push('environment.name must be "production".');
+  for (const key of requiredEnvironmentUrls) {
+    if (!/^https:\/\/.+/.test(environment[key] || "")) {
+      errors.push(`environment.${key} must be an https URL.`);
+    }
+  }
+
+  const reviewWindow = data.reviewWindow || {};
+  if (!isIsoDateTime(reviewWindow.startedAtUtc)) {
+    errors.push("reviewWindow.startedAtUtc must be an ISO UTC timestamp ending in Z.");
+  }
+  if (!isIsoDateTime(reviewWindow.completedAtUtc)) {
+    errors.push("reviewWindow.completedAtUtc must be an ISO UTC timestamp ending in Z.");
+  }
+  if (
+    isIsoDateTime(reviewWindow.startedAtUtc) &&
+    isIsoDateTime(reviewWindow.completedAtUtc) &&
+    Date.parse(reviewWindow.completedAtUtc) <= Date.parse(reviewWindow.startedAtUtc)
+  ) {
+    errors.push("reviewWindow.completedAtUtc must be later than reviewWindow.startedAtUtc.");
+  }
+  if (!hasText(reviewWindow.evidenceBundleRoot) || reviewWindow.evidenceBundleRoot.includes("TBD")) {
+    errors.push("reviewWindow.evidenceBundleRoot must name the durable privacy/legal evidence bundle root.");
+  } else if (!repoRefExists(reviewWindow.evidenceBundleRoot)) {
+    errors.push("reviewWindow.evidenceBundleRoot must exist as a repo path or be a URL.");
+  }
 
   const signOff = data.signOff || {};
   if (!hasText(signOff.complianceOwner)) errors.push("signOff.complianceOwner is required.");
@@ -117,6 +178,9 @@ function validate(data) {
     }
 
     if (!hasText(check?.surface)) errors.push(`${label}.surface is required.`);
+    if (requiredCheckSurfaces.has(check?.id) && check.surface !== requiredCheckSurfaces.get(check.id)) {
+      errors.push(`${label}.surface must be ${requiredCheckSurfaces.get(check.id)}.`);
+    }
     if (!allowedStatuses.has(check?.status)) {
       errors.push(`${label} status must be PASS, FAIL, BLOCKED, PENDING, or N/A.`);
       continue;
@@ -125,13 +189,7 @@ function validate(data) {
       errors.push(`${label} is ${check.status}; privacy/legal readiness requires PASS.`);
       continue;
     }
-    if (!refsArePresent(check.evidenceRefs)) {
-      errors.push(`${label}.evidenceRefs must include at least one evidence reference for PASS.`);
-    } else {
-      for (const ref of check.evidenceRefs) {
-        if (!repoRefExists(ref)) errors.push(`${label}.evidenceRefs contains missing repo ref: ${ref}.`);
-      }
-    }
+    validateEvidenceRefs(label, check.evidenceRefs, errors);
   }
 
   for (const id of requiredChecks) {

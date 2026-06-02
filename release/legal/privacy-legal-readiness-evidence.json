@@ -1,7 +1,20 @@
 {
   "schemaVersion": 1,
   "releaseCandidate": "TBD",
-  "environment": "production",
+  "sourceCommit": "TBD",
+  "environment": {
+    "name": "production",
+    "websiteUrl": "https://fanzone.ikanisa.com",
+    "adminUrl": "https://fanzoneadmin.ikanisa.com",
+    "venuePortalUrl": "https://fanzone.venue.ikanisa.com",
+    "tvDisplayUrl": "https://fanzonetv.ikanisa.com"
+  },
+  "reviewWindow": {
+    "startedAtUtc": "TBD",
+    "completedAtUtc": "TBD",
+    "evidenceBundleRoot": "output/release-evidence/TBD/privacy-legal",
+    "notes": "Do not approve until privacy, legal, app-store policy, support-access, and human-review evidence is captured without live credentials or private personal data in this file."
+  },
   "signOff": {
     "complianceOwner": "",
     "legalReviewer": "",

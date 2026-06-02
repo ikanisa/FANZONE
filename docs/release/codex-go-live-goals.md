@@ -628,6 +628,10 @@ Why this goal exists:
 - Privacy/legal review is `PENDING`.
 - App-store submission depends on accurate product boundaries and reviewer
   instructions.
+- The validator is fail-closed for the release source commit, production target
+  URLs, review window, durable evidence bundle root, official guidance refs,
+  public policy URLs, exact check-to-surface mapping, PASS evidence refs, owner
+  signoff, and live credential patterns.
 
 Validation:
 
@@ -648,6 +652,10 @@ Acceptance:
 - `release/legal/privacy-legal-readiness-evidence.json` records public policy,
   Data Safety, Apple privacy label, deletion/export, retention, support access,
   SDK inventory, and legal signoff evidence.
+- Evidence is bound to an existing release source commit, production target
+  URLs, ordered review-window timestamps, and a durable evidence bundle root.
+- Each required check remains on its expected all-surface, Flutter app, or admin
+  PWA target and every `PASS` row has an existing evidence reference or URL.
 - `node tool/validate_privacy_legal_readiness_evidence.mjs` passes.
 - Human-review blockers are explicitly recorded.
 
