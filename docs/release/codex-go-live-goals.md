@@ -736,6 +736,6 @@ The goal pack is complete only when:
 - `node tool/validate_privacy_legal_readiness_evidence.mjs` passes.
 - `node tool/validate_load_reliability_evidence.mjs` passes.
 - `tool/collect_world_class_evidence.sh` produces no P0/P1 `PENDING` or `FAIL`
-  entries.
+  entries and exits successfully without `--allow-pending`.
 - The final go/no-go report is committed, pushed, and tied to the release
   candidate.

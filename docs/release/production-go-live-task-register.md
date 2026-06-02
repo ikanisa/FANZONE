@@ -51,6 +51,7 @@ Launch only when:
 - all P0 and P1 tasks are complete with evidence;
 - the world-class benchmark is 100% PASS for Flutter app, bars/venue PWA, admin PWA, and TV PWA;
 - `tool/check_world_class_evidence.sh` passes;
+- `tool/collect_world_class_evidence.sh` passes without `--allow-pending`;
 - `tool/go_live_readiness.sh --local` passes on a clean checkout;
 - production credentials are rotated and stored only in approved secret stores;
 - production backup, rollback, monitoring, and incident ownership are proven.

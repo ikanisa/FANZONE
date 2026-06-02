@@ -88,6 +88,10 @@ secret rotation, critical UAT, Android release readiness, iOS/TestFlight
 readiness, operations readiness, privacy/legal readiness, and load/reliability
 readiness. A future release cannot pass this gate by editing the matrix alone.
 
+The aggregate evidence collector now fails by default when any collected item is
+`PENDING` or `FAIL`. `tool/collect_world_class_evidence.sh --allow-pending` is
+reserved for partial inventory snapshots and is not launch approval evidence.
+
 ### Secret Rotation Evidence
 
 Command:

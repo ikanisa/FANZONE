@@ -75,6 +75,11 @@ FANZONE_TV_DISPLAY_URL=https://fanzonetv.ikanisa.com \
 tool/collect_world_class_evidence.sh
 ```
 
+The aggregate collector fails by default if any required evidence remains
+`PENDING` or `FAIL`. Use `tool/collect_world_class_evidence.sh --allow-pending`
+only when creating an inventory snapshot during remediation; that output is not
+launch approval evidence.
+
 ## Observability Evidence Required
 
 Required evidence bundle:

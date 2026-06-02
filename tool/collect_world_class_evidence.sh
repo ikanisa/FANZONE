@@ -2,10 +2,22 @@
 # Collect non-destructive production evidence for FANZONE release review.
 set -euo pipefail
 
+allow_pending=false
+if [[ "${1:-}" == "--allow-pending" ]]; then
+  allow_pending=true
+  shift
+fi
+
+if [[ "$#" -ne 0 ]]; then
+  echo "Usage: $0 [--allow-pending]" >&2
+  exit 2
+fi
+
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 out_dir="output/release-evidence/${timestamp}"
 mkdir -p "${out_dir}"
 failures=0
+pending=0
 
 run_and_capture() {
   local name="$1"
@@ -19,12 +31,19 @@ run_and_capture() {
   fi
 }
 
+mark_pending() {
+  local name="$1"
+  local reason="$2"
+  echo "PENDING ${name} (${reason})" | tee -a "${out_dir}/summary.txt"
+  pending=$((pending + 1))
+}
+
 optional_url_check() {
   local name="$1"
   local surface="$2"
   local url="${3:-}"
   if [[ -z "${url}" ]]; then
-    echo "PENDING ${name} (URL env not set)" | tee -a "${out_dir}/summary.txt"
+    mark_pending "${name}" "URL env not set"
     return 0
   fi
   run_and_capture "${name}" tool/verify_deployed_web_surface.sh "${surface}" "${url}"
@@ -45,13 +64,13 @@ run_and_capture "full_history_secret_scan" tool/full_history_secret_scan.sh
 if [[ -f ".env.production" ]]; then
   run_and_capture "production_env_isolation" tool/verify_production_envs.sh .env.production
 else
-  echo "PENDING production_env_isolation (.env.production not present)" | tee -a "${out_dir}/summary.txt"
+  mark_pending "production_env_isolation" ".env.production not present"
 fi
 
 if [[ -n "${SUPABASE_DB_URL:-}" || -f "supabase/.temp/project-ref" ]]; then
   run_and_capture "supabase_live_validation" tool/supabase_live_validation.sh
 else
-  echo "PENDING supabase_live_validation (SUPABASE_DB_URL/link not available)" | tee -a "${out_dir}/summary.txt"
+  mark_pending "supabase_live_validation" "SUPABASE_DB_URL/link not available"
 fi
 
 optional_url_check "website_deployed_headers" website "${FANZONE_WEBSITE_URL:-}"
@@ -63,18 +82,30 @@ if has_env_name "SUPABASE_URL" && has_env_name "CRON_SECRET"; then
   run_and_capture "cron_settle_match_pools" tool/run_supabase_cron_job.sh settle-match-pools
   run_and_capture "cron_dispatch_match_alerts" tool/run_supabase_cron_job.sh dispatch-match-alerts
 else
-  echo "PENDING cron_smoke (SUPABASE_URL/CRON_SECRET not set in environment or .env)" | tee -a "${out_dir}/summary.txt"
+  mark_pending "cron_smoke" "SUPABASE_URL/CRON_SECRET not set in environment or .env"
 fi
 
 if [[ -n "${SUPABASE_DB_URL:-}" || -f "supabase/.temp/project-ref" ]]; then
   run_and_capture "backup_evidence" tool/create_supabase_backup_evidence.sh
 else
-  echo "PENDING backup_evidence (SUPABASE_DB_URL/link not available)" | tee -a "${out_dir}/summary.txt"
+  mark_pending "backup_evidence" "SUPABASE_DB_URL/link not available"
 fi
 
 echo "Evidence summary: ${out_dir}/summary.txt"
 
-if [[ "${failures}" -ne 0 ]]; then
-  echo "Evidence collection completed with ${failures} failing check(s)." >&2
+if [[ "${failures}" -ne 0 || ("${pending}" -ne 0 && "${allow_pending}" != true) ]]; then
+  if [[ "${failures}" -ne 0 ]]; then
+    echo "Evidence collection completed with ${failures} failing check(s)." >&2
+  fi
+  if [[ "${pending}" -ne 0 ]]; then
+    echo "Evidence collection completed with ${pending} pending check(s)." >&2
+  fi
+  if [[ "${pending}" -ne 0 && "${allow_pending}" != true ]]; then
+    echo "Use --allow-pending only for inventory snapshots, not launch approval." >&2
+  fi
   exit 1
+fi
+
+if [[ "${pending}" -ne 0 ]]; then
+  echo "Evidence collection completed with ${pending} pending check(s); inventory mode allowed pending evidence."
 fi

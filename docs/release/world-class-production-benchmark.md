@@ -122,6 +122,7 @@ FANZONE can move from `NO-GO` to `GO` only after:
   complete with evidence;
 - `tool/go_live_readiness.sh --local` passes on a clean checkout;
 - `tool/collect_world_class_evidence.sh` has a release evidence bundle with no
-  P0/P1 `PENDING` or `FAIL` entries;
+  P0/P1 `PENDING` or `FAIL` entries and exits successfully without
+  `--allow-pending`;
 - live provider evidence proves deployed Cloudflare, Supabase, scheduler,
   secrets, monitoring, backup, rollback, and store-release readiness.
