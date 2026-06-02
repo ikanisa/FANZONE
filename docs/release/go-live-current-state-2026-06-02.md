@@ -136,10 +136,12 @@ Result: `FAIL`
 
 Open blockers:
 
+- source commit is still `TBD`;
 - mobile owner and release owner signoff fields are incomplete;
 - launch approval is not granted;
 - signed archive, signed IPA, physical iPhone install, push smoke, TestFlight,
-  and App Store review metadata checks remain `PENDING`.
+  App Store Connect build status, export compliance, beta test information, and
+  App Store review metadata checks remain `PENDING`.
 
 ## Additional Repo-Owned Hardening Added
 
@@ -269,3 +271,24 @@ build timestamps, signature verification, production preflight, physical-device
 install smoke, Android App Link/deep-link smoke, core-flow smoke, Google Play
 internal-test evidence, review metadata evidence, and mobile/release owner
 signoff.
+
+## iOS/TestFlight Evidence Validator Hardened
+
+The iOS/TestFlight evidence file is:
+
+```text
+release/ios/testflight-readiness.json
+```
+
+Validate it with:
+
+```bash
+node tool/validate_ios_testflight_evidence.mjs
+```
+
+The validator now requires official Apple guidance references, a source commit,
+signed archive and IPA artifact records, SHA-256 hashes, artifact sizes, build
+timestamps, App Store Connect build status, export-compliance answers,
+TestFlight beta information, App Review metadata, physical iPhone install
+smoke, production push smoke, and mobile/release owner signoff before the P1
+iOS row can move beyond `PARTIAL`.

@@ -387,9 +387,16 @@ node tool/validate_ios_testflight_evidence.mjs
 
 Acceptance:
 
-- `release/ios/testflight-readiness.json` has all required checks as `PASS`.
-- Signed archive and IPA paths exist.
+- `release/ios/testflight-readiness.json` has all required checks and
+  artifacts as `PASS`.
+- Evidence is bound to the release source commit and records archive/IPA paths,
+  SHA-256 hashes, sizes, build timestamps, App Store Connect build status,
+  export-compliance answers, TestFlight beta information, and App Review
+  metadata.
 - TestFlight/App Store Connect evidence references are redacted and durable.
+- Signed archive and IPA paths exist.
+- Physical-device iPhone smoke is recorded.
+- Production push behavior is verified.
 
 ## Goal 08 - Complete Critical End-To-End UAT Signoff
 

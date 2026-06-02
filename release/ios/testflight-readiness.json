@@ -1,11 +1,45 @@
 {
   "schemaVersion": 1,
   "releaseCandidate": "1.1.3+11",
+  "sourceCommit": "TBD",
   "bundleId": "com.fanzone.fanzone",
   "appleTeamId": "63STJ5N27W",
   "apsEnvironment": "production",
+  "officialGuidanceRefs": [
+    "https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/",
+    "https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds/",
+    "https://developer.apple.com/help/app-store-connect/reference/app-uploads/app-build-statuses/",
+    "https://developer.apple.com/app-store/app-privacy-details/",
+    "https://developer.apple.com/app-store/review/guidelines/"
+  ],
   "archivePath": "build/ios/archive/Runner.xcarchive",
   "ipaPath": "build/ios/ipa",
+  "artifacts": [
+    {
+      "id": "XCARCHIVE",
+      "status": "PENDING",
+      "path": "build/ios/archive/Runner.xcarchive",
+      "sha256": "",
+      "sizeBytes": 0,
+      "versionName": "1.1.3",
+      "buildNumber": 11,
+      "builtAtUtc": "TBD",
+      "evidenceRefs": [],
+      "notes": "Fresh signed production archive must be created from the release candidate."
+    },
+    {
+      "id": "IPA",
+      "status": "PENDING",
+      "path": "build/ios/ipa",
+      "sha256": "",
+      "sizeBytes": 0,
+      "versionName": "1.1.3",
+      "buildNumber": 11,
+      "builtAtUtc": "TBD",
+      "evidenceRefs": [],
+      "notes": "Fresh signed IPA export must be created from the release candidate."
+    }
+  ],
   "signOff": {
     "mobileOwner": "",
     "releaseOwner": "",
@@ -65,6 +99,27 @@
     {
       "id": "IOS-TESTFLIGHT-001",
       "scenario": "Build uploads to App Store Connect and is available in TestFlight internal testing",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "IOS-BUILD-STATUS-001",
+      "scenario": "Uploaded build is processed in App Store Connect and has an acceptable TestFlight build status",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "IOS-EXPORT-COMPLIANCE-001",
+      "scenario": "App encryption, export compliance, and any required App Store Connect compliance answers are complete",
+      "status": "PENDING",
+      "evidenceRefs": [],
+      "notes": ""
+    },
+    {
+      "id": "IOS-TEST-INFO-001",
+      "scenario": "TestFlight beta app description, features to test, feedback email, and reviewer/tester instructions are complete",
       "status": "PENDING",
       "evidenceRefs": [],
       "notes": ""
