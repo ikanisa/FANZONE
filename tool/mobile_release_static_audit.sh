@@ -31,6 +31,7 @@ ios_entitlements="ios/Runner/Runner.entitlements"
 require_file "${android_manifest}"
 require_file "${android_gradle}"
 require_file "tool/android_deep_link_smoke.sh"
+require_file "tool/android_signature_verify.sh"
 require_file "tool/preflight_build_check.sh"
 require_file "tool/build_android_release_from_env.sh"
 require_file "tool/build_android_aab_from_env.sh"
@@ -113,6 +114,10 @@ require_contains "tool/android_deep_link_smoke.sh" 'FANZONE_DEEPLINK_SMOKE_RELEA
   "Android deep-link smoke must provide a fail-closed release-evidence mode."
 require_contains "tool/android_deep_link_smoke.sh" 'fanzone://pools/\$\{POOL_SHARE_SLUG\}' \
   "Android deep-link smoke must cover generated fanzone://pools share links."
+require_contains "tool/android_signature_verify.sh" 'jarsigner -verify "\$\{AAB_PATH\}"' \
+  "Android signature verification must verify the release AAB with jarsigner."
+require_contains "tool/android_signature_verify.sh" 'verify --verbose --print-certs "\$\{APK_PATH\}"' \
+  "Android signature verification must verify the release APK with apksigner certificate output."
 
 if awk '
   /defaultConfig[[:space:]]*\{/ { in_default=1; depth=1; next }

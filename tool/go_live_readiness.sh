@@ -79,6 +79,8 @@ run bash -n \
   tool/audit_repo_hygiene.sh \
   tool/product_boundary_scan.sh \
   tool/mobile_release_static_audit.sh \
+  tool/android_deep_link_smoke.sh \
+  tool/android_signature_verify.sh \
   tool/full_history_secret_scan.sh \
   tool/verify_deployed_web_surface.sh \
   tool/verify_production_envs.sh \

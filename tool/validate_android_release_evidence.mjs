@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
 const defaultPath = "release/android/android-release-readiness.json";
 const targetPath = process.argv[2] || defaultPath;
@@ -57,6 +58,12 @@ function repoRefExists(ref) {
   if (!hasText(ref)) return false;
   if (/^https?:\/\//.test(ref)) return true;
   return fs.existsSync(path.resolve(process.cwd(), ref));
+}
+
+function fileSha256(filePath) {
+  const hash = createHash("sha256");
+  hash.update(fs.readFileSync(filePath));
+  return hash.digest("hex");
 }
 
 function refsArePresent(value) {
@@ -144,12 +151,25 @@ function validate(data) {
         continue;
       }
       if (!hasText(artifact.path)) errors.push(`${label}.path is required for PASS.`);
-      if (!fs.existsSync(path.resolve(process.cwd(), artifact.path || ""))) {
+      const artifactPath = path.resolve(process.cwd(), artifact.path || "");
+      if (!fs.existsSync(artifactPath)) {
         errors.push(`${label}.path does not exist: ${artifact.path}`);
       }
       if (!isSha256(artifact.sha256)) errors.push(`${label}.sha256 must be a SHA-256 hex digest for PASS.`);
       if (!Number.isInteger(artifact.sizeBytes) || artifact.sizeBytes <= 0) {
         errors.push(`${label}.sizeBytes must be a positive integer for PASS.`);
+      }
+      if (fs.existsSync(artifactPath)) {
+        const actualSize = fs.statSync(artifactPath).size;
+        if (Number.isInteger(artifact.sizeBytes) && artifact.sizeBytes !== actualSize) {
+          errors.push(`${label}.sizeBytes does not match ${artifact.path}: expected ${artifact.sizeBytes}, actual ${actualSize}.`);
+        }
+        if (isSha256(artifact.sha256)) {
+          const actualSha256 = fileSha256(artifactPath);
+          if (artifact.sha256.toLowerCase() !== actualSha256) {
+            errors.push(`${label}.sha256 does not match ${artifact.path}: expected ${artifact.sha256}, actual ${actualSha256}.`);
+          }
+        }
       }
       if (artifact.versionName !== data.versionName) {
         errors.push(`${label}.versionName must match top-level versionName.`);

@@ -92,6 +92,7 @@ jarsigner -verify build/app/outputs/bundle/release/app-release.aab
 jarsigner -verify -strict build/app/outputs/bundle/release/app-release.aab
 ./tool/build_android_release_from_env.sh production
 apksigner verify --verbose --print-certs build/app/outputs/flutter-apk/app-release.apk
+./tool/android_signature_verify.sh
 adb uninstall app.fanzone.football
 adb install build/app/outputs/flutter-apk/app-release.apk
 adb shell monkey -p app.fanzone.football -c android.intent.category.LAUNCHER 1
@@ -140,6 +141,44 @@ representative venue, pool, and custom-scheme launch intents on a connected
 device. This script has not yet been run against a freshly installed release
 build, so `ANDROID-DEEPLINK-001` remains `PENDING`.
 
+Current-source Android rebuild evidence captured after the deep-link guardrail
+commits:
+
+- Source commit: `dfc874a71dd1659390c2f14d9557890c907cd5d2`.
+- `build/app/outputs/bundle/release/app-release.aab` rebuilt at
+  `2026-06-02T22:31:08Z`, size `135718306` bytes, SHA-256
+  `15a1a1c15b85587451bc3b8a6e3fa834c4984fc6e44fcab51b381c0e68e66888`.
+- `build/app/outputs/flutter-apk/app-release.apk` rebuilt at
+  `2026-06-02T22:34:50Z`, size `68985946` bytes, SHA-256
+  `02895f785b818608fc453d0b576cb05ed8063545a4ff9aa89c35d848d651b912`.
+- `tool/android_signature_verify.sh` wrote
+  `output/release-evidence/android-signature/20260602T223654Z.log`. The AAB
+  passed normal `jarsigner -verify`; strict `jarsigner -verify -strict`
+  returned exit `4` because the current upload certificate is self-signed and
+  has no timestamp, with ZIP/JAR stream warnings. The APK passed
+  `apksigner verify --verbose --print-certs` with APK Signature Scheme v2
+  enabled. The signer certificate DN is
+  `CN=FANZONE, OU=Mobile, O=FANZONE, L=Valletta, ST=Malta, C=MT`, certificate
+  SHA-256 `788fd7058cd2476f81cedf1b0d6b180ea4fb5c6b08789dbebfdf87e86c0b58a1`,
+  and public key SHA-256
+  `35dfac3a2d3575ff3ede417fcd8b27187098d68f91a8fb11db7a44ccc217a514`.
+  This is local signing evidence, not Play app-signing acceptance.
+- `adb install -r build/app/outputs/flutter-apk/app-release.apk` succeeded on
+  Pixel 4a device `13111JEC215558`.
+- `tool/android_deep_link_smoke.sh` probe mode passed on the rebuilt APK and
+  wrote `output/release-evidence/android-deep-link-smoke/20260602T223841Z.log`.
+  The probe confirmed `pm get-app-links app.fanzone.football` reports
+  `fanzone.ikanisa.com: verified` and `fanzone.guest.ikanisa.com: verified`,
+  and confirmed MainActivity focus after HTTPS App Links, legacy `fanzone.app`,
+  `fanzone://` custom-scheme, legacy `/predict`, and generated
+  `fanzone://pools/...` launch intents.
+- This is still probe evidence, not release-mode PASS. `ANDROID-DEEPLINK-001`
+  remains `PENDING` until the same script runs with
+  `FANZONE_DEEPLINK_SMOKE_RELEASE=1` and real smoke values for
+  `FANZONE_SMOKE_VENUE_ID`, `FANZONE_SMOKE_VENUE_SLUG`,
+  `FANZONE_SMOKE_POOL_ID`, `FANZONE_SMOKE_POOL_SHARE_SLUG`,
+  `FANZONE_SMOKE_INVITE_CODE`, and `FANZONE_SMOKE_CAMP_ID`.
+
 Validator rerun after the metadata refresh:
 
 - `node tool/validate_android_release_evidence.mjs` still fails because
@@ -153,7 +192,7 @@ Validator rerun after the metadata refresh:
 - `node tool/validate_critical_uat_signoff.mjs` still fails because the UAT
   window, durable evidence bundle, owners, signoff, approval, and every required
   critical flow remain `PENDING`.
-- `./tool/check_world_class_evidence.sh` still fails with 19 launch-readiness
+- `./tool/check_world_class_evidence.sh` still fails with 18 launch-readiness
   issues. The remaining failures are provider/operator evidence gaps, not stale
   release-candidate or source-commit metadata.
 
