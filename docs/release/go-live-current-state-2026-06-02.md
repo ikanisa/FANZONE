@@ -17,10 +17,10 @@ complete.
 | --- | --- |
 | Working tree | Clean before the local go-live gate run |
 | Branch | `main` |
-| Local HEAD | `c19011b` |
-| Remote HEAD | `origin/main` at `c19011b` |
+| Local HEAD | `7cc4e3e` |
+| Remote HEAD | `origin/main` at `7cc4e3e` |
 | Divergence | `git rev-list --left-right --count main...origin/main` returned `0 0` |
-| Most recent pushed commit | `c19011b docs: add FANZONE go-live Codex goal pack` |
+| Most recent pushed commit | `7cc4e3e chore: record go-live evidence progress` |
 
 ## Repo-Owned Local Gate
 
@@ -32,7 +32,7 @@ Command:
 
 Result: `PASS`
 
-The local go-live gate completed successfully at `c19011b` and reported:
+The local go-live gate completed successfully at `7cc4e3e` and reported:
 
 - clean working tree;
 - tracked-file secret regex scan passed;
