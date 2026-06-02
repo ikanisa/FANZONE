@@ -4,6 +4,7 @@ import type {
   PaymentMethod,
   SupportedPaymentMethod,
 } from "@fanzone/core";
+import { manualPaymentStatusRequiresNote } from "@fanzone/core";
 import { AlertTriangle, CheckCircle2, X } from "lucide-react";
 
 const paymentMethods: Array<{
@@ -105,9 +106,12 @@ function ManualMarkPaidModalContent({
   const [staffConfirmed, setStaffConfirmed] = useState(false);
 
   const parsedAmount = useMemo(() => Number(amountReceived), [amountReceived]);
+  const trimmedNote = note.trim();
+  const requiresNote = manualPaymentStatusRequiresNote("paid");
   const canConfirm =
     Number.isFinite(parsedAmount) &&
     parsedAmount >= 0 &&
+    (!requiresNote || trimmedNote.length > 0) &&
     staffConfirmed &&
     !saving;
 
@@ -206,7 +210,7 @@ function ManualMarkPaidModalContent({
                 className="input min-h-24 resize-none"
                 value={note}
                 maxLength={240}
-                placeholder="Optional operational note"
+                placeholder="Required: who confirmed it, where the proof came from, and any close-out context"
                 onChange={(event) => setNote(event.target.value)}
               />
             </label>
@@ -273,7 +277,7 @@ function ManualMarkPaidModalContent({
                 amountReceived: parsedAmount,
                 method,
                 reference,
-                note,
+                note: trimmedNote,
               })
             }
           >

@@ -206,8 +206,8 @@ export default function App() {
                           element={
                             <FeatureRoute
                               featureKey="wallet"
-                              title="Wallet is unavailable"
-                              message="Wallet operations are currently disabled for the website."
+                              title="Rewards are unavailable"
+                              message="FET rewards ledger operations are currently disabled for the website."
                             >
                               <WalletHub />
                             </FeatureRoute>

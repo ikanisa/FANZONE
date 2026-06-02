@@ -46,7 +46,7 @@ abstract interface class OrderGateway {
   /// Update payment status (venue dashboard action).
   Future<void> updatePaymentStatus(String orderId, PaymentStatus newStatus);
 
-  /// Spend FET against an order through the wallet ledger RPC.
+  /// Redeem FET against an order through the rewards ledger RPC.
   Future<void> spendFetOnOrder({
     required String orderId,
     required int amountFet,
@@ -145,10 +145,16 @@ class PaymentHandoff {
 
   factory PaymentHandoff.fromJson(Map<String, dynamic> json) {
     final methodName = json['method']?.toString() ?? 'cash';
-    final method = PaymentMethod.values.firstWhere(
+    final parsedMethod = PaymentMethod.values.firstWhere(
       (value) => value.name == methodName,
       orElse: () => PaymentMethod.cash,
     );
+    final method = switch (parsedMethod) {
+      PaymentMethod.momo || PaymentMethod.revolut => parsedMethod,
+      PaymentMethod.cash ||
+      PaymentMethod.card ||
+      PaymentMethod.other => PaymentMethod.cash,
+    };
     final rawInstructions = json['instructions'];
 
     return PaymentHandoff(

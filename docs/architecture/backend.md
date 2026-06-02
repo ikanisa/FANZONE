@@ -7,7 +7,7 @@ Backend source lives under `supabase/`.
 - Auth and anonymous guest sessions.
 - Venue, menu, table, order, payment status, and FET reward state.
 - Match catalog, curation, pools, camps, entries, invites, and settlements.
-- Wallet ledger and balance derivation.
+- FET rewards ledger and balance derivation.
 - RLS isolation and audited mutation paths.
 - Edge Functions for imports, orders, notifications, OTP, social cards, and settlement.
 
@@ -79,6 +79,8 @@ Backend source lives under `supabase/`.
 | `20260501163600_contract_rpc_wrappers.sql` | Adds product-facing RPC wrappers for staking, FET order spend, share-card payload/storage, and manual payment confirmation. |
 | `20260501163700_remote_lint_contract_compat.sql` | Adds missing remote pool-entry source columns, settlement `pending` enum support, and an explicit pgvector search path for legacy legal-document search. |
 | `20260522150000_order_lifecycle_hardening.sql` | Adds the target hospitality order lifecycle, `order_state_events`, scoped RLS, and canonical `venue_transition_order_status` RPC. |
+| `20260523120000_manual_payment_reconciliation.sql` | Adds a read-only venue-scoped daily reconciliation RPC over audited manual/off-platform `payment_events`. |
+| `20260523130000_staff_call_acknowledgement_rpc.sql` | Adds an audited venue-scoped `venue_acknowledge_bell_request` RPC so staff-call acknowledgement does not require direct client table updates. |
 
 Destructive retired-object cleanup is intentionally outside this migration inventory. See `supabase/destructive/20260501_retired_dinein_fanzone_cleanup.sql` and `docs/refactor/destructive-cleanup-runbook-2026-05-01.md`.
 
@@ -110,6 +112,18 @@ Destructive retired-object cleanup is intentionally outside this migration inven
 
 Deprecated DineIn-era functions are intentionally excluded from active deployment. `ring_bell` is not deprecated: it backs the active table-assistance flow and `public.bell_requests` must not be included in destructive cleanup.
 
+## Payment Reconciliation
+
+- `venue_update_order_payment_status` is the canonical audited manual confirmation RPC.
+- `order_mark_paid` remains a compatibility Edge wrapper and does not call payment providers.
+- `venue_manual_payment_reconciliation(uuid, date)` is read-only and venue-scoped. It summarizes `payment_events` by method/status/provider execution flag for a UTC business date so venue operators can support daily close and manual/off-platform reconciliation from audit evidence.
+
+## Staff Calls
+
+- `ring_bell` creates authenticated customer staff-call requests after validating the venue/table context.
+- `venue_acknowledge_bell_request(uuid)` is the canonical staff acknowledgement mutation path. It checks venue/admin authority, locks the bell request, writes acknowledgement fields, and records audit evidence.
+- Venue portal staff queues may read `bell_requests` through venue-scoped RLS and realtime filters, but must not update `bell_requests` directly.
+
 ## Scoped Realtime Contracts
 
 - Customer order tracking subscribes to `orders` with `id=eq.<order_id>`.
@@ -117,6 +131,9 @@ Deprecated DineIn-era functions are intentionally excluded from active deploymen
 - Staff-call queues subscribe to `bell_requests` with `venue_id=eq.<venue_id>`.
 - TV displays subscribe to venue-owned screen/game rows with `venue_id=eq.<venue_id>`.
 - Do not add whole-table realtime subscriptions for orders, staff calls, games, leaderboards, or TV display state.
+- `tool/scoped_realtime_scan.mjs` statically checks active Flutter and web app source for Supabase realtime subscriptions without filters; `tool/product_boundary_scan.sh` runs it as part of the release boundary gate.
+- `tool/order_edge_boundary_scan.mjs` checks that order status and manual-payment Edge wrappers keep transition/payment rules in canonical RPCs instead of mutating order or payment-event rows directly.
+- `tool/order_lifecycle_parity_scan.mjs` checks that shared TypeScript app lifecycle helpers and Edge lifecycle helpers expose the same target statuses and next-transition rules.
 
 ## Database Verification
 
@@ -131,7 +148,9 @@ psql "$SUPABASE_DB_URL" -f supabase/tests/curated_match_platform.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/rls_hardening_audit.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/fet_wallet_reward_engine.sql
 psql "$SUPABASE_DB_URL" -f supabase/tests/sports_bar_simplified_contract.sql
-psql "$SUPABASE_DB_URL" -f supabase/tests/order_lifecycle_contract.sql
+./tool/supabase_release_readiness_hardening.sh
+./tool/supabase_hospitality_core_phase2.sh --readiness
+./tool/supabase_hospitality_core_phase2.sh --contract
 ```
 
-If `SUPABASE_DB_URL` is not available, use the Supabase CLI-linked database and run the SQL files through `supabase db query --linked` after stripping psql-only meta commands. The simplified product contract and RLS hardening audit were verified this way on 2026-05-01.
+If `SUPABASE_DB_URL` is not available, use the Supabase CLI-linked database. The Hospitality Core Phase 2 wrapper runs the lifecycle, manual payment reconciliation, and staff-call acknowledgement checks; the underlying smoke wrappers strip psql-only meta commands automatically when using the linked CLI path. The simplified product contract and RLS hardening audit were verified this way on 2026-05-01.

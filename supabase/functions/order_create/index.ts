@@ -12,6 +12,14 @@ import {
   jsonResponse,
   optionalAuth,
 } from "../_shared/mod.ts";
+import {
+  orderCreateInitialPaymentStatus,
+  orderCreateInitialStatus,
+  orderCreateMaxTableNumberLength,
+  orderCreatePaymentMethods,
+  orderCreateStateEventReason,
+  orderCreateStateEventSource,
+} from "../_shared/order_create_contract.ts";
 
 // --- Input Validation Schema ---
 const orderItemSchema = z
@@ -29,9 +37,9 @@ const orderItemSchema = z
 const createOrderSchema = z
   .object({
     venue_id: z.string().uuid(),
-    table_number: z.string().trim().min(1).max(24),
+    table_number: z.string().trim().min(1).max(orderCreateMaxTableNumberLength),
     payment_method: z
-      .enum(["cash", "momo", "revolut", "other"])
+      .enum(orderCreatePaymentMethods)
       .default("cash"),
     items: z.array(orderItemSchema).min(1),
     special_instructions: z.string().max(1000).nullable().optional(),
@@ -270,9 +278,9 @@ Deno.serve(async (req) => {
         table_id: table.id,
         user_id: userId,
         order_code: orderCode,
-        status: "submitted",
+        status: orderCreateInitialStatus,
         payment_method: input.payment_method,
-        payment_status: "pending",
+        payment_status: orderCreateInitialPaymentStatus,
         subtotal_amount: totalAmount,
         tax_amount: 0,
         tip_amount: 0,
@@ -300,9 +308,9 @@ Deno.serve(async (req) => {
       venue_id: input.venue_id,
       actor_user_id: userId,
       previous_status: null,
-      next_status: "submitted",
-      reason: "Order submitted by customer",
-      source: "order_create",
+      next_status: orderCreateInitialStatus,
+      reason: orderCreateStateEventReason,
+      source: orderCreateStateEventSource,
       metadata: {
         request_id: requestId,
         table_number: tableNumber,

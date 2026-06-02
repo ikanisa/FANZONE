@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 const toolDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(toolDir, "..");
+const forbiddenProductCopyPattern =
+  /\b(wallets?|fet wallets?|sports-bar wallet|wallet flow|wallet activity|wallet transfer|wallet balance|wallet operations|wallet ledger|open wallet|wallet is unavailable)\b/i;
 
 const surfaces = {
   admin: {
@@ -144,6 +146,12 @@ async function collectManifestErrors(appRoot, manifest, config) {
     errors.push(`site.webmanifest theme_color must be ${config.expectedThemeColor}.`);
   }
 
+  if (forbiddenProductCopyPattern.test(String(manifest?.description ?? ""))) {
+    errors.push(
+      "site.webmanifest description must use FET rewards-ledger language instead of wallet language.",
+    );
+  }
+
   if (!Array.isArray(manifest?.icons) || manifest.icons.length < 2) {
     errors.push("site.webmanifest must declare at least two icons.");
     return errors;
@@ -195,6 +203,18 @@ function collectHeadersErrors(headers, config) {
   return errors;
 }
 
+function collectProductCopyErrors(html) {
+  const errors = [];
+
+  if (forbiddenProductCopyPattern.test(html)) {
+    errors.push(
+      "index.html metadata must use FET rewards-ledger language instead of wallet language.",
+    );
+  }
+
+  return errors;
+}
+
 async function collectFontPolicyErrors(appRoot, headers, html) {
   const errors = [];
   const cssFiles = await collectFilesByExtension(path.join(appRoot, "src"), ".css");
@@ -240,6 +260,7 @@ async function main() {
 
   const errors = [
     ...collectIndexErrors(html, config),
+    ...collectProductCopyErrors(html),
     ...(await collectManifestErrors(appRoot, manifest, config)),
     ...collectHeadersErrors(headers, config),
     ...(await collectFontPolicyErrors(appRoot, headers, html)),

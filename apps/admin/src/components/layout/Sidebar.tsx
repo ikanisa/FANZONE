@@ -77,7 +77,7 @@ const NAV_ITEMS: NavItem[] = [
     minRole: "admin",
   },
   {
-    label: "FET Wallets",
+    label: "FET Ledgers",
     path: ROUTES.FET_WALLETS,
     icon: <Wallet size={18} />,
     minRole: "admin",

@@ -86,7 +86,7 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
       return;
     }
     if (minStake <= 0 || maxStake < minStake) {
-      setState(() => _error = 'Invalid stake.');
+      setState(() => _error = 'Invalid entry amount.');
       return;
     }
     if (!venueContext.hasVenue) {
@@ -472,7 +472,7 @@ class _TermsStep extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Bar and stake.',
+          'Bar and entry rules.',
           style: TextStyle(
             color: FzColors.darkMuted,
             fontWeight: FontWeight.w700,
@@ -506,7 +506,7 @@ class _TermsStep extends StatelessWidget {
           children: [
             Expanded(
               child: _StakeField(
-                label: 'Your Stake',
+                label: 'Your Entry',
                 controller: minController,
               ),
             ),
@@ -615,7 +615,7 @@ class _ReviewStep extends StatelessWidget {
                 value: venueContext.venue?.name ?? 'Pick bar',
               ),
               const Divider(height: 24),
-              _ReviewRow(label: 'Stake', value: '$minStake-$maxStake FET'),
+              _ReviewRow(label: 'Entry', value: '$minStake-$maxStake FET'),
             ],
           ),
         ),

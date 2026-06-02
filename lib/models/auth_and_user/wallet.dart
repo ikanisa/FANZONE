@@ -9,8 +9,7 @@ class WalletTransaction with _$WalletTransaction {
     required String id,
     required String title,
     required int amount,
-    required String
-    type, // 'earn' | 'spend' | 'transfer_sent' | 'transfer_received'
+    required String type, // 'earn' | 'spend' | 'reward_credit' | 'reward_debit'
     required DateTime date,
     required String dateStr,
   }) = _WalletTransaction;

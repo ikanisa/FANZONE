@@ -23,9 +23,9 @@ void main() {
     test('fromJson round-trip', () {
       final json = {
         'id': 'tx-002',
-        'title': 'FET sent',
+        'title': 'Rewards adjustment',
         'amount': 100,
-        'type': 'transfer_sent',
+        'type': 'reward_debit',
         'date': '2026-04-18T12:00:00.000',
         'dateStr': '1d ago',
       };
@@ -33,7 +33,7 @@ void main() {
       final tx = WalletTransaction.fromJson(json);
       expect(tx.id, 'tx-002');
       expect(tx.amount, 100);
-      expect(tx.type, 'transfer_sent');
+      expect(tx.type, 'reward_debit');
 
       final roundTrip = WalletTransaction.fromJson(tx.toJson());
       expect(roundTrip, tx);

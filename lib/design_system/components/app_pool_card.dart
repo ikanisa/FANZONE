@@ -5,7 +5,7 @@ import '../../theme/colors.dart';
 import '../../theme/radii.dart';
 import '../../theme/typography.dart';
 
-/// Pool card matching reference — status chip, FET pot, creator ID, join CTA.
+/// Pool card matching reference: status chip, FET points, creator ID, join CTA.
 class AppPoolCard extends StatelessWidget {
   const AppPoolCard({
     super.key,
@@ -133,7 +133,7 @@ class AppPoolCard extends StatelessWidget {
                   _MetricPill(
                     icon: LucideIcons.ticket,
                     value: '$defaultStakeFet',
-                    label: 'stake',
+                    label: 'entry',
                     color: FzColors.darkMuted,
                   ),
                 ],

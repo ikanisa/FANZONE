@@ -392,10 +392,10 @@ class SupabasePoolsRepository implements PoolsRepository {
     String source = 'direct',
     String? inviteCode,
   }) async {
-    _assertReviewMutationAllowed('Pool staking');
+    _assertReviewMutationAllowed('Pool entry');
     final client = ref.watch(supabaseConnectionProvider).client;
     if (client == null) {
-      throw StateError('Pool staking is unavailable right now.');
+      throw StateError('Pool entry is unavailable right now.');
     }
 
     final response = await client.rpc(

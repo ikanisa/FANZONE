@@ -53,7 +53,7 @@ describe("Sidebar RBAC", () => {
 
     expect(screen.getByRole("link", { name: "Overview" })).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Countries" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "FET Wallets" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "FET Ledgers" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Feature Flags" })).toBeNull();
   });
 

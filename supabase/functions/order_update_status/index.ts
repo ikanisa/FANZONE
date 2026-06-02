@@ -12,25 +12,18 @@ import {
 } from "../_shared/mod.ts";
 import {
   type AnyOrderStatus,
+  anyOrderStatuses,
   normalizeOrderStatusForTransition,
   type TargetOrderStatus,
 } from "../_shared/order_lifecycle.ts";
+import {
+  orderUpdateStatusCanonicalRpc,
+  orderUpdateStatusMetadataSource,
+} from "../_shared/order_update_status_contract.ts";
 
 const updateStatusSchema = z.object({
   order_id: z.string().uuid(),
-  status: z.enum([
-    "draft",
-    "submitted",
-    "accepted",
-    "preparing",
-    "ready",
-    "served",
-    "completed",
-    "cancelled",
-    "refunded",
-    "disputed",
-    "received",
-  ]),
+  status: z.enum(anyOrderStatuses),
   reason: z.string().trim().max(500).optional(),
   metadata: z.record(z.unknown()).optional(),
 });
@@ -89,7 +82,7 @@ Deno.serve(async (req) => {
 
     // ---- Canonical transition RPC ----
     const { data: transition, error: transitionError } = await supabaseUser.rpc(
-      "venue_transition_order_status",
+      orderUpdateStatusCanonicalRpc,
       {
         p_order_id: order_id,
         p_next_status: normalizeOrderStatusForTransition(
@@ -98,7 +91,7 @@ Deno.serve(async (req) => {
         p_reason: reason ?? null,
         p_metadata: {
           ...(metadata ?? {}),
-          source: "order_update_status",
+          source: orderUpdateStatusMetadataSource,
           edge_request_id: requestId,
         },
       },

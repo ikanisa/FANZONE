@@ -204,13 +204,13 @@ abstract class S {
   /// No description provided for @walletTitle.
   ///
   /// In en, this message translates to:
-  /// **'FET Wallet'**
+  /// **'FET Rewards Ledger'**
   String get walletTitle;
 
   /// No description provided for @walletBalance.
   ///
   /// In en, this message translates to:
-  /// **'Balance'**
+  /// **'Rewards'**
   String get walletBalance;
 
   /// No description provided for @walletTransactions.
@@ -222,13 +222,13 @@ abstract class S {
   /// No description provided for @walletTransfer.
   ///
   /// In en, this message translates to:
-  /// **'Transfer'**
+  /// **'Ledger'**
   String get walletTransfer;
 
   /// No description provided for @walletSend.
   ///
   /// In en, this message translates to:
-  /// **'Send FET'**
+  /// **'View rewards'**
   String get walletSend;
 
   /// No description provided for @walletRecipient.
@@ -264,7 +264,7 @@ abstract class S {
   /// No description provided for @profileWallet.
   ///
   /// In en, this message translates to:
-  /// **'Wallet'**
+  /// **'Rewards'**
   String get profileWallet;
 
   /// No description provided for @profileNotifications.
@@ -420,7 +420,7 @@ abstract class S {
   /// No description provided for @loginSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sports-bar ordering, match pools, and FET wallet'**
+  /// **'Sports-bar ordering, match pools, and FET rewards'**
   String get loginSubtitle;
 
   /// No description provided for @loginPhoneHint.

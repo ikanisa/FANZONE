@@ -28,7 +28,7 @@ Future<void> showFzInsufficientFetSheet(
         _SheetMetric(label: 'Required', value: '$requiredFet FET'),
         _SheetMetric(label: 'Shortfall', value: '$shortfall FET'),
       ],
-      primaryLabel: 'Open Wallet',
+      primaryLabel: 'Open Rewards',
       primaryIcon: LucideIcons.wallet,
       onPrimary: onOpenWallet == null
           ? null
@@ -94,7 +94,7 @@ Future<void> showFzWinnerCelebrationSheet(
         _SheetMetric(label: 'Credited', value: '+$amountFet FET'),
         const _SheetMetric(label: 'Status', value: 'Settled'),
       ],
-      primaryLabel: 'Open Wallet',
+      primaryLabel: 'Open Rewards',
       primaryIcon: LucideIcons.wallet,
       onPrimary: onOpenWallet == null
           ? null

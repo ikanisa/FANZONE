@@ -180,11 +180,34 @@ void main() {
           requiresStaffConfirmation: true,
           paymentUrl: 'not-a-url',
         );
+        const unsafeRevolut = PaymentHandoff(
+          method: PaymentMethod.revolut,
+          amount: '12.00',
+          currency: 'EUR',
+          instructions: [],
+          requiresStaffConfirmation: true,
+          paymentUrl: 'javascript:alert(1)',
+        );
 
         expect(paymentHandoffLaunchUri(missingMomo), isNull);
         expect(paymentHandoffLaunchUri(cash), isNull);
         expect(paymentHandoffLaunchUri(invalidRevolut), isNull);
+        expect(paymentHandoffLaunchUri(unsafeRevolut), isNull);
       },
     );
+
+    test('ignores unsupported card methods in handoff responses', () {
+      final handoff = PaymentHandoff.fromJson({
+        'method': 'card',
+        'amount': '12.00',
+        'currency': 'EUR',
+        'instructions': ['Unexpected provider response'],
+        'requires_staff_confirmation': true,
+        'payment_url': 'https://example.com/pay',
+      });
+
+      expect(handoff.method, PaymentMethod.cash);
+      expect(paymentHandoffLaunchUri(handoff), isNull);
+    });
   });
 }

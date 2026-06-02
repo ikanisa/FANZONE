@@ -1,7 +1,7 @@
 {
   "name": "FANZONE Venue Dashboard",
   "short_name": "FZ Venue",
-  "description": "Venue operations console for FANZONE ordering, pools, games, wallets, and TV screens.",
+  "description": "Venue operations console for FANZONE ordering, pools, games, FET rewards ledgers, and TV screens.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#050507",
@@ -24,4 +24,3 @@
     }
   ]
 }
-

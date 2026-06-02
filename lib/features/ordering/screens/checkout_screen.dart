@@ -351,7 +351,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         'Spend FET',
                         style: TextStyle(fontWeight: FontWeight.w900),
                       ),
-                      subtitle: const Text('Wallet ledger.'),
+                      subtitle: const Text('FET rewards ledger.'),
                     ),
                     if (_useFetSpend) ...[
                       const SizedBox(height: 8),
@@ -518,7 +518,7 @@ Uri? paymentHandoffLaunchUri(PaymentHandoff handoff) {
       final paymentUrl = handoff.paymentUrl?.trim();
       if (paymentUrl == null || paymentUrl.isEmpty) return null;
       final uri = Uri.tryParse(paymentUrl);
-      if (uri == null || !uri.hasScheme) return null;
+      if (uri == null || uri.scheme != 'https') return null;
       return uri;
     case PaymentMethod.cash:
     case PaymentMethod.card:

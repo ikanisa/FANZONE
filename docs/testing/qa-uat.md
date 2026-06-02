@@ -48,9 +48,10 @@ psql "$SUPABASE_DB_URL" -f supabase/tests/order_lifecycle_contract.sql
 - Guest sees off-platform payment guidance.
 - Guest can open USSD or Revolut handoff when configured.
 - Guest can track order service status.
-- Guest receives FET when payment/reward conditions are met.
-- Guest can view wallet ledger.
-- Guest can create or join pool.
+- Guest can call staff about an order from order tracking when the order has a resolved table.
+- Guest receives FET rewards points when payment/reward conditions are met.
+- Guest can view rewards-ledger history without customer wallet or cash-balance UX.
+- Guest can create or join free-to-play entertainment rounds where enabled.
 - Guest cannot join after lock/final match state.
 - Winner receives settlement payout once.
 
@@ -60,6 +61,8 @@ psql "$SUPABASE_DB_URL" -f supabase/tests/order_lifecycle_contract.sql
 - Orders queue shows live order details and payment/service status.
 - Order status actions follow the canonical submitted, accepted, preparing, ready, served, completed, cancelled, refunded, and disputed lifecycle.
 - Manual payment status changes write `payment_events` and `audit_logs`.
+- Daily-close reconciliation passes `./tool/supabase_hospitality_core_phase2.sh --contract` after migrations are applied.
+- Staff-call acknowledgement passes `./tool/supabase_hospitality_core_phase2.sh --contract` after migrations are applied.
 - Menu categories/items can be created, edited, hidden, and toggled.
 - FET rewards can be configured by owner/manager only.
 - Venue menu and ordering records are configured in the backend.
@@ -87,6 +90,6 @@ Remaining `Math.random` hits are classified as non-security identifiers:
 - local UI notification ids;
 - human-readable slug/order suffixes that are not authentication tokens.
 
-Do not use `Math.random` for session tokens, wallet idempotency keys, pool settlement idempotency, or authentication.
+Do not use `Math.random` for session tokens, FET rewards-ledger idempotency keys, settlement idempotency, or authentication.
 
 Production paths must not depend on test fakes or sample data.

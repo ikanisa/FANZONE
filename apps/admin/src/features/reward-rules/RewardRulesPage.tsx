@@ -178,7 +178,7 @@ export function RewardRulesPage() {
           <input className="input" type="number" min={0} placeholder="Welcome FET" value={form.welcomeFetAmount} onChange={(event) => setForm((current) => ({ ...current, welcomeFetAmount: Number(event.target.value) }))} />
           <input className="input" type="number" min={0} max={100} step="0.01" placeholder="Order earn %" value={form.orderFetDefaultPercent} onChange={(event) => setForm((current) => ({ ...current, orderFetDefaultPercent: Number(event.target.value) }))} />
           <input className="input" type="number" min={0} placeholder="Creator reward/member" value={form.poolCreatorRewardPerMember} onChange={(event) => setForm((current) => ({ ...current, poolCreatorRewardPerMember: Number(event.target.value) }))} />
-          <input className="input" type="number" min={0} placeholder="Min qualified stake" value={form.minQualifiedStake} onChange={(event) => setForm((current) => ({ ...current, minQualifiedStake: Number(event.target.value) }))} />
+          <input className="input" type="number" min={0} placeholder="Min qualified entry" value={form.minQualifiedStake} onChange={(event) => setForm((current) => ({ ...current, minQualifiedStake: Number(event.target.value) }))} />
           <input className="input" type="number" min={0} placeholder="Min members" value={form.minQualifiedMembers} onChange={(event) => setForm((current) => ({ ...current, minQualifiedMembers: Number(event.target.value) }))} />
         </div>
 

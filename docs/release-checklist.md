@@ -58,6 +58,8 @@
 - Validate `fet_wallets`, `fet_wallet_transactions`, `match_pools`, `match_pool_entries`, `match_pool_settlements`, and `pool_operation_audit_logs` exist and are covered by policy.
 - Confirm built-in Supabase email, phone OTP, magic link/OAuth, and third-party auth providers are disabled for the production project. Anonymous sign-in may remain enabled only for the mobile guest flow.
 - Run `./tool/supabase_live_validation.sh` with `SUPABASE_DB_URL`, `SUPABASE_DB_PASSWORD`, or an authenticated linked Supabase CLI profile, and keep the successful output with the release ticket.
+- For Hospitality Core Phase 2, run `./tool/supabase_hospitality_core_phase2.sh --readiness` before migration release and `./tool/supabase_hospitality_core_phase2.sh --contract` after migrations apply.
+- Keep a fresh `supabase db push --dry-run` output in the release ticket; refresh `SUPABASE_DB_PASSWORD` or use `SUPABASE_DB_URL` if the linked CLI reports database password authentication failure.
 - Review `docs/fet-supply-governance.md` before any manual minting or promotional credit.
 - Check `public.fet_supply_overview.remaining_mintable` before any manual grant, promo credit, or reward backfill.
 - Validate WhatsApp OTP delivery, expiry, and rate-limit behaviour in the production `whatsapp-otp` function.

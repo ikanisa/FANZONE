@@ -229,8 +229,8 @@ export const VenuePoolsPage: React.FC = () => {
               min={1}
               value={stakeMin}
               onChange={(event) => setStakeMin(event.target.value)}
-              aria-label="Minimum stake FET"
-              placeholder="Min stake"
+              aria-label="Minimum entry FET"
+              placeholder="Min entry"
             />
             <input
               className="input"
@@ -238,8 +238,8 @@ export const VenuePoolsPage: React.FC = () => {
               min={Number(stakeMin) || 1}
               value={stakeMax}
               onChange={(event) => setStakeMax(event.target.value)}
-              aria-label="Maximum stake FET"
-              placeholder="Max stake"
+              aria-label="Maximum entry FET"
+              placeholder="Max entry"
             />
             <input
               className="input"
@@ -256,8 +256,8 @@ export const VenuePoolsPage: React.FC = () => {
               min={0}
               value={barStake}
               onChange={(event) => setBarStake(event.target.value)}
-              aria-label="Bar stake FET"
-              placeholder="Bar stake"
+              aria-label="Venue reserve FET"
+              placeholder="Venue reserve"
             />
           </div>
 
@@ -337,7 +337,7 @@ export const VenuePoolsPage: React.FC = () => {
                 <div className="bg-surface2 rounded-2xl p-4">
                   <Wallet size={18} className="text-primary mb-3" />
                   <p className="text-xs font-black text-textSecondary uppercase tracking-widest">
-                    Pooled
+                    Reserved
                   </p>
                   <p className="font-black text-2xl">
                     {pool.totalStakedFet} FET
@@ -355,7 +355,7 @@ export const VenuePoolsPage: React.FC = () => {
                 <div className="bg-surface2 rounded-2xl p-4">
                   <Wallet size={18} className="text-primary mb-3" />
                   <p className="text-xs font-black text-textSecondary uppercase tracking-widest">
-                    Bar stake
+                    Venue reserve
                   </p>
                   <p className="font-black text-2xl">{pool.barStakeFet} FET</p>
                 </div>

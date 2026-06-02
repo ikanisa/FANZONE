@@ -43,7 +43,7 @@ export default function Layout({ children }: LayoutProps) {
         {
           featureKey: 'wallet',
           to: '/wallet',
-          label: 'Wallet',
+          label: 'Rewards',
           icon: <Wallet size={20} />,
         },
         {

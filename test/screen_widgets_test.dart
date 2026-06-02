@@ -94,7 +94,7 @@ void main() {
               sampleWalletTransaction(),
               sampleWalletTransaction(
                 id: 'tx_2',
-                title: 'Wallet transfer',
+                title: 'Rewards adjustment',
                 amount: 120,
                 type: 'spend',
                 dateStr: '1d ago',
@@ -107,13 +107,14 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('WALLET'), findsOneWidget);
+      expect(find.text('REWARDS'), findsOneWidget);
       expect(
         find.byKey(const ValueKey('wallet-total-balance-value')),
         findsOneWidget,
       );
-      expect(find.text('FET BALANCE'), findsOneWidget);
-      expect(find.text('Send'), findsOneWidget);
+      expect(find.text('FET REWARDS'), findsOneWidget);
+      expect(find.text('Send'), findsNothing);
+      expect(find.textContaining('closed-loop rewards ledger'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Pool reward'),
         300,
@@ -158,7 +159,7 @@ void main() {
       expect(find.text('Account'), findsOneWidget);
       expect(find.text('PLAY'), findsNothing);
       expect(find.text('Match Pools'), findsNothing);
-      expect(find.text('WALLET'), findsNothing);
+      expect(find.text('REWARDS'), findsNothing);
       expect(find.text('Select Identity'), findsNothing);
       await tester.tap(find.byKey(const ValueKey('profile-identity-trigger')));
       await tester.pumpAndSettle();

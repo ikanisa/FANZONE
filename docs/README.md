@@ -63,7 +63,7 @@ No live secrets belong in git.
 | `FANZONE_EDGE_ALLOW_WILDCARD_CORS` | Edge Functions | Keep `false` in production; wildcard CORS requires explicit opt-in. |
 | `WHATSAPP_AUTH_TEST_PHONE`, `WHATSAPP_AUTH_TEST_OTP`, `WHATSAPP_AUTH_TEST_EXPIRY` | reviewer/test OTP path | Optional controlled test account only. |
 | `FANZONE_EDGE_EXPOSE_ERROR_DETAILS` | Edge shared errors | Keep false in production. |
-| `SUPABASE_DB_URL`, `SUPABASE_DB_PASSWORD` | SQL smoke scripts | Operator-only local shell or CI secret. If absent locally, linked Supabase CLI validation can run through `supabase db query --linked`. |
+| `SUPABASE_DB_URL`, `SUPABASE_DB_PASSWORD` | SQL smoke scripts and migration dry-runs | Operator-only local shell or CI secret. If absent locally, some linked Supabase CLI validation can run through `supabase db query --linked`, but `supabase db push --dry-run` still needs valid database credentials. |
 
 ## Known Issues Classified
 

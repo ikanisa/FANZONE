@@ -259,12 +259,12 @@ export function WalletMetrics({ wallet }: { wallet: VenueFetWallet | null }) {
         {
           label: "Available",
           value: `${safeWallet.availableBalanceFet.toLocaleString()} FET`,
-          detail: "Spendable venue balance.",
+          detail: "Available venue rewards points.",
         },
         {
-          label: "Staked",
+          label: "Reserved",
           value: `${safeWallet.stakedBalanceFet.toLocaleString()} FET`,
-          detail: "Locked in pools or games.",
+          detail: "Held for challenges or games.",
         },
         {
           label: "Pending",
@@ -294,7 +294,7 @@ export function LedgerRows({ rows }: { rows: VenueFetLedgerEntry[] }) {
               {row.title || readableStatus(row.transactionType)}
             </p>
             <p className="mt-1 text-sm font-bold text-textSecondary">
-              {row.referenceType ?? "wallet"} · {formatDate(row.createdAt)}
+              {row.referenceType ?? "ledger"} · {formatDate(row.createdAt)}
             </p>
           </div>
           <p

@@ -2,7 +2,7 @@ import { type DependencyList, useEffect, useState } from "react";
 import type { VenueScreenMode } from "../../services/venueOperations";
 
 export const eligibilityRule =
-  "To receive FET winnings, the user must place at least one order from this bar within 2 hours before the linked game/pool start time.";
+  "To receive FET rewards, the user must place at least one order from this bar within 2 hours before the linked game/challenge start time.";
 
 export type Action = {
   label: string;

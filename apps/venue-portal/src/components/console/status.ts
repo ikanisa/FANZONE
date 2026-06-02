@@ -48,6 +48,8 @@ export function statusTone(status: string): StatusTone {
 }
 
 export function readableStatus(status: string): string {
+  if (status === 'placed') return 'submitted';
+  if (status === 'received') return 'accepted';
   return status.replace(/_/g, ' ');
 }
 

@@ -1,14 +1,40 @@
 import React from 'react';
-import { Activity, Coins, CreditCard, Loader2, ReceiptText, Trophy, Utensils } from 'lucide-react';
+import { Activity, Coins, CreditCard, Loader2, ReceiptText, RefreshCw, Trophy, Utensils } from 'lucide-react';
 import { EmptyState } from '../../components/console/EmptyState';
 import { MetricCard } from '../../components/console/MetricCard';
 import { StatusChip } from '../../components/console/StatusChip';
+import { usePaymentReconciliation } from '../../hooks/usePaymentReconciliation';
 import { useVenue } from '../../hooks/useVenueContext';
 import { useVenueStats } from '../../hooks/useVenueStats';
 
+function moneyLabel(amount: number) {
+  return amount.toLocaleString(undefined, {
+    maximumFractionDigits: 2,
+  });
+}
+
 export const DashboardPage: React.FC = () => {
   const { venue } = useVenue();
-  const { stats, loading, error } = useVenueStats(venue?.id || '');
+  const venueId = venue?.id || '';
+  const { stats, loading, error } = useVenueStats(venueId);
+  const reconciliation = usePaymentReconciliation(venueId);
+  const reconciliationTotals = reconciliation.rows.reduce(
+    (totals, row) => ({
+      events: totals.events + row.eventCount,
+      amountReceived: totals.amountReceived + row.amountReceived,
+      orderTotalAmount: totals.orderTotalAmount + row.orderTotalAmount,
+      externalReferences:
+        totals.externalReferences + row.externalReferenceCount,
+      providerApiRows: totals.providerApiRows + (row.providerApiUsed ? 1 : 0),
+    }),
+    {
+      events: 0,
+      amountReceived: 0,
+      orderTotalAmount: 0,
+      externalReferences: 0,
+      providerApiRows: 0,
+    },
+  );
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -58,7 +84,7 @@ export const DashboardPage: React.FC = () => {
                   <p className="text-2xl font-black mt-1">{stats.most_active_match.total_members.toLocaleString()}</p>
                 </div>
                 <div className="rounded-2xl bg-surface2 p-4">
-                  <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Staked</p>
+                  <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Reserved</p>
                   <p className="text-2xl font-black mt-1">{stats.most_active_match.total_staked_fet.toLocaleString()} FET</p>
                 </div>
               </div>
@@ -101,6 +127,122 @@ export const DashboardPage: React.FC = () => {
             <p className="text-sm text-textSecondary font-bold mt-2">Orders need manual payment attention.</p>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white border border-border rounded-[28px] shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">
+              Daily close
+            </p>
+            <h2 className="text-2xl font-black tracking-tight mt-1">
+              Manual payment reconciliation
+            </h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              type="date"
+              value={reconciliation.businessDate}
+              onChange={(event) =>
+                reconciliation.setBusinessDate(event.target.value)
+              }
+              className="h-11 rounded-xl border border-border bg-surface2 px-3 text-sm font-black"
+              aria-label="Business date"
+            />
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => void reconciliation.refresh()}
+              disabled={reconciliation.loading}
+            >
+              {reconciliation.loading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <RefreshCw size={16} />
+              )}
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        {reconciliation.error ? (
+          <div className="m-6 rounded-2xl border border-danger/20 bg-danger/10 px-5 py-4 text-danger font-bold">
+            {reconciliation.error}
+          </div>
+        ) : (
+          <div className="p-6 space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="rounded-2xl bg-surface2 p-4">
+                <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Events</p>
+                <p className="text-2xl font-black mt-1">{reconciliationTotals.events.toLocaleString()}</p>
+              </div>
+              <div className="rounded-2xl bg-surface2 p-4">
+                <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Received</p>
+                <p className="text-2xl font-black mt-1">{moneyLabel(reconciliationTotals.amountReceived)}</p>
+              </div>
+              <div className="rounded-2xl bg-surface2 p-4">
+                <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">Order total</p>
+                <p className="text-2xl font-black mt-1">{moneyLabel(reconciliationTotals.orderTotalAmount)}</p>
+              </div>
+              <div className="rounded-2xl bg-surface2 p-4">
+                <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest">References</p>
+                <p className="text-2xl font-black mt-1">{reconciliationTotals.externalReferences.toLocaleString()}</p>
+              </div>
+            </div>
+
+            {reconciliationTotals.providerApiRows > 0 && (
+              <div className="rounded-2xl border border-danger/20 bg-danger/10 px-5 py-4 text-sm font-black text-danger">
+                Provider API execution appeared in payment event evidence.
+              </div>
+            )}
+
+            {reconciliation.rows.length === 0 && !reconciliation.loading ? (
+              <EmptyState
+                icon={<ReceiptText size={34} />}
+                title="No manual payment events for this date"
+                message="Manual payment confirmations will appear after staff record external payment evidence."
+              />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left">
+                  <thead>
+                    <tr className="text-[10px] font-black uppercase tracking-widest text-textSecondary">
+                      <th className="py-3 pr-4">Method</th>
+                      <th className="py-3 pr-4">Status</th>
+                      <th className="py-3 pr-4 text-right">Events</th>
+                      <th className="py-3 pr-4 text-right">Received</th>
+                      <th className="py-3 pr-4 text-right">Order total</th>
+                      <th className="py-3 text-right">Provider API</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {reconciliation.rows.map((row) => (
+                      <tr
+                        key={`${row.paymentMethod}-${row.paymentStatus}-${row.providerApiUsed}`}
+                        className="text-sm font-bold"
+                      >
+                        <td className="py-4 pr-4 capitalize">{row.paymentMethod}</td>
+                        <td className="py-4 pr-4">
+                          <StatusChip status={row.paymentStatus} />
+                        </td>
+                        <td className="py-4 pr-4 text-right">{row.eventCount.toLocaleString()}</td>
+                        <td className="py-4 pr-4 text-right">{moneyLabel(row.amountReceived)}</td>
+                        <td className="py-4 pr-4 text-right">{moneyLabel(row.orderTotalAmount)}</td>
+                        <td className="py-4 text-right">
+                          <StatusChip
+                            status={row.providerApiUsed ? 'disputed' : 'paid'}
+                            label={row.providerApiUsed ? 'Yes' : 'No'}
+                            tone={row.providerApiUsed ? 'danger' : 'success'}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {!loading && stats.today_orders === 0 && stats.active_pools === 0 && (

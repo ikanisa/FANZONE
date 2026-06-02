@@ -4,27 +4,24 @@ import {
   Wallet,
   ArrowUpRight,
   ArrowDownLeft,
-  Send,
   X,
-  CheckSquare,
   Receipt,
   ShieldCheck,
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import type { WalletTransaction } from '../store/useAppStore';
 import { FETDisplay } from './ui/FETDisplay';
-import { api, type ViewerState } from '../services/api';
+import type { ViewerState } from '../services/api';
 
 export default function WalletHub() {
   const { fetBalance, walletTransactions, hydrateViewerState } = useAppStore();
-  const [showTransferSheet, setShowTransferSheet] = useState(false);
   const [selectedTx, setSelectedTx] = useState<WalletTransaction | null>(null);
 
   const earned = walletTransactions
-    .filter((tx) => tx.type === 'earn' || tx.type === 'transfer_received')
+    .filter((tx) => tx.type === 'earn' || tx.type === 'reward_credit')
     .reduce((sum, tx) => sum + tx.amount, 0);
   const spent = walletTransactions
-    .filter((tx) => tx.type === 'spend' || tx.type === 'transfer_sent')
+    .filter((tx) => tx.type === 'spend' || tx.type === 'reward_debit')
     .reduce((sum, tx) => sum + tx.amount, 0);
 
   const applyViewerState = (viewerState: ViewerState | null) => {
@@ -39,8 +36,7 @@ export default function WalletHub() {
         id: notification.id,
         type:
           notification.type === 'pool_reward' ||
-          notification.type === 'pool_update' ||
-          notification.type === 'transfer'
+          notification.type === 'pool_update'
             ? notification.type
             : 'system',
         title: notification.title,
@@ -51,23 +47,11 @@ export default function WalletHub() {
     });
   };
 
-  const handleTransfer = async (recipient: string, amount: number) => {
-    const result = await api.transferFetByFanId(recipient, amount);
-    if (result.success && result.viewerState) {
-      applyViewerState(result.viewerState);
-    }
-
-    return {
-      success: result.success,
-      error: result.error,
-    };
-  };
-
   return (
     <div className="min-h-screen bg-bg transition-colors duration-300">
       <header className="pt-6 lg:hidden pb-2 px-5 flex items-center justify-between">
         <h1 className="font-display text-4xl text-text tracking-tight flex items-center gap-2">
-          <Wallet size={24} className="text-accent" /> Wallet
+          <Wallet size={24} className="text-accent" /> Rewards
         </h1>
       </header>
 
@@ -75,7 +59,7 @@ export default function WalletHub() {
         <div className="bg-gradient-to-br from-[#0F7B6C] to-[#2563EB] rounded-[28px] p-5 text-[#FDFCF0] relative overflow-hidden shadow-[0_10px_30px_-10px_rgba(37,99,235,0.3)]">
           <div className="relative z-10 flex flex-col items-center text-center">
             <div className="text-[10px] font-bold opacity-80 uppercase tracking-widest mb-1 select-none">
-              Total Balance
+              Reward Points
             </div>
             <div className="text-5xl lg:text-6xl font-mono font-bold tracking-tight mb-5 [text-shadow:0_0_20px_rgba(253,252,240,0.3)] flex flex-col items-center justify-center min-h-20">
               <FETDisplay
@@ -84,13 +68,9 @@ export default function WalletHub() {
                 fiatClassName="opacity-80 text-sm font-sans block mt-1 tracking-normal leading-none"
               />
             </div>
-            <button
-              onClick={() => setShowTransferSheet(true)}
-              className="bg-[#FDFCF0] text-[#09090b] h-12 px-5 rounded-xl font-bold flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform shadow-sm"
-            >
-              <Send size={14} className="text-accent" />
-              <span className="text-[10px] tracking-widest">SEND FET</span>
-            </button>
+            <div className="bg-[#FDFCF0]/10 border border-[#FDFCF0]/20 rounded-2xl px-4 py-3 text-xs font-bold leading-5 text-[#FDFCF0]">
+              FET is a closed-loop rewards ledger for venue rewards, games, and coupons.
+            </div>
           </div>
           <Wallet
             className="absolute -bottom-6 -right-6 text-white/5 mix-blend-overlay rotate-[-15deg] pointer-events-none"
@@ -115,12 +95,12 @@ export default function WalletHub() {
 
         <section className="bg-surface2 rounded-[20px] border border-border p-4 flex items-start gap-3 shadow-sm">
           <div className="w-10 h-10 rounded-full bg-success/10 text-success border border-success/20 flex items-center justify-center shrink-0">
-            <ShieldCheck size={18} />
+              <ShieldCheck size={18} />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-text mb-1">Wallet Flow</h3>
+            <h3 className="font-bold text-sm text-text mb-1">Rewards Ledger</h3>
             <p className="text-sm text-muted leading-relaxed">
-              Wallet activity focuses on transfers, venue-order rewards, FET spent on orders, and audited pool settlements.
+              FET activity focuses on venue-order rewards, coupon redemptions, game rewards, and audited challenge settlements.
             </p>
           </div>
         </section>
@@ -144,13 +124,6 @@ export default function WalletHub() {
           </div>
         </section>
       </div>
-
-      <TransferSheet
-        isOpen={showTransferSheet}
-        onClose={() => setShowTransferSheet(false)}
-        balance={fetBalance}
-        onTransfer={handleTransfer}
-      />
 
       <TransactionReceiptModal
         transaction={selectedTx}
@@ -201,7 +174,7 @@ function MetricCard({
 
 function TransactionItem({ transaction }: { transaction: WalletTransaction }) {
   const isPositive =
-    transaction.type === 'earn' || transaction.type === 'transfer_received';
+    transaction.type === 'earn' || transaction.type === 'reward_credit';
 
   return (
     <div className="p-2 bg-surface hover:bg-surface2 flex items-center justify-between transition-colors gap-3">
@@ -233,151 +206,6 @@ function TransactionItem({ transaction }: { transaction: WalletTransaction }) {
         <FETDisplay amount={transaction.amount} showFiat={false} className="inline ml-0.5" />
       </div>
     </div>
-  );
-}
-
-function TransferSheet({
-  isOpen,
-  onClose,
-  balance,
-  onTransfer,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  balance: number;
-  onTransfer: (
-    recipient: string,
-    amount: number,
-  ) => Promise<{ success: boolean; error?: string }>;
-}) {
-  const [recipient, setRecipient] = useState('');
-  const [amount, setAmount] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const numAmount = parseInt(amount, 10) || 0;
-  const cleanRecipient = recipient.replace(/\D/g, '');
-  const isValid = cleanRecipient.length === 6 && numAmount > 0 && numAmount <= balance;
-
-  const handleTransfer = async () => {
-    setError('');
-    setIsSubmitting(true);
-    const result = await onTransfer(cleanRecipient, numAmount);
-    setIsSubmitting(false);
-    if (!result.success) {
-      setError(result.error || 'Transfer failed');
-      return;
-    }
-    setSuccess(true);
-    window.setTimeout(() => {
-      setSuccess(false);
-      setRecipient('');
-      setAmount('');
-      onClose();
-    }, 1800);
-  };
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-bg/90 backdrop-blur-md z-50"
-          />
-          <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            className="fixed bottom-0 left-0 right-0 bg-surface rounded-t-[2rem] border-t border-border z-50 p-6 pb-safe"
-          >
-            <div className="w-12 h-1.5 bg-surface3 rounded-full mx-auto mb-8" />
-
-            {success ? (
-              <div className="text-center py-8">
-                <div className="w-20 h-20 bg-accent/20 text-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Send size={40} className="translate-x-1" />
-                </div>
-                <p className="font-display text-3xl text-text tracking-wider mb-2">
-                  Transfer Sent
-                </p>
-                <p className="text-sm text-muted">Your wallet balance has been updated.</p>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-muted mb-1">
-                      Wallet Transfer
-                    </p>
-                    <h3 className="font-display text-3xl text-text tracking-widest">
-                      Send FET
-                    </h3>
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="w-10 h-10 rounded-full bg-surface3 border border-border flex items-center justify-center text-muted hover:text-text"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[10px] font-bold tracking-widest uppercase text-muted mb-2 block">
-                      Recipient Fan ID
-                    </label>
-                    <input
-                      value={recipient}
-                      onChange={(event) => setRecipient(event.target.value)}
-                      className="w-full bg-surface3 border border-border rounded-2xl px-4 py-4 text-text placeholder:text-muted outline-none focus:border-accent transition-colors"
-                      placeholder="Enter 6-digit Fan ID"
-                      inputMode="numeric"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold tracking-widest uppercase text-muted mb-2 block">
-                      Amount
-                    </label>
-                    <input
-                      value={amount}
-                      onChange={(event) => setAmount(event.target.value)}
-                      className="w-full bg-surface3 border border-border rounded-2xl px-4 py-4 text-text placeholder:text-muted outline-none focus:border-accent transition-colors"
-                      placeholder="Enter FET amount"
-                      inputMode="numeric"
-                    />
-                  </div>
-
-                  <div className="bg-surface3 border border-border rounded-2xl p-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold tracking-widest uppercase text-muted">
-                        Available Balance
-                      </span>
-                      <span className="font-mono text-sm text-text">{balance} FET</span>
-                    </div>
-                  </div>
-
-                  {error && <p className="text-sm text-danger">{error}</p>}
-
-                  <button
-                    onClick={handleTransfer}
-                    disabled={!isValid || isSubmitting}
-                    className="w-full bg-accent text-bg font-bold py-4 rounded-2xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? 'Sending...' : 'Send Now'}
-                  </button>
-                </div>
-              </>
-            )}
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
   );
 }
 
@@ -433,7 +261,7 @@ function TransactionReceiptModal({
                 <ReceiptRow label="Date" value={transaction.dateStr} />
                 <ReceiptRow
                   label="Amount"
-                  value={`${transaction.type === 'earn' || transaction.type === 'transfer_received' ? '+' : '-'}${transaction.amount} FET`}
+                  value={`${transaction.type === 'earn' || transaction.type === 'reward_credit' ? '+' : '-'}${transaction.amount} FET`}
                   mono
                 />
                 <ReceiptRow label="Type" value={transaction.type.replace('_', ' ')} />

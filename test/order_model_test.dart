@@ -65,6 +65,8 @@ void main() {
       expect(build('ready').status.isReadyOrLater, isTrue);
       expect(build('completed').status.isTerminal, isTrue);
       expect(build('refunded').status.isTerminal, isTrue);
+      expect(build('placed').status.label, 'Submitted');
+      expect(build('received').status.label, 'Accepted');
     });
 
     test(

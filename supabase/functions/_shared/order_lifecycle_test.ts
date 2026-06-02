@@ -1,8 +1,27 @@
 import {
+  anyOrderStatuses,
   isValidOrderTransition,
   nextOrderStatuses,
   normalizeOrderStatusForTransition,
+  orderStatusRequiresReason,
 } from "./order_lifecycle.ts";
+
+Deno.test("anyOrderStatuses includes target and legacy compatibility values", () => {
+  for (
+    const status of [
+      "draft",
+      "submitted",
+      "accepted",
+      "completed",
+      "placed",
+      "received",
+    ] as const
+  ) {
+    if (!anyOrderStatuses.includes(status)) {
+      throw new Error(`Expected ${status} to be accepted by Edge wrappers`);
+    }
+  }
+});
 
 Deno.test("normalizeOrderStatusForTransition maps legacy status aliases", () => {
   if (normalizeOrderStatusForTransition("placed") !== "submitted") {
@@ -39,5 +58,16 @@ Deno.test("isValidOrderTransition rejects reverse transitions", () => {
   }
   if (isValidOrderTransition("accepted", "submitted")) {
     throw new Error("Expected accepted -> submitted to be invalid");
+  }
+});
+
+Deno.test("exceptional order statuses require operator reasons", () => {
+  for (const status of ["cancelled", "refunded", "disputed"] as const) {
+    if (!orderStatusRequiresReason(status)) {
+      throw new Error(`Expected ${status} to require a reason`);
+    }
+  }
+  if (orderStatusRequiresReason("accepted")) {
+    throw new Error("Expected accepted to remain a normal transition");
   }
 });

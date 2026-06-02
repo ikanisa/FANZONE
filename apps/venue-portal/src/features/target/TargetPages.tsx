@@ -449,21 +449,21 @@ export function CreatePoolPage() {
     <OperationalPage
       eyebrow="Prediction pools"
       title="Create prediction pool"
-      description="Create a staked football pool by selecting a match, staking bar FET, setting the participant stake, and confirming the eligibility rule."
+      description="Create a football prediction challenge by selecting a match, reserving venue reward points, setting the participant points amount, and confirming the eligibility rule."
       icon={<Trophy size={26} />}
       status="draft"
       primaryAction={{ label: "Open Pools", to: "/pools" }}
-      secondaryAction={{ label: "Open Wallet", to: "/wallet" }}
+      secondaryAction={{ label: "Open FET Ledger", to: "/wallet" }}
       metrics={[
         {
-          label: "Wallet balance",
+          label: "FET available",
           value: `${walletBalance.toLocaleString()} FET`,
-          detail: "Bar stake is checked before creation.",
+          detail: "Venue reward reserve is checked before creation.",
         },
         {
           label: "Pool type",
-          value: "Staked",
-          detail: "Creator and participant stakes required.",
+          value: "Reserved",
+          detail: "Venue and participant point entries required.",
         },
         { label: "Options", value: "3", detail: "Home win, draw, away win." },
         {
@@ -512,14 +512,14 @@ export function CreatePoolPage() {
             {selected?.competition_name ?? "Curated match list"}
           </p>
         </SectionCard>
-        <SectionCard title="2. Set stake">
+        <SectionCard title="2. Set reward entry">
           <input
             className="input"
             type="number"
             min={0}
             value={barStake}
             onChange={(event) => setBarStake(event.target.value)}
-            placeholder="Bar stake FET"
+            placeholder="Venue reserve FET"
           />
           <input
             className="input mt-3"
@@ -527,7 +527,7 @@ export function CreatePoolPage() {
             min={1}
             value={participantStake}
             onChange={(event) => setParticipantStake(event.target.value)}
-            placeholder="Participant stake FET"
+            placeholder="Participant entry FET"
           />
           {insufficient && (
             <p className="mt-3 text-sm font-black text-danger">
@@ -543,13 +543,13 @@ export function CreatePoolPage() {
             {(Number(barStake) || 0).toLocaleString()} FET
           </p>
           <p className="mt-2 text-sm font-bold text-textSecondary">
-            Initial bar stake, before participant stakes.
+            Initial venue reserve, before participant entries.
           </p>
         </SectionCard>
         <SectionCard title="5. Confirm">
           <AuditWarning>
-            Confirming deducts the bar stake from the venue FET wallet and
-            writes ledger entries.
+            Confirming reserves the bar FET from the venue ledger and writes
+            ledger entries.
           </AuditWarning>
           <button
             className="btn btn-primary mt-4 w-full"
@@ -617,14 +617,14 @@ export function PoolDetailPage() {
           detail: "Joined users in this venue pool.",
         },
         {
-          label: "Total pot",
+          label: "Total reserved",
           value: `${(pool?.totalStakedFet ?? 0).toLocaleString()} FET`,
-          detail: "Participant stake total.",
+          detail: "Participant points total.",
         },
         {
-          label: "Bar stake",
+          label: "Venue reserve",
           value: `${(pool?.barStakeFet ?? 0).toLocaleString()} FET`,
-          detail: "Venue wallet stake.",
+          detail: "Venue reward points reserved.",
         },
         {
           label: "Kickoff",
@@ -743,7 +743,7 @@ export function PoolDetailPage() {
             <EmptyState
               icon={<Users size={30} />}
               title="No participants yet"
-              message="Joined users appear here after staking into this venue pool."
+              message="Joined users appear here after entering this venue challenge."
             />
           )}
         </SectionCard>
@@ -975,7 +975,7 @@ export function GamesPage() {
                 </div>
                 <p className="mt-3 text-base font-semibold leading-7 text-textSecondary">
                   {readableStatus(template.category)} · reward pool reserved
-                  from venue wallet when a session is created.
+                  from the venue rewards ledger when a session is created.
                 </p>
               </article>
             ))}
@@ -1074,14 +1074,14 @@ export function StartGamePage() {
     <OperationalPage
       eyebrow="Games"
       title="Start game"
-      description="Choose a centralized game, reserve the reward pool from the venue FET wallet, schedule it, preview rules, and generate a join QR."
+      description="Choose a centralized game, reserve the reward pool from the venue FET ledger, schedule it, preview rules, and generate a join QR."
       icon={<Gamepad2 size={26} />}
       status="draft"
       primaryAction={{ label: "Back to Games", to: "/games" }}
-      secondaryAction={{ label: "Open Wallet", to: "/wallet" }}
+      secondaryAction={{ label: "Open FET Ledger", to: "/wallet" }}
       metrics={[
         {
-          label: "Wallet balance",
+          label: "FET available",
           value: `${(wallet.data?.availableBalanceFet ?? 0).toLocaleString()} FET`,
           detail: "Reward pool cannot exceed balance.",
         },
@@ -1161,8 +1161,7 @@ export function StartGamePage() {
         </SectionCard>
         <SectionCard title="4. Confirm">
           <AuditWarning>
-            Game creation reserves reward FET and writes venue wallet ledger
-            rows.
+            Game creation reserves reward FET and writes venue ledger rows.
           </AuditWarning>
           <button
             className="btn btn-primary mt-4 w-full"
@@ -1867,22 +1866,22 @@ export function WalletPage() {
 
   return (
     <OperationalPage
-      eyebrow="FET wallet"
-      title="Venue FET wallet"
-      description="Review the bar wallet, buy requests, pool stakes, game reward reservations, pending settlements, distributed FET, and transaction history."
+      eyebrow="FET ledger"
+      title="Venue FET ledger"
+      description="Review the bar FET ledger, top-up requests, pool reservations, game reward reservations, pending settlements, distributed FET, and transaction history."
       icon={<Wallet size={26} />}
       status="scheduled"
-      primaryAction={{ label: "Buy FET", to: "/wallet/buy" }}
+      primaryAction={{ label: "Request FET top-up", to: "/wallet/buy" }}
       secondaryAction={{ label: "View Ledger", to: "/wallet/ledger" }}
     >
       <WalletMetrics wallet={wallet.data} />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr]">
-        <SectionCard title="Wallet safety model">
+        <SectionCard title="FET ledger safety model">
           <div className="space-y-4">
             {[
-              "No wallet balance update without a ledger row",
+              "No FET total update without a ledger row",
               "No negative balances",
-              "No direct UI mutation of FET balances",
+              "No direct UI mutation of FET totals",
               "All settlement payouts are transactional",
             ].map((rule) => (
               <div key={rule} className="ops-panel flex items-center gap-3 p-4">
@@ -1899,7 +1898,7 @@ export function WalletPage() {
             <EmptyState
               icon={<ClipboardList size={30} />}
               title="No ledger rows loaded"
-              message="Ledger rows appear after wallet activity."
+              message="Ledger rows appear after FET activity."
             />
           )}
         </SectionCard>
@@ -1938,12 +1937,12 @@ export function BuyFetPage() {
 
   return (
     <OperationalPage
-      eyebrow="FET wallet"
-      title="Buy FET"
+      eyebrow="FET ledger"
+      title="Request FET top-up"
       description="Create a venue top-up request using platform payment instructions or an invoice request. No direct payment API integration is added for MVP."
       icon={<Coins size={26} />}
       status="draft"
-      primaryAction={{ label: "Back to Wallet", to: "/wallet" }}
+      primaryAction={{ label: "Back to FET Ledger", to: "/wallet" }}
       secondaryAction={{ label: "View Ledger", to: "/wallet/ledger" }}
       metrics={[
         {
@@ -1959,7 +1958,7 @@ export function BuyFetPage() {
         {
           label: "Ledger",
           value: "Required",
-          detail: "Wallet credit happens with transaction row.",
+          detail: "Rewards credit happens with transaction row.",
         },
         {
           label: "Payment API",
@@ -2006,7 +2005,7 @@ export function BuyFetPage() {
           <div className="space-y-4">
             <AuditWarning>
               Submitting creates a pending top-up request. Platform confirmation
-              credits the wallet and writes the ledger row.
+              credits the rewards ledger and writes the transaction row.
             </AuditWarning>
             <input
               className="input"
@@ -2044,13 +2043,13 @@ export function WalletLedgerPage() {
 
   return (
     <OperationalPage
-      eyebrow="FET wallet"
-      title="Wallet ledger"
+      eyebrow="FET ledger"
+      title="FET ledger"
       description="Auditable FET transaction history with transaction type, amount, direction, reference, date, actor, linked entity, and status."
       icon={<ClipboardList size={26} />}
       status="scheduled"
-      primaryAction={{ label: "Back to Wallet", to: "/wallet" }}
-      secondaryAction={{ label: "Buy FET", to: "/wallet/buy" }}
+      primaryAction={{ label: "Back to FET Ledger", to: "/wallet" }}
+      secondaryAction={{ label: "Request FET top-up", to: "/wallet/buy" }}
       metrics={[
         {
           label: "Entries",
@@ -2081,7 +2080,7 @@ export function WalletLedgerPage() {
         ) : (
           <EmptyState
             icon={<ClipboardList size={30} />}
-            title="No wallet transactions loaded"
+            title="No FET transactions loaded"
             message="Ledger rows will show type, amount, direction, reference, date, actor, linked entity, and status."
           />
         )}
@@ -2095,7 +2094,7 @@ export function NotificationsPage() {
     <OperationalPage
       eyebrow="Notifications"
       title="Venue notification center"
-      description="Operational alerts for payment submissions, eligibility changes, wallet balance, game sessions, prediction pools, TV screen status, and system events."
+      description="Operational alerts for payment submissions, eligibility changes, FET availability, game sessions, prediction pools, TV screen status, and system events."
       icon={<BellRing size={26} />}
       status="scheduled"
       primaryAction={{ label: "Back to Overview", to: "/overview" }}
@@ -2112,7 +2111,7 @@ export function NotificationsPage() {
           detail: "Joined users needing orders.",
         },
         {
-          label: "Wallet alerts",
+          label: "FET alerts",
           value: "Critical",
           detail: "Low balance before pools/games.",
         },
@@ -2135,8 +2134,8 @@ export function NotificationsPage() {
             "Joined users who still need a qualifying order remain visible before settlement.",
           ],
           [
-            "Screen and wallet",
-            "Low wallet balance and disconnected TV warnings link to the correct module.",
+            "Screen and FET",
+            "Low FET availability and disconnected TV warnings link to the correct module.",
           ],
         ].map(([title, detail]) => (
           <SectionCard key={title} title={title}>
@@ -2152,9 +2151,9 @@ export function NotificationsPage() {
 
 export function StaffPermissionsPage() {
   const rows = [
-    ["Buy FET", "Owner, Manager", "Cashier, Waiter, Host"],
+    ["Request FET top-up", "Owner, Manager", "Cashier, Waiter, Host"],
     ["Create pool", "Owner, Manager", "Cashier, Waiter, Host"],
-    ["Stake FET", "Owner, Manager", "Cashier, Waiter, Host"],
+    ["Reserve FET", "Owner, Manager", "Cashier, Waiter, Host"],
     ["Settle pool", "Owner, Manager", "Cashier, Waiter, Host"],
     ["Mark paid", "Owner, Manager, Cashier", "Waiter, Host"],
     ["End game", "Owner, Manager, Host", "Cashier, Waiter"],

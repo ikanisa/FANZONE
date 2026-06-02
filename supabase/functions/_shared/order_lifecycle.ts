@@ -12,7 +12,19 @@ export const targetOrderStatuses = [
 ] as const;
 
 export type TargetOrderStatus = typeof targetOrderStatuses[number];
-export type LegacyOrderStatus = "placed" | "received";
+export const legacyOrderStatuses = ["placed", "received"] as const;
+export const anyOrderStatuses = [
+  ...targetOrderStatuses,
+  ...legacyOrderStatuses,
+] as const;
+
+export const orderStatusesRequiringReason = [
+  "cancelled",
+  "refunded",
+  "disputed",
+] as const;
+
+export type LegacyOrderStatus = typeof legacyOrderStatuses[number];
 export type AnyOrderStatus = TargetOrderStatus | LegacyOrderStatus;
 
 export function normalizeOrderStatusForTransition(
@@ -53,4 +65,11 @@ export function isValidOrderTransition(
   next: TargetOrderStatus,
 ): boolean {
   return nextOrderStatuses(current).includes(next);
+}
+
+export function orderStatusRequiresReason(status: TargetOrderStatus): boolean {
+  return (orderStatusesRequiringReason as readonly TargetOrderStatus[])
+    .includes(
+      status,
+    );
 }

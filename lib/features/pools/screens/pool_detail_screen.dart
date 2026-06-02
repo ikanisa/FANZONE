@@ -167,7 +167,7 @@ class PoolDetailScreen extends ConsumerWidget {
                               ? () => context.push('/pool/${pool.id}/join')
                               : null,
                           icon: const Icon(LucideIcons.trophy, size: 16),
-                          label: const Text('Stake'),
+                          label: const Text('Join'),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -257,9 +257,12 @@ class _PoolHero extends StatelessWidget {
             children: [
               _HeroMetric(label: 'Members', value: '${pool.totalMembers}'),
               const SizedBox(width: 10),
-              _HeroMetric(label: 'Pooled', value: '${pool.totalStakedFet} FET'),
+              _HeroMetric(
+                label: 'Reserved',
+                value: '${pool.totalStakedFet} FET',
+              ),
               const SizedBox(width: 10),
-              _HeroMetric(label: 'Stake', value: '${pool.defaultStakeFet} FET'),
+              _HeroMetric(label: 'Entry', value: '${pool.defaultStakeFet} FET'),
             ],
           ),
         ],

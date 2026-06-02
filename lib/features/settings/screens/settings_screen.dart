@@ -88,7 +88,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         context,
                         title: 'Verify WhatsApp',
                         message:
-                            'Verify your number to manage notifications, join pools, and send FET.',
+                            'Verify your number to manage notifications, join challenges, and protect rewards.',
                         from: '/settings',
                       ),
                       child: const Text('Verify now'),

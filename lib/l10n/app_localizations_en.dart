@@ -65,19 +65,19 @@ class SEn extends S {
   String get matchVs => 'vs';
 
   @override
-  String get walletTitle => 'FET Wallet';
+  String get walletTitle => 'FET Rewards Ledger';
 
   @override
-  String get walletBalance => 'Balance';
+  String get walletBalance => 'Rewards';
 
   @override
   String get walletTransactions => 'Transactions';
 
   @override
-  String get walletTransfer => 'Transfer';
+  String get walletTransfer => 'Ledger';
 
   @override
-  String get walletSend => 'Send FET';
+  String get walletSend => 'View rewards';
 
   @override
   String get walletRecipient => 'Recipient';
@@ -95,7 +95,7 @@ class SEn extends S {
   String get profileSettings => 'Settings';
 
   @override
-  String get profileWallet => 'Wallet';
+  String get profileWallet => 'Rewards';
 
   @override
   String get profileNotifications => 'Notifications';
@@ -179,7 +179,7 @@ class SEn extends S {
 
   @override
   String get loginSubtitle =>
-      'Sports-bar ordering, match pools, and FET wallet';
+      'Sports-bar ordering, match pools, and FET rewards';
 
   @override
   String get loginPhoneHint => 'WhatsApp number';

@@ -25,7 +25,7 @@ mixin _$WalletTransaction {
   String get title => throw _privateConstructorUsedError;
   int get amount => throw _privateConstructorUsedError;
   String get type =>
-      throw _privateConstructorUsedError; // 'earn' | 'spend' | 'transfer_sent' | 'transfer_received'
+      throw _privateConstructorUsedError; // 'earn' | 'spend' | 'reward_credit' | 'reward_debit'
   DateTime get date => throw _privateConstructorUsedError;
   String get dateStr => throw _privateConstructorUsedError;
 
@@ -204,7 +204,7 @@ class _$WalletTransactionImpl implements _WalletTransaction {
   final int amount;
   @override
   final String type;
-  // 'earn' | 'spend' | 'transfer_sent' | 'transfer_received'
+  // 'earn' | 'spend' | 'reward_credit' | 'reward_debit'
   @override
   final DateTime date;
   @override
@@ -270,7 +270,7 @@ abstract class _WalletTransaction implements WalletTransaction {
   @override
   int get amount;
   @override
-  String get type; // 'earn' | 'spend' | 'transfer_sent' | 'transfer_received'
+  String get type; // 'earn' | 'spend' | 'reward_credit' | 'reward_debit'
   @override
   DateTime get date;
   @override

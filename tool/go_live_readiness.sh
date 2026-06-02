@@ -70,6 +70,7 @@ run npm run build --workspaces --if-present
 run deno fmt --check supabase/functions
 run_shell "find supabase/functions -name '*.ts' -print0 | xargs -0 deno check"
 run deno test --allow-env supabase/functions
+run deno test test/core_order_lifecycle_test.ts
 
 run bash -n \
   tool/validate_release_env.sh \
@@ -87,6 +88,11 @@ run bash -n \
   tool/supabase_live_validation.sh \
   tool/supabase_rls_audit.sh \
   tool/supabase_fet_supply_smoke.sh \
+  tool/supabase_release_readiness_hardening.sh \
+  tool/supabase_hospitality_core_phase2.sh \
+  tool/supabase_order_lifecycle_smoke.sh \
+  tool/supabase_manual_payment_reconciliation_smoke.sh \
+  tool/supabase_staff_call_acknowledgement_smoke.sh \
   tool/run_supabase_cron_job.sh
 run node --check tool/test_bff_health.mjs
 

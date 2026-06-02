@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export interface AppNotification {
   id: string;
-  type: 'pool_update' | 'pool_reward' | 'system' | 'transfer';
+  type: 'pool_update' | 'pool_reward' | 'system';
   title: string;
   message: string;
   timestamp: number;
@@ -14,7 +14,7 @@ export interface WalletTransaction {
   id: string;
   title: string;
   amount: number;
-  type: 'earn' | 'spend' | 'transfer_sent' | 'transfer_received';
+  type: 'earn' | 'spend' | 'reward_credit' | 'reward_debit';
   timestamp: number;
   dateStr: string;
 }
@@ -48,7 +48,6 @@ interface AppState {
   walletTransactions: WalletTransaction[];
   addFet: (amount: number) => void;
   deductFet: (amount: number) => void;
-  transferFET: (recipient: string, amount: number) => { success: boolean; error?: string };
 
   // Notifications State
   notifications: AppNotification[];
@@ -99,41 +98,6 @@ export const useAppStore = create<AppState>()(
       addFet: (amount) => set((state) => ({ fetBalance: state.fetBalance + amount })),
       deductFet: (amount) => set((state) => ({ fetBalance: state.fetBalance - amount })),
       
-      transferFET: (recipient, amount) => {
-        const state = get();
-        if (state.fetBalance < amount) return { success: false, error: 'Insufficient funds' };
-        if (amount <= 0) return { success: false, error: 'Amount must be greater than 0' };
-        
-        // Remove spaces or hashes if any were passed
-        const cleanRecipient = recipient.replace(/\D/g, '');
-        if (cleanRecipient === state.fanId.replace(/\D/g, '')) {
-           return { success: false, error: "You cannot transfer FET to yourself." };
-        }
-        
-        const newTx: WalletTransaction = {
-          id: Math.random().toString(36).substring(7),
-          title: `Transfer to Fan #${cleanRecipient}`,
-          amount: amount,
-          type: 'transfer_sent',
-          timestamp: Date.now(),
-          dateStr: 'Just now'
-        };
-
-        set((s) => ({
-          fetBalance: s.fetBalance - amount,
-          walletTransactions: [newTx, ...s.walletTransactions]
-        }));
-
-        // Trigger a notification
-        state.addNotification({
-          type: 'transfer',
-          title: 'Transfer Successful',
-          message: `You successfully sent ${amount} FET to Fan #${cleanRecipient}.`
-        });
-
-        return { success: true };
-      },
-
       // Notifications State
       notifications: [],
       unreadCount: 0,

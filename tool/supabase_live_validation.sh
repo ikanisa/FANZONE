@@ -14,3 +14,5 @@ fi
 supabase db lint "${lint_args[@]}"
 ./tool/supabase_rls_audit.sh
 ./tool/supabase_fet_supply_smoke.sh
+./tool/supabase_release_readiness_hardening.sh
+./tool/supabase_hospitality_core_phase2.sh --readiness

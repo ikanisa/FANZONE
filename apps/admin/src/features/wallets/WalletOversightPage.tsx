@@ -1,4 +1,4 @@
-// FANZONE Admin — Wallet Oversight Page — Live Data
+// FANZONE Admin - FET Ledger Oversight Page - Live Data
 import { useState } from 'react';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { KpiCard } from '../../components/ui/KpiCard';
@@ -81,12 +81,12 @@ export function WalletOversightPage() {
 
   return (
     <div>
-      <PageHeader title="FET Wallets" subtitle="User balances, freeze controls, and token adjustments" />
+      <PageHeader title="FET Ledgers" subtitle="User reward totals, freeze controls, and audited point adjustments" />
 
       <div className="grid grid-4 gap-4 mb-6">
-        <KpiCard label="Total Wallets" value={result?.count ?? wallets.length} icon={<Wallet size={18} />} />
+        <KpiCard label="Total Ledgers" value={result?.count ?? wallets.length} icon={<Wallet size={18} />} />
         <KpiCard label="Available FET" value={totalAvailable} format="fet" icon={<TrendingUp size={18} />} />
-        <KpiCard label="Staked / Pending" value={totalStaked + totalPending} format="fet" />
+        <KpiCard label="Reserved / Pending" value={totalStaked + totalPending} format="fet" />
         <KpiCard label="Earned FET" value={totalEarned} format="fet" />
       </div>
 
@@ -94,7 +94,7 @@ export function WalletOversightPage() {
       <div className="filter-bar mb-4">
         <div style={{ position: 'relative', maxWidth: 320 }}>
           <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--fz-muted-2)' }} />
-          <input className="input" style={{ paddingLeft: 36 }} placeholder="Search wallets..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} />
+          <input className="input" style={{ paddingLeft: 36 }} placeholder="Search ledgers..." value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} />
         </div>
         <select className="input select" style={{ maxWidth: 160 }} value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(0); }}>
           <option value="all">All</option>
@@ -106,14 +106,14 @@ export function WalletOversightPage() {
       {/* Content */}
       {isLoading ? <LoadingState lines={6} /> :
        error ? <ErrorState onRetry={() => refetch()} /> :
-       wallets.length === 0 ? <EmptyState title="No wallets found" /> : (
+       wallets.length === 0 ? <EmptyState title="No FET ledgers found" /> : (
         <div className="data-table-container">
           <table className="data-table">
             <thead>
               <tr>
                 <th>User</th>
                 <th>Available</th>
-                <th>Staked</th>
+                <th>Reserved</th>
                 <th>Pending</th>
                 <th>Earned</th>
                 <th>Spent</th>
@@ -161,7 +161,7 @@ export function WalletOversightPage() {
             </tbody>
           </table>
           <div className="pagination">
-            <span>Showing {wallets.length} of {result?.count ?? 0} wallets</span>
+            <span>Showing {wallets.length} of {result?.count ?? 0} ledgers</span>
             <div className="pagination-controls">
               <button className="pagination-btn" disabled={page === 0} onClick={() => setPage(p => p - 1)}>←</button>
               <button className="pagination-btn active">{page + 1}</button>
@@ -171,7 +171,7 @@ export function WalletOversightPage() {
         </div>
       )}
 
-      {/* Wallet Detail Drawer */}
+      {/* FET ledger detail drawer */}
       <DetailDrawer
         open={!!selectedWallet}
         title={selectedWallet?.display_name ?? ''}
@@ -206,7 +206,7 @@ export function WalletOversightPage() {
           <>
             <DrawerSection title="Balance">
               <DrawerField label="Available" value={formatFET(selectedWallet.available_balance_fet)} />
-              <DrawerField label="Staked" value={formatFET(selectedWallet.staked_balance_fet ?? 0)} />
+              <DrawerField label="Reserved" value={formatFET(selectedWallet.staked_balance_fet ?? 0)} />
               <DrawerField label="Pending settlements" value={formatFET(selectedWallet.pending_balance_fet ?? 0)} />
               <DrawerField label="Spent history" value={formatFET(selectedWallet.spent_fet ?? 0)} />
               <DrawerField label="Earned history" value={formatFET(selectedWallet.earned_fet ?? 0)} />
@@ -249,20 +249,20 @@ export function WalletOversightPage() {
             <div className="flex items-start gap-4 mb-4">
               <div style={{ color: 'var(--fz-error)', flexShrink: 0 }}><Lock size={24} /></div>
               <div>
-                <h3 className="text-md font-semibold mb-1">Freeze Wallet</h3>
+                <h3 className="text-md font-semibold mb-1">Freeze FET Ledger</h3>
                 <p className="text-sm text-muted">
-                  Freeze {freezeTarget.display_name}'s wallet. They won't be able to transfer or receive wallet adjustments until it is restored.
+                  Freeze {freezeTarget.display_name}'s FET ledger. They cannot receive new FET adjustments until it is restored.
                 </p>
               </div>
             </div>
             <div className="field-group mb-4">
               <label className="label">Reason (required)</label>
-              <textarea className="input" placeholder="Why is this wallet being frozen?" rows={3} value={freezeReason} onChange={e => setFreezeReason(e.target.value)} style={{ resize: 'vertical' }} />
+              <textarea className="input" placeholder="Why is this FET ledger being frozen?" rows={3} value={freezeReason} onChange={e => setFreezeReason(e.target.value)} style={{ resize: 'vertical' }} />
             </div>
             <div className="flex justify-end gap-3">
               <button className="btn btn-secondary" onClick={() => { setFreezeTarget(null); setFreezeReason(''); }} disabled={freezeMutation.isPending}>Cancel</button>
               <button className="btn btn-danger" onClick={handleFreeze} disabled={freezeReason.trim().length < 8 || freezeMutation.isPending}>
-                {freezeMutation.isPending ? 'Freezing...' : 'Freeze Wallet'}
+                {freezeMutation.isPending ? 'Freezing...' : 'Freeze Ledger'}
               </button>
             </div>
           </div>
@@ -272,8 +272,8 @@ export function WalletOversightPage() {
       {/* Unfreeze Confirm */}
       <ConfirmDialog
         open={!!unfreezeTarget}
-        title="Unfreeze Wallet"
-        description={unfreezeTarget ? `Unfreeze ${unfreezeTarget.display_name}'s wallet? They will regain full access to their FET.` : ''}
+        title="Unfreeze FET Ledger"
+        description={unfreezeTarget ? `Unfreeze ${unfreezeTarget.display_name}'s FET ledger? They will regain full access to their FET rewards.` : ''}
         confirmLabel="Unfreeze"
         onConfirm={handleUnfreeze}
         onCancel={() => setUnfreezeTarget(null)}

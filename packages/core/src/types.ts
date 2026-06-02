@@ -471,6 +471,20 @@ export interface OrderRow {
   updated_at?: string;
 }
 
+export interface OrderStateEventRow {
+  [key: string]: unknown;
+  id: string;
+  order_id: string;
+  venue_id: string;
+  actor_user_id: string | null;
+  previous_status: string | null;
+  next_status: OrderStatus;
+  reason: string | null;
+  source: string;
+  metadata: Json;
+  created_at: string;
+}
+
 export interface PaymentEventRow {
   [key: string]: unknown;
   id: string;
@@ -482,6 +496,21 @@ export interface PaymentEventRow {
   response_payload: Json;
   created_at: string;
   updated_at: string;
+}
+
+export interface PaymentReconciliationRow {
+  [key: string]: unknown;
+  venue_id: string;
+  business_date: string;
+  payment_method: string;
+  payment_status: string;
+  event_count: number;
+  amount_received: number;
+  order_total_amount: number;
+  provider_api_used: boolean;
+  external_reference_count: number;
+  first_event_at: string | null;
+  last_event_at: string | null;
 }
 
 export interface VenueTableRow {
@@ -894,6 +923,7 @@ export interface Database {
       menu_items: TableDefinition<MenuItemRow>;
       orders: TableDefinition<OrderRow>;
       order_items: TableDefinition<OrderItemRow>;
+      order_state_events: TableDefinition<OrderStateEventRow>;
       payment_events: TableDefinition<PaymentEventRow>;
       tables: TableDefinition<VenueTableRow>;
       bell_requests: TableDefinition<BellRequestRow>;
@@ -1039,6 +1069,19 @@ export interface Database {
           p_actor_note?: string | null;
           p_amount_received?: number | null;
           p_external_reference?: string | null;
+        };
+        Returns: Json;
+      };
+      venue_manual_payment_reconciliation: {
+        Args: {
+          p_venue_id: string;
+          p_business_date?: string | null;
+        };
+        Returns: PaymentReconciliationRow[];
+      };
+      venue_acknowledge_bell_request: {
+        Args: {
+          p_bell_id: string;
         };
         Returns: Json;
       };

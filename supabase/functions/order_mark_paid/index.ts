@@ -10,16 +10,26 @@ import {
   requireAuth,
   requireVendorOrAdmin,
 } from "../_shared/mod.ts";
+import {
+  orderMarkPaidCanonicalRpc,
+  orderMarkPaidDefaultPaymentMethod,
+  orderMarkPaidMaxExternalReferenceLength,
+  orderMarkPaidMaxNoteLength,
+  orderMarkPaidPaymentMethods,
+  orderMarkPaidTargetPaymentStatus,
+} from "../_shared/order_mark_paid_contract.ts";
 
 const markPaidSchema = z.object({
   order_id: z.string().uuid(),
   payment_method: z
-    .enum(["cash", "momo", "revolut", "other"])
+    .enum(orderMarkPaidPaymentMethods)
     .optional()
-    .default("cash"),
+    .default(orderMarkPaidDefaultPaymentMethod),
   amount_received: z.number().nonnegative().optional(),
-  external_reference: z.string().trim().max(120).optional(),
-  note: z.string().trim().max(240).optional(),
+  external_reference: z.string().trim().max(
+    orderMarkPaidMaxExternalReferenceLength,
+  ).optional(),
+  note: z.string().trim().max(orderMarkPaidMaxNoteLength).optional(),
 });
 
 Deno.serve(async (req) => {
@@ -96,10 +106,10 @@ Deno.serve(async (req) => {
     // External payments are off-platform. This endpoint records a staff/admin
     // manual confirmation after the customer shows cash, USSD, or Revolut proof.
     const { data: paymentRecord, error: paymentError } = await supabaseUser.rpc(
-      "venue_update_order_payment_status",
+      orderMarkPaidCanonicalRpc,
       {
         p_order_id: order_id,
-        p_payment_status: "paid",
+        p_payment_status: orderMarkPaidTargetPaymentStatus,
         p_payment_method: payment_method,
         p_actor_note: note ?? null,
         p_amount_received: amount_received ?? null,

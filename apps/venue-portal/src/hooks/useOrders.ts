@@ -57,8 +57,12 @@ export function useOrders(venueId: string) {
     };
   }, [refresh, venueId]);
 
-  const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    await setOrderServiceStatus(orderId, status);
+  const updateOrderStatus = async (
+    orderId: string,
+    status: OrderStatus,
+    reason?: string,
+  ) => {
+    await setOrderServiceStatus(orderId, status, reason);
     await refresh();
   };
 

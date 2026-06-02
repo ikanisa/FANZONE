@@ -26,7 +26,6 @@ import {
   getViewerState,
   markAllNotificationsRead,
   markNotificationRead,
-  transferFetByFanId,
 } from "./viewerApi";
 
 export type {
@@ -71,7 +70,6 @@ export const api = {
   getPreferredPhonePreset,
   getPreferredCurrencyDisplay,
   joinMatchPool,
-  transferFetByFanId,
   markNotificationRead,
   markAllNotificationsRead,
   fetchVenues,

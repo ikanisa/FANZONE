@@ -1,13 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../core/di/gateway_providers.dart';
-import '../core/errors/app_exception.dart';
 import '../core/errors/failures.dart';
-import '../core/logging/app_logger.dart';
 import '../features/wallet/data/wallet_gateway.dart';
 import '../models/auth_and_user/wallet.dart';
 import '../providers/auth_provider.dart';
-import 'product_analytics_service.dart';
 
 part 'wallet_service.g.dart';
 
@@ -42,44 +39,12 @@ class WalletService extends _$WalletService {
   }
 
   Future<void> transferByFanId(String fanId, int amount) async {
-    final user = ref.read(authServiceProvider).currentUser;
-    if (user == null) {
-      throw const AuthFailure();
-    }
-
-    if (amount <= 0) {
-      throw const ValidationFailure(
-        message: 'Amount must be greater than zero',
-        code: 'invalid_amount',
-      );
-    }
-
-    if (!RegExp(r'^\d{6}$').hasMatch(fanId)) {
-      throw const ValidationFailure(
-        message: 'Fan ID must be exactly 6 digits',
-        code: 'invalid_fan_id',
-      );
-    }
-
-    state = const AsyncValue.loading();
-
-    try {
-      await ref
-          .read(walletGatewayProvider)
-          .transferByFanId(
-            WalletTransferByFanIdDto(fanId: fanId, amount: amount),
-          );
-
-      ref.invalidateSelf();
-      ref.invalidate(walletBalanceProvider);
-      ref.invalidate(transactionServiceProvider);
-      ProductAnalytics.walletAction(action: 'transfer_sent', amountFet: amount);
-    } catch (error, stack) {
-      final failure = mapExceptionToFailure(error, stack);
-      AppLogger.w('Transfer by Fan ID failed: ${failure.message}');
-      state = AsyncValue.error(failure, stack);
-      throw failure;
-    }
+    assert(fanId.isNotEmpty || amount >= 0);
+    throw const ValidationFailure(
+      message:
+          'Customer-to-customer FET movement is disabled. FET is a closed-loop rewards ledger.',
+      code: 'fet_movement_disabled',
+    );
   }
 }
 

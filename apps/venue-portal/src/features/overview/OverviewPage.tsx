@@ -22,7 +22,7 @@ import { useVenue } from '../../hooks/useVenueContext';
 import { useVenueStats } from '../../hooks/useVenueStats';
 
 const eligibilityRule =
-  'To receive FET winnings, the user must place at least one order from this bar within 2 hours before the linked game/pool start time.';
+  'To receive FET rewards, the user must place at least one order from this bar within 2 hours before the linked game/challenge start time.';
 const activeServiceStatuses = ['submitted', 'accepted', 'preparing', 'ready', 'served'];
 
 function moneyLabel(amount: number) {

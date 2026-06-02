@@ -18,7 +18,7 @@ export interface ViewerState {
     id: string;
     title: string;
     amount: number;
-    type: "earn" | "spend" | "transfer_sent" | "transfer_received";
+    type: "earn" | "spend" | "reward_credit" | "reward_debit";
     timestamp: number;
     dateStr: string;
   }[];
@@ -154,23 +154,22 @@ export async function getViewerState(): Promise<ViewerState | null> {
       walletTransactions: txRows.map((row) => {
         const direction = asString(row.direction);
         const txType = asString(row.tx_type);
-        const transferSent = txType === "transfer" && direction === "debit";
-        const transferReceived =
-          txType === "transfer" && direction === "credit";
+        const isLegacyTransfer = txType === "transfer";
+        const isCredit = direction === "credit";
         return {
           id: asString(row.id),
           title: asString(
             row.title,
-            transferSent ? "Transfer sent" : "Wallet activity",
+            isLegacyTransfer ? "Legacy rewards adjustment" : "FET activity",
           ),
           amount: asNumber(row.amount_fet),
-          type: transferSent
-            ? "transfer_sent"
-            : transferReceived
-              ? "transfer_received"
-              : direction === "credit"
-                ? "earn"
-                : "spend",
+          type: isLegacyTransfer
+            ? isCredit
+              ? "reward_credit"
+              : "reward_debit"
+            : isCredit
+              ? "earn"
+              : "spend",
           timestamp: new Date(asString(row.created_at)).getTime(),
           dateStr: relativeDateLabel(asString(row.created_at)),
         };
@@ -318,48 +317,6 @@ export async function getPreferredCurrencyDisplay(): Promise<CurrencyDisplayPref
     rate: 1,
     fetPerEur: null,
   };
-}
-
-export async function transferFetByFanId(
-  recipientFanId: string,
-  amountFet: number,
-): Promise<{
-  success: boolean;
-  viewerState?: ViewerState | null;
-  error?: string;
-}> {
-  const client = await ensureClient();
-  if (!client) {
-    return {
-      success: false,
-      error: "Supabase is not configured for the website.",
-    };
-  }
-
-  try {
-    assertClientFeatureAvailable(
-      "wallet",
-      "Wallet transfers are currently unavailable.",
-    );
-
-    const { error } = await client.rpc("transfer_fet_by_fan_id", {
-      p_recipient_fan_id: recipientFanId,
-      p_amount_fet: amountFet,
-    });
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return {
-      success: true,
-      viewerState: await getViewerState(),
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Transfer failed.",
-    };
-  }
 }
 
 export async function markNotificationRead(

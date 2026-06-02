@@ -19,6 +19,7 @@ import {
   Utensils,
   Wallet,
 } from 'lucide-react';
+import { activeOrderStatuses } from '@fanzone/core';
 import { StatusChip } from '../console/StatusChip';
 import { useBellRequests } from '../../hooks/useBellRequests';
 import { useOrders } from '../../hooks/useOrders';
@@ -34,7 +35,7 @@ const navItems = [
   { label: 'Games', path: '/games', icon: <Gamepad2 size={20} /> },
   { label: 'Teams', path: '/teams', icon: <Users size={20} /> },
   { label: 'Screen', path: '/screen', icon: <MonitorPlay size={20} /> },
-  { label: 'FET Wallet', path: '/wallet', icon: <Wallet size={20} /> },
+  { label: 'FET Ledger', path: '/wallet', icon: <Wallet size={20} /> },
   { label: 'Insights', path: '/insights', icon: <BarChart3 size={20} /> },
   { label: 'Settings', path: '/settings', icon: <Settings size={20} /> },
 ];
@@ -45,8 +46,6 @@ const quickActions = [
   { label: 'Add Menu Item', path: '/menu/items/new', icon: <Utensils size={18} /> },
   { label: 'Open Screen', path: '/screen', icon: <MonitorPlay size={18} /> },
 ];
-
-const activeServiceStatuses = ['placed', 'received', 'preparing'];
 
 function roleLabel(role: string | undefined) {
   if (!role) return 'Staff';
@@ -155,7 +154,7 @@ export const AppShell = () => {
         .toUpperCase(),
     [venueName],
   );
-  const activeOrders = orders.filter((order) => activeServiceStatuses.includes(order.status)).length;
+  const activeOrders = orders.filter((order) => activeOrderStatuses.includes(order.status)).length;
   const pendingPayments = orders.filter((order) =>
     ['unpaid', 'payment_submitted', 'pending', 'partially_paid', 'disputed'].includes(order.paymentStatus),
   ).length;
@@ -185,7 +184,7 @@ export const AppShell = () => {
               <HeaderPill label="Payments" value={`${pendingPayments} pending`} tone={pendingPayments ? 'warning' : 'neutral'} />
               <HeaderPill label="Staff" value={`${bells.length} bells`} tone={bells.length ? 'warning' : 'neutral'} />
               <HeaderPill label="Games/Pools" value={`Games pending · ${stats.active_pools} pools`} tone={stats.active_pools ? 'primary' : 'neutral'} />
-              <HeaderPill label="FET wallet" value="Ledger needed" icon={<Coins size={16} />} />
+              <HeaderPill label="FET ledger" value="Review needed" icon={<Coins size={16} />} />
             </div>
 
             <div className="flex items-center gap-3">

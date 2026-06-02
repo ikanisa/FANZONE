@@ -37,10 +37,10 @@ enum OrderStatus {
         return 'Draft';
       case OrderStatus.placed:
       case OrderStatus.submitted:
-        return 'Placed';
+        return 'Submitted';
       case OrderStatus.received:
       case OrderStatus.accepted:
-        return 'Received';
+        return 'Accepted';
       case OrderStatus.preparing:
         return 'Preparing';
       case OrderStatus.ready:

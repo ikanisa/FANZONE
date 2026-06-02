@@ -67,7 +67,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
       await showSignInRequiredSheet(
         context,
         title: 'Verify WhatsApp',
-        message: 'Unlock stake.',
+        message: 'Unlock this free-to-play entry.',
         from: returnTo,
       );
       return;
@@ -184,7 +184,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const _SectionLabel('Stake'),
+                  const _SectionLabel('Entry'),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _stakeController,
@@ -212,7 +212,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(LucideIcons.lock, size: 16),
-                    label: Text(_submitting ? 'Staking...' : 'Stake'),
+                    label: Text(_submitting ? 'Joining...' : 'Join'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),

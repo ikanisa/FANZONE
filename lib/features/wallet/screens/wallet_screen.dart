@@ -14,14 +14,12 @@ import '../../../widgets/common/fz_animated_counter.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_empty_state.dart';
 import '../../../widgets/common/state_view.dart';
-import '../../auth/widgets/sign_in_required_sheet.dart';
 import '../../../services/wallet_service.dart';
 import '../data/wallet_gateway.dart';
 import '../widgets/wallet_screen_components.dart';
-import '../widgets/wallet_transfer_sheets.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
 
-/// Wallet screen — sports-gaming dark style.
+/// Rewards ledger screen — sports-gaming dark style.
 class WalletScreen extends ConsumerWidget {
   const WalletScreen({super.key});
 
@@ -37,30 +35,14 @@ class WalletScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
         children: [
           Text(
-            'WALLET',
+            'REWARDS',
             style: FzTypography.sportsTitle(size: 36, color: FzColors.darkText),
           ),
           const SizedBox(height: 18),
           _WalletHero(
             balanceAsync: walletBalanceAsync,
             currency: currency,
-            onSend: () {
-              if (!isVerified) {
-                showSignInRequiredSheet(
-                  context,
-                  title: 'Verify',
-                  message: 'Unlock transfer.',
-                  from: '/wallet',
-                );
-                return;
-              }
-              showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => const TransferFetSheet(),
-              );
-            },
+            isVerified: isVerified,
           ),
           const SizedBox(height: 18),
           walletBalanceAsync.when(
@@ -80,7 +62,7 @@ class WalletScreen extends ConsumerWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: WalletSummaryCard(
-                        label: 'Staked',
+                        label: 'Reserved',
                         amount: balance.stakedFet,
                         positive: true,
                         showSign: false,
@@ -182,12 +164,12 @@ class _WalletHero extends StatelessWidget {
   const _WalletHero({
     required this.balanceAsync,
     required this.currency,
-    required this.onSend,
+    required this.isVerified,
   });
 
   final AsyncValue<WalletBalance> balanceAsync;
   final String currency;
-  final VoidCallback onSend;
+  final bool isVerified;
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +200,7 @@ class _WalletHero extends StatelessWidget {
           Column(
             children: [
               Text(
-                'FET BALANCE',
+                'FET REWARDS',
                 style: FzTypography.chipLabel(size: 12, color: Colors.white70),
               ),
               const SizedBox(height: 8),
@@ -256,17 +238,7 @@ class _WalletHero extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 18),
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 220),
-                  child: _HeroActionButton(
-                    label: 'Send',
-                    icon: LucideIcons.send,
-                    filled: true,
-                    onTap: onSend,
-                  ),
-                ),
-              ),
+              _RewardsLedgerNotice(isVerified: isVerified),
             ],
           ),
         ],
@@ -275,56 +247,39 @@ class _WalletHero extends StatelessWidget {
   }
 }
 
-class _HeroActionButton extends StatelessWidget {
-  const _HeroActionButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-    this.filled = false,
-  });
+class _RewardsLedgerNotice extends StatelessWidget {
+  const _RewardsLedgerNotice({required this.isVerified});
 
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool filled;
+  final bool isVerified;
 
   @override
   Widget build(BuildContext context) {
-    final background = filled
-        ? Colors.white
-        : Colors.white.withValues(alpha: 0.1);
-    final labelColor = filled ? FzColors.darkBg : Colors.white;
-    final iconColor = filled ? FzColors.orange : Colors.white;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: FzRadii.fullRadius,
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: FzRadii.fullRadius,
-          border: Border.all(
-            color: filled
-                ? Colors.transparent
-                : Colors.white.withValues(alpha: 0.2),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: iconColor),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-                color: labelColor,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: FzRadii.cardRadius,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          const Icon(LucideIcons.shieldCheck, size: 18, color: Colors.white),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              isVerified
+                  ? 'FET is a closed-loop rewards ledger for venue rewards, games, and coupons.'
+                  : 'Verify to keep your rewards ledger and order history protected.',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                height: 1.35,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

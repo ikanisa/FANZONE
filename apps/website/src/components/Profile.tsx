@@ -99,7 +99,7 @@ export default function Profile() {
         {(showPools || showWallet) && (
           <section>
             <h3 className="font-sans font-bold text-sm text-text mb-2 px-1">
-              Sports-Bar Wallet
+              Sports-Bar Rewards
             </h3>
             <div className="bg-surface2 rounded-[20px] border border-border overflow-hidden">
               {showPools && (
@@ -113,7 +113,7 @@ export default function Profile() {
                 <SettingsItem
                   to={walletRoute}
                   icon={<Wallet size={18} />}
-                  label="FET Wallet"
+                  label="FET Rewards"
                 />
               )}
             </div>

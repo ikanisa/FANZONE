@@ -152,7 +152,7 @@ class ProfileHeaderCard extends StatelessWidget {
                       borderRadius: FzRadii.compactRadius,
                     ),
                     child: const Text(
-                      'Verify phone to unlock pools and transfers',
+                      'Verify phone to unlock challenges and protect rewards',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

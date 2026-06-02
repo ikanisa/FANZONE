@@ -1,6 +1,4 @@
-import '../../../config/app_config.dart';
 import '../../../core/logging/app_logger.dart';
-import '../../../core/config/platform_feature_access.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/auth_and_user/wallet.dart';
 
@@ -170,38 +168,9 @@ class SupabaseWalletGateway implements WalletGateway {
 
   @override
   Future<void> transferByFanId(WalletTransferByFanIdDto request) async {
-    if (AppConfig.isReviewMode) {
-      throw StateError(
-        'FET transfers are disabled in the FANZONE review PWA. Use staging-safe test data for browser review.',
-      );
-    }
-    final client = _connection.client;
-    if (client == null) {
-      _throwUnavailable('FET transfer');
-    }
-    if (_connection.currentUser?.isAnonymous ?? false) {
-      throw StateError(
-        'Verify your WhatsApp number before sending FET to another fan.',
-      );
-    }
-
-    assertRuntimePlatformFeatureActionAvailable(
-      'wallet',
-      fallbackMessage: 'Wallet transfers are unavailable right now.',
+    throw StateError(
+      'Customer-to-customer FET movement is disabled. FET is a closed-loop rewards ledger for venue rewards, games, and coupons.',
     );
-
-    try {
-      await client.rpc(
-        'transfer_fet_by_fan_id',
-        params: {
-          'p_recipient_fan_id': request.fanId,
-          'p_amount_fet': request.amount,
-        },
-      );
-    } catch (error) {
-      AppLogger.d('Failed to transfer by fan id remotely: $error');
-      rethrow;
-    }
   }
 
   @override
@@ -224,7 +193,7 @@ class SupabaseWalletGateway implements WalletGateway {
           .map(
             (row) => WalletTransaction(
               id: row['id']?.toString() ?? '',
-              title: row['title']?.toString() ?? 'Wallet activity',
+              title: row['title']?.toString() ?? 'FET activity',
               amount: (row['amount_fet'] as num?)?.toInt() ?? 0,
               type: _transactionTypeFromRow(Map<String, dynamic>.from(row)),
               date:
@@ -451,8 +420,8 @@ class SupabaseWalletGateway implements WalletGateway {
         row['transaction_type']?.toString() ?? row['tx_type']?.toString() ?? '';
     final direction = row['direction']?.toString() ?? '';
     final bucket = row['balance_bucket']?.toString() ?? 'available';
-    if (type == 'transfer' && direction == 'debit') return 'transfer_sent';
-    if (type == 'transfer' && direction == 'credit') return 'transfer_received';
+    if (type == 'transfer' && direction == 'debit') return 'reward_debit';
+    if (type == 'transfer' && direction == 'credit') return 'reward_credit';
     if (type == 'pool_stake') return 'pool_stake';
     if (type == 'order_spend') return 'order_spend';
     if (type == 'order_earn' || type == 'welcome_credit') return type;

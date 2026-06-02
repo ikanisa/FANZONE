@@ -34,9 +34,9 @@ class TransactionDetailsScreen extends ConsumerWidget {
             if (transaction == null) {
               return StateView.empty(
                 title: 'Transaction not found',
-                subtitle: 'Open Wallet to choose another activity item.',
+                subtitle: 'Open Rewards to choose another activity item.',
                 action: () => context.go('/wallet'),
-                actionLabel: 'Open Wallet',
+                actionLabel: 'Open Rewards',
               );
             }
             return _TransactionContent(transaction: transaction);

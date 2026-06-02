@@ -2,6 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { Order, OrderStatus, PaymentMethod } from '@fanzone/core';
 import {
+  isTerminalOrderStatus,
+  manualPaymentStatusRequiresNote,
+  nextOrderStatuses,
+  orderStatusRequiresReason,
+  orderTransitionActionLabels,
+} from '@fanzone/core';
+import {
   AlertCircle,
   ArrowLeft,
   CheckCircle2,
@@ -49,46 +56,6 @@ function dateTimeLabel(value: string | null | undefined) {
   }).format(new Date(value));
 }
 
-const transitionLabels: Partial<Record<OrderStatus, string>> = {
-  accepted: 'Accept order',
-  preparing: 'Preparing',
-  ready: 'Ready',
-  served: 'Mark served',
-  completed: 'Complete',
-  cancelled: 'Cancel order',
-  disputed: 'Dispute order',
-  refunded: 'Refunded',
-};
-
-function nextServiceStatuses(status: OrderStatus): OrderStatus[] {
-  switch (status) {
-    case 'draft':
-      return ['submitted'];
-    case 'placed':
-    case 'received':
-    case 'submitted':
-      return ['accepted', 'cancelled', 'disputed'];
-    case 'accepted':
-      return ['preparing', 'ready', 'cancelled', 'disputed'];
-    case 'preparing':
-      return ['ready', 'served', 'cancelled', 'disputed'];
-    case 'ready':
-      return ['served', 'cancelled', 'disputed'];
-    case 'served':
-      return ['completed', 'disputed'];
-    case 'disputed':
-      return ['refunded', 'cancelled', 'completed'];
-    case 'completed':
-    case 'cancelled':
-    case 'refunded':
-      return [];
-  }
-}
-
-function terminalOrder(status: OrderStatus) {
-  return status === 'completed' || status === 'cancelled' || status === 'refunded';
-}
-
 export function OrderDetailPage() {
   const { orderId } = useParams();
   const { venue } = useVenue();
@@ -123,10 +90,21 @@ export function OrderDetailPage() {
 
   async function runServiceAction(status: OrderStatus) {
     if (!detail) return;
+    let reason: string | undefined;
+    if (orderStatusRequiresReason(status)) {
+      reason = window.prompt(
+        `${orderTransitionActionLabels[status] ?? readableStatus(status)} reason`,
+      )?.trim();
+      if (!reason) {
+        setError('Reason is required for this order action.');
+        return;
+      }
+    }
+
     setBusy(true);
     setError(null);
     try {
-      await setOrderServiceStatus(detail.order.id, status);
+      await setOrderServiceStatus(detail.order.id, status, reason);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Action failed.');
@@ -142,6 +120,10 @@ export function OrderDetailPage() {
     note: string;
   }) {
     if (!detail) return;
+    if (manualPaymentStatusRequiresNote('paid') && !details.note.trim()) {
+      setMarkPaidError('Staff note is required for manual payment confirmation.');
+      return;
+    }
     setBusy(true);
     setMarkPaidError(null);
     try {
@@ -181,8 +163,8 @@ export function OrderDetailPage() {
   if (!detail) return null;
 
   const order = detail.order;
-  const nextStatuses = nextServiceStatuses(order.status);
-  const canMarkPaid = !terminalOrder(order.status) && order.paymentStatus !== 'paid';
+  const nextStatuses = nextOrderStatuses(order.status);
+  const canMarkPaid = !isTerminalOrderStatus(order.status) && order.paymentStatus !== 'paid';
 
   return (
     <div className="max-w-[1500px] mx-auto space-y-6">
@@ -333,7 +315,7 @@ export function OrderDetailPage() {
                   ) : (
                     <Clock3 size={17} />
                   )}
-                  {transitionLabels[status] ?? readableStatus(status)}
+                  {orderTransitionActionLabels[status] ?? readableStatus(status)}
                 </button>
               ))}
               <button className="btn btn-primary justify-start" disabled={busy || !canMarkPaid} onClick={() => setMarkPaidOpen(true)}>
@@ -347,7 +329,7 @@ export function OrderDetailPage() {
             <div className="mt-5 rounded-2xl border border-warning/20 bg-warning/10 p-4">
               <EligibilityBadge state={order.paymentStatus === 'paid' ? 'eligible' : 'order_required'} />
               <p className="mt-4 text-base font-bold leading-7">
-                To receive FET winnings, the user must place at least one order from this bar within 2 hours before the linked game/pool start time.
+                To receive FET rewards, the user must place at least one order from this bar within 2 hours before the linked game/challenge start time.
               </p>
             </div>
           </article>

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/di/gateway_providers.dart';
 import '../../../design_system/design_system.dart';
 import '../../../theme/colors.dart';
 import '../../../widgets/common/fz_card.dart';
@@ -152,6 +153,8 @@ class _TrackingContent extends ConsumerWidget {
           label: 'Receipt',
           variant: AppButtonVariant.secondary,
         ),
+        const SizedBox(height: 12),
+        _OrderIssueCard(order: order),
       ],
     );
   }
@@ -181,14 +184,33 @@ class _StatusTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSubmitted =
+        status == OrderStatus.placed || status == OrderStatus.submitted;
+    final isAccepted =
+        status == OrderStatus.received || status == OrderStatus.accepted;
+    final isCompleted = status == OrderStatus.completed;
+    final isException = {
+      OrderStatus.cancelled,
+      OrderStatus.refunded,
+      OrderStatus.disputed,
+    }.contains(status);
+
     return Column(
       children: [
         _TimelineItem(
-          label: 'Received',
+          label: 'Submitted',
           subtitle: '',
           icon: LucideIcons.checkCircle2,
-          isActive: true,
-          isCompleted: status.isAcceptedOrLater,
+          isActive: isSubmitted,
+          isCompleted: status.isAcceptedOrLater || isCompleted || isException,
+        ),
+        _TimelineConnector(isActive: status.isAcceptedOrLater),
+        _TimelineItem(
+          label: 'Accepted',
+          subtitle: '',
+          icon: LucideIcons.clipboardCheck,
+          isActive: isAccepted,
+          isCompleted: status.isPreparingOrLater || isCompleted,
         ),
         _TimelineConnector(isActive: status.isPreparingOrLater),
         _TimelineItem(
@@ -213,17 +235,17 @@ class _StatusTimeline extends StatelessWidget {
           icon: LucideIcons.badgeCheck,
           isActive: status == OrderStatus.served,
           isCompleted: status.isServedOrLater,
-          isLast: !{
-            OrderStatus.cancelled,
-            OrderStatus.refunded,
-            OrderStatus.disputed,
-          }.contains(status),
         ),
-        if ({
-          OrderStatus.cancelled,
-          OrderStatus.refunded,
-          OrderStatus.disputed,
-        }.contains(status)) ...[
+        _TimelineConnector(isActive: isCompleted),
+        _TimelineItem(
+          label: 'Completed',
+          subtitle: '',
+          icon: LucideIcons.partyPopper,
+          isActive: isCompleted,
+          isCompleted: isCompleted,
+          isLast: !isException,
+        ),
+        if (isException) ...[
           const _TimelineConnector(isActive: true),
           _TimelineItem(
             label: status.label,
@@ -344,6 +366,107 @@ class _PaymentStatusCardState extends ConsumerState<_PaymentStatusCard> {
             Text(
               'Paid.',
               style: AppTypography.secondary.copyWith(color: AppColors.muted),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderIssueCard extends ConsumerStatefulWidget {
+  const _OrderIssueCard({required this.order});
+
+  final OrderModel order;
+
+  @override
+  ConsumerState<_OrderIssueCard> createState() => _OrderIssueCardState();
+}
+
+class _OrderIssueCardState extends ConsumerState<_OrderIssueCard> {
+  bool _submitting = false;
+
+  Future<void> _callStaff() async {
+    final tableId = widget.order.tableId;
+    if (tableId == null || tableId.trim().isEmpty) return;
+
+    setState(() => _submitting = true);
+    try {
+      await ref
+          .read(bellGatewayProvider)
+          .ringBell(
+            venueId: widget.order.venueId,
+            tableId: tableId,
+            message:
+                'Order issue: Order #${widget.order.orderCode} needs help.',
+          );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Staff call sent for this order.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not call staff: $error')));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasTable = widget.order.tableId?.trim().isNotEmpty ?? false;
+
+    return FzCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(LucideIcons.bellRing, color: FzColors.warning),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Need help?',
+                      style: AppTypography.cardTitle.copyWith(fontSize: 16),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      hasTable
+                          ? 'Call staff about this order.'
+                          : 'Ask venue staff directly for this order.',
+                      style: AppTypography.secondary.copyWith(
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (hasTable) ...[
+            const SizedBox(height: AppSpacing.lg),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _submitting ? null : _callStaff,
+                icon: _submitting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(LucideIcons.bellRing, size: 16),
+                label: const Text('Call staff'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
             ),
           ],
         ],

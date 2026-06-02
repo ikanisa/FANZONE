@@ -83,7 +83,7 @@ class WalletTransactionRow extends ConsumerWidget {
         transaction.type == 'pool_win' ||
         transaction.type == 'pool_refund' ||
         transaction.type == 'creator_reward' ||
-        transaction.type == 'transfer_received' ||
+        transaction.type == 'reward_credit' ||
         transaction.type == 'bonus' ||
         transaction.type == 'pending';
     final color = isEarn ? FzColors.success : FzColors.danger;
@@ -151,9 +151,9 @@ class WalletTransactionRow extends ConsumerWidget {
         return LucideIcons.lock;
       case 'pending':
         return LucideIcons.timer;
-      case 'transfer_sent':
+      case 'reward_debit':
         return LucideIcons.arrowUpRight;
-      case 'transfer_received':
+      case 'reward_credit':
         return LucideIcons.arrowDownLeft;
       case 'bonus':
         return LucideIcons.gift;

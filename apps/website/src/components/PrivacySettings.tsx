@@ -51,9 +51,9 @@ export default function PrivacySettings() {
                 <Shield size={20} />
               </div>
               <div>
-                <div className="font-bold text-sm text-text mb-1">Protected Wallet Activity</div>
+                <div className="font-bold text-sm text-text mb-1">Protected FET Activity</div>
                 <div className="text-xs text-muted leading-relaxed">
-                  Wallet transfers, venue-order rewards, and pool settlement rewards are tied to your Fan ID and secure wallet ledger only. Exact phone numbers are never exposed.
+                  Venue-order rewards, coupon redemptions, and challenge rewards are tied to your Fan ID and secure rewards ledger only. Exact phone numbers are never exposed.
                 </div>
               </div>
             </div>

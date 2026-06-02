@@ -285,7 +285,7 @@ function MyPoolsList({ entries }: { entries: MatchPoolEntrySummary[] }) {
               </div>
               <div className="grid grid-cols-2 gap-2 min-w-[220px]">
                 <MiniMetric
-                  label="Staked"
+                  label="Entered"
                   value={<FETDisplay amount={entry.stakeAmount} />}
                 />
                 <MiniMetric
@@ -378,7 +378,7 @@ function CreatePoolPanel({
             Venue-linked Match Pool
           </h2>
           <p className="text-sm text-muted mt-1">
-            Choose a curated match, linked venue, FET stake bounds, and
+            Choose a curated match, linked venue, FET entry bounds, and
             home/draw/away camps, then share the generated link.
           </p>
         </div>
@@ -432,7 +432,7 @@ function CreatePoolPanel({
           min={1}
           value={stakeMin}
           onChange={(event) => setStakeMin(Number(event.target.value))}
-          aria-label="Minimum stake"
+          aria-label="Minimum entry"
         />
         <input
           className="rounded-xl border border-border bg-surface3 px-3 py-3 text-sm font-bold text-text"
@@ -440,7 +440,7 @@ function CreatePoolPanel({
           min={stakeMin}
           value={stakeMax}
           onChange={(event) => setStakeMax(Number(event.target.value))}
-          aria-label="Maximum stake"
+          aria-label="Maximum entry"
         />
       </div>
 

@@ -14,9 +14,13 @@ Use this checklist before releasing the sports-bar operational console.
 
 - Place a guest order from the app and confirm it appears in Orders.
 - Confirm order number, table, time, items, service status, payment status, total, FET earned, and FET spent are visible.
-- Mark a placed order as received.
-- Mark a received order as served.
-- Cancel an active order.
+- Mark a submitted order as accepted.
+- Move an accepted order through preparing, ready, served, and completed.
+- Cancel, dispute, and refund actions require an operator reason before the status RPC runs.
+- Confirm `order_state_events.reason` and `audit_logs` retain that reason evidence for exception actions.
+- From the customer order tracker, call staff for an order with a resolved table and confirm the bell queue shows the order issue message.
+- Acknowledge the bell request and confirm it disappears after the queue refresh/backfill.
+- Confirm `audit_logs` records `venue_acknowledge_bell_request`.
 - Set payment method to cash, MoMo, and Revolut.
 - Mark an order paid manually with a note.
 - Confirm `payment_events` records method, amount, before/after status, actor, and note.
@@ -67,6 +71,7 @@ Use this checklist before releasing the sports-bar operational console.
 - Confirm most active match shows the highest participation venue-linked pool.
 - Confirm top menu items update after orders.
 - Confirm pending payment count drops after manual payment confirmation.
+- Confirm manual payment reconciliation shows the selected business date, method/status groups, amount received, order totals, external references, and `provider_api_used = false`.
 
 ## Responsive Checks
 

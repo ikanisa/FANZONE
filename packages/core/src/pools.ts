@@ -7,9 +7,16 @@ export type PoolEntrySource =
   | "venue_qr"
   | "social_share";
 export type PoolVisibility = "public" | "shareable" | "private";
-export type VenuePoolEndorsementStatus = "not_required" | "pending" | "endorsed" | "rejected";
+export type VenuePoolEndorsementStatus =
+  | "not_required"
+  | "pending"
+  | "endorsed"
+  | "rejected";
 
-export const POOL_STATE_TRANSITIONS: Record<MatchPoolStatus, MatchPoolStatus[]> = {
+export const POOL_STATE_TRANSITIONS: Record<
+  MatchPoolStatus,
+  MatchPoolStatus[]
+> = {
   draft: ["open", "cancelled"],
   open: ["locked", "live", "cancelled"],
   locked: ["live", "settling", "cancelled"],
@@ -61,21 +68,24 @@ export function poolStatusLabel(status: MatchPoolStatus | string): string {
   }
 }
 
-export function getPoolJoinAvailability(pool: { status: MatchPoolStatus | string }): PoolJoinAvailability {
+export function getPoolJoinAvailability(
+  pool: { status: MatchPoolStatus | string },
+): PoolJoinAvailability {
   if (pool.status !== "open") {
     return {
       canJoin: false,
-      reason:
-        pool.status === "draft"
-          ? "This pool is waiting for venue endorsement."
-          : "This pool is locked and no longer accepts stakes.",
+      reason: pool.status === "draft"
+        ? "This pool is waiting for venue endorsement."
+        : "This pool is locked and no longer accepts entries.",
     };
   }
 
   return { canJoin: true, reason: null };
 }
 
-export function fixedOrDefaultStake(pool: Pick<MatchPool, "entryFeeFet" | "stakeMinFet">): number {
+export function fixedOrDefaultStake(
+  pool: Pick<MatchPool, "entryFeeFet" | "stakeMinFet">,
+): number {
   return pool.entryFeeFet > 0 ? pool.entryFeeFet : pool.stakeMinFet;
 }
 
@@ -85,7 +95,10 @@ export function clampPoolStake(
 ): number {
   if (pool.entryFeeFet > 0) return pool.entryFeeFet;
   const safeAmount = Number.isFinite(amount) ? amount : pool.stakeMinFet;
-  return Math.min(Math.max(Math.round(safeAmount), pool.stakeMinFet), pool.stakeMaxFet);
+  return Math.min(
+    Math.max(Math.round(safeAmount), pool.stakeMinFet),
+    pool.stakeMaxFet,
+  );
 }
 
 export function estimatePoolOutcome(
@@ -97,11 +110,13 @@ export function estimatePoolOutcome(
   const currentCampStake = Math.max(0, Math.round(camp.totalStakedFet));
   const currentPoolStake = Math.max(0, Math.round(pool.totalStakedFet));
   const selectedCampStakeAfterJoin = currentCampStake + stake;
-  const losingStakeIfClosedNow = Math.max(currentPoolStake - currentCampStake, 0);
-  const proRataLosingStake =
-    selectedCampStakeAfterJoin > 0
-      ? Math.floor((losingStakeIfClosedNow * stake) / selectedCampStakeAfterJoin)
-      : 0;
+  const losingStakeIfClosedNow = Math.max(
+    currentPoolStake - currentCampStake,
+    0,
+  );
+  const proRataLosingStake = selectedCampStakeAfterJoin > 0
+    ? Math.floor((losingStakeIfClosedNow * stake) / selectedCampStakeAfterJoin)
+    : 0;
   const estimatedReturnIfSelectedCampWins = stake + proRataLosingStake;
 
   return {
@@ -118,7 +133,9 @@ export function estimatePoolOutcome(
   };
 }
 
-export function inferCampKey(camp: Pick<MatchPoolCamp, "code" | "resultCode" | "label">): PoolCampKey {
+export function inferCampKey(
+  camp: Pick<MatchPoolCamp, "code" | "resultCode" | "label">,
+): PoolCampKey {
   const code = camp.code.toLowerCase();
   if (code === "home" || camp.resultCode === "H") return "home";
   if (code === "draw" || camp.resultCode === "D") return "draw";

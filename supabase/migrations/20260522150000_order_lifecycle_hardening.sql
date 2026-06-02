@@ -51,6 +51,7 @@ USING (
   )
 );
 
+REVOKE INSERT, UPDATE, DELETE ON public.order_state_events FROM PUBLIC, anon, authenticated;
 GRANT SELECT ON public.order_state_events TO authenticated;
 GRANT ALL ON public.order_state_events TO service_role;
 
@@ -96,6 +97,11 @@ BEGIN
     'disputed'
   ) THEN
     RAISE EXCEPTION 'Unsupported order status: %', v_next_status;
+  END IF;
+
+  IF v_next_status IN ('cancelled', 'refunded', 'disputed')
+     AND v_reason IS NULL THEN
+    RAISE EXCEPTION 'Reason is required for % order transitions', v_next_status;
   END IF;
 
   SELECT *

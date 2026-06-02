@@ -6,10 +6,11 @@ import type {
   OrderRow,
   OrderStatus,
   PaymentMethod,
+  PaymentReconciliationRow,
   PaymentStatus,
   VenueOperationalInsights,
 } from "@fanzone/core";
-import { readStoredVenueSession, supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase";
 export type {
   VenueMenuCategoryCreateInput,
   VenueMenuItemCreateInput,
@@ -96,6 +97,20 @@ export interface PaymentAuditEvent {
   afterStatus: string | null;
   providerApiUsed: boolean;
   createdAt: string;
+}
+
+export interface PaymentReconciliationSummary {
+  venueId: string;
+  businessDate: string;
+  paymentMethod: string;
+  paymentStatus: PaymentStatus;
+  eventCount: number;
+  amountReceived: number;
+  orderTotalAmount: number;
+  providerApiUsed: boolean;
+  externalReferenceCount: number;
+  firstEventAt: string | null;
+  lastEventAt: string | null;
 }
 
 type OrderStateEventRow = {
@@ -442,6 +457,24 @@ function mapPaymentEvent(row: PaymentEventRow): PaymentAuditEvent {
   };
 }
 
+function mapPaymentReconciliation(
+  row: PaymentReconciliationRow,
+): PaymentReconciliationSummary {
+  return {
+    venueId: row.venue_id,
+    businessDate: row.business_date,
+    paymentMethod: row.payment_method,
+    paymentStatus: normalizePaymentStatus(row.payment_status as PaymentStatus),
+    eventCount: toNumber(row.event_count),
+    amountReceived: toNumber(row.amount_received),
+    orderTotalAmount: toNumber(row.order_total_amount),
+    providerApiUsed: Boolean(row.provider_api_used),
+    externalReferenceCount: toNumber(row.external_reference_count),
+    firstEventAt: row.first_event_at,
+    lastEventAt: row.last_event_at,
+  };
+}
+
 export async function fetchVenueOrders(venueId: string): Promise<Order[]> {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
@@ -471,14 +504,8 @@ export async function fetchActiveBellRequests(
 }
 
 export async function acknowledgeBellRequest(bellId: string) {
-  const userId = readStoredVenueSession()?.userId ?? null;
   const { error } = await supabase
-    .from("bell_requests")
-    .update({
-      acknowledged_at: new Date().toISOString(),
-      acknowledged_by: userId,
-    })
-    .eq("id", bellId);
+    .rpc("venue_acknowledge_bell_request", { p_bell_id: bellId });
 
   if (error) throw error;
 }
@@ -560,6 +587,24 @@ export async function setOrderPaymentStatus(
 
   if (error) throw error;
   return data;
+}
+
+export async function fetchVenuePaymentReconciliation(
+  venueId: string,
+  businessDate: string,
+): Promise<PaymentReconciliationSummary[]> {
+  const { data, error } = await supabase.rpc(
+    "venue_manual_payment_reconciliation",
+    {
+      p_venue_id: venueId,
+      p_business_date: businessDate,
+    },
+  );
+
+  if (error) throw new Error(error.message ?? "Failed to load payment reconciliation.");
+  return ((data ?? []) as PaymentReconciliationRow[]).map(
+    mapPaymentReconciliation,
+  );
 }
 
 type VenueWalletRpcRow = {

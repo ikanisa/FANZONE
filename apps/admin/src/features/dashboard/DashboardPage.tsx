@@ -74,7 +74,7 @@ export function DashboardPage() {
               icon={<Coins size={18} />}
             />
             <KpiCard
-              label="FET Staked"
+              label="FET Reserved"
               value={kpis.totalFetStaked}
               format="fet"
               icon={<Wallet size={18} />}

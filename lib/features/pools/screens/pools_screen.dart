@@ -300,7 +300,7 @@ class _ArenaPoolCard extends StatelessWidget {
             children: [
               Expanded(
                 child: FzMetricTile(
-                  label: 'Stake',
+                  label: 'Entry',
                   value: '${pool.defaultStakeFet} FET',
                   color: FzColors.cyan,
                 ),

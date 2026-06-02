@@ -191,7 +191,7 @@ List<NavItem> _getNavItems(WidgetRef ref) {
     ),
     NavItem(
       keyName: 'wallet',
-      label: 'Wallet',
+      label: 'Rewards',
       icon: AppIconName.wallet,
       route: '/wallet',
       branchIndex: 4,

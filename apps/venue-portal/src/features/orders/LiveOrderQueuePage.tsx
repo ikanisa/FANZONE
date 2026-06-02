@@ -17,6 +17,15 @@ import type {
   PaymentStatus,
   SupportedPaymentMethod,
 } from "@fanzone/core";
+import {
+  activeOrderStatuses,
+  isTerminalOrderStatus,
+  manualPaymentStatusRequiresNote,
+  nextOrderStatuses,
+  orderServiceStatuses,
+  orderStatusRequiresReason,
+  orderTransitionActionLabels,
+} from "@fanzone/core";
 import { EmptyState } from "../../components/console/EmptyState";
 import { StatusChip } from "../../components/console/StatusChip";
 import { readableStatus } from "../../components/console/status";
@@ -26,24 +35,6 @@ import { useOrders } from "../../hooks/useOrders";
 import { ManualMarkPaidModal } from "./ManualMarkPaidModal";
 import type { BellRequest } from "../../services/venueOperations";
 
-const activeServiceStatuses: OrderStatus[] = [
-  "submitted",
-  "accepted",
-  "preparing",
-  "ready",
-  "served",
-];
-const serviceStatuses: OrderStatus[] = [
-  "submitted",
-  "accepted",
-  "preparing",
-  "ready",
-  "served",
-  "completed",
-  "cancelled",
-  "refunded",
-  "disputed",
-];
 const paymentStatuses: PaymentStatus[] = [
   "unpaid",
   "payment_submitted",
@@ -104,45 +95,6 @@ function initialDraft(order: Order): PaymentDraft {
   };
 }
 
-const transitionLabels: Partial<Record<OrderStatus, string>> = {
-  accepted: "Accept order",
-  preparing: "Preparing",
-  ready: "Ready",
-  served: "Serve order",
-  completed: "Complete",
-  cancelled: "Cancel",
-  disputed: "Dispute",
-};
-
-function nextServiceStatuses(status: OrderStatus): OrderStatus[] {
-  switch (status) {
-    case "draft":
-      return ["submitted"];
-    case "placed":
-    case "received":
-    case "submitted":
-      return ["accepted", "cancelled", "disputed"];
-    case "accepted":
-      return ["preparing", "ready", "cancelled", "disputed"];
-    case "preparing":
-      return ["ready", "served", "cancelled", "disputed"];
-    case "ready":
-      return ["served", "cancelled", "disputed"];
-    case "served":
-      return ["completed", "disputed"];
-    case "disputed":
-      return ["refunded", "cancelled", "completed"];
-    case "completed":
-    case "cancelled":
-    case "refunded":
-      return [];
-  }
-}
-
-function terminalOrder(status: OrderStatus) {
-  return status === "completed" || status === "cancelled" || status === "refunded";
-}
-
 function OrderCard({
   order,
   draft,
@@ -160,8 +112,8 @@ function OrderCard({
   onPaymentStatus: (status: PaymentStatus) => Promise<void>;
   onMarkPaid: () => void;
 }) {
-  const nextStatuses = nextServiceStatuses(order.status);
-  const canMarkPaid = !terminalOrder(order.status) && draft.status !== "paid";
+  const nextStatuses = nextOrderStatuses(order.status);
+  const canMarkPaid = !isTerminalOrderStatus(order.status) && draft.status !== "paid";
 
   return (
     <article className="ops-card overflow-hidden">
@@ -316,7 +268,7 @@ function OrderCard({
                 ) : (
                   <Clock3 size={16} />
                 )}
-                {transitionLabels[status] ?? readableStatus(status)}
+                {orderTransitionActionLabels[status] ?? readableStatus(status)}
               </button>
             ))}
             <button
@@ -449,13 +401,13 @@ export const LiveOrderQueuePage: React.FC = () => {
   }, [drafts, orders]);
 
   const activeOrders = orders.filter((order) =>
-    activeServiceStatuses.includes(order.status),
+    activeOrderStatuses.includes(order.status),
   );
   const visibleOrders = useMemo(
     () =>
       [...orders].sort((a, b) => {
-        const aActive = activeServiceStatuses.includes(a.status);
-        const bActive = activeServiceStatuses.includes(b.status);
+        const aActive = activeOrderStatuses.includes(a.status);
+        const bActive = activeOrderStatuses.includes(b.status);
         if (aActive !== bActive) return aActive ? -1 : 1;
         return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -463,7 +415,7 @@ export const LiveOrderQueuePage: React.FC = () => {
       }),
     [orders],
   );
-  const counts = serviceStatuses.map((status) => ({
+  const counts = orderServiceStatuses.map((status) => ({
     status,
     count: orders.filter((order) => order.status === status).length,
   }));
@@ -496,6 +448,21 @@ export const LiveOrderQueuePage: React.FC = () => {
     }
   }
 
+  async function runServiceStatusAction(order: Order, status: OrderStatus) {
+    let reason: string | undefined;
+    if (orderStatusRequiresReason(status)) {
+      reason = window.prompt(
+        `${orderTransitionActionLabels[status] ?? readableStatus(status)} reason`,
+      )?.trim();
+      if (!reason) {
+        setActionError("Reason is required for this order action.");
+        return;
+      }
+    }
+
+    await runAction(order.id, () => updateOrderStatus(order.id, status, reason));
+  }
+
   async function confirmPaid(details: {
     amountReceived: number;
     method: PaymentMethod;
@@ -503,6 +470,10 @@ export const LiveOrderQueuePage: React.FC = () => {
     note: string;
   }) {
     if (!markPaidOrder) return;
+    if (manualPaymentStatusRequiresNote("paid") && !details.note.trim()) {
+      setMarkPaidError("Staff note is required for manual payment confirmation.");
+      return;
+    }
     setBusyId(markPaidOrder.id);
     setMarkPaidError(null);
     setActionError(null);
@@ -632,17 +603,25 @@ export const LiveOrderQueuePage: React.FC = () => {
                   setDrafts((current) => ({ ...current, [order.id]: next }))
                 }
                 onServiceStatus={(status) =>
-                  runAction(order.id, () => updateOrderStatus(order.id, status))
+                  runServiceStatusAction(order, status)
                 }
                 onPaymentStatus={(status) =>
-                  runAction(order.id, () =>
-                    updatePaymentStatus(
+                  runAction(order.id, () => {
+                    if (
+                      manualPaymentStatusRequiresNote(status) &&
+                      !draft.note.trim()
+                    ) {
+                      throw new Error(
+                        "Payment note is required for this payment status.",
+                      );
+                    }
+                    return updatePaymentStatus(
                       order.id,
                       status,
                       draft.method,
                       draft.note,
-                    ),
-                  )
+                    );
+                  })
                 }
                 onMarkPaid={() => {
                   setMarkPaidError(null);

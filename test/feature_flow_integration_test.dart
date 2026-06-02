@@ -58,7 +58,7 @@ void main() {
       await tester.pump();
     });
 
-    testWidgets('wallet transfer flow submits recipient and amount', (
+    testWidgets('rewards ledger does not expose customer FET transfer flow', (
       tester,
     ) async {
       final walletService = _RecordingWalletService(980);
@@ -82,31 +82,14 @@ void main() {
 
       expect(find.text('Earned'), findsOneWidget);
       expect(find.text('Spent'), findsOneWidget);
-
-      await tester.tap(find.text('Send').first);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(find.text('Recipient Fan ID'), findsOneWidget);
-      expect(find.text('MAX'), findsOneWidget);
-
-      final fields = find.byType(TextField);
-      await tester.enterText(fields.at(0), '654321');
-      await tester.enterText(fields.at(1), '150');
-      await tester.pump();
-
-      await tester.tap(find.text('Confirm Transfer'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(walletService.transferRequests, hasLength(1));
-      expect(walletService.transferRequests.single.fanId, '654321');
-      expect(walletService.transferRequests.single.amount, 150);
-      expect(find.text('Sent Successfully!'), findsOneWidget);
-      expect(find.text('You sent 150 FET to Fan #654321'), findsOneWidget);
+      expect(find.text('Send'), findsNothing);
+      expect(find.text('Recipient Fan ID'), findsNothing);
+      expect(find.text('Confirm Transfer'), findsNothing);
+      expect(find.textContaining('closed-loop rewards ledger'), findsOneWidget);
+      expect(walletService.transferRequests, isEmpty);
     });
 
-    testWidgets('guest wallet transfer routes to the sign-in requirement', (
+    testWidgets('guest rewards ledger keeps transfer controls hidden', (
       tester,
     ) async {
       await pumpAppScreen(
@@ -125,13 +108,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Send').first);
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      expect(find.text('Verify'), findsOneWidget);
-      expect(find.text('Unlock transfer.'), findsOneWidget);
+      expect(find.text('Send'), findsNothing);
+      expect(find.text('Recipient Fan ID'), findsNothing);
       expect(find.text('Confirm Transfer'), findsNothing);
+      expect(
+        find.text(
+          'Verify to keep your rewards ledger and order history protected.',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('guest pool join routes to the sign-in requirement', (

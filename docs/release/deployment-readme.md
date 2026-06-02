@@ -46,6 +46,33 @@ supabase functions deploy menu_ingest_worker
 supabase functions deploy menu_ocr_parse
 ```
 
+Hospitality Core Phase 2 currently has four ordered Supabase migrations:
+
+1. `20260522150000_order_lifecycle_hardening.sql`
+2. `20260523120000_manual_payment_reconciliation.sql`
+3. `20260523130000_staff_call_acknowledgement_rpc.sql`
+4. `20260523140000_manual_payment_note_requirement.sql`
+
+Before applying them, capture a production backup and run the dry run:
+
+```bash
+tool/create_supabase_backup_evidence.sh
+supabase db push --dry-run --db-url "$SUPABASE_DB_URL"
+```
+
+If using a linked Supabase CLI project instead of `SUPABASE_DB_URL`, confirm
+`SUPABASE_DB_PASSWORD` is current before running `supabase db push --dry-run`.
+The query-based smoke scripts can fall back to `supabase db query --linked`,
+but migration dry-runs still need valid database credentials.
+
+After applying migrations through the normal release process, collect both
+readiness and rollback-contract evidence:
+
+```bash
+tool/supabase_hospitality_core_phase2.sh --readiness
+tool/supabase_hospitality_core_phase2.sh --contract
+```
+
 Before deploying Edge Functions, confirm `supabase/.env.production` includes
 the production browser allowlist:
 
@@ -61,6 +88,8 @@ Run backend release probes after deployment:
 ```bash
 tool/supabase_release_probe.sh
 tool/supabase_live_validation.sh
+tool/supabase_hospitality_core_phase2.sh --readiness
+tool/supabase_hospitality_core_phase2.sh --contract
 tool/supabase_edge_job_smoke.sh settle-match-pools
 tool/supabase_edge_job_smoke.sh dispatch-match-alerts
 ```
@@ -129,5 +158,5 @@ tool/build_ios_release_from_env.sh production
 ## Rollback
 
 Use `docs/release/rollback.md`. Prefer feature flags and forward-compatible
-Supabase fixes for already-applied migrations. Never delete orders, wallet
+Supabase fixes for already-applied migrations. Never delete orders, FET rewards
 ledger rows, settlement rows, or audit history as a rollback mechanism.

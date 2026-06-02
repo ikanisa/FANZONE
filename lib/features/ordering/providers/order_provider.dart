@@ -193,7 +193,7 @@ final orderHistoryProvider = FutureProvider.autoDispose<List<OrderModel>>((
 // ACTIVE ORDERS (non-terminal)
 // ═══════════════════════════════════════════════════════════
 
-/// Active orders for the current user (placed or received, not yet served).
+/// Active orders for the current user using the target hospitality lifecycle.
 final activeOrdersProvider = FutureProvider.autoDispose<List<OrderModel>>((
   ref,
 ) async {

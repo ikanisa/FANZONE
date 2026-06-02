@@ -252,11 +252,11 @@ export function PoolCard({
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-[10px] font-black uppercase tracking-widest text-muted">
-              Stake FET
+              Entry FET
             </div>
             <div className="text-xs text-muted mt-1 leading-5">
               {pool.entryFeeFet > 0
-                ? "Fixed stake for this pool"
+                ? "Fixed points entry for this pool"
                 : `${pool.stakeMinFet} - ${pool.stakeMaxFet} FET`}
             </div>
           </div>
@@ -269,7 +269,7 @@ export function PoolCard({
               disabled={pool.entryFeeFet > 0 || !canJoin}
               onChange={(event) => setStakeAmount(Number(event.target.value))}
               className="w-28 rounded-xl border border-border bg-surface3 px-3 py-3 text-right font-mono font-bold text-text"
-              aria-label="FET stake amount"
+              aria-label="FET entry amount"
             />
             <span className="text-xs font-black text-muted">FET</span>
           </label>
@@ -278,7 +278,7 @@ export function PoolCard({
         {outcomeEstimate && (
           <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
             <Metric
-              label="If camp wins now"
+              label="If camp is correct"
               value={
                 <FETDisplay
                   amount={outcomeEstimate.estimatedReturnIfSelectedCampWins}
@@ -286,7 +286,7 @@ export function PoolCard({
               }
             />
             <Metric
-              label="Est. upside"
+              label="Estimated reward"
               value={
                 <FETDisplay
                   amount={outcomeEstimate.estimatedProfitIfSelectedCampWins}
@@ -316,7 +316,7 @@ export function PoolCard({
           ) : (
             <>
               <Users size={20} />
-              STAKE {entryAmount} FET
+              JOIN WITH {entryAmount} FET
             </>
           )}
         </button>
@@ -388,7 +388,7 @@ export default function MatchPools({
         </h2>
         <p className="text-sm text-muted mt-1">
           Join a camp with FET. After the final result, winning camps receive
-          the settled pool through the wallet ledger.
+          the settled pool through the FET rewards ledger.
         </p>
       </div>
       <PoolList
