@@ -19,7 +19,7 @@ pass:
 | Item | Evidence |
 | --- | --- |
 | Branch | `main` |
-| Current source HEAD before this metadata edit | `c310a6c` (`c310a6cc0581881d80fcc67e19a0a64686307b1f`) |
+| Current source HEAD before this evidence edit | `d8e3be7` (`d8e3be742dd5a86635952984a45f64eb5f5d6126`) |
 | Flutter release candidate | `1.1.3+11` from `pubspec.yaml` |
 | Linked Supabase project ref | `kjuhheobmdvjwgnzlcwx` from `supabase/.temp/project-ref` |
 | Google Play target API check | Android `targetSdk = 35`, matching the current Google Play requirement that new apps and updates target Android 15 / API 35 or higher |
@@ -75,19 +75,70 @@ Results:
   and CocoaPods integration only; signed archive, IPA export, physical iPhone
   install, push smoke, TestFlight, and App Store Connect evidence remain
   required before iOS can move to `PASS`.
+- Android release wrappers now call `tool/preflight_build_check.sh` before
+  building APK or AAB artifacts. The preflight validates release env,
+  Firebase config, package/version metadata, Android signing source,
+  placeholder signing values, keystore file presence, and keytool alias access
+  without printing signing secrets. This guardrail does not by itself prove
+  artifact or device readiness; the separate local artifact and device evidence
+  is recorded below.
 
-Release evidence metadata was refreshed in the fail-closed evidence files to
-name release candidate `1.1.3+11`, source commit
-`c310a6cc0581881d80fcc67e19a0a64686307b1f`, and production Supabase project ref
-`kjuhheobmdvjwgnzlcwx` where applicable. This is metadata hygiene only: no
-artifact, UAT, credential, monitoring, privacy/legal, load, or owner-signoff
-item was marked `PASS`.
+Android production artifact evidence captured on this checkout:
+
+```bash
+./tool/preflight_build_check.sh production
+./tool/build_android_aab_from_env.sh production
+jarsigner -verify build/app/outputs/bundle/release/app-release.aab
+jarsigner -verify -strict build/app/outputs/bundle/release/app-release.aab
+./tool/build_android_release_from_env.sh production
+apksigner verify --verbose --print-certs build/app/outputs/flutter-apk/app-release.apk
+adb uninstall app.fanzone.football
+adb install build/app/outputs/flutter-apk/app-release.apk
+adb shell monkey -p app.fanzone.football -c android.intent.category.LAUNCHER 1
+```
+
+Results:
+
+- `tool/preflight_build_check.sh production` passed with 11 checks OK and 1
+  warning. The warning was backend reachability timing out during
+  the bounded Supabase REST probe; env, Firebase, Android signing, keystore
+  alias, package ID, and version checks passed without printing secrets.
+- `build/app/outputs/bundle/release/app-release.aab` was built at
+  `2026-06-02T21:49:11Z`, size `135716703` bytes, SHA-256
+  `600a532b26acb43a9ebb8c2d6d6098265e21ad2ef9e8fc83eda2455bca77a5d3`.
+- `jarsigner -verify` accepted the AAB. `jarsigner -verify -strict` did not
+  pass cleanly because the current upload certificate chain is self-signed and
+  the artifact has no timestamp, plus ZIP/JAR warnings. This is recorded as
+  local signing verification evidence, not final Play app-signing approval.
+- `build/app/outputs/flutter-apk/app-release.apk` was built at
+  `2026-06-02T21:56:49Z`, size `68985910` bytes, SHA-256
+  `ca8fad5ab29f87bf1b2c4454e055729632e0296ca2ce980f87e0f44551c4480c`.
+- `apksigner verify --verbose --print-certs` verified the APK with APK
+  Signature Scheme v2 enabled. The signer certificate DN is
+  `CN=FANZONE, OU=Mobile, O=FANZONE, L=Valletta, ST=Malta, C=MT`, certificate
+  SHA-256 `788fd7058cd2476f81cedf1b0d6b180ea4fb5c6b08789dbebfdf87e86c0b58a1`,
+  and public key SHA-256
+  `35dfac3a2d3575ff3ede417fcd8b27187098d68f91a8fb11db7a44ccc217a514`.
+- The release APK installed on the connected Pixel 4a (`13111JEC215558`) after
+  uninstalling the previously installed debug build with incompatible signing.
+  Launch smoke focused
+  `app.fanzone.football/com.fanzone.fanzone.MainActivity`; Android reported the
+  activity displayed and fully drawn in `+9s571ms`. No fatal exception appeared
+  in the filtered launch logcat output.
+
+This Android evidence proves local production preflight, signed AAB/APK build,
+APK signature verification, and physical-device install/launch only. It does
+not prove Play internal-test upload, Play app-signing acceptance, deep links,
+auth, venue discovery, table-number ordering, off-platform payment handoff,
+rewards ledger, free-to-play entertainment entry, UAT, privacy/legal, provider
+credential rotation, observability, load/reliability, or owner approval.
 
 Validator rerun after the metadata refresh:
 
-- `node tool/validate_android_release_evidence.mjs` still fails because signed
-  AAB/APK, signature, freshness, install, deep-link, core smoke, Play internal
-  test, review metadata, timestamp, and launch approval evidence are missing.
+- `node tool/validate_android_release_evidence.mjs` still fails because
+  deep-link smoke, full core-flow smoke, Play internal-test evidence, reviewer
+  metadata confirmation, owner signoff timestamp, and launch approval are
+  missing.
 - `node tool/validate_ios_testflight_evidence.mjs` still fails because owner
   signoff, signed archive, signed IPA, iPhone install, push, TestFlight, App
   Store Connect processing, export compliance, beta information, review

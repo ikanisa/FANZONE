@@ -4,6 +4,8 @@ set -euo pipefail
 APP_ENVIRONMENT="${1:-staging}"
 shift || true
 
+./tool/preflight_build_check.sh "${APP_ENVIRONMENT}"
+
 DART_DEFINE_FILE="$(./tool/resolve_dart_define_file.sh "${APP_ENVIRONMENT}")"
 PUBSPEC_VERSION="$(awk -F': ' '/^version: /{print $2; exit}' pubspec.yaml)"
 BUILD_NAME="${PUBSPEC_VERSION%%+*}"

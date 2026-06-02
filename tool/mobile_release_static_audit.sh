@@ -30,6 +30,9 @@ ios_entitlements="ios/Runner/Runner.entitlements"
 
 require_file "${android_manifest}"
 require_file "${android_gradle}"
+require_file "tool/preflight_build_check.sh"
+require_file "tool/build_android_release_from_env.sh"
+require_file "tool/build_android_aab_from_env.sh"
 require_file "${ios_info}"
 require_file "${ios_entitlements}"
 require_file "pubspec.yaml"
@@ -93,6 +96,10 @@ require_contains "${android_gradle}" 'debugSymbolLevel = "FULL"' \
   "Android release builds must emit full native debug symbols for Play upload evidence."
 require_contains "android/gradle.properties" 'kotlin\.compiler\.execution\.strategy=in-process' \
   "Android Gradle builds must use in-process Kotlin compilation for deterministic local release checks."
+require_contains "tool/build_android_release_from_env.sh" '\./tool/preflight_build_check\.sh "\$\{APP_ENVIRONMENT\}"' \
+  "Android release APK wrapper must run preflight validation before building."
+require_contains "tool/build_android_aab_from_env.sh" '\./tool/preflight_build_check\.sh "\$\{APP_ENVIRONMENT\}"' \
+  "Android AAB wrapper must run preflight validation before building."
 
 if awk '
   /defaultConfig[[:space:]]*\{/ { in_default=1; depth=1; next }

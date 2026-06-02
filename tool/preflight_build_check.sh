@@ -32,6 +32,47 @@ pass() { echo -e "  ${GREEN}✅${NC} $1"; PASS=$((PASS + 1)); }
 fail() { echo -e "  ${RED}❌${NC} $1"; FAIL=$((FAIL + 1)); }
 warn() { echo -e "  ${YELLOW}⚠️${NC}  $1"; WARN=$((WARN + 1)); }
 
+is_placeholder() {
+  local value="${1:-}"
+  local normalized
+  normalized="$(printf '%s' "${value}" | tr '[:upper:]' '[:lower:]')"
+  [[ -z "${normalized}" ||
+    "${normalized}" == "replace-me" ||
+    "${normalized}" == "change-me" ||
+    "${normalized}" == "replace_with_value" ||
+    "${normalized}" == your-* ||
+    "${normalized}" == *placeholder* ]]
+}
+
+key_property() {
+  local name="$1"
+  local file="${2:-android/key.properties}"
+  awk -F '=' -v key="${name}" '
+    $1 == key {
+      value = substr($0, index($0, "=") + 1)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+      print value
+      exit
+    }
+  ' "${file}" 2>/dev/null || true
+}
+
+resolve_store_file() {
+  local value="$1"
+  if [[ "${value}" = /* ]]; then
+    printf '%s\n' "${value}"
+    return
+  fi
+
+  local app_relative="android/app/${value}"
+  local android_relative="android/${value}"
+  if [[ -f "${app_relative}" || ! -f "${android_relative}" ]]; then
+    printf '%s\n' "${app_relative}"
+  else
+    printf '%s\n' "${android_relative}"
+  fi
+}
+
 echo ""
 echo -e "${BOLD}═══════════════════════════════════════════════════════════════${NC}"
 echo -e "${BOLD}  FANZONE Pre-Build Validation${NC}"
@@ -121,10 +162,70 @@ fi
 echo ""
 echo -e "${BOLD}4. Android signing${NC}"
 
+SIGNING_SOURCE=""
+STORE_FILE_VALUE=""
+STORE_PASSWORD_VALUE=""
+KEY_ALIAS_VALUE=""
+KEY_PASSWORD_VALUE=""
+
 if [[ -f "android/key.properties" ]]; then
   pass "android/key.properties exists"
+  SIGNING_SOURCE="android/key.properties"
+  STORE_FILE_VALUE="$(key_property storeFile)"
+  STORE_PASSWORD_VALUE="$(key_property storePassword)"
+  KEY_ALIAS_VALUE="$(key_property keyAlias)"
+  KEY_PASSWORD_VALUE="$(key_property keyPassword)"
+elif [[ -n "${FANZONE_UPLOAD_STORE_FILE:-}" ||
+  -n "${FANZONE_UPLOAD_STORE_PASSWORD:-}" ||
+  -n "${FANZONE_UPLOAD_KEY_ALIAS:-}" ||
+  -n "${FANZONE_UPLOAD_KEY_PASSWORD:-}" ]]; then
+  SIGNING_SOURCE="FANZONE_UPLOAD_* environment variables"
+  STORE_FILE_VALUE="${FANZONE_UPLOAD_STORE_FILE:-}"
+  STORE_PASSWORD_VALUE="${FANZONE_UPLOAD_STORE_PASSWORD:-}"
+  KEY_ALIAS_VALUE="${FANZONE_UPLOAD_KEY_ALIAS:-}"
+  KEY_PASSWORD_VALUE="${FANZONE_UPLOAD_KEY_PASSWORD:-}"
+  pass "Android signing values are provided by FANZONE_UPLOAD_* environment variables"
 else
-  warn "android/key.properties is missing (needed for production signing)"
+  fail "Android production signing is missing; provide android/key.properties or FANZONE_UPLOAD_* environment variables"
+fi
+
+if [[ -n "${SIGNING_SOURCE}" ]]; then
+  if is_placeholder "${STORE_FILE_VALUE}"; then
+    fail "Android signing storeFile is missing or placeholder in ${SIGNING_SOURCE}"
+  fi
+  if is_placeholder "${STORE_PASSWORD_VALUE}"; then
+    fail "Android signing storePassword is missing or placeholder in ${SIGNING_SOURCE}"
+  fi
+  if is_placeholder "${KEY_ALIAS_VALUE}"; then
+    fail "Android signing keyAlias is missing or placeholder in ${SIGNING_SOURCE}"
+  fi
+  if is_placeholder "${KEY_PASSWORD_VALUE}"; then
+    fail "Android signing keyPassword is missing or placeholder in ${SIGNING_SOURCE}"
+  fi
+
+  if [[ -n "${STORE_FILE_VALUE}" ]] && ! is_placeholder "${STORE_FILE_VALUE}"; then
+    RESOLVED_STORE_FILE="$(resolve_store_file "${STORE_FILE_VALUE}")"
+    if [[ -f "${RESOLVED_STORE_FILE}" ]]; then
+      pass "Android upload keystore exists"
+      if command -v keytool >/dev/null 2>&1 &&
+        ! is_placeholder "${STORE_PASSWORD_VALUE}" &&
+        ! is_placeholder "${KEY_ALIAS_VALUE}"; then
+        if KEYTOOL_STOREPASS="${STORE_PASSWORD_VALUE}" keytool \
+          -list \
+          -keystore "${RESOLVED_STORE_FILE}" \
+          -storepass:env KEYTOOL_STOREPASS \
+          -alias "${KEY_ALIAS_VALUE}" >/dev/null 2>&1; then
+          pass "Android upload keystore opens and contains the configured alias"
+        else
+          fail "Android upload keystore could not be opened or does not contain the configured alias"
+        fi
+      else
+        warn "Skipping keystore alias dry check because keytool is unavailable or signing fields are incomplete"
+      fi
+    else
+      fail "Android upload keystore file is missing"
+    fi
+  fi
 fi
 
 # ── 5. Check package/version metadata ─────────────────────────────────────────
@@ -154,7 +255,8 @@ if [[ -n "$SUPABASE_URL" ]] && command -v curl &>/dev/null; then
   HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" \
     "${SUPABASE_URL}/rest/v1/teams?select=id&limit=1" \
     -H "apikey: ${SUPABASE_ANON_KEY}" \
-    --max-time 5 2>/dev/null || echo "000")
+    --max-time 5 2>/dev/null || true)
+  HTTP_CODE="${HTTP_CODE:-000}"
   
   if [[ "$HTTP_CODE" == "200" ]]; then
     pass "Supabase REST API is reachable (HTTP $HTTP_CODE)"

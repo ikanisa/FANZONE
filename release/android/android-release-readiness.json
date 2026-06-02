@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "releaseCandidate": "1.1.3+11",
-  "sourceCommit": "c310a6cc0581881d80fcc67e19a0a64686307b1f",
+  "sourceCommit": "d8e3be742dd5a86635952984a45f64eb5f5d6126",
   "environment": "production",
   "applicationId": "app.fanzone.football",
   "versionName": "1.1.3",
@@ -18,27 +18,33 @@
   "artifacts": [
     {
       "id": "AAB",
-      "status": "PENDING",
+      "status": "PASS",
       "path": "build/app/outputs/bundle/release/app-release.aab",
-      "sha256": "",
-      "sizeBytes": 0,
+      "sha256": "600a532b26acb43a9ebb8c2d6d6098265e21ad2ef9e8fc83eda2455bca77a5d3",
+      "sizeBytes": 135716703,
       "versionName": "1.1.3",
       "versionCode": 11,
-      "builtAtUtc": "TBD",
-      "evidenceRefs": [],
-      "notes": "Fresh signed Android App Bundle must be regenerated from the release candidate."
+      "builtAtUtc": "2026-06-02T21:49:11Z",
+      "evidenceRefs": [
+        "docs/release/go-live-current-state-2026-06-02.md",
+        "build/app/outputs/bundle/release/app-release.aab"
+      ],
+      "notes": "Fresh AAB was built locally from release candidate 1.1.3+11 at source commit d8e3be7. Play upload and Play app-signing acceptance are not yet proven."
     },
     {
       "id": "APK",
-      "status": "PENDING",
+      "status": "PASS",
       "path": "build/app/outputs/flutter-apk/app-release.apk",
-      "sha256": "",
-      "sizeBytes": 0,
+      "sha256": "ca8fad5ab29f87bf1b2c4454e055729632e0296ca2ce980f87e0f44551c4480c",
+      "sizeBytes": 68985910,
       "versionName": "1.1.3",
       "versionCode": 11,
-      "builtAtUtc": "TBD",
-      "evidenceRefs": [],
-      "notes": "Fresh signed APK must be regenerated for physical-device install smoke."
+      "builtAtUtc": "2026-06-02T21:56:49Z",
+      "evidenceRefs": [
+        "docs/release/go-live-current-state-2026-06-02.md",
+        "build/app/outputs/flutter-apk/app-release.apk"
+      ],
+      "notes": "Fresh release APK was built locally from release candidate 1.1.3+11 at source commit d8e3be7 and install-smoked on a Pixel 4a."
     }
   ],
   "signOff": {
@@ -46,68 +52,93 @@
     "releaseOwner": "TBD",
     "signedAtUtc": "TBD",
     "approvedForLaunch": false,
-    "notes": "Do not approve until fresh signed artifacts, install smoke, deep-link smoke, Play internal-test evidence, and reviewer metadata are attached."
+    "notes": "Do not approve until deep-link smoke, full core-flow smoke, Play internal-test evidence, reviewer metadata, and owner launch approval are attached."
   },
   "checks": [
     {
       "id": "ANDROID-CONFIG-001",
       "scenario": "Production applicationId, version metadata, minification/resource shrinking, and release signing fail-closed behavior are configured",
-      "status": "PENDING",
+      "status": "PASS",
       "evidenceRefs": [
         "android/app/build.gradle.kts",
         "android/gradle.properties",
         "tool/mobile_release_static_audit.sh"
       ],
-      "notes": "Static source checks enforce API 35, production signing fail-closed behavior, minify/resource shrinking, pinned NDK, scoped native debug symbols, and deterministic Kotlin compilation. Release evidence still needs a fresh signed build for the release candidate."
+      "notes": "Static audit passed for API 35, production signing fail-closed behavior, minify/resource shrinking, pinned NDK, scoped native debug symbols, and deterministic Kotlin compilation."
     },
     {
       "id": "ANDROID-PREFLIGHT-001",
       "scenario": "Production preflight validates env, Firebase, signing config, package, version, and backend reachability without printing secrets",
-      "status": "PENDING",
-      "evidenceRefs": [],
-      "notes": ""
+      "status": "PASS",
+      "evidenceRefs": [
+        "tool/preflight_build_check.sh",
+        "tool/build_android_release_from_env.sh",
+        "tool/build_android_aab_from_env.sh",
+        "tool/mobile_release_static_audit.sh",
+        "docs/release/go-live-current-state-2026-06-02.md"
+      ],
+      "notes": "Production preflight passed with 11 checks OK and 1 Supabase REST reachability warning. Env, Firebase, signing source, keystore file, key alias, package ID, and version checks passed without printing secrets."
     },
     {
       "id": "ANDROID-AAB-001",
       "scenario": "Fresh signed AAB is built from the release candidate for Google Play",
-      "status": "PENDING",
-      "evidenceRefs": [],
-      "notes": ""
+      "status": "PASS",
+      "evidenceRefs": [
+        "tool/build_android_aab_from_env.sh",
+        "docs/release/go-live-current-state-2026-06-02.md",
+        "build/app/outputs/bundle/release/app-release.aab"
+      ],
+      "notes": "Fresh local AAB built at 2026-06-02T21:49:11Z, size 135716703 bytes, SHA-256 600a532b26acb43a9ebb8c2d6d6098265e21ad2ef9e8fc83eda2455bca77a5d3."
     },
     {
       "id": "ANDROID-APK-001",
       "scenario": "Fresh signed APK is built from the release candidate for install smoke",
-      "status": "PENDING",
-      "evidenceRefs": [],
-      "notes": ""
+      "status": "PASS",
+      "evidenceRefs": [
+        "tool/build_android_release_from_env.sh",
+        "docs/release/go-live-current-state-2026-06-02.md",
+        "build/app/outputs/flutter-apk/app-release.apk"
+      ],
+      "notes": "Fresh local release APK built at 2026-06-02T21:56:49Z, size 68985910 bytes, SHA-256 ca8fad5ab29f87bf1b2c4454e055729632e0296ca2ce980f87e0f44551c4480c."
     },
     {
       "id": "ANDROID-SIGNATURE-001",
       "scenario": "AAB/APK signatures are verified with jarsigner/apksigner or equivalent tooling",
-      "status": "PENDING",
-      "evidenceRefs": [],
-      "notes": ""
+      "status": "PASS",
+      "evidenceRefs": [
+        "docs/release/go-live-current-state-2026-06-02.md",
+        "build/app/outputs/bundle/release/app-release.aab",
+        "build/app/outputs/flutter-apk/app-release.apk"
+      ],
+      "notes": "APK apksigner verification passed with v2 signature. AAB jarsigner verification passed in non-strict mode; strict verification reports self-signed/no-timestamp and ZIP/JAR warnings, so Play app-signing acceptance still requires upload evidence."
     },
     {
       "id": "ANDROID-FRESHNESS-001",
       "scenario": "AAB/APK artifact timestamps and hashes prove they were built from the release candidate after the current source revision",
-      "status": "PENDING",
-      "evidenceRefs": [],
-      "notes": ""
+      "status": "PASS",
+      "evidenceRefs": [
+        "docs/release/go-live-current-state-2026-06-02.md",
+        "build/app/outputs/bundle/release/app-release.aab",
+        "build/app/outputs/flutter-apk/app-release.apk"
+      ],
+      "notes": "Artifact timestamps and SHA-256 hashes were captured after the d8e3be7 source revision. Subsequent evidence/preflight script edits do not change the app binary source."
     },
     {
       "id": "ANDROID-INSTALL-001",
       "scenario": "Signed production APK installs and launches on a physical Android device or approved device farm",
-      "status": "PENDING",
-      "evidenceRefs": [],
-      "notes": ""
+      "status": "PASS",
+      "evidenceRefs": [
+        "docs/release/go-live-current-state-2026-06-02.md",
+        "build/app/outputs/flutter-apk/app-release.apk"
+      ],
+      "notes": "Release APK installed and launched on physical Pixel 4a device 13111JEC215558 after uninstalling the debug-signed build; MainActivity focused and fully drawn."
     },
     {
       "id": "ANDROID-DEEPLINK-001",
       "scenario": "Production Android App Links and in-app routing work for venue, ordering, and entertainment links on the installed build",
       "status": "PENDING",
       "evidenceRefs": [],
-      "notes": ""
+      "notes": "Release APK launch was proven, but production Android App Links and in-app deep-link routes have not been smoked on the installed build."
     },
     {
       "id": "ANDROID-CORE-SMOKE-001",
