@@ -119,10 +119,18 @@ Result: `FAIL`
 Open blockers:
 
 - `releaseCandidate` is still `TBD`;
+- `sourceCommit` is still `TBD`;
+- tested mobile build and Supabase project ref are still `TBD`;
+- UAT test window and durable evidence bundle root are not populated;
 - QA owner and release owner signoff fields are incomplete;
 - launch approval is not granted;
 - all listed mobile, venue, admin, TV, realtime, and backend isolation UAT
   flows remain `PENDING`.
+
+The validator now also rejects unknown or misplaced flow IDs, missing required
+flow IDs, missing required evidence descriptions, missing or unresolved PASS
+evidence references, missing source-commit/environment/test-window metadata,
+missing evidence bundle root, and live credential patterns in the evidence file.
 
 ### iOS TestFlight Evidence
 

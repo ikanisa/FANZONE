@@ -38,11 +38,11 @@ Current fail-closed blockers:
 | Scheduler and cron monitoring | `PENDING`. |
 | Android release artifact | `PARTIAL`; fresh signed production build/install proof required. |
 | iOS archive/TestFlight readiness | `PARTIAL`; signed archive, IPA, install, push, TestFlight, and review evidence required. |
-| Critical user-flow UAT | `PENDING`; all flow rows require `PASS`. |
+| Critical user-flow UAT | `PENDING`; source-commit-bound environment metadata, test window, evidence bundle, signoff, and all exact required flow rows require `PASS`. |
 | Production observability and alerting | `PENDING`. |
 | Incident response and rollback readiness | `PENDING`. |
 | Secret rotation validator | Fails because every credential class and post-rotation check is pending. |
-| Critical UAT validator | Fails because sign-off metadata and every critical flow are pending. |
+| Critical UAT validator | Fails because release metadata, source commit, test window, signoff metadata, evidence bundle, and every critical flow are pending. |
 | iOS validator | Fails because owner signoff and six required iOS checks are pending. |
 
 ## Operating Rules For All Goals
@@ -407,6 +407,10 @@ Acceptance:
 Why this goal exists:
 
 - Critical UAT is currently fully pending.
+- The validator is fail-closed for the exact required flow IDs and expected
+  surfaces, release source commit, target environment URLs, tested Supabase
+  project ref, test window, durable evidence bundle root, tester/timestamp
+  fields, PASS evidence refs, and live credential patterns.
 
 Required tools:
 
@@ -439,6 +443,13 @@ node tool/validate_critical_uat_signoff.mjs
 Acceptance:
 
 - Every required UAT flow is `PASS`.
+- The exact required flow IDs remain on their expected Flutter, venue, admin,
+  TV, and Supabase backend surfaces.
+- Release candidate metadata includes an existing source commit, tested mobile
+  build, HTTPS target URLs, tested Supabase project ref, test window, and
+  durable evidence bundle root.
+- PASS flows include tester, ISO UTC execution timestamp, and existing repo or
+  URL evidence references.
 - Signoff metadata names QA owner and release owner.
 
 ## Goal 09 - Prove Scheduler, Cron, And Runtime Observability

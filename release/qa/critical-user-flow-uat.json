@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "releaseCandidate": "TBD",
+  "sourceCommit": "TBD",
   "environment": {
     "name": "production",
     "mobileBuild": "TBD",
@@ -9,6 +10,13 @@
     "venuePortalUrl": "https://fanzone.venue.ikanisa.com",
     "tvDisplayUrl": "https://fanzonetv.ikanisa.com",
     "supabaseProjectRef": "TBD"
+  },
+  "testWindow": {
+    "startedAtUtc": "TBD",
+    "endedAtUtc": "TBD",
+    "durationMinutes": 0,
+    "evidenceBundleRoot": "output/release-evidence/TBD/critical-uat",
+    "notes": "Do not approve until every required flow is executed against the release candidate with durable evidence. Do not store live credentials in this file."
   },
   "signOff": {
     "qaOwner": "",
