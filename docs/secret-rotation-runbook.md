@@ -4,6 +4,8 @@ Credentials were shared in chat during the refactor. Treat every shared Supabase
 
 Release status: not complete until the release owner attaches provider evidence
 for every required credential and confirms old values no longer authenticate.
+The evidence record must be bound to the release candidate source commit and a
+dated rotation window.
 
 ## Required Rotation
 
@@ -42,6 +44,8 @@ release owner must record:
 - Local operator confirmation that old ignored env files and shell exports were
   replaced.
 - Negative check proving at least one old credential no longer authenticates.
+- Source commit, rotation start timestamp, rotation completion timestamp, and
+  durable redacted evidence bundle root.
 
 Recommended local evidence folder:
 
@@ -98,6 +102,8 @@ Do not mark `Credential rotation and secret inventory` as `PASS` in
 ```text
 release_owner:
 security_owner:
+source_commit:
+rotation_started_at_utc:
 rotation_completed_at_utc:
 evidence_folder:
 old_credentials_revoked: yes/no

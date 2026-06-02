@@ -41,7 +41,7 @@ Current fail-closed blockers:
 | Critical user-flow UAT | `PENDING`; source-commit-bound environment metadata, test window, evidence bundle, signoff, and all exact required flow rows require `PASS`. |
 | Production observability and alerting | `PENDING`. |
 | Incident response and rollback readiness | `PENDING`. |
-| Secret rotation validator | Fails because every credential class and post-rotation check is pending. |
+| Secret rotation validator | Fails because release metadata, source commit, rotation window, evidence bundle, every credential class, and post-rotation checks are pending. |
 | Critical UAT validator | Fails because release metadata, source commit, test window, signoff metadata, evidence bundle, and every critical flow are pending. |
 | iOS validator | Fails because owner signoff and six required iOS checks are pending. |
 
@@ -136,6 +136,10 @@ Why this goal exists:
   blocker.
 - `node tool/validate_secret_rotation_evidence.mjs` currently fails for every
   credential class and post-rotation check.
+- The validator is fail-closed for the release source commit, production
+  environment, rotation window, durable redacted evidence bundle root, every
+  required credential class, provider evidence refs, post-rotation smoke refs,
+  post-rotation checks, owner signoff, and live credential patterns.
 
 Required tools:
 
@@ -165,6 +169,14 @@ Implementation scope:
 Acceptance:
 
 - `node tool/validate_secret_rotation_evidence.mjs` passes.
+- Evidence is bound to an existing release source commit, production
+  environment, rotation start/completion timestamps, and a durable redacted
+  evidence bundle root.
+- Every credential class has a rotation timestamp, old-credential revocation
+  proof, provider evidence refs, and post-rotation smoke refs.
+- Post-rotation checks include PASS evidence refs for full-history secret scan,
+  production env isolation, Supabase live validation, and deployed web-surface
+  smoke.
 - The P0 evidence matrix row for credential rotation can be updated to `PASS`
   with redacted provider and smoke references.
 

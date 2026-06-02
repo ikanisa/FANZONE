@@ -96,6 +96,9 @@ Result: `FAIL`
 Open blockers:
 
 - `releaseCandidate` is still `TBD`;
+- `sourceCommit` is still `TBD`;
+- rotation start/completion timestamps and durable evidence bundle root are not
+  populated;
 - security owner and release owner signoff fields are incomplete;
 - launch approval is not granted;
 - all credential classes are still `PENDING`, including Supabase anon key,
@@ -105,6 +108,11 @@ Open blockers:
 - post-rotation checks still need evidence references for full-history secret
   scanning, production env isolation, Supabase live validation, and deployed
   web surface smoke.
+
+The validator now also rejects missing source-commit metadata, missing or
+unordered rotation-window timestamps, missing or unresolved evidence bundle
+roots, missing or unresolved provider/smoke evidence references, and live
+credential patterns in the evidence file.
 
 ### Critical UAT Evidence
 

@@ -20,7 +20,7 @@ Allowed statuses:
 
 | Control | Flutter app | Bars/Venue PWA | Admin PWA | TV PWA | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| Credential rotation and secret inventory | PENDING | PENDING | PENDING | PENDING | `release/security/secret-rotation-evidence.json`; `tool/validate_secret_rotation_evidence.mjs`; `docs/secret-rotation-runbook.md`; provider rotation and old-key revocation evidence required |
+| Credential rotation and secret inventory | PENDING | PENDING | PENDING | PENDING | `release/security/secret-rotation-evidence.json`; `tool/validate_secret_rotation_evidence.mjs`; `docs/secret-rotation-runbook.md`; source-commit-bound provider rotation, old-key revocation, rotation window, redacted evidence bundle, post-rotation smoke, and owner signoff evidence required |
 | Tracked and full-history secret scanning | PASS | PASS | PASS | PASS | `output/release-evidence/20260521T094013Z/summary.txt`; `tool/full_history_secret_scan.sh` passed |
 | Repo-local quality gates | PASS | PASS | PASS | PASS | 2026-06-02 clean checkout at `7cc4e3e`: `./tool/go_live_readiness.sh --local` passed; see `docs/release/go-live-current-state-2026-06-02.md` |
 | Production Supabase RLS/RPC authorization | PASS | PASS | PASS | PASS | `output/release-evidence/20260521T094013Z/summary.txt`; `tool/supabase_live_validation.sh` passed |
