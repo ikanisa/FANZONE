@@ -126,7 +126,50 @@ void main() {
       expect(catalog.first.countryName, 'Malta');
       expect(catalog.first.preset.dialCode, '+356');
       expect(catalog.first.preset.hint, '0000 0000');
+      expect(catalog.first.preset.minDigits, 7);
+      expect(
+        maxPhoneDigitsForHint(
+          catalog.first.preset.hint,
+          minDigits: catalog.first.preset.minDigits,
+        ),
+        8,
+      );
       expect(preferred.countryCode, 'MT');
+    });
+
+    test('keeps Malta UAT phone minimum even with bootstrap preset', () {
+      runtimeBootstrapStore.update(
+        BootstrapConfig(
+          regions: const {
+            'MT': RegionInfo(
+              countryCode: 'MT',
+              region: 'europe',
+              countryName: 'Malta',
+              flagEmoji: '🇲🇹',
+            ),
+          },
+          phonePresets: const {
+            'MT': PhonePresetInfo(
+              dialCode: '+356',
+              hint: '0000 0000',
+              minDigits: 8,
+            ),
+          },
+          currencyDisplay: const {},
+          countryCurrencies: const {},
+          featureFlags: const {},
+          appConfig: const {},
+          launchMoments: const [],
+        ),
+      );
+
+      final malta = phoneCountryCatalog().singleWhere(
+        (country) => country.countryCode == 'MT',
+      );
+
+      expect(malta.preset.dialCode, '+356');
+      expect(malta.preset.hint, '0000 0000');
+      expect(malta.preset.minDigits, 7);
     });
   });
 }

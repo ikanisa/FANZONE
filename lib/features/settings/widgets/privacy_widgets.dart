@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../theme/colors.dart';
 
@@ -49,7 +49,7 @@ class PrivacySettingsHeader extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: muted,
-                    letterSpacing: 1.4,
+                    letterSpacing: 0,
                   ),
                 ),
                 const SizedBox(height: 2),

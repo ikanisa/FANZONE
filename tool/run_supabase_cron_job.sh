@@ -2,10 +2,43 @@
 set -euo pipefail
 
 # Local/free-account replacement for GitHub scheduled workflows.
-# Requires SUPABASE_URL and CRON_SECRET in the environment or .env.
+# Requires SUPABASE_URL and either CRON_SECRET or a service-role key in the
+# environment or .env. CRON_SECRET remains the production scheduler default;
+# the service-role bearer path is for controlled operator smoke only.
 # Usage:
 #   tool/run_supabase_cron_job.sh settle-match-pools
 #   tool/run_supabase_cron_job.sh dispatch-match-alerts
+#   tool/run_supabase_cron_job.sh sync-livescore-football
+
+json_bool() {
+  local value="${1:-}"
+  case "$(printf '%s' "${value}" | tr '[:upper:]' '[:lower:]')" in
+    true|1|yes) printf 'true' ;;
+    false|0|no) printf 'false' ;;
+    *)
+      echo "Expected boolean value, got '${value}'." >&2
+      exit 1
+      ;;
+  esac
+}
+
+json_int() {
+  local value="${1:-}"
+  if [[ ! "${value}" =~ ^[0-9]+$ ]]; then
+    echo "Expected non-negative integer value, got '${value}'." >&2
+    exit 1
+  fi
+  printf '%s' "${value}"
+}
+
+json_slug() {
+  local value="${1:-}"
+  if [[ ! "${value}" =~ ^[A-Za-z0-9_-]+$ ]]; then
+    echo "Expected slug value, got '${value}'." >&2
+    exit 1
+  fi
+  printf '%s' "${value}"
+}
 
 if [[ -f ".env" ]]; then
   set -a
@@ -14,14 +47,13 @@ if [[ -f ".env" ]]; then
   set +a
 fi
 
-if [[ -z "${SUPABASE_URL:-}" ]]; then
-  echo "SUPABASE_URL must be set in the environment or .env." >&2
-  exit 1
+DRY_RUN=false
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=true
+  shift
 fi
-
-if [[ -z "${CRON_SECRET:-}" ]]; then
-  echo "CRON_SECRET must be set in the environment or .env." >&2
-  exit 1
+if [[ "${FANZONE_CRON_DRY_RUN:-}" == "1" || "${FANZONE_CRON_DRY_RUN:-}" == "true" ]]; then
+  DRY_RUN=true
 fi
 
 JOB="${1:-}"
@@ -32,16 +64,54 @@ case "${JOB}" in
   dispatch-match-alerts)
     PAYLOAD='{}'
     ;;
+  sync-livescore-football)
+    LIVESCORE_RESOURCE_ID="$(json_slug "${LIVESCORE_RESOURCE_ID:-livescore_world_cup_2026}")"
+    LIVESCORE_APPLY="$(json_bool "${LIVESCORE_APPLY:-true}")"
+    LIVESCORE_INCLUDE_DETAILS="$(json_bool "${LIVESCORE_INCLUDE_DETAILS:-false}")"
+    LIVESCORE_INCLUDE_SCOREBOARD="$(json_bool "${LIVESCORE_INCLUDE_SCOREBOARD:-true}")"
+    LIVESCORE_LIMIT="$(json_int "${LIVESCORE_LIMIT:-200}")"
+    LIVESCORE_DELAY_MS="$(json_int "${LIVESCORE_DELAY_MS:-750}")"
+    PAYLOAD="{\"resource_id\":\"${LIVESCORE_RESOURCE_ID}\",\"apply\":${LIVESCORE_APPLY},\"include_details\":${LIVESCORE_INCLUDE_DETAILS},\"include_scoreboard\":${LIVESCORE_INCLUDE_SCOREBOARD},\"limit\":${LIVESCORE_LIMIT},\"delay_ms\":${LIVESCORE_DELAY_MS}}"
+    ;;
   *)
-    echo "Usage: $0 settle-match-pools|dispatch-match-alerts" >&2
+    echo "Usage: $0 [--dry-run] settle-match-pools|dispatch-match-alerts|sync-livescore-football" >&2
     exit 1
     ;;
 esac
 
+if [[ "${DRY_RUN}" == true ]]; then
+  echo "Dry run: ${JOB}"
+  echo "Payload: ${PAYLOAD}"
+  exit 0
+fi
+
+if [[ -z "${SUPABASE_URL:-}" ]]; then
+  echo "SUPABASE_URL must be set in the environment or .env." >&2
+  exit 1
+fi
+
+auth_header_name=""
+auth_header_value=""
+if [[ -n "${CRON_SECRET:-}" ]]; then
+  auth_header_name="x-cron-secret"
+  auth_header_value="${CRON_SECRET}"
+elif [[ -n "${EDGE_SERVICE_ROLE_KEY:-}" ]]; then
+  auth_header_name="Authorization"
+  auth_header_value="Bearer ${EDGE_SERVICE_ROLE_KEY}"
+elif [[ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
+  auth_header_name="Authorization"
+  auth_header_value="Bearer ${SUPABASE_SERVICE_ROLE_KEY}"
+fi
+
+if [[ -z "${auth_header_name}" ]]; then
+  echo "CRON_SECRET, EDGE_SERVICE_ROLE_KEY, or SUPABASE_SERVICE_ROLE_KEY must be set in the environment or .env." >&2
+  exit 1
+fi
+
 RESPONSE="$(curl -sS -w '\n%{http_code}' \
   -X POST \
   -H "Content-Type: application/json" \
-  -H "x-cron-secret: ${CRON_SECRET}" \
+  -H "${auth_header_name}: ${auth_header_value}" \
   "${SUPABASE_URL}/functions/v1/${JOB}" \
   -d "${PAYLOAD}")"
 
@@ -55,4 +125,3 @@ if [[ "${HTTP_CODE}" -lt 200 || "${HTTP_CODE}" -ge 300 ]]; then
   echo "${JOB} failed." >&2
   exit 1
 fi
-

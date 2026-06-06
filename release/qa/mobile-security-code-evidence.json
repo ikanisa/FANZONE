@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T06:20:00Z",
+  "releaseCandidate": "1.1.3+11",
+  "sourceCommit": "f284990b373b8fcc5291ec44abb30ef75b228077",
+  "scope": "Code-owned MASVS-style mobile security and privacy controls for the FANZONE Flutter app",
+  "staticAudit": {
+    "command": "./tool/mobile_release_static_audit.sh",
+    "status": "PASS",
+    "proof": "Static mobile release audit passed for Android/iOS permissions, release signing guardrails, deep-link declarations, secure session storage, local artifact hygiene, and mobile-source secret hygiene."
+  },
+  "coveredControls": [
+    "Android dangerous permission minimization",
+    "Android cleartext traffic and debuggable release flag rejection",
+    "Android production app links and custom pool deep links",
+    "Android production package identity and target SDK",
+    "Android release signing fail-closed preflight",
+    "Android AAB/APK signature verification scripts",
+    "iOS location usage purpose string",
+    "iOS push background mode declaration",
+    "iOS release-configured bundle id and APS environment",
+    "iOS associated domains for production app links",
+    "Flutter secure storage dependency",
+    "Runtime auth sessions stored via secure storage",
+    "Mobile source privileged credential scan"
+  ],
+  "evidenceRefs": [
+    "tool/mobile_release_static_audit.sh",
+    "android/app/src/main/AndroidManifest.xml",
+    "android/app/build.gradle.kts",
+    "android/gradle.properties",
+    "tool/preflight_build_check.sh",
+    "tool/build_android_release_from_env.sh",
+    "tool/build_android_aab_from_env.sh",
+    "tool/android_deep_link_smoke.sh",
+    "tool/android_signature_verify.sh",
+    "ios/Runner/Info.plist",
+    "ios/Runner/Runner.entitlements",
+    "pubspec.yaml",
+    "lib/core/storage/secure_auth_session_store.dart",
+    "lib/core/auth/runtime_auth_session_manager.dart",
+    "release/qa/android-device-uat-current.json"
+  ],
+  "deviceCrashEvidence": {
+    "status": "PASS",
+    "evidence": "release/qa/android-device-uat-current.json",
+    "proof": "Pixel 4a UAT evidence records no crash-buffer entries after the final on-device pass."
+  },
+  "remainingExternalEvidence": [
+    "Real-device mobile security review beyond automated static checks remains required before broad public scale.",
+    "Production crash-reporting provider dashboard/alert evidence is tracked under operations readiness and remains pending until owner signoff."
+  ],
+  "validator": {
+    "command": "node tool/validate_mobile_security_code_evidence.mjs",
+    "status": "PASS"
+  }
+}

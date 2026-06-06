@@ -90,8 +90,18 @@ BEGIN
   INTO v_before_audit
   FROM public.audit_logs
   WHERE action = 'venue_acknowledge_bell_request'
-    AND entity_type = 'bell_request'
-    AND entity_id = v_bell::text;
+    AND (
+      (
+        to_jsonb(audit_logs) ? 'entity_type'
+        AND to_jsonb(audit_logs) ->> 'entity_type' = 'bell_request'
+        AND to_jsonb(audit_logs) ->> 'entity_id' = v_bell::text
+      )
+      OR (
+        to_jsonb(audit_logs) ? 'details_json'
+        AND to_jsonb(audit_logs) -> 'details_json' ->> 'entity_type' = 'bell_request'
+        AND to_jsonb(audit_logs) -> 'details_json' ->> 'entity_id' = v_bell::text
+      )
+    );
 
   v_result := public.venue_acknowledge_bell_request(v_bell);
 
@@ -117,8 +127,18 @@ BEGIN
   INTO v_after_audit
   FROM public.audit_logs
   WHERE action = 'venue_acknowledge_bell_request'
-    AND entity_type = 'bell_request'
-    AND entity_id = v_bell::text;
+    AND (
+      (
+        to_jsonb(audit_logs) ? 'entity_type'
+        AND to_jsonb(audit_logs) ->> 'entity_type' = 'bell_request'
+        AND to_jsonb(audit_logs) ->> 'entity_id' = v_bell::text
+      )
+      OR (
+        to_jsonb(audit_logs) ? 'details_json'
+        AND to_jsonb(audit_logs) -> 'details_json' ->> 'entity_type' = 'bell_request'
+        AND to_jsonb(audit_logs) -> 'details_json' ->> 'entity_id' = v_bell::text
+      )
+    );
 
   IF v_after_audit <> v_before_audit + 1 THEN
     RAISE EXCEPTION 'Expected one staff-call audit event, got % before and % after',

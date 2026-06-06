@@ -1,13 +1,15 @@
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/config/platform_feature_access.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 
 /// Production-safe fallback for routes backed by disabled or unfinished features.
-class FeatureUnavailableScreen extends StatelessWidget {
+class FeatureUnavailableScreen extends ConsumerWidget {
   const FeatureUnavailableScreen({
     super.key,
     required this.featureName,
@@ -18,13 +20,15 @@ class FeatureUnavailableScreen extends StatelessWidget {
   final String? message;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bg = isDark ? FzColors.darkBg : FzColors.lightBg;
     final surface = isDark ? FzColors.darkSurface2 : FzColors.lightSurface2;
     final text = isDark ? FzColors.darkText : FzColors.lightText;
     final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+    final access = ref.watch(platformFeatureAccessProvider);
+    final displayName = _displayFeatureName(access, featureName);
 
     return Scaffold(
       backgroundColor: bg,
@@ -56,7 +60,7 @@ class FeatureUnavailableScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 18),
                   Text(
-                    '$featureName unavailable',
+                    '$displayName unavailable',
                     style: FzTypography.display(
                       size: 24,
                       color: text,
@@ -108,4 +112,23 @@ class FeatureUnavailableScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+String _displayFeatureName(PlatformFeatureAccess access, String featureName) {
+  final label = access.labelFor(featureName).trim();
+  if (label.isNotEmpty && label != featureName) return label;
+
+  final words = featureName
+      .trim()
+      .replaceAll(RegExp(r'[_-]+'), ' ')
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .map(
+        (word) => word.length == 1
+            ? word.toUpperCase()
+            : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
+      )
+      .toList(growable: false);
+  if (words.isEmpty) return 'Feature';
+  return words.join(' ');
 }

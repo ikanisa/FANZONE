@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../data/team_search_database.dart';
 import '../../../theme/colors.dart';
@@ -27,6 +27,9 @@ class FanProfileSelector extends StatefulWidget {
     this.description = 'Add the teams you love.',
     this.saveLabel = 'SAVE FAN PROFILE',
     this.skipLabel = 'SKIP FOR NOW',
+    this.localCountryCode,
+    this.requireLocalTeam = false,
+    this.requireTopEuropeanTeam = false,
   });
 
   final OnboardingGateway gateway;
@@ -41,6 +44,9 @@ class FanProfileSelector extends StatefulWidget {
   final String description;
   final String saveLabel;
   final String skipLabel;
+  final String? localCountryCode;
+  final bool requireLocalTeam;
+  final bool requireTopEuropeanTeam;
 
   @override
   State<FanProfileSelector> createState() => _FanProfileSelectorState();
@@ -128,6 +134,17 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
 
   bool get _fanProfileFull => _totalSelectedCount >= _maxSelectedCount;
 
+  int _selectedCountForCategory(FanProfileTeamCategory category) {
+    switch (category) {
+      case FanProfileTeamCategory.local:
+        return _localTeam == null ? 0 : 1;
+      case FanProfileTeamCategory.topEuropean:
+        return _topEuropeanTeams.length;
+      case FanProfileTeamCategory.national:
+        return _nationalTeams.length;
+    }
+  }
+
   FanProfileTeamCategory _nextCategoryForProgress() {
     if (_localTeam == null) return FanProfileTeamCategory.local;
     if (_topEuropeanTeams.length <
@@ -146,10 +163,41 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
     }
   }
 
+  void _advanceCategoryAfterSelection(
+    FanProfileTeamCategory selectedCategory, {
+    required bool clearSearch,
+  }) {
+    final nextCategory = switch (selectedCategory) {
+      FanProfileTeamCategory.local => FanProfileTeamCategory.topEuropean,
+      FanProfileTeamCategory.topEuropean
+          when _topEuropeanTeams.length >=
+              FanProfileTeamCategory.topEuropean.maxSelections =>
+        FanProfileTeamCategory.national,
+      _ => selectedCategory,
+    };
+    if (_activeCategory == nextCategory) return;
+    _activeCategory = nextCategory;
+    if (clearSearch) {
+      _searchController.clear();
+    }
+  }
+
+  void _setActiveCategory(FanProfileTeamCategory category) {
+    if (_activeCategory == category) return;
+    _searchDebounce?.cancel();
+    setState(() {
+      _activeCategory = category;
+      _error = null;
+      _searchController.clear();
+    });
+    _loadResults();
+  }
+
   void _selectTeam(OnboardingTeam team) {
     if (team.id.isEmpty) return;
 
     var selectionChanged = false;
+    final selectedCategory = _activeCategory;
     setState(() {
       _error = null;
       switch (_activeCategory) {
@@ -180,7 +228,7 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
       }
       if (selectionChanged) {
         HapticFeedback.selectionClick();
-        _syncActiveCategoryToProgress(clearSearch: true);
+        _advanceCategoryAfterSelection(selectedCategory, clearSearch: true);
       }
     });
     _loadResults();
@@ -257,6 +305,8 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
         localTeam: _localTeam,
         topEuropeanTeamIds: _topEuropeanTeams.map((team) => team.id).toSet(),
         nationalTeamIds: _nationalTeams.map((team) => team.id).toSet(),
+        requireLocalTeam: widget.requireLocalTeam,
+        requireTopEuropeanTeam: widget.requireTopEuropeanTeam,
       );
       await widget.onSave(_selection);
     } catch (error) {
@@ -317,8 +367,17 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
               onRemove: _removeTeam,
             ),
             if (_totalSelectedCount > 0) const SizedBox(height: 14),
+            _FanProfileCategoryTabs(
+              activeCategory: _activeCategory,
+              muted: widget.muted,
+              isDark: widget.isDark,
+              selectedCountForCategory: _selectedCountForCategory,
+              onCategorySelected: _setActiveCategory,
+            ),
+            const SizedBox(height: 14),
             Text(
               _activeInstruction,
+              key: ValueKey('fan_profile_step_${_activeCategory.name}'),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -328,6 +387,7 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
             const SizedBox(height: 10),
             if (!_fanProfileFull)
               TextField(
+                key: const ValueKey('fan_profile_team_search'),
                 controller: _searchController,
                 textInputAction: TextInputAction.search,
                 style: TextStyle(
@@ -394,6 +454,7 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
                       itemBuilder: (context, index) {
                         final team = _results[index];
                         return _TeamResultTile(
+                          key: ValueKey('fan_profile_team_${team.id}'),
                           team: team,
                           muted: widget.muted,
                           onTap: () => _selectTeam(team),
@@ -403,6 +464,7 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
             ),
             const SizedBox(height: 12),
             OnboardingPrimaryButton(
+              key: const ValueKey('fan_profile_save'),
               label: _saving ? 'SAVING...' : widget.saveLabel,
               onTap: _saving ? null : _save,
             ),
@@ -480,7 +542,11 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
   ) {
     switch (category) {
       case FanProfileTeamCategory.local:
-        return widget.gateway.browseTeams(limit: 32);
+        return widget.gateway.browseTeams(
+          countryCode: widget.localCountryCode,
+          localOnly: true,
+          limit: 32,
+        );
       case FanProfileTeamCategory.topEuropean:
         return widget.gateway.browseTeams(
           region: 'europe',
@@ -498,7 +564,12 @@ class _FanProfileSelectorState extends State<FanProfileSelector> {
   ) async {
     switch (category) {
       case FanProfileTeamCategory.local:
-        return widget.gateway.browseTeams(query: query, limit: 32);
+        return widget.gateway.browseTeams(
+          query: query,
+          countryCode: widget.localCountryCode,
+          localOnly: true,
+          limit: 32,
+        );
       case FanProfileTeamCategory.topEuropean:
         final popular = await widget.gateway.browseTeams(
           query: query,
@@ -612,8 +683,114 @@ class _SelectedTeamChip {
   final FanProfileTeamCategory category;
 }
 
+class _FanProfileCategoryTabs extends StatelessWidget {
+  const _FanProfileCategoryTabs({
+    required this.activeCategory,
+    required this.muted,
+    required this.isDark,
+    required this.selectedCountForCategory,
+    required this.onCategorySelected,
+  });
+
+  final FanProfileTeamCategory activeCategory;
+  final Color muted;
+  final bool isDark;
+  final int Function(FanProfileTeamCategory category) selectedCountForCategory;
+  final ValueChanged<FanProfileTeamCategory> onCategorySelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    final backgroundColor = isDark
+        ? FzColors.darkSurface2
+        : FzColors.lightSurface2;
+
+    return Row(
+      children: FanProfileTeamCategory.values
+          .map((category) {
+            final isActive = activeCategory == category;
+            final selectedCount = selectedCountForCategory(category);
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: category == FanProfileTeamCategory.values.last ? 0 : 8,
+                ),
+                child: InkWell(
+                  key: ValueKey('fan_profile_category_${category.name}'),
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () => onCategorySelected(category),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    constraints: const BoxConstraints(minHeight: 58),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? FzColors.primary.withValues(alpha: 0.16)
+                          : backgroundColor,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isActive ? FzColors.primary : borderColor,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _categoryIcon(category),
+                          size: 16,
+                          color: isActive ? FzColors.primary : muted,
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          category.shortTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: isActive ? FzColors.primary : muted,
+                          ),
+                        ),
+                        Text(
+                          '$selectedCount/${category.maxSelections}',
+                          maxLines: 1,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: isActive ? FzColors.primary : muted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          })
+          .toList(growable: false),
+    );
+  }
+
+  IconData _categoryIcon(FanProfileTeamCategory category) {
+    switch (category) {
+      case FanProfileTeamCategory.local:
+        return LucideIcons.mapPin;
+      case FanProfileTeamCategory.topEuropean:
+        return LucideIcons.star;
+      case FanProfileTeamCategory.national:
+        return LucideIcons.trophy;
+    }
+  }
+}
+
 class _TeamResultTile extends StatelessWidget {
   const _TeamResultTile({
+    super.key,
     required this.team,
     required this.muted,
     required this.onTap,
@@ -626,6 +803,7 @@ class _TeamResultTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      key: key,
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
         radius: 18,

@@ -77,6 +77,7 @@ class GameSessionSummary {
   bool get isMusicBingo => templateId == 'music_bingo';
   bool get usesQuestions =>
       templateCategory == 'trivia' || templateCategory == 'song_guess';
+  String? get edgeFunctionName => gameEdgeFunctionName(templateId);
 }
 
 class GameTeam {
@@ -260,6 +261,15 @@ class SupabaseGamesRepository implements GamesRepository {
 
   String? get _currentUserId => ref.watch(currentUserProvider)?.id;
 
+  Map<String, String>? get _authHeaders {
+    final token = ref
+        .watch(supabaseConnectionProvider)
+        .currentSession
+        ?.accessToken;
+    if (token == null || token.isEmpty) return null;
+    return {'Authorization': 'Bearer $token'};
+  }
+
   @override
   Future<List<GameSessionSummary>> listGames({String? countryCode}) async {
     var request = _client
@@ -341,6 +351,16 @@ class SupabaseGamesRepository implements GamesRepository {
     required String name,
   }) async {
     _assertReviewMutationAllowed('Game team creation');
+    final edgeFunction = await _edgeFunctionForSession(sessionId);
+    if (edgeFunction != null) {
+      final data = await _invokeGameEdge(edgeFunction, {
+        'action': 'create_team',
+        'session_id': sessionId,
+        'name': name,
+      });
+      return Map<String, dynamic>.from(data as Map);
+    }
+
     final result = await _client.rpc(
       'create_game_team',
       params: {'p_session_id': sessionId, 'p_name': name},
@@ -351,6 +371,15 @@ class SupabaseGamesRepository implements GamesRepository {
   @override
   Future<Map<String, dynamic>> joinTeam(String teamId) async {
     _assertReviewMutationAllowed('Game team joining');
+    final edgeFunction = await _edgeFunctionForTeam(teamId);
+    if (edgeFunction != null) {
+      final data = await _invokeGameEdge(edgeFunction, {
+        'action': 'join_team',
+        'team_id': teamId,
+      });
+      return Map<String, dynamic>.from(data as Map);
+    }
+
     final result = await _client.rpc(
       'join_game_team',
       params: {'p_team_id': teamId},
@@ -366,6 +395,18 @@ class SupabaseGamesRepository implements GamesRepository {
     required String answer,
   }) async {
     _assertReviewMutationAllowed('Game answer submission');
+    final edgeFunction = await _edgeFunctionForSession(sessionId);
+    if (edgeFunction != null) {
+      final data = await _invokeGameEdge(edgeFunction, {
+        'action': 'submit_answer',
+        'session_id': sessionId,
+        'question_id': questionId,
+        'team_id': teamId,
+        'answer': answer,
+      });
+      return Map<String, dynamic>.from(data as Map);
+    }
+
     final result = await _client.rpc(
       'submit_game_answer',
       params: {
@@ -385,11 +426,13 @@ class SupabaseGamesRepository implements GamesRepository {
     required bool marked,
   }) async {
     _assertReviewMutationAllowed('Music bingo marking');
-    final result = await _client.rpc(
-      'mark_music_bingo_tile',
-      params: {'p_card_id': cardId, 'p_tile_key': tileKey, 'p_marked': marked},
-    );
-    final payload = Map<String, dynamic>.from(result as Map);
+    final data = await _invokeGameEdge('music-bingo', {
+      'action': 'mark_tile',
+      'card_id': cardId,
+      'tile_key': tileKey,
+      'marked': marked,
+    });
+    final payload = Map<String, dynamic>.from(data as Map);
     final current = await _client
         .from('music_bingo_cards')
         .select('id,card,marks')
@@ -405,14 +448,12 @@ class SupabaseGamesRepository implements GamesRepository {
   @override
   Future<Map<String, dynamic>> submitBingoClaim(String cardId) async {
     _assertReviewMutationAllowed('Music bingo claims');
-    final result = await _client.rpc(
-      'submit_music_bingo_claim',
-      params: {
-        'p_card_id': cardId,
-        'p_metadata': {'source': 'flutter_app'},
-      },
-    );
-    return Map<String, dynamic>.from(result as Map);
+    final data = await _invokeGameEdge('music-bingo', {
+      'action': 'submit_claim',
+      'card_id': cardId,
+      'metadata': {'source': 'flutter_app'},
+    });
+    return Map<String, dynamic>.from(data as Map);
   }
 
   Future<List<GameTeam>> _loadTeams(String sessionId) async {
@@ -450,13 +491,22 @@ class SupabaseGamesRepository implements GamesRepository {
     final ordinal = session.currentQuestionOrdinal;
     if (ordinal == null) return null;
 
+    final edgeFunction = session.edgeFunctionName;
+    final canUseEdge = edgeFunction != null && _authHeaders != null;
+    if (canUseEdge) {
+      final data = await _invokeGameEdge(edgeFunction, {
+        'action': 'current_question',
+        'session_id': session.id,
+        'ordinal': ordinal,
+      });
+      return gameQuestionFromPayload(data);
+    }
+
     final result = await _client.rpc(
       'get_game_session_question',
       params: {'p_session_id': session.id, 'p_ordinal': ordinal},
     );
-    final rows = result is List ? result : const [];
-    if (rows.isEmpty || rows.first is! Map) return null;
-    return GameQuestion.fromJson(Map<String, dynamic>.from(rows.first as Map));
+    return gameQuestionFromPayload(result);
   }
 
   Future<MusicBingoCard> _getOrCreateBingoCard(
@@ -464,11 +514,46 @@ class SupabaseGamesRepository implements GamesRepository {
     String teamId,
   ) async {
     _assertReviewMutationAllowed('Music bingo card creation');
-    final result = await _client.rpc(
-      'get_or_create_music_bingo_card',
-      params: {'p_session_id': sessionId, 'p_team_id': teamId},
+    final data = await _invokeGameEdge('music-bingo', {
+      'action': 'get_or_create_card',
+      'session_id': sessionId,
+      'team_id': teamId,
+    });
+    return MusicBingoCard.fromRpc(Map<String, dynamic>.from(data as Map));
+  }
+
+  Future<Object?> _invokeGameEdge(
+    String functionName,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _client.functions.invoke(
+      functionName,
+      headers: _authHeaders,
+      body: body,
     );
-    return MusicBingoCard.fromRpc(Map<String, dynamic>.from(result as Map));
+    return unwrapGameEdgeData(response.data);
+  }
+
+  Future<String?> _edgeFunctionForSession(String sessionId) async {
+    final row = await _client
+        .from('game_sessions')
+        .select('template_id')
+        .eq('id', sessionId)
+        .maybeSingle();
+    if (row == null) return null;
+    return gameEdgeFunctionName(row['template_id']?.toString());
+  }
+
+  Future<String?> _edgeFunctionForTeam(String teamId) async {
+    final row = await _client
+        .from('game_teams')
+        .select('game_sessions!inner(template_id)')
+        .eq('id', teamId)
+        .maybeSingle();
+    if (row == null) return null;
+    final session = row['game_sessions'];
+    if (session is! Map) return null;
+    return gameEdgeFunctionName(session['template_id']?.toString());
   }
 
   void _assertReviewMutationAllowed(String action) {
@@ -481,6 +566,9 @@ class SupabaseGamesRepository implements GamesRepository {
   Future<bool> _loadEligibility(GameSessionSummary session) async {
     final userId = _currentUserId;
     if (userId == null) return false;
+    if (ref.read(supabaseConnectionProvider).isDevOtpFixtureSession) {
+      return false;
+    }
     final result = await _client.rpc(
       'user_has_qualifying_order',
       params: {
@@ -573,6 +661,41 @@ final gameDetailRealtimeProvider = StreamProvider.autoDispose
 
       return controller.stream;
     });
+
+String? gameEdgeFunctionName(String? templateId) {
+  switch (templateId) {
+    case 'fan_trivia':
+      return 'fan-trivia';
+    case 'song_guess':
+      return 'song-guess';
+    case 'music_bingo':
+      return 'music-bingo';
+    default:
+      return null;
+  }
+}
+
+Object? unwrapGameEdgeData(Object? responseData) {
+  if (responseData is! Map) return responseData;
+  final payload = Map<String, dynamic>.from(responseData);
+  if (payload['success'] == false) {
+    throw StateError(payload['error']?.toString() ?? 'Game request failed.');
+  }
+  return payload.containsKey('data') ? payload['data'] : payload;
+}
+
+GameQuestion? gameQuestionFromPayload(Object? payload) {
+  if (payload is List) {
+    if (payload.isEmpty || payload.first is! Map) return null;
+    return GameQuestion.fromJson(
+      Map<String, dynamic>.from(payload.first as Map),
+    );
+  }
+  if (payload is Map) {
+    return GameQuestion.fromJson(Map<String, dynamic>.from(payload));
+  }
+  return null;
+}
 
 String _templateLabel(String? templateId) {
   switch (templateId) {

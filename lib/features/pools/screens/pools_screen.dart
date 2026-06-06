@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../providers/auth_provider.dart';
 import '../../../theme/colors.dart';
@@ -12,6 +12,7 @@ import '../../../widgets/common/fz_empty_state.dart';
 import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/state_view.dart';
 import '../../auth/widgets/sign_in_required_sheet.dart';
+import '../../games/data/games_repository.dart';
 import '../data/pools_repository.dart';
 
 export '../data/pools_repository.dart'
@@ -50,6 +51,12 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
   @override
   Widget build(BuildContext context) {
     final poolsAsync = ref.watch(poolsProvider);
+    final pools = poolsAsync.valueOrNull ?? const <PoolSummary>[];
+    final gamesAsync = ref.watch(gamesProvider);
+    final games = gamesAsync.valueOrNull ?? const <GameSessionSummary>[];
+    final liveGameCount = games
+        .where((game) => const {'lobby', 'live'}.contains(game.status))
+        .length;
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -69,14 +76,36 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 150),
             children: [
-              Text(
-                'POOLS',
-                style: FzTypography.sportsTitle(
-                  size: 42,
-                  color: FzColors.darkText,
-                ),
+              _PlayHubHeader(
+                openCount: pools
+                    .where(
+                      (pool) => const {'open', 'live'}.contains(pool.status),
+                    )
+                    .length,
+                soonCount: pools
+                    .where(
+                      (pool) =>
+                          const {'locked', 'settling'}.contains(pool.status),
+                    )
+                    .length,
+                entryCount: pools.where((pool) => pool.hasMyEntry).length,
+                liveGameCount: liveGameCount,
+                onGames: () => context.go('/pools/games'),
+                onCreate: () => context.push('/pools/create'),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 18),
+              _GamePreviewSection(
+                gamesAsync: gamesAsync,
+                onViewAll: () => context.go('/pools/games'),
+                onOpen: (game) => context.push('/game/${game.id}'),
+              ),
+              const SizedBox(height: 18),
+              _PlaySectionHeader(
+                title: 'Pools',
+                actionLabel: 'Create',
+                onAction: () => context.push('/pools/create'),
+              ),
+              const SizedBox(height: 12),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -94,7 +123,7 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
                       onTap: _setFilter,
                     ),
                     _FilterPill(
-                      label: 'Big Pot',
+                      label: 'Top Rewards',
                       filter: _ArenaFilter.bigPool,
                       selected: _filter == _ArenaFilter.bigPool,
                       onTap: _setFilter,
@@ -145,7 +174,7 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
                 ),
                 error: (error, _) => StateView.error(
                   title: 'Arena unavailable',
-                  subtitle: error.toString(),
+                  subtitle: 'Pools are unavailable right now. Try again.',
                   onRetry: () => ref.invalidate(poolsProvider),
                 ),
               ),
@@ -201,6 +230,451 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
 }
 
 enum _ArenaFilter { live, soon, bigPool, entries }
+
+class _PlayHubHeader extends StatelessWidget {
+  const _PlayHubHeader({
+    required this.openCount,
+    required this.soonCount,
+    required this.entryCount,
+    required this.liveGameCount,
+    required this.onGames,
+    required this.onCreate,
+  });
+
+  final int openCount;
+  final int soonCount;
+  final int entryCount;
+  final int liveGameCount;
+  final VoidCallback onGames;
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface,
+        borderRadius: FzRadii.heroRadius,
+        border: Border.all(color: FzColors.darkBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.28),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: FzColors.orange.withValues(alpha: 0.14),
+                  borderRadius: FzRadii.buttonRadius,
+                ),
+                child: const Icon(
+                  LucideIcons.swords,
+                  color: FzColors.orange,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'PLAY',
+                      style: FzTypography.sportsTitle(
+                        size: 38,
+                        color: FzColors.darkText,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Pools, live games, and match-day rooms.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: FzColors.darkMuted,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _PlayMetricTile(
+                  label: 'Open',
+                  value: openCount,
+                  color: FzColors.green,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _PlayMetricTile(
+                  label: 'Games',
+                  value: liveGameCount,
+                  color: FzColors.cyan,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _PlayMetricTile(
+                  label: 'Entries',
+                  value: entryCount,
+                  color: FzColors.gold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onGames,
+                  icon: const Icon(LucideIcons.gamepad2, size: 16),
+                  label: const Text('Games'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onCreate,
+                  icon: const Icon(LucideIcons.plus, size: 16),
+                  label: const Text('Create'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlaySectionHeader extends StatelessWidget {
+  const _PlaySectionHeader({
+    required this.title,
+    required this.actionLabel,
+    required this.onAction,
+  });
+
+  final String title;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: FzColors.darkText,
+            ),
+          ),
+        ),
+        TextButton(onPressed: onAction, child: Text(actionLabel)),
+      ],
+    );
+  }
+}
+
+class _GamePreviewSection extends StatelessWidget {
+  const _GamePreviewSection({
+    required this.gamesAsync,
+    required this.onViewAll,
+    required this.onOpen,
+  });
+
+  final AsyncValue<List<GameSessionSummary>> gamesAsync;
+  final VoidCallback onViewAll;
+  final ValueChanged<GameSessionSummary> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return gamesAsync.when(
+      data: (games) {
+        final visible = _visibleGames(games);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _PlaySectionHeader(
+              title: 'Live games',
+              actionLabel: 'View all',
+              onAction: onViewAll,
+            ),
+            const SizedBox(height: 12),
+            if (visible.isEmpty)
+              FzEmptyState(
+                title: 'No live games',
+                description: 'Scheduled bar games will appear here.',
+                icon: const Icon(LucideIcons.gamepad2),
+                actionLabel: 'Games',
+                onAction: onViewAll,
+              )
+            else
+              for (final game in visible)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _GamePreviewCard(
+                    game: game,
+                    onTap: () => onOpen(game),
+                  ),
+                ),
+          ],
+        );
+      },
+      loading: () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _PlaySectionHeader(
+            title: 'Live games',
+            actionLabel: 'View all',
+            onAction: onViewAll,
+          ),
+          const SizedBox(height: 12),
+          const _PlayLoadingPanel(label: 'Loading games'),
+        ],
+      ),
+      error: (_, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _PlaySectionHeader(
+            title: 'Live games',
+            actionLabel: 'View all',
+            onAction: onViewAll,
+          ),
+          const SizedBox(height: 12),
+          FzEmptyState(
+            title: 'Games unavailable',
+            description: 'Open the games page to retry.',
+            icon: const Icon(LucideIcons.gamepad2),
+            actionLabel: 'Games',
+            onAction: onViewAll,
+          ),
+        ],
+      ),
+    );
+  }
+
+  static List<GameSessionSummary> _visibleGames(
+    List<GameSessionSummary> games,
+  ) {
+    final ordered = [...games]
+      ..sort((a, b) {
+        final statusCompare = _statusRank(
+          a.status,
+        ).compareTo(_statusRank(b.status));
+        if (statusCompare != 0) return statusCompare;
+        return a.scheduledStartAt.compareTo(b.scheduledStartAt);
+      });
+    return ordered
+        .where(
+          (game) => const {'lobby', 'live', 'scheduled'}.contains(game.status),
+        )
+        .take(3)
+        .toList(growable: false);
+  }
+
+  static int _statusRank(String status) => switch (status) {
+    'live' => 0,
+    'lobby' => 1,
+    'scheduled' => 2,
+    _ => 3,
+  };
+}
+
+class _GamePreviewCard extends StatelessWidget {
+  const _GamePreviewCard({required this.game, required this.onTap});
+
+  final GameSessionSummary game;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (game.status) {
+      'live' => FzColors.green,
+      'lobby' => FzColors.cyan,
+      'scheduled' => FzColors.gold,
+      _ => FzColors.darkMuted,
+    };
+
+    return FzCard(
+      key: ValueKey('play_game_preview_${game.id}'),
+      onTap: onTap,
+      padding: const EdgeInsets.all(16),
+      borderRadius: FzRadii.card,
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: FzRadii.compactRadius,
+            ),
+            child: Icon(_gameIcon(game), color: color, size: 21),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  game.templateName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  game.venueName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: FzColors.darkMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                game.status.toUpperCase(),
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${game.rewardFet} FET',
+                style: const TextStyle(
+                  color: FzColors.darkMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _gameIcon(GameSessionSummary game) {
+    if (game.templateId == 'music_bingo') return LucideIcons.grid3x3;
+    if (game.templateId == 'song_guess') return LucideIcons.music;
+    return LucideIcons.helpCircle;
+  }
+}
+
+class _PlayLoadingPanel extends StatelessWidget {
+  const _PlayLoadingPanel({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 84,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface,
+        borderRadius: FzRadii.cardRadius,
+        border: Border.all(color: FzColors.darkBorder),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: const TextStyle(
+              color: FzColors.darkMuted,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlayMetricTile extends StatelessWidget {
+  const _PlayMetricTile({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final int value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 58,
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface2,
+        borderRadius: FzRadii.cardRadius,
+        border: Border.all(color: FzColors.darkBorder),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            value.toString(),
+            style: FzTypography.score(size: 20, color: color),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: FzColors.darkMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _FilterPill extends StatelessWidget {
   const _FilterPill({
@@ -300,7 +774,7 @@ class _ArenaPoolCard extends StatelessWidget {
             children: [
               Expanded(
                 child: FzMetricTile(
-                  label: 'Entry',
+                  label: 'Entry points',
                   value: '${pool.defaultStakeFet} FET',
                   color: FzColors.cyan,
                 ),
@@ -308,8 +782,8 @@ class _ArenaPoolCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: FzMetricTile(
-                  label: 'Pot',
-                  value: '${pool.totalStakedFet}',
+                  label: 'Reward pool',
+                  value: '${pool.totalStakedFet} FET',
                   color: FzColors.green,
                 ),
               ),
@@ -342,6 +816,7 @@ class _ArenaPoolCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
+              key: ValueKey('pool_join_${pool.id}'),
               onPressed: pool.isOpen ? () => onJoin(primaryCamp) : null,
               icon: const Icon(LucideIcons.trophy, size: 16),
               label: const Text('Join'),

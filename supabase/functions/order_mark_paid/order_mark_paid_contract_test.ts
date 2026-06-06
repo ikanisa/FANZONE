@@ -3,6 +3,7 @@ import {
   orderMarkPaidDefaultPaymentMethod,
   orderMarkPaidMaxExternalReferenceLength,
   orderMarkPaidMaxNoteLength,
+  orderMarkPaidMinNoteLength,
   orderMarkPaidPaymentMethods,
   orderMarkPaidTargetPaymentStatus,
 } from "../_shared/order_mark_paid_contract.ts";
@@ -34,5 +35,8 @@ Deno.test("order_mark_paid keeps manual/off-platform payment request shape", () 
   }
   if (orderMarkPaidMaxNoteLength !== 240) {
     throw new Error("Unexpected actor note length limit");
+  }
+  if (orderMarkPaidMinNoteLength !== 1) {
+    throw new Error("Manual paid confirmation must require an actor note");
   }
 });

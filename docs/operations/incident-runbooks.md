@@ -19,6 +19,18 @@ Before public launch, create a redacted evidence bundle under:
 output/release-evidence/<timestamp>/incident-readiness/
 ```
 
+The repo-owned template generator can create the required redacted structure:
+
+```bash
+node tool/generate_incident_readiness_bundle.mjs
+node tool/validate_incident_rollback_code_evidence.mjs
+```
+
+The generated bundle proves the code-owned evidence structure only. It does
+not replace named owner signoff, private escalation-channel evidence, release
+tag creation, production backup/restore drill evidence, or provider alert-route
+test proof.
+
 Required files:
 
 - `owners-and-escalation-redacted.txt`: incident commander, technical owner,
@@ -30,6 +42,8 @@ Required files:
   approval decision.
 - `post-deploy-watch.txt`: monitoring owner, watch window, dashboards checked,
   and rollback threshold.
+- `sample-alert-test-redacted.txt`: non-destructive alert-route test, severity
+  mapping, owner receipt confirmation, and backup-owner visibility.
 
 Required sign-off block:
 

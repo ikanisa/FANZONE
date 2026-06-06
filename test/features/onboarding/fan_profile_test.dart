@@ -59,5 +59,31 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('can require local and top European teams for onboarding', () {
+      const local = OnboardingTeam(
+        id: 'local',
+        name: 'Local FC',
+        country: 'Rwanda',
+      );
+
+      expect(
+        () => validateFanProfileSelection(
+          requireLocalTeam: true,
+          requireTopEuropeanTeam: true,
+        ),
+        throwsArgumentError,
+      );
+
+      expect(
+        () => validateFanProfileSelection(
+          localTeam: local,
+          topEuropeanTeamIds: {'arsenal'},
+          requireLocalTeam: true,
+          requireTopEuropeanTeam: true,
+        ),
+        returnsNormally,
+      );
+    });
   });
 }

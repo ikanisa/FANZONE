@@ -28,7 +28,7 @@ const _fallbackPhoneCountries = <PhoneCountryEntry>[
     countryCode: 'MT',
     countryName: 'Malta',
     flagEmoji: '🇲🇹',
-    preset: PhonePreset(dialCode: '+356', hint: '0000 0000', minDigits: 8),
+    preset: PhonePreset(dialCode: '+356', hint: '0000 0000', minDigits: 7),
   ),
   PhoneCountryEntry(
     countryCode: 'RW',
@@ -136,7 +136,10 @@ List<PhoneCountryEntry> phoneCountryCatalog({BootstrapConfig? config}) {
         countryCode,
         fallback: resolved.flagEmojiForCountryCode(countryCode),
       ),
-      preset: PhonePreset.fromInfo(override.value),
+      preset: _normalizePresetForUat(
+        countryCode,
+        PhonePreset.fromInfo(override.value),
+      ),
     );
   }
 
@@ -161,6 +164,11 @@ PhoneCountryEntry _entryFromPackageCountry(
   BootstrapConfig resolved,
 ) {
   final countryCode = country.countryCode.trim().toUpperCase();
+  final configuredPreset = phonePresetForCountryDynamic(countryCode, resolved);
+  final resolvedPreset =
+      configuredPreset ??
+      _phonePresetOverride(countryCode) ??
+      _phonePresetFromPackageCountry(country);
   return PhoneCountryEntry(
     countryCode: countryCode,
     countryName: resolved.countryNameForCode(countryCode) ?? country.name,
@@ -168,10 +176,26 @@ PhoneCountryEntry _entryFromPackageCountry(
       countryCode,
       fallback: resolved.flagEmojiForCountryCode(countryCode),
     ),
-    preset:
-        phonePresetForCountryDynamic(countryCode, resolved) ??
-        _phonePresetFromPackageCountry(country),
+    preset: _normalizePresetForUat(countryCode, resolvedPreset),
   );
+}
+
+PhonePreset? _phonePresetOverride(String countryCode) {
+  if (countryCode == 'MT') {
+    return const PhonePreset(dialCode: '+356', hint: '0000 0000', minDigits: 7);
+  }
+  return null;
+}
+
+PhonePreset _normalizePresetForUat(String countryCode, PhonePreset preset) {
+  if (countryCode == 'MT' && preset.minDigits > 7) {
+    return PhonePreset(
+      dialCode: preset.dialCode,
+      hint: preset.hint,
+      minDigits: 7,
+    );
+  }
+  return preset;
 }
 
 PhonePreset _phonePresetFromPackageCountry(country_picker.Country country) {

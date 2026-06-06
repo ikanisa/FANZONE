@@ -80,6 +80,12 @@ const legalContent: Record<
         ],
       },
       {
+        title: "Free-to-play rewards",
+        body: [
+          "FANZONE fan challenges are free to enter. FET points are non-cash rewards and cannot be sold, withdrawn, or redeemed as money. Pools and games use reward points for eligibility, leaderboards, and settlement only.",
+        ],
+      },
+      {
         title: "Contact",
         body: [
           "Contact info@ikanisa.com for support, disputes, or account requests.",

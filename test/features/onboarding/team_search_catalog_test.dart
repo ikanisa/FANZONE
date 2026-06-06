@@ -101,5 +101,57 @@ void main() {
         'metro-fc',
       ]);
     });
+
+    test('browse filters local, top European, and national catalog groups', () {
+      final catalog = TeamSearchCatalog(const [
+        OnboardingTeam(
+          id: 'valletta',
+          name: 'Valletta',
+          country: 'Malta',
+          league: 'Malta Premier League',
+          region: 'europe',
+          teamType: 'club',
+          countryCodeOverride: 'MT',
+        ),
+        OnboardingTeam(
+          id: 'arsenal',
+          name: 'Arsenal',
+          country: 'England',
+          league: 'Premier League',
+          region: 'europe',
+          teamType: 'club',
+          isPopular: true,
+          popularRank: 1,
+          countryCodeOverride: 'GB',
+        ),
+        OnboardingTeam(
+          id: 'brazil',
+          name: 'Brazil',
+          country: 'Brazil',
+          league: 'FIFA World Cup 2026',
+          region: 'americas',
+          teamType: 'national',
+          isPopular: true,
+          popularRank: 2,
+          countryCodeOverride: 'BR',
+        ),
+      ]);
+
+      expect(
+        catalog
+            .browse(countryCode: 'MT', localOnly: true)
+            .map((team) => team.id),
+        ['valletta'],
+      );
+      expect(
+        catalog
+            .browse(region: 'europe', popularOnly: true)
+            .map((team) => team.id),
+        ['arsenal', 'brazil'],
+      );
+      expect(catalog.browse(nationalOnly: true).map((team) => team.id), [
+        'brazil',
+      ]);
+    });
   });
 }

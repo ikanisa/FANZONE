@@ -1,9 +1,9 @@
 🎉 Welcome to FANZONE v1.0!
 
 • In-app venue ordering and bar menu browsing
-• Match pools with FET wallet settlement
+• Match pools with FET reward settlement
 • Major European competitions and curated football moments
-• FET wallet with transfer history
+• FET rewards ledger history
 • Fan ID and favorite-team setup
 • Real-time scores and match context
 • Off-platform payment handoff for venues

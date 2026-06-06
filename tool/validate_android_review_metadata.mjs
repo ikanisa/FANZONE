@@ -9,6 +9,7 @@ const files = {
   metadata: "release/android/play-store-metadata.md",
   dataSafety: "release/android/data-safety-notes.md",
   appAccess: "release/android/app-access-instructions.md",
+  previewAssetAltText: "release/android/preview-asset-alt-text.md",
   manifest: "android/app/src/main/AndroidManifest.xml",
 };
 
@@ -45,9 +46,48 @@ function hasNonGitkeepAsset(directory) {
     .some((entry) => entry.isFile() && entry.name !== ".gitkeep");
 }
 
+function assetFiles(directory) {
+  const absolute = path.resolve(root, directory);
+  if (!fs.existsSync(absolute)) return [];
+  return fs
+    .readdirSync(absolute, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name !== ".gitkeep")
+    .map((entry) => path.join(directory, entry.name));
+}
+
+function pngInfo(filePath) {
+  const buffer = fs.readFileSync(path.resolve(root, filePath));
+  const pngSignature = "89504e470d0a1a0a";
+  if (buffer.subarray(0, 8).toString("hex") !== pngSignature) {
+    return null;
+  }
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+    bitDepth: buffer.readUInt8(24),
+    colorType: buffer.readUInt8(25),
+    sizeBytes: buffer.length,
+  };
+}
+
+function validateRgbPng(filePath, label) {
+  const info = pngInfo(filePath);
+  if (!info) {
+    failures.push(`${label} must be a PNG asset: ${filePath}`);
+    return null;
+  }
+  if (info.bitDepth !== 8 || info.colorType !== 2) {
+    failures.push(
+      `${label} must be 24-bit RGB PNG with no alpha: ${filePath}`,
+    );
+  }
+  return info;
+}
+
 const metadata = read(files.metadata);
 const dataSafety = read(files.dataSafety);
 const appAccess = read(files.appAccess);
+const previewAssetAltText = read(files.previewAssetAltText);
 const manifest = read(files.manifest);
 
 requireText("Play metadata", metadata, [
@@ -80,6 +120,15 @@ requireText("App access instructions", appAccess, [
   "FET rewards are closed-loop app/venue reward points with no cash-out.",
 ]);
 
+requireText("Preview asset alt text", previewAssetAltText, [
+  "phone_01_onboarding.png",
+  "phone_02_whatsapp_login.png",
+  "Get Started button",
+  "OTP button",
+  "no-wager",
+  "no-cash-out",
+]);
+
 if (
   manifest.includes("android.permission.ACCESS_COARSE_LOCATION") ||
   manifest.includes("android.permission.ACCESS_FINE_LOCATION")
@@ -89,7 +138,12 @@ if (
   ]);
 }
 
-const androidReviewText = [metadata, dataSafety, appAccess].join("\n");
+const androidReviewText = [
+  metadata,
+  dataSafety,
+  appAccess,
+  previewAssetAltText,
+].join("\n");
 
 rejectPattern(
   "Android review metadata",
@@ -126,6 +180,50 @@ if (!hasNonGitkeepAsset("release/android/feature-graphic")) {
   failures.push(
     "release/android/feature-graphic must contain the Play feature graphic asset, not only .gitkeep.",
   );
+}
+
+const screenshots = assetFiles("release/android/screenshots");
+if (screenshots.length < 2 || screenshots.length > 8) {
+  failures.push(
+    `release/android/screenshots must contain 2 to 8 phone screenshots; found ${screenshots.length}.`,
+  );
+}
+for (const screenshot of screenshots) {
+  const info = validateRgbPng(screenshot, "Android screenshot");
+  if (!info) continue;
+  const minDimension = Math.min(info.width, info.height);
+  const maxDimension = Math.max(info.width, info.height);
+  if (minDimension < 320 || maxDimension > 3840) {
+    failures.push(
+      `Android screenshot dimensions must stay within 320px and 3840px: ${screenshot} is ${info.width}x${info.height}.`,
+    );
+  }
+  if (maxDimension > minDimension * 2) {
+    failures.push(
+      `Android screenshot aspect ratio must not exceed 2:1: ${screenshot} is ${info.width}x${info.height}.`,
+    );
+  }
+  if (info.sizeBytes > 8 * 1024 * 1024) {
+    failures.push(
+      `Android screenshot must be 8MB or smaller: ${screenshot} is ${info.sizeBytes} bytes.`,
+    );
+  }
+}
+
+const featureGraphics = assetFiles("release/android/feature-graphic");
+if (featureGraphics.length !== 1) {
+  failures.push(
+    `release/android/feature-graphic must contain exactly one feature graphic; found ${featureGraphics.length}.`,
+  );
+}
+for (const featureGraphic of featureGraphics) {
+  const info = validateRgbPng(featureGraphic, "Android feature graphic");
+  if (!info) continue;
+  if (info.width !== 1024 || info.height !== 500) {
+    failures.push(
+      `Android feature graphic must be 1024x500: ${featureGraphic} is ${info.width}x${info.height}.`,
+    );
+  }
 }
 
 if (failures.length > 0) {

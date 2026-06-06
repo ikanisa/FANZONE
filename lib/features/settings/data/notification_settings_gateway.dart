@@ -57,6 +57,7 @@ class SupabaseNotificationSettingsGateway
 
   bool get _hasVerifiedSession =>
       _connection.isAuthenticated &&
+      !_connection.isDevOtpFixtureSession &&
       !(_connection.currentUser?.isAnonymous ?? false);
 
   @override
@@ -98,7 +99,7 @@ class SupabaseNotificationSettingsGateway
     String userId,
     NotificationPreferences preferences,
   ) async {
-    if (AppConfig.isReviewMode) {
+    if (AppConfig.isReviewMode || _connection.isDevOtpFixtureSession) {
       await _cacheNotificationPreferences(userId, preferences);
       return;
     }
@@ -150,7 +151,12 @@ class SupabaseNotificationSettingsGateway
     await _cache.setStringList(key, next.toList()..sort());
 
     final client = _connection.client;
-    if (AppConfig.isReviewMode || client == null || userId == null) return;
+    if (AppConfig.isReviewMode ||
+        _connection.isDevOtpFixtureSession ||
+        client == null ||
+        userId == null) {
+      return;
+    }
     if (!runtimePlatformFeatureActionAvailable('notifications')) return;
 
     try {
@@ -178,7 +184,12 @@ class SupabaseNotificationSettingsGateway
     await _cache.setStringList(key, next);
 
     final client = _connection.client;
-    if (AppConfig.isReviewMode || client == null || userId == null) return;
+    if (AppConfig.isReviewMode ||
+        _connection.isDevOtpFixtureSession ||
+        client == null ||
+        userId == null) {
+      return;
+    }
     if (!runtimePlatformFeatureActionAvailable('notifications')) return;
 
     try {
@@ -196,7 +207,7 @@ class SupabaseNotificationSettingsGateway
   Future<void> markNotificationAsRead(String notificationId) async {
     final userId = _connection.currentUser?.id;
     final client = _connection.client;
-    if (AppConfig.isReviewMode) return;
+    if (AppConfig.isReviewMode || _connection.isDevOtpFixtureSession) return;
     if (userId == null || client == null) {
       throw StateError('Notifications are unavailable right now.');
     }
@@ -229,7 +240,7 @@ class SupabaseNotificationSettingsGateway
   @override
   Future<void> markAllNotificationsRead(String userId) async {
     final client = _connection.client;
-    if (AppConfig.isReviewMode) return;
+    if (AppConfig.isReviewMode || _connection.isDevOtpFixtureSession) return;
     if (client == null) {
       throw StateError('Notifications are unavailable right now.');
     }
@@ -272,7 +283,10 @@ class SupabaseNotificationSettingsGateway
       );
     }
 
-    if (!AppConfig.isReviewMode && client != null && userId != null) {
+    if (!AppConfig.isReviewMode &&
+        !_connection.isDevOtpFixtureSession &&
+        client != null &&
+        userId != null) {
       try {
         if (enabled) {
           await client.from('match_alert_subscriptions').upsert({

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/location/location_service.dart';
 import '../../../models/hospitality/venue_model.dart';
@@ -67,6 +67,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
               ),
               const SizedBox(height: 16),
               TextField(
+                key: const ValueKey('venue_search_field'),
                 controller: _searchController,
                 onChanged: (value) => setState(() => _query = value),
                 decoration: InputDecoration(
@@ -171,6 +172,7 @@ class _VenueDiscoveryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FzCard(
+      key: ValueKey('venue_discovery_card_${venue.id}'),
       onTap: onTap,
       padding: EdgeInsets.zero,
       borderRadius: FzRadii.card,
@@ -232,9 +234,7 @@ class _VenueDiscoveryCard extends StatelessWidget {
                 Text(
                   [
                     _distanceLabel,
-                    venue.city,
-                    venue.venueType.label,
-                    venue.primaryCategory,
+                    venue.discoverySubtitle,
                   ].whereType<String>().where((v) => v.isNotEmpty).join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -247,6 +247,7 @@ class _VenueDiscoveryCard extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: IconButton.filled(
+                    key: ValueKey('venue_open_menu_${venue.id}'),
                     tooltip: 'Open menu',
                     onPressed: onOrder,
                     icon: const Icon(LucideIcons.utensils, size: 18),

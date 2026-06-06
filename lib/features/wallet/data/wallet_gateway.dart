@@ -1,6 +1,7 @@
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import '../../../models/auth_and_user/wallet.dart';
+import 'dev_rewards_ledger.dart';
 
 abstract interface class WalletGateway {
   Future<WalletBalance> getWalletBalance(String userId);
@@ -138,6 +139,10 @@ class SupabaseWalletGateway implements WalletGateway {
 
   @override
   Future<WalletBalance> getWalletBalance(String userId) async {
+    if (_connection.isDevOtpFixtureSession) {
+      return DevRewardsLedger.instance.balanceFor(userId);
+    }
+
     final client = _connection.client;
     if (client == null) {
       return _cachedWalletBalanceOrThrow(userId);
@@ -175,6 +180,10 @@ class SupabaseWalletGateway implements WalletGateway {
 
   @override
   Future<List<WalletTransaction>> getTransactions(String userId) async {
+    if (_connection.isDevOtpFixtureSession) {
+      return DevRewardsLedger.instance.transactionsFor(userId);
+    }
+
     final client = _connection.client;
     if (client == null) {
       return _cachedTransactionsOrThrow(userId);
@@ -245,6 +254,8 @@ class SupabaseWalletGateway implements WalletGateway {
 
   @override
   Future<String?> guessUserCurrency(String userId) async {
+    if (_connection.isDevOtpFixtureSession) return null;
+
     final client = _connection.client;
     if (client != null) {
       try {
@@ -276,6 +287,8 @@ class SupabaseWalletGateway implements WalletGateway {
 
   @override
   Future<String?> getFanId(String userId) async {
+    if (_connection.isDevOtpFixtureSession) return null;
+
     final client = _connection.client;
     if (client != null) {
       try {
@@ -383,7 +396,7 @@ class SupabaseWalletGateway implements WalletGateway {
         _localBalances.containsKey(userId)) {
       return _cachedWalletBalance(userId);
     }
-    _throwUnavailable('Wallet');
+    _throwUnavailable('Rewards ledger');
   }
 
   List<WalletTransaction> _cachedTransactions(String userId) {
@@ -394,7 +407,7 @@ class SupabaseWalletGateway implements WalletGateway {
     if (_localTransactions.containsKey(userId)) {
       return _cachedTransactions(userId);
     }
-    _throwUnavailable('Wallet history');
+    _throwUnavailable('Rewards history');
   }
 
   Never _throwUnavailable(String action) {

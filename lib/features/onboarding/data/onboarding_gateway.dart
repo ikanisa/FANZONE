@@ -18,6 +18,8 @@ abstract class OnboardingGateway {
   Future<List<OnboardingTeam>> browseTeams({
     String query = '',
     String? region,
+    String? countryCode,
+    bool localOnly = false,
     bool popularOnly = false,
     bool nationalOnly = false,
     int limit = 20,
@@ -34,6 +36,9 @@ abstract class OnboardingGateway {
     OnboardingTeam? localTeam,
     Set<String> topEuropeanTeamIds = const <String>{},
     Set<String> nationalTeamIds = const <String>{},
+    bool requireLocalTeam = false,
+    bool requireTopEuropeanTeam = false,
+    bool requireRemoteSync = false,
   });
 
   Future<void> addFavoriteTeam(
@@ -91,6 +96,8 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
   Future<List<OnboardingTeam>> browseTeams({
     String query = '',
     String? region,
+    String? countryCode,
+    bool localOnly = false,
     bool popularOnly = false,
     bool nationalOnly = false,
     int limit = 20,
@@ -98,12 +105,22 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     final remote = await _fetchRemoteTeams(
       query: query,
       region: region,
+      countryCode: countryCode,
+      localOnly: localOnly,
       popularOnly: popularOnly,
       nationalOnly: nationalOnly,
       limit: limit,
     );
     if (remote != null) return remote;
-    return const <OnboardingTeam>[];
+    return _resolvedCatalog.browse(
+      query: query,
+      region: region,
+      countryCode: countryCode,
+      localOnly: localOnly,
+      popularOnly: popularOnly,
+      nationalOnly: nationalOnly,
+      limit: limit,
+    );
   }
 
   @override
@@ -149,11 +166,16 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     OnboardingTeam? localTeam,
     Set<String> topEuropeanTeamIds = const <String>{},
     Set<String> nationalTeamIds = const <String>{},
+    bool requireLocalTeam = false,
+    bool requireTopEuropeanTeam = false,
+    bool requireRemoteSync = false,
   }) async {
     validateFanProfileSelection(
       localTeam: localTeam,
       topEuropeanTeamIds: topEuropeanTeamIds,
       nationalTeamIds: nationalTeamIds,
+      requireLocalTeam: requireLocalTeam,
+      requireTopEuropeanTeam: requireTopEuropeanTeam,
     );
 
     final rows = <FavoriteTeamRecordDto>[];
@@ -198,11 +220,14 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     }
 
     await _writeCachedTeams(rows);
-    await _syncTeamsToSupabase(
+    final synced = await _syncTeamsToSupabase(
       rows,
       replaceRemote: true,
       onboardingCompleted: true,
     );
+    if (requireRemoteSync && !_canUseCachedOnlyFanProfileSave && !synced) {
+      throw StateError('Fan profile could not be saved to Supabase.');
+    }
   }
 
   @override
@@ -227,7 +252,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
 
   @override
   Future<void> syncCachedTeamsIfAuthenticated() async {
-    if (AppConfig.isReviewMode) return;
+    if (AppConfig.isReviewMode || _connection.isDevOtpFixtureSession) return;
     final client = _connection.client;
     final userId = _connection.currentUser?.id;
     if (client == null || userId == null) return;
@@ -311,7 +336,12 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
 
     final client = _connection.client;
     final userId = _connection.currentUser?.id;
-    if (AppConfig.isReviewMode || client == null || userId == null) return;
+    if (AppConfig.isReviewMode ||
+        _connection.isDevOtpFixtureSession ||
+        client == null ||
+        userId == null) {
+      return;
+    }
 
     try {
       await client
@@ -378,9 +408,11 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     );
   }
 
-  Future<List<OnboardingTeam>>? _fetchRemoteTeams({
+  Future<List<OnboardingTeam>?>? _fetchRemoteTeams({
     required String query,
     required String? region,
+    required String? countryCode,
+    required bool localOnly,
     required bool popularOnly,
     required bool nationalOnly,
     required int limit,
@@ -392,22 +424,27 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
       client,
       query: query,
       region: region,
+      countryCode: countryCode,
+      localOnly: localOnly,
       popularOnly: popularOnly,
       nationalOnly: nationalOnly,
       limit: limit,
     );
   }
 
-  Future<List<OnboardingTeam>> _fetchRemoteTeamsWithClient(
+  Future<List<OnboardingTeam>?> _fetchRemoteTeamsWithClient(
     SupabaseClient client, {
     required String query,
     required String? region,
+    required String? countryCode,
+    required bool localOnly,
     required bool popularOnly,
     required bool nationalOnly,
     required int limit,
   }) async {
     try {
       final normalizedRegion = region?.trim().toLowerCase();
+      final normalizedCountryCode = countryCode?.trim().toUpperCase();
       final normalizedQuery = _normalizedSearchQuery(query);
       final safeLimit = limit.clamp(1, 100).toInt();
 
@@ -416,8 +453,16 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
           .select(_teamSelectColumns)
           .eq('is_active', true);
 
+      if (localOnly) {
+        request = request.eq('team_type', 'club');
+      }
+
       if (normalizedRegion != null && normalizedRegion.isNotEmpty) {
         request = request.eq('region', normalizedRegion);
+      }
+
+      if (normalizedCountryCode != null && normalizedCountryCode.isNotEmpty) {
+        request = request.eq('country_code', normalizedCountryCode);
       }
 
       if (popularOnly) {
@@ -451,7 +496,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
       return _rankTeamsForBrowsing(teams, popularOnly: popularOnly);
     } catch (error) {
       AppLogger.d('Failed to browse Supabase teams: $error');
-      return const <OnboardingTeam>[];
+      return null;
     }
   }
 
@@ -474,6 +519,7 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
       league: row['league_name']?.toString(),
       aliases: aliases,
       region: row['region']?.toString() ?? 'global',
+      teamType: row['team_type']?.toString(),
       isPopular:
           row['is_popular_pick'] == true ||
           row['is_featured'] == true ||
@@ -541,14 +587,22 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
     );
   }
 
-  Future<void> _syncTeamsToSupabase(
+  bool get _canUseCachedOnlyFanProfileSave =>
+      AppConfig.isReviewMode || _connection.isDevOtpFixtureSession;
+
+  Future<bool> _syncTeamsToSupabase(
     List<FavoriteTeamRecordDto> rows, {
     required bool replaceRemote,
     required bool? onboardingCompleted,
   }) async {
     final client = _connection.client;
     final userId = _connection.currentUser?.id;
-    if (AppConfig.isReviewMode || client == null || userId == null) return;
+    if (AppConfig.isReviewMode ||
+        _connection.isDevOtpFixtureSession ||
+        client == null ||
+        userId == null) {
+      return false;
+    }
 
     try {
       await _upsertFavoriteRows(
@@ -563,8 +617,10 @@ class SupabaseOnboardingGateway implements OnboardingGateway {
         rows,
         onboardingCompleted: onboardingCompleted,
       );
+      return true;
     } catch (error) {
       AppLogger.d('Failed to sync onboarding teams: $error');
+      return false;
     }
   }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/utils/phone_country_catalog.dart';
 import '../../../theme/colors.dart';
@@ -126,7 +126,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: textColor,
-                      letterSpacing: -0.3,
+                      letterSpacing: 0,
                     ),
                   ),
                   const Spacer(),
@@ -198,7 +198,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                   style: TextStyle(
                     fontSize: 12,
                     color: muted,
-                    letterSpacing: 0.3,
+                    letterSpacing: 0,
                   ),
                 ),
               ),

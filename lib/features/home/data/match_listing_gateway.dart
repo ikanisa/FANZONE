@@ -123,66 +123,10 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
         .whereType<Map>()
         .map(
           (row) => MatchModel.fromJson(
-            _normalizeMatchRow(Map<String, dynamic>.from(row)),
+            normalizeSupabaseMatchRow(Map<String, dynamic>.from(row)),
           ),
         )
         .toList(growable: false);
-  }
-
-  Map<String, dynamic> _normalizeMatchRow(Map<String, dynamic> row) {
-    final normalized = Map<String, dynamic>.from(row);
-    final rawStatus =
-        row['status']?.toString() ?? row['match_status']?.toString() ?? '';
-    normalized['competition_name'] = row['competition_name']?.toString();
-    normalized['season_id'] = row['season_id']?.toString();
-    normalized['season_label'] =
-        row['season_label']?.toString() ?? row['season']?.toString() ?? '';
-    normalized['match_date'] = row['match_date'] ?? row['date'];
-    normalized['round'] =
-        row['round']?.toString() ?? row['matchday_or_round']?.toString();
-    normalized['matchday_or_round'] =
-        row['matchday_or_round']?.toString() ?? row['round']?.toString();
-    normalized['live_minute'] = (row['live_minute'] as num?)?.toInt();
-    normalized['stage'] = row['stage']?.toString();
-    normalized['result_code'] = row['result_code']?.toString();
-    normalized['is_neutral'] = row['is_neutral'] == true;
-    normalized['notes'] = row['notes']?.toString();
-    normalized['status'] = _normalizeStatus(rawStatus);
-    normalized['data_source'] =
-        row['data_source']?.toString() ??
-        row['source_name']?.toString() ??
-        'manual';
-    normalized['ft_home'] =
-        row['live_home_score'] ?? row['ft_home'] ?? row['home_goals'];
-    normalized['ft_away'] =
-        row['live_away_score'] ?? row['ft_away'] ?? row['away_goals'];
-    normalized['home_logo_url'] =
-        row['home_logo_url']?.toString() ?? row['home_crest_url']?.toString();
-    normalized['away_logo_url'] =
-        row['away_logo_url']?.toString() ?? row['away_crest_url']?.toString();
-    return normalized;
-  }
-
-  String _normalizeStatus(String status) {
-    final value = status.trim().toLowerCase();
-    switch (value) {
-      case 'scheduled':
-      case 'not_started':
-      case 'pending':
-      case 'upcoming':
-        return 'scheduled';
-      case 'in_play':
-      case 'in_progress':
-        return 'live';
-      case 'final':
-      case 'complete':
-      case 'completed':
-      case 'full_time':
-      case 'finished':
-        return 'final';
-      default:
-        return value.isEmpty ? 'scheduled' : value;
-    }
   }
 
   Future<List<MatchModel>> _fetchCompetitionMatches(
@@ -354,7 +298,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
   }
 
   List<String> _statusFilterValues(String? status) {
-    final normalized = _normalizeStatus(status ?? '');
+    final normalized = normalizeMatchStatus(status ?? '');
     switch (normalized) {
       case 'scheduled':
         return const ['scheduled', 'upcoming', 'not_started', 'pending'];
@@ -396,7 +340,7 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
             .maybeSingle();
         if (row == null) return null;
         return MatchModel.fromJson(
-          _normalizeMatchRow(Map<String, dynamic>.from(row as Map)),
+          normalizeSupabaseMatchRow(Map<String, dynamic>.from(row as Map)),
         );
       } catch (error) {
         AppLogger.d('Failed to load match $matchId: $error');
@@ -508,4 +452,85 @@ class SupabaseMatchListingGateway implements MatchListingGateway {
       ),
     );
   }
+}
+
+Map<String, dynamic> normalizeSupabaseMatchRow(Map<String, dynamic> row) {
+  final normalized = Map<String, dynamic>.from(row);
+  final rawStatus =
+      row['status']?.toString() ?? row['match_status']?.toString() ?? '';
+  normalized['competition_name'] = row['competition_name']?.toString();
+  normalized['season_id'] = row['season_id']?.toString();
+  normalized['season_label'] =
+      row['season_label']?.toString() ?? row['season']?.toString() ?? '';
+  normalized['match_date'] = row['match_date'] ?? row['date'];
+  normalized['kickoff_time'] =
+      row['kickoff_time']?.toString() ?? row['local_time']?.toString();
+  normalized['round'] =
+      row['round']?.toString() ?? row['matchday_or_round']?.toString();
+  normalized['matchday_or_round'] =
+      row['matchday_or_round']?.toString() ?? row['round']?.toString();
+  normalized['live_minute'] = (row['live_minute'] as num?)?.toInt();
+  normalized['stage'] = row['stage']?.toString();
+  normalized['result_code'] = row['result_code']?.toString();
+  normalized['is_neutral'] = row['is_neutral'] == true;
+  normalized['notes'] = row['notes']?.toString();
+  normalized['source_url'] = row['source_url']?.toString();
+  normalized['status'] = normalizeMatchStatus(rawStatus);
+  normalized['data_source'] =
+      _firstNonEmptyString([
+        row['data_source'],
+        row['source_name'],
+        row['source'],
+        row['provider'],
+      ]) ??
+      'manual';
+  normalized['ft_home'] =
+      row['live_home_score'] ?? row['ft_home'] ?? row['home_goals'];
+  normalized['ft_away'] =
+      row['live_away_score'] ?? row['ft_away'] ?? row['away_goals'];
+  normalized['home_logo_url'] =
+      row['home_logo_url']?.toString() ?? row['home_crest_url']?.toString();
+  normalized['away_logo_url'] =
+      row['away_logo_url']?.toString() ?? row['away_crest_url']?.toString();
+  return normalized;
+}
+
+String normalizeMatchStatus(String status) {
+  final value = status.trim().toLowerCase();
+  switch (value) {
+    case 'scheduled':
+    case 'not_started':
+    case 'pending':
+    case 'upcoming':
+    case 'ns':
+      return 'scheduled';
+    case 'live':
+    case 'in_play':
+    case 'in_progress':
+    case 'inplay':
+    case 'ip':
+    case '1h':
+    case '2h':
+    case 'ht':
+      return 'live';
+    case 'final':
+    case 'complete':
+    case 'completed':
+    case 'full_time':
+    case 'finished':
+    case 'ft':
+    case 'aet':
+    case 'ap':
+      return 'final';
+    default:
+      return value.isEmpty ? 'scheduled' : value;
+  }
+}
+
+String? _firstNonEmptyString(Iterable<Object?> values) {
+  for (final value in values) {
+    final text = value?.toString().trim();
+    if (text != null && text.isNotEmpty) return text;
+  }
+  return null;
 }

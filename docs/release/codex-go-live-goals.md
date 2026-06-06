@@ -472,7 +472,7 @@ Acceptance:
 ## Goal 09 - Prove Scheduler, Cron, And Runtime Observability
 
 ```text
-/goal Prove FANZONE production scheduler, cron, and observability readiness. Configure or verify CRON_SECRET and production scheduler routes for settle-match-pools and dispatch-match-alerts, run successful cron smokes, define missed-run and failure alerts, prove dashboards for auth, orders, payment confirmation, staff calls, settlements, FET ledger anomalies, Edge errors, database health, and PWA deploy health, and update scheduler/observability evidence.
+/goal Prove FANZONE production scheduler, cron, and observability readiness. Configure or verify CRON_SECRET and production scheduler routes for settle-match-pools, dispatch-match-alerts, and sync-livescore-football, run successful cron smokes, define missed-run and failure alerts, prove dashboards for auth, orders, payment confirmation, staff calls, settlements, LiveScore sync freshness, FET ledger anomalies, Edge errors, database health, and PWA deploy health, and update scheduler/observability evidence.
 ```
 
 Why this goal exists:
@@ -495,6 +495,7 @@ Validation:
 ```bash
 tool/run_supabase_cron_job.sh settle-match-pools
 tool/run_supabase_cron_job.sh dispatch-match-alerts
+tool/run_supabase_cron_job.sh sync-livescore-football
 tool/collect_world_class_evidence.sh
 node tool/validate_operations_readiness_evidence.mjs
 ```

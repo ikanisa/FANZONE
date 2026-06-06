@@ -14,6 +14,8 @@ abstract class SupabaseConnection {
 
   bool get isAuthenticated;
 
+  bool get isDevOtpFixtureSession;
+
   Stream<AuthState> get authStateChanges;
 }
 
@@ -54,6 +56,10 @@ class SupabaseConnectionImpl implements SupabaseConnection {
     final session = currentSession;
     return session != null && !session.isExpired;
   }
+
+  @override
+  bool get isDevOtpFixtureSession =>
+      RuntimeAuthSessionManager.instance.isDevOtpFixtureSession;
 
   @override
   Stream<AuthState> get authStateChanges => appRuntime.supabaseInitialized

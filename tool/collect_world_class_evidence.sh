@@ -56,6 +56,27 @@ has_env_name() {
   return 1
 }
 
+release_environment_value() {
+  local key="$1"
+  node -e '
+    const fs = require("node:fs");
+    const key = process.argv[1];
+    const candidates = [
+      "release/operations/operations-readiness-evidence.json",
+      "release/qa/critical-user-flow-uat.json",
+      "release/performance/load-reliability-evidence.json",
+    ];
+    for (const candidate of candidates) {
+      if (!fs.existsSync(candidate)) continue;
+      const value = JSON.parse(fs.readFileSync(candidate, "utf8")).environment?.[key];
+      if (typeof value === "string" && value.trim()) {
+        process.stdout.write(value.trim());
+        process.exit(0);
+      }
+    }
+  ' "${key}"
+}
+
 echo "FANZONE world-class production evidence run: ${timestamp}" >"${out_dir}/summary.txt"
 echo "secret_values_printed=false" >>"${out_dir}/summary.txt"
 
@@ -73,16 +94,48 @@ else
   mark_pending "supabase_live_validation" "SUPABASE_DB_URL/link not available"
 fi
 
-optional_url_check "website_deployed_headers" website "${FANZONE_WEBSITE_URL:-}"
-optional_url_check "admin_deployed_bff_headers" admin "${FANZONE_ADMIN_URL:-}"
-optional_url_check "venue_deployed_bff_headers" venue-portal "${FANZONE_VENUE_PORTAL_URL:-}"
-optional_url_check "tv_deployed_headers" tv-display "${FANZONE_TV_DISPLAY_URL:-}"
+if has_env_name "SUPABASE_URL" && has_env_name "SUPABASE_ANON_KEY"; then
+  run_and_capture "supabase_team_catalog_smoke" node tool/supabase_team_catalog_smoke.mjs
+else
+  mark_pending "supabase_team_catalog_smoke" "SUPABASE_URL and SUPABASE_ANON_KEY not set in environment or .env"
+fi
 
-if has_env_name "SUPABASE_URL" && has_env_name "CRON_SECRET"; then
+if has_env_name "SUPABASE_URL" && has_env_name "SUPABASE_ANON_KEY"; then
+  run_and_capture "supabase_whatsapp_auth_smoke" tool/supabase_whatsapp_auth_smoke.sh
+else
+  mark_pending "supabase_whatsapp_auth_smoke" "SUPABASE_URL and SUPABASE_ANON_KEY not set in environment or .env"
+fi
+
+if has_env_name "SUPABASE_URL"; then
+  run_and_capture "supabase_app_edge_smoke" tool/supabase_app_edge_smoke.sh
+  run_and_capture "supabase_game_edge_smoke" tool/supabase_game_edge_smoke.sh
+else
+  mark_pending "supabase_app_edge_smoke" "SUPABASE_URL not set in environment or .env"
+  mark_pending "supabase_game_edge_smoke" "SUPABASE_URL not set in environment or .env"
+fi
+
+run_and_capture "edge_cors_smoke" node tool/capture_edge_cors_smoke.mjs
+run_and_capture "admin_auth_deploy_smoke" node tool/capture_admin_auth_deploy_smoke.mjs
+
+website_url="${FANZONE_WEBSITE_URL:-$(release_environment_value websiteUrl)}"
+admin_url="${FANZONE_ADMIN_URL:-$(release_environment_value adminUrl)}"
+venue_portal_url="${FANZONE_VENUE_PORTAL_URL:-$(release_environment_value venuePortalUrl)}"
+tv_display_url="${FANZONE_TV_DISPLAY_URL:-$(release_environment_value tvDisplayUrl)}"
+
+optional_url_check "website_deployed_headers" website "${website_url}"
+optional_url_check "admin_deployed_bff_headers" admin "${admin_url}"
+optional_url_check "venue_deployed_bff_headers" venue-portal "${venue_portal_url}"
+optional_url_check "tv_deployed_headers" tv-display "${tv_display_url}"
+
+run_and_capture "scheduler_payload_smoke" tool/scheduler_payload_smoke.sh
+run_and_capture "scheduler_provider_state" node tool/capture_scheduler_provider_state.mjs
+
+if has_env_name "SUPABASE_URL" && { has_env_name "CRON_SECRET" || has_env_name "EDGE_SERVICE_ROLE_KEY" || has_env_name "SUPABASE_SERVICE_ROLE_KEY"; }; then
   run_and_capture "cron_settle_match_pools" tool/run_supabase_cron_job.sh settle-match-pools
   run_and_capture "cron_dispatch_match_alerts" tool/run_supabase_cron_job.sh dispatch-match-alerts
+  run_and_capture "cron_sync_livescore_football" tool/run_supabase_cron_job.sh sync-livescore-football
 else
-  mark_pending "cron_smoke" "SUPABASE_URL/CRON_SECRET not set in environment or .env"
+  mark_pending "cron_smoke" "SUPABASE_URL plus CRON_SECRET or service-role smoke credential not set in environment or .env"
 fi
 
 if [[ -n "${SUPABASE_DB_URL:-}" || -f "supabase/.temp/project-ref" ]]; then

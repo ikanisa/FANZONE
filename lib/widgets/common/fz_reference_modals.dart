@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../theme/colors.dart';
 import '../../theme/radii.dart';
@@ -19,17 +19,17 @@ Future<void> showFzInsufficientFetSheet(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (sheetContext) => _FzActionSheet(
-      icon: LucideIcons.wallet,
+      icon: LucideIcons.gift,
       iconColor: FzColors.accent2,
       title: 'Not enough FET',
       subtitle:
-          'You need $requiredFet FET to continue. Your available balance is $availableFet FET.',
+          'You need $requiredFet FET to continue. Your available rewards are $availableFet FET.',
       metrics: [
         _SheetMetric(label: 'Required', value: '$requiredFet FET'),
         _SheetMetric(label: 'Shortfall', value: '$shortfall FET'),
       ],
       primaryLabel: 'Open Rewards',
-      primaryIcon: LucideIcons.wallet,
+      primaryIcon: LucideIcons.gift,
       onPrimary: onOpenWallet == null
           ? null
           : () {
@@ -95,7 +95,7 @@ Future<void> showFzWinnerCelebrationSheet(
         const _SheetMetric(label: 'Status', value: 'Settled'),
       ],
       primaryLabel: 'Open Rewards',
-      primaryIcon: LucideIcons.wallet,
+      primaryIcon: LucideIcons.gift,
       onPrimary: onOpenWallet == null
           ? null
           : () {

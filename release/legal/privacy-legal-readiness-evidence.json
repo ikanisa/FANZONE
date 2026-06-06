@@ -10,10 +10,10 @@
     "tvDisplayUrl": "https://fanzonetv.ikanisa.com"
   },
   "reviewWindow": {
-    "startedAtUtc": "TBD",
-    "completedAtUtc": "TBD",
-    "evidenceBundleRoot": "output/release-evidence/TBD/privacy-legal",
-    "notes": "Do not approve until privacy, legal, app-store policy, support-access, and human-review evidence is captured without live credentials or private personal data in this file."
+    "startedAtUtc": "2026-06-06T02:19:36Z",
+    "completedAtUtc": "2026-06-06T02:24:00Z",
+    "evidenceBundleRoot": "release/legal",
+    "notes": "Code-owned privacy/legal artifacts were refreshed and checked. Do not approve launch until human legal review and named sign-off are captured without live credentials or private personal data in this file."
   },
   "signOff": {
     "complianceOwner": "",
@@ -35,7 +35,7 @@
   "checks": [
     {
       "id": "PUBLIC-PRIVACY-POLICY",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "All",
       "evidenceRefs": [
         "docs/privacy-policy.md",
@@ -44,7 +44,7 @@
     },
     {
       "id": "PUBLIC-TERMS",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "All",
       "evidenceRefs": [
         "release/legal/terms.md",
@@ -53,7 +53,7 @@
     },
     {
       "id": "ANDROID-DATA-SAFETY",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "Flutter app",
       "evidenceRefs": [
         "release/android/data-safety-notes.md",
@@ -62,7 +62,7 @@
     },
     {
       "id": "APPLE-PRIVACY-LABELS",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "Flutter app",
       "evidenceRefs": [
         "release/ios/privacy-label-notes.md",
@@ -71,7 +71,7 @@
     },
     {
       "id": "ACCOUNT-DELETION",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "All",
       "evidenceRefs": [
         "docs/privacy-policy.md",
@@ -81,7 +81,7 @@
     },
     {
       "id": "DATA-RETENTION",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "All",
       "evidenceRefs": [
         "docs/privacy-policy.md",
@@ -90,7 +90,7 @@
     },
     {
       "id": "DATA-EXPORT-ACCESS",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "All",
       "evidenceRefs": [
         "docs/privacy-policy.md"
@@ -98,7 +98,7 @@
     },
     {
       "id": "SUPPORT-ACCESS",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "Admin PWA",
       "evidenceRefs": [
         "docs/operations/admin-guide.md",
@@ -107,7 +107,7 @@
     },
     {
       "id": "NO-BETTING-NO-CASHOUT",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "All",
       "evidenceRefs": [
         "release/legal/terms.md",
@@ -118,7 +118,7 @@
     },
     {
       "id": "OFF-PLATFORM-PAYMENTS",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "All",
       "evidenceRefs": [
         "release/legal/terms.md",
@@ -128,12 +128,25 @@
     },
     {
       "id": "SDK-DATA-INVENTORY",
-      "status": "PENDING",
+      "status": "PASS",
       "surface": "Flutter app",
       "evidenceRefs": [
         "release/ios/privacy-label-notes.md",
         "release/android/data-safety-notes.md",
         "pubspec.yaml"
+      ]
+    },
+    {
+      "id": "PUBLIC-SURFACE-COPY-AUDIT",
+      "status": "PASS",
+      "surface": "All",
+      "evidenceRefs": [
+        "tool/validate_privacy_public_surface_copy.mjs",
+        "apps/website/src/components/LegalPage.tsx",
+        "docs/privacy-policy.md",
+        "release/legal/terms.md",
+        "release/legal/fet-reward-terms.md",
+        "release/ios/app-review-notes.md"
       ]
     },
     {

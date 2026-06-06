@@ -2,6 +2,16 @@
 
 Audit date: 2026-05-06
 
+## 2026-06-06 Current Evidence Refresh
+
+- `flutter analyze` now passes with no issues after the logger interpolation cleanup in `lib/core/logging/app_logger.dart`.
+- `release/qa/current-fullstack-supabase-evidence.json` records the current Flutter coverage gate as passing with 288 tests.
+- `release/qa/flutter-coverage-evidence.json` validates `release/qa/flutter-coverage-lcov.info` at 199 files, 14,923 executable lines, 5,393 covered lines, and 36.14% line coverage.
+- `release/qa/edge-cors-smoke-evidence.json` validates deployed Edge preflight behavior for WhatsApp OTP and pool social-card across the website, admin, venue, and TV origins without using credentials.
+- `release/qa/admin-auth-deploy-smoke-evidence.json` validates the deployed admin Edge function is active at version 15 and rejects an unauthenticated POST before any admin action can execute.
+- `tool/full_history_secret_scan.sh` passed locally and is wired into `.github/workflows/secret-regex-scan.yml` after the tracked-file regex scan.
+- Linked Supabase public URL safety constraints were applied, existing data was audited clean, and constraints were validated by `tool/supabase_public_url_safety_contract.sh`; latest evidence: `output/release-evidence/public-url-safety/20260606T072128Z.log`.
+
 ## Local Validation Results
 
 | Command | Result | Notes |
@@ -43,7 +53,7 @@ Audit date: 2026-05-06
 
 ## Locally Validated Surfaces
 
-- Flutter dependency resolution and static analysis.
+- Flutter dependency resolution, static analysis, full test suite, and coverage evidence.
 - Web workspace typecheck, lint, tests, production builds, and moderate npm audits.
 - Supabase Edge Function formatting, type checking, and unit tests.
 - Static secret-regex scanning over tracked files and release env role validation with synthetic JWTs.
@@ -51,21 +61,20 @@ Audit date: 2026-05-06
 
 ## Blocked Or Not Locally Proven
 
-- Full Flutter test suite and coverage, due system disk exhaustion.
 - Android/iOS release builds and signing/codesigning flows.
 - Local Supabase DB lint, migration replay, RLS/grant audit, storage policies, and generated types.
 - Staging/production Supabase state, because operator DB credentials were not used.
 - Provider-side credential rotation, branch protection, GitHub Environment approvals, Cloudflare dashboard settings, and production scheduler history.
-- Deployed CORS/CSP/cache headers and service-worker behavior.
+- Service-worker behavior and final provider-side header evidence after each deploy. Deployed Edge CORS preflight evidence is now captured in `release/qa/edge-cors-smoke-evidence.json`.
 - Admin/venue end-to-end role and object-level authorization with seeded live users.
 
 ## Validation Follow-Up Checklist
 
-1. Free system disk or use a clean CI runner, then rerun `flutter test` and `flutter test --coverage`.
+1. Keep `flutter test --coverage` in the release evidence loop and raise targeted coverage around high-risk flows as they change.
 2. Run Android and iOS release smoke builds in the supported signing/codesigning environment.
 3. Start local Supabase or use staging credentials, then run `supabase db lint --db-url "$SUPABASE_DB_URL" --schema public --fail-on error`.
 4. Apply migrations to a throwaway/staging database and run `psql "$SUPABASE_DB_URL" -f supabase/tests/rls_hardening_audit.sql`.
-5. Deploy updated Edge Functions and run `tool/supabase_release_probe.sh`, `tool/supabase_whatsapp_auth_smoke.sh`, and cron/job smoke scripts.
+5. Deploy updated Edge Functions and rerun `node tool/capture_edge_cors_smoke.mjs`, `tool/supabase_release_probe.sh`, `tool/supabase_whatsapp_auth_smoke.sh`, and cron/job smoke scripts.
 6. Extend JWT role validation to `tool/preflight_build_check.sh` and any release smoke scripts that accept `SUPABASE_ANON_KEY`.
 7. Add full-history secret scanning with `gitleaks` or `trufflehog` and run it before launch.
 8. Verify deployed web headers with `curl -I` for each origin, including `/index.html` and static assets.

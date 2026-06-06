@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/utils/currency_utils.dart';
 import '../../../models/platform/notification_model.dart';
-import '../../../providers/currency_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
@@ -73,7 +72,7 @@ class ProfileWalletCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              LucideIcons.wallet,
+              LucideIcons.gift,
               color: FzColors.secondary,
               size: 20,
             ),
@@ -84,7 +83,7 @@ class ProfileWalletCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'FET Balance',
+                  'FET Rewards',
                   style: TextStyle(
                     fontSize: 12,
                     color: muted,
@@ -93,14 +92,10 @@ class ProfileWalletCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 balanceAsync.when(
-                  data: (balance) {
-                    final currency =
-                        ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
-                    return Text(
-                      formatFET(balance, currency),
-                      style: FzTypography.scoreLarge(color: FzColors.secondary),
-                    );
-                  },
+                  data: (balance) => Text(
+                    formatFETCompact(balance),
+                    style: FzTypography.scoreLarge(color: FzColors.secondary),
+                  ),
                   loading: () => Text(
                     '...',
                     style: FzTypography.scoreLarge(color: FzColors.secondary),
@@ -148,7 +143,7 @@ class ProfileStatCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
+              letterSpacing: 0,
               color: muted,
             ),
           ),

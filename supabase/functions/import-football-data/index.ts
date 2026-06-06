@@ -450,6 +450,7 @@ Deno.serve(async (req: Request) => {
       }
 
       let applied: unknown = null;
+      let liveState: unknown = null;
       if (
         toBoolean(payload.applyToMatches ?? payload.apply_to_matches, false)
       ) {
@@ -464,6 +465,18 @@ Deno.serve(async (req: Request) => {
           throw appliedResult.error;
         }
         applied = appliedResult.data;
+
+        const liveStateResult = await supabase.rpc(
+          "admin_apply_official_fixture_live_state",
+          {
+            p_resource_id: resourceId,
+            p_limit: Math.min(rows.length || 500, 2000),
+          },
+        );
+        if (liveStateResult.error) {
+          throw liveStateResult.error;
+        }
+        liveState = liveStateResult.data;
       }
 
       return Response.json(
@@ -473,6 +486,7 @@ Deno.serve(async (req: Request) => {
           received_rows: rows.length,
           staged: staged.data,
           applied,
+          live_state: liveState,
         },
         { headers: buildCorsHeaders("content-type") },
       );

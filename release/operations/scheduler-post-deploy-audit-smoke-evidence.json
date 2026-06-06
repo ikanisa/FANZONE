@@ -1,0 +1,72 @@
+{
+  "generatedAtUtc": "2026-06-06T07:04:11Z",
+  "scope": "Post-deploy scheduler Edge smoke proving deployed cron functions write database-backed audit run ids",
+  "projectRef": "kjuhheobmdvjwgnzlcwx",
+  "supabaseUrl": "https://kjuhheobmdvjwgnzlcwx.supabase.co",
+  "secretValuesPrinted": false,
+  "credentialHandling": {
+    "credentialSource": "SUPABASE_SERVICE_ROLE_KEY",
+    "notes": "Credential was read only from the local process environment. Secret values are not written to tracked files or evidence."
+  },
+  "jobs": [
+    {
+      "id": "settle-match-pools",
+      "command": "tool/run_supabase_cron_job.sh settle-match-pools",
+      "status": "PASS",
+      "httpStatus": 200,
+      "auditTracked": true,
+      "observed": {
+        "settledPools": 0,
+        "limit": 50,
+        "audit": {
+          "run_id": "a7a1fbf3-0382-4a55-93ba-0971d4f1f630",
+          "status": "tracked"
+        }
+      }
+    },
+    {
+      "id": "dispatch-match-alerts",
+      "command": "tool/run_supabase_cron_job.sh dispatch-match-alerts",
+      "status": "PASS",
+      "httpStatus": 200,
+      "auditTracked": true,
+      "observed": {
+        "kickoffSent": 0,
+        "goalSent": 0,
+        "resultSent": 0,
+        "dispatchRowsWritten": 0,
+        "errors": [],
+        "audit": {
+          "run_id": "fba70a46-7143-4c08-9222-f619c18c91b7",
+          "status": "tracked"
+        }
+      }
+    },
+    {
+      "id": "sync-livescore-football",
+      "command": "tool/run_supabase_cron_job.sh sync-livescore-football",
+      "status": "PASS",
+      "httpStatus": 200,
+      "auditTracked": true,
+      "observed": {
+        "resourceId": "livescore_world_cup_2026",
+        "rows": 104,
+        "syncRunId": "0a4b0d52-5892-4d57-b1bb-9cfa3d476357",
+        "stagedRows": 104,
+        "receivedRows": 104,
+        "needsReviewRows": 32,
+        "appliedRows": 72,
+        "liveStateUpdatedRows": 72,
+        "audit": {
+          "run_id": "4e46ec38-182f-4ac5-8050-2d72719e5144",
+          "status": "tracked"
+        }
+      }
+    }
+  ],
+  "remainingOperationsGates": [
+    "Provider scheduler history evidence is still required before scheduler readiness can be marked PASS.",
+    "Delivered missed-run alert evidence is still required before scheduler readiness can be marked PASS.",
+    "Operations owner, release owner, incident commander, observability dashboard, alert route, rollback, and incident-response signoff remain required by release/operations/operations-readiness-evidence.json."
+  ]
+}

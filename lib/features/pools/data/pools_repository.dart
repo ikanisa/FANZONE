@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../config/app_config.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../core/di/gateway_providers.dart';
+import '../../../features/wallet/data/dev_rewards_ledger.dart';
 import '../../../providers/profile_country_provider.dart';
 
 class PoolSummary {
@@ -373,6 +375,13 @@ class SupabasePoolsRepository implements PoolsRepository {
     final client = connection.client;
     final userId = connection.currentUser?.id;
     if (client == null || userId == null) return null;
+    if (connection.isDevOtpFixtureSession) {
+      final entry = DevRewardsLedger.instance.entryFor(
+        userId: userId,
+        poolId: poolId,
+      );
+      return entry == null ? null : PoolEntryState.fromJson(entry.toJson());
+    }
 
     final row = await client
         .from('match_pool_entries')
@@ -393,9 +402,27 @@ class SupabasePoolsRepository implements PoolsRepository {
     String? inviteCode,
   }) async {
     _assertReviewMutationAllowed('Pool entry');
-    final client = ref.watch(supabaseConnectionProvider).client;
+    final connection = ref.watch(supabaseConnectionProvider);
+    final client = connection.client;
     if (client == null) {
       throw StateError('Pool entry is unavailable right now.');
+    }
+    final userId = connection.currentUser?.id;
+    if (connection.isDevOtpFixtureSession && userId != null) {
+      final entry = DevRewardsLedger.instance.stake(
+        userId: userId,
+        poolId: poolId,
+        campId: campId,
+        amountFet: stakeAmountFet,
+      );
+      return {
+        'entry_id': entry.id,
+        'pool_id': poolId,
+        'camp_id': campId,
+        'amount_fet': stakeAmountFet,
+        'status': entry.status,
+        'source': 'dev_otp_fixture',
+      };
     }
 
     final response = await client.rpc(
@@ -525,13 +552,30 @@ class SupabasePoolsRepository implements PoolsRepository {
   ) async {
     if (userId == null || userId.isEmpty || pools.isEmpty) return pools;
 
+    final connection = ref.watch(supabaseConnectionProvider);
+    if (connection.isDevOtpFixtureSession) {
+      final enteredPoolIds = DevRewardsLedger.instance.enteredPoolIdsFor(
+        userId,
+      );
+      if (enteredPoolIds.isEmpty) return pools;
+      return pools
+          .map((pool) => pool.withMyEntry(enteredPoolIds.contains(pool.id)))
+          .toList(growable: false);
+    }
+
     final poolIds = pools.map((pool) => pool.id).toList(growable: false);
-    final rows = await client
-        .from('match_pool_entries')
-        .select('pool_id')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .inFilter('pool_id', poolIds);
+    final Object rows;
+    try {
+      rows = await client
+          .from('match_pool_entries')
+          .select('pool_id')
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .inFilter('pool_id', poolIds);
+    } catch (error) {
+      AppLogger.d('Failed to load joined pool flags: $error');
+      return pools;
+    }
 
     final enteredPoolIds = {
       for (final row in (rows as List).whereType<Map>())

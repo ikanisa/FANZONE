@@ -9,6 +9,7 @@ import 'package:fanzone/features/home/data/competition_catalog_gateway.dart';
 import 'package:fanzone/features/home/data/event_catalog_gateway.dart';
 import 'package:fanzone/features/home/data/match_listing_gateway.dart';
 import 'package:fanzone/features/home/data/team_catalog_gateway.dart';
+import 'package:fanzone/features/onboarding/data/onboarding_gateway.dart';
 import 'package:fanzone/features/settings/data/account_settings_gateway.dart';
 import 'package:fanzone/features/settings/data/notification_settings_gateway.dart';
 import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
@@ -97,6 +98,17 @@ void main() {
         isA<NotificationSettingsGateway>(),
       );
     });
+  });
+
+  group('Onboarding providers resolve', () {
+    test(
+      'onboardingGatewayProvider returns OnboardingGateway without startup catalog override',
+      () {
+        final gateway = container.read(onboardingGatewayProvider);
+        expect(gateway, isA<OnboardingGateway>());
+        expect(gateway.allTeams, isEmpty);
+      },
+    );
   });
 
   group('Wallet providers resolve', () {

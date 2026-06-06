@@ -9,7 +9,7 @@ linter:
     sort_child_properties_last: true
     use_key_in_widget_constructors: true
     prefer_relative_imports: true
-    # ── Production safety rules (added from audit) ──
+    # Production safety rules (added from audit)
     unawaited_futures: true
     cancel_subscriptions: true
     close_sinks: true
@@ -23,5 +23,7 @@ analyzer:
     missing_return: error
     invalid_annotation_target: ignore
   exclude:
+    - ".dart_tool/**"
+    - "build/**"
     - "**/*.g.dart"
     - "**/*.freezed.dart"

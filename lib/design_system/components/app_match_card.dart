@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../theme/colors.dart';
 import '../../theme/radii.dart';
@@ -21,6 +21,7 @@ class AppMatchCard extends StatelessWidget {
     this.isLive = false,
     this.liveMinute,
     this.openPoolCount,
+    this.sourceLabel,
     this.onTap,
   });
 
@@ -35,6 +36,7 @@ class AppMatchCard extends StatelessWidget {
   final bool isLive;
   final String? liveMinute;
   final int? openPoolCount;
+  final String? sourceLabel;
   final VoidCallback? onTap;
 
   @override
@@ -58,12 +60,20 @@ class AppMatchCard extends StatelessWidget {
             children: [
               // League chip row
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (competitionName != null)
-                    _LeagueChip(label: competitionName!)
-                  else
-                    const SizedBox.shrink(),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        if (competitionName != null)
+                          _LeagueChip(label: competitionName!),
+                        if (sourceLabel != null)
+                          _SourceChip(label: sourceLabel!),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   if (isLive && liveMinute != null)
                     _LiveChip(minute: liveMinute!)
                   else if (kickoffLabel != null)
@@ -213,6 +223,30 @@ class _LeagueChip extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: FzTypography.chipLabel(size: 11, color: FzColors.darkMuted),
+      ),
+    );
+  }
+}
+
+class _SourceChip extends StatelessWidget {
+  const _SourceChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: FzColors.cyan.withValues(alpha: 0.12),
+        borderRadius: FzRadii.fullRadius,
+        border: Border.all(color: FzColors.cyan.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: FzTypography.chipLabel(size: 11, color: FzColors.cyan),
       ),
     );
   }

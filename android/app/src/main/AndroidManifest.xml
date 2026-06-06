@@ -57,6 +57,10 @@
                 <data
                     android:scheme="https"
                     android:host="fanzone.guest.ikanisa.com"
+                    android:pathPrefix="/home" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.guest.ikanisa.com"
                     android:pathPrefix="/pool" />
                 <data
                     android:scheme="https"
@@ -88,6 +92,10 @@
                 <data
                     android:scheme="https"
                     android:host="fanzone.ikanisa.com"
+                    android:pathPrefix="/home" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.ikanisa.com"
                     android:pathPrefix="/pool" />
                 <data
                     android:scheme="https"
@@ -108,6 +116,10 @@
                     android:scheme="https"
                     android:host="fanzone.app"
                     android:pathPrefix="/venues" />
+                <data
+                    android:scheme="https"
+                    android:host="fanzone.app"
+                    android:pathPrefix="/home" />
             </intent-filter>
 
             <!-- Deep linking: custom scheme fallback -->
@@ -127,6 +139,9 @@
                 <data
                     android:scheme="fanzone"
                     android:host="bar" />
+                <data
+                    android:scheme="fanzone"
+                    android:host="home" />
                 <data
                     android:scheme="fanzone"
                     android:host="pool" />

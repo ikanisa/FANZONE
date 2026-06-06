@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../providers/auth_provider.dart';
 import '../../../theme/colors.dart';
@@ -31,7 +31,7 @@ class GameDetailScreen extends ConsumerWidget {
                 title: 'Game not found',
                 subtitle: 'Pick another.',
                 icon: LucideIcons.gamepad2,
-                action: () => context.go('/games'),
+                action: () => context.go('/pools/games'),
                 actionLabel: 'Games',
               );
             }
@@ -77,7 +77,7 @@ class _GameDetailContent extends ConsumerWidget {
           FzBackHeader(
             title: session.templateName,
             subtitle: session.venueName,
-            onClose: () => context.go('/games'),
+            onClose: () => context.go('/pools/games'),
           ),
           const SizedBox(height: 18),
           _GameHero(detail: detail),

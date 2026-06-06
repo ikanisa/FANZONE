@@ -37,7 +37,9 @@ class SupabaseMarketPreferencesGateway implements MarketPreferencesGateway {
     final cached = await getCachedMarketPreferences();
     final userId = _connection.currentUser?.id;
     final client = _connection.client;
-    if (client == null || userId == null) return cached;
+    if (client == null || userId == null || _connection.isDevOtpFixtureSession) {
+      return cached;
+    }
 
     try {
       final row = await client
@@ -65,7 +67,12 @@ class SupabaseMarketPreferencesGateway implements MarketPreferencesGateway {
 
     final userId = _connection.currentUser?.id;
     final client = _connection.client;
-    if (AppConfig.isReviewMode || client == null || userId == null) return;
+    if (AppConfig.isReviewMode ||
+        _connection.isDevOtpFixtureSession ||
+        client == null ||
+        userId == null) {
+      return;
+    }
 
     try {
       await client.from('user_market_preferences').upsert({
@@ -79,7 +86,7 @@ class SupabaseMarketPreferencesGateway implements MarketPreferencesGateway {
 
   @override
   Future<void> syncCachedMarketPreferencesIfAuthenticated() async {
-    if (AppConfig.isReviewMode) return;
+    if (AppConfig.isReviewMode || _connection.isDevOtpFixtureSession) return;
     final userId = _connection.currentUser?.id;
     final client = _connection.client;
     if (client == null || userId == null) return;

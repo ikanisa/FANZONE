@@ -27,7 +27,8 @@
 //   OTP_EXPIRY_SECONDS                    — OTP validity in seconds (default: 600)
 //   WHATSAPP_SESSION_ACCESS_EXPIRY_SECONDS  — Access token validity (default: 3600)
 //   WHATSAPP_SESSION_REFRESH_EXPIRY_SECONDS — Refresh token validity (default: 2592000)
-//   WHATSAPP_AUTH_TEST_PHONE             — Optional reviewer/test phone with fixed OTP
+//   WHATSAPP_AUTH_TEST_PHONE             — Optional reviewer/test phone(s) with fixed OTP.
+//                                         Separate multiple E.164 numbers with commas or semicolons.
 //   WHATSAPP_AUTH_TEST_OTP               — Optional fixed OTP for reviewer/test phone
 //   WHATSAPP_AUTH_TEST_EXPIRY            - Required ISO expiry for fixed OTP
 
@@ -140,12 +141,10 @@ export function resolveConfiguredTestOtp(
   configuredOtp: string | null | undefined,
   configuredExpiry: string | null | undefined = WHATSAPP_AUTH_TEST_EXPIRY,
 ): string | null {
-  const reviewerPhone = configuredPhone?.trim()
-    ? normalizePhone(configuredPhone)
-    : "";
+  const reviewerPhones = configuredTestPhones(configuredPhone);
   const reviewerOtp = configuredOtp?.trim() || "";
 
-  if (!reviewerPhone || !/^\d{6}$/.test(reviewerOtp)) {
+  if (reviewerPhones.length === 0 || !/^\d{6}$/.test(reviewerOtp)) {
     return null;
   }
 
@@ -157,7 +156,21 @@ export function resolveConfiguredTestOtp(
     return null;
   }
 
-  return normalizePhone(phone) == reviewerPhone ? reviewerOtp : null;
+  const normalizedPhone = normalizePhone(phone);
+  return reviewerPhones.includes(normalizedPhone) ? reviewerOtp : null;
+}
+
+function configuredTestPhones(
+  configuredPhone: string | null | undefined,
+): string[] {
+  return Array.from(
+    new Set(
+      (configuredPhone ?? "")
+        .split(/[;,]/)
+        .map((entry) => normalizePhone(entry))
+        .filter((entry) => entry.length > 0),
+    ),
+  );
 }
 
 function requesterIp(req: Request): string | null {
@@ -305,6 +318,26 @@ async function sendWhatsAppOtp(
     console.error("WhatsApp API fetch error:", error);
     return { success: false, error: getErrorMessage(error) };
   }
+}
+
+export async function cleanupUndeliveredOtp(
+  supabase: Pick<SupabaseClient, "from">,
+  phone: string,
+  otpHash: string,
+): Promise<boolean> {
+  const { error } = await supabase
+    .from("otp_verifications")
+    .delete()
+    .eq("phone", phone)
+    .eq("otp_hash", otpHash)
+    .eq("verified", false);
+
+  if (error) {
+    console.error("Failed to clean up undelivered WhatsApp OTP:", error);
+    return false;
+  }
+
+  return true;
 }
 
 async function loadUserSummary(
@@ -581,6 +614,8 @@ async function handleSend(req: Request, phone: string): Promise<Response> {
   if (configuredTestOtp == null) {
     const sendResult = await sendWhatsAppOtp(normalized, otp);
     if (!sendResult.success) {
+      await cleanupUndeliveredOtp(supabase, normalized, otpHash);
+
       return Response.json(
         { error: sendResult.error || "Failed to send WhatsApp message" },
         { status: 502, headers: corsHeaders(req) },

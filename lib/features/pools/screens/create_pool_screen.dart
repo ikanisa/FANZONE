@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../models/sports/match_model.dart';
 import '../../../providers/auth_provider.dart';
@@ -122,7 +122,7 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = 'Pool setup is unavailable right now. Try again.';
         _submitting = false;
       });
     }
@@ -247,7 +247,7 @@ class _CreatePoolScreenState extends ConsumerState<CreatePoolScreen> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => StateView.error(
             title: 'Matches unavailable',
-            subtitle: error.toString(),
+            subtitle: 'Matches are unavailable right now. Try again.',
             onRetry: () => ref.invalidate(matchesProvider(filter)),
           ),
         ),
@@ -615,7 +615,10 @@ class _ReviewStep extends StatelessWidget {
                 value: venueContext.venue?.name ?? 'Pick bar',
               ),
               const Divider(height: 24),
-              _ReviewRow(label: 'Entry', value: '$minStake-$maxStake FET'),
+              _ReviewRow(
+                label: 'Entry points',
+                value: '$minStake-$maxStake FET',
+              ),
             ],
           ),
         ),

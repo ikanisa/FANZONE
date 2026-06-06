@@ -1,0 +1,48 @@
+{
+  "generatedAtUtc": "2026-06-06T02:19:36Z",
+  "scope": "Flutter Settings support navigation and in-app privacy/legal destinations",
+  "routesVerified": [
+    {
+      "source": "/settings",
+      "label": "Help & FAQ",
+      "destination": "/settings/help",
+      "assertedContent": "Getting into FANZONE"
+    },
+    {
+      "source": "/settings",
+      "label": "Privacy Policy",
+      "destination": "/settings/privacy-policy",
+      "assertedContent": "Account data"
+    },
+    {
+      "source": "/settings",
+      "label": "Terms of Service",
+      "destination": "/settings/terms",
+      "assertedContent": "Use of the app"
+    }
+  ],
+  "codeEvidence": [
+    "lib/app_router.dart",
+    "lib/features/settings/screens/settings_screen.dart",
+    "lib/features/settings/screens/support_info_screen.dart",
+    "test/screen_widgets_test.dart"
+  ],
+  "validation": [
+    {
+      "command": "flutter test test/screen_widgets_test.dart --name \"settings support rows navigate through in-app routes\"",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter test test/screen_widgets_test.dart --name \"settings support\"",
+      "status": "PASS",
+      "testsPassed": 2
+    },
+    {
+      "command": "./tool/flutter_analyze_release.sh",
+      "status": "PASS"
+    }
+  ],
+  "remainingNotes": [
+    "This verifies in-app Settings support row navigation. It does not replace required public website privacy/legal URL publication or human legal sign-off."
+  ]
+}

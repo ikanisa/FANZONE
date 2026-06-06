@@ -1,10 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+DRY_RUN=false
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=true
+  shift
+fi
+if [[ "${FANZONE_WHATSAPP_AUTH_DRY_RUN:-}" == "1" || "${FANZONE_WHATSAPP_AUTH_DRY_RUN:-}" == "true" ]]; then
+  DRY_RUN=true
+fi
+
 if [[ -f ".env" ]]; then
   set -a
+  # shellcheck source=/dev/null
   source .env
   set +a
+fi
+
+if [[ "${DRY_RUN}" == true ]]; then
+  echo "Dry run: whatsapp-otp"
+  echo "Probe: auth/v1/settings has built-in email and phone auth disabled"
+  echo 'Payload: {"phone":"+35699123456"}'
+  echo 'Payload: {"action":"send","phone":"not-a-phone"}'
+  echo 'Payload: {"action":"verify","phone":"+35699123456"}'
+  echo 'Payload: {"action":"verify","phone":"+35699123456","otp":"12"}'
+  echo "Optional live probe: WHATSAPP_AUTH_TEST_PHONE plus WHATSAPP_AUTH_TEST_OTP"
+  exit 0
 fi
 
 if [[ -z "${SUPABASE_URL:-}" || -z "${SUPABASE_ANON_KEY:-}" ]]; then
