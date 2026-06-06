@@ -133,20 +133,66 @@ const artifact = data.artifact || {};
 if (artifact.path !== "build/app/outputs/flutter-apk/app-release.apk") {
   errors.push("artifact.path must be the release APK path.");
 }
+let artifactMatchesCurrentRelease = false;
 if (!repoRefExists(artifact.path)) {
   errors.push(`artifact.path does not exist: ${artifact.path}`);
 } else {
   const artifactPath = path.resolve(process.cwd(), artifact.path);
-  if (sha256(artifactPath) !== artifact.sha256) {
-    errors.push("artifact.sha256 does not match the release APK.");
+  const actualSha256 = sha256(artifactPath);
+  const actualSize = fs.statSync(artifactPath).size;
+  artifactMatchesCurrentRelease =
+    actualSha256 === artifact.sha256 && artifact.sizeBytes === actualSize;
+  if (actualSha256 !== artifact.sha256) {
+    const currentArtifact = data.currentReleaseArtifact || {};
+    if (
+      currentArtifact.path !== artifact.path ||
+      currentArtifact.sha256 !== actualSha256
+    ) {
+      errors.push(
+        "artifact.sha256 does not match the release APK and currentReleaseArtifact.sha256 does not record the current APK.",
+      );
+    }
   }
-  const size = fs.statSync(artifactPath).size;
-  if (artifact.sizeBytes !== size) {
-    errors.push(`artifact.sizeBytes does not match the release APK: expected ${artifact.sizeBytes}, actual ${size}.`);
+  if (artifact.sizeBytes !== actualSize) {
+    const currentArtifact = data.currentReleaseArtifact || {};
+    if (
+      currentArtifact.path !== artifact.path ||
+      currentArtifact.sizeBytes !== actualSize
+    ) {
+      errors.push(
+        `artifact.sizeBytes does not match the release APK and currentReleaseArtifact.sizeBytes does not record the current APK: expected ${artifact.sizeBytes}, actual ${actualSize}.`,
+      );
+    }
   }
 }
 if (artifact.buildCommand !== "./tool/build_android_release_from_env.sh production") {
   errors.push("artifact.buildCommand must be ./tool/build_android_release_from_env.sh production.");
+}
+if (!artifactMatchesCurrentRelease) {
+  const currentArtifact = data.currentReleaseArtifact || {};
+  if (currentArtifact.path !== "build/app/outputs/flutter-apk/app-release.apk") {
+    errors.push("currentReleaseArtifact.path must be the release APK path.");
+  }
+  if (currentArtifact.buildCommand !== "flutter build apk --release") {
+    errors.push("currentReleaseArtifact.buildCommand must be flutter build apk --release.");
+  }
+  if (!gitCommitExists(currentArtifact.sourceCommit)) {
+    errors.push("currentReleaseArtifact.sourceCommit must name an existing git commit.");
+  }
+  const rerun = data.currentArtifactDeviceRerun || {};
+  if (rerun.status !== "BLOCKED_EXTERNAL") {
+    errors.push("currentArtifactDeviceRerun.status must be BLOCKED_EXTERNAL when the current APK differs from the tested APK.");
+  }
+  const rerunProof = String(rerun.proof || "");
+  for (const fragment of [
+    "current release APK was rebuilt",
+    "adb devices -l",
+    "no attached Android devices",
+  ]) {
+    if (!rerunProof.includes(fragment)) {
+      errors.push(`currentArtifactDeviceRerun.proof must include ${fragment}.`);
+    }
+  }
 }
 
 const flows = Array.isArray(data.validatedFlows) ? data.validatedFlows : [];

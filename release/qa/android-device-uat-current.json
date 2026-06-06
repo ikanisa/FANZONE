@@ -22,6 +22,18 @@
     "builtAtLocal": "Jun 6 07:14:19 2026",
     "buildCommand": "./tool/build_android_release_from_env.sh production"
   },
+  "currentReleaseArtifact": {
+    "path": "build/app/outputs/flutter-apk/app-release.apk",
+    "sha256": "d5722a6b228db6e8aac0b8607a60f264d8b77ebfda409a2b22c84ae9905640a7",
+    "sizeBytes": 74464432,
+    "builtAtLocal": "Jun 6 10:23:24 2026",
+    "sourceCommit": "4166d5100ccfbc264100fd2f5ef272f05cee1b64",
+    "buildCommand": "flutter build apk --release"
+  },
+  "currentArtifactDeviceRerun": {
+    "status": "BLOCKED_EXTERNAL",
+    "proof": "The recorded Pixel 4a UAT flows passed on the installed APK above. The current release APK was rebuilt after that pass, and adb devices -l currently returns no attached Android devices, so the current artifact still needs a physical-device rerun before claiming device UAT on this exact build."
+  },
   "validatedFlows": [
     {
       "id": "ANDROID-HOME-SHELL-001",
