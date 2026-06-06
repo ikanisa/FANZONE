@@ -18,13 +18,12 @@ Users may join before ordering. Ineligible winners may still appear as winners b
 
 ## Ledger
 
-Every FET movement must be recorded in the ledger. Wallet balances must not be changed without a ledger entry.
+Every FET movement must be recorded in the rewards ledger. FET point totals must not be changed without a ledger entry.
 
 ## No Negative Balances
 
-Wallets must not go negative. Failed or disputed transactions may be reversed or audited through platform procedures.
+User rewards ledgers must not go negative. Failed or disputed transactions may be reversed or audited through platform procedures.
 
 ## Disputes
 
 Disputed venue payment confirmations, pool results, game results, or reward allocations may be reviewed by FANZONE and the venue.
-

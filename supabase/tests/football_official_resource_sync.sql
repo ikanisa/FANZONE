@@ -27,6 +27,7 @@ BEGIN
       ('public.admin_stage_official_fixture_rows(text,jsonb,uuid,text)'::text),
       ('public.admin_apply_official_fixture_staging(uuid,boolean)'::text),
       ('public.admin_apply_official_fixture_staging_batch(text,integer)'::text),
+      ('public.admin_apply_official_fixture_live_state(text,integer)'::text),
       ('public.get_football_official_resource_status()'::text)
   ) AS required(required_object)
   WHERE to_regclass(required_object) IS NULL
@@ -83,6 +84,13 @@ BEGIN
   IF v_apply_def NOT ILIKE '%INSERT INTO public.matches%'
      OR v_apply_def ILIKE '%curated_matches%' THEN
     RAISE EXCEPTION 'Apply RPC must update raw matches and must not directly curate/pool-enable fixtures';
+  END IF;
+
+  v_apply_def := pg_get_functiondef('public.admin_apply_official_fixture_live_state(text,integer)'::regprocedure);
+  IF v_apply_def NOT ILIKE '%live_home_score%'
+     OR v_apply_def NOT ILIKE '%last_live_checked_at%'
+     OR v_apply_def ILIKE '%curated_matches%' THEN
+    RAISE EXCEPTION 'Live state apply RPC must update raw match live fields and must not directly curate fixtures';
   END IF;
 
   SELECT count(*)

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/config/platform_feature_access.dart';
 import '../../../data/team_search_database.dart';
@@ -72,7 +72,7 @@ class ProfileScreen extends ConsumerWidget {
               onVerifyPhone: () => showSignInRequiredSheet(
                 context,
                 title: 'Verify WhatsApp',
-                message: 'Unlock wallet and pools.',
+                message: 'Unlock rewards and pools.',
                 from: '/profile',
               ),
             ),
@@ -95,7 +95,12 @@ class ProfileScreen extends ConsumerWidget {
                   );
                   return;
                 }
-                _openFanProfileEditor(context, ref, favoriteTeams);
+                _openFanProfileEditor(
+                  context,
+                  ref,
+                  favoriteTeams,
+                  localCountryCode: profileCountryCode,
+                );
               },
               linkedVenueLabel: 'Linked venues',
               linkedVenueDetail: _linkedVenueDetail(venueContext),
@@ -175,14 +180,18 @@ class ProfileScreen extends ConsumerWidget {
   static Future<void> _openFanProfileEditor(
     BuildContext context,
     WidgetRef ref,
-    List<FavoriteTeamRecordDto> favoriteTeams,
-  ) async {
+    List<FavoriteTeamRecordDto> favoriteTeams, {
+    required String localCountryCode,
+  }) async {
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      builder: (_) => FanProfileEditorSheet(initialTeams: favoriteTeams),
+      builder: (_) => FanProfileEditorSheet(
+        initialTeams: favoriteTeams,
+        localCountryCode: localCountryCode,
+      ),
     );
 
     if (saved == true) {

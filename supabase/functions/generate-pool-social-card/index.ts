@@ -1,9 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
+import { requireAuth } from "../_shared/auth.ts";
 import { buildCorsHeaders, getErrorMessage } from "../_shared/http.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")?.trim() || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("EDGE_SERVICE_ROLE_KEY")
   ?.trim() || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim() || "";
 const SOCIAL_CARD_BUCKET = Deno.env.get("POOL_SOCIAL_CARD_BUCKET")?.trim() ||
@@ -287,26 +287,18 @@ Deno.serve(async (req: Request) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
     const serviceRoleRequest = bearerIsServiceRole(req);
-    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
 
     let actorUserId: string | null = null;
+    let userClient: any = null;
     if (!serviceRoleRequest) {
-      const { data: userResult, error: userError } = await userClient.auth
-        .getUser();
-      if (userError || !userResult.user) {
-        return Response.json(
-          { success: false, error: "Unauthorized" },
-          { status: 401, headers: buildCorsHeaders("content-type", req) },
-        );
-      }
-      actorUserId = userResult.user.id;
+      const authResult = await requireAuth(req);
+      if (authResult instanceof Response) return authResult;
+      actorUserId = authResult.user.id;
+      userClient = authResult.supabaseUser;
     }
 
     if (!poolId) {
-      const shareClient = serviceRoleRequest ? adminClient : userClient;
+      const shareClient = serviceRoleRequest ? adminClient : userClient!;
       const { data: sharePayload, error: shareError } = await shareClient.rpc(
         "get_public_pool_share",
         {
@@ -328,7 +320,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const readClient = serviceRoleRequest ? adminClient : userClient;
+    const readClient = serviceRoleRequest ? adminClient : userClient!;
     const { data: payload, error: payloadError } = await readClient.rpc(
       "get_match_pool_social_card_payload",
       { p_pool_id: poolId },

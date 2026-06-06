@@ -34,11 +34,13 @@ class AppTelemetry {
     StackTrace stackTrace, {
     String? reason,
   }) async {
+    final safeMessage = AppLogger.sanitizeForLog(error);
+    final safeStackTrace = AppLogger.sanitizeForLog(stackTrace);
     final event = _TelemetryEvent(
       type: 'exception',
       reason: (reason ?? 'app_exception').trim(),
-      message: error.toString().trim(),
-      stackTrace: stackTrace.toString().trim(),
+      message: safeMessage.trim(),
+      stackTrace: safeStackTrace.trim(),
       sessionId: _sessionId,
       platform: defaultTargetPlatform.name,
       appVersion: AppConfig.appVersion,

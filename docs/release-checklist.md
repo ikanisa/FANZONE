@@ -64,14 +64,14 @@
 - Check `public.fet_supply_overview.remaining_mintable` before any manual grant, promo credit, or reward backfill.
 - Validate WhatsApp OTP delivery, expiry, and rate-limit behaviour in the production `whatsapp-otp` function.
 - Confirm `WABA_ACCESS_TOKEN`, `WABA_PHONE_NUMBER_ID`, and `SUPABASE_JWT_SECRET` are present in the deployed Edge Function secrets.
-- For store submission builds, also confirm `WHATSAPP_AUTH_TEST_PHONE=+35699711145`, `WHATSAPP_AUTH_TEST_OTP=123456`, and a short-lived `WHATSAPP_AUTH_TEST_EXPIRY` are present in the deployed `whatsapp-otp` secrets.
-- Run `WHATSAPP_AUTH_TEST_PHONE=+35699711145 WHATSAPP_AUTH_TEST_OTP=123456 WHATSAPP_AUTH_TEST_EXPIRY=<future-iso-timestamp> ./tool/supabase_whatsapp_auth_smoke.sh` and keep the successful output with the release ticket.
+- For store submission builds, also confirm `WHATSAPP_AUTH_TEST_PHONE`, `WHATSAPP_AUTH_TEST_OTP`, and a short-lived `WHATSAPP_AUTH_TEST_EXPIRY` are present in the deployed `whatsapp-otp` secrets.
+- Run `WHATSAPP_AUTH_TEST_PHONE=<private-reviewer-phone> WHATSAPP_AUTH_TEST_OTP=<private-reviewer-otp> WHATSAPP_AUTH_TEST_EXPIRY=<future-iso-timestamp> ./tool/supabase_whatsapp_auth_smoke.sh` and keep the successful output in the private release ticket.
 
 ## Reviewer app access
 
-- Dedicated review/test phone number: `+35699711145`
-- Dedicated review/test OTP: `123456`
-- Reviewer flow: launch the submitted build, enter `+35699711145`, tap `SEND OTP`, then enter `123456`.
+- Dedicated review/test phone number: configure privately in the store-console app-access notes and deployed Edge Function secrets. Do not commit it.
+- Dedicated review/test OTP: configure privately in the store-console app-access notes and deployed Edge Function secrets. Do not commit it.
+- Reviewer flow: launch the submitted build, enter the private reviewer phone, tap `SEND OTP`, then enter the private reviewer OTP.
 - This path is powered by the deployed `whatsapp-otp` function secrets above. If those secrets are missing, reviewer login will fail even if the app build is correct.
 
 ## Store submission package
@@ -84,6 +84,7 @@
 ## Operational readiness
 
 - `ci.yml` is the canonical mobile/backend pipeline. Keep its dart-define keys aligned with `env/production.example.json`.
-- Validate the current error-reporting path for the release build. The mobile app now queues runtime errors locally and flushes them to the Supabase-backed telemetry RPC `log_app_runtime_errors_batch`; confirm the migration is applied and operators know where to inspect `app_runtime_errors`.
+- Validate the current error-reporting path for the release build. The mobile app now queues runtime errors locally and flushes them to the Supabase-backed telemetry RPC `log_app_runtime_errors_batch`; apply `supabase/migrations/20260606152000_observability_telemetry_hardening.sql` and `supabase/migrations/20260606154500_observability_metadata_redaction.sql`, run `tool/supabase_observability_telemetry_hardening.sh`, and confirm operators know where to inspect `app_runtime_errors`.
+- Validate the admin operations dashboard data plane by applying `supabase/migrations/20260606161000_admin_operations_observability_snapshot.sql` and running `tool/supabase_operations_observability_snapshot.sh`.
 - Validate notification tokens are registering and `push-notify` can dispatch from production credentials.
 - Confirm release notes, privacy disclosures, and support contact details are ready for the sports-bar pool product.

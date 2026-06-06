@@ -277,8 +277,18 @@ BEGIN
   INTO v_before_audit_events
   FROM public.audit_logs
   WHERE action = 'venue_update_order_payment_status'
-    AND entity_type = 'order'
-    AND entity_id = v_order::text;
+    AND (
+      (
+        to_jsonb(audit_logs) ? 'entity_type'
+        AND to_jsonb(audit_logs) ->> 'entity_type' = 'order'
+        AND to_jsonb(audit_logs) ->> 'entity_id' = v_order::text
+      )
+      OR (
+        to_jsonb(audit_logs) ? 'details_json'
+        AND to_jsonb(audit_logs) -> 'details_json' ->> 'entity_type' = 'order'
+        AND to_jsonb(audit_logs) -> 'details_json' ->> 'entity_id' = v_order::text
+      )
+    );
 
   PERFORM public.venue_update_order_payment_status(
     v_order,
@@ -325,8 +335,18 @@ BEGIN
   INTO v_after_audit_events
   FROM public.audit_logs
   WHERE action = 'venue_update_order_payment_status'
-    AND entity_type = 'order'
-    AND entity_id = v_order::text;
+    AND (
+      (
+        to_jsonb(audit_logs) ? 'entity_type'
+        AND to_jsonb(audit_logs) ->> 'entity_type' = 'order'
+        AND to_jsonb(audit_logs) ->> 'entity_id' = v_order::text
+      )
+      OR (
+        to_jsonb(audit_logs) ? 'details_json'
+        AND to_jsonb(audit_logs) -> 'details_json' ->> 'entity_type' = 'order'
+        AND to_jsonb(audit_logs) -> 'details_json' ->> 'entity_id' = v_order::text
+      )
+    );
 
   IF v_after_audit_events <> v_before_audit_events + 1 THEN
     RAISE EXCEPTION 'Expected one manual payment audit event, got % before and % after',

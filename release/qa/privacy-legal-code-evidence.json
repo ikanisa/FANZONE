@@ -1,0 +1,121 @@
+{
+  "generatedAtUtc": "2026-06-06T04:19:19Z",
+  "scope": "Code-owned privacy/legal app content and release evidence references",
+  "updatedArtifacts": [
+    "docs/privacy-policy.md",
+    "release/legal/privacy-policy.md",
+    "release/legal/terms.md",
+    "release/legal/fet-reward-terms.md",
+    "release/legal/privacy-legal-readiness-evidence.json",
+    "apps/website/src/components/LegalPage.tsx",
+    "release/ios/privacy-label-notes.md",
+    "release/ios/app-store-metadata.md",
+    "release/ios/app-review-notes.md",
+    "docs/release-checklist.md",
+    "docs/play-store-listing.md",
+    "tool/validate_privacy_public_surface_copy.mjs",
+    "lib/core/logging/app_logger.dart",
+    "lib/services/app_telemetry.dart",
+    "lib/core/config/platform_feature_access.dart",
+    "lib/features/settings/screens/feature_unavailable_screen.dart",
+    "lib/features/settings/screens/support_info_screen.dart",
+    "lib/features/ordering/providers/order_provider.dart",
+    "lib/widgets/common/fz_reference_modals.dart",
+    "test/platform_feature_access_test.dart",
+    "test/feature_unavailable_screen_test.dart",
+    "test/features/ordering/order_provider_test.dart",
+    "test/app_telemetry_test.dart",
+    "test/fz_reference_modals_test.dart",
+    "test/screen_widgets_test.dart"
+  ],
+  "codeOwnedChecksMarkedPass": [
+    "PUBLIC-PRIVACY-POLICY",
+    "PUBLIC-TERMS",
+    "ANDROID-DATA-SAFETY",
+    "APPLE-PRIVACY-LABELS",
+    "ACCOUNT-DELETION",
+    "DATA-RETENTION",
+    "DATA-EXPORT-ACCESS",
+    "SUPPORT-ACCESS",
+    "NO-BETTING-NO-CASHOUT",
+    "OFF-PLATFORM-PAYMENTS",
+    "SDK-DATA-INVENTORY",
+    "PUBLIC-SURFACE-COPY-AUDIT"
+  ],
+  "appContentVerified": [
+    "Privacy Policy shows account data, location, payments, and controls.",
+    "Terms of Service shows use of the app and closed-loop rewards wording.",
+    "Website terms now use product-boundary-safe free-to-play and non-cash rewards wording on active surfaces.",
+    "Release/legal and store-review notes use rewards-ledger wording instead of customer wallet wording.",
+    "Tracked Android/iOS review notes and release checklist drafts no longer contain a committed reviewer phone number or OTP.",
+    "Settings support rows navigate to Help, Privacy Policy, and Terms routes.",
+    "Legacy wallet feature labels are sanitized to Rewards before user-facing errors.",
+    "Disabled feature routes use configured product labels instead of raw route keys.",
+    "Insufficient FET sheets use available-rewards wording instead of balance wording.",
+    "Checkout order failure copy is user-safe and does not expose backend exception text.",
+    "Telemetry and debug logs redact backend payloads and secret-looking values before storage or printing."
+  ],
+  "validation": [
+    {
+      "command": "flutter test test/screen_widgets_test.dart --name \"settings support\"",
+      "status": "PASS",
+      "testsPassed": 2
+    },
+    {
+      "command": "flutter test test/platform_feature_access_test.dart --name \"sanitizes legacy wallet labels\"",
+      "status": "PASS",
+      "testsPassed": 1
+    },
+    {
+      "command": "flutter test test/feature_unavailable_screen_test.dart",
+      "status": "PASS",
+      "testsPassed": 3
+    },
+    {
+      "command": "flutter test test/features/ordering/order_provider_test.dart",
+      "status": "PASS",
+      "testsPassed": 1
+    },
+    {
+      "command": "flutter test test/app_telemetry_test.dart",
+      "status": "PASS",
+      "testsPassed": 2
+    },
+    {
+      "command": "flutter test test/fz_reference_modals_test.dart",
+      "status": "PASS",
+      "testsPassed": 1
+    },
+    {
+      "command": "./tool/flutter_analyze_release.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "node tool/validate_privacy_legal_readiness_evidence.mjs",
+      "status": "EXPECTED_FAIL",
+      "remainingFailures": [
+        "signOff.complianceOwner is required",
+        "signOff.legalReviewer is required",
+        "signOff.releaseOwner is required",
+        "signOff.signedAtUtc must be an ISO UTC timestamp ending in Z",
+        "signOff.approvedForLaunch must be true",
+        "HUMAN-LEGAL-REVIEW is PENDING"
+      ]
+    },
+    {
+      "command": "node tool/validate_privacy_public_surface_copy.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "node tool/validate_android_review_metadata.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "./tool/product_boundary_scan.sh",
+      "status": "PASS"
+    }
+  ],
+  "remainingNotes": [
+    "Human legal review and named launch sign-off were not fabricated and remain required before the privacy/legal gate can pass."
+  ]
+}

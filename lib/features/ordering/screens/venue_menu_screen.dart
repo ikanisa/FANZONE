@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../models/hospitality/menu_category_model.dart';
 import '../../../models/hospitality/menu_item_model.dart';
@@ -333,7 +333,7 @@ class _CategorySection extends StatelessWidget {
             category.name.toUpperCase(),
             style: FzTypography.metaLabel(
               color: isDark ? FzColors.darkMuted : FzColors.lightMuted,
-            ).copyWith(letterSpacing: 1.2),
+            ).copyWith(letterSpacing: 0),
           ),
         ),
         ...items.map(
@@ -358,6 +358,7 @@ class _MenuItemCard extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final quantity = ref.watch(cartProvider.notifier).getQuantity(item.id);
     return FzCard(
+      key: ValueKey('menu_item_${item.id}'),
       padding: EdgeInsets.zero,
       borderRadius: FzRadii.card,
       child: Column(
@@ -437,6 +438,7 @@ class _QuantityControls extends ConsumerWidget {
       return ConstrainedBox(
         constraints: const BoxConstraints(minWidth: 76, maxWidth: 92),
         child: FilledButton.icon(
+          key: ValueKey('menu_item_add_${item.id}'),
           onPressed: () => ref.read(cartProvider.notifier).addItem(item),
           icon: const Icon(LucideIcons.plus, size: 16),
           label: const Text('Add'),
@@ -501,6 +503,7 @@ class _CartPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      key: const ValueKey('cart_pill_checkout'),
       onTap: () => context.push('/checkout'),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),

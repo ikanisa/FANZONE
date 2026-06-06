@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T06:12:57Z",
+  "releaseCandidate": "FANZONE Flutter fullstack release candidate",
+  "sourceCommit": "f284990b373b8fcc5291ec44abb30ef75b228077",
+  "scope": "code-owned admin operations observability snapshot for launch dashboards",
+  "status": "PASS_WITH_PENDING_EXTERNAL_OPERATIONS_SIGNOFF",
+  "controls": [
+    {
+      "id": "OPS-SNAPSHOT-001",
+      "name": "Admin-only operations snapshot RPC exists",
+      "status": "PASS",
+      "proof": "admin_operations_observability_snapshot is deployed as a SECURITY DEFINER RPC, anonymous execution is revoked, authenticated/admin and service-role execution are granted, and non-admin callers fail closed."
+    },
+    {
+      "id": "OPS-SNAPSHOT-002",
+      "name": "Launch observability signals are aggregated",
+      "status": "PASS",
+      "proof": "The snapshot aggregates runtime errors, product events, ordering, manual payments, FET ledger activity, pools, staff calls, push notifications, database activity, and LiveScore scheduler freshness."
+    },
+    {
+      "id": "OPS-SNAPSHOT-003",
+      "name": "Raw operational rows remain protected",
+      "status": "PASS",
+      "proof": "The snapshot returns aggregate JSON only; direct client table writes remain covered by RLS/table-grant audits and the admin-only RPC gate."
+    },
+    {
+      "id": "OPS-SNAPSHOT-004",
+      "name": "Linked Supabase contract proof passed",
+      "status": "PASS",
+      "proof": "tool/supabase_operations_observability_snapshot.sh passed against the linked project at output/release-evidence/operations-observability-snapshot/20260606T061251Z.log."
+    }
+  ],
+  "commands": [
+    {
+      "command": "tool/supabase_operations_observability_snapshot.sh",
+      "status": "PASS",
+      "proof": "Linked SQL contract returned operations_observability_snapshot_passed."
+    },
+    {
+      "command": "node tool/validate_operations_observability_snapshot_evidence.mjs",
+      "status": "PASS",
+      "proof": "Validator checks this evidence, migration, SQL contract, runner, and linked proof log."
+    },
+    {
+      "command": "bash -n tool/supabase_operations_observability_snapshot.sh",
+      "status": "PASS",
+      "proof": "Shell runner syntax checked locally."
+    }
+  ],
+  "evidenceRefs": [
+    "supabase/migrations/20260606161000_admin_operations_observability_snapshot.sql",
+    "supabase/tests/operations_observability_snapshot.sql",
+    "tool/supabase_operations_observability_snapshot.sh",
+    "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+    "release/operations/observability-telemetry-code-evidence.json",
+    "docs/operations/scheduler-observability.md",
+    "docs/release/world-class-evidence-matrix.md",
+    "docs/release/production-go-live-task-register.md"
+  ],
+  "pendingExternalEvidence": [
+    "Capture production provider dashboard screenshots/exports and alert-route test evidence for the launch surfaces.",
+    "Capture scheduler provider history and missed-run alert evidence for settle-match-pools, dispatch-match-alerts, and sync-livescore-football.",
+    "Capture operations owner, incident commander, and release owner signoff in release/operations/operations-readiness-evidence.json."
+  ]
+}

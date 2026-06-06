@@ -28,7 +28,9 @@ BEGIN
       ('match_pool_settlements'),
       ('pool_operation_audit_logs'),
       ('payment_events'),
-      ('orders')
+      ('orders'),
+      ('app_runtime_errors'),
+      ('product_events')
   ) AS sensitive(table_name)
   WHERE has_table_privilege('anon', format('public.%I', sensitive.table_name), 'INSERT')
      OR has_table_privilege('anon', format('public.%I', sensitive.table_name), 'UPDATE')
@@ -66,7 +68,9 @@ BEGIN
       ('music_bingo_claims'),
       ('venue_screen_states'),
       ('match_pool_settlements'),
-      ('pool_operation_audit_logs')
+      ('pool_operation_audit_logs'),
+      ('app_runtime_errors'),
+      ('product_events')
   ) AS sensitive(table_name)
   WHERE has_table_privilege('authenticated', format('public.%I', sensitive.table_name), 'INSERT')
      OR has_table_privilege('authenticated', format('public.%I', sensitive.table_name), 'UPDATE')

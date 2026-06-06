@@ -188,7 +188,7 @@ class SEn extends S {
   String get loginOtpHint => 'Enter WhatsApp verification code';
 
   @override
-  String get loginSendOtp => 'Send Code Via WhatsApp';
+  String get loginSendOtp => 'Send OTP';
 
   @override
   String get loginVerify => 'Verify Code';

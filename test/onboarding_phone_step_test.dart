@@ -34,7 +34,7 @@ void main() {
                 minDigits: 9,
               ),
             ),
-            buttonLabel: 'SEND OTP TO WHATSAPP',
+            buttonLabel: 'Send OTP',
           ),
         ),
       ),
@@ -45,7 +45,7 @@ void main() {
       find.text('Select your country code and enter a valid WhatsApp number.'),
       findsOneWidget,
     );
-    expect(find.text('SEND OTP TO WHATSAPP'), findsOneWidget);
+    expect(find.text('Send OTP'), findsOneWidget);
   });
 
   testWidgets('onboarding phone step shows the selected country dial code', (
@@ -78,7 +78,7 @@ void main() {
                 minDigits: 9,
               ),
             ),
-            buttonLabel: 'SEND OTP TO WHATSAPP',
+            buttonLabel: 'Send OTP',
           ),
         ),
       ),

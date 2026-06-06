@@ -36,8 +36,14 @@ supabase functions deploy whatsapp-otp
 supabase functions deploy order_create
 supabase functions deploy order_mark_paid
 supabase functions deploy order_update_status
+supabase functions deploy payment-hub
+supabase functions deploy ring_bell
 supabase functions deploy settle-match-pools
 supabase functions deploy dispatch-match-alerts
+supabase functions deploy sync-livescore-football
+supabase functions deploy fan-trivia
+supabase functions deploy song-guess
+supabase functions deploy music-bingo
 supabase functions deploy push-notify
 supabase functions deploy generate-pool-social-card
 supabase functions deploy import-football-data
@@ -88,11 +94,24 @@ Run backend release probes after deployment:
 ```bash
 tool/supabase_release_probe.sh
 tool/supabase_live_validation.sh
+tool/supabase_whatsapp_auth_smoke.sh
 tool/supabase_hospitality_core_phase2.sh --readiness
 tool/supabase_hospitality_core_phase2.sh --contract
-tool/supabase_edge_job_smoke.sh settle-match-pools
-tool/supabase_edge_job_smoke.sh dispatch-match-alerts
+tool/supabase_edge_job_smoke.sh
+tool/scheduler_payload_smoke.sh
+tool/supabase_app_edge_smoke.sh
+tool/supabase_game_edge_smoke.sh
 ```
+
+For a single production evidence bundle after the individual probes pass, run:
+
+```bash
+tool/collect_world_class_evidence.sh
+```
+
+The collector captures WhatsApp OTP, app Edge Function, game Edge Function,
+cron, deployed web, live Supabase, backup, and secret-scan evidence. A launch
+approval run must complete without `PENDING` or `FAIL`.
 
 `tool/supabase_live_validation.sh` uses `SUPABASE_DB_URL` when available.
 If a DB URL is not available, it falls back to the linked Supabase CLI project

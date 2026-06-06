@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// FANZONE typography system — dark sports-gaming style.
+/// FANZONE typography system: dark sports-gaming style.
 ///
 /// - Bebas Neue: condensed sports headings, hero scores, FET numbers
 /// - Outfit: clean rounded sans for body/UI text
@@ -97,7 +97,7 @@ abstract final class FzTypography {
         height: 1.45,
       ),
 
-      // Labels — high weight for operational chips, buttons, and badges.
+      // Labels: high weight for operational chips, buttons, and badges.
       labelLarge: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w900,
@@ -115,14 +115,14 @@ abstract final class FzTypography {
         fontWeight: FontWeight.w900,
         color: color,
         height: 1.25,
-        letterSpacing: 1.2,
+        letterSpacing: 0,
       ),
     );
 
     return baseTheme.apply(fontFamily: _outfitFamily);
   }
 
-  /// Hero score — Bebas Neue condensed, 64–84px.
+  /// Hero score: Bebas Neue condensed, 64-84px.
   /// Used for massive score displays on match detail screens.
   static TextStyle heroScore({double size = 72, Color? color}) {
     return TextStyle(
@@ -131,11 +131,11 @@ abstract final class FzTypography {
       fontWeight: FontWeight.w400, // Bebas only has 400
       color: color,
       height: 1.0,
-      letterSpacing: 2.0,
+      letterSpacing: 0,
     );
   }
 
-  /// Hero FET number — Bebas Neue, 34–44px.
+  /// Hero FET number: Bebas Neue, 34-44px.
   /// Used for large FET balance displays.
   static TextStyle heroFet({double size = 40, Color? color}) {
     return TextStyle(
@@ -144,11 +144,11 @@ abstract final class FzTypography {
       fontWeight: FontWeight.w400,
       color: color,
       height: 1.1,
-      letterSpacing: 1.5,
+      letterSpacing: 0,
     );
   }
 
-  /// Sports title — Bebas Neue, 26–34px, for section headings.
+  /// Sports title: Bebas Neue, 26-34px, for section headings.
   static TextStyle sportsTitle({
     double size = 30,
     Color? color,
@@ -164,7 +164,7 @@ abstract final class FzTypography {
     );
   }
 
-  /// Score text style — JetBrains Mono with tabular figures.
+  /// Score text style: JetBrains Mono with tabular figures.
   static TextStyle score({
     double size = 18,
     FontWeight weight = FontWeight.w800,
@@ -226,37 +226,37 @@ abstract final class FzTypography {
     );
   }
 
-  /// Section label style — uppercase, spaced, theme-aware muted color.
+  /// Section label style: uppercase, compact, theme-aware muted color.
   /// Keeps compact metadata legible without dropping below 12px.
   static TextStyle sectionLabel(Brightness brightness) => const TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w900,
     color: Color(0xFF6F7280),
-    letterSpacing: 1.8,
+    letterSpacing: 0,
   );
 
-  /// Meta/status label style — uppercase, tracking-widest, small.
+  /// Meta/status label style: uppercase, compact, small.
   static TextStyle metaLabel({double size = 12, Color? color}) => TextStyle(
     fontSize: size,
     fontWeight: FontWeight.w900,
     color: color ?? const Color(0xFF6F7280),
-    letterSpacing: 1.2,
+    letterSpacing: 0,
   );
 
-  /// Status/badge text — bold + tracked for premium sports-editorial feel.
+  /// Status/badge text: bold and compact for premium sports-editorial feel.
   static TextStyle statusLabel({double size = 13, Color? color}) => TextStyle(
     fontSize: size,
     fontWeight: FontWeight.w900,
     color: color,
-    letterSpacing: 1.1,
+    letterSpacing: 0,
   );
 
-  /// Chip label — small, uppercase, very bold.
+  /// Chip label: small, uppercase, very bold.
   static TextStyle chipLabel({double size = 13, Color? color}) => TextStyle(
     fontSize: size,
     fontWeight: FontWeight.w900,
     color: color,
-    letterSpacing: 0.8,
+    letterSpacing: 0,
   );
 
   static TextStyle _withGoogleFontStyle(

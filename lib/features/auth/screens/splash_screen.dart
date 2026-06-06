@@ -3,16 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/auth/runtime_auth_session_manager.dart';
-import '../../../core/cache/shared_preferences_cache_service.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_wordmark.dart';
 
-/// Splash screen — logo animation → wait for init → route local-first.
-///
-/// Onboarding is local-first and no longer blocked behind authentication.
+/// Splash screen — logo animation → wait for init → route into the guest app.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, this.returnTo, this.venueId, this.venueSlug});
 
@@ -60,15 +56,12 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToNextScreen() async {
-    final onboardingDone = await _resolveOnboardingState();
-
     if (!mounted) return;
-    final nextRoute = onboardingDone
-        ? (_venueRoute() ??
-              widget.returnTo ??
-              appRuntime.consumePendingAppRoute() ??
-              '/home')
-        : '/onboarding';
+    final nextRoute = resolveSplashNextRoute(
+      venueRoute: _venueRoute(),
+      returnTo: widget.returnTo,
+      pendingRoute: appRuntime.consumePendingAppRoute(),
+    );
     context.go(nextRoute);
     markAppInteractive();
   }
@@ -85,42 +78,6 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     return null;
-  }
-
-  Future<bool> _resolveOnboardingState() async {
-    final cache = SharedPreferencesCacheService.global;
-    final cached = await cache.getBool('onboarding_complete') ?? false;
-
-    if (!appRuntime.supabaseInitialized) {
-      return cached;
-    }
-
-    final session = RuntimeAuthSessionManager.instance.currentSession;
-    final user = RuntimeAuthSessionManager.instance.currentUser;
-    if (session == null || user == null || session.isExpired) {
-      return cached;
-    }
-
-    try {
-      final client = RuntimeAuthSessionManager.instance.activeClient;
-      if (client == null) {
-        return cached;
-      }
-
-      final profile = await client
-          .from('profiles')
-          .select('onboarding_completed')
-          .eq('id', user.id)
-          .maybeSingle()
-          .timeout(const Duration(seconds: 5));
-      final remote = profile?['onboarding_completed'] == true;
-      if (remote != cached) {
-        await cache.setBool('onboarding_complete', remote);
-      }
-      return remote;
-    } catch (_) {
-      return cached;
-    }
   }
 
   @override
@@ -176,7 +133,7 @@ class _SplashScreenState extends State<SplashScreen>
                         fontSize: 12,
                         color: FzColors.primary,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 3,
+                        letterSpacing: 0,
                       ),
                     ),
                   ],
@@ -188,4 +145,16 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
+}
+
+String resolveSplashNextRoute({
+  String? venueRoute,
+  String? returnTo,
+  String? pendingRoute,
+}) {
+  for (final route in [venueRoute, returnTo, pendingRoute]) {
+    final normalized = route?.trim();
+    if (normalized != null && normalized.isNotEmpty) return normalized;
+  }
+  return '/home';
 }

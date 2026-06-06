@@ -76,13 +76,10 @@ class SupabaseBellGateway implements BellGateway {
       throw StateError('Cannot acknowledge bell: no connection');
     }
 
-    await client
-        .from('bell_requests')
-        .update({
-          'acknowledged_at': DateTime.now().toUtc().toIso8601String(),
-          'acknowledged_by': _connection.currentUser?.id,
-        })
-        .eq('id', bellId);
+    await client.rpc(
+      'venue_acknowledge_bell_request',
+      params: {'p_bell_id': bellId},
+    );
   }
 
   @override

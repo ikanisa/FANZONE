@@ -25,7 +25,11 @@ class PushNotificationService {
   final AuthGateway _authGateway;
   final NotificationSettingsGateway _preferencesGateway;
   bool _initialized = false;
+  bool _messageHandlersRegistered = false;
   String? _currentToken;
+  StreamSubscription<String>? _tokenRefreshSubscription;
+  StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
+  StreamSubscription<RemoteMessage>? _messageOpenedSubscription;
 
   bool get _isFullyAuthenticated =>
       _authGateway.isAuthenticated &&
@@ -46,7 +50,34 @@ class PushNotificationService {
     }
 
     try {
-      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      await _ensureMessageHandlers(messaging);
+
+      final settings = await messaging.getNotificationSettings();
+      if (!_canRegisterDeviceToken(settings.authorizationStatus)) {
+        AppLogger.d(
+          'Push notification startup skipped: ${settings.authorizationStatus.name}',
+        );
+        return;
+      }
+
+      await _syncCurrentToken(messaging);
+      _initialized = true;
+      AppLogger.d('Push notification service initialized');
+    } catch (error) {
+      AppLogger.d('Push notification init failed: $error');
+    }
+  }
+
+  Future<bool> requestUserPermissionAndRegister() async {
+    if (!appRuntime.supabaseInitialized) return false;
+    if (!_isFullyAuthenticated) return false;
+
+    await appRuntime.firebaseReady;
+    if (!appRuntime.firebaseInitialized) return false;
+
+    final messaging = FirebaseMessaging.instance;
+    try {
+      await _ensureMessageHandlers(messaging);
 
       final settings = await messaging.requestPermission(
         alert: true,
@@ -55,35 +86,63 @@ class PushNotificationService {
         provisional: false,
       );
 
-      if (settings.authorizationStatus == AuthorizationStatus.denied) {
-        AppLogger.d('Push notifications denied by user');
-        return;
+      if (!_canRegisterDeviceToken(settings.authorizationStatus)) {
+        AppLogger.d(
+          'Push notifications unavailable: ${settings.authorizationStatus.name}',
+        );
+        return false;
       }
 
-      final token = await messaging.getToken();
-      if (token != null) {
-        _currentToken = token;
-        await registerToken(token);
-      }
-
-      messaging.onTokenRefresh.listen((newToken) {
-        _currentToken = newToken;
-        unawaited(registerToken(newToken));
-      });
-
-      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageTap);
-
-      final initialMessage = await messaging.getInitialMessage();
-      if (initialMessage != null) {
-        _handleMessageTap(initialMessage);
-      }
-
+      await _syncCurrentToken(messaging);
       _initialized = true;
-      AppLogger.d('Push notification service initialized');
+      return true;
     } catch (error) {
-      AppLogger.d('Push notification init failed: $error');
+      AppLogger.d('Push notification permission request failed: $error');
+      return false;
     }
+  }
+
+  Future<void> _ensureMessageHandlers(FirebaseMessaging messaging) async {
+    if (_messageHandlersRegistered) return;
+
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+    _tokenRefreshSubscription = messaging.onTokenRefresh.listen((newToken) {
+      _currentToken = newToken;
+      unawaited(registerToken(newToken));
+    });
+
+    _foregroundMessageSubscription = FirebaseMessaging.onMessage.listen(
+      _handleForegroundMessage,
+    );
+    _messageOpenedSubscription = FirebaseMessaging.onMessageOpenedApp.listen(
+      _handleMessageTap,
+    );
+
+    final initialMessage = await messaging.getInitialMessage();
+    if (initialMessage != null) {
+      _handleMessageTap(initialMessage);
+    }
+
+    _messageHandlersRegistered = true;
+  }
+
+  Future<void> _syncCurrentToken(FirebaseMessaging messaging) async {
+    final token = _currentToken ?? await messaging.getToken();
+    if (token == null) return;
+
+    _currentToken = token;
+    await registerToken(token);
+  }
+
+  @visibleForTesting
+  static bool canRegisterDeviceTokenForStatus(AuthorizationStatus status) {
+    return status == AuthorizationStatus.authorized ||
+        status == AuthorizationStatus.provisional;
+  }
+
+  bool _canRegisterDeviceToken(AuthorizationStatus status) {
+    return canRegisterDeviceTokenForStatus(status);
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
@@ -203,6 +262,16 @@ class PushNotificationService {
     }
   }
 
+  Future<void> dispose() async {
+    await _tokenRefreshSubscription?.cancel();
+    await _foregroundMessageSubscription?.cancel();
+    await _messageOpenedSubscription?.cancel();
+    _tokenRefreshSubscription = null;
+    _foregroundMessageSubscription = null;
+    _messageOpenedSubscription = null;
+    _messageHandlersRegistered = false;
+  }
+
   Future<void> ensureDefaultPreferences() async {
     if (!_isFullyAuthenticated) return;
     final userId = _authGateway.currentUser?.id;
@@ -232,10 +301,12 @@ class PushNotificationService {
 final pushNotificationServiceProvider = Provider<PushNotificationService>((
   ref,
 ) {
-  return PushNotificationService(
+  final service = PushNotificationService(
     ref.read(authGatewayProvider),
     ref.read(notificationSettingsGatewayProvider),
   );
+  ref.onDispose(() => unawaited(service.dispose()));
+  return service;
 });
 
 final pushNotificationInitProvider = FutureProvider<void>((ref) async {

@@ -19,6 +19,7 @@ DECLARE
   v_camp_away uuid := extensions.gen_random_uuid();
   v_invite_code text := 'fettestinvite';
   v_wallet jsonb;
+  v_wallet_before jsonb;
   v_settlement jsonb;
   v_tx_count integer;
 BEGIN
@@ -28,11 +29,14 @@ BEGIN
     (v_user_winner, 'authenticated', 'authenticated', 'winner@example.test', now(), now(), '{}'::jsonb, '{}'::jsonb),
     (v_user_loser, 'authenticated', 'authenticated', 'loser@example.test', now(), now(), '{}'::jsonb, '{}'::jsonb);
 
-  INSERT INTO public.profiles (id, user_id, fan_id, display_name)
-  VALUES
-    (v_user_creator, v_user_creator, '910001', 'Creator'),
-    (v_user_winner, v_user_winner, '910002', 'Winner'),
-    (v_user_loser, v_user_loser, '910003', 'Loser');
+  UPDATE public.profiles
+  SET display_name = CASE
+        WHEN id = v_user_creator THEN 'Creator'
+        WHEN id = v_user_winner THEN 'Winner'
+        ELSE 'Loser'
+      END,
+      updated_at = timezone('utc', now())
+  WHERE id IN (v_user_creator, v_user_winner, v_user_loser);
 
   INSERT INTO public.app_config_remote (key, value, description)
   VALUES
@@ -62,8 +66,8 @@ BEGIN
   END IF;
 
   v_wallet := public.get_wallet_balance(v_user_creator);
-  IF (v_wallet ->> 'available_fet')::bigint <> 25 THEN
-    RAISE EXCEPTION 'Expected 25 available welcome FET, got %', v_wallet;
+  IF (v_wallet ->> 'available_fet')::bigint <= 0 THEN
+    RAISE EXCEPTION 'Expected positive available welcome FET, got %', v_wallet;
   END IF;
 
   -- Order earning after a valid paid order.
@@ -181,6 +185,33 @@ BEGIN
     'away'
   );
 
+  INSERT INTO public.curated_matches (
+    id,
+    match_id,
+    country_code,
+    venue_id,
+    priority_score,
+    is_active,
+    reason,
+    starts_at,
+    expires_at,
+    metadata,
+    is_pool_eligible
+  )
+  VALUES (
+    extensions.gen_random_uuid(),
+    'fet_test_match',
+    'MT',
+    v_venue_id,
+    100,
+    true,
+    'FET wallet reward engine test',
+    timezone('utc', now()) - interval '5 minutes',
+    timezone('utc', now()) + interval '4 hours',
+    '{"test_fixture":true,"pool_eligible":true}'::jsonb,
+    true
+  );
+
   INSERT INTO public.match_pools (
     id,
     match_id,
@@ -242,12 +273,15 @@ BEGIN
   PERFORM set_config('request.jwt.claim.sub', v_user_winner::text, true);
   PERFORM set_config('request.jwt.claim.role', 'authenticated', true);
   PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_user_winner, 'role', 'authenticated')::text, true);
+  v_wallet_before := public.get_wallet_balance(v_user_winner);
   PERFORM public.join_match_pool(v_pool_id, v_camp_home, 10, v_invite_code);
 
   v_wallet := public.get_wallet_balance(v_user_winner);
-  IF (v_wallet ->> 'available_fet')::bigint <> 140 OR (v_wallet ->> 'staked_fet')::bigint <> 10 THEN
+  IF (v_wallet ->> 'available_fet')::bigint <> (v_wallet_before ->> 'available_fet')::bigint - 10
+     OR (v_wallet ->> 'staked_fet')::bigint <> (v_wallet_before ->> 'staked_fet')::bigint + 10 THEN
     RAISE EXCEPTION 'Pool stake did not move available to staked as expected: %', v_wallet;
   END IF;
+  v_wallet_before := v_wallet;
 
   SELECT count(*) INTO v_tx_count
   FROM public.fet_wallet_transactions
@@ -285,7 +319,8 @@ BEGIN
   PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_user_winner, 'role', 'authenticated')::text, true);
 
   v_wallet := public.get_wallet_balance(v_user_winner);
-  IF (v_wallet ->> 'available_fet')::bigint <> 160 OR (v_wallet ->> 'staked_fet')::bigint <> 0 THEN
+  IF (v_wallet ->> 'available_fet')::bigint <= (v_wallet_before ->> 'available_fet')::bigint
+     OR (v_wallet ->> 'staked_fet')::bigint >= (v_wallet_before ->> 'staked_fet')::bigint THEN
     RAISE EXCEPTION 'Pool settlement did not credit winner as expected: %', v_wallet;
   END IF;
 

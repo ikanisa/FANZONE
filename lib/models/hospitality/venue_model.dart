@@ -133,4 +133,39 @@ class VenueModel with _$VenueModel {
     ].where((p) => p != null && p.trim().isNotEmpty).toList();
     return parts.join(', ');
   }
+
+  /// Human-readable venue category, derived from backend taxonomy values.
+  String? get primaryCategoryLabel {
+    final raw = primaryCategory?.trim();
+    if (raw == null || raw.isEmpty) return null;
+    return _humanizeVenueTaxonomyLabel(raw);
+  }
+
+  /// Compact venue metadata for discovery cards and search rows.
+  String get discoverySubtitle {
+    final parts = [
+      city,
+      venueType.label,
+      primaryCategoryLabel,
+    ].whereType<String>().where((value) => value.trim().isNotEmpty).toList();
+    if (parts.isEmpty) return countryCode.label;
+    return parts.join(' · ');
+  }
+}
+
+String _humanizeVenueTaxonomyLabel(String value) {
+  final words = value
+      .trim()
+      .replaceAll(RegExp(r'[_\-]+'), ' ')
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .map((word) => word.toLowerCase())
+      .toList(growable: false);
+  if (words.isEmpty) return value.trim();
+
+  final first = words.first;
+  return [
+    first[0].toUpperCase() + first.substring(1),
+    ...words.skip(1),
+  ].join(' ');
 }

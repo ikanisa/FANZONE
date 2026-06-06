@@ -1,4 +1,4 @@
-# Terms Of Use Draft
+# FANZONE Terms Of Use
 
 ## Product Scope
 
@@ -16,9 +16,11 @@ Orders are linked to venues. Payment is external and handled by the venue throug
 
 Venue staff manually marks orders as paid. Manual payment confirmation is auditable and may affect FET reward eligibility.
 
-## Prediction Pools And Games
+## Pools And Games
 
-Prediction pools and games use FET points only. Pools and games are linked to venues. FANZONE may restrict, cancel, settle, reverse, or audit pools and games to enforce eligibility, integrity, and platform rules.
+Pools and games use FET points only. Pools and games are linked to venues. FANZONE may restrict, cancel, settle, reverse, or audit pools and games to enforce eligibility, integrity, and platform rules.
+
+FANZONE is not a betting, gambling, cash-out, odds, or wagering platform. Pools and games do not offer wagers, odds, real-money prizes, monetary prizes, or cash-out.
 
 ## No Cash-Out
 
@@ -26,9 +28,8 @@ FET cannot be redeemed for cash, withdrawn, sold, traded externally, or treated 
 
 ## Conduct
 
-Users and venues must not abuse ordering, wallet, pool, game, invite, or screen-control flows. FANZONE may suspend access for fraud, abuse, or policy violations.
+Users and venues must not abuse ordering, rewards-ledger, pool, game, invite, or screen-control flows. FANZONE may suspend access for fraud, abuse, or policy violations.
 
 ## Support
 
 Contact `info@ikanisa.com`.
-

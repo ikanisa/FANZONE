@@ -381,6 +381,7 @@ bool _matchesVenueQuery(VenueModel venue, String rawQuery) {
     venue.city ?? '',
     venue.addressLine1 ?? '',
     venue.primaryCategory ?? '',
+    venue.primaryCategoryLabel ?? '',
   ].join(' ').toLowerCase();
   return haystack.contains(query);
 }

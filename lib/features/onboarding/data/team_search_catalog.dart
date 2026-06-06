@@ -11,6 +11,7 @@ class OnboardingTeam {
     this.aliases = const <String>[],
     this.region = 'global',
     this.isPopular = false,
+    this.teamType,
     this.shortNameOverride,
     this.crestUrl,
     this.countryCodeOverride,
@@ -37,6 +38,7 @@ class OnboardingTeam {
           .toList(growable: false),
       region: json['region']?.toString() ?? 'global',
       isPopular: json['isPopular'] == true || json['is_popular'] == true,
+      teamType: json['teamType']?.toString() ?? json['team_type']?.toString(),
       shortNameOverride:
           json['shortName']?.toString() ?? json['short_name']?.toString(),
       crestUrl: json['crestUrl']?.toString() ?? json['crest_url']?.toString(),
@@ -55,6 +57,7 @@ class OnboardingTeam {
   final List<String> aliases;
   final String region;
   final bool isPopular;
+  final String? teamType;
   final String? shortNameOverride;
   final String? crestUrl;
   final String? countryCodeOverride;
@@ -111,6 +114,7 @@ class OnboardingTeam {
           ? region
           : fallback.region,
       isPopular: isPopular || fallback.isPopular,
+      teamType: teamType ?? fallback.teamType,
       shortNameOverride: shortNameOverride ?? fallback.shortNameOverride,
       crestUrl: crestUrl ?? fallback.crestUrl,
       countryCodeOverride: countryCodeOverride ?? fallback.countryCodeOverride,
@@ -127,6 +131,7 @@ class OnboardingTeam {
       'aliases': aliases,
       'region': region,
       'is_popular': isPopular,
+      'team_type': teamType,
       'short_name': shortNameOverride,
       'crest_url': crestUrl,
       'country_code': countryCodeOverride ?? countryCode,
@@ -290,6 +295,63 @@ class TeamSearchCatalog {
     return padded.take(20).toList(growable: false);
   }
 
+  List<OnboardingTeam> browse({
+    String query = '',
+    String? region,
+    String? countryCode,
+    bool localOnly = false,
+    bool popularOnly = false,
+    bool nationalOnly = false,
+    int limit = 20,
+  }) {
+    final safeLimit = limit.clamp(1, 100).toInt();
+    final normalizedRegion = _normalizeRegion(region ?? 'global');
+    final normalizedCountryCode = countryCode?.trim().toUpperCase();
+    final normalizedQuery = query.trim();
+
+    Iterable<OnboardingTeam> source = popularOnly
+        ? popularForRegion(normalizedRegion)
+        : allTeams;
+
+    if (normalizedRegion != 'global' && !popularOnly) {
+      source = source.where(
+        (team) => _normalizeRegion(team.region) == normalizedRegion,
+      );
+    }
+
+    if (normalizedCountryCode != null && normalizedCountryCode.isNotEmpty) {
+      source = source.where(
+        (team) => team.countryCode.toUpperCase() == normalizedCountryCode,
+      );
+    }
+
+    if (localOnly) {
+      source = source.where((team) {
+        final type = team.teamType?.trim().toLowerCase();
+        return type == null || type.isEmpty || type == 'club';
+      });
+    }
+
+    if (nationalOnly) {
+      source = source.where((team) {
+        final type = team.teamType?.trim().toLowerCase();
+        return type == 'national' ||
+            _normalize(team.league ?? '').contains('world cup') ||
+            _normalize(team.name) == _normalize(team.country);
+      });
+    }
+
+    final ranked = normalizedQuery.isEmpty
+        ? _sortBrowseTeams(source.toList(growable: false), popularOnly)
+        : _searchIn(
+            source.toList(growable: false),
+            normalizedQuery,
+            limit: 100,
+          );
+
+    return ranked.take(safeLimit).toList(growable: false);
+  }
+
   List<OnboardingTeam> get _popularSearchFallback {
     final rankedPopular = popularForRegion('europe');
     if (rankedPopular.isNotEmpty) return rankedPopular;
@@ -332,6 +394,25 @@ class TeamSearchCatalog {
       return left.name.toLowerCase().compareTo(right.name.toLowerCase());
     });
     return List<OnboardingTeam>.unmodifiable(sorted);
+  }
+
+  static List<OnboardingTeam> _sortBrowseTeams(
+    List<OnboardingTeam> teams,
+    bool popularFirst,
+  ) {
+    final sorted = List<OnboardingTeam>.from(teams);
+    sorted.sort((left, right) {
+      if (popularFirst || left.isPopular || right.isPopular) {
+        final leftRank =
+            left.popularRank ?? (left.isPopular ? 1 << 19 : 1 << 20);
+        final rightRank =
+            right.popularRank ?? (right.isPopular ? 1 << 19 : 1 << 20);
+        final rankCompare = leftRank.compareTo(rightRank);
+        if (rankCompare != 0) return rankCompare;
+      }
+      return left.name.toLowerCase().compareTo(right.name.toLowerCase());
+    });
+    return sorted;
   }
 
   static List<OnboardingTeam> _searchIn(

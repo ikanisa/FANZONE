@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 enum AppIconName {
   home,
@@ -79,7 +79,7 @@ abstract final class AppIcons {
     AppIconName.bars => LucideIcons.store,
     AppIconName.play => LucideIcons.swords,
     AppIconName.orders => LucideIcons.receipt,
-    AppIconName.wallet => LucideIcons.wallet,
+    AppIconName.wallet => LucideIcons.gift,
     AppIconName.profile => LucideIcons.user,
     AppIconName.search => LucideIcons.search,
     AppIconName.filter => LucideIcons.slidersHorizontal,

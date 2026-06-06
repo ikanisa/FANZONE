@@ -438,7 +438,7 @@ abstract class S {
   /// No description provided for @loginSendOtp.
   ///
   /// In en, this message translates to:
-  /// **'Send Code Via WhatsApp'**
+  /// **'Send OTP'**
   String get loginSendOtp;
 
   /// No description provided for @loginVerify.

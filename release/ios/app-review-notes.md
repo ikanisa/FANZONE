@@ -4,10 +4,7 @@
 
 FANZONE uses WhatsApp OTP login only. It does not require email, username, first name, or last name.
 
-Use a stable reviewer phone and OTP configured in the deployed `whatsapp-otp` Edge Function:
-
-- UAT fixture phone: `+35699711145`
-- UAT fixture OTP: `123456`
+Use a stable reviewer phone and OTP configured in the deployed `whatsapp-otp` Edge Function. Enter the actual reviewer phone and OTP only in App Store Connect review notes or a private release evidence bundle. Do not commit them.
 
 Reviewer flow:
 1. Open the app.
@@ -36,6 +33,5 @@ Please test:
 - Menu and order creation.
 - External payment instruction display.
 - Pool and game discovery.
-- Wallet and FET activity.
+- FET rewards-ledger activity.
 - Profile/settings and account deletion request path.
-

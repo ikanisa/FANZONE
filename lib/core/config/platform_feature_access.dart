@@ -90,7 +90,10 @@ class PlatformFeatureAccess {
   String labelFor(String key) {
     final feature = this.feature(key);
     final channelConfig = feature?.channel(channel);
-    return channelConfig?.navigationLabel ?? feature?.displayName ?? key;
+    return _safeFeatureLabel(
+      key,
+      channelConfig?.navigationLabel ?? feature?.displayName ?? key,
+    );
   }
 
   String? routeKeyForPath(String path) {
@@ -186,6 +189,17 @@ List<String> _pathSegments(String path) {
       .split('/')
       .where((segment) => segment.trim().isNotEmpty)
       .toList(growable: false);
+}
+
+String _safeFeatureLabel(String key, String label) {
+  if (key != 'wallet') return label;
+
+  final normalized = label.trim().toLowerCase();
+  if (normalized == 'wallet' || normalized.contains('wallet')) {
+    return 'Rewards';
+  }
+
+  return label;
 }
 
 final platformFeatureAccessProvider = Provider<PlatformFeatureAccess>((ref) {

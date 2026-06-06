@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../models/hospitality/venue_model.dart';
 import '../../../theme/colors.dart';
@@ -102,7 +102,10 @@ class _VenueDetailContent extends ConsumerWidget {
         const SizedBox(height: 18),
         FzMetricTile(
           label: 'Type',
-          value: venue.venueType.label,
+          value: [
+            venue.venueType.label,
+            venue.primaryCategoryLabel,
+          ].whereType<String>().where((value) => value.isNotEmpty).join(' · '),
           icon: LucideIcons.store,
         ),
         const SizedBox(height: 12),
@@ -129,6 +132,7 @@ class _VenueDetailContent extends ConsumerWidget {
         ),
         const SizedBox(height: 18),
         FilledButton.icon(
+          key: ValueKey('venue_detail_menu_${venue.id}'),
           onPressed: () async {
             await ref
                 .read(venueContextProvider.notifier)
@@ -141,6 +145,7 @@ class _VenueDetailContent extends ConsumerWidget {
         ),
         const SizedBox(height: 10),
         OutlinedButton.icon(
+          key: ValueKey('venue_detail_create_pool_${venue.id}'),
           onPressed: () async {
             await ref
                 .read(venueContextProvider.notifier)

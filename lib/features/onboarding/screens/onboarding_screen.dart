@@ -1,12 +1,15 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../config/app_config.dart';
 import '../../../core/di/gateway_providers.dart';
+import '../../../core/logging/app_logger.dart';
 import '../../../core/market/launch_market.dart';
 import '../../../core/runtime/app_runtime_state.dart';
 import '../../../core/utils/phone_country_catalog.dart';
@@ -18,6 +21,7 @@ import '../../../providers/favorite_teams_provider.dart';
 import '../../../providers/market_preferences_provider.dart';
 import '../../../providers/region_provider.dart';
 import '../../../theme/colors.dart';
+import '../../auth/data/dev_whatsapp_otp_fixture.dart';
 import '../providers/onboarding_provider.dart';
 import '../widgets/fan_profile_selector.dart';
 import '../widgets/onboarding_phone_verification_steps.dart';
@@ -38,6 +42,8 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  static const _devOtpFixture = DevWhatsAppOtpFixture();
+
   static const _welcomeStep = 0;
   static const _phoneStep = 1;
   static const _otpStep = 2;
@@ -109,10 +115,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _selectedCountry.preset.dialCode == '+';
 
   bool get _isPhoneNumberValid {
+    if (_isConfiguredDevOtpPhone) return true;
+
     final length = _localPhoneDigits.length;
     if (length < _selectedCountry.preset.minDigits) return false;
     if (_isGenericPhoneCountry) return length <= 15;
-    return length == _expectedPhoneDigits;
+    return length <= _expectedPhoneDigits;
+  }
+
+  bool get _isConfiguredDevOtpPhone {
+    final fixtureEnabled = kDebugMode || AppConfig.isReviewMode;
+    return fixtureEnabled &&
+        _devOtpFixture.isConfigured &&
+        _devOtpFixture.matchesPhone(_fullPhone);
   }
 
   bool get _phoneHelpIsError =>
@@ -128,6 +143,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     if (_isPhoneNumberValid) {
+      if (_isConfiguredDevOtpPhone) return 'Ready: dev WhatsApp OTP';
       return 'Ready: ${_selectedCountry.preset.dialCode} ${_phoneController.text}';
     }
 
@@ -136,7 +152,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     if (!_isGenericPhoneCountry) {
-      return '$country numbers use $_expectedPhoneDigits digits.';
+      return '$country numbers use $minDigits to $_expectedPhoneDigits digits.';
     }
 
     return 'International numbers can use up to 15 digits.';
@@ -254,7 +270,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } on AuthException catch (error) {
       if (!mounted) return;
       setState(() => _error = error.message);
-    } catch (_) {
+    } catch (error) {
+      AppLogger.d(
+        'Failed to complete onboarding after fan profile save: $error',
+      );
       if (!mounted) return;
       setState(() {
         _error = 'Something went wrong while sending the WhatsApp OTP.';
@@ -317,6 +336,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             localTeam: selection.localTeam,
             topEuropeanTeamIds: selection.topEuropeanTeamIds,
             nationalTeamIds: selection.nationalTeamIds,
+            requireLocalTeam: true,
+            requireTopEuropeanTeam: true,
+            requireRemoteSync: true,
           );
       ref.invalidate(favoriteTeamRecordsProvider);
       await _completeOnboarding();
@@ -471,9 +493,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           canContinue: _loading ? false : (_canUseOtp && _isPhoneNumberValid),
           onBack: () => _setStep(_welcomeStep),
           onNext: _handlePhoneContinue,
-          buttonLabel: _loading
-              ? 'SENDING...'
-              : (_canUseOtp ? 'SEND OTP TO WHATSAPP' : 'VERIFICATION REQUIRED'),
+          buttonLabel: _loading ? 'Sending...' : 'Send OTP',
         );
       // Step 3: OTP Verify (ref: Step3)
       case _otpStep:
@@ -505,13 +525,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           initialTeams:
               ref.watch(favoriteTeamRecordsProvider).valueOrNull ??
               const <FavoriteTeamRecordDto>[],
+          localCountryCode: _isGenericPhoneCountry
+              ? null
+              : _selectedCountry.countryCode,
           textColor: textColor,
           muted: muted,
           isDark: isDark,
+          description:
+              'Pick your local team, top European clubs, and World Cup teams from the FANZONE team catalog.',
+          requireLocalTeam: true,
+          requireTopEuropeanTeam: true,
           onBack: () =>
               _setStep(_completedOtpInThisSession ? _otpStep : _welcomeStep),
           onSave: _handleFanProfileSave,
-          onSkip: _completeOnboarding,
         );
       default:
         return const SizedBox.shrink();

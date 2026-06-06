@@ -1,0 +1,94 @@
+{
+  "generatedAtUtc": "2026-06-06T04:09:15Z",
+  "projectRef": "kjuhheobmdvjwgnzlcwx",
+  "function": {
+    "name": "whatsapp-otp",
+    "status": "ACTIVE",
+    "version": 63,
+    "updatedAtUtc": "2026-06-06T03:48:56Z"
+  },
+  "scope": "WhatsApp OTP Edge Function deployment and fixed reviewer-phone smoke",
+  "secretInventoryChecked": {
+    "valuesRedacted": true,
+    "requiredRuntimeSecretNamesPresent": [
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "FANZONE_JWT_SECRET",
+      "WABA_ACCESS_TOKEN",
+      "WABA_PHONE_NUMBER_ID",
+      "WABA_OTP_TEMPLATE_NAME",
+      "WABA_TEMPLATE_LANGUAGE",
+      "WHATSAPP_AUTH_TEST_PHONE",
+      "WHATSAPP_AUTH_TEST_OTP",
+      "WHATSAPP_AUTH_TEST_EXPIRY"
+    ]
+  },
+  "remoteSmoke": {
+    "phone": "+3567718613",
+    "otp": "redacted-fixed-review-code",
+    "sendStatus": 200,
+    "sendSuccess": true,
+    "verifyStatus": 200,
+    "verifySuccess": true,
+    "tokenType": "bearer",
+    "userPresent": true,
+    "accessTokenRedacted": true,
+    "refreshTokenRedacted": true
+  },
+  "codeFix": {
+    "summary": "If WhatsApp Cloud API delivery fails after OTP persistence, the Edge Function now removes the undelivered pending verification row before returning the failure.",
+    "files": [
+      "supabase/functions/whatsapp-otp/index.ts",
+      "supabase/functions/whatsapp-otp/index_test.ts",
+      "tool/supabase_whatsapp_auth_smoke.sh",
+      "docs/release/deployment-readme.md",
+      "tool/validate_edge_function_release_contract.mjs",
+      "tool/go_live_readiness.sh"
+    ]
+  },
+  "validation": [
+    {
+      "command": "deno fmt --check supabase/functions/whatsapp-otp/index.ts supabase/functions/whatsapp-otp/index_test.ts",
+      "status": "PASS"
+    },
+    {
+      "command": "deno check supabase/functions/whatsapp-otp/index.ts supabase/functions/whatsapp-otp/index_test.ts",
+      "status": "PASS"
+    },
+    {
+      "command": "deno test --allow-env supabase/functions/whatsapp-otp/index_test.ts",
+      "status": "PASS",
+      "testsPassed": 10
+    },
+    {
+      "command": "supabase functions deploy whatsapp-otp --project-ref kjuhheobmdvjwgnzlcwx --use-api",
+      "status": "PASS"
+    },
+    {
+      "command": "redacted HTTP smoke: POST /functions/v1/whatsapp-otp send + verify",
+      "status": "PASS"
+    },
+    {
+      "command": "WHATSAPP_AUTH_TEST_PHONE=... WHATSAPP_AUTH_TEST_OTP=... FANZONE_UAT_USER_JWT=... ./tool/collect_world_class_evidence.sh --allow-pending",
+      "status": "PASS",
+      "summary": "output/release-evidence/20260606T040524Z/summary.txt"
+    },
+    {
+      "command": "tool/supabase_whatsapp_auth_smoke.sh --dry-run",
+      "status": "PASS"
+    },
+    {
+      "command": "node tool/validate_edge_function_release_contract.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "bash -n tool/supabase_whatsapp_auth_smoke.sh tool/go_live_readiness.sh",
+      "status": "PASS"
+    }
+  ],
+  "remainingNotes": [
+    "This proves the configured reviewer/test OTP path and deployed custom-session response without exposing token values.",
+    "Live WhatsApp delivery to arbitrary production numbers still depends on provider template approval, WABA account health, and recipient eligibility.",
+    "Deployment runbook now requires tool/supabase_whatsapp_auth_smoke.sh after Supabase deployment."
+  ]
+}

@@ -1,0 +1,251 @@
+{
+  "generatedAtUtc": "2026-06-06T04:09:15Z",
+  "projectRef": "kjuhheobmdvjwgnzlcwx",
+  "scope": "Flutter games repository, deployed game Edge Functions, and LiveScore football sync path",
+  "deployedFunctions": [
+    {
+      "name": "fan-trivia",
+      "status": "ACTIVE",
+      "version": 8,
+      "updatedAtUtc": "2026-06-06T03:50:59Z"
+    },
+    {
+      "name": "song-guess",
+      "status": "ACTIVE",
+      "version": 8,
+      "updatedAtUtc": "2026-06-06T03:51:00Z"
+    },
+    {
+      "name": "music-bingo",
+      "status": "ACTIVE",
+      "version": 9,
+      "updatedAtUtc": "2026-06-06T03:51:02Z"
+    },
+    {
+      "name": "sync-livescore-football",
+      "status": "ACTIVE",
+      "version": 12,
+      "updatedAtUtc": "2026-06-06T04:04:37Z"
+    }
+  ],
+  "flutterContract": {
+    "gameTemplatesMappedToEdgeFunctions": {
+      "fan_trivia": "fan-trivia",
+      "song_guess": "song-guess",
+      "music_bingo": "music-bingo"
+    },
+    "legacyFallbackPreserved": [
+      "bar_trivia"
+    ]
+  },
+  "livescoreDryExport": {
+    "command": "python3 tool/livescore_ingest.py --limit 3 --timeout 30 --output /tmp/fanzone_livescore_smoke.json",
+    "status": "PASS",
+    "datasetType": "official_fixture_rows",
+    "resourceId": "livescore_world_cup_2026",
+    "rows": 3,
+    "stagesSeen": 2,
+    "sourceHost": "www.livescore.com",
+    "firstStartsAtUtc": "2026-06-11T19:00:00Z",
+    "timezoneName": "UTC",
+    "outputPath": "/tmp/fanzone_livescore_smoke.json"
+  },
+  "codeFix": {
+    "summary": "The Python LiveScore synchronizer stores starts_at as UTC while preserving provider local_date/local_time for the configured resource timezone. The Supabase Edge synchronizer now preserves the same provider-local date/time fields instead of deriving them from UTC. The Flutter games repository uses the mapped game Edge Function for live Fan Trivia and Song Guess current-question reads when an authenticated session token is available, with direct RPC preserved for legacy or unauthenticated fallback paths. The standard cron runner now exposes sync-livescore-football so operator schedulers can invoke the deployed sync function without putting provider or service-role secrets in Flutter. Deployment and operator evidence now include deploy commands and release smoke coverage for fan-trivia, song-guess, and music-bingo.",
+    "files": [
+      "lib/features/games/data/games_repository.dart",
+      "test/features/games/games_repository_test.dart",
+      "tool/livescore_ingest.py",
+      "tool/livescore_ingest_test.py",
+      "supabase/functions/sync-livescore-football/livescore.ts",
+      "supabase/functions/sync-livescore-football/livescore_test.ts",
+      "tool/run_supabase_cron_job.sh",
+      ".github/workflows/cron-livescore-football.yml",
+      "tool/validate_operations_readiness_evidence.mjs",
+      "release/operations/operations-readiness-evidence.json",
+      "tool/supabase_edge_job_smoke.sh",
+      "docs/release/deployment-readme.md",
+      "docs/architecture/backend.md",
+      "docs/FANZONE_HANDOVER_REPORT.md",
+      "docs/release/world-class-evidence-matrix.md",
+      "docs/release/codex-go-live-goals.md",
+      "tool/supabase_game_edge_smoke.sh",
+      "tool/validate_edge_function_release_contract.mjs",
+      "supabase/config.toml",
+      "tool/go_live_readiness.sh",
+      "tool/supabase_app_edge_smoke.sh",
+      "tool/supabase_whatsapp_auth_smoke.sh",
+      "release/qa/whatsapp-otp-smoke-evidence.json",
+      "tool/validate_games_livescore_fullstack_evidence.mjs",
+      "tool/check_world_class_evidence.sh",
+      "tool/go_live_readiness.sh"
+    ]
+  },
+  "validation": [
+    {
+      "command": "python3 -m unittest tool/livescore_ingest_test.py",
+      "status": "PASS",
+      "testsPassed": 1
+    },
+    {
+      "command": "python3 -m py_compile tool/livescore_ingest.py tool/livescore_ingest_test.py",
+      "status": "PASS"
+    },
+    {
+      "command": "deno test --allow-env supabase/functions/sync-livescore-football/livescore_test.ts",
+      "status": "PASS",
+      "testsPassed": 7
+    },
+    {
+      "command": "deno check supabase/functions/sync-livescore-football/index.ts supabase/functions/sync-livescore-football/livescore.ts supabase/functions/sync-livescore-football/livescore_test.ts",
+      "status": "PASS"
+    },
+    {
+      "command": "deno test --allow-env supabase/functions/_shared/game_edge_test.ts",
+      "status": "PASS",
+      "testsPassed": 6
+    },
+    {
+      "command": "deno check supabase/functions/fan-trivia/index.ts supabase/functions/song-guess/index.ts supabase/functions/music-bingo/index.ts supabase/functions/_shared/game_edge.ts",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter test test/features/games/games_repository_test.dart",
+      "status": "PASS",
+      "testsPassed": 7
+    },
+    {
+      "command": "./tool/flutter_analyze_release.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "find supabase/functions -name '*.ts' -print0 | xargs -0 deno check",
+      "status": "PASS"
+    },
+    {
+      "command": "deno test --allow-env supabase/functions",
+      "status": "PASS",
+      "testsPassed": 66
+    },
+    {
+      "command": "flutter test test/screen_widgets_test.dart",
+      "status": "PASS",
+      "testsPassed": 11
+    },
+    {
+      "command": "flutter test",
+      "status": "PASS",
+      "testsPassed": 278
+    },
+    {
+      "command": "deno fmt --check supabase/functions",
+      "status": "PASS",
+      "filesChecked": 56
+    },
+    {
+      "command": "./tool/product_boundary_scan.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter build web --release -t lib/main_review.dart with SUPABASE_URL and SUPABASE_ANON_KEY loaded from local .env",
+      "status": "PASS",
+      "result": "Built build/web"
+    },
+    {
+      "command": "supabase db query --linked -f supabase/tests/football_official_resource_sync.sql --output json",
+      "status": "PASS"
+    },
+    {
+      "command": "tool/run_supabase_cron_job.sh --dry-run sync-livescore-football",
+      "status": "PASS",
+      "result": "Validated default sync-livescore-football scheduler payload without requiring or printing credentials."
+    },
+    {
+      "command": "node tool/validate_operations_readiness_evidence.mjs",
+      "status": "EXPECTED_FAIL_EXTERNAL_SIGNOFF",
+      "result": "Validator now requires sync-livescore-football and fails only because production scheduler evidence, observability, incident readiness, and owner signoff remain pending."
+    },
+    {
+      "command": "bash -n tool/supabase_edge_job_smoke.sh tool/run_supabase_cron_job.sh tool/collect_world_class_evidence.sh",
+      "status": "PASS",
+      "result": "Validated shell syntax for Edge job smoke, cron runner, and evidence collector after adding sync-livescore-football coverage."
+    },
+    {
+      "command": "tool/supabase_game_edge_smoke.sh --dry-run",
+      "status": "PASS",
+      "result": "Validated game Edge smoke coverage for fan-trivia, song-guess, and music-bingo without requiring credentials."
+    },
+    {
+      "command": "FANZONE_UAT_USER_JWT=... tool/supabase_game_edge_smoke.sh",
+      "status": "PASS",
+      "result": "Validated deployed fan-trivia, song-guess, and music-bingo endpoints reject anonymous calls and accept authenticated list_sessions with the reviewer WhatsApp session."
+    },
+    {
+      "command": "WHATSAPP_AUTH_TEST_PHONE=... WHATSAPP_AUTH_TEST_OTP=... FANZONE_UAT_USER_JWT=... ./tool/collect_world_class_evidence.sh --allow-pending",
+      "status": "PASS",
+      "summary": "output/release-evidence/20260606T040524Z/summary.txt"
+    },
+    {
+      "command": "tool/scheduler_payload_smoke.sh",
+      "status": "PASS",
+      "result": "Validated settle-match-pools, dispatch-match-alerts, and sync-livescore-football scheduler payloads plus deployed unauthorized protection without requiring cron credentials.",
+      "log": "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log"
+    },
+    {
+      "command": "bash -n tool/supabase_game_edge_smoke.sh",
+      "status": "PASS",
+      "result": "Validated game Edge smoke shell syntax."
+    },
+    {
+      "command": "node tool/validate_edge_function_release_contract.mjs",
+      "status": "PASS",
+      "result": "Validated deploy docs, backend inventory, Supabase verify_jwt configuration, and smoke coverage for app-facing Edge Functions including the game endpoints."
+    },
+    {
+      "command": "node tool/validate_games_livescore_fullstack_evidence.mjs",
+      "status": "PASS",
+      "result": "Validated the LiveScore World Cup 2026 feed, deployed fan-trivia/song-guess/music-bingo/sync-livescore-football function evidence, Flutter game-template routing, review-web proof, and required implementation files."
+    },
+    {
+      "command": "node --check tool/validate_edge_function_release_contract.mjs",
+      "status": "PASS",
+      "result": "Validated Edge release contract validator syntax."
+    },
+    {
+      "command": "tool/supabase_app_edge_smoke.sh --dry-run",
+      "status": "PASS",
+      "result": "Validated app Edge smoke coverage for ordering, payment, staff-call, menu OCR, and pool social-card endpoints without requiring credentials."
+    },
+    {
+      "command": "bash -n tool/supabase_app_edge_smoke.sh tool/supabase_game_edge_smoke.sh tool/go_live_readiness.sh",
+      "status": "PASS",
+      "result": "Validated app/game Edge smoke and go-live shell syntax."
+    },
+    {
+      "command": "tool/supabase_whatsapp_auth_smoke.sh --dry-run",
+      "status": "PASS",
+      "result": "Validated WhatsApp auth smoke probe contract without requiring live credentials."
+    },
+    {
+      "command": "bash -n tool/supabase_whatsapp_auth_smoke.sh tool/go_live_readiness.sh",
+      "status": "PASS",
+      "result": "Validated WhatsApp smoke and go-live shell syntax."
+    }
+  ],
+  "reviewWeb": {
+    "url": "http://127.0.0.1:8091/?v=games-supabase-config#/games",
+    "status": "PASS",
+    "screenshot": "output/release-evidence/web-review-games-supabase-config-20260606T0312Z.png",
+    "note": "The Supabase-configured review build renders live Play sessions from the backend instead of the backend-unavailable state."
+  },
+  "remainingNotes": [
+    "No local CRON_SECRET or service-role key is present in repo env files, so this evidence does not claim a remote apply run.",
+    "Remote sync-livescore-football apply should be run by the scheduler or an operator with x-cron-secret/service-role bearer credentials.",
+    "Production operations readiness now requires scheduler history for sync-livescore-football in addition to pool settlement and match alerts.",
+    "Production Edge job smoke now includes sync-livescore-football unauthorized and minimal authorized sync checks.",
+    "Game Edge deployment docs now include fan-trivia, song-guess, and music-bingo deploy plus smoke commands.",
+    "Local go-live readiness now runs the Edge Function release contract validator.",
+    "App Edge deployment smoke now covers ordering, payment handoff, staff-call, menu OCR, and pool social-card endpoints.",
+    "WhatsApp auth deployment smoke is now wired into the main deploy runbook and Edge release contract."
+  ]
+}

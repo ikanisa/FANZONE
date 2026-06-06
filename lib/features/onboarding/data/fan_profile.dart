@@ -97,7 +97,17 @@ void validateFanProfileSelection({
   OnboardingTeam? localTeam,
   Set<String> topEuropeanTeamIds = const <String>{},
   Set<String> nationalTeamIds = const <String>{},
+  bool requireLocalTeam = false,
+  bool requireTopEuropeanTeam = false,
 }) {
+  if (requireLocalTeam && localTeam == null) {
+    throw ArgumentError('Select one local team to continue.');
+  }
+
+  if (requireTopEuropeanTeam && topEuropeanTeamIds.isEmpty) {
+    throw ArgumentError('Select at least one top European team to continue.');
+  }
+
   if (topEuropeanTeamIds.length >
       FanProfileTeamCategory.topEuropean.maxSelections) {
     throw ArgumentError.value(

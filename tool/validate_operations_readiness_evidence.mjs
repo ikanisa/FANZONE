@@ -13,10 +13,12 @@ const allowedStatuses = new Set(["PASS", "FAIL", "BLOCKED", "PENDING", "N/A"]);
 const requiredSchedulerJobs = new Set([
   "settle-match-pools",
   "dispatch-match-alerts",
+  "sync-livescore-football",
 ]);
 const requiredSchedulerCommands = new Map([
   ["settle-match-pools", "tool/run_supabase_cron_job.sh settle-match-pools"],
   ["dispatch-match-alerts", "tool/run_supabase_cron_job.sh dispatch-match-alerts"],
+  ["sync-livescore-football", "tool/run_supabase_cron_job.sh sync-livescore-football"],
 ]);
 const requiredSurfaces = new Set([
   "Flutter app",

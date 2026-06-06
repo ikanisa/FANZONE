@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../models/platform/notification_model.dart';
 import '../../../services/notification_service.dart';
@@ -143,7 +143,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case 'wallet_credit':
       case 'wallet_debit':
       case 'wallet':
-        return LucideIcons.wallet;
+        return LucideIcons.gift;
       case 'community':
         return LucideIcons.users;
       case 'marketing':

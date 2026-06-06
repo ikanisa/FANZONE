@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/currency_utils.dart';
-import '../../providers/currency_provider.dart';
 import '../../theme/colors.dart';
 import '../../theme/typography.dart';
 
-/// Reusable FET amount display with local currency equivalent.
+/// Reusable FET amount display for closed-loop reward points.
 ///
-/// Renders: "FET 1,000 (€10)" or "+ FET 500 (FRW 7,000)"
+/// Renders: "FET 1,000" or "+ FET 500"
 ///
 /// Usage:
 /// ```dart
@@ -45,11 +44,9 @@ class FETDisplay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
-
     final text = showSign
-        ? formatFETSigned(amount, currency, positive: positive)
-        : formatFET(amount, currency);
+        ? '${positive ? '+' : '-'} ${formatFETCompact(amount)}'
+        : formatFETCompact(amount);
 
     return Text(text, style: style ?? fetStyle);
   }
@@ -78,26 +75,10 @@ class FETDisplaySpan extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     final fetStr = formatFETCompact(amount);
-    final localAmount = fetToLocal(amount, currency);
-    final info = currencies[currency] ?? currencies['EUR']!;
-
     final sign = showSign ? (positive ? '+ ' : '- ') : '';
-    final showLocal = localAmount != null;
-
-    String? localStr;
-    if (showLocal) {
-      if (info.decimals == 0) {
-        localStr = '${info.symbol} ${_formatNumber(localAmount.round())}';
-      } else {
-        localStr =
-            '${info.symbol}${localAmount.toStringAsFixed(info.decimals)}';
-      }
-    }
 
     return RichText(
       text: TextSpan(
@@ -111,34 +92,15 @@ class FETDisplaySpan extends ConsumerWidget {
                   fetColor ?? (isDark ? FzColors.darkText : FzColors.lightText),
             ),
           ),
-          if (showLocal)
-            TextSpan(
-              text: '($localStr)',
-              style: TextStyle(
-                fontSize: fontSize * 0.85,
-                fontWeight: FontWeight.w500,
-                color: localColor ?? muted,
-              ),
-            ),
         ],
       ),
     );
-  }
-
-  String _formatNumber(int value) {
-    if (value >= 1000) {
-      return value.toString().replaceAllMapped(
-        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-        (m) => '${m[1]},',
-      );
-    }
-    return value.toString();
   }
 }
 
 /// Balance pill for profile screen.
 ///
-/// Renders: "FET 15,000 (€150)" in a styled pill container.
+/// Renders: "FET 15,000" in a styled pill container.
 class FETBalancePill extends ConsumerWidget {
   const FETBalancePill({super.key, required this.balance, this.onTap});
 
@@ -147,8 +109,6 @@ class FETBalancePill extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -166,7 +126,7 @@ class FETBalancePill extends ConsumerWidget {
           border: Border.all(color: FzColors.primary.withValues(alpha: 0.3)),
         ),
         child: Text(
-          formatFET(balance, currency),
+          formatFETCompact(balance),
           style: FzTypography.score(
             size: 14,
             weight: FontWeight.w700,

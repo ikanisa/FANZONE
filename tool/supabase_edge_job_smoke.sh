@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+UNAUTHORIZED_ONLY=false
+if [[ "${1:-}" == "--unauthorized-only" ]]; then
+  UNAUTHORIZED_ONLY=true
+  shift
+fi
+
+if [[ "$#" -ne 0 ]]; then
+  echo "Usage: $0 [--unauthorized-only]" >&2
+  exit 2
+fi
+
 if [[ -f ".env" ]]; then
   set -a
   source .env
@@ -12,7 +23,7 @@ if [[ -z "${SUPABASE_URL:-}" ]]; then
   exit 1
 fi
 
-if [[ -z "${CRON_SECRET:-}" || -z "${PUSH_NOTIFY_SECRET:-}" ]]; then
+if [[ "${UNAUTHORIZED_ONLY}" != true && ( -z "${CRON_SECRET:-}" || -z "${PUSH_NOTIFY_SECRET:-}" ) ]]; then
   echo "CRON_SECRET and PUSH_NOTIFY_SECRET must be set for edge auth smoke coverage."
   exit 1
 fi
@@ -71,8 +82,16 @@ expect_status "settle-match-pools unauthorized" "${settle_pools_unauth}" "401"
 dispatch_match_alerts_unauth="$(call_edge "dispatch-match-alerts" "" '{}')"
 expect_status "dispatch-match-alerts unauthorized" "${dispatch_match_alerts_unauth}" "401"
 
+sync_livescore_unauth="$(call_edge "sync-livescore-football" "" '{}')"
+expect_status "sync-livescore-football unauthorized" "${sync_livescore_unauth}" "401"
+
 push_notify_unauth="$(call_edge "push-notify" "" '{}')"
 expect_status "push-notify unauthorized" "${push_notify_unauth}" "401"
+
+if [[ "${UNAUTHORIZED_ONLY}" == true ]]; then
+  echo "Supabase edge job unauthorized smoke passed."
+  exit 0
+fi
 
 echo "Verifying authorized requests pass the auth layer..."
 import_football_auth="$(call_edge "import-football-data" "" '{}' \
@@ -98,6 +117,16 @@ dispatch_match_alerts_auth="$(call_edge "dispatch-match-alerts" "" '{}' \
 if [[ "${dispatch_match_alerts_auth}" != "200" && "${dispatch_match_alerts_auth}" != "207" ]]; then
   echo "dispatch-match-alerts authorized expected HTTP 200 or 207 but got ${dispatch_match_alerts_auth}"
   cat /tmp/dispatch-match-alerts.body 2>/dev/null || true
+  exit 1
+fi
+
+sync_livescore_auth="$(call_edge "sync-livescore-football" "" \
+  '{"resource_id":"livescore_world_cup_2026","apply":false,"include_details":false,"include_scoreboard":false,"limit":1,"delay_ms":0}' \
+  -H "x-cron-secret: ${CRON_SECRET}")"
+if [[ "${sync_livescore_auth}" != "200" ]]; then
+  expect_non_auth_error "sync-livescore-football authorized" "${sync_livescore_auth}"
+  echo "sync-livescore-football authorized expected HTTP 200 but got ${sync_livescore_auth}"
+  cat /tmp/sync-livescore-football.body 2>/dev/null || true
   exit 1
 fi
 

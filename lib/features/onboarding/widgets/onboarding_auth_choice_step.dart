@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../theme/colors.dart';
 import '../../../theme/typography.dart';
@@ -36,11 +36,11 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
                   style: FzTypography.display(
                     size: 48,
                     color: textColor,
-                    letterSpacing: 2,
+                    letterSpacing: 0,
                   ),
                 ),
                 FzWordmark(
-                  style: FzTypography.display(size: 48, letterSpacing: 2),
+                  style: FzTypography.display(size: 48, letterSpacing: 0),
                 ),
               ],
             ),
@@ -60,14 +60,14 @@ class OnboardingAuthChoiceStep extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   elevation: 0,
                   backgroundColor: FzColors.secondary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: FzColors.onSecondary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                   textStyle: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
+                    letterSpacing: 0,
                   ),
                 ),
                 child: const Row(

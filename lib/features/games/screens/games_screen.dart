@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
@@ -36,24 +36,18 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
             await ref.read(gamesProvider.future);
           },
           child: ListView(
+            key: const ValueKey('games_screen'),
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 150),
             children: [
-              Text(
-                'GAMES',
-                style: FzTypography.sportsTitle(
-                  size: 42,
-                  color: FzColors.darkText,
+              gamesAsync.maybeWhen(
+                data: (games) =>
+                    _PlayHeader(games: games, joinedIds: joinedIds),
+                orElse: () => const _PlayHeader(
+                  games: <GameSessionSummary>[],
+                  joinedIds: <String>{},
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Bar games.',
-                style: TextStyle(
-                  color: FzColors.darkMuted,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 18),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -162,14 +156,163 @@ class _GamesScreenState extends ConsumerState<GamesScreen> {
   String get _emptyDescription {
     switch (_filter) {
       case _GameFilter.active:
-        return 'Check live.';
+        return 'No live or lobby games are open right now.';
       case _GameFilter.upcoming:
-        return 'Check soon.';
+        return 'Scheduled bar games will appear here.';
       case _GameFilter.joined:
-        return 'Join team.';
+        return 'Join a game to track it here.';
       case _GameFilter.byBar:
-        return 'Pick bar.';
+        return 'Games will group by venue when sessions are available.';
     }
+  }
+}
+
+class _PlayHeader extends StatelessWidget {
+  const _PlayHeader({required this.games, required this.joinedIds});
+
+  final List<GameSessionSummary> games;
+  final Set<String> joinedIds;
+
+  @override
+  Widget build(BuildContext context) {
+    final liveCount = games
+        .where((game) => const {'lobby', 'live'}.contains(game.status))
+        .length;
+    final soonCount = games.where((game) => game.status == 'scheduled').length;
+    final joinedCount = games
+        .where((game) => joinedIds.contains(game.id))
+        .length;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface,
+        borderRadius: FzRadii.heroRadius,
+        border: Border.all(color: FzColors.darkBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: FzColors.orange.withValues(alpha: 0.14),
+                  borderRadius: FzRadii.buttonRadius,
+                ),
+                child: const Icon(
+                  LucideIcons.gamepad2,
+                  color: FzColors.orange,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'PLAY',
+                      style: FzTypography.sportsTitle(
+                        size: 38,
+                        color: FzColors.darkText,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Live venue games, scheduled rooms, and your joined sessions.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: FzColors.darkMuted,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _PlayMetric(
+                  label: 'Live',
+                  value: liveCount,
+                  color: FzColors.green,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _PlayMetric(
+                  label: 'Soon',
+                  value: soonCount,
+                  color: FzColors.cyan,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _PlayMetric(
+                  label: 'Joined',
+                  value: joinedCount,
+                  color: FzColors.orange,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlayMetric extends StatelessWidget {
+  const _PlayMetric({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final int value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 58,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface2,
+        borderRadius: FzRadii.cardRadius,
+        border: Border.all(color: FzColors.darkBorder),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            value.toString(),
+            style: FzTypography.score(size: 20, color: color),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: FzColors.darkMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -187,6 +330,7 @@ class _GameCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FzCard(
+      key: ValueKey('game_card_${game.id}'),
       onTap: onOpen,
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -275,6 +419,7 @@ class _FilterPill extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(
+        key: ValueKey('games_filter_${filter.name}'),
         label: Text(label),
         selected: selected,
         onSelected: (_) => onTap(filter),

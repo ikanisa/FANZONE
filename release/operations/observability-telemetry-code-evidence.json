@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T05:59:57Z",
+  "releaseCandidate": "FANZONE Flutter fullstack release candidate",
+  "sourceCommit": "f284990b373b8fcc5291ec44abb30ef75b228077",
+  "scope": "code-owned runtime observability and product analytics telemetry hardening",
+  "status": "PASS_WITH_PENDING_EXTERNAL_OPERATIONS_SIGNOFF",
+  "controls": [
+    {
+      "id": "OBS-TELEMETRY-001",
+      "name": "Runtime crash telemetry remains available before sign-in",
+      "status": "PASS",
+      "proof": "log_app_runtime_errors_batch remains executable by anon and authenticated roles so pre-login Flutter errors can be captured without exposing direct table writes."
+    },
+    {
+      "id": "OBS-TELEMETRY-002",
+      "name": "Product analytics is authenticated-only",
+      "status": "PASS",
+      "proof": "Anonymous execute is revoked from log_product_event and log_product_events_batch; authenticated execute remains granted."
+    },
+    {
+      "id": "OBS-TELEMETRY-003",
+      "name": "Client roles cannot write observability tables directly",
+      "status": "PASS",
+      "proof": "Direct table grants on app_runtime_errors and product_events are revoked from anon and authenticated roles, forcing writes through bounded RPCs."
+    },
+    {
+      "id": "OBS-TELEMETRY-004",
+      "name": "Telemetry payloads are bounded and redacted",
+      "status": "PASS",
+      "proof": "Runtime telemetry batches are capped at 20, product analytics batches are capped at 50, timestamps are parsed safely, and token-like values are redacted before storage."
+    },
+    {
+      "id": "OBS-TELEMETRY-006",
+      "name": "Telemetry metadata and analytics properties are redacted",
+      "status": "PASS",
+      "proof": "Nested telemetry metadata and product analytics properties are redacted through observability_redact_jsonb before storage, including token-like keys, bearer values, Supabase token-like values, API keys, and connection-string-like values."
+    },
+    {
+      "id": "OBS-TELEMETRY-005",
+      "name": "Runtime telemetry stores event type and metadata",
+      "status": "PASS",
+      "proof": "app_runtime_errors now has event_type and metadata columns, allowing errors and runtime events to be distinguished in operations dashboards."
+    }
+  ],
+  "commands": [
+    {
+      "command": "node tool/validate_observability_telemetry_code_evidence.mjs",
+      "status": "PASS",
+      "proof": "Validator checks this evidence, migration, SQL readiness test, runner, and Flutter telemetry wiring."
+    },
+    {
+      "command": "bash -n tool/supabase_observability_telemetry_hardening.sh",
+      "status": "PASS",
+      "proof": "Shell runner syntax checked locally."
+    },
+    {
+      "command": "tool/supabase_observability_telemetry_hardening.sh",
+      "status": "PASS",
+      "proof": "supabase db push applied 20260606152000_observability_telemetry_hardening.sql and 20260606154500_observability_metadata_redaction.sql to the linked project; tool/supabase_observability_telemetry_hardening.sh passed at output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log."
+    }
+  ],
+  "evidenceRefs": [
+    "supabase/migrations/20260606152000_observability_telemetry_hardening.sql",
+    "supabase/migrations/20260606154500_observability_metadata_redaction.sql",
+    "supabase/tests/observability_telemetry_hardening.sql",
+    "supabase/tests/rls_hardening_audit.sql",
+    "tool/supabase_observability_telemetry_hardening.sh",
+    "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+    "lib/services/app_telemetry.dart",
+    "lib/services/product_analytics_service.dart",
+    "lib/core/errors/app_error_boundary.dart",
+    "lib/main.dart",
+    "docs/release/world-class-evidence-matrix.md",
+    "docs/release/production-go-live-task-register.md"
+  ],
+  "pendingExternalEvidence": [
+    "Capture production dashboard/alert-route evidence for runtime errors, product analytics health, Edge errors, scheduler health, and database health.",
+    "Capture operations owner, incident commander, and release owner signoff in release/operations/operations-readiness-evidence.json."
+  ]
+}

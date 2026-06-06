@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../design_system/design_system.dart';
 import '../../../theme/colors.dart';
@@ -111,11 +111,11 @@ class OnboardingPrimaryButton extends StatelessWidget {
               ? FzColors.darkBg
               : (isDark ? FzColors.darkText : FzColors.lightText),
           disabledBackgroundColor: isPrimary
-              ? FzColors.primary.withValues(alpha: 0.45)
+              ? (isDark ? FzColors.darkSurface3 : FzColors.lightSurface3)
               : ((isDark ? FzColors.darkSurface2 : FzColors.lightSurface2)
                     .withValues(alpha: 0.72)),
           disabledForegroundColor: isPrimary
-              ? FzColors.darkBg.withValues(alpha: 0.7)
+              ? (isDark ? FzColors.darkMuted : FzColors.lightMuted)
               : ((isDark ? FzColors.darkText : FzColors.lightText).withValues(
                   alpha: 0.65,
                 )),

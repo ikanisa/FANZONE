@@ -14,7 +14,7 @@
 ## Short Description (max 80 chars)
 
 ``` 
-Sports-bar match pools, venue ordering, and FET wallet rewards.
+Sports-bar pools, venue ordering, and FET reward points.
 ```
 
 ---
@@ -22,7 +22,7 @@ Sports-bar match pools, venue ordering, and FET wallet rewards.
 ## Full Description (max 4000 chars)
 
 ```
-FANZONE is a sports-bar entertainment app built around venue ordering, curated football match pools, and the FANZONE FET wallet.
+FANZONE is a sports-bar entertainment app built around venue ordering, curated football match pools, and non-cash FANZONE FET reward points.
 
 SPORTS-BAR MATCH POOLS
 Join FET match pools for curated fixtures at participating bars, fan zones, lounges, and hospitality venues.
@@ -30,8 +30,8 @@ Join FET match pools for curated fixtures at participating bars, fan zones, loun
 VENUE MENU & ORDERING
 Choose a venue in the app, browse the bar menu, place an order, and earn FET where the venue has enabled rewards.
 
-FET WALLET
-Earn FET from welcome rewards, qualifying orders, creator invite rewards, and settled pool wins. Use FET on venue orders where allowed by the venue.
+FET REWARD POINTS
+Earn FET from welcome rewards, qualifying orders, creator invite rewards, and eligible pool or game settlement. FET remains a closed-loop reward point inside FANZONE.
 
 GLOBAL FOOTBALL MOMENTS
 Built for sports bars and fan zones across Africa, Europe, the UK, North America, and World Cup markets.
@@ -40,12 +40,12 @@ KEY FEATURES:
 * In-app venue entry, bar menu browsing, and ordering
 * Curated football fixtures and official match pools
 * Venue, country, and global pool scopes
-* FET wallet for rewards, staking, and eligible venue redemption
+* FET reward-point ledger for closed-loop venue engagement
 * Shareable pool links and social cards
 * Anonymous fan identities for privacy-aware participation
 * Clean, fast, mobile-first design
 
-FANZONE is free to download and use. Payments happen off-platform through the venue's supported methods such as USSD, cash guidance, or Revolut links. FET tokens are not real currency and cannot be purchased in the app.
+FANZONE is free to download and use. Payments happen off-platform through the venue's supported methods such as USSD, cash guidance, or Revolut links. FET points are not real currency and cannot be purchased in the app.
 ```
 
 ---
@@ -60,7 +60,7 @@ Google Play requires at minimum:
   3. Match pool detail
   4. Pool discovery
   5. Team profile
-  6. Wallet / FET balance
+  6. FET reward-point activity
   7. Settings / profile
   8. Onboarding
 
@@ -74,11 +74,11 @@ Google Play content rating questionnaire answers:
 |----------|--------|
 | Does the app contain user-generated content? | Yes (match pool participation and venue order notes where enabled) |
 | Does the app share user location? | No |
-| Does the app allow users to interact? | Limited (match pools, share links, and wallet transfer identifiers) |
+| Does the app allow users to interact? | Limited (match pool participation, team flows, venue order notes where enabled, and share links) |
 | Does the app contain violence? | No |
 | Does the app contain sexual content? | No |
 | Does the app contain controlled substances? | No |
-| Does the app allow gambling or real-money wagering? | No (FET tokens are not real currency) |
+| Does the app allow gambling or real-money wagering? | No (FET points are not real currency) |
 | Does the app contain profanity? | No |
 
 **Expected rating**: PEGI 12 / Everyone 10+
@@ -107,9 +107,9 @@ See `docs/privacy-policy.md` for the full text.
 
 If reviewers need login credentials to test the app:
 - The app supports WhatsApp OTP authentication only
-- Dedicated reviewer/test phone number: `+35699711145`
-- Dedicated reviewer/test OTP: `123456`
-- Reviewer steps: enter `+35699711145`, tap `SEND OTP`, then enter `123456`
+- Dedicated reviewer/test phone number must be configured privately in Play Console app-access notes and deployed Edge Function secrets. Do not commit it.
+- Dedicated reviewer/test OTP must be configured privately in Play Console app-access notes and deployed Edge Function secrets. Do not commit it.
+- Reviewer steps: enter the private reviewer phone, tap `SEND OTP`, then enter the private reviewer OTP.
 - Provide a short note that core browsing flows also load for guest access where available
 
 ---

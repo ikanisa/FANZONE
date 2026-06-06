@@ -1,10 +1,12 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../config/app_config.dart';
 import '../../../core/auth/runtime_auth_session_manager.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
 import 'auth_function_error.dart';
+import 'dev_whatsapp_otp_fixture.dart';
 
 /// Authentication gateway using WhatsApp Cloud API for OTP delivery.
 ///
@@ -53,6 +55,7 @@ class SupabaseAuthGateway implements AuthGateway {
   final SupabaseConnection _connection;
 
   static const _timeout = Duration(seconds: 20);
+  static const _devOtpFixture = DevWhatsAppOtpFixture();
 
   @override
   bool get isInitialized => _connection.isInitialized;
@@ -78,6 +81,10 @@ class SupabaseAuthGateway implements AuthGateway {
 
   @override
   Future<bool> sendOtp(String phone) async {
+    if (_canUseDevOtpFixture(phone)) {
+      return true;
+    }
+
     _assertReviewMutationAllowed('WhatsApp OTP delivery');
     final data = await _invokeWhatsappOtp(
       action: 'send',
@@ -99,6 +106,16 @@ class SupabaseAuthGateway implements AuthGateway {
 
   @override
   Future<void> verifyOtp(String phone, String otp) async {
+    if (_canUseDevOtpFixture(phone)) {
+      if (!_devOtpFixture.matchesOtp(otp)) {
+        throw const AuthException('Invalid development OTP. Please try again.');
+      }
+      await RuntimeAuthSessionManager.instance.applyVerifiedSession(
+        _devOtpFixture.sessionPayload(phone),
+      );
+      return;
+    }
+
     _assertReviewMutationAllowed('WhatsApp OTP verification');
     final data = await _invokeWhatsappOtp(
       action: 'verify',
@@ -249,5 +266,12 @@ class SupabaseAuthGateway implements AuthGateway {
     throw AuthException(
       '$action is disabled in the FANZONE review PWA. Use seeded staging sessions for browser review.',
     );
+  }
+
+  bool _canUseDevOtpFixture(String phone) {
+    final fixtureEnabled = AppConfig.isReviewMode || kDebugMode;
+    return fixtureEnabled &&
+        _devOtpFixture.isConfigured &&
+        _devOtpFixture.matchesPhone(phone);
   }
 }

@@ -1,0 +1,15 @@
+FANZONE Flutter coverage evidence
+Generated at UTC: 2026-06-06T07:25:12Z
+Source commit: f284990b373b8fcc5291ec44abb30ef75b228077
+Branch: main
+Command: flutter test --coverage
+Status: PASS
+Tests passed: 288
+Tests failed: 0
+LCOV path: release/qa/flutter-coverage-lcov.info
+LCOV SHA-256: df8d76a305c1508cf356feeef0096a7f68205c839a640a22a8ffa945ffdf5b0f
+Coverage files: 199
+Executable lines: 14923
+Covered lines: 5393
+Line coverage: 36.14%
+Local full log captured at: output/release-evidence/flutter-coverage/20260606T072332Z.log

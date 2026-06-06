@@ -9,6 +9,11 @@ import {
   isAuthorizedEdgeRequest,
 } from "../_shared/http.ts";
 import {
+  cronAuditResponse,
+  finishCronJobRun,
+  startCronJobRun,
+} from "../_shared/cron_audit.ts";
+import {
   buildResultDispatchKey,
   type MatchRow,
   uniqueUserIds,
@@ -103,6 +108,8 @@ Deno.serve(async (req: Request) => {
   if (
     !isAuthorizedEdgeRequest({
       req,
+      serviceRoleKey: SUPABASE_SERVICE_KEY,
+      allowServiceRoleBearer: true,
       sharedSecrets: [{ header: "x-cron-secret", value: CRON_SECRET }],
     })
   ) {
@@ -111,6 +118,10 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  let audit = await startCronJobRun(supabase, "dispatch-match-alerts", {
+    edge_function: "dispatch-match-alerts",
   });
 
   const summary = {
@@ -280,12 +291,31 @@ Deno.serve(async (req: Request) => {
       summary.errors.push(`result: ${getErrorMessage(error)}`);
     }
 
-    return Response.json(summary, {
+    audit = await finishCronJobRun(
+      supabase,
+      audit,
+      summary.errors.length > 0 ? "failed" : "completed",
+      summary,
+      summary.errors.length > 0 ? summary.errors.join("; ") : undefined,
+    );
+
+    return Response.json({ ...summary, audit: cronAuditResponse(audit) }, {
       headers: buildCorsHeaders("content-type"),
     });
   } catch (error) {
+    audit = await finishCronJobRun(
+      supabase,
+      audit,
+      "failed",
+      summary,
+      getErrorMessage(error),
+    );
     return Response.json(
-      { error: getErrorMessage(error), ...summary },
+      {
+        error: getErrorMessage(error),
+        ...summary,
+        audit: cronAuditResponse(audit),
+      },
       { status: 500, headers: buildCorsHeaders("content-type") },
     );
   }

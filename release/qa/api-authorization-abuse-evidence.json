@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T06:05:00Z",
+  "releaseCandidate": "1.1.3+11",
+  "sourceCommit": "f284990b373b8fcc5291ec44abb30ef75b228077",
+  "projectRef": "kjuhheobmdvjwgnzlcwx",
+  "scope": "Linked Supabase API authorization abuse and object-level access coverage for FANZONE Flutter app release",
+  "contractRun": {
+    "command": "./tool/supabase_api_authorization_abuse_tests.sh --contract",
+    "status": "PASS",
+    "executedAtUtc": "2026-06-06T00:38:58Z",
+    "log": "output/release-evidence/backend-authorization-abuse/20260606T003858Z.log",
+    "proof": "Linked Supabase contract wrapper passed RLS/client grant audit plus rollback SQL contracts for order lifecycle, manual payment reconciliation, and staff-call acknowledgement."
+  },
+  "coveredAbuseScenarios": [
+    "anonymous access rejection",
+    "wrong-role RPC rejection",
+    "cross-user order isolation",
+    "cross-venue staff isolation",
+    "cross-venue manual payment rejection",
+    "direct table mutation denial",
+    "unsupported payment method rejection",
+    "portable audit-log evidence checks"
+  ],
+  "sqlContractRefs": [
+    "supabase/tests/rls_hardening_audit.sql",
+    "supabase/tests/order_lifecycle_contract.sql",
+    "supabase/tests/manual_payment_reconciliation_contract.sql",
+    "supabase/tests/staff_call_acknowledgement_contract.sql"
+  ],
+  "scriptRefs": [
+    "tool/supabase_api_authorization_abuse_tests.sh",
+    "tool/supabase_rls_audit.sh",
+    "tool/supabase_hospitality_core_phase2.sh",
+    "tool/supabase_order_lifecycle_smoke.sh",
+    "tool/supabase_manual_payment_reconciliation_smoke.sh",
+    "tool/supabase_staff_call_acknowledgement_smoke.sh"
+  ],
+  "edgeFunctionAuthCoverage": {
+    "status": "PASS",
+    "evidence": "release/qa/current-fullstack-supabase-evidence.json",
+    "commands": [
+      "tool/supabase_app_edge_smoke.sh",
+      "tool/supabase_game_edge_smoke.sh",
+      "tool/supabase_whatsapp_auth_smoke.sh",
+      "tool/supabase_edge_job_smoke.sh --unauthorized-only",
+      "node tool/validate_edge_function_release_contract.mjs"
+    ],
+    "proof": "App, game, WhatsApp, scheduler/job, and release-contract smoke checks require anonymous rejection or verified JWT/auth-bound execution for Flutter/app-facing Edge Functions."
+  },
+  "criticalUatRef": {
+    "status": "PASS",
+    "evidence": "release/qa/critical-user-flow-uat.json",
+    "flowId": "BACKEND-ISO-001"
+  },
+  "validator": {
+    "command": "node tool/validate_api_authorization_abuse_evidence.mjs",
+    "status": "PASS"
+  }
+}

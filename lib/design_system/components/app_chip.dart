@@ -47,10 +47,18 @@ class AppChip extends StatelessWidget {
     );
 
     if (onTap == null) return content;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: FzRadii.fullRadius,
-      child: content,
+    return Semantics(
+      button: true,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Center(
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: FzRadii.fullRadius,
+            child: content,
+          ),
+        ),
+      ),
     );
   }
 }

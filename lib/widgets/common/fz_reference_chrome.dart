@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../providers/currency_provider.dart';
 import '../../theme/colors.dart';
@@ -284,11 +284,14 @@ class FzPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final foregroundColor = selected
+        ? (color.computeLuminance() > 0.45 ? FzColors.darkBg : Colors.white)
+        : FzColors.darkText;
     final content = Container(
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: 13),
       decoration: BoxDecoration(
-        color: selected ? color.withValues(alpha: 0.18) : FzColors.darkSurface2,
+        color: selected ? color : FzColors.darkSurface2,
         borderRadius: FzRadii.fullRadius,
         border: Border.all(color: selected ? color : FzColors.darkBorder),
       ),
@@ -299,7 +302,10 @@ class FzPill extends StatelessWidget {
             Container(
               width: 6,
               height: 6,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: foregroundColor,
+                shape: BoxShape.circle,
+              ),
             ),
             const SizedBox(width: 7),
           ] else if (icon != null) ...[
@@ -308,20 +314,25 @@ class FzPill extends StatelessWidget {
           ],
           Text(
             label.toUpperCase(),
-            style: FzTypography.chipLabel(
-              size: 12,
-              color: selected ? color : FzColors.darkText,
-            ),
+            style: FzTypography.chipLabel(size: 12, color: foregroundColor),
           ),
         ],
       ),
     );
 
     if (onTap == null) return content;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: FzRadii.fullRadius,
-      child: content,
+    return Semantics(
+      button: true,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Center(
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: FzRadii.fullRadius,
+            child: content,
+          ),
+        ),
+      ),
     );
   }
 }

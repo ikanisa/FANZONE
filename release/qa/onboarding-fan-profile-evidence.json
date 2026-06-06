@@ -1,0 +1,107 @@
+{
+  "generatedAtUtc": "2026-06-06T04:25:45Z",
+  "scope": "Flutter onboarding fan profile and Supabase team catalog selection",
+  "status": "PASS",
+  "codeOwnedEvidence": [
+    {
+      "id": "FAN-PROFILE-UX-001",
+      "status": "PASS",
+      "description": "Onboarding fan profile exposes direct Local, Europe, and World Cup category controls and saves a local team plus top European and national selections.",
+      "references": [
+        "lib/features/onboarding/widgets/fan_profile_selector.dart",
+        "lib/features/onboarding/screens/onboarding_screen.dart",
+        "test/features/onboarding/fan_profile_selector_test.dart"
+      ]
+    },
+    {
+      "id": "FAN-PROFILE-SUPABASE-001",
+      "status": "PASS",
+      "description": "Team choices are sourced through the onboarding gateway from the Supabase teams catalog and saved to user_favorite_teams with product category sources. If a client is unavailable or the remote browse call fails, the gateway falls back to the active local catalog for browsing only while production save still requires Supabase sync.",
+      "references": [
+        "lib/features/onboarding/data/onboarding_gateway.dart",
+        "lib/features/onboarding/data/team_search_catalog.dart",
+        "tool/supabase_team_catalog_smoke.mjs",
+        "supabase/migrations/20260503135000_fan_profile_categories.sql",
+        "supabase/tests/release_readiness_hardening.sql"
+      ]
+    },
+    {
+      "id": "FAN-PROFILE-LIVE-CATALOG-001",
+      "status": "PASS",
+      "description": "Configured Supabase REST catalog contains active local Malta clubs, top European clubs, and World Cup national teams for the onboarding picker.",
+      "references": [
+        "tool/supabase_team_catalog_smoke.mjs",
+        "supabase/migrations/20260504170000_replace_uat_sports_catalog.sql",
+        "supabase/migrations/20260508170000_import_world_cup_african_catalog.sql"
+      ]
+    },
+    {
+      "id": "FAN-PROFILE-VALIDATION-001",
+      "status": "PASS",
+      "description": "Validation enforces one local team and at least one top European team for onboarding while preserving the two-team category limits.",
+      "references": [
+        "lib/features/onboarding/data/fan_profile.dart",
+        "test/features/onboarding/fan_profile_test.dart"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "command": "dart format lib/features/onboarding/widgets/fan_profile_selector.dart lib/features/onboarding/screens/onboarding_screen.dart test/features/onboarding/fan_profile_selector_test.dart",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter test test/features/onboarding/fan_profile_selector_test.dart test/features/onboarding/fan_profile_test.dart",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter test test/features/onboarding/fan_profile_test.dart test/features/onboarding/team_search_catalog_test.dart test/features/onboarding/fan_profile_selector_test.dart",
+      "status": "PASS"
+    },
+    {
+      "command": "dart analyze lib/features/onboarding/data/team_search_catalog.dart lib/features/onboarding/data/onboarding_gateway.dart test/features/onboarding/team_search_catalog_test.dart",
+      "status": "PASS"
+    },
+    {
+      "command": "node tool/validate_onboarding_team_catalog_evidence.mjs",
+      "status": "PASS"
+    },
+    {
+      "command": "node tool/supabase_team_catalog_smoke.mjs",
+      "status": "PASS",
+      "result": "local_country=MT; local_clubs=24; top_european_clubs=15; world_cup_national_teams=17"
+    },
+    {
+      "command": "./tool/flutter_analyze_release.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter test test/accessibility_audit_test.dart",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter test test/screen_widgets_test.dart",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter test",
+      "status": "PASS",
+      "result": "273 tests passed"
+    },
+    {
+      "command": "flutter build web --release -t lib/main_review.dart --dart-define=APP_RUNTIME_MODE=web_review --dart-define=APP_ENV=staging --dart-define=DEV_WHATSAPP_OTP_PHONE=+3567718613 --dart-define=DEV_WHATSAPP_OTP_CODE=123456",
+      "status": "PASS",
+      "result": "Built build/web"
+    }
+  ],
+  "reviewWeb": {
+    "url": "http://127.0.0.1:8091/?v=fan-profile-tabs#/onboarding",
+    "status": "PASS",
+    "screenshot": "output/release-evidence/web-review-onboarding-fan-profile-20260606T0300Z.png",
+    "note": "The refreshed review shell loads from build/web and lands on the direct Home review surface while preserving the onboarding route state."
+  },
+  "externalLaunchGates": [
+    "Credential provider rotation and owner signoff remain outside code-owned onboarding evidence.",
+    "iOS/TestFlight, production operations monitoring, and human legal signoff remain governed by their release evidence validators."
+  ]
+}

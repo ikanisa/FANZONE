@@ -94,11 +94,13 @@ Destructive retired-object cleanup is intentionally outside this migration inven
 | `bar_onboarding_submit` | Submits venue onboarding payload. | Public/authenticated with validation. |
 | `bar_search` | Searches venue/bar records. | Client-safe read with validation. |
 | `dispatch-match-alerts` | Scheduled kickoff/result alert dispatch. | `x-cron-secret`; calls push pipeline. |
+| `fan-trivia` | Fan Trivia game sessions, teams, questions, and answers through the shared game edge boundary. | Authenticated user JWT; RLS/RPC enforced. |
 | `generate-pool-social-card` | Generates or stores pool social share card data. | Authenticated pool/venue/admin checks plus service role write. |
 | `import-football-data` | Imports curated football data. | Cron/admin secret protected. |
 | `menu_ingest_create` | Creates persistent menu image import jobs. | Authenticated venue member. |
 | `menu_ingest_worker` | Processes menu OCR jobs and writes review payloads. | Service role or cron secret. |
 | `menu_ocr_parse` | Stateless menu OCR parse endpoint. | Authenticated venue member. |
+| `music-bingo` | Music Bingo session, team, card, tile, and claim actions through the shared game edge boundary. | Authenticated user JWT; RLS/RPC enforced. |
 | `order_create` | Creates orders from guest/venue context. | Client auth plus RLS/validation. |
 | `order_mark_paid` | Compatibility wrapper for audited manual payment confirmation. | Venue role checked; delegates to `venue_update_order_payment_status`; no provider API execution. |
 | `order_update_status` | Compatibility wrapper for order service status changes. | Venue role checked; delegates to `venue_transition_order_status`. |
@@ -106,6 +108,8 @@ Destructive retired-object cleanup is intentionally outside this migration inven
 | `push-notify` | Sends push notifications. | `x-push-notify-secret`. |
 | `ring_bell` | Creates authenticated guest staff-call requests for a venue table. | Client auth, venue/table validation, and rate limit. |
 | `settle-match-pools` | Runs idempotent pool settlement. | `x-cron-secret` or service role. |
+| `song-guess` | Song Guess game sessions, teams, questions, and answers through the shared game edge boundary. | Authenticated user JWT; RLS/RPC enforced. |
+| `sync-livescore-football` | Synchronizes LiveScore football fixture/status rows into staged/raw match data. | `x-cron-secret` or service role. |
 | `submit_claim` | Submits venue claim. | Public/authenticated with validation. |
 | `venue_claim` | Venue claim workflow endpoint. | Validated request and policy checks. |
 | `whatsapp-otp` | WhatsApp OTP send/verify and custom session issuance. | Public action endpoint with rate limits and secrets. |

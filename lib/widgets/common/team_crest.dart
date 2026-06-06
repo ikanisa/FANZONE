@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/media/cdn_url_resolver.dart';
@@ -64,6 +65,14 @@ class TeamCrest extends StatelessWidget {
         return _fallback(fg);
       }
 
+      if (kIsWeb) {
+        return Image.network(
+          resolvedUrl,
+          fit: BoxFit.contain,
+          errorBuilder: (_, _, _) => _fallback(fg),
+        );
+      }
+
       return CachedNetworkImage(
         imageUrl: resolvedUrl,
         cacheManager: FzImageCacheManager.instance,
@@ -90,7 +99,7 @@ class TeamCrest extends StatelessWidget {
           fontSize: size * 0.26,
           fontWeight: FontWeight.w800,
           color: fg,
-          letterSpacing: 0.4,
+          letterSpacing: 0,
         ),
       ),
     );

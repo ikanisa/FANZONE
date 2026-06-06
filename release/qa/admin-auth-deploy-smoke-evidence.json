@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T07:39:41.381Z",
+  "projectRef": "kjuhheobmdvjwgnzlcwx",
+  "scope": "Credential-free deployed admin authorization boundary smoke for FANZONE Supabase Edge Function",
+  "command": "node tool/capture_admin_auth_deploy_smoke.mjs",
+  "status": "PASS",
+  "functionName": "admin_user_management",
+  "deployment": {
+    "idSha256": "05313d91a8962a4e5a2cf8b50aa24489d820c0425d65328b430f7abc20fb39d7",
+    "name": "admin_user_management",
+    "slug": "admin_user_management",
+    "status": "ACTIVE",
+    "version": 15,
+    "updatedAtUtc": "2026-06-06T07:38:24Z"
+  },
+  "anonymousPost": {
+    "status": 401,
+    "sbErrorCode": "UNAUTHORIZED_NO_AUTH_HEADER",
+    "sbProjectRef": "kjuhheobmdvjwgnzlcwx",
+    "xSbEdgeRegion": "eu-central-2",
+    "xServedBy": "supabase-edge-runtime",
+    "strictTransportSecurity": "max-age=31536000; includeSubDomains; preload",
+    "responseCode": "UNAUTHORIZED_NO_AUTH_HEADER",
+    "responseMessage": "Missing authorization header"
+  },
+  "notes": [
+    "The deployed admin_user_management function must be active in the linked Supabase project.",
+    "A no-token POST must fail before any viewer/admin/super-admin action can execute.",
+    "Role-specific behavior is covered by the shared auth unit tests and critical admin UAT evidence; this smoke avoids storing privileged JWTs."
+  ]
+}

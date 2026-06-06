@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T05:15:38Z",
+  "sourceCommit": "f284990b373b8fcc5291ec44abb30ef75b228077",
+  "branch": "main",
+  "device": {
+    "serial": "13111JEC215558",
+    "model": "Pixel 4a",
+    "androidApi": 33
+  },
+  "installedPackage": {
+    "applicationId": "app.fanzone.football",
+    "versionName": "1.1.3",
+    "versionCode": 11,
+    "lastUpdateTimeLocal": "2026-06-06 07:14:30",
+    "foregroundActivity": "app.fanzone.football/com.fanzone.fanzone.MainActivity"
+  },
+  "artifact": {
+    "path": "build/app/outputs/flutter-apk/app-release.apk",
+    "sha256": "31fd8c12654db10d332c843b483c52b423592953bcfe1155242b2109542bb5fc",
+    "sizeBytes": 70409904,
+    "builtAtLocal": "Jun 6 07:14:19 2026",
+    "buildCommand": "./tool/build_android_release_from_env.sh production"
+  },
+  "validatedFlows": [
+    {
+      "id": "ANDROID-HOME-SHELL-001",
+      "status": "PASS",
+      "summary": "Cold launch lands directly on Home, shows Supabase-backed bars, and exposes exactly the Home, Play, and Settings bottom tabs.",
+      "evidenceRefs": [
+        "output/release-evidence/android-device-screens/release-installed-current-final-home-20260606T045939Z.png",
+        "output/release-evidence/android-uat-current/20260606T051445Z-favorite-local-launch.log"
+      ]
+    },
+    {
+      "id": "ANDROID-PLAY-GAMES-001",
+      "status": "PASS",
+      "summary": "Play hub loads Supabase-backed live games and pools inside the three-tab shell.",
+      "evidenceRefs": [
+        "output/release-evidence/android-device-screens/release-installed-current-final-play-20260606T050005Z.png"
+      ]
+    },
+    {
+      "id": "ANDROID-SETTINGS-SUPPORT-001",
+      "status": "PASS",
+      "summary": "Settings support rows navigate to Help & FAQ and Privacy Policy, resolving the earlier support-row tap issue.",
+      "evidenceRefs": [
+        "output/release-evidence/android-device-screens/release-installed-current-help-20260606T045619Z.png",
+        "output/release-evidence/android-device-screens/release-installed-current-privacy-policy-20260606T045619Z.png"
+      ]
+    },
+    {
+      "id": "ANDROID-WHATSAPP-OTP-001",
+      "status": "PASS",
+      "summary": "The specified Malta UAT phone reaches Ready state, Send OTP is clickable, OTP entry appears, and verification returns to Settings as Verified with notification controls.",
+      "evidenceRefs": [
+        "output/release-evidence/android-device-screens/release-installed-current-otp-ready-20260606T050912Z.png",
+        "output/release-evidence/android-device-screens/release-installed-current-otp-sent-20260606T050952Z.png",
+        "output/release-evidence/android-device-screens/release-installed-current-otp-code-20260606T051017Z.png",
+        "output/release-evidence/android-device-screens/release-installed-current-otp-verified-20260606T051017Z.png"
+      ]
+    },
+    {
+      "id": "ANDROID-FAN-PROFILE-TEAMS-001",
+      "status": "PASS",
+      "summary": "Verified profile opens the fan-profile team picker with Local, Europe, and National tabs; Europe lists top clubs and Local is scoped to Malta teams.",
+      "evidenceRefs": [
+        "output/release-evidence/android-device-screens/release-installed-current-profile-20260606T051046Z.png",
+        "output/release-evidence/android-device-screens/release-installed-current-favorite-europe-20260606T051136Z.png",
+        "output/release-evidence/android-device-screens/release-installed-current-favorite-local-fixed-20260606T051445Z.png"
+      ]
+    }
+  ],
+  "validationCommands": [
+    {
+      "command": "dart analyze lib/core/utils/phone_country_catalog.dart lib/features/auth/widgets/sign_in_required_sheet.dart lib/features/auth/screens/whatsapp_login_screen.dart lib/features/onboarding/screens/onboarding_screen.dart test/phone_preset_test.dart",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter test test/phone_preset_test.dart test/onboarding_phone_step_test.dart test/dev_whatsapp_otp_fixture_test.dart",
+      "status": "PASS"
+    },
+    {
+      "command": "flutter test test/features/onboarding/fan_profile_selector_test.dart test/features/onboarding/team_search_catalog_test.dart test/phone_preset_test.dart",
+      "status": "PASS"
+    },
+    {
+      "command": "./tool/product_boundary_scan.sh",
+      "status": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS"
+    }
+  ],
+  "notes": [
+    "No crash-buffer entries were present after the final on-device pass.",
+    "The production WhatsApp Cloud API path is preserved; the UAT OTP path is exercised through the existing Edge Function-backed auth flow.",
+    "The floating Android accessibility overlay is visible in some screenshots but is not part of FANZONE."
+  ]
+}

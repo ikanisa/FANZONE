@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../models/sports/match_model.dart';
 import '../../../providers/matches_provider.dart';
@@ -263,7 +263,7 @@ class _MatchPoolsList extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              '${pool.scope} - ${pool.totalMembers} members - ${pool.totalStakedFet} FET',
+                              '${pool.scope} - ${pool.totalMembers} members - reward pool ${pool.totalStakedFet} FET',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
