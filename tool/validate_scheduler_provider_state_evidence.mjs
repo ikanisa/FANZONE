@@ -44,6 +44,16 @@ const allowedProviderStates = new Set([
   "WORKFLOW_NOT_ACTIVE",
   "MISSING_SCHEDULE_RUN_HISTORY",
   "RECENT_SCHEDULE_RUN_NOT_SUCCESSFUL",
+  "RUN_IN_PROGRESS",
+]);
+
+const allowedManualDispatchStates = new Set([
+  "PASS",
+  "MISSING_WORKFLOW_ON_DEFAULT_BRANCH",
+  "WORKFLOW_NOT_ACTIVE",
+  "MISSING_MANUAL_DISPATCH_HISTORY",
+  "RECENT_MANUAL_DISPATCH_NOT_SUCCESSFUL",
+  "RUN_IN_PROGRESS",
 ]);
 
 function hasText(value) {
@@ -115,6 +125,9 @@ for (const job of jobs) {
   if (!allowedProviderStates.has(job.providerState)) {
     errors.push(`${job.id}.providerState is invalid.`);
   }
+  if (!allowedManualDispatchStates.has(job.manualDispatchState)) {
+    errors.push(`${job.id}.manualDispatchState is invalid.`);
+  }
   if (job.workflowIdSha256 && job.workflowIdSha256.length !== 64) {
     errors.push(`${job.id}.workflowIdSha256 must be a SHA-256 hash.`);
   }
@@ -135,6 +148,26 @@ for (const job of jobs) {
       errors.push(`${job.id}.recentScheduledRuns.createdAtUtc must be ISO UTC.`);
     }
   }
+  const manualRuns = Array.isArray(job.recentManualDispatchRuns)
+    ? job.recentManualDispatchRuns
+    : [];
+  for (const run of manualRuns) {
+    if (!hasText(run.idSha256) || run.idSha256.length !== 64) {
+      errors.push(`${job.id}.recentManualDispatchRuns.idSha256 must be a SHA-256 hash.`);
+    }
+    if (run.event && run.event !== "workflow_dispatch") {
+      errors.push(`${job.id}.recentManualDispatchRuns.event must be workflow_dispatch.`);
+    }
+    if (run.branch && run.branch !== "main") {
+      errors.push(`${job.id}.recentManualDispatchRuns.branch must be main.`);
+    }
+    if (run.createdAtUtc && !isIsoUtc(run.createdAtUtc)) {
+      errors.push(`${job.id}.recentManualDispatchRuns.createdAtUtc must be ISO UTC.`);
+    }
+    if (typeof run.runnerNamePresent !== "boolean") {
+      errors.push(`${job.id}.recentManualDispatchRuns.runnerNamePresent must be boolean.`);
+    }
+  }
 }
 for (const id of expectedJobs.keys()) {
   if (!seen.has(id)) errors.push(`jobs missing ${id}.`);
@@ -153,6 +186,7 @@ if (allPass) {
   for (const fragment of [
     "default branch",
     "scheduled runs complete successfully",
+    "manual dispatch fallback runs complete successfully",
     "missed-run alert evidence",
   ]) {
     if (!pending.some((item) => String(item).includes(fragment))) {

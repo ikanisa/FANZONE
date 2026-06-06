@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAtUtc": "2026-06-06T09:17:48.826Z",
+  "generatedAtUtc": "2026-06-06T09:24:31.399Z",
   "repo": "ikanisa/FANZONE",
   "scope": "Credential-free GitHub Actions provider scheduler state for FANZONE production cron workflows",
   "command": "node tool/capture_scheduler_provider_state.mjs",
@@ -24,7 +24,8 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T19:17:47Z",
-          "updatedAtUtc": "2026-05-03T19:17:51Z"
+          "updatedAtUtc": "2026-05-03T19:17:51Z",
+          "runnerNamePresent": false
         },
         {
           "idSha256": "8251c796f992ef24ec87c6a14c91d9ac264d8d46781e7b4d129962e81e2aba78",
@@ -33,7 +34,8 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T18:11:07Z",
-          "updatedAtUtc": "2026-05-03T18:11:11Z"
+          "updatedAtUtc": "2026-05-03T18:11:11Z",
+          "runnerNamePresent": false
         },
         {
           "idSha256": "ca79e3f1df583f81bdc5894eb30c3d5c842b0061bb3246a88fdbdb30114ed4c6",
@@ -42,7 +44,8 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T17:27:09Z",
-          "updatedAtUtc": "2026-05-03T17:27:13Z"
+          "updatedAtUtc": "2026-05-03T17:27:13Z",
+          "runnerNamePresent": false
         },
         {
           "idSha256": "9cb4732f883a534d104cd15b02530b11ae29cea72f941a96acadc653023d2a4b",
@@ -51,7 +54,8 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T16:29:23Z",
-          "updatedAtUtc": "2026-05-03T16:29:27Z"
+          "updatedAtUtc": "2026-05-03T16:29:27Z",
+          "runnerNamePresent": false
         },
         {
           "idSha256": "5c96d5dd3add2875906f50553c47d92d0725e6e2d575ebc9271650ee5bc9af40",
@@ -60,10 +64,14 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T15:41:37Z",
-          "updatedAtUtc": "2026-05-03T15:41:41Z"
+          "updatedAtUtc": "2026-05-03T15:41:41Z",
+          "runnerNamePresent": false
         }
       ],
-      "providerQueryError": ""
+      "providerQueryError": "",
+      "manualDispatchState": "MISSING_MANUAL_DISPATCH_HISTORY",
+      "recentManualDispatchRuns": [],
+      "manualDispatchQueryError": ""
     },
     {
       "id": "dispatch-match-alerts",
@@ -83,7 +91,8 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T20:01:20Z",
-          "updatedAtUtc": "2026-05-03T20:01:31Z"
+          "updatedAtUtc": "2026-05-03T20:01:31Z",
+          "runnerNamePresent": false
         },
         {
           "idSha256": "5e8cba8df96b00570c1ba8338c752e6200cebc8b6805e9f531f0da7ae7da24dc",
@@ -92,7 +101,8 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T19:13:55Z",
-          "updatedAtUtc": "2026-05-03T19:13:59Z"
+          "updatedAtUtc": "2026-05-03T19:13:59Z",
+          "runnerNamePresent": false
         },
         {
           "idSha256": "35e1af374cbe20709556176df6872cc4c460e1b0dfa48501b8177762ff2f5678",
@@ -101,7 +111,8 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T18:02:29Z",
-          "updatedAtUtc": "2026-05-03T18:02:33Z"
+          "updatedAtUtc": "2026-05-03T18:02:33Z",
+          "runnerNamePresent": false
         },
         {
           "idSha256": "6f6c49890a4290dd9d6307f3c34b5bbad4a6fe44d6407daf3c22315a307648b9",
@@ -110,7 +121,8 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T17:08:35Z",
-          "updatedAtUtc": "2026-05-03T17:08:39Z"
+          "updatedAtUtc": "2026-05-03T17:08:39Z",
+          "runnerNamePresent": false
         },
         {
           "idSha256": "1978f70eb3f5045f100816917430897f98a7e3646cc0a22659b5f3442f04c1a4",
@@ -119,10 +131,14 @@
           "event": "schedule",
           "branch": "main",
           "createdAtUtc": "2026-05-03T16:11:36Z",
-          "updatedAtUtc": "2026-05-03T16:11:46Z"
+          "updatedAtUtc": "2026-05-03T16:11:46Z",
+          "runnerNamePresent": false
         }
       ],
-      "providerQueryError": ""
+      "providerQueryError": "",
+      "manualDispatchState": "MISSING_MANUAL_DISPATCH_HISTORY",
+      "recentManualDispatchRuns": [],
+      "manualDispatchQueryError": ""
     },
     {
       "id": "sync-livescore-football",
@@ -135,7 +151,21 @@
       "workflowIdSha256": "fde91fc1a7d9d0e897c790320a3f297ac56a291bf3d92ae34b3b2ad58ed777b8",
       "providerState": "MISSING_SCHEDULE_RUN_HISTORY",
       "recentScheduledRuns": [],
-      "providerQueryError": ""
+      "providerQueryError": "",
+      "manualDispatchState": "RECENT_MANUAL_DISPATCH_NOT_SUCCESSFUL",
+      "recentManualDispatchRuns": [
+        {
+          "idSha256": "8ecdc96711a20e579340d1946d2678ae2111f727c523a932160f6a6da4f86529",
+          "status": "completed",
+          "conclusion": "failure",
+          "event": "workflow_dispatch",
+          "branch": "main",
+          "createdAtUtc": "2026-06-06T09:22:45Z",
+          "updatedAtUtc": "2026-06-06T09:23:25Z",
+          "runnerNamePresent": false
+        }
+      ],
+      "manualDispatchQueryError": ""
     }
   ],
   "notes": [
@@ -146,6 +176,7 @@
   "pendingExternalEvidence": [
     "Keep all scheduler workflows active on the default branch while collecting successful scheduled-run history.",
     "Verify GitHub Actions scheduled runs complete successfully for all three scheduler workflows.",
+    "Verify manual dispatch fallback runs complete successfully for the scheduler workflows before relying on fallback operations.",
     "Capture delivered missed-run alert evidence and operations owner signoff."
   ]
 }

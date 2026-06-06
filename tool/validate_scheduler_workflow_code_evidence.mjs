@@ -120,9 +120,13 @@ const requiredFileFragments = new Map([
       "sync-livescore-football",
       "RECENT_SCHEDULE_RUN_NOT_SUCCESSFUL",
       "MISSING_SCHEDULE_RUN_HISTORY",
+      "RECENT_MANUAL_DISPATCH_NOT_SUCCESSFUL",
+      "recentManualDispatchRuns",
+      "runnerNamePresent",
       "workflowFoundOnDefaultBranch",
       "default branch",
       "scheduled runs complete successfully",
+      "manual dispatch fallback runs complete successfully",
     ],
   ],
   [

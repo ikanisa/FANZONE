@@ -69,6 +69,33 @@ function localWorkflowCron(workflowPath) {
   return match?.[1] || "";
 }
 
+function summarizeRuns(runs) {
+  return runs.map((run) => ({
+    idSha256: sha256(String(run.id || "")),
+    status: run.status || "",
+    conclusion: run.conclusion || "",
+    event: run.event || "",
+    branch: run.head_branch || "",
+    createdAtUtc: run.created_at || "",
+    updatedAtUtc: run.updated_at || "",
+    runnerNamePresent: Boolean(run.runner_name),
+  }));
+}
+
+function dispatchStateFor({ workflow, latestRun, missingState, noRunsState }) {
+  return !workflow
+    ? missingState
+    : workflow.state !== "active"
+    ? "WORKFLOW_NOT_ACTIVE"
+    : !latestRun
+    ? noRunsState
+    : latestRun.status === "completed" && latestRun.conclusion === "success"
+    ? "PASS"
+    : latestRun.status === "completed"
+    ? "RECENT_RUN_NOT_SUCCESSFUL"
+    : "RUN_IN_PROGRESS";
+}
+
 const workflowsResponse = runGhJson([
   "api",
   `repos/${repo}/actions/workflows`,
@@ -90,26 +117,48 @@ const jobs = expectedJobs.map((job) => {
   const runs = runsResponse.ok && Array.isArray(runsResponse.data.workflow_runs)
     ? runsResponse.data.workflow_runs
     : [];
-  const recentRuns = runs.map((run) => ({
-    idSha256: sha256(String(run.id || "")),
-    status: run.status || "",
-    conclusion: run.conclusion || "",
-    event: run.event || "",
-    branch: run.head_branch || "",
-    createdAtUtc: run.created_at || "",
-    updatedAtUtc: run.updated_at || "",
-  }));
+  const recentRuns = summarizeRuns(runs);
+  const manualRunsResponse = workflow?.id
+    ? safeGhJson([
+      "api",
+      `repos/${repo}/actions/workflows/${workflow.id}/runs?branch=main&event=workflow_dispatch&per_page=5`,
+    ])
+    : { ok: false, error: "Workflow not found on default branch." };
+  const manualRuns = manualRunsResponse.ok &&
+      Array.isArray(manualRunsResponse.data.workflow_runs)
+    ? manualRunsResponse.data.workflow_runs
+    : [];
+  const recentManualDispatchRuns = summarizeRuns(manualRuns);
   const latestRun = recentRuns[0] || null;
+  const latestManualRun = recentManualDispatchRuns[0] || null;
   const providerState =
-    !workflow
-      ? "MISSING_WORKFLOW_ON_DEFAULT_BRANCH"
-      : workflow.state !== "active"
-      ? "WORKFLOW_NOT_ACTIVE"
-      : !latestRun
-      ? "MISSING_SCHEDULE_RUN_HISTORY"
-      : latestRun.status === "completed" && latestRun.conclusion === "success"
-      ? "PASS"
-      : "RECENT_SCHEDULE_RUN_NOT_SUCCESSFUL";
+    dispatchStateFor({
+      workflow,
+      latestRun,
+      missingState: "MISSING_WORKFLOW_ON_DEFAULT_BRANCH",
+      noRunsState: "MISSING_SCHEDULE_RUN_HISTORY",
+    }) === "RECENT_RUN_NOT_SUCCESSFUL"
+      ? "RECENT_SCHEDULE_RUN_NOT_SUCCESSFUL"
+      : dispatchStateFor({
+        workflow,
+        latestRun,
+        missingState: "MISSING_WORKFLOW_ON_DEFAULT_BRANCH",
+        noRunsState: "MISSING_SCHEDULE_RUN_HISTORY",
+      });
+  const manualDispatchState =
+    dispatchStateFor({
+      workflow,
+      latestRun: latestManualRun,
+      missingState: "MISSING_WORKFLOW_ON_DEFAULT_BRANCH",
+      noRunsState: "MISSING_MANUAL_DISPATCH_HISTORY",
+    }) === "RECENT_RUN_NOT_SUCCESSFUL"
+      ? "RECENT_MANUAL_DISPATCH_NOT_SUCCESSFUL"
+      : dispatchStateFor({
+        workflow,
+        latestRun: latestManualRun,
+        missingState: "MISSING_WORKFLOW_ON_DEFAULT_BRANCH",
+        noRunsState: "MISSING_MANUAL_DISPATCH_HISTORY",
+      });
 
   return {
     id: job.id,
@@ -123,6 +172,11 @@ const jobs = expectedJobs.map((job) => {
     providerState,
     recentScheduledRuns: recentRuns,
     providerQueryError: runsResponse.ok ? "" : runsResponse.error,
+    manualDispatchState,
+    recentManualDispatchRuns,
+    manualDispatchQueryError: manualRunsResponse.ok
+      ? ""
+      : manualRunsResponse.error,
   };
 });
 
@@ -142,6 +196,7 @@ if (hasMissingDefaultBranchWorkflow) {
 }
 pendingExternalEvidence.push(
   "Verify GitHub Actions scheduled runs complete successfully for all three scheduler workflows.",
+  "Verify manual dispatch fallback runs complete successfully for the scheduler workflows before relying on fallback operations.",
   "Capture delivered missed-run alert evidence and operations owner signoff.",
 );
 const evidence = {
