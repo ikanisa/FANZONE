@@ -423,8 +423,8 @@
       "status": "PASS",
       "buildCommand": "flutter build apk --release",
       "path": "build/app/outputs/flutter-apk/app-release.apk",
-      "sha256": "d5722a6b228db6e8aac0b8607a60f264d8b77ebfda409a2b22c84ae9905640a7",
-      "sizeBytes": 74464432
+      "sha256": "03c3ac4cd3bad53ba4494e7ef3f6be6c7a157362449f5dfde0f086f649444146",
+      "sizeBytes": 74480816
     },
     "postMergeFlutterChecks": {
       "status": "PASS",

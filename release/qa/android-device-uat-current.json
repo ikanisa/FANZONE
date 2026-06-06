@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAtUtc": "2026-06-06T05:15:38Z",
+  "generatedAtUtc": "2026-06-06T09:44:57Z",
   "sourceCommit": "f284990b373b8fcc5291ec44abb30ef75b228077",
   "branch": "main",
   "device": {
@@ -24,15 +24,15 @@
   },
   "currentReleaseArtifact": {
     "path": "build/app/outputs/flutter-apk/app-release.apk",
-    "sha256": "d5722a6b228db6e8aac0b8607a60f264d8b77ebfda409a2b22c84ae9905640a7",
-    "sizeBytes": 74464432,
-    "builtAtLocal": "Jun 6 10:23:24 2026",
-    "sourceCommit": "4166d5100ccfbc264100fd2f5ef272f05cee1b64",
+    "sha256": "03c3ac4cd3bad53ba4494e7ef3f6be6c7a157362449f5dfde0f086f649444146",
+    "sizeBytes": 74480816,
+    "builtAtLocal": "Jun 6 11:44:25 2026",
+    "sourceCommit": "b1e84166abbd9996179550486a8f70a4605c873e",
     "buildCommand": "flutter build apk --release"
   },
   "currentArtifactDeviceRerun": {
     "status": "BLOCKED_EXTERNAL",
-    "proof": "The recorded Pixel 4a UAT flows passed on the installed APK above. The current release APK was rebuilt after that pass, but the current release APK source commit is behind HEAD after later release-relevant Flutter changes. Rebuild the APK from HEAD and rerun Pixel 4a UAT; adb devices -l currently returns no attached Android devices, so the current artifact still needs a physical-device rerun before claiming device UAT on this exact build."
+    "proof": "The recorded Pixel 4a UAT flows passed on the installed APK above. The current release APK was rebuilt from HEAD, but adb devices -l currently returns no attached Android devices, so this exact artifact still needs a physical-device Pixel 4a rerun before claiming current-build device UAT."
   },
   "validatedFlows": [
     {
