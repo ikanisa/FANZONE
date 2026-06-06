@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -42,6 +43,37 @@ const requiredExternalGateFragments = [
   "Human legal review",
   "iOS archive",
   "Google Play",
+];
+
+const requiredPostMergeMigrations = [
+  "20260604120000",
+  "20260604123000",
+  "20260606110000",
+  "20260606113000",
+  "20260606124500",
+  "20260606125000",
+  "20260606130500",
+  "20260606133500",
+  "20260606134000",
+  "20260606140500",
+  "20260606141000",
+  "20260606152000",
+  "20260606154500",
+  "20260606161000",
+  "20260606170000",
+  "20260606173000",
+  "20260606174000",
+];
+
+const requiredPostMergeFunctions = [
+  ...requiredCoveredFunctions,
+  "admin_user_management",
+];
+
+const requiredPostMergeBlockers = [
+  "android-device-uat",
+  "github-actions",
+  "authenticated-live-probes",
 ];
 
 const requiredUserVisibleFlowEvidence = new Map([
@@ -169,6 +201,31 @@ function sha256(filePath) {
     .digest("hex");
 }
 
+function currentGitHead() {
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch (_) {
+    return null;
+  }
+}
+
+function isAncestorCommit(commit, descendant = "HEAD") {
+  if (!/^[a-f0-9]{40}$/.test(commit)) return false;
+  try {
+    execFileSync("git", ["merge-base", "--is-ancestor", commit, descendant], {
+      cwd: process.cwd(),
+      stdio: ["ignore", "ignore", "ignore"],
+    });
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 function requireStatus(errors, label, node, expected = "PASS") {
   if (node?.status !== expected) {
     errors.push(`${label}.status must be ${expected}.`);
@@ -200,6 +257,7 @@ if (credentialPattern.test(raw)) {
 
 const data = readJson(absolutePath);
 const errors = [];
+const headCommit = currentGitHead();
 
 if (!isIsoDateTime(data.generatedAtUtc)) {
   errors.push("generatedAtUtc must be an ISO UTC timestamp ending in Z.");
@@ -573,6 +631,125 @@ for (const key of requiredTeamCatalogGroups) {
   }
 }
 requireRefs(errors, "linkedSupabase.teamCatalogSmoke.files", linked.teamCatalogSmoke?.files);
+
+const postMerge = data.postMergeValidation || {};
+requireStatus(
+  errors,
+  "postMergeValidation",
+  postMerge,
+  "PASS_WITH_EXTERNAL_BLOCKERS",
+);
+if (!isIsoDateTime(postMerge.generatedAtUtc)) {
+  errors.push("postMergeValidation.generatedAtUtc must be an ISO UTC timestamp ending in Z.");
+}
+if (postMerge.projectRef !== data.projectRef) {
+  errors.push("postMergeValidation.projectRef must match projectRef.");
+}
+if (!/^[a-f0-9]{40}$/.test(String(postMerge.mergedMainCommit || ""))) {
+  errors.push("postMergeValidation.mergedMainCommit must be a 40-character git SHA.");
+}
+if (
+  headCommit &&
+  postMerge.mergedMainCommit !== headCommit &&
+  !isAncestorCommit(postMerge.mergedMainCommit)
+) {
+  errors.push(
+    "postMergeValidation.mergedMainCommit must match or be an ancestor of the current git HEAD.",
+  );
+}
+requireStatus(errors, "postMergeValidation.supabaseLinkedProject", postMerge.supabaseLinkedProject);
+if (postMerge.supabaseLinkedProject?.projectRef !== data.projectRef) {
+  errors.push("postMergeValidation.supabaseLinkedProject.projectRef must match projectRef.");
+}
+requireStatus(errors, "postMergeValidation.migrationsApplied", postMerge.migrationsApplied);
+const appliedMigrationSet = new Set(postMerge.migrationsApplied?.requiredVersions || []);
+for (const migration of requiredPostMergeMigrations) {
+  if (!appliedMigrationSet.has(migration)) {
+    errors.push(`postMergeValidation.migrationsApplied.requiredVersions missing ${migration}.`);
+  }
+}
+requireStatus(errors, "postMergeValidation.deployedFunctions", postMerge.deployedFunctions);
+const activeFunctionSet = new Set(postMerge.deployedFunctions?.activeFunctions || []);
+for (const functionName of requiredPostMergeFunctions) {
+  if (!activeFunctionSet.has(functionName)) {
+    errors.push(`postMergeValidation.deployedFunctions.activeFunctions missing ${functionName}.`);
+  }
+}
+requireStatus(errors, "postMergeValidation.liveAnonymousEdgeSmokes", postMerge.liveAnonymousEdgeSmokes);
+for (const command of [
+  "SUPABASE_URL=https://kjuhheobmdvjwgnzlcwx.supabase.co tool/supabase_app_edge_smoke.sh",
+  "SUPABASE_URL=https://kjuhheobmdvjwgnzlcwx.supabase.co tool/supabase_game_edge_smoke.sh",
+]) {
+  if (!Array.isArray(postMerge.liveAnonymousEdgeSmokes?.commands) ||
+    !postMerge.liveAnonymousEdgeSmokes.commands.includes(command)) {
+    errors.push(`postMergeValidation.liveAnonymousEdgeSmokes.commands missing ${command}.`);
+  }
+}
+if (
+  !String(postMerge.liveAnonymousEdgeSmokes?.proof || "").includes(
+    "reject anonymous calls",
+  )
+) {
+  errors.push("postMergeValidation.liveAnonymousEdgeSmokes.proof must mention anonymous rejection.");
+}
+requireStatus(errors, "postMergeValidation.reviewWeb", postMerge.reviewWeb);
+if (postMerge.reviewWeb?.route !== "/home") {
+  errors.push("postMergeValidation.reviewWeb.route must be /home.");
+}
+const bottomNavigation = postMerge.reviewWeb?.bottomNavigation || [];
+if (JSON.stringify(bottomNavigation) !== JSON.stringify(["Home", "Play", "Settings"])) {
+  errors.push("postMergeValidation.reviewWeb.bottomNavigation must be exactly Home, Play, Settings.");
+}
+for (const section of ["Bars", "Live & Upcoming Matches"]) {
+  if (!Array.isArray(postMerge.reviewWeb?.observedHomeSections) ||
+    !postMerge.reviewWeb.observedHomeSections.includes(section)) {
+    errors.push(`postMergeValidation.reviewWeb.observedHomeSections missing ${section}.`);
+  }
+}
+if (!/^[a-f0-9]{64}$/.test(String(postMerge.reviewWeb?.webMainDartJsSha256 || ""))) {
+  errors.push("postMergeValidation.reviewWeb.webMainDartJsSha256 must be a SHA-256 hash.");
+}
+if (!Number.isInteger(postMerge.reviewWeb?.webMainDartJsSizeBytes) ||
+  postMerge.reviewWeb.webMainDartJsSizeBytes <= 0) {
+  errors.push("postMergeValidation.reviewWeb.webMainDartJsSizeBytes must be positive.");
+}
+requireStatus(errors, "postMergeValidation.androidReleaseArtifact", postMerge.androidReleaseArtifact);
+if (postMerge.androidReleaseArtifact?.buildCommand !== "flutter build apk --release") {
+  errors.push("postMergeValidation.androidReleaseArtifact.buildCommand must be flutter build apk --release.");
+}
+if (!/^[a-f0-9]{64}$/.test(String(postMerge.androidReleaseArtifact?.sha256 || ""))) {
+  errors.push("postMergeValidation.androidReleaseArtifact.sha256 must be a SHA-256 hash.");
+}
+if (!Number.isInteger(postMerge.androidReleaseArtifact?.sizeBytes) ||
+  postMerge.androidReleaseArtifact.sizeBytes <= 0) {
+  errors.push("postMergeValidation.androidReleaseArtifact.sizeBytes must be positive.");
+}
+requireStatus(errors, "postMergeValidation.postMergeFlutterChecks", postMerge.postMergeFlutterChecks);
+for (const command of [
+  "flutter analyze",
+  "flutter test test/app_router_test.dart test/screen_widgets_test.dart test/features/games/games_repository_test.dart test/features/onboarding/fan_profile_selector_test.dart",
+]) {
+  if (!Array.isArray(postMerge.postMergeFlutterChecks?.commands) ||
+    !postMerge.postMergeFlutterChecks.commands.includes(command)) {
+    errors.push(`postMergeValidation.postMergeFlutterChecks.commands missing ${command}.`);
+  }
+}
+const blockerMap = new Map(
+  (postMerge.externalBlockers || []).map((blocker) => [blocker?.id, blocker]),
+);
+for (const blockerId of requiredPostMergeBlockers) {
+  const blocker = blockerMap.get(blockerId);
+  if (!blocker) {
+    errors.push(`postMergeValidation.externalBlockers missing ${blockerId}.`);
+    continue;
+  }
+  if (blocker.status !== "BLOCKED_EXTERNAL") {
+    errors.push(`postMergeValidation.externalBlockers.${blockerId}.status must be BLOCKED_EXTERNAL.`);
+  }
+  if (!hasText(blocker.proof)) {
+    errors.push(`postMergeValidation.externalBlockers.${blockerId}.proof is required.`);
+  }
+}
 
 const mobileUat = Array.isArray(data.mobileUatSql) ? data.mobileUatSql : [];
 for (const flowId of ["MOB-SETTLEMENT-001", "MOB-WALLET-001"]) {

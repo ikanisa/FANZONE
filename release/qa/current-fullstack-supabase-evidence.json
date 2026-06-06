@@ -337,6 +337,120 @@
     "archiveSizeKiB": 197572,
     "proof": "Local code-owned iOS production Release archive compile succeeded. A signed archive was attempted and is blocked by missing local Apple account/provisioning profile access. This proves compile/config readiness only; signed archive, IPA export, physical iPhone install, push smoke, App Store Connect, and TestFlight remain external release gates."
   },
+  "postMergeValidation": {
+    "generatedAtUtc": "2026-06-06T08:42:00Z",
+    "status": "PASS_WITH_EXTERNAL_BLOCKERS",
+    "mergedMainCommit": "4217fe24027ff5a0c04a0d34c4e9b8f5387bae1a",
+    "projectRef": "kjuhheobmdvjwgnzlcwx",
+    "supabaseLinkedProject": {
+      "status": "PASS",
+      "command": "supabase projects list",
+      "projectRef": "kjuhheobmdvjwgnzlcwx",
+      "name": "FANZONE",
+      "region": "West EU (Ireland)"
+    },
+    "migrationsApplied": {
+      "status": "PASS",
+      "command": "supabase migration list --linked",
+      "requiredVersions": [
+        "20260604120000",
+        "20260604123000",
+        "20260606110000",
+        "20260606113000",
+        "20260606124500",
+        "20260606125000",
+        "20260606130500",
+        "20260606133500",
+        "20260606134000",
+        "20260606140500",
+        "20260606141000",
+        "20260606152000",
+        "20260606154500",
+        "20260606161000",
+        "20260606170000",
+        "20260606173000",
+        "20260606174000"
+      ]
+    },
+    "deployedFunctions": {
+      "status": "PASS",
+      "command": "supabase functions list --project-ref kjuhheobmdvjwgnzlcwx",
+      "activeFunctions": [
+        "fan-trivia",
+        "song-guess",
+        "music-bingo",
+        "sync-livescore-football",
+        "whatsapp-otp",
+        "order_create",
+        "order_mark_paid",
+        "order_update_status",
+        "payment-hub",
+        "menu_ocr_parse",
+        "settle-match-pools",
+        "dispatch-match-alerts",
+        "push-notify",
+        "generate-pool-social-card",
+        "ring_bell",
+        "admin_user_management"
+      ]
+    },
+    "liveAnonymousEdgeSmokes": {
+      "status": "PASS",
+      "commands": [
+        "SUPABASE_URL=https://kjuhheobmdvjwgnzlcwx.supabase.co tool/supabase_app_edge_smoke.sh",
+        "SUPABASE_URL=https://kjuhheobmdvjwgnzlcwx.supabase.co tool/supabase_game_edge_smoke.sh"
+      ],
+      "proof": "Credential-free live smoke proved deployed app and game Edge Functions reject anonymous calls. Authenticated probes remain gated on FANZONE_UAT_USER_JWT."
+    },
+    "reviewWeb": {
+      "status": "PASS",
+      "buildCommand": "flutter build web --release -t lib/main_review.dart --dart-define=APP_RUNTIME_MODE=web_review --dart-define=APP_ENV=staging --dart-define=DEV_WHATSAPP_OTP_PHONE=+3567718613 --dart-define=DEV_WHATSAPP_OTP_CODE=123456",
+      "serveUrl": "http://127.0.0.1:8091/?v=merged-fullstack#/home",
+      "route": "/home",
+      "bottomNavigation": [
+        "Home",
+        "Play",
+        "Settings"
+      ],
+      "observedHomeSections": [
+        "Bars",
+        "Live & Upcoming Matches"
+      ],
+      "webMainDartJsSha256": "709b316988a27837f82014e2cadb77c314d3170e76823e382e1202b215e03d5a",
+      "webMainDartJsSizeBytes": 4583328
+    },
+    "androidReleaseArtifact": {
+      "status": "PASS",
+      "buildCommand": "flutter build apk --release",
+      "path": "build/app/outputs/flutter-apk/app-release.apk",
+      "sha256": "d5722a6b228db6e8aac0b8607a60f264d8b77ebfda409a2b22c84ae9905640a7",
+      "sizeBytes": 74464432
+    },
+    "postMergeFlutterChecks": {
+      "status": "PASS",
+      "commands": [
+        "flutter analyze",
+        "flutter test test/app_router_test.dart test/screen_widgets_test.dart test/features/games/games_repository_test.dart test/features/onboarding/fan_profile_selector_test.dart"
+      ]
+    },
+    "externalBlockers": [
+      {
+        "id": "android-device-uat",
+        "status": "BLOCKED_EXTERNAL",
+        "proof": "adb devices -l returned no attached Android devices, so Pixel install/UAT could not run."
+      },
+      {
+        "id": "github-actions",
+        "status": "BLOCKED_EXTERNAL",
+        "proof": "GitHub Actions check annotation says the job was not started because the account is locked due to a billing issue."
+      },
+      {
+        "id": "authenticated-live-probes",
+        "status": "BLOCKED_EXTERNAL",
+        "proof": "Live authenticated app/game Edge probes require FANZONE_UAT_USER_JWT or a reviewer/device session."
+      }
+    ]
+  },
   "remainingExternalGates": [
     "Secret rotation and owner signoff",
     "Operations scheduler/observability owner signoff, production dashboard/alert evidence, and production scheduler history for settle-match-pools, dispatch-match-alerts, and sync-livescore-football",
