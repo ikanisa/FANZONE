@@ -94,7 +94,7 @@
     {
       "id": "authenticated-live-edge-probes",
       "status": "BLOCKED_EXTERNAL",
-      "proof": "Authenticated app/game Edge probes require a valid reviewer/device session. The supplied OTP 546883 returned Invalid code."
+      "proof": "Authenticated app/game Edge probes require a valid reviewer/device session. A direct verify attempt for OTP 546883 on the UAT WhatsApp number returned No valid OTP found, then a fresh OTP send succeeded; verification still requires the next delivered code."
     },
     {
       "id": "owner-provider-signoff",

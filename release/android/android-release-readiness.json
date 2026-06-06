@@ -376,7 +376,7 @@
         "output/release-evidence/android-device-screens/release-installed-current-otp-verified-20260606T051017Z.png",
         "output/release-evidence/android-device-screens/release-installed-current-favorite-local-fixed-20260606T051445Z.png"
       ],
-      "notes": "Current release APK installed and launched on physical Pixel 4a device 13111JEC215558. Foreground package verified as app.fanzone.football/com.fanzone.fanzone.MainActivity. Device screenshots confirm direct Home launch, Play live games, verified OTP state, and Malta-scoped local favorite-team picker."
+      "notes": "Physical Pixel 4a device 13111JEC215558 installed and launched the previously tested 1.1.3+11 APK recorded in release/qa/android-device-uat-current.json. Foreground package was verified as app.fanzone.football/com.fanzone.fanzone.MainActivity, and device screenshots confirmed direct Home launch, Play live games, verified OTP state, and Malta-scoped local favorite-team picker. The rebuilt current release APK hash is also recorded in release/qa/android-device-uat-current.json and still needs a physical-device rerun because no Android device is currently attached."
     },
     {
       "id": "ANDROID-DEEPLINK-001",
