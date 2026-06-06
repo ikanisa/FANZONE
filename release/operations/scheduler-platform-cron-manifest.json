@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T07:45:00Z",
+  "projectRef": "kjuhheobmdvjwgnzlcwx",
+  "scope": "Production platform-cron manifest for FANZONE scheduled Supabase Edge Functions",
+  "status": "PASS_WITH_PENDING_PROVIDER_ACTIVATION",
+  "provider": "supabase_edge_cron",
+  "timezone": "UTC",
+  "secretName": "CRON_SECRET",
+  "jobs": [
+    {
+      "id": "settle-match-pools",
+      "command": "tool/run_supabase_cron_job.sh settle-match-pools",
+      "edgeFunction": "settle-match-pools",
+      "targetPath": "/functions/v1/settle-match-pools",
+      "scheduleExpression": "every 15 minutes",
+      "cronExpression": "*/15 * * * *",
+      "maxLagMinutes": 45,
+      "missedRunSeverity": "high",
+      "payload": {
+        "limit": 50
+      },
+      "activationStatus": "PENDING_PROVIDER_ACTIVATION"
+    },
+    {
+      "id": "dispatch-match-alerts",
+      "command": "tool/run_supabase_cron_job.sh dispatch-match-alerts",
+      "edgeFunction": "dispatch-match-alerts",
+      "targetPath": "/functions/v1/dispatch-match-alerts",
+      "scheduleExpression": "every 5 minutes",
+      "cronExpression": "*/5 * * * *",
+      "maxLagMinutes": 20,
+      "missedRunSeverity": "high",
+      "payload": {},
+      "activationStatus": "PENDING_PROVIDER_ACTIVATION"
+    },
+    {
+      "id": "sync-livescore-football",
+      "command": "tool/run_supabase_cron_job.sh sync-livescore-football",
+      "edgeFunction": "sync-livescore-football",
+      "targetPath": "/functions/v1/sync-livescore-football",
+      "scheduleExpression": "hourly during active football windows",
+      "cronExpression": "7 * * * *",
+      "maxLagMinutes": 180,
+      "missedRunSeverity": "high",
+      "payload": {
+        "resource_id": "livescore_world_cup_2026",
+        "apply": true,
+        "include_details": false,
+        "include_scoreboard": true,
+        "limit": 200,
+        "delay_ms": 750
+      },
+      "activationStatus": "PENDING_PROVIDER_ACTIVATION"
+    }
+  ],
+  "evidenceRefs": [
+    "supabase/migrations/20260606170000_scheduler_run_history_and_missed_run_alerts.sql",
+    "tool/run_supabase_cron_job.sh",
+    "tool/scheduler_payload_smoke.sh",
+    "release/operations/scheduler-post-deploy-audit-smoke-evidence.json",
+    "docs/operations/scheduler-observability.md"
+  ],
+  "pendingExternalEvidence": [
+    "Activate or verify provider schedules with these exact cron expressions and target paths.",
+    "Capture provider scheduler run history for each job.",
+    "Capture delivered missed-run alert evidence and operations owner signoff."
+  ]
+}

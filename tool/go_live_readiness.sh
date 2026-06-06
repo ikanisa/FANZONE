@@ -37,7 +37,10 @@ fi
 
 echo
 echo "==> tracked-file secret regex scan"
-SECRET_PATTERN='(eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}|sbp_[A-Za-z0-9_-]{20,}|postgresql://[^[:space:]]+:[^[:space:]]+@)'
+SECRET_JWT_PATTERN='eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}'
+SECRET_PAT_PATTERN='sbp_[A-Za-z0-9_-]{20,}'
+SECRET_DB_PATTERN='postgresql:/{2}[^[:space:]]+:[^[:space:]]+@'
+SECRET_PATTERN="(${SECRET_JWT_PATTERN}|${SECRET_PAT_PATTERN}|${SECRET_DB_PATTERN})"
 if git grep -nE "${SECRET_PATTERN}" -- \
   ':!.github/workflows/ci.yml' \
   ':!.github/workflows/secret-regex-scan.yml' \

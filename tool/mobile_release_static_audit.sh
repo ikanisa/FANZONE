@@ -152,7 +152,10 @@ require_contains "lib/core/auth/runtime_auth_session_manager.dart" 'SecureAuthSe
 require_contains "lib/core/storage/secure_auth_session_store.dart" 'FlutterSecureStorage' \
   "SecureAuthSessionStore must be backed by FlutterSecureStorage."
 
-if git grep -nE '(SUPABASE_SERVICE_ROLE_KEY|service_role_key|postgresql://[^[:space:]]+:[^[:space:]]+@|sbp_[A-Za-z0-9_-]{20,})' -- \
+mobile_secret_pattern='SUPABASE_SERVICE_ROLE_KEY|service_role_key'
+mobile_secret_pattern="${mobile_secret_pattern}|postgresql:/{2}[^[:space:]]+:[^[:space:]]+@"
+mobile_secret_pattern="${mobile_secret_pattern}|sbp_[A-Za-z0-9_-]{20,}"
+if git grep -nE "${mobile_secret_pattern}" -- \
   lib android ios \
   ':!ios/Pods/**' \
   ':!**/*.lock' >/tmp/fanzone-mobile-secret-scan.txt; then

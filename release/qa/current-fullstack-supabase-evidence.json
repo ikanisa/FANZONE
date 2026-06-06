@@ -1,0 +1,454 @@
+{
+  "generatedAtUtc": "2026-06-06T07:39:41Z",
+  "projectRef": "kjuhheobmdvjwgnzlcwx",
+  "scope": "Current code-owned Supabase and Flutter fullstack backend gates for FANZONE mobile app flows",
+  "edgeFunctions": {
+    "format": {
+      "command": "deno fmt --check supabase/functions",
+      "status": "PASS",
+      "filesChecked": 56
+    },
+    "typecheck": {
+      "command": "find supabase/functions -name '*.ts' -print0 | xargs -0 deno check",
+      "status": "PASS",
+      "filesChecked": 56
+    },
+    "tests": {
+      "command": "deno test --allow-env supabase/functions",
+      "status": "PASS",
+      "testsPassed": 66,
+      "testsFailed": 0,
+      "coveredAreas": [
+        "WhatsApp OTP fixture and cleanup",
+        "LiveScore football sync parsing/timezones and provider-local date/time staging",
+        "Fan Trivia, Song Guess, and Music Bingo shared game edge routing and deployment smoke coverage",
+        "Order create/update/mark-paid/payment-hub contracts and deployment config",
+        "Off-platform payment handoff",
+        "Push payload parsing",
+        "CORS, HTTP auth, and admin role guards",
+        "WhatsApp OTP dry-run and deployment-smoke contract coverage"
+      ]
+    },
+    "gameEdgeDeploymentSmoke": {
+      "command": "tool/supabase_game_edge_smoke.sh",
+      "dryRunCommand": "tool/supabase_game_edge_smoke.sh --dry-run",
+      "status": "PASS",
+      "proof": "Dedicated smoke script covers fan-trivia, song-guess, and music-bingo deployed endpoints. It always checks anonymous 401 responses and can run authenticated list_sessions probes with FANZONE_UAT_USER_JWT.",
+      "functions": [
+        "fan-trivia",
+        "song-guess",
+        "music-bingo"
+      ],
+      "files": [
+        "tool/supabase_game_edge_smoke.sh",
+        "docs/release/deployment-readme.md",
+        "docs/architecture/backend.md",
+        "docs/FANZONE_HANDOVER_REPORT.md"
+      ]
+    },
+    "releaseContract": {
+      "command": "node tool/validate_edge_function_release_contract.mjs",
+      "status": "PASS",
+      "proof": "Validates deploy documentation, architecture inventory, Supabase verify_jwt settings, and smoke-script coverage for Flutter/app-facing Edge Functions.",
+      "coveredFunctions": [
+        "fan-trivia",
+        "song-guess",
+        "music-bingo",
+        "sync-livescore-football",
+        "whatsapp-otp",
+        "order_create",
+        "order_mark_paid",
+        "order_update_status",
+        "payment-hub",
+        "menu_ocr_parse",
+        "settle-match-pools",
+        "dispatch-match-alerts",
+        "push-notify",
+        "generate-pool-social-card",
+        "ring_bell"
+      ],
+      "files": [
+        "tool/validate_edge_function_release_contract.mjs",
+        "supabase/config.toml",
+        "docs/release/deployment-readme.md",
+        "docs/architecture/backend.md",
+        "tool/go_live_readiness.sh",
+        "tool/supabase_app_edge_smoke.sh",
+        "tool/supabase_whatsapp_auth_smoke.sh",
+        "tool/validate_whatsapp_otp_evidence.mjs"
+      ]
+    },
+    "appEdgeDeploymentSmoke": {
+      "command": "tool/supabase_app_edge_smoke.sh",
+      "dryRunCommand": "tool/supabase_app_edge_smoke.sh --dry-run",
+      "status": "PASS",
+      "proof": "Dedicated smoke script covers app-facing Edge endpoints for order creation, manual payment confirmation, order status transitions, payment handoff, staff-call requests, menu OCR, and pool social-card generation. It checks anonymous 401 responses and can verify authenticated requests pass the auth layer with FANZONE_UAT_USER_JWT.",
+      "functions": [
+        "order_create",
+        "order_mark_paid",
+        "order_update_status",
+        "payment-hub",
+        "ring_bell",
+        "menu_ocr_parse",
+        "generate-pool-social-card"
+      ],
+      "files": [
+        "tool/supabase_app_edge_smoke.sh",
+        "docs/release/deployment-readme.md",
+        "tool/validate_edge_function_release_contract.mjs",
+        "tool/go_live_readiness.sh"
+      ]
+    },
+    "whatsappAuthSmoke": {
+      "command": "tool/supabase_whatsapp_auth_smoke.sh",
+      "dryRunCommand": "tool/supabase_whatsapp_auth_smoke.sh --dry-run",
+      "status": "PASS",
+      "proof": "Deployment runbook and Edge release contract now require WhatsApp auth smoke. Dry-run validates built-in auth settings probe and public validation payloads without live credentials; live mode supports configured reviewer phone and OTP.",
+      "files": [
+        "tool/supabase_whatsapp_auth_smoke.sh",
+        "docs/release/deployment-readme.md",
+        "tool/validate_edge_function_release_contract.mjs",
+        "tool/go_live_readiness.sh",
+        "release/qa/whatsapp-otp-smoke-evidence.json"
+      ]
+    },
+    "edgeCorsSmoke": {
+      "command": "node tool/validate_edge_cors_smoke_evidence.mjs",
+      "captureCommand": "node tool/capture_edge_cors_smoke.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/edge-cors-smoke-evidence.json",
+      "archive": "output/release-evidence/edge-cors-smoke/20260606T073509Z.json",
+      "proof": "Credential-free deployed preflight smoke proves exact-origin CORS for WhatsApp OTP and pool social-card browser-callable Edge functions across website, admin, venue, and TV origins while rejecting an unallowlisted origin.",
+      "functions": [
+        "whatsapp-otp",
+        "generate-pool-social-card"
+      ],
+      "allowedOrigins": [
+        "https://fanzone.ikanisa.com",
+        "https://fanzoneadmin.ikanisa.com",
+        "https://fanzone.venue.ikanisa.com",
+        "https://fanzonetv.ikanisa.com"
+      ]
+    },
+    "adminAuthDeploySmoke": {
+      "command": "node tool/validate_admin_auth_deploy_smoke_evidence.mjs",
+      "captureCommand": "node tool/capture_admin_auth_deploy_smoke.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/admin-auth-deploy-smoke-evidence.json",
+      "archive": "output/release-evidence/admin-auth-deploy-smoke/20260606T073941Z.json",
+      "functionName": "admin_user_management",
+      "deployedVersion": 15,
+      "proof": "Deployed linked Supabase admin_user_management function is ACTIVE at version 15, and a credential-free unauthenticated POST to a viewer-level action is rejected with 401 before role-sensitive admin operations can execute. Role-specific viewer/admin/super-admin checks remain covered by shared auth tests and critical admin UAT evidence without storing privileged JWTs.",
+      "files": [
+        "supabase/functions/admin_user_management/index.ts",
+        "supabase/functions/_shared/auth.ts",
+        "supabase/functions/_shared/auth_test.ts",
+        "tool/capture_admin_auth_deploy_smoke.mjs",
+        "tool/validate_admin_auth_deploy_smoke_evidence.mjs",
+        "release/qa/admin-auth-deploy-smoke-evidence.json"
+      ]
+    },
+    "aggregateEvidenceCollection": {
+      "command": "./tool/collect_world_class_evidence.sh --allow-pending",
+      "status": "PASS_WITH_PENDING_EXTERNAL_GATES",
+      "summary": "output/release-evidence/20260606T042617Z/summary.txt",
+      "proof": "Inventory-mode production evidence bundle passed full-history secret scan, production env isolation, live Supabase validation, live Supabase onboarding team-catalog smoke, live reviewer WhatsApp OTP send/verify, app Edge anonymous plus authenticated smoke, game Edge anonymous plus authenticated smoke, deployed web/PWA security-header and BFF checks, scheduler payload dry-runs, unauthorized scheduler Edge protection, and backup evidence.",
+      "pending": [
+        "cron_smoke missing SUPABASE_URL plus CRON_SECRET or service-role smoke credential"
+      ],
+      "deployedFunctionsRefreshed": [
+        "whatsapp-otp",
+        "menu_ocr_parse",
+        "generate-pool-social-card",
+        "fan-trivia",
+        "song-guess",
+        "music-bingo",
+        "settle-match-pools",
+        "dispatch-match-alerts",
+        "sync-livescore-football",
+        "push-notify"
+      ]
+    }
+  },
+  "linkedSupabase": {
+    "rlsAudit": {
+      "command": "./tool/supabase_rls_audit.sh",
+      "status": "PASS",
+      "notes": "Returned no RLS audit rows requiring remediation."
+    },
+    "fetSupplySmoke": {
+      "command": "./tool/supabase_fet_supply_smoke.sh",
+      "status": "PASS",
+      "latestObservedTotalSupply": 9857,
+      "latestObservedSupplyCap": 100000000
+    },
+    "liveValidation": {
+      "command": "./tool/supabase_live_validation.sh",
+      "status": "PASS",
+      "notes": "Remote schema lint reported warning-level unused-parameter messages only; RLS, FET supply, order lifecycle, manual payment reconciliation, and staff call acknowledgement checks returned pass results."
+    },
+    "apiAuthorizationAbuse": {
+      "command": "node tool/validate_api_authorization_abuse_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/api-authorization-abuse-evidence.json",
+      "notes": "Release-target linked Supabase contract evidence covers RLS/client grants, cross-user and cross-venue rejection, direct table mutation denial, wrong-role and unsupported-payment rejection, audit evidence, and Edge Function anonymous/JWT auth boundaries."
+    },
+    "observabilityTelemetryCode": {
+      "command": "node tool/validate_observability_telemetry_code_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/observability-telemetry-code-evidence.json",
+      "notes": "Code-owned runtime telemetry hardening covers bounded/redacted Supabase RPC writes, authenticated-only product analytics, direct table grant lockdown, event metadata storage, nested metadata/property redaction, Flutter framework/platform error capture, linked Supabase migration application, and linked SQL readiness proof. Dashboard/alert evidence remains an operations gate."
+    },
+    "operationsObservabilitySnapshot": {
+      "command": "node tool/validate_operations_observability_snapshot_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/operations-observability-snapshot-evidence.json",
+      "notes": "Admin-only Supabase operations snapshot aggregates launch signals for runtime errors, product analytics, ordering, manual payments, FET ledger, pools, staff calls, push notifications, database activity, and LiveScore scheduler freshness without exposing raw rows to client roles."
+    },
+    "incidentRollbackCode": {
+      "command": "node tool/validate_incident_rollback_code_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/incident-rollback-code-evidence.json",
+      "notes": "Code-owned incident and rollback bundle structure is generated and validated with redacted owner/escalation placeholders, rollback tag plan, database restore plan, runbook review template, post-deploy watch mapping, and sample-alert template. Named owner signoff, private escalation evidence, release tag proof, backup/restore drill proof, and provider alert test remain external operations gates."
+    },
+    "schedulerWorkflowCode": {
+      "command": "node tool/validate_scheduler_workflow_code_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/scheduler-workflow-code-evidence.json",
+      "notes": "Code-owned scheduler workflow controls pass for scheduled cadence, manual dispatch fallback, main-branch gating, production-operations approval, concurrency, secret preflight, target/payload matching, platform-cron manifest validation, provider-state capture, database-backed run-history support, deployed Edge audit helper proof, and no credential-like values in workflow files. Provider scheduler history, delivered missed-run alerts, and owner signoff remain external operations gates."
+    },
+    "schedulerPostDeployAuditSmoke": {
+      "command": "node tool/validate_scheduler_post_deploy_audit_smoke.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/scheduler-post-deploy-audit-smoke-evidence.json",
+      "notes": "Credentialed post-deploy smoke passed against the linked FANZONE Edge functions and proved settle-match-pools, dispatch-match-alerts, and sync-livescore-football all return tracked database audit run ids without writing credential values to evidence."
+    },
+    "publicUrlSafety": {
+      "command": "./tool/supabase_public_url_safety_contract.sh",
+      "status": "PASS",
+      "latestLog": "output/release-evidence/public-url-safety/20260606T072128Z.log",
+      "notes": "Linked Supabase migrations and SQL contracts pass for public URL safety. New writes to team, match, venue, menu, featured-event, pool share-card, and available app-review public URL fields reject unsafe public URLs while preserving blank/null values, allowed app-relative share paths, and fanzone:// deep links where explicitly needed. Existing linked data was audited clean and the matching database constraints are validated.",
+      "files": [
+        "supabase/migrations/20260606173000_public_url_safety_constraints.sql",
+        "supabase/migrations/20260606174000_validate_public_url_safety_constraints.sql",
+        "supabase/tests/public_url_safety_contract.sql",
+        "supabase/tests/public_url_safety_existing_data.sql",
+        "tool/supabase_public_url_safety_contract.sh",
+        "docs/production-readiness/00-executive-summary.md"
+      ]
+    },
+    "teamCatalogSmoke": {
+      "command": "node tool/supabase_team_catalog_smoke.mjs",
+      "status": "PASS",
+      "notes": "Configured Supabase REST catalog returned active onboarding teams without exposing credentials.",
+      "observed": {
+        "localCountry": "MT",
+        "localClubs": 24,
+        "topEuropeanClubs": 15,
+        "worldCupNationalTeams": 17
+      },
+      "files": [
+        "tool/supabase_team_catalog_smoke.mjs",
+        "release/qa/onboarding-fan-profile-evidence.json"
+      ]
+    }
+  },
+  "mobileUatSql": [
+    {
+      "flowId": "MOB-SETTLEMENT-001",
+      "command": "./tool/supabase_mobile_pool_settlement_uat.sh",
+      "status": "PASS",
+      "log": "output/release-evidence/mobile-pool-settlement-uat/20260606T024704Z.log",
+      "proof": "Eligible entry received payout, winner/loser/ineligible stakes were released, and wallet state updated through linked Supabase SQL."
+    },
+    {
+      "flowId": "MOB-WALLET-001",
+      "command": "./tool/supabase_mobile_wallet_payment_uat.sh",
+      "status": "PASS",
+      "log": "output/release-evidence/mobile-wallet-payment-uat/20260606T024704Z.log",
+      "proof": "Manual payment confirmation credited FET rewards and wrote wallet transaction/audit evidence through linked Supabase SQL."
+    }
+  ],
+  "liveScore": {
+    "unitTest": {
+      "command": "python3 -m unittest tool/livescore_ingest_test.py",
+      "status": "PASS",
+      "testsPassed": 1
+    },
+    "dryExport": {
+      "command": "python3 tool/livescore_ingest.py --limit 3 --timeout 30 --output /tmp/fanzone_livescore_smoke_current.json",
+      "status": "PASS",
+      "outputPath": "/tmp/fanzone_livescore_smoke_current.json",
+      "rows": 3,
+      "stagesSeen": 2,
+      "resourceId": "livescore_world_cup_2026",
+      "providerCompetitionId": "734",
+      "applied": false,
+      "notes": "Dry export fetched current rows from LiveScore without posting to Supabase or Edge because operator scheduler credentials are not stored in repo env files."
+    },
+    "edgeScheduler": {
+      "command": "tool/run_supabase_cron_job.sh sync-livescore-football",
+      "dryRunCommand": "tool/run_supabase_cron_job.sh --dry-run sync-livescore-football",
+      "status": "PASS",
+      "proof": "Standard cron runner supports sync-livescore-football with credential-free dry-run payload validation, production workflow dispatch, release evidence collection, unauthorized Edge protection, and credentialed cron smoke. Credentialed smoke passed for settle-match-pools, dispatch-match-alerts, and sync-livescore-football after rotating CRON_SECRET in Supabase Edge secrets and the GitHub repository secret without storing the secret in tracked files.",
+      "latestCredentialFreeSmoke": "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log",
+      "latestCredentialedSmoke": "release/operations/cron-smoke-evidence-20260606T043304Z.json",
+      "latestWorkflowCodeEvidence": "release/operations/scheduler-workflow-code-evidence.json",
+      "platformCronManifest": "release/operations/scheduler-platform-cron-manifest.json",
+      "providerStateEvidence": "release/operations/scheduler-provider-state-evidence.json",
+      "files": [
+        "tool/run_supabase_cron_job.sh",
+        "tool/generate_scheduler_workflow_code_evidence.mjs",
+        "tool/validate_scheduler_workflow_code_evidence.mjs",
+        "tool/validate_scheduler_platform_manifest.mjs",
+        "tool/capture_scheduler_provider_state.mjs",
+        "tool/validate_scheduler_provider_state_evidence.mjs",
+        "release/operations/scheduler-workflow-code-evidence.json",
+        "release/operations/scheduler-platform-cron-manifest.json",
+        "release/operations/scheduler-provider-state-evidence.json",
+        ".github/workflows/cron-livescore-football.yml",
+        "tool/collect_world_class_evidence.sh",
+        "tool/validate_operations_readiness_evidence.mjs",
+        "release/operations/operations-readiness-evidence.json",
+        "docs/operations/scheduler-observability.md",
+        "docs/operations/livescore-ingest.md",
+        "tool/supabase_edge_job_smoke.sh",
+        "docs/release/deployment-readme.md",
+        "docs/architecture/backend.md",
+        "docs/FANZONE_HANDOVER_REPORT.md",
+        "docs/release/world-class-evidence-matrix.md",
+        "docs/release/codex-go-live-goals.md",
+        "tool/validate_current_fullstack_supabase_evidence.mjs"
+      ]
+    }
+  },
+  "releaseBoundary": {
+    "command": "./tool/product_boundary_scan.sh",
+    "status": "PASS",
+    "notes": "Active app surfaces passed product-boundary, scoped realtime, order edge, order lifecycle, venue portal hospitality, entertainment/reward, and Flutter ordering scans after the Home-direct launch and LiveScore scheduler hardening pass."
+  },
+  "iosLocalCompile": {
+    "command": "FANZONE_IOS_FORCE_UNSIGNED=1 FANZONE_IOS_SKIP_EXPORT=1 ./tool/build_ios_release_from_env.sh production",
+    "status": "PASS",
+    "log": "output/release-evidence/ios-unsigned-archive-20260606T052012Z.log",
+    "logSha256": "be6b7ec81d8bf276103ba4911fae65d45e8556b22187f7cae29190a3fc51eb82",
+    "validator": "node tool/validate_ios_local_compile_evidence.mjs",
+    "archivePath": "build/ios/archive/Runner.xcarchive",
+    "archiveSizeKiB": 197572,
+    "proof": "Local code-owned iOS production Release archive compile succeeded. A signed archive was attempted and is blocked by missing local Apple account/provisioning profile access. This proves compile/config readiness only; signed archive, IPA export, physical iPhone install, push smoke, App Store Connect, and TestFlight remain external release gates."
+  },
+  "remainingExternalGates": [
+    "Secret rotation and owner signoff",
+    "Operations scheduler/observability owner signoff, production dashboard/alert evidence, and production scheduler history for settle-match-pools, dispatch-match-alerts, and sync-livescore-football",
+    "Human legal review and launch approval",
+    "iOS archive/TestFlight/App Store Connect proof",
+    "Google Play production submission and app-signing acceptance"
+  ],
+  "flutterClient": {
+    "command": "flutter test",
+    "status": "PASS",
+    "testsPassed": 281,
+    "testsFailed": 0,
+    "analysis": {
+      "command": "flutter analyze",
+      "status": "PASS",
+      "proof": "Full Flutter analyzer completed with no issues found."
+    },
+    "providerWiring": {
+      "command": "flutter test test/gateway_providers_test.dart",
+      "status": "PASS",
+      "proof": "Riverpod gateway graph resolves core, auth, catalog, settings, onboarding, and wallet providers. Onboarding gateway now resolves safely with the active Supabase-hydrated team catalog or an offline empty fallback before startup overrides finish."
+    },
+    "coverage": {
+      "command": "node tool/validate_flutter_coverage_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/flutter-coverage-evidence.json",
+      "testsPassed": 288,
+      "lineCoveragePercent": 36.14,
+      "proof": "Fresh flutter test --coverage run passed and generated tracked LCOV evidence covering 199 files and 14,923 executable lines."
+    },
+    "coveredAreas": [
+      "Home, Play, Settings, match detail, wallet/rewards, profile, notifications, and Settings support screens",
+      "Direct Home launch, guest-reachable Home/Play/Settings surfaces, and protected action routing",
+      "Onboarding phone and favorite-team selection",
+      "Provider wiring and onboarding catalog fallback",
+      "Full Flutter analyzer pass",
+      "Games repository Edge Function mapping",
+      "Ordering lifecycle, payment handoff, and order tracking",
+      "Accessibility audit and design-system golden coverage",
+      "Router/deep-link normalization and product-boundary route guards"
+    ]
+  },
+  "userVisibleFlowEvidence": {
+    "whatsappOtp": {
+      "command": "node tool/validate_whatsapp_otp_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/whatsapp-otp-smoke-evidence.json"
+    },
+    "settingsSupportNavigation": {
+      "command": "node tool/validate_settings_support_navigation_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/settings-support-navigation-evidence.json"
+    },
+    "onboardingFanProfile": {
+      "command": "node tool/validate_onboarding_fan_profile_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/onboarding-fan-profile-evidence.json"
+    },
+    "privacyLegalCode": {
+      "command": "node tool/validate_privacy_legal_code_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/privacy-legal-code-evidence.json"
+    },
+    "androidDeviceUat": {
+      "command": "node tool/validate_android_device_uat_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/android-device-uat-current.json"
+    },
+    "mobileSecurityCode": {
+      "command": "node tool/validate_mobile_security_code_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/mobile-security-code-evidence.json"
+    },
+    "mobileBackendUat": {
+      "command": "node tool/validate_mobile_backend_uat_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/qa/current-fullstack-supabase-evidence.json"
+    },
+    "cronSmoke": {
+      "command": "node tool/validate_cron_smoke_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/cron-smoke-evidence-20260606T043304Z.json"
+    },
+    "schedulerWorkflowCode": {
+      "command": "node tool/validate_scheduler_workflow_code_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/scheduler-workflow-code-evidence.json"
+    },
+    "schedulerPostDeployAuditSmoke": {
+      "command": "node tool/validate_scheduler_post_deploy_audit_smoke.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/scheduler-post-deploy-audit-smoke-evidence.json"
+    },
+    "observabilityTelemetryCode": {
+      "command": "node tool/validate_observability_telemetry_code_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/observability-telemetry-code-evidence.json"
+    },
+    "operationsObservabilitySnapshot": {
+      "command": "node tool/validate_operations_observability_snapshot_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/operations-observability-snapshot-evidence.json"
+    },
+    "incidentRollbackCode": {
+      "command": "node tool/validate_incident_rollback_code_evidence.mjs",
+      "status": "PASS",
+      "evidence": "release/operations/incident-rollback-code-evidence.json"
+    }
+  },
+  "fullstackEvidenceValidator": {
+    "command": "node tool/validate_current_fullstack_supabase_evidence.mjs",
+    "status": "PASS",
+    "proof": "Validates the current fullstack evidence artifact, linked Supabase checks, mobile UAT SQL logs, LiveScore scheduler evidence, iOS local compile hash, Flutter test proof, and explicit remaining external gates."
+  }
+}
