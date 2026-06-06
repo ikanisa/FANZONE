@@ -127,6 +127,23 @@ const jobs = expectedJobs.map((job) => {
 });
 
 const allPass = jobs.every((job) => job.providerState === "PASS");
+const hasMissingDefaultBranchWorkflow = jobs.some((job) =>
+  job.providerState === "MISSING_WORKFLOW_ON_DEFAULT_BRANCH"
+);
+const pendingExternalEvidence = [];
+if (hasMissingDefaultBranchWorkflow) {
+  pendingExternalEvidence.push(
+    "Push or merge the missing scheduler workflow changes to the default branch.",
+  );
+} else {
+  pendingExternalEvidence.push(
+    "Keep all scheduler workflows active on the default branch while collecting successful scheduled-run history.",
+  );
+}
+pendingExternalEvidence.push(
+  "Verify GitHub Actions scheduled runs complete successfully for all three scheduler workflows.",
+  "Capture delivered missed-run alert evidence and operations owner signoff.",
+);
 const evidence = {
   schemaVersion: 1,
   generatedAtUtc,
@@ -141,13 +158,7 @@ const evidence = {
     "The local workflow files define the intended cron cadence, but provider run history is authoritative for activation proof.",
     "Run IDs are SHA-256 hashed and no GitHub token or secret value is written to evidence.",
   ],
-  pendingExternalEvidence: allPass
-    ? []
-    : [
-      "Push or merge the current scheduler workflow changes to the default branch.",
-      "Verify GitHub Actions scheduled runs complete successfully for all three scheduler workflows.",
-      "Capture delivered missed-run alert evidence and operations owner signoff.",
-    ],
+  pendingExternalEvidence: allPass ? [] : pendingExternalEvidence,
 };
 
 for (const target of [outputPath, archivePath]) {

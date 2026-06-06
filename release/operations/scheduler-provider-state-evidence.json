@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAtUtc": "2026-06-06T07:54:29.221Z",
+  "generatedAtUtc": "2026-06-06T09:17:48.826Z",
   "repo": "ikanisa/FANZONE",
   "scope": "Credential-free GitHub Actions provider scheduler state for FANZONE production cron workflows",
   "command": "node tool/capture_scheduler_provider_state.mjs",
@@ -130,12 +130,12 @@
       "workflowPath": ".github/workflows/cron-livescore-football.yml",
       "expectedCron": "7 * * * *",
       "localCron": "7 * * * *",
-      "workflowFoundOnDefaultBranch": false,
-      "workflowState": "missing",
-      "workflowIdSha256": "",
-      "providerState": "MISSING_WORKFLOW_ON_DEFAULT_BRANCH",
+      "workflowFoundOnDefaultBranch": true,
+      "workflowState": "active",
+      "workflowIdSha256": "fde91fc1a7d9d0e897c790320a3f297ac56a291bf3d92ae34b3b2ad58ed777b8",
+      "providerState": "MISSING_SCHEDULE_RUN_HISTORY",
       "recentScheduledRuns": [],
-      "providerQueryError": "Workflow not found on default branch."
+      "providerQueryError": ""
     }
   ],
   "notes": [
@@ -144,7 +144,7 @@
     "Run IDs are SHA-256 hashed and no GitHub token or secret value is written to evidence."
   ],
   "pendingExternalEvidence": [
-    "Push or merge the current scheduler workflow changes to the default branch.",
+    "Keep all scheduler workflows active on the default branch while collecting successful scheduled-run history.",
     "Verify GitHub Actions scheduled runs complete successfully for all three scheduler workflows.",
     "Capture delivered missed-run alert evidence and operations owner signoff."
   ]
