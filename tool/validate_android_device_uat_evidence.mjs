@@ -79,6 +79,45 @@ function gitCommitExists(value) {
   }
 }
 
+function currentGitHead() {
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+function changedPathsSince(commit) {
+  if (!gitCommitExists(commit)) return [];
+  try {
+    return execFileSync("git", ["diff", "--name-only", `${commit}..HEAD`], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .split(/\r?\n/)
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function isReleaseRelevantPath(filePath) {
+  return /^(lib|assets|android|ios|env|integration_test|supabase|packages)\//.test(
+    filePath,
+  ) ||
+    /^(pubspec\.yaml|pubspec\.lock|firebase_options\.dart)$/.test(filePath);
+}
+
+function includesText(value, fragment) {
+  return String(value || "").toLowerCase().includes(fragment.toLowerCase());
+}
+
 function readJson(filePath) {
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -96,6 +135,7 @@ if (credentialPattern.test(raw)) {
 
 const data = readJson(absolutePath);
 const errors = [];
+const headCommit = currentGitHead();
 
 if (data.schemaVersion !== 1) errors.push("schemaVersion must be 1.");
 if (!isIsoDateTime(data.generatedAtUtc)) {
@@ -178,6 +218,24 @@ if (!artifactMatchesCurrentRelease) {
   }
   if (!gitCommitExists(currentArtifact.sourceCommit)) {
     errors.push("currentReleaseArtifact.sourceCommit must name an existing git commit.");
+  } else if (headCommit && currentArtifact.sourceCommit !== headCommit) {
+    const releaseRelevantChanges = changedPathsSince(
+      currentArtifact.sourceCommit,
+    ).filter(isReleaseRelevantPath);
+    if (releaseRelevantChanges.length > 0) {
+      const rerun = data.currentArtifactDeviceRerun || {};
+      const rerunProof = String(rerun.proof || "");
+      for (const fragment of [
+        "current release APK source commit is behind HEAD",
+        "rebuild the APK from HEAD",
+      ]) {
+        if (!includesText(rerunProof, fragment)) {
+          errors.push(
+            `currentArtifactDeviceRerun.proof must include ${fragment} when release-relevant files changed after the current APK source commit.`,
+          );
+        }
+      }
+    }
   }
   const rerun = data.currentArtifactDeviceRerun || {};
   if (rerun.status !== "BLOCKED_EXTERNAL") {
