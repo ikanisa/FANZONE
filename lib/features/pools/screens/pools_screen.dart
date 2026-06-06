@@ -54,6 +54,8 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
     final pools = poolsAsync.valueOrNull ?? const <PoolSummary>[];
     final gamesAsync = ref.watch(gamesProvider);
     final games = gamesAsync.valueOrNull ?? const <GameSessionSummary>[];
+    final joinedGameIdsAsync = ref.watch(myJoinedGameIdsProvider);
+    final joinedGameIds = joinedGameIdsAsync.valueOrNull ?? const <String>{};
     final liveGameCount = games
         .where((game) => const {'lobby', 'live'}.contains(game.status))
         .length;
@@ -71,7 +73,13 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
         child: RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(poolsProvider);
-            await ref.read(poolsProvider.future);
+            ref.invalidate(gamesProvider);
+            ref.invalidate(myJoinedGameIdsProvider);
+            await Future.wait([
+              ref.read(poolsProvider.future),
+              ref.read(gamesProvider.future),
+              ref.read(myJoinedGameIdsProvider.future),
+            ]);
           },
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 150),
@@ -96,6 +104,7 @@ class _PoolsScreenState extends ConsumerState<PoolsScreen> {
               const SizedBox(height: 18),
               _GamePreviewSection(
                 gamesAsync: gamesAsync,
+                joinedIds: joinedGameIds,
                 onViewAll: () => context.go('/pools/games'),
                 onOpen: (game) => context.push('/game/${game.id}'),
               ),
@@ -399,11 +408,13 @@ class _PlaySectionHeader extends StatelessWidget {
 class _GamePreviewSection extends StatelessWidget {
   const _GamePreviewSection({
     required this.gamesAsync,
+    required this.joinedIds,
     required this.onViewAll,
     required this.onOpen,
   });
 
   final AsyncValue<List<GameSessionSummary>> gamesAsync;
+  final Set<String> joinedIds;
   final VoidCallback onViewAll;
   final ValueChanged<GameSessionSummary> onOpen;
 
@@ -435,6 +446,7 @@ class _GamePreviewSection extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _GamePreviewCard(
                     game: game,
+                    isJoined: joinedIds.contains(game.id),
                     onTap: () => onOpen(game),
                   ),
                 ),
@@ -502,9 +514,14 @@ class _GamePreviewSection extends StatelessWidget {
 }
 
 class _GamePreviewCard extends StatelessWidget {
-  const _GamePreviewCard({required this.game, required this.onTap});
+  const _GamePreviewCard({
+    required this.game,
+    required this.isJoined,
+    required this.onTap,
+  });
 
   final GameSessionSummary game;
+  final bool isJoined;
   final VoidCallback onTap;
 
   @override
@@ -581,6 +598,17 @@ class _GamePreviewCard extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               ),
+              if (isJoined) ...[
+                const SizedBox(height: 4),
+                const Text(
+                  'JOINED',
+                  style: TextStyle(
+                    color: FzColors.green,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
             ],
           ),
         ],

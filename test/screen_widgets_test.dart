@@ -216,6 +216,7 @@ void main() {
               ),
             ],
           ),
+          myJoinedGameIdsProvider.overrideWith((ref) async => {'game_1'}),
           isFullyAuthenticatedProvider.overrideWith((ref) => true),
         ],
       );
@@ -225,12 +226,59 @@ void main() {
       expect(find.text('Games'), findsAtLeastNWidgets(1));
       expect(find.text('Live games'), findsOneWidget);
       expect(find.text('Fan Trivia'), findsOneWidget);
+      expect(find.text('JOINED'), findsOneWidget);
       expect(find.text('Song Guess'), findsOneWidget);
       expect(find.text('Music Bingo'), findsOneWidget);
       expect(find.text('Derby pool'), findsOneWidget);
       // FzPill renders camp labels uppercased
       expect(find.text('TEST CLUB A'), findsAtLeastNWidgets(1));
       expect(find.text('TEST CLUB B'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('pools screen refresh reloads pools games and joined state', (
+      tester,
+    ) async {
+      var poolLoads = 0;
+      var gameLoads = 0;
+      var joinedLoads = 0;
+
+      await pumpAppScreen(
+        tester,
+        const PoolsScreen(),
+        overrides: [
+          poolsProvider.overrideWith((ref) async {
+            poolLoads += 1;
+            return const <PoolSummary>[];
+          }),
+          gamesProvider.overrideWith((ref) async {
+            gameLoads += 1;
+            return const <GameSessionSummary>[];
+          }),
+          myJoinedGameIdsProvider.overrideWith((ref) async {
+            joinedLoads += 1;
+            return const <String>{};
+          }),
+          isFullyAuthenticatedProvider.overrideWith((ref) => true),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(poolLoads, 1);
+      expect(gameLoads, 1);
+      expect(joinedLoads, 1);
+
+      await tester.fling(
+        find.byType(Scrollable).first,
+        const Offset(0, 420),
+        1000,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(poolLoads, 2);
+      expect(gameLoads, 2);
+      expect(joinedLoads, 2);
     });
 
     testWidgets('wallet screen renders balance and history', (tester) async {
