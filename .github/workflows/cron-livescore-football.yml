@@ -49,7 +49,7 @@ jobs:
       name: production-operations
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Validate cron configuration
         run: |
