@@ -751,6 +751,60 @@ for (const blockerId of requiredPostMergeBlockers) {
   }
 }
 
+const localGoLive = data.localGoLiveReadiness || {};
+requireStatus(
+  errors,
+  "localGoLiveReadiness",
+  localGoLive,
+  "PASS_WITH_EXTERNAL_PROVIDER_TASKS",
+);
+if (localGoLive.command !== "./tool/go_live_readiness.sh --local") {
+  errors.push(
+    "localGoLiveReadiness.command must be ./tool/go_live_readiness.sh --local.",
+  );
+}
+if (
+  localGoLive.validator !==
+    "node tool/validate_local_go_live_readiness_evidence.mjs"
+) {
+  errors.push(
+    "localGoLiveReadiness.validator must be node tool/validate_local_go_live_readiness_evidence.mjs.",
+  );
+}
+if (
+  localGoLive.evidence !==
+    "release/qa/local-go-live-readiness-evidence.json"
+) {
+  errors.push(
+    "localGoLiveReadiness.evidence must be release/qa/local-go-live-readiness-evidence.json.",
+  );
+}
+if (!repoRefExists(localGoLive.evidence)) {
+  errors.push(
+    `localGoLiveReadiness.evidence does not exist: ${localGoLive.evidence}`,
+  );
+}
+if (!/^[a-f0-9]{40}$/.test(String(localGoLive.sourceCommit || ""))) {
+  errors.push("localGoLiveReadiness.sourceCommit must be a 40-character git SHA.");
+} else if (
+  headCommit &&
+  localGoLive.sourceCommit !== headCommit &&
+  !isAncestorCommit(localGoLive.sourceCommit)
+) {
+  errors.push(
+    "localGoLiveReadiness.sourceCommit must match or be an ancestor of current git HEAD.",
+  );
+}
+if (
+  !String(localGoLive.proof || "").includes(
+    "Full local go-live readiness gate passed",
+  )
+) {
+  errors.push(
+    "localGoLiveReadiness.proof must mention the full local go-live readiness gate pass.",
+  );
+}
+
 const mobileUat = Array.isArray(data.mobileUatSql) ? data.mobileUatSql : [];
 for (const flowId of ["MOB-SETTLEMENT-001", "MOB-WALLET-001"]) {
   const item = mobileUat.find((flow) => flow?.flowId === flowId);

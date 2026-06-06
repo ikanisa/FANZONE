@@ -169,6 +169,8 @@ run node --check tool/validate_privacy_legal_readiness_evidence.mjs
 run node --check tool/validate_privacy_legal_code_evidence.mjs
 run node tool/validate_privacy_legal_code_evidence.mjs
 run node --check tool/validate_load_reliability_evidence.mjs
+run node --check tool/validate_local_go_live_readiness_evidence.mjs
+run node tool/validate_local_go_live_readiness_evidence.mjs
 run node tool/validate_edge_function_release_contract.mjs
 
 echo

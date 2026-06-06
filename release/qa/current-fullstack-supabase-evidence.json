@@ -451,6 +451,14 @@
       }
     ]
   },
+  "localGoLiveReadiness": {
+    "status": "PASS_WITH_EXTERNAL_PROVIDER_TASKS",
+    "command": "./tool/go_live_readiness.sh --local",
+    "validator": "node tool/validate_local_go_live_readiness_evidence.mjs",
+    "evidence": "release/qa/local-go-live-readiness-evidence.json",
+    "sourceCommit": "ebfc610e98fced53ed4ac86ebfaf08f3db3508e6",
+    "proof": "Full local go-live readiness gate passed from a clean worktree at ebfc610. External/provider tasks remain tracked separately."
+  },
   "remainingExternalGates": [
     "Secret rotation and owner signoff",
     "Operations scheduler/observability owner signoff, production dashboard/alert evidence, and production scheduler history for settle-match-pools, dispatch-match-alerts, and sync-livescore-football",

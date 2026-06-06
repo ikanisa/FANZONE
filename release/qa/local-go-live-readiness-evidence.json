@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T09:16:00Z",
+  "sourceCommit": "ebfc610e98fced53ed4ac86ebfaf08f3db3508e6",
+  "branch": "main",
+  "status": "PASS_WITH_EXTERNAL_PROVIDER_TASKS",
+  "command": "./tool/go_live_readiness.sh --local",
+  "proof": "Full local go-live readiness gate passed from a clean worktree after refreshing Android release evidence, Android device UAT evidence, and the website canonical source snapshot.",
+  "passedGateGroups": [
+    {
+      "id": "repo-safety",
+      "status": "PASS",
+      "commands": [
+        "git status --short",
+        "tracked-file secret regex scan",
+        "tool/full_history_secret_scan.sh",
+        "tool/audit_repo_hygiene.sh",
+        "tool/product_boundary_scan.sh",
+        "tool/mobile_release_static_audit.sh"
+      ]
+    },
+    {
+      "id": "flutter-mobile",
+      "status": "PASS",
+      "commands": [
+        "flutter analyze",
+        "flutter test --coverage"
+      ],
+      "testsPassed": 288
+    },
+    {
+      "id": "web-workspaces",
+      "status": "PASS",
+      "commands": [
+        "npm run typecheck --workspaces --if-present",
+        "npm run lint --workspaces --if-present",
+        "npm run test --workspaces --if-present",
+        "node tool/test_bff_health.mjs",
+        "npm run build --workspaces --if-present"
+      ]
+    },
+    {
+      "id": "supabase-edge",
+      "status": "PASS",
+      "commands": [
+        "deno fmt --check supabase/functions",
+        "find supabase/functions -name '*.ts' -print0 | xargs -0 deno check",
+        "deno test --allow-env supabase/functions",
+        "deno test test/core_order_lifecycle_test.ts"
+      ],
+      "edgeFunctionTestsPassed": 69,
+      "coreOrderLifecycleTestsPassed": 4
+    },
+    {
+      "id": "release-evidence-validators",
+      "status": "PASS",
+      "commands": [
+        "node tool/validate_android_device_uat_evidence.mjs",
+        "node tool/validate_mobile_backend_uat_evidence.mjs",
+        "node tool/validate_mobile_security_code_evidence.mjs",
+        "node tool/validate_api_authorization_abuse_evidence.mjs",
+        "node tool/validate_scheduler_platform_manifest.mjs",
+        "node tool/validate_scheduler_provider_state_evidence.mjs",
+        "node tool/validate_scheduler_workflow_code_evidence.mjs",
+        "node tool/validate_scheduler_post_deploy_audit_smoke.mjs",
+        "node tool/validate_cron_smoke_evidence.mjs",
+        "node tool/validate_observability_telemetry_code_evidence.mjs",
+        "node tool/validate_operations_observability_snapshot_evidence.mjs",
+        "node tool/validate_incident_rollback_code_evidence.mjs",
+        "node tool/validate_whatsapp_otp_evidence.mjs",
+        "node tool/validate_settings_support_navigation_evidence.mjs",
+        "node tool/validate_onboarding_fan_profile_evidence.mjs",
+        "node tool/validate_current_fullstack_supabase_evidence.mjs",
+        "node tool/validate_edge_cors_smoke_evidence.mjs",
+        "node tool/validate_admin_auth_deploy_smoke_evidence.mjs",
+        "node tool/validate_flutter_coverage_evidence.mjs",
+        "node tool/validate_games_livescore_fullstack_evidence.mjs",
+        "node tool/validate_onboarding_team_catalog_evidence.mjs",
+        "node tool/validate_privacy_public_surface_copy.mjs",
+        "node tool/validate_privacy_legal_code_evidence.mjs",
+        "node tool/validate_edge_function_release_contract.mjs"
+      ]
+    }
+  ],
+  "externalProviderTasks": [
+    {
+      "id": "android-current-apk-device-rerun",
+      "status": "BLOCKED_EXTERNAL",
+      "proof": "adb devices -l returned no attached Android devices, so the current APK still needs a physical Pixel rerun."
+    },
+    {
+      "id": "authenticated-live-edge-probes",
+      "status": "BLOCKED_EXTERNAL",
+      "proof": "Authenticated app/game Edge probes require a valid reviewer/device session. The supplied OTP 546883 returned Invalid code."
+    },
+    {
+      "id": "owner-provider-signoff",
+      "status": "BLOCKED_EXTERNAL",
+      "proof": "Secret rotation, operations owner signoff, production dashboard/alert evidence, human legal approval, iOS TestFlight/App Store, and Google Play production submission remain external release gates."
+    }
+  ],
+  "notes": [
+    "This is local code-owned readiness evidence only.",
+    "It does not replace physical-device UAT for the current APK or provider/operator launch approvals."
+  ]
+}
