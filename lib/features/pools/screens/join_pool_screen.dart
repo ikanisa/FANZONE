@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../providers/auth_provider.dart';
 import '../../../services/wallet_service.dart';
@@ -125,7 +125,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
     } catch (error) {
       if (mounted) {
         setState(() {
-          _error = error.toString();
+          _error = 'Rewards are unavailable right now. Try again.';
           _submitting = false;
         });
       }
@@ -177,6 +177,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
                     (camp) => Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: _CampChoice(
+                        key: ValueKey('pool_camp_${camp.id}'),
                         camp: camp,
                         selected: _selectedCampId == camp.id,
                         onTap: () => setState(() => _selectedCampId = camp.id),
@@ -187,6 +188,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
                   const _SectionLabel('Entry'),
                   const SizedBox(height: 10),
                   TextField(
+                    key: const ValueKey('pool_join_stake_field'),
                     controller: _stakeController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -202,6 +204,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
                   ],
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
+                    key: const ValueKey('pool_join_confirm'),
                     onPressed: _submitting
                         ? null
                         : () => _confirm(pool, wallet.availableFet),
@@ -221,8 +224,8 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
               ),
               loading: () => const _JoinLoadingState(),
               error: (error, _) => StateView.error(
-                title: 'Wallet unavailable',
-                subtitle: error.toString(),
+                title: 'Rewards unavailable',
+                subtitle: 'Rewards are unavailable right now. Try again.',
                 onRetry: () => ref.invalidate(walletBalanceProvider),
               ),
             );
@@ -230,7 +233,7 @@ class _JoinPoolScreenState extends ConsumerState<JoinPoolScreen> {
           loading: () => const _JoinLoadingState(),
           error: (error, _) => StateView.error(
             title: 'Pool unavailable',
-            subtitle: error.toString(),
+            subtitle: 'This pool is unavailable right now. Try again.',
             onRetry: () => ref.invalidate(poolDetailProvider(widget.poolId)),
           ),
         ),
@@ -278,7 +281,7 @@ class _JoinHero extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w900,
               color: Colors.white70,
-              letterSpacing: 1.2,
+              letterSpacing: 0,
             ),
           ),
           const SizedBox(height: 8),
@@ -321,6 +324,7 @@ class _JoinLoadingState extends StatelessWidget {
 
 class _CampChoice extends StatelessWidget {
   const _CampChoice({
+    super.key,
     required this.camp,
     required this.selected,
     required this.onTap,

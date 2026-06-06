@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../theme/colors.dart';
@@ -81,6 +81,7 @@ class OrderSuccessScreen extends ConsumerWidget {
               error: (_, _) => const SizedBox.shrink(),
             ),
             ElevatedButton.icon(
+              key: const ValueKey('order_success_track'),
               onPressed: () => context.go('/order/$orderId'),
               icon: const Icon(LucideIcons.mapPin, size: 16),
               label: const Text('Track'),
@@ -90,6 +91,7 @@ class OrderSuccessScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
+              key: const ValueKey('order_success_receipt'),
               onPressed: () => context.push('/order/$orderId/receipt'),
               icon: const Icon(LucideIcons.receipt, size: 16),
               label: const Text('Receipt'),

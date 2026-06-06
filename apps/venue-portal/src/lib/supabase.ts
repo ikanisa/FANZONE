@@ -202,7 +202,10 @@ function createVenueClient(): VenueSupabaseClient {
       : supabaseUrl;
   const headers =
     !isBffSessionMode && session && !isVenueSessionExpired(session)
-      ? { Authorization: `Bearer ${session.accessToken}` }
+      ? {
+          Authorization: `Bearer ${session.accessToken}`,
+          "x-fanzone-access-token": session.accessToken ?? "",
+        }
       : undefined;
 
   return createClient<Database>(clientUrl, supabaseAnonKey, {

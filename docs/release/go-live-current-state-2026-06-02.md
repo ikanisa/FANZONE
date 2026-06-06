@@ -190,10 +190,113 @@ commits:
   the actual reviewer values must be entered privately in Play Console or the
   private release evidence bundle. `tool/validate_android_review_metadata.mjs`
   captures these repo-owned checks, and
-  `output/release-evidence/android-review-metadata/20260602T224943Z.log`
-  records public privacy/terms URL checks returning HTTP 200. The metadata
-  validator still fails until actual Play screenshot and feature-graphic assets
-  are attached under `release/android`.
+  `output/release-evidence/android-review-metadata/20260602T230058Z.log`
+  records public privacy/terms URL checks returning HTTP 200 and the Android
+  review metadata validator passing. The tracked Play asset pack now includes
+  two 1080x1920 RGB PNG phone screenshots, one 1024x500 RGB PNG feature
+  graphic, and screenshot alt text. `ANDROID-REVIEW-METADATA-001` still remains
+  `PENDING` until the metadata/assets are entered and confirmed in Play Console,
+  private reviewer access values are supplied there, and owner approval is
+  attached.
+
+Current-source Android rebuild and core-smoke-adjacent evidence captured on
+2026-06-03 after the Flutter 3.44 icon-package compatibility fix:
+
+- Source base: `f284990b373b8fcc5291ec44abb30ef75b228077`.
+- The stale `lucide_icons 0.257.0` package failed to compile on Flutter
+  3.44/Dart 3.12 because it extends Flutter's now-final `IconData` class. The
+  app now uses `lucide_icons_flutter 3.1.14+2`, and all app/test imports were
+  migrated to `package:lucide_icons_flutter/lucide_icons.dart`.
+- `/Volumes/PRO-G40/flutter_3_44/bin/dart analyze --format machine lib test`
+  passed with exit `0`.
+- Focused local smoke-adjacent Flutter tests passed with 28 tests:
+  `test/feature_flow_integration_test.dart`,
+  `test/location_venue_discovery_test.dart`,
+  `test/checkout_payment_handoff_test.dart`, `test/order_model_test.dart`,
+  `test/order_tracking_screen_test.dart`, and `test/app_router_test.dart`.
+  Evidence log:
+  `output/release-evidence/android-core-smoke/20260603T025108Z.log`.
+- Full `/Volumes/PRO-G40/flutter_3_44/bin/flutter test` passed with 250 tests.
+  Evidence log: `output/release-evidence/flutter-test/20260603T091240Z.log`.
+  Evidence log: `output/release-evidence/flutter-test/20260603T030321Z.log`.
+- `tool/preflight_build_check.sh production` passed with 11 checks OK and 1
+  bounded Supabase reachability warning.
+- `build/app/outputs/flutter-apk/app-release.apk` rebuilt at
+  `2026-06-03T04:56:48Z`, size `71773435` bytes, SHA-256
+  `50603257035cb8d5ad3079569611d51cdcdfc327cd4e70fd8896d584ee10d38b`.
+- `build/app/outputs/bundle/release/app-release.aab` rebuilt at
+  `2026-06-03T04:57:42Z`, size `150872614` bytes, SHA-256
+  `9ca48e5ba6bab72bc650a20213275514ece3d7e428a80d149003aecf6644f0b9`.
+- `tool/android_signature_verify.sh` wrote
+  `output/release-evidence/android-signature/20260603T025755Z.log`. The AAB
+  passed normal `jarsigner -verify`; strict `jarsigner -verify -strict`
+  returned exit `4` because the upload certificate is self-signed and has no
+  timestamp, with ZIP/JAR stream warnings. The APK passed
+  `apksigner verify --verbose --print-certs` with APK Signature Scheme v2
+  enabled.
+- The rebuilt release APK installed on Pixel 4a device `13111JEC215558` and
+  launcher smoke focused
+  `app.fanzone.football/com.fanzone.fanzone.MainActivity`. Evidence log:
+  `output/release-evidence/android-install-launch/20260603T030532Z.log`.
+- Probe-mode Android deep-link smoke passed against the rebuilt release APK and
+  wrote `output/release-evidence/android-deep-link-smoke/20260603T030724Z.log`.
+  The probe confirmed verified production domains, legacy `fanzone.app`,
+  custom schemes, legacy `/predict` normalization, generated `fanzone://pools`
+  links, and MainActivity focus after each launch intent. An earlier same-session
+  probe log at `output/release-evidence/android-deep-link-smoke/20260603T030545Z.log`
+  failed once when focus moved to an unrelated installed app; the clean rerun
+  after force-stopping stale device tasks passed. This is still probe evidence,
+  not release-mode PASS with real UAT identifiers.
+- `ANDROID-CORE-SMOKE-001` remains `PENDING`. The focused tests are useful
+  local coverage, but release PASS still requires the rebuilt production APK to
+  be installed and manually smoked on a physical device with real UAT fixtures
+  for auth, venue discovery, table-number ordering, off-platform payment
+  handoff, rewards ledger, free-to-play entertainment entry, and owner
+  acceptance.
+
+Current-source Android rebuild evidence captured on 2026-06-03 after the
+Flutter frontend rewards-framing pass:
+
+- Source base: `f284990b373b8fcc5291ec44abb30ef75b228077`. The evidence below
+  was captured from the current working tree after UI, copy, dependency, and
+  review-asset changes; the working tree still needs a commit before this can
+  become immutable release-candidate evidence.
+- The customer app copy now frames FET as closed-loop rewards points/rewards
+  ledger language rather than a wallet or cash-equivalent balance. Visible
+  pool copy now uses reward-pool wording instead of pot/payout wording, FET
+  displays no longer show local-currency equivalents, and key tappable chips
+  have 48px minimum hit targets with button semantics.
+- Full `/Volumes/PRO-G40/flutter_3_44/bin/flutter test` passed with 250 tests.
+- `build/app/outputs/flutter-apk/app-release.apk` rebuilt at
+  `2026-06-03T10:51:22Z`, size `71691239` bytes, SHA-256
+  `746b9c859776af977d7d7b2b5d336e47308b94c5fb5bfa8a0a19aba4f9a478a3`.
+- `build/app/outputs/bundle/release/app-release.aab` rebuilt at
+  `2026-06-03T11:03:32Z`, size `150860670` bytes, SHA-256
+  `31af0242bc6075b029486d09a22be3055bb680cbff653d566abe3c3c65075302`.
+- `tool/android_signature_verify.sh` wrote
+  `output/release-evidence/android-signature/20260603T090402Z.log`. The APK
+  passed `apksigner verify --verbose --print-certs` with APK Signature Scheme
+  v2 enabled. The AAB passed normal `jarsigner -verify`; strict jarsigner still
+  reports the known self-signed/no-timestamp upload-certificate and ZIP/JAR
+  stream warnings, so this remains local signing evidence rather than Play
+  app-signing acceptance.
+- The rebuilt release APK installed on Pixel 4a device `13111JEC215558` and
+  launcher smoke focused
+  `app.fanzone.football/com.fanzone.fanzone.MainActivity`. Evidence log:
+  `output/release-evidence/android-install-launch/20260603T090528Z.log`.
+- Probe-mode Android deep-link smoke passed against the rebuilt release APK and
+  wrote `output/release-evidence/android-deep-link-smoke/20260603T090550Z.log`.
+  The probe confirmed verified production domains, legacy `fanzone.app`,
+  custom schemes, legacy `/predict` normalization, generated `fanzone://pools`
+  links, route-normalization tests, and MainActivity focus after each launch
+  intent.
+- `ANDROID-DEEPLINK-001`, `ANDROID-CORE-SMOKE-001`,
+  `ANDROID-PLAY-INTERNAL-001`, and `ANDROID-REVIEW-METADATA-001` remain
+  `PENDING`. The fresh artifacts are local build/install/deep-link-probe
+  evidence only until release-mode deep-link smoke runs with real UAT
+  identifiers, the physical-device core-flow smoke is completed, the AAB is
+  accepted in Google Play internal testing, Play metadata is entered and
+  confirmed, and owner launch approval is attached.
 
 Validator rerun after the metadata refresh:
 

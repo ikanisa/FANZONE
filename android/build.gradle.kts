@@ -3,6 +3,19 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            if (
+                requested.group == "androidx.test" &&
+                requested.name == "runner" &&
+                requested.version == "1.2+"
+            ) {
+                useVersion("1.6.1")
+                because("Avoid dynamic AndroidX Test metadata lookup during Flutter debug builds.")
+            }
+        }
+    }
 }
 
 val newBuildDir: Directory =

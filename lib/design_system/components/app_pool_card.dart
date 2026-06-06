@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../theme/colors.dart';
 import '../../theme/radii.dart';
@@ -115,25 +115,25 @@ class AppPoolCard extends StatelessWidget {
               ],
               const SizedBox(height: 16),
               // Metrics row
-              Row(
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
                 children: [
                   _MetricPill(
                     icon: LucideIcons.zap,
-                    value: '$totalStakedFet',
-                    label: 'FET',
+                    value: '$totalStakedFet FET',
+                    label: 'rewards',
                     color: FzColors.orange,
                   ),
-                  const SizedBox(width: 10),
                   _MetricPill(
                     icon: LucideIcons.users,
                     value: '$totalMembers',
                     color: FzColors.cyan,
                   ),
-                  const SizedBox(width: 10),
                   _MetricPill(
                     icon: LucideIcons.ticket,
-                    value: '$defaultStakeFet',
-                    label: 'entry',
+                    value: '$defaultStakeFet FET',
+                    label: 'entry points',
                     color: FzColors.darkMuted,
                   ),
                 ],

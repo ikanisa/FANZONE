@@ -85,7 +85,7 @@ class _PoolShareEntryScreenState extends ConsumerState<PoolShareEntryScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => StateView.error(
           title: 'Pool link unavailable',
-          subtitle: error.toString(),
+          subtitle: 'This pool link is unavailable right now. Try again.',
           onRetry: () => ref.invalidate(
             poolShareProvider(
               PoolShareLookup(

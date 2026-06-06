@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/config/platform_feature_access.dart';
 import '../../../models/platform/notification_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/notification_service.dart';
+import '../../../services/push_notification_service.dart';
 import '../../../theme/colors.dart';
+import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
 import '../../../widgets/common/fz_card.dart';
 import '../../../widgets/common/fz_glass_loader.dart';
@@ -38,33 +39,51 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
           children: [
-            Row(
-              children: [
-                InkWell(
-                  onTap: () => context.go(profileRoute),
-                  borderRadius: BorderRadius.circular(999),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: FzColors.darkSurface2,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: FzColors.darkBorder),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      LucideIcons.chevronLeft,
-                      size: 18,
-                      color: textColor,
-                    ),
+            _SettingsHero(
+              isVerified: isVerified,
+              textColor: textColor,
+              muted: muted,
+              onProfile: () => context.go(profileRoute),
+              onVerify: () => showSignInRequiredSheet(
+                context,
+                title: 'Verify WhatsApp',
+                message:
+                    'Verify your number to manage notifications, join challenges, and protect rewards.',
+                from: '/settings',
+              ),
+            ),
+            const SizedBox(height: 24),
+            const _SectionHeader(title: 'Account'),
+            const SizedBox(height: 8),
+            FzCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  _SettingsLink(
+                    icon: LucideIcons.userRound,
+                    label: 'Profile',
+                    muted: muted,
+                    textColor: textColor,
+                    onTap: () => context.go(profileRoute),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Text(
-                  'Settings',
-                  style: FzTypography.display(size: 32, color: textColor),
-                ),
-              ],
+                  const _Divider(),
+                  _SettingsLink(
+                    icon: LucideIcons.receiptText,
+                    label: 'Orders',
+                    muted: muted,
+                    textColor: textColor,
+                    onTap: () => context.push('/orders'),
+                  ),
+                  const _Divider(),
+                  _SettingsLink(
+                    icon: LucideIcons.badgePercent,
+                    label: 'Rewards',
+                    muted: muted,
+                    textColor: textColor,
+                    onTap: () => context.push('/wallet'),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             const _SectionHeader(title: 'Notifications'),
@@ -108,8 +127,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         value: prefs.goalAlerts,
                         muted: muted,
                         textColor: textColor,
-                        onChanged: (value) =>
-                            _updatePrefs(prefs.copyWith(goalAlerts: value)),
+                        onChanged: (value) => _updatePrefs(
+                          prefs.copyWith(goalAlerts: value),
+                          requestPushPermission: value && !prefs.goalAlerts,
+                        ),
                       ),
                       const _Divider(),
                       _SettingsToggle(
@@ -118,8 +139,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         value: prefs.poolUpdates,
                         muted: muted,
                         textColor: textColor,
-                        onChanged: (value) =>
-                            _updatePrefs(prefs.copyWith(poolUpdates: value)),
+                        onChanged: (value) => _updatePrefs(
+                          prefs.copyWith(poolUpdates: value),
+                          requestPushPermission: value && !prefs.poolUpdates,
+                        ),
                       ),
                       const _Divider(),
                       _SettingsToggle(
@@ -128,8 +151,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         value: prefs.rewardUpdates,
                         muted: muted,
                         textColor: textColor,
-                        onChanged: (value) =>
-                            _updatePrefs(prefs.copyWith(rewardUpdates: value)),
+                        onChanged: (value) => _updatePrefs(
+                          prefs.copyWith(rewardUpdates: value),
+                          requestPushPermission: value && !prefs.rewardUpdates,
+                        ),
                       ),
                       const _Divider(),
                       _SettingsToggle(
@@ -138,8 +163,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         value: prefs.marketing,
                         muted: muted,
                         textColor: textColor,
-                        onChanged: (value) =>
-                            _updatePrefs(prefs.copyWith(marketing: value)),
+                        onChanged: (value) => _updatePrefs(
+                          prefs.copyWith(marketing: value),
+                          requestPushPermission: value && !prefs.marketing,
+                        ),
                       ),
                     ],
                   ),
@@ -168,8 +195,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     label: 'Help & FAQ',
                     muted: muted,
                     textColor: textColor,
-                    onTap: () =>
-                        _launchUrl(context, 'https://fanzone.ikanisa.com/help'),
+                    onTap: () => context.push('/settings/help'),
                   ),
                   const _Divider(),
                   _SettingsLink(
@@ -177,10 +203,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     label: 'Privacy Policy',
                     muted: muted,
                     textColor: textColor,
-                    onTap: () => _launchUrl(
-                      context,
-                      'https://fanzone.ikanisa.com/privacy',
-                    ),
+                    onTap: () => context.push('/settings/privacy-policy'),
                   ),
                   const _Divider(),
                   _SettingsLink(
@@ -188,10 +211,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     label: 'Terms of Service',
                     muted: muted,
                     textColor: textColor,
-                    onTap: () => _launchUrl(
-                      context,
-                      'https://fanzone.ikanisa.com/terms',
-                    ),
+                    onTap: () => context.push('/settings/terms'),
                   ),
                 ],
               ),
@@ -202,8 +222,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Future<void> _updatePrefs(NotificationPreferences prefs) async {
+  Future<void> _updatePrefs(
+    NotificationPreferences prefs, {
+    bool requestPushPermission = false,
+  }) async {
     try {
+      if (requestPushPermission) {
+        final enabled = await ref
+            .read(pushNotificationServiceProvider)
+            .requestUserPermissionAndRegister();
+        if (!enabled && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Notifications are off in system settings. Your FANZONE alert choices were saved.',
+              ),
+            ),
+          );
+        }
+      }
+
       await ref
           .read(notificationServiceProvider.notifier)
           .updatePreferences(prefs);
@@ -216,16 +254,115 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
     }
   }
+}
 
-  static Future<void> _launchUrl(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-      return;
-    }
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Could not open that link right now.')),
+class _SettingsHero extends StatelessWidget {
+  const _SettingsHero({
+    required this.isVerified,
+    required this.textColor,
+    required this.muted,
+    required this.onProfile,
+    required this.onVerify,
+  });
+
+  final bool isVerified;
+  final Color textColor;
+  final Color muted;
+  final VoidCallback onProfile;
+  final VoidCallback onVerify;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface,
+        borderRadius: FzRadii.heroRadius,
+        border: Border.all(color: FzColors.darkBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.24),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: FzColors.cyan.withValues(alpha: 0.14),
+                  borderRadius: FzRadii.buttonRadius,
+                ),
+                child: const Icon(
+                  LucideIcons.settings2,
+                  color: FzColors.cyan,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'SETTINGS',
+                      style: FzTypography.sportsTitle(
+                        size: 34,
+                        color: textColor,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      isVerified
+                          ? 'Profile, alerts, rewards, and support.'
+                          : 'Verify WhatsApp to unlock all controls.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: muted,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onProfile,
+                  icon: const Icon(LucideIcons.userRound, size: 16),
+                  label: const Text('Profile'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: isVerified ? onProfile : onVerify,
+                  icon: Icon(
+                    isVerified
+                        ? LucideIcons.badgeCheck
+                        : LucideIcons.messageCircle,
+                    size: 16,
+                  ),
+                  label: Text(isVerified ? 'Verified' : 'Verify'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

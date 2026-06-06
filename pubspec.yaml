@@ -38,7 +38,6 @@ dependencies:
 
   # ── UI / Design ──
   cupertino_icons: ^1.0.8
-  lucide_icons: ^0.257.0
   flutter_cache_manager: ^3.4.1
 
   # ── Utilities ──
@@ -52,6 +51,7 @@ dependencies:
   geolocator: ^14.0.2
   flutter_secure_storage: ^10.1.0
   country_picker: ^2.0.27
+  lucide_icons_flutter: ^3.1.14+2
 
 dev_dependencies:
   integration_test:

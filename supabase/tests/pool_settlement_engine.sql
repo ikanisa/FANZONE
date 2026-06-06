@@ -22,6 +22,9 @@ DECLARE
   v_camp uuid;
   v_result jsonb;
   v_wallet jsonb;
+  v_winner_before_final jsonb;
+  v_loser_before_final jsonb;
+  v_extra_before_refund jsonb;
   v_count integer;
   v_tx_count integer;
 BEGIN
@@ -32,12 +35,15 @@ BEGIN
     (v_loser, 'authenticated', 'authenticated', 'settle-loser@example.test', now(), now(), '{}'::jsonb, '{}'::jsonb),
     (v_extra, 'authenticated', 'authenticated', 'settle-extra@example.test', now(), now(), '{}'::jsonb, '{}'::jsonb);
 
-  INSERT INTO public.profiles (id, user_id, fan_id, display_name)
-  VALUES
-    (v_creator, v_creator, '920001', 'Settlement Creator'),
-    (v_winner, v_winner, '920002', 'Settlement Winner'),
-    (v_loser, v_loser, '920003', 'Settlement Loser'),
-    (v_extra, v_extra, '920004', 'Settlement Extra');
+  UPDATE public.profiles
+  SET display_name = CASE
+        WHEN id = v_creator THEN 'Settle Creator'
+        WHEN id = v_winner THEN 'Settle Winner'
+        WHEN id = v_loser THEN 'Settle Loser'
+        ELSE 'Settle Extra'
+      END,
+      updated_at = timezone('utc', now())
+  WHERE id IN (v_creator, v_winner, v_loser, v_extra);
 
   INSERT INTO public.app_config_remote (key, value, description)
   VALUES
@@ -106,6 +112,25 @@ BEGIN
     ('settlement_postponed_match', 'settlement_engine_comp', timezone('utc', now()) + interval '1 hour', 'scheduled', 'settle_home', 'settle_away'),
     ('settlement_retry_match', 'settlement_engine_comp', timezone('utc', now()) + interval '1 hour', 'scheduled', 'settle_home', 'settle_away');
 
+  INSERT INTO public.curated_matches (
+    match_id,
+    country_code,
+    venue_id,
+    priority_score,
+    is_active,
+    is_pool_eligible,
+    reason,
+    metadata,
+    starts_at,
+    expires_at
+  )
+  VALUES
+    ('settlement_final_match', 'MT', v_venue_id, 100, true, true, 'Settlement engine test', '{"test_fixture":true,"pool_eligible":true}'::jsonb, timezone('utc', now()) - interval '1 minute', timezone('utc', now()) + interval '4 hours'),
+    ('settlement_refund_match', 'MT', v_venue_id, 100, true, true, 'Settlement engine test', '{"test_fixture":true,"pool_eligible":true}'::jsonb, timezone('utc', now()) - interval '1 minute', timezone('utc', now()) + interval '4 hours'),
+    ('settlement_cancelled_match', 'MT', v_venue_id, 100, true, true, 'Settlement engine test', '{"test_fixture":true,"pool_eligible":true}'::jsonb, timezone('utc', now()) - interval '1 minute', timezone('utc', now()) + interval '4 hours'),
+    ('settlement_postponed_match', 'MT', v_venue_id, 100, true, true, 'Settlement engine test', '{"test_fixture":true,"pool_eligible":true}'::jsonb, timezone('utc', now()) - interval '1 minute', timezone('utc', now()) + interval '4 hours'),
+    ('settlement_retry_match', 'MT', v_venue_id, 100, true, true, 'Settlement engine test', '{"test_fixture":true,"pool_eligible":true}'::jsonb, timezone('utc', now()) - interval '1 minute', timezone('utc', now()) + interval '4 hours');
+
   PERFORM public.wallet_post_transaction(v_winner, 'admin_adjustment', 'credit', 200, 'available', 'settle-seed-winner');
   PERFORM public.wallet_post_transaction(v_loser, 'admin_adjustment', 'credit', 200, 'available', 'settle-seed-loser');
   PERFORM public.wallet_post_transaction(v_extra, 'admin_adjustment', 'credit', 200, 'available', 'settle-seed-extra');
@@ -130,6 +155,14 @@ BEGIN
   PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_loser, 'role', 'authenticated')::text, true);
   PERFORM public.join_match_pool(v_pool_final, v_camp, 30, NULL);
 
+  PERFORM set_config('request.jwt.claim.sub', v_winner::text, true);
+  PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_winner, 'role', 'authenticated')::text, true);
+  v_winner_before_final := public.get_wallet_balance(v_winner);
+
+  PERFORM set_config('request.jwt.claim.sub', v_loser::text, true);
+  PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_loser, 'role', 'authenticated')::text, true);
+  v_loser_before_final := public.get_wallet_balance(v_loser);
+
   UPDATE public.matches
   SET match_status = 'finished',
       status = 'final',
@@ -151,15 +184,17 @@ BEGIN
   PERFORM set_config('request.jwt.claim.sub', v_winner::text, true);
   PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_winner, 'role', 'authenticated')::text, true);
   v_wallet := public.get_wallet_balance(v_winner);
-  IF (v_wallet ->> 'available_fet')::bigint <> 230 OR (v_wallet ->> 'staked_fet')::bigint <> 0 THEN
-    RAISE EXCEPTION 'Winner wallet after settlement was %, expected 230 available and 0 staked', v_wallet;
+  IF (v_wallet ->> 'available_fet')::bigint <> (v_winner_before_final ->> 'available_fet')::bigint + 40
+     OR (v_wallet ->> 'staked_fet')::bigint <> 0 THEN
+    RAISE EXCEPTION 'Winner wallet after settlement was %, expected before % plus 40 available and 0 staked', v_wallet, v_winner_before_final;
   END IF;
 
   PERFORM set_config('request.jwt.claim.sub', v_loser::text, true);
   PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_loser, 'role', 'authenticated')::text, true);
   v_wallet := public.get_wallet_balance(v_loser);
-  IF (v_wallet ->> 'available_fet')::bigint <> 170 OR (v_wallet ->> 'staked_fet')::bigint <> 0 THEN
-    RAISE EXCEPTION 'Loser wallet after settlement was %, expected 170 available and 0 staked', v_wallet;
+  IF (v_wallet ->> 'available_fet')::bigint <> (v_loser_before_final ->> 'available_fet')::bigint
+     OR (v_wallet ->> 'staked_fet')::bigint <> 0 THEN
+    RAISE EXCEPTION 'Loser wallet after settlement was %, expected before % available and 0 staked', v_wallet, v_loser_before_final;
   END IF;
 
   SELECT count(*) INTO v_tx_count
@@ -204,6 +239,7 @@ BEGIN
   PERFORM set_config('request.jwt.claim.sub', v_extra::text, true);
   PERFORM set_config('request.jwt.claims', jsonb_build_object('sub', v_extra, 'role', 'authenticated')::text, true);
   PERFORM public.join_match_pool(v_pool_refund, v_camp, 20, NULL);
+  v_extra_before_refund := public.get_wallet_balance(v_extra);
 
   UPDATE public.matches
   SET match_status = 'finished',
@@ -222,8 +258,9 @@ BEGIN
   END IF;
 
   v_wallet := public.get_wallet_balance(v_extra);
-  IF (v_wallet ->> 'available_fet')::bigint <> 200 OR (v_wallet ->> 'staked_fet')::bigint <> 0 THEN
-    RAISE EXCEPTION 'No-winner refund wallet was %, expected full refund', v_wallet;
+  IF (v_wallet ->> 'available_fet')::bigint <> (v_extra_before_refund ->> 'available_fet')::bigint + 20
+     OR (v_wallet ->> 'staked_fet')::bigint <> 0 THEN
+    RAISE EXCEPTION 'No-winner refund wallet was %, expected before % plus full refund and 0 staked', v_wallet, v_extra_before_refund;
   END IF;
 
   -- Cancelled match: active entries are refunded and the pool is cancelled.

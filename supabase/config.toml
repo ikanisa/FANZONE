@@ -385,6 +385,27 @@ deno_version = 2
 [functions.import-football-data]
 verify_jwt = false
 
+[functions.sync-livescore-football]
+verify_jwt = false
+
+[functions.whatsapp-otp]
+verify_jwt = false
+
+[functions.order_create]
+verify_jwt = false
+
+[functions.order_mark_paid]
+verify_jwt = false
+
+[functions.order_update_status]
+verify_jwt = false
+
+[functions.payment-hub]
+verify_jwt = false
+
+[functions.menu_ocr_parse]
+verify_jwt = false
+
 [functions.dispatch-match-alerts]
 verify_jwt = false
 
@@ -397,11 +418,20 @@ verify_jwt = false
 [functions.settle-match-pools]
 verify_jwt = false
 
+[functions.fan-trivia]
+verify_jwt = false
+
+[functions.song-guess]
+verify_jwt = false
+
+[functions.music-bingo]
+verify_jwt = false
+
 [functions.generate-pool-social-card]
-verify_jwt = true
+verify_jwt = false
 
 [functions.ring_bell]
-verify_jwt = true
+verify_jwt = false
 
 [analytics]
 enabled = false

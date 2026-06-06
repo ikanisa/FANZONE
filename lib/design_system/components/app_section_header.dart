@@ -10,11 +10,13 @@ class AppSectionHeader extends StatelessWidget {
     required this.title,
     this.actionLabel,
     this.onAction,
+    this.actionKey,
   });
 
   final String title;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final Key? actionKey;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +30,7 @@ class AppSectionHeader extends StatelessWidget {
         ),
         if (actionLabel != null && onAction != null)
           TextButton(
+            key: actionKey,
             onPressed: onAction,
             style: TextButton.styleFrom(
               foregroundColor: FzColors.cyan,

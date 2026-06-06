@@ -8,7 +8,7 @@ Verify these declarations against the final production build and third-party SDK
 - User ID: Supabase user ID and 6-digit FANZONE ID.
 - Purchases or order activity: venue order records, order status, manual payment status. No direct payment credentials are collected.
 - User Content: order notes, pool entries, team membership, game participation where entered by the user.
-- Usage Data: app interactions needed to operate venues, orders, pools, games, teams, wallet, eligibility, and support.
+- Usage Data: app interactions needed to operate venues, orders, pools, games, teams, rewards-ledger activity, eligibility, and support.
 - Diagnostics: runtime error logs if telemetry is enabled.
 
 ## Data Not Collected In Current Release
@@ -28,4 +28,3 @@ Verify these declarations against the final production build and third-party SDK
 - URL launcher, app links, share, image/cache packages.
 
 The iOS project includes CocoaPods privacy manifests from several dependencies. Confirm App Store Connect privacy answers match both direct app behavior and SDK behavior.
-

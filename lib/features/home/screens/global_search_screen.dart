@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../models/hospitality/venue_model.dart';
 import '../../../models/platform/search_result_model.dart';
@@ -162,7 +162,7 @@ class _VenueResults extends StatelessWidget {
             child: _SearchResultTile(
               icon: LucideIcons.mapPin,
               title: venue.name,
-              subtitle: venue.city ?? venue.countryCode.label,
+              subtitle: venue.discoverySubtitle,
               onTap: () => context.push('/venue/${venue.id}'),
             ),
           ),

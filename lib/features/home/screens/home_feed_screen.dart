@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../data/team_search_database.dart';
 import '../../../models/hospitality/venue_model.dart';
@@ -18,6 +18,7 @@ import '../../../widgets/common/fz_reference_chrome.dart';
 import '../../../widgets/common/team_crest.dart';
 import '../data/home_match_curator.dart';
 import '../../ordering/providers/venue_context_provider.dart';
+import '../../ordering/providers/venue_discovery_provider.dart';
 import '../../pools/data/pools_repository.dart';
 
 class HomeFeedScreen extends ConsumerWidget {
@@ -50,6 +51,7 @@ class HomeFeedScreen extends ConsumerWidget {
     final walletAsync = ref.watch(walletBalanceProvider);
     final teamsAsync = ref.watch(homeDefaultTeamsProvider);
     final matchesAsync = ref.watch(homeFeedMatchesProvider(filter));
+    final venuesAsync = ref.watch(activeVenuesProvider);
     final poolsAsync = ref.watch(poolsProvider);
 
     return Scaffold(
@@ -59,11 +61,13 @@ class HomeFeedScreen extends ConsumerWidget {
             ref.invalidate(walletBalanceProvider);
             ref.invalidate(homeDefaultTeamsProvider);
             ref.invalidate(homeFeedMatchesProvider(filter));
+            ref.invalidate(activeVenuesProvider);
             ref.invalidate(poolsProvider);
             await Future.wait([
               ref.read(walletBalanceProvider.future),
               ref.read(homeDefaultTeamsProvider.future),
               ref.read(homeFeedMatchesProvider(filter).future),
+              ref.read(activeVenuesProvider.future),
               ref.read(poolsProvider.future),
             ]);
           },
@@ -72,20 +76,19 @@ class HomeFeedScreen extends ConsumerWidget {
             children: [
               const FzReferenceHeader(),
               const SizedBox(height: 20),
-              walletAsync.when(
-                data: (wallet) => _BalanceHero(
-                  available: wallet.availableFet,
-                  pending: wallet.pendingFet,
-                ),
-                loading: () => const _BalanceHero(available: 0, pending: 0),
-                error: (_, _) => const _BalanceHero(available: 0, pending: 0),
-              ),
-              const SizedBox(height: 18),
-              _ActionRail(
+              _HomeCommandPanel(
+                availableFet: walletAsync.valueOrNull?.availableFet ?? 0,
+                pendingFet: walletAsync.valueOrNull?.pendingFet ?? 0,
+                liveMatchCount:
+                    matchesAsync.valueOrNull?.liveMatches.length ?? 0,
+                upcomingMatchCount:
+                    matchesAsync.valueOrNull?.upcomingMatches.length ?? 0,
+                venueLabel: venueContext.venue?.name,
                 onBrowseVenues: () => context.go('/venues'),
-                onJoinPool: () => context.go('/pools'),
-                onJoinGame: () => context.go('/games'),
+                onPlay: () => context.go('/pools'),
+                onRewards: () => context.push('/wallet'),
               ),
+              ..._barsSection(context: context, venuesAsync: venuesAsync),
               ..._teamsSection(context: context, teamsAsync: teamsAsync),
               ..._selectedVenueSection(
                 context: context,
@@ -97,6 +100,69 @@ class HomeFeedScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  List<Widget> _barsSection({
+    required BuildContext context,
+    required AsyncValue<List<VenueModel>> venuesAsync,
+  }) {
+    return venuesAsync.when(
+      data: (venues) {
+        final visible = venues.take(3).toList(growable: false);
+        return [
+          const SizedBox(height: 28),
+          AppSectionHeader(
+            title: 'Bars',
+            actionLabel: 'View all',
+            actionKey: const ValueKey('home_bars_view_all'),
+            onAction: () => context.go('/venues'),
+          ),
+          const SizedBox(height: 10),
+          if (visible.isEmpty)
+            _HomeEmptyPanel(
+              icon: LucideIcons.store,
+              title: 'No bars loaded',
+              body: 'Open the bars page to search venues.',
+              actionLabel: 'View all',
+              onAction: () => context.go('/venues'),
+            )
+          else
+            for (final venue in visible)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: AppVenueCard(
+                  name: venue.name,
+                  city: venue.discoverySubtitle,
+                  coverUrl: venue.coverUrl,
+                  isLive: venue.isOpen,
+                  onTap: () => context.push('/venue/${venue.id}'),
+                ),
+              ),
+        ];
+      },
+      loading: () => const [
+        SizedBox(height: 28),
+        AppSectionHeader(title: 'Bars'),
+        SizedBox(height: 10),
+        _HomeLoadingPanel(label: 'Loading bars'),
+      ],
+      error: (_, _) => [
+        const SizedBox(height: 28),
+        AppSectionHeader(
+          title: 'Bars',
+          actionLabel: 'View all',
+          onAction: () => context.go('/venues'),
+        ),
+        const SizedBox(height: 10),
+        _HomeEmptyPanel(
+          icon: LucideIcons.store,
+          title: 'Bars unavailable',
+          body: 'Open the bars page to retry.',
+          actionLabel: 'View all',
+          onAction: () => context.go('/venues'),
+        ),
+      ],
     );
   }
 
@@ -158,7 +224,8 @@ class HomeFeedScreen extends ConsumerWidget {
           const SizedBox(height: 28),
           AppSectionHeader(
             title: 'Open Pool',
-            actionLabel: 'Pools',
+            actionLabel: 'View all',
+            actionKey: const ValueKey('home_pools_view_all'),
             onAction: () => context.go('/pools'),
           ),
           const SizedBox(height: 10),
@@ -183,12 +250,18 @@ class HomeFeedScreen extends ConsumerWidget {
         if (matches.isEmpty) return const <Widget>[];
         return [
           const SizedBox(height: 28),
-          const AppSectionHeader(title: 'Matches'),
+          AppSectionHeader(
+            title: 'Live & Upcoming Matches',
+            actionLabel: 'View all',
+            actionKey: const ValueKey('home_matches_view_all'),
+            onAction: () => context.go('/home/matches'),
+          ),
           const SizedBox(height: 10),
           for (final match in matches)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: AppMatchCard(
+                key: ValueKey('home_match_${match.id}'),
                 homeTeam: match.homeTeam,
                 awayTeam: match.awayTeam,
                 homeLogoUrl: match.homeLogoUrl,
@@ -199,76 +272,219 @@ class HomeFeedScreen extends ConsumerWidget {
                 awayScore: match.ftAway,
                 isLive: match.isLive,
                 liveMinute: match.isLive ? match.kickoffLabel : null,
+                sourceLabel: match.sourceLabel,
                 onTap: () => context.push('/match/${match.id}'),
               ),
             ),
         ];
       },
-      loading: () => const <Widget>[],
-      error: (_, _) => const <Widget>[],
+      loading: () => const [
+        SizedBox(height: 28),
+        AppSectionHeader(title: 'Live & Upcoming Matches'),
+        SizedBox(height: 10),
+        _HomeLoadingPanel(label: 'Loading matches'),
+      ],
+      error: (_, _) => [
+        const SizedBox(height: 28),
+        AppSectionHeader(
+          title: 'Live & Upcoming Matches',
+          actionLabel: 'View all',
+          actionKey: const ValueKey('home_matches_view_all_error'),
+          onAction: () => context.go('/home/matches'),
+        ),
+        const SizedBox(height: 10),
+        _HomeEmptyPanel(
+          icon: LucideIcons.calendar,
+          title: 'Matches unavailable',
+          body: 'Open the matches page to retry.',
+          actionLabel: 'View all',
+          onAction: () => context.go('/home/matches'),
+        ),
+      ],
     );
   }
 }
 
-class _BalanceHero extends StatelessWidget {
-  const _BalanceHero({required this.available, required this.pending});
+class _HomeCommandPanel extends StatelessWidget {
+  const _HomeCommandPanel({
+    required this.availableFet,
+    required this.pendingFet,
+    required this.liveMatchCount,
+    required this.upcomingMatchCount,
+    required this.venueLabel,
+    required this.onBrowseVenues,
+    required this.onPlay,
+    required this.onRewards,
+  });
 
-  final int available;
-  final int pending;
+  final int availableFet;
+  final int pendingFet;
+  final int liveMatchCount;
+  final int upcomingMatchCount;
+  final String? venueLabel;
+  final VoidCallback onBrowseVenues;
+  final VoidCallback onPlay;
+  final VoidCallback onRewards;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       decoration: BoxDecoration(
         gradient: AppGradients.hero,
         borderRadius: FzRadii.heroRadius,
         boxShadow: [
           BoxShadow(
-            color: FzColors.cyan.withValues(alpha: 0.22),
-            blurRadius: 30,
-            offset: const Offset(0, 18),
+            color: FzColors.cyan.withValues(alpha: 0.2),
+            blurRadius: 28,
+            offset: const Offset(0, 16),
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned(
-            right: -20,
-            bottom: -34,
-            child: Icon(
-              LucideIcons.zap,
-              size: 170,
-              color: Colors.white.withValues(alpha: 0.04),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Text(
-                'FET',
-                style: FzTypography.chipLabel(size: 13, color: Colors.white70),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _formatNumber(available),
-                style: FzTypography.heroFet(size: 48, color: Colors.white),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (pending > 0)
-                    _HeroPill(
-                      icon: LucideIcons.timer,
-                      label: '$pending pending',
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'MATCH DAY',
+                      style: FzTypography.chipLabel(
+                        size: 12,
+                        color: Colors.white70,
+                      ),
                     ),
+                    const SizedBox(height: 6),
+                    Text(
+                      venueLabel == null ? 'Your FANZONE' : venueLabel!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: FzTypography.display(
+                        size: 28,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    _formatNumber(availableFet),
+                    style: FzTypography.heroFet(size: 42, color: Colors.white),
+                  ),
+                  const Text(
+                    'FET READY',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _HeroPill(icon: LucideIcons.radio, label: '$liveMatchCount live'),
+              _HeroPill(
+                icon: LucideIcons.calendarClock,
+                label: '$upcomingMatchCount upcoming',
+              ),
+              if (pendingFet > 0)
+                _HeroPill(
+                  icon: LucideIcons.timer,
+                  label: '$pendingFet pending',
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _HomeCommandAction(
+                  icon: AppIconName.bars,
+                  label: 'Bars',
+                  color: FzColors.cyan,
+                  onTap: onBrowseVenues,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HomeCommandAction(
+                  icon: AppIconName.play,
+                  label: 'Play',
+                  color: FzColors.orange,
+                  onTap: onPlay,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HomeCommandAction(
+                  icon: AppIconName.wallet,
+                  label: 'Rewards',
+                  color: FzColors.danger,
+                  onTap: onRewards,
+                ),
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _HomeCommandAction extends StatelessWidget {
+  const _HomeCommandAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final AppIconName icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const foregroundColor = FzColors.darkBg;
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: SizedBox(
+          height: 58,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AppSvgIcon(icon, color: foregroundColor, size: 20),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: foregroundColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -308,79 +524,102 @@ class _HeroPill extends StatelessWidget {
   }
 }
 
-class _ActionRail extends StatelessWidget {
-  const _ActionRail({
-    required this.onBrowseVenues,
-    required this.onJoinPool,
-    required this.onJoinGame,
-  });
+class _HomeLoadingPanel extends StatelessWidget {
+  const _HomeLoadingPanel({required this.label});
 
-  final VoidCallback onBrowseVenues;
-  final VoidCallback onJoinPool;
-  final VoidCallback onJoinGame;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _ActionRailItem(
-          icon: AppIconName.bars,
-          label: 'Bars',
-          color: FzColors.cyan,
-          onTap: onBrowseVenues,
-        ),
-        _ActionRailItem(
-          icon: AppIconName.pool,
-          label: 'Pools',
-          color: FzColors.orange,
-          onTap: onJoinPool,
-        ),
-        _ActionRailItem(
-          icon: AppIconName.game,
-          label: 'Games',
-          color: FzColors.danger,
-          onTap: onJoinGame,
-        ),
-      ],
+    return Container(
+      height: 72,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface,
+        borderRadius: FzRadii.cardRadius,
+        border: Border.all(color: FzColors.darkBorder),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: const TextStyle(
+              color: FzColors.darkMuted,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _ActionRailItem extends StatelessWidget {
-  const _ActionRailItem({
+class _HomeEmptyPanel extends StatelessWidget {
+  const _HomeEmptyPanel({
     required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
+    required this.title,
+    required this.body,
+    required this.actionLabel,
+    required this.onAction,
   });
 
-  final AppIconName icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
+  final IconData icon;
+  final String title;
+  final String body;
+  final String actionLabel;
+  final VoidCallback onAction;
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: label,
-      child: Semantics(
-        button: true,
-        label: label,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: FzColors.darkSurface,
+        borderRadius: FzRadii.cardRadius,
+        border: Border.all(color: FzColors.darkBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
               color: FzColors.darkSurface2,
-              border: Border.all(color: FzColors.darkBorder),
+              borderRadius: FzRadii.buttonRadius,
             ),
-            child: Center(child: AppSvgIcon(icon, color: color, size: 24)),
+            child: Icon(icon, color: FzColors.cyan, size: 20),
           ),
-        ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: const TextStyle(
+                    color: FzColors.darkMuted,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(onPressed: onAction, child: Text(actionLabel)),
+        ],
       ),
     );
   }
@@ -442,7 +681,7 @@ class _LiveVenueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppVenueCard(
       name: venue.name,
-      city: venue.city ?? venue.countryCode.label,
+      city: venue.discoverySubtitle,
       coverUrl: venue.coverUrl,
       isLive: true,
       onTap: () => context.push('/venue/${venue.id}'),

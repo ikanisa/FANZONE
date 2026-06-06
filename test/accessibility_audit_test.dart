@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:fanzone/widgets/common/fz_animated_entry.dart';
 import 'package:fanzone/data/team_search_database.dart';
+import 'package:fanzone/features/games/data/games_repository.dart';
 import 'package:fanzone/features/home/screens/home_feed_screen.dart';
 import 'package:fanzone/features/home/screens/match_detail_screen.dart';
 import 'package:fanzone/features/pools/screens/pools_screen.dart';
@@ -141,6 +142,7 @@ void main() {
       const PoolsScreen(),
       overrides: [
         poolsProvider.overrideWith((ref) async => const [pool]),
+        gamesProvider.overrideWith((ref) async => const []),
         isFullyAuthenticatedProvider.overrideWith((ref) => true),
       ],
     );

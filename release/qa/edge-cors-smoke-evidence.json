@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T07:35:09.983Z",
+  "projectRef": "kjuhheobmdvjwgnzlcwx",
+  "scope": "Credential-free deployed Supabase Edge CORS preflight smoke for browser-callable FANZONE functions",
+  "command": "node tool/capture_edge_cors_smoke.mjs",
+  "status": "PASS",
+  "functions": [
+    "whatsapp-otp",
+    "generate-pool-social-card"
+  ],
+  "allowedOrigins": [
+    "https://fanzone.ikanisa.com",
+    "https://fanzoneadmin.ikanisa.com",
+    "https://fanzone.venue.ikanisa.com",
+    "https://fanzonetv.ikanisa.com"
+  ],
+  "blockedOriginHashes": [
+    "e55db36714faa6af771365d32a014c394178af5e4633e902a340d65fe39e581b"
+  ],
+  "checks": [
+    {
+      "functionName": "whatsapp-otp",
+      "originSha256": "5bd2c581c0fb5e71cc7c0e94154669132d0424f072e481ce82b2aa23e2dfaa9a",
+      "origin": "https://fanzone.ikanisa.com",
+      "expectedAllowed": true,
+      "status": 200,
+      "accessControlAllowOrigin": "https://fanzone.ikanisa.com",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, content-type, apikey, x-client-info",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    },
+    {
+      "functionName": "whatsapp-otp",
+      "originSha256": "d5225bc2249658dd82132ed1e3974e38fbca20f780a7d166567af25a6105cf62",
+      "origin": "https://fanzoneadmin.ikanisa.com",
+      "expectedAllowed": true,
+      "status": 200,
+      "accessControlAllowOrigin": "https://fanzoneadmin.ikanisa.com",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, content-type, apikey, x-client-info",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    },
+    {
+      "functionName": "whatsapp-otp",
+      "originSha256": "0ee32380f27218b617deaf8f44f76665f033ec375b20c5596d352f05e77c36fa",
+      "origin": "https://fanzone.venue.ikanisa.com",
+      "expectedAllowed": true,
+      "status": 200,
+      "accessControlAllowOrigin": "https://fanzone.venue.ikanisa.com",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, content-type, apikey, x-client-info",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    },
+    {
+      "functionName": "whatsapp-otp",
+      "originSha256": "65a841d89571c44dcabc5656705087f3f39698704c7d54bc75eeb8de211cf6bb",
+      "origin": "https://fanzonetv.ikanisa.com",
+      "expectedAllowed": true,
+      "status": 200,
+      "accessControlAllowOrigin": "https://fanzonetv.ikanisa.com",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, content-type, apikey, x-client-info",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    },
+    {
+      "functionName": "whatsapp-otp",
+      "originSha256": "e55db36714faa6af771365d32a014c394178af5e4633e902a340d65fe39e581b",
+      "origin": "https://evil.example",
+      "expectedAllowed": false,
+      "status": 200,
+      "accessControlAllowOrigin": "",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, content-type, apikey, x-client-info",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    },
+    {
+      "functionName": "generate-pool-social-card",
+      "originSha256": "5bd2c581c0fb5e71cc7c0e94154669132d0424f072e481ce82b2aa23e2dfaa9a",
+      "origin": "https://fanzone.ikanisa.com",
+      "expectedAllowed": true,
+      "status": 200,
+      "accessControlAllowOrigin": "https://fanzone.ikanisa.com",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, apikey, content-type",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    },
+    {
+      "functionName": "generate-pool-social-card",
+      "originSha256": "d5225bc2249658dd82132ed1e3974e38fbca20f780a7d166567af25a6105cf62",
+      "origin": "https://fanzoneadmin.ikanisa.com",
+      "expectedAllowed": true,
+      "status": 200,
+      "accessControlAllowOrigin": "https://fanzoneadmin.ikanisa.com",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, apikey, content-type",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    },
+    {
+      "functionName": "generate-pool-social-card",
+      "originSha256": "0ee32380f27218b617deaf8f44f76665f033ec375b20c5596d352f05e77c36fa",
+      "origin": "https://fanzone.venue.ikanisa.com",
+      "expectedAllowed": true,
+      "status": 200,
+      "accessControlAllowOrigin": "https://fanzone.venue.ikanisa.com",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, apikey, content-type",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    },
+    {
+      "functionName": "generate-pool-social-card",
+      "originSha256": "65a841d89571c44dcabc5656705087f3f39698704c7d54bc75eeb8de211cf6bb",
+      "origin": "https://fanzonetv.ikanisa.com",
+      "expectedAllowed": true,
+      "status": 200,
+      "accessControlAllowOrigin": "https://fanzonetv.ikanisa.com",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, apikey, content-type",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    },
+    {
+      "functionName": "generate-pool-social-card",
+      "originSha256": "e55db36714faa6af771365d32a014c394178af5e4633e902a340d65fe39e581b",
+      "origin": "https://evil.example",
+      "expectedAllowed": false,
+      "status": 200,
+      "accessControlAllowOrigin": "",
+      "accessControlAllowMethods": "POST",
+      "accessControlAllowHeaders": "authorization, apikey, content-type",
+      "vary": "Accept-Encoding, Origin",
+      "passed": true
+    }
+  ],
+  "notes": [
+    "Allowed production origins must be reflected exactly and must not use wildcard CORS.",
+    "Blocked origins must not receive access-control-allow-origin.",
+    "No Supabase key, service-role key, database URL, PAT, or bearer credential is required for OPTIONS preflight smoke."
+  ]
+}

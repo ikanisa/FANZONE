@@ -15,6 +15,7 @@ import {
   orderMarkPaidDefaultPaymentMethod,
   orderMarkPaidMaxExternalReferenceLength,
   orderMarkPaidMaxNoteLength,
+  orderMarkPaidMinNoteLength,
   orderMarkPaidPaymentMethods,
   orderMarkPaidTargetPaymentStatus,
 } from "../_shared/order_mark_paid_contract.ts";
@@ -29,7 +30,9 @@ const markPaidSchema = z.object({
   external_reference: z.string().trim().max(
     orderMarkPaidMaxExternalReferenceLength,
   ).optional(),
-  note: z.string().trim().max(orderMarkPaidMaxNoteLength).optional(),
+  note: z.string().trim().min(orderMarkPaidMinNoteLength).max(
+    orderMarkPaidMaxNoteLength,
+  ),
 });
 
 Deno.serve(async (req) => {

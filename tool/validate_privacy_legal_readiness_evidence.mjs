@@ -22,6 +22,7 @@ const requiredCheckSurfaces = new Map([
   ["NO-BETTING-NO-CASHOUT", "All"],
   ["OFF-PLATFORM-PAYMENTS", "All"],
   ["SDK-DATA-INVENTORY", "Flutter app"],
+  ["PUBLIC-SURFACE-COPY-AUDIT", "All"],
   ["HUMAN-LEGAL-REVIEW", "All"],
 ]);
 const requiredChecks = new Set(requiredCheckSurfaces.keys());

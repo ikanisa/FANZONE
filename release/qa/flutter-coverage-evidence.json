@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T07:25:12Z",
+  "sourceCommit": "f284990b373b8fcc5291ec44abb30ef75b228077",
+  "branch": "main",
+  "scope": "Flutter client coverage evidence for FANZONE mobile release flows",
+  "command": "flutter test --coverage",
+  "status": "PASS",
+  "testsPassed": 288,
+  "testsFailed": 0,
+  "log": "release/qa/flutter-coverage-summary.txt",
+  "lcovPath": "release/qa/flutter-coverage-lcov.info",
+  "lcovSha256": "df8d76a305c1508cf356feeef0096a7f68205c839a640a22a8ffa945ffdf5b0f",
+  "coverage": {
+    "files": 199,
+    "lineFound": 14923,
+    "lineHit": 5393,
+    "lineCoveragePercent": 36.14
+  },
+  "coveredAreas": [
+    "Home shell, Home match curation, and match-detail widgets",
+    "Play games repository Edge Function mapping and guest sign-in routing",
+    "Settings support rows, privacy pages, and feature-unavailable copy",
+    "Onboarding phone, WhatsApp OTP, and favorite-team category selection",
+    "Ordering gateway, provider, order model, and order tracking lifecycle",
+    "Wallet and rewards ledger copy with customer transfer controls hidden",
+    "Design-system golden, common widgets, accessibility, and routing"
+  ],
+  "notes": [
+    "Coverage is a release evidence metric, not a product quality target by itself.",
+    "The full Flutter suite passed in the same run that generated the lcov file.",
+    "The lcov hash is verified by tool/validate_flutter_coverage_evidence.mjs."
+  ]
+}

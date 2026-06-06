@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'core/accessibility/motion.dart';
 import 'core/auth/runtime_auth_session_manager.dart';
+import 'config/app_config.dart';
 import 'core/config/platform_feature_access.dart';
 import 'core/runtime/app_runtime_state.dart';
 import 'features/auth/screens/splash_screen.dart';
@@ -11,6 +12,7 @@ import 'features/games/screens/game_detail_screen.dart';
 import 'features/games/screens/games_screen.dart';
 import 'features/home/screens/global_search_screen.dart';
 import 'features/home/screens/home_feed_screen.dart';
+import 'features/home/screens/home_matches_screen.dart';
 import 'features/home/screens/match_detail_screen.dart';
 import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/ordering/screens/browse_venues_screen.dart';
@@ -33,6 +35,7 @@ import 'features/profile/screens/profile_screen.dart';
 import 'features/settings/screens/feature_unavailable_screen.dart';
 import 'features/settings/screens/privacy_settings_screen.dart';
 import 'features/settings/screens/settings_screen.dart';
+import 'features/settings/screens/support_info_screen.dart';
 import 'features/wallet/screens/transaction_details_screen.dart';
 import 'features/wallet/screens/wallet_screen.dart';
 import 'widgets/navigation/app_shell.dart';
@@ -181,6 +184,12 @@ final GoRouter router = GoRouter(
       ),
     ),
     GoRoute(
+      name: 'venues',
+      path: '/venues',
+      pageBuilder: (context, state) =>
+          _fadeSlideTransition(state, const BrowseVenuesScreen()),
+    ),
+    GoRoute(
       name: 'location_access',
       path: '/venues/location',
       pageBuilder: (context, state) =>
@@ -243,18 +252,16 @@ final GoRouter router = GoRouter(
           _fadeSlideTransition(state, const ProfileScreen()),
     ),
     GoRoute(
-      name: 'settings',
-      path: '/settings',
+      name: 'orders',
+      path: '/orders',
       pageBuilder: (context, state) =>
-          _fadeSlideTransition(state, const SettingsScreen()),
-      routes: [
-        GoRoute(
-          name: 'privacy',
-          path: 'privacy',
-          pageBuilder: (context, state) =>
-              _fadeSlideTransition(state, const PrivacySettingsScreen()),
-        ),
-      ],
+          _fadeSlideTransition(state, const OrdersScreen()),
+    ),
+    GoRoute(
+      name: 'wallet',
+      path: '/wallet',
+      pageBuilder: (context, state) =>
+          _fadeSlideTransition(state, const WalletScreen()),
     ),
     GoRoute(
       name: 'wallet_transaction',
@@ -294,18 +301,6 @@ final GoRouter router = GoRouter(
           _fadeSlideTransition(state, const CreatePoolScreen()),
     ),
     GoRoute(
-      name: 'pool_share_entry',
-      path: '/pools/:shareSlug',
-      pageBuilder: (context, state) => _fadeSlideTransition(
-        state,
-        PoolShareEntryScreen(
-          shareSlug: state.pathParameters['shareSlug']!,
-          inviteCode: state.uri.queryParameters['invite'],
-          source: state.uri.queryParameters['source'],
-        ),
-      ),
-    ),
-    GoRoute(
       name: 'game_detail',
       path: '/game/:gameId',
       pageBuilder: (context, state) => _fadeSlideTransition(
@@ -313,6 +308,7 @@ final GoRouter router = GoRouter(
         GameDetailScreen(sessionId: state.pathParameters['gameId']!),
       ),
     ),
+    GoRoute(path: '/games', redirect: (context, state) => '/pools/games'),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => AppShell(
         navigationShell: navigationShell,
@@ -326,16 +322,14 @@ final GoRouter router = GoRouter(
               path: '/home',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const HomeFeedScreen()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              name: 'venues',
-              path: '/venues',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const BrowseVenuesScreen()),
+              routes: [
+                GoRoute(
+                  name: 'home_matches',
+                  path: 'matches',
+                  pageBuilder: (context, state) =>
+                      _fadeSlideTransition(state, const HomeMatchesScreen()),
+                ),
+              ],
             ),
           ],
         ),
@@ -346,36 +340,74 @@ final GoRouter router = GoRouter(
               path: '/pools',
               pageBuilder: (context, state) =>
                   _fadeSlideTransition(state, const PoolsScreen()),
-            ),
-            GoRoute(
-              name: 'games',
-              path: '/games',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const GamesScreen()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              name: 'orders',
-              path: '/orders',
-              pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const OrdersScreen()),
+              routes: [
+                GoRoute(
+                  name: 'games',
+                  path: 'games',
+                  pageBuilder: (context, state) =>
+                      _fadeSlideTransition(state, const GamesScreen()),
+                ),
+              ],
             ),
           ],
         ),
         StatefulShellBranch(
           routes: [
             GoRoute(
-              name: 'wallet',
-              path: '/wallet',
+              name: 'settings',
+              path: '/settings',
               pageBuilder: (context, state) =>
-                  _fadeSlideTransition(state, const WalletScreen()),
+                  _fadeSlideTransition(state, const SettingsScreen()),
+              routes: [
+                GoRoute(
+                  name: 'privacy',
+                  path: 'privacy',
+                  pageBuilder: (context, state) => _fadeSlideTransition(
+                    state,
+                    const PrivacySettingsScreen(),
+                  ),
+                ),
+                GoRoute(
+                  name: 'settings_help',
+                  path: 'help',
+                  pageBuilder: (context, state) => _fadeSlideTransition(
+                    state,
+                    const SupportInfoScreen.help(),
+                  ),
+                ),
+                GoRoute(
+                  name: 'settings_privacy_policy',
+                  path: 'privacy-policy',
+                  pageBuilder: (context, state) => _fadeSlideTransition(
+                    state,
+                    const SupportInfoScreen.privacyPolicy(),
+                  ),
+                ),
+                GoRoute(
+                  name: 'settings_terms',
+                  path: 'terms',
+                  pageBuilder: (context, state) => _fadeSlideTransition(
+                    state,
+                    const SupportInfoScreen.terms(),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ],
+    ),
+    GoRoute(
+      name: 'pool_share_entry',
+      path: '/pools/:shareSlug',
+      pageBuilder: (context, state) => _fadeSlideTransition(
+        state,
+        PoolShareEntryScreen(
+          shareSlug: state.pathParameters['shareSlug']!,
+          inviteCode: state.uri.queryParameters['invite'],
+          source: state.uri.queryParameters['source'],
+        ),
+      ),
     ),
   ],
   redirect: (context, state) async {
@@ -388,10 +420,16 @@ final GoRouter router = GoRouter(
 
     if (isSplash) return null;
 
+    if (AppConfig.isReviewMode) {
+      if (isOnboarding || isLoggingIn) return '/home';
+      return null;
+    }
+
     if (session == null && appRuntime.supabaseInitialized) {
       if (isLoggingIn || isOnboarding || isUpgrade || isFeatureUnavailable) {
         return null;
       }
+      if (isGuestReachableRoute(state.uri.path)) return null;
       appRuntime.queuePendingAppRoute(state.uri.toString());
       return '/splash';
     }
@@ -401,6 +439,24 @@ final GoRouter router = GoRouter(
     return null;
   },
 );
+
+bool isGuestReachableRoute(String path) {
+  if (path == '/' || path == '/home') return true;
+  if (path == '/pools' || path == '/pools/games' || path == '/settings') {
+    return true;
+  }
+  if (path == '/games') return true;
+  if (path == '/venues' || path == '/bar' || path == '/search') return true;
+  if (path == '/home/matches') return true;
+  if (path.startsWith('/match/')) return true;
+  if (path.startsWith('/game/')) return true;
+  if (path.startsWith('/pool/')) return true;
+  if (path.startsWith('/venue/')) return true;
+  if (path.startsWith('/v/')) return true;
+  if (path.startsWith('/pools/')) return true;
+  if (path.startsWith('/settings/')) return true;
+  return false;
+}
 
 CustomTransitionPage<void> _fadeSlideTransition(
   GoRouterState state,

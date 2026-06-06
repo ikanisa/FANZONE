@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../models/auth_and_user/wallet.dart';
 import '../../../services/wallet_service.dart';
@@ -121,7 +121,7 @@ class _TransactionContent extends StatelessWidget {
                   color: FzColors.darkMuted,
                   fontWeight: FontWeight.w800,
                   fontSize: 12,
-                  letterSpacing: 1.1,
+                  letterSpacing: 0,
                 ),
               ),
             ],

@@ -241,5 +241,51 @@ void main() {
         equals(<String>['pool_live_matches']),
       );
     });
+
+    test('sanitizes legacy wallet labels before user-facing errors', () {
+      final config = BootstrapConfig(
+        platformConfigVersion: 'cfg-wallet-copy',
+        regions: const {},
+        phonePresets: const {},
+        currencyDisplay: const {},
+        countryCurrencies: const {},
+        featureFlags: const {'wallet': true},
+        appConfig: const {},
+        launchMoments: const [],
+        platformFeatures: [
+          PlatformFeatureInfo.fromJson({
+            'feature_key': 'wallet',
+            'display_name': 'FET Wallet',
+            'status': 'disabled',
+            'is_enabled': false,
+            'channels': {
+              'mobile': {
+                'channel': 'mobile',
+                'is_visible': true,
+                'is_enabled': false,
+                'show_in_navigation': false,
+                'show_on_home': false,
+                'sort_order': 20,
+                'route_key': '/wallet',
+                'navigation_label': 'Wallet',
+              },
+            },
+            'resolved_state': {
+              'is_operational': false,
+              'is_visible': true,
+              'is_available': false,
+              'show_in_navigation': false,
+              'show_on_home': false,
+              'route_key': '/wallet',
+              'sort_order': 20,
+            },
+          }),
+        ],
+      );
+
+      final access = PlatformFeatureAccess(config, channel: 'mobile');
+
+      expect(access.labelFor('wallet'), 'Rewards');
+    });
   });
 }

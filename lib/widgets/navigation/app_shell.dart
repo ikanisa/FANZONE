@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/ordering/widgets/live_order_status_pill.dart';
 import '../../design_system/design_system.dart';
+import '../../features/ordering/widgets/live_order_status_pill.dart';
 import '../../theme/colors.dart';
 import '../../theme/radii.dart';
 import '../common/fz_offline_banner.dart';
@@ -20,9 +20,10 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+
     return Scaffold(
       extendBody: true,
-      resizeToAvoidBottomInset: false,
       body: Column(
         children: [
           const FzOfflineBanner(),
@@ -30,12 +31,13 @@ class AppShell extends ConsumerWidget {
             child: Stack(
               children: [
                 navigationShell,
-                const Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 96,
-                  child: Center(child: LiveOrderStatusPill()),
-                ),
+                if (!keyboardOpen)
+                  const Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 96,
+                    child: Center(child: LiveOrderStatusPill()),
+                  ),
               ],
             ),
           ),
@@ -89,48 +91,54 @@ class _BottomNavBar extends ConsumerWidget {
           children: items.map((item) {
             final isSelected = navigationShell.currentIndex == item.branchIndex;
             return Expanded(
-              child: Tooltip(
-                message: item.label,
-                child: InkWell(
-                  onTap: () => navigationShell.goBranch(
-                    item.branchIndex,
-                    initialLocation: isSelected,
-                  ),
-                  borderRadius: AppRadii.cardRadius,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    curve: Curves.easeOut,
-                    height: double.infinity,
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? FzColors.accent.withValues(alpha: 0.12)
-                          : Colors.transparent,
-                      borderRadius: AppRadii.cardRadius,
+              child: Semantics(
+                label: '${item.label} tab',
+                button: true,
+                selected: isSelected,
+                child: Tooltip(
+                  message: item.label,
+                  child: InkWell(
+                    key: ValueKey('bottom_nav_${item.keyName}'),
+                    onTap: () => navigationShell.goBranch(
+                      item.branchIndex,
+                      initialLocation: isSelected,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AppSvgIcon(
-                          item.icon,
-                          color: isSelected
-                              ? FzColors.accent
-                              : FzColors.darkMuted,
-                          size: 22,
-                        ),
-                        // Only show label for active item
-                        if (isSelected) ...[
+                    borderRadius: AppRadii.cardRadius,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.easeOut,
+                      height: double.infinity,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? FzColors.accent.withValues(alpha: 0.12)
+                            : Colors.transparent,
+                        borderRadius: AppRadii.cardRadius,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AppSvgIcon(
+                            item.icon,
+                            color: isSelected
+                                ? FzColors.accent
+                                : FzColors.darkMuted,
+                            size: 22,
+                          ),
                           const SizedBox(height: 3),
                           Text(
                             item.label,
                             maxLines: 1,
-                            style: const TextStyle(
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w900,
-                              color: FzColors.accent,
+                              color: isSelected
+                                  ? FzColors.accent
+                                  : FzColors.darkMuted,
                             ),
                           ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -169,32 +177,18 @@ List<NavItem> _getNavItems(WidgetRef ref) {
       branchIndex: 0,
     ),
     NavItem(
-      keyName: 'venues',
-      label: 'Bars',
-      icon: AppIconName.bars,
-      route: '/venues',
-      branchIndex: 1,
-    ),
-    NavItem(
       keyName: 'arena',
       label: 'Play',
       icon: AppIconName.play,
       route: '/pools',
+      branchIndex: 1,
+    ),
+    NavItem(
+      keyName: 'settings',
+      label: 'Settings',
+      icon: AppIconName.settings,
+      route: '/settings',
       branchIndex: 2,
-    ),
-    NavItem(
-      keyName: 'orders',
-      label: 'Orders',
-      icon: AppIconName.orders,
-      route: '/orders',
-      branchIndex: 3,
-    ),
-    NavItem(
-      keyName: 'wallet',
-      label: 'Rewards',
-      icon: AppIconName.wallet,
-      route: '/wallet',
-      branchIndex: 4,
     ),
   ];
 }

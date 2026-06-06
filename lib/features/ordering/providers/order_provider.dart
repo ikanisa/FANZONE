@@ -104,10 +104,12 @@ class OrderPlacementNotifier extends StateNotifier<OrderPlacementState> {
       );
 
       return order;
-    } catch (error) {
-      state = OrderPlacementState(
+    } catch (error, stackTrace) {
+      unawaited(_captureOrderPlacementFailure(error, stackTrace));
+      state = const OrderPlacementState(
         status: OrderPlacementStatus.error,
-        errorMessage: 'Failed to place order: $error',
+        errorMessage:
+            'The venue did not receive this order. Check your connection and try again.',
       );
       return null;
     }
@@ -116,6 +118,22 @@ class OrderPlacementNotifier extends StateNotifier<OrderPlacementState> {
   /// Reset placement state (e.g., after navigating away from error).
   void reset() {
     state = OrderPlacementState.idle;
+  }
+}
+
+Future<void> _captureOrderPlacementFailure(
+  Object error,
+  StackTrace stackTrace,
+) async {
+  try {
+    await AppTelemetry.captureException(
+      error,
+      stackTrace,
+      reason: 'order_place_failed',
+    );
+  } catch (_) {
+    // Order placement UX must not fail because telemetry persistence is offline
+    // or unavailable in a local/test runtime.
   }
 }
 

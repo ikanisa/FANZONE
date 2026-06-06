@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/config/bootstrap_config.dart';
@@ -80,7 +80,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
     final length = _localDigits.length;
     if (length < _phonePreset.minDigits) return false;
     if (_isGenericPhoneCountry) return length <= 15;
-    return length == _maxDigits;
+    return length <= _maxDigits;
   }
 
   int get _remainingDigits =>
@@ -368,7 +368,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                     const SizedBox(height: 18),
                     FzWordmark(
                       textAlign: TextAlign.center,
-                      style: FzTypography.display(size: 34, letterSpacing: 2.4),
+                      style: FzTypography.display(size: 34, letterSpacing: 0),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -444,7 +444,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
         ? '$_remainingDigits more digit${_remainingDigits == 1 ? '' : 's'}.'
         : _isGenericPhoneCountry
         ? 'Use 7 to 15 digits.'
-        : '${selectedCountry.countryName} numbers use $_maxDigits digits.';
+        : '${selectedCountry.countryName} numbers use ${_phonePreset.minDigits} to $_maxDigits digits.';
 
     return Column(
       key: const ValueKey('phone_step'),
@@ -464,7 +464,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                 style: FzTypography.display(
                   size: 24,
                   color: textColor,
-                  letterSpacing: 1.6,
+                  letterSpacing: 0,
                 ),
               ),
             ),
@@ -518,6 +518,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: TextFormField(
+                key: const ValueKey('login_phone_number'),
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 autofillHints: const [AutofillHints.telephoneNumber],
@@ -596,6 +597,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
           ),
         if (statusMessage != null) const SizedBox(height: 14),
         _PrimaryActionButton(
+          key: const ValueKey('login_send_otp'),
           label: _loading ? 'Sending...' : 'Send OTP',
           onPressed: (_loading || authUnavailable || !_isPhoneValid)
               ? null
@@ -633,7 +635,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                 style: FzTypography.display(
                   size: 24,
                   color: textColor,
-                  letterSpacing: 1.6,
+                  letterSpacing: 0,
                 ),
               ),
             ),
@@ -648,6 +650,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                   right: index == _otpControllers.length - 1 ? 0 : 6,
                 ),
                 child: TextField(
+                  key: ValueKey('login_otp_digit_$index'),
                   controller: _otpControllers[index],
                   focusNode: _otpFocusNodes[index],
                   keyboardType: TextInputType.number,
@@ -699,6 +702,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
           ),
         if (statusMessage != null) const SizedBox(height: 14),
         _PrimaryActionButton(
+          key: const ValueKey('login_verify_otp'),
           label: _loading ? 'Verifying...' : 'Verify',
           onPressed: (_loading || authUnavailable) ? null : _verifyOtp,
           color: _verificationAccent,
@@ -718,7 +722,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen> {
                       : 'Resend',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 1.1,
+                    letterSpacing: 0,
                     color: _resendCooldown > 0
                         ? mutedColor.withValues(alpha: 0.5)
                         : _verificationAccent,
@@ -767,6 +771,7 @@ List<_PhoneCountryOption> _phoneCountries(BootstrapConfig config) {
 
 class _PrimaryActionButton extends StatelessWidget {
   const _PrimaryActionButton({
+    super.key,
     required this.label,
     required this.onPressed,
     required this.color,
@@ -808,7 +813,7 @@ class _PrimaryActionButton extends StatelessWidget {
                       : textColor,
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 0.4,
+                  letterSpacing: 0,
                 ),
               ),
             ),
@@ -973,7 +978,7 @@ class _SmartPhoneCountryPickerSheetState
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: textColor,
-                    letterSpacing: -0.3,
+                    letterSpacing: 0,
                   ),
                 ),
                 const Spacer(),
@@ -1042,11 +1047,7 @@ class _SmartPhoneCountryPickerSheetState
                 _searchController.text.isEmpty
                     ? '${widget.countries.length} countries'
                     : '${_filtered.length} results',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: muted,
-                  letterSpacing: 0.3,
-                ),
+                style: TextStyle(fontSize: 12, color: muted, letterSpacing: 0),
               ),
             ),
           ),

@@ -3,7 +3,7 @@ import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/constants/phone_presets.dart';
@@ -93,7 +93,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
     final length = _localDigits.length;
     if (length < _phonePreset.minDigits) return false;
     if (_isGenericPhoneCountry) return length <= 15;
-    return length == _maxDigits;
+    return length <= _maxDigits;
   }
 
   String get _fullPhone {
@@ -238,7 +238,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
       return '$remaining more digit${remaining == 1 ? '' : 's'}.';
     }
     if (_isGenericPhoneCountry) return 'Use 7 to 15 digits.';
-    return '${_selectedCountry.countryName} numbers use $_maxDigits digits.';
+    return '${_selectedCountry.countryName} numbers use ${_phonePreset.minDigits} to $_maxDigits digits.';
   }
 
   @override
@@ -325,7 +325,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                   style: FzTypography.display(
                     size: 20,
                     color: textColor,
-                    letterSpacing: 1.2,
+                    letterSpacing: 0,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -338,7 +338,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
             _step == _AuthSheetStep.phone
                 ? (widget.message.isNotEmpty
                       ? widget.message
-                      : 'Verify your number to keep your wallet, orders, and match pools secured. It\'s 100% free.')
+                      : 'Verify your number to keep your rewards, orders, and match pools secured. It\'s 100% free.')
                 : 'Enter the 6-digit code sent to your WhatsApp.',
             style: TextStyle(fontSize: 14, color: muted, height: 1.5),
           ),
@@ -487,9 +487,7 @@ class _SignInRequiredSheetState extends ConsumerState<_SignInRequiredSheet> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          child: Text(
-                            _loading ? 'SENDING...' : 'SEND CODE VIA WHATSAPP',
-                          ),
+                          child: Text(_loading ? 'Sending...' : 'Send OTP'),
                         ),
                       ),
                     ],

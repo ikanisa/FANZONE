@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-06T06:17:15Z",
+  "releaseCandidate": "FANZONE Flutter fullstack release candidate",
+  "sourceCommit": "f284990b373b8fcc5291ec44abb30ef75b228077",
+  "scope": "code-owned incident response and rollback readiness bundle",
+  "status": "PASS_WITH_PENDING_OWNER_SIGNOFF",
+  "bundleRoot": "output/release-evidence/incident-readiness-code/20260606T061711Z",
+  "controls": [
+    {
+      "id": "INCIDENT-CODE-001",
+      "name": "Incident readiness bundle structure generated",
+      "status": "PASS",
+      "proof": "The generator created the required redacted owners/escalation, rollback tag, database restore plan, runbook review, post-deploy watch, sample alert test, and manifest files."
+    },
+    {
+      "id": "INCIDENT-CODE-002",
+      "name": "Rollback safeguards are documented",
+      "status": "PASS",
+      "proof": "Rollback guidance prohibits deleting customer order, payment, FET ledger, pool settlement, bell request, notification, or audit history and prefers forward-fix migrations for already-applied database changes."
+    },
+    {
+      "id": "INCIDENT-CODE-003",
+      "name": "Post-deploy watch signals are mapped",
+      "status": "PASS",
+      "proof": "The generated watch file maps the Supabase operations snapshot, runtime telemetry, ordering, manual payments, FET ledger, pools, staff calls, push notifications, and LiveScore freshness to rollback thresholds."
+    },
+    {
+      "id": "INCIDENT-CODE-004",
+      "name": "Private owner data is not committed",
+      "status": "PASS",
+      "proof": "The generated bundle uses redacted placeholders for owners, escalation channels, and provider alert routes; no private phone numbers, private emails, tokens, or customer data are required in tracked evidence."
+    }
+  ],
+  "commands": [
+    {
+      "command": "node tool/generate_incident_readiness_bundle.mjs",
+      "status": "PASS",
+      "proof": "Generated output/release-evidence/incident-readiness-code/20260606T061711Z."
+    },
+    {
+      "command": "node tool/validate_incident_rollback_code_evidence.mjs",
+      "status": "PASS",
+      "proof": "Validator checks this evidence, generated bundle files, manifest, incident runbook, rollback runbook, and generator script."
+    }
+  ],
+  "evidenceRefs": [
+    "tool/generate_incident_readiness_bundle.mjs",
+    "output/release-evidence/incident-readiness-code/20260606T061711Z/manifest.json",
+    "output/release-evidence/incident-readiness-code/20260606T061711Z/owners-and-escalation-redacted.txt",
+    "output/release-evidence/incident-readiness-code/20260606T061711Z/rollback-tag.txt",
+    "output/release-evidence/incident-readiness-code/20260606T061711Z/database-restore-plan.txt",
+    "output/release-evidence/incident-readiness-code/20260606T061711Z/runbook-review.txt",
+    "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+    "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+    "docs/operations/incident-runbooks.md",
+    "docs/release/rollback.md",
+    "docs/operations/scheduler-observability.md",
+    "release/operations/operations-observability-snapshot-evidence.json"
+  ],
+  "pendingExternalEvidence": [
+    "Named incident commander, technical owner, support owner, and release owner signoff.",
+    "Private escalation channel and backup owner evidence stored in the approved operations system.",
+    "Immutable release tag creation and push proof.",
+    "Production backup manifest and restore drill evidence.",
+    "Provider alert-route sample test proof.",
+    "Final operations readiness approval in release/operations/operations-readiness-evidence.json."
+  ]
+}

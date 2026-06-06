@@ -1,4 +1,4 @@
-import { resolveConfiguredTestOtp } from "./index.ts";
+import { cleanupUndeliveredOtp, resolveConfiguredTestOtp } from "./index.ts";
 
 // ── Google Play reviewer phone: +250788767816 / OTP: 123456 ──
 
@@ -60,6 +60,20 @@ Deno.test("resolveConfiguredTestOtp returns the configured OTP for Malta test ph
   if (otp !== "123456") {
     throw new Error(
       "Expected Malta reviewer phone to resolve to the configured OTP",
+    );
+  }
+});
+
+Deno.test("resolveConfiguredTestOtp supports multiple configured test phones", () => {
+  const otp = resolveConfiguredTestOtp(
+    "+356 7718 613",
+    "+250788767816,+35699711145;+3567718613",
+    "123456",
+    futureExpiry,
+  );
+  if (otp !== "123456") {
+    throw new Error(
+      "Expected comma/semicolon separated reviewer phones to resolve",
     );
   }
 });
@@ -161,5 +175,52 @@ Deno.test("resolveConfiguredTestOtp requires a valid future expiry", () => {
   }
   if (invalid !== null) {
     throw new Error("Invalid fixed reviewer expiry should be rejected");
+  }
+});
+
+Deno.test("cleanupUndeliveredOtp deletes only the pending OTP generated for the failed send", async () => {
+  const calls: Array<[string, unknown]> = [];
+  let deletedTable = "";
+
+  const query = {
+    delete() {
+      return this;
+    },
+    eq(column: string, value: unknown) {
+      calls.push([column, value]);
+      return this;
+    },
+    then(
+      resolve: (value: { error: null }) => void,
+    ) {
+      resolve({ error: null });
+    },
+  };
+
+  const supabase = {
+    from(table: string) {
+      deletedTable = table;
+      return query;
+    },
+  };
+
+  const cleaned = await cleanupUndeliveredOtp(
+    supabase as never,
+    "+3567718613",
+    "otp-hash",
+  );
+
+  if (!cleaned) throw new Error("Expected cleanup to report success");
+  if (deletedTable !== "otp_verifications") {
+    throw new Error(`Expected otp_verifications cleanup, got ${deletedTable}`);
+  }
+
+  const expected = [
+    ["phone", "+3567718613"],
+    ["otp_hash", "otp-hash"],
+    ["verified", false],
+  ];
+  if (JSON.stringify(calls) !== JSON.stringify(expected)) {
+    throw new Error(`Unexpected cleanup filters: ${JSON.stringify(calls)}`);
   }
 });

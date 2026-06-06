@@ -24,6 +24,9 @@ class _NullSupabaseConnection implements SupabaseConnection {
   bool get isAuthenticated => false;
 
   @override
+  bool get isDevOtpFixtureSession => false;
+
+  @override
   bool get isInitialized => false;
 }
 

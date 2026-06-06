@@ -10,4 +10,5 @@ export const orderMarkPaidTargetPaymentStatus = "paid" as const;
 export const orderMarkPaidCanonicalRpc =
   "venue_update_order_payment_status" as const;
 export const orderMarkPaidMaxExternalReferenceLength = 120;
+export const orderMarkPaidMinNoteLength = 1;
 export const orderMarkPaidMaxNoteLength = 240;

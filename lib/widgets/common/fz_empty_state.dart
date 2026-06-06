@@ -77,7 +77,7 @@ class FzEmptyState extends StatelessWidget {
                   style: FzTypography.display(
                     size: 24,
                     color: text,
-                    letterSpacing: 1.5,
+                    letterSpacing: 0,
                   ),
                 ),
                 if (description.trim().isNotEmpty) ...[

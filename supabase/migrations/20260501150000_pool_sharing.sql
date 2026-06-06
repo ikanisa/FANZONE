@@ -458,24 +458,30 @@ BEGIN
 END;
 $$;
 
-INSERT INTO storage.buckets (
-  id,
-  name,
-  public,
-  file_size_limit,
-  allowed_mime_types
-)
-VALUES (
-  'pool-social-cards',
-  'pool-social-cards',
-  true,
-  524288,
-  ARRAY['image/svg+xml', 'image/png', 'image/jpeg']
-)
-ON CONFLICT (id) DO UPDATE
-SET public = EXCLUDED.public,
-    file_size_limit = EXCLUDED.file_size_limit,
-    allowed_mime_types = EXCLUDED.allowed_mime_types;
+DO $$
+BEGIN
+  IF to_regclass('storage.buckets') IS NOT NULL THEN
+    INSERT INTO storage.buckets (
+      id,
+      name,
+      public,
+      file_size_limit,
+      allowed_mime_types
+    )
+    VALUES (
+      'pool-social-cards',
+      'pool-social-cards',
+      true,
+      524288,
+      ARRAY['image/svg+xml', 'image/png', 'image/jpeg']
+    )
+    ON CONFLICT (id) DO UPDATE
+    SET public = EXCLUDED.public,
+        file_size_limit = EXCLUDED.file_size_limit,
+        allowed_mime_types = EXCLUDED.allowed_mime_types;
+  END IF;
+END;
+$$;
 
 COMMENT ON FUNCTION public.get_public_pool_share(text,text,text)
   IS 'Resolves public pool share slugs or ids into safe share, deep-link, venue, country, match, and invite context without exposing inviter identity.';

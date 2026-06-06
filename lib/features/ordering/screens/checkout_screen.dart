@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -89,7 +89,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             await showFzNoticeSheet(
               context,
               title: 'FET spend not applied',
-              message: 'Order placed. FET failed: $error',
+              message:
+                  'Order placed. Rewards could not be applied right now. Try again with your next order.',
               icon: LucideIcons.alertTriangle,
               iconColor: FzColors.warning,
               primaryLabel: 'Continue',
@@ -253,7 +254,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                letterSpacing: 1,
+                letterSpacing: 0,
               ),
             ),
             const SizedBox(height: 12),
@@ -317,6 +318,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(height: 24),
             TextField(
+              key: const ValueKey('checkout_table_number'),
               controller: _tableNumberController,
               textInputAction: TextInputAction.next,
               textCapitalization: TextCapitalization.characters,
@@ -328,6 +330,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(height: 12),
             TextField(
+              key: const ValueKey('checkout_special_instructions'),
               controller: _notesController,
               maxLines: 3,
               onChanged: (value) =>
@@ -359,7 +362,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         controller: _fetSpendController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          prefixIcon: Icon(LucideIcons.wallet),
+                          prefixIcon: Icon(LucideIcons.gift),
                           suffixText: 'FET',
                           hintText: 'Amount',
                         ),
@@ -375,7 +378,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                letterSpacing: 1,
+                letterSpacing: 0,
               ),
             ),
             const SizedBox(height: 12),
@@ -413,6 +416,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(height: 40),
             ElevatedButton(
+              key: const ValueKey('checkout_place_order'),
               onPressed: _submitting ? null : _placeOrder,
               style: ElevatedButton.styleFrom(
                 backgroundColor: FzColors.accent,
@@ -544,6 +548,7 @@ class _PaymentMethodTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      key: ValueKey('checkout_payment_${method.name}'),
       onTap: onTap,
       leading: Icon(
         method == PaymentMethod.cash

@@ -73,7 +73,7 @@ to the release evidence bundle.
 - Admin users and emergency owners are configured.
 - Venue owner/manager/staff test accounts are configured.
 - Guest UAT accounts and in-app venue fixtures are configured.
-- Supabase/platform cron or local scheduled jobs call `tool/run_supabase_cron_job.sh settle-match-pools` and `tool/run_supabase_cron_job.sh dispatch-match-alerts`.
+- Supabase/platform cron or local scheduled jobs call `tool/run_supabase_cron_job.sh settle-match-pools`, `tool/run_supabase_cron_job.sh dispatch-match-alerts`, and `tool/run_supabase_cron_job.sh sync-livescore-football`.
 - Push notification credentials are present.
 - WhatsApp OTP reviewer/test values are configured only when required.
 - Incident response owner and escalation channel are named.

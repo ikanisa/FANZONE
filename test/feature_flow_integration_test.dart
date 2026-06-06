@@ -11,6 +11,7 @@ import 'package:fanzone/core/config/bootstrap_config.dart';
 import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/features/auth/data/auth_gateway.dart';
 import 'package:fanzone/features/auth/screens/whatsapp_login_screen.dart';
+import 'package:fanzone/features/games/data/games_repository.dart';
 import 'package:fanzone/features/pools/screens/pools_screen.dart';
 import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
 import 'package:fanzone/features/wallet/screens/wallet_screen.dart';
@@ -146,13 +147,17 @@ void main() {
         const PoolsScreen(),
         overrides: [
           poolsProvider.overrideWith((ref) async => const [pool]),
+          gamesProvider.overrideWith((ref) async => const []),
           isFullyAuthenticatedProvider.overrideWith((ref) => false),
         ],
       );
       await tester.pumpAndSettle();
 
       // Tap the 'Join' CTA button in the pool card action row
-      await tester.tap(find.text('Join'));
+      final joinButton = find.byKey(const ValueKey('pool_join_pool_1'));
+      await tester.drag(find.byType(ListView), const Offset(0, -700));
+      await tester.pumpAndSettle();
+      await tester.tap(joinButton);
       await tester.pumpAndSettle();
 
       expect(find.text('Verify WhatsApp'), findsOneWidget);

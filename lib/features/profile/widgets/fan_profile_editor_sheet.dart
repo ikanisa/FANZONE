@@ -8,9 +8,14 @@ import '../../../theme/colors.dart';
 import '../../onboarding/widgets/fan_profile_selector.dart';
 
 class FanProfileEditorSheet extends ConsumerWidget {
-  const FanProfileEditorSheet({super.key, required this.initialTeams});
+  const FanProfileEditorSheet({
+    super.key,
+    required this.initialTeams,
+    this.localCountryCode,
+  });
 
   final List<FavoriteTeamRecordDto> initialTeams;
+  final String? localCountryCode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,6 +33,7 @@ class FanProfileEditorSheet extends ConsumerWidget {
           textColor: textColor,
           muted: muted,
           isDark: isDark,
+          localCountryCode: localCountryCode,
           title: 'FAN PROFILE',
           description:
               'Edit the teams used for featured matches, pool filters, and fan context.',

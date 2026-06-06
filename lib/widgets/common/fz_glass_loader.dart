@@ -38,7 +38,7 @@ class FzGlassLoader extends StatelessWidget {
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: isDark ? Colors.white70 : Colors.black54,
               fontWeight: FontWeight.bold,
-              letterSpacing: 2.0,
+              letterSpacing: 0,
             ),
           ),
         ],

@@ -38,4 +38,5 @@ Use Supabase cron, another free scheduler, or local cron to call:
 ```bash
 tool/run_supabase_cron_job.sh settle-match-pools
 tool/run_supabase_cron_job.sh dispatch-match-alerts
+tool/run_supabase_cron_job.sh sync-livescore-football
 ```

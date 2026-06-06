@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../theme/colors.dart';
 import 'country_code_picker.dart';
@@ -79,6 +79,7 @@ class OnboardingPhoneStep extends StatelessWidget {
                             'WhatsApp phone number for ${selectedCountry.countryName}',
                         textField: true,
                         child: TextField(
+                          key: const ValueKey('onboarding_phone_number'),
                           controller: phoneController,
                           autofocus: true,
                           keyboardType: TextInputType.phone,
@@ -149,6 +150,7 @@ class OnboardingPhoneStep extends StatelessWidget {
             ),
             const Spacer(),
             OnboardingPrimaryButton(
+              key: const ValueKey('onboarding_send_otp'),
               label: buttonLabel,
               onTap: canContinue ? onNext : null,
             ),
@@ -285,6 +287,7 @@ class OnboardingOtpStep extends StatelessWidget {
                 (index) => SizedBox(
                   width: 48,
                   child: TextField(
+                    key: ValueKey('onboarding_otp_digit_$index'),
                     controller: otpControllers[index],
                     focusNode: otpFocusNodes[index],
                     keyboardType: TextInputType.number,
@@ -339,6 +342,7 @@ class OnboardingOtpStep extends StatelessWidget {
             ),
             const Spacer(),
             OnboardingPrimaryButton(
+              key: const ValueKey('onboarding_verify_otp'),
               label: buttonLabel,
               onTap: canVerify ? onNext : null,
             ),

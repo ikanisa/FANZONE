@@ -47,6 +47,17 @@ class MatchModel with _$MatchModel {
     return seasonId?.trim() ?? '';
   }
 
+  bool get isLiveScoreSourced {
+    final source = dataSource.toLowerCase();
+    final url = sourceUrl?.toLowerCase() ?? '';
+    return source.contains('livescore') || url.contains('livescore.com');
+  }
+
+  String? get sourceLabel {
+    if (isLiveScoreSourced) return 'LiveScore';
+    return null;
+  }
+
   /// Full-time score display string (e.g. "3 - 1").
   String? get scoreDisplay {
     if (ftHome == null || ftAway == null) return null;

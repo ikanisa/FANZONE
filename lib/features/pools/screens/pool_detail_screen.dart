@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../theme/colors.dart';
@@ -187,7 +187,7 @@ class PoolDetailScreen extends ConsumerWidget {
           loading: () => const _PoolDetailLoadingState(),
           error: (error, _) => StateView.error(
             title: 'Pool unavailable',
-            subtitle: error.toString(),
+            subtitle: 'This pool is unavailable right now. Try again.',
             onRetry: () => ref.invalidate(poolDetailProvider(poolId)),
           ),
         ),
@@ -258,11 +258,14 @@ class _PoolHero extends StatelessWidget {
               _HeroMetric(label: 'Members', value: '${pool.totalMembers}'),
               const SizedBox(width: 10),
               _HeroMetric(
-                label: 'Reserved',
+                label: 'Reward pool',
                 value: '${pool.totalStakedFet} FET',
               ),
               const SizedBox(width: 10),
-              _HeroMetric(label: 'Entry', value: '${pool.defaultStakeFet} FET'),
+              _HeroMetric(
+                label: 'Entry points',
+                value: '${pool.defaultStakeFet} FET',
+              ),
             ],
           ),
         ],
@@ -287,6 +290,7 @@ class _EntryStateCard extends StatelessWidget {
           );
 
     return FzCard(
+      key: pool == null ? null : ValueKey('pool_entry_state_${pool!.id}'),
       padding: const EdgeInsets.all(16),
       borderRadius: FzRadii.compact,
       child: Row(
@@ -320,7 +324,7 @@ class _EntryStateCard extends StatelessWidget {
                 Text(
                   entry == null
                       ? 'Pick a camp.'
-                      : '${camp?.label ?? 'Camp'} - ${entry!.amountFet} FET',
+                      : '${camp?.label ?? 'Camp'} - entry points: ${entry!.amountFet} FET',
                   style: const TextStyle(
                     fontSize: 13,
                     color: FzColors.darkMuted,
@@ -398,7 +402,7 @@ class _WinnerRewardCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '+${entry.payoutFet} FET from ${pool.title}',
+                  'Reward credited: +${entry.payoutFet} FET',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

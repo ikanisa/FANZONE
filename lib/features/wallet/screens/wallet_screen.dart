@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../core/utils/currency_utils.dart';
 import '../../../design_system/design_system.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/currency_provider.dart';
 import '../../../theme/colors.dart';
 import '../../../theme/radii.dart';
 import '../../../theme/typography.dart';
@@ -28,10 +27,10 @@ class WalletScreen extends ConsumerWidget {
     final walletBalanceAsync = ref.watch(walletBalanceProvider);
     final transactionsAsync = ref.watch(transactionServiceProvider);
     final isVerified = ref.watch(isFullyAuthenticatedProvider);
-    final currency = ref.watch(userCurrencyProvider).valueOrNull ?? 'EUR';
 
     return Scaffold(
       body: ListView(
+        key: const ValueKey('wallet_screen'),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
         children: [
           Text(
@@ -39,11 +38,7 @@ class WalletScreen extends ConsumerWidget {
             style: FzTypography.sportsTitle(size: 36, color: FzColors.darkText),
           ),
           const SizedBox(height: 18),
-          _WalletHero(
-            balanceAsync: walletBalanceAsync,
-            currency: currency,
-            isVerified: isVerified,
-          ),
+          _WalletHero(balanceAsync: walletBalanceAsync, isVerified: isVerified),
           const SizedBox(height: 18),
           walletBalanceAsync.when(
             data: (balance) => Column(
@@ -161,14 +156,9 @@ class WalletScreen extends ConsumerWidget {
 }
 
 class _WalletHero extends StatelessWidget {
-  const _WalletHero({
-    required this.balanceAsync,
-    required this.currency,
-    required this.isVerified,
-  });
+  const _WalletHero({required this.balanceAsync, required this.isVerified});
 
   final AsyncValue<WalletBalance> balanceAsync;
-  final String currency;
   final bool isVerified;
 
   @override
@@ -192,7 +182,7 @@ class _WalletHero extends StatelessWidget {
             right: -20,
             bottom: -36,
             child: Icon(
-              LucideIcons.wallet,
+              LucideIcons.gift,
               size: 180,
               color: Colors.white.withValues(alpha: 0.04),
             ),
@@ -218,7 +208,7 @@ class _WalletHero extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      formatFET(balance.availableFet, currency),
+                      formatFETCompact(balance.availableFet),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.white70,

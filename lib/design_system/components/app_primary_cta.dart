@@ -59,7 +59,7 @@ class AppPrimaryCta extends StatelessWidget {
                     color: effectiveTextColor,
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
+                    letterSpacing: 0,
                   ),
                 ),
               ],

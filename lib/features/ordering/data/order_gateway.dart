@@ -44,7 +44,14 @@ abstract interface class OrderGateway {
   Future<void> updateOrderStatus(String orderId, OrderStatus newStatus);
 
   /// Update payment status (venue dashboard action).
-  Future<void> updatePaymentStatus(String orderId, PaymentStatus newStatus);
+  Future<void> updatePaymentStatus(
+    String orderId,
+    PaymentStatus newStatus, {
+    required String note,
+    PaymentMethod method = PaymentMethod.cash,
+    double? amountReceived,
+    String? externalReference,
+  });
 
   /// Redeem FET against an order through the rewards ledger RPC.
   Future<void> spendFetOnOrder({
@@ -176,6 +183,7 @@ class SupabaseOrderGateway implements OrderGateway {
   SupabaseOrderGateway(this._connection);
 
   final SupabaseConnection _connection;
+  final Map<String, OrderModel> _devFixtureOrders = <String, OrderModel>{};
 
   Map<String, String>? get _authHeaders {
     final token = _connection.currentSession?.accessToken;
@@ -185,6 +193,10 @@ class SupabaseOrderGateway implements OrderGateway {
 
   @override
   Future<OrderModel> placeOrder(CreateOrderDto request) async {
+    if (_connection.isDevOtpFixtureSession) {
+      return _placeDevFixtureOrder(request);
+    }
+
     _assertReviewMutationAllowed('Order creation');
     final client = _connection.client;
     if (client == null) {
@@ -307,6 +319,10 @@ class SupabaseOrderGateway implements OrderGateway {
 
   @override
   Future<OrderModel?> getOrder(String orderId) async {
+    if (_connection.isDevOtpFixtureSession) {
+      return _devFixtureOrders[orderId];
+    }
+
     final client = _connection.client;
     if (client == null) return null;
 
@@ -330,6 +346,18 @@ class SupabaseOrderGateway implements OrderGateway {
     String userId, {
     int limit = 20,
   }) async {
+    if (_connection.isDevOtpFixtureSession) {
+      final orders = _devFixtureOrders.values.toList(growable: false)
+        ..sort((a, b) {
+          final aCreated =
+              a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final bCreated =
+              b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return bCreated.compareTo(aCreated);
+        });
+      return orders.take(limit).toList(growable: false);
+    }
+
     final client = _connection.client;
     if (client == null) return const [];
 
@@ -403,8 +431,12 @@ class SupabaseOrderGateway implements OrderGateway {
   @override
   Future<void> updatePaymentStatus(
     String orderId,
-    PaymentStatus newStatus,
-  ) async {
+    PaymentStatus newStatus, {
+    required String note,
+    PaymentMethod method = PaymentMethod.cash,
+    double? amountReceived,
+    String? externalReference,
+  }) async {
     _assertReviewMutationAllowed('Payment status updates');
     final client = _connection.client;
     if (client == null) {
@@ -420,7 +452,13 @@ class SupabaseOrderGateway implements OrderGateway {
     await client.functions.invoke(
       'order_mark_paid',
       headers: _authHeaders,
-      body: {'order_id': orderId},
+      body: buildOrderMarkPaidBody(
+        orderId: orderId,
+        method: method,
+        note: note,
+        amountReceived: amountReceived,
+        externalReference: externalReference,
+      ),
     );
   }
 
@@ -529,10 +567,92 @@ class SupabaseOrderGateway implements OrderGateway {
     return order.copyWith(items: items);
   }
 
+  OrderModel _placeDevFixtureOrder(CreateOrderDto request) {
+    final now = DateTime.now().toUtc();
+    final timestamp = now.microsecondsSinceEpoch;
+    final orderId = 'dev-uat-order-$timestamp';
+    final userId =
+        _connection.currentUser?.id ?? '00000000-0000-4000-8000-000000000356';
+    final orderItems = <OrderItemModel>[
+      for (var index = 0; index < request.items.length; index += 1)
+        OrderItemModel(
+          id: '$orderId-item-${index + 1}',
+          orderId: orderId,
+          menuItemId: request.items[index].menuItemId,
+          itemNameSnapshot: request.items[index].itemNameSnapshot,
+          itemDescriptionSnapshot: request.items[index].itemDescriptionSnapshot,
+          quantity: request.items[index].quantity,
+          unitPrice: request.items[index].unitPrice,
+          lineTotal: request.items[index].lineTotal,
+          currencyCode: request.items[index].currencyCode,
+          addOns: request.items[index].addOns,
+          specialInstructions: request.items[index].specialInstructions,
+          createdAt: now,
+        ),
+    ];
+    final order = OrderModel(
+      id: orderId,
+      venueId: request.venueId,
+      userId: userId,
+      orderCode: 'UAT-${timestamp.toString().substring(8)}',
+      status: OrderStatus.submitted,
+      paymentMethod: request.paymentMethod,
+      paymentStatus: PaymentStatus.unpaid,
+      currencyCode: request.currencyCode,
+      subtotalAmount: request.subtotalAmount,
+      tipAmount: request.tipAmount,
+      totalAmount: request.totalAmount,
+      specialInstructions: request.specialInstructions,
+      createdAt: now,
+      updatedAt: now,
+      statusChangedAt: now,
+      items: orderItems,
+    );
+    _devFixtureOrders[orderId] = order;
+    return order;
+  }
+
   void _assertReviewMutationAllowed(String action) {
     if (!AppConfig.isReviewMode) return;
     throw StateError(
       '$action is disabled in the FANZONE review PWA. Use staging-safe test data for browser review.',
     );
   }
+}
+
+Map<String, dynamic> buildOrderMarkPaidBody({
+  required String orderId,
+  PaymentMethod method = PaymentMethod.cash,
+  required String note,
+  double? amountReceived,
+  String? externalReference,
+}) {
+  final trimmedNote = note.trim();
+  if (trimmedNote.isEmpty) {
+    throw ArgumentError.value(
+      note,
+      'note',
+      'Manual paid confirmation requires an actor note',
+    );
+  }
+  if (method == PaymentMethod.card) {
+    throw ArgumentError.value(
+      method.name,
+      'method',
+      'Card is not supported for manual payment confirmation',
+    );
+  }
+
+  final body = <String, dynamic>{
+    'order_id': orderId,
+    'payment_method': method.name,
+    'note': trimmedNote,
+  };
+  if (amountReceived != null) {
+    body['amount_received'] = amountReceived;
+  }
+  if (externalReference != null && externalReference.trim().isNotEmpty) {
+    body['external_reference'] = externalReference.trim();
+  }
+  return body;
 }

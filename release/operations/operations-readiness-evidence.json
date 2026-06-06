@@ -11,12 +11,12 @@
     "supabaseProjectRef": "kjuhheobmdvjwgnzlcwx"
   },
   "evidenceWindow": {
-    "startedAtUtc": "TBD",
-    "endedAtUtc": "TBD",
-    "schedulerEvidenceBundleRoot": "output/release-evidence/TBD/scheduler",
-    "observabilityEvidenceBundleRoot": "output/release-evidence/TBD/observability",
-    "incidentEvidenceBundleRoot": "output/release-evidence/TBD/incident-readiness",
-    "notes": "Do not approve until scheduler, observability, incident, rollback, and alert evidence is captured without live credentials in this file."
+    "startedAtUtc": "2026-06-06T04:05:24Z",
+    "endedAtUtc": "2026-06-06T04:08:00Z",
+    "schedulerEvidenceBundleRoot": "output/release-evidence/20260606T040524Z",
+    "observabilityEvidenceBundleRoot": "output/release-evidence/20260606T040524Z",
+    "incidentEvidenceBundleRoot": "output/release-evidence/20260606T040524Z",
+    "notes": "Inventory evidence captured deployed web/PWA checks, Edge auth smoke, scheduler payload dry-runs, unauthorized scheduler endpoint protection, backup evidence, and separate credentialed cron smoke evidence. Do not approve until scheduler history, missed-run alerts, observability dashboards, incident evidence, rollback evidence, and owner signoff are captured."
   },
   "signOff": {
     "operationsOwner": "",
@@ -25,17 +25,20 @@
     "signedAtUtc": "",
     "approvedForLaunch": false
   },
-  "schedulerJobs": [
-    {
-      "id": "settle-match-pools",
-      "command": "tool/run_supabase_cron_job.sh settle-match-pools",
+    "schedulerJobs": [
+        {
+            "id": "settle-match-pools",
+            "command": "tool/run_supabase_cron_job.sh settle-match-pools",
       "status": "PENDING",
       "provider": "",
       "scheduleExpression": "",
       "timezone": "",
       "owner": "",
       "backupOwner": "",
-      "smokeEvidenceRefs": [],
+      "smokeEvidenceRefs": [
+        "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log",
+        "release/operations/cron-smoke-evidence-20260606T043304Z.json"
+      ],
       "historyEvidenceRefs": [],
       "missedRunAlertEvidenceRefs": []
     },
@@ -48,11 +51,30 @@
       "timezone": "",
       "owner": "",
       "backupOwner": "",
-      "smokeEvidenceRefs": [],
-      "historyEvidenceRefs": [],
-      "missedRunAlertEvidenceRefs": []
-    }
-  ],
+            "smokeEvidenceRefs": [
+                "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log",
+                "release/operations/cron-smoke-evidence-20260606T043304Z.json"
+            ],
+            "historyEvidenceRefs": [],
+            "missedRunAlertEvidenceRefs": []
+        },
+        {
+            "id": "sync-livescore-football",
+            "command": "tool/run_supabase_cron_job.sh sync-livescore-football",
+            "status": "PENDING",
+            "provider": "",
+            "scheduleExpression": "",
+            "timezone": "",
+            "owner": "",
+            "backupOwner": "",
+            "smokeEvidenceRefs": [
+                "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log",
+                "release/operations/cron-smoke-evidence-20260606T043304Z.json"
+            ],
+            "historyEvidenceRefs": [],
+            "missedRunAlertEvidenceRefs": []
+        }
+    ],
   "observabilitySurfaces": [
     {
       "id": "Flutter app",

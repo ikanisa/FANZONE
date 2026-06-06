@@ -49,8 +49,11 @@ class RuntimeAuthSessionManager {
   SupabaseClient? get guestClient =>
       appRuntime.supabaseInitialized ? Supabase.instance.client : null;
 
-  SupabaseClient? get activeClient =>
-      _customSession != null ? _customClient : guestClient;
+  SupabaseClient? get activeClient {
+    if (_customSession == null) return guestClient;
+    if (isDevOtpFixtureSession) return guestClient;
+    return _customClient;
+  }
 
   Session? get customSession => _customSession;
 
@@ -61,6 +64,9 @@ class RuntimeAuthSessionManager {
       _customSession?.user ?? guestClient?.auth.currentUser;
 
   bool get hasCustomSession => _customSession != null;
+
+  bool get isDevOtpFixtureSession =>
+      _customSession?.user.appMetadata['dev_otp_fixture'] == true;
 
   bool get hasRefreshableCustomSession =>
       _customSession != null && _hasRefreshToken(_customSession!);

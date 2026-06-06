@@ -17,7 +17,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -117,6 +117,27 @@ def competition_image_url(path: Any) -> str | None:
     return urllib.parse.urljoin(COMPETITION_IMAGE_BASE, raw)
 
 
+def int_or_none(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    raw = str(value or "").strip()
+    if re.fullmatch(r"-?\d+", raw):
+        return int(raw)
+    return None
+
+
+def first_int(source: dict[str, Any], keys: list[str]) -> int | None:
+    for key in keys:
+        value = int_or_none(source.get(key))
+        if value is not None:
+            return value
+    return None
+
+
 def build_fixtures_api_url(resource: LiveScoreResource) -> str:
     timezone_path = urllib.parse.quote(resource.timezone_name, safe="")
     query = urllib.parse.urlencode({"locale": resource.locale, "limit": resource.limit})
@@ -195,7 +216,8 @@ def fetch_fixture_rows(
             away = first_team(event, "T2")
             home_name = str(home.get("Nm") or "").strip()
             away_name = str(away.get("Nm") or "").strip()
-            starts_at = parse_livescore_datetime(event.get("Esd"), resource.timezone_name)
+            local_starts_at = parse_livescore_datetime(event.get("Esd"), resource.timezone_name)
+            starts_at = local_starts_at.astimezone(timezone.utc)
             source_url = build_match_url(
                 resource.competition_slug,
                 resource.category_slug,
@@ -227,6 +249,10 @@ def fetch_fixture_rows(
             venue_city = details.get("Vcy") or details.get("VCnm")
             if not venue_city:
                 venue_city = (scoreboard or {}).get("Venue", {}).get("Vcy")
+            event_status = str(event.get("Eps") or "").strip()
+            match_status = normalize_event_status(event_status)
+            home_score = first_int(event, ["Tr1", "Tr1OR", "Tr1C"])
+            away_score = first_int(event, ["Tr2", "Tr2OR", "Tr2C"])
 
             row = {
                 "source_match_id": event_id,
@@ -252,15 +278,19 @@ def fetch_fixture_rows(
                 "away_team_logo_url": team_image_url(away.get("Img") or scoreboard_away.get("Img")),
                 "home_team_type": "national",
                 "away_team_type": "national",
-                "local_date": starts_at.date().isoformat(),
-                "local_time": starts_at.time().replace(microsecond=0).isoformat(),
+                "local_date": local_starts_at.date().isoformat(),
+                "local_time": local_starts_at.time().replace(microsecond=0).isoformat(),
                 "timezone_name": resource.timezone_name,
                 "starts_at": starts_at.isoformat().replace("+00:00", "Z"),
                 "venue": venue,
                 "venue_city": venue_city,
                 "source_url": source_url,
-                "match_status": normalize_event_status(event.get("Eps")),
-                "event_status": event.get("Eps"),
+                "match_status": match_status,
+                "event_status": event_status,
+                "home_score": home_score,
+                "away_score": away_score,
+                "live_minute": first_int(event, ["Emin", "Epr"]) if match_status == "live" else None,
+                "live_phase": event_status or match_status,
                 "is_neutral": bool(details.get("Vneut") or (scoreboard or {}).get("Venue", {}).get("Vneut")),
                 "confidence": "official",
                 "source_payload": {
@@ -400,6 +430,13 @@ def push_to_supabase_rest(
             {"p_resource_id": resource.resource_id, "p_limit": len(rows)},
             timeout=timeout,
         )
+        rest_rpc(
+            supabase_url,
+            service_role_key,
+            "admin_apply_official_fixture_live_state",
+            {"p_resource_id": resource.resource_id, "p_limit": max(len(rows), 1)},
+            timeout=timeout,
+        )
     rest_rpc(
         supabase_url,
         service_role_key,
@@ -432,6 +469,17 @@ def push_to_edge_function(
     )
 
 
+def build_edge_sync_payload(args: argparse.Namespace) -> dict[str, Any]:
+    return {
+        "resource_id": args.resource_id,
+        "apply": bool(args.apply),
+        "include_details": bool(args.include_details),
+        "include_scoreboard": bool(args.include_scoreboard),
+        "delay_ms": max(0, args.delay_ms),
+        "limit": max(1, args.limit),
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Fetch LiveScore fixtures, teams, and crest URLs for FANZONE staging.",
@@ -457,7 +505,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, help="Write JSON payload to this path.")
     parser.add_argument(
         "--post-edge-url",
-        help="POST the staging payload to a Supabase Edge Function URL.",
+        help="POST sync options to the Supabase sync-livescore-football Edge Function URL.",
     )
     parser.add_argument(
         "--cron-secret",
@@ -484,11 +532,27 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="After staging through REST RPC, upsert staged rows into the raw matches catalog.",
     )
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="Continuously synchronize LiveScore on an interval until stopped.",
+    )
+    parser.add_argument(
+        "--interval-seconds",
+        type=int,
+        default=300,
+        help="Delay between --watch runs. Defaults to 300 seconds.",
+    )
+    parser.add_argument(
+        "--max-runs",
+        type=int,
+        default=0,
+        help="Stop --watch after this many runs. Zero means run until interrupted.",
+    )
     return parser.parse_args()
 
 
-def main() -> int:
-    args = parse_args()
+def run_once(args: argparse.Namespace, run_number: int | None = None) -> int:
     try:
         ZoneInfo(args.timezone)
         resource = LiveScoreResource(
@@ -502,19 +566,6 @@ def main() -> int:
             locale=args.locale,
             limit=max(1, args.limit),
         )
-        rows, metadata = fetch_fixture_rows(
-            resource,
-            include_details=args.include_details,
-            include_scoreboard=args.include_scoreboard,
-            delay_ms=max(0, args.delay_ms),
-            timeout=args.timeout,
-            user_agent=args.user_agent,
-        )
-        payload = build_output_payload(resource, rows, metadata)
-
-        if args.output:
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
         edge_result = None
         if args.post_edge_url:
@@ -523,9 +574,26 @@ def main() -> int:
             edge_result = push_to_edge_function(
                 args.post_edge_url,
                 args.cron_secret,
-                payload,
+                build_edge_sync_payload(args),
                 timeout=args.timeout,
             )
+
+        rows: list[dict[str, Any]] = []
+        metadata: dict[str, Any] = {}
+        if args.output or args.push_rest or not args.post_edge_url:
+            rows, metadata = fetch_fixture_rows(
+                resource,
+                include_details=args.include_details,
+                include_scoreboard=args.include_scoreboard,
+                delay_ms=max(0, args.delay_ms),
+                timeout=args.timeout,
+                user_agent=args.user_agent,
+            )
+            payload = build_output_payload(resource, rows, metadata)
+
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
         rest_result = None
         if args.push_rest:
@@ -544,7 +612,8 @@ def main() -> int:
         summary = {
             "resource_id": resource.resource_id,
             "provider_competition_id": resource.provider_competition_id,
-            "rows": len(rows),
+            "run": run_number,
+            "rows": len(rows) if rows else edge_result.get("rows") if isinstance(edge_result, dict) else 0,
             "stages_seen": metadata.get("stages_seen"),
             "output": str(args.output) if args.output else None,
             "posted_edge": bool(args.post_edge_url),
@@ -558,6 +627,23 @@ def main() -> int:
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError, RuntimeError) as exc:
         print(f"LiveScore ingest failed: {exc}", file=sys.stderr)
         return 1
+
+
+def main() -> int:
+    args = parse_args()
+    if not args.watch:
+        return run_once(args)
+
+    interval = max(30, args.interval_seconds)
+    run_number = 0
+    while True:
+        run_number += 1
+        result = run_once(args, run_number)
+        if result != 0:
+            return result
+        if args.max_runs and run_number >= args.max_runs:
+            return 0
+        time.sleep(interval)
 
 
 if __name__ == "__main__":

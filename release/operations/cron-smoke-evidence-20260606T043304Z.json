@@ -1,0 +1,57 @@
+{
+  "generatedAtUtc": "2026-06-06T04:40:54Z",
+  "scope": "Credentialed production cron smoke for FANZONE scheduled Edge Functions",
+  "projectRef": "kjuhheobmdvjwgnzlcwx",
+  "secretValuesPrinted": false,
+  "credentialHandling": {
+    "supabaseCronSecret": "ROTATED",
+    "githubActionsCronSecret": "ROTATED",
+    "notes": "CRON_SECRET was rotated in Supabase Edge secrets and the GitHub repository secret, then used only as a process-local environment variable for the final standard-payload smoke execution. The secret value was not written to tracked files or evidence."
+  },
+  "jobs": [
+    {
+      "id": "settle-match-pools",
+      "command": "tool/run_supabase_cron_job.sh settle-match-pools",
+      "status": "PASS",
+      "httpStatus": 200,
+      "observed": {
+        "settledPools": 0,
+        "limit": 50
+      }
+    },
+    {
+      "id": "dispatch-match-alerts",
+      "command": "tool/run_supabase_cron_job.sh dispatch-match-alerts",
+      "status": "PASS",
+      "httpStatus": 200,
+      "observed": {
+        "kickoffSent": 0,
+        "goalSent": 0,
+        "resultSent": 0,
+        "dispatchRowsWritten": 0,
+        "errors": []
+      }
+    },
+    {
+      "id": "sync-livescore-football",
+      "command": "tool/run_supabase_cron_job.sh sync-livescore-football",
+      "status": "PASS",
+      "httpStatus": 200,
+      "observed": {
+        "resourceId": "livescore_world_cup_2026",
+        "rows": 104,
+        "syncRunId": "1c3d05b2-56ce-4c8f-86c9-9195800a7278",
+        "stagedRows": 104,
+        "receivedRows": 104,
+        "needsReviewRows": 32,
+        "appliedRows": 72,
+        "liveStateUpdatedRows": 72
+      }
+    }
+  ],
+  "remainingOperationsGates": [
+    "Scheduler provider history evidence is still required before scheduler readiness can be marked PASS.",
+    "Missed-run alert evidence is still required before scheduler readiness can be marked PASS.",
+    "Operations owner, release owner, incident commander, observability dashboard, alert route, rollback, and incident-response signoff remain required by release/operations/operations-readiness-evidence.json."
+  ]
+}

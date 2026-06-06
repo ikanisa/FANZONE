@@ -503,11 +503,13 @@ Active Edge Functions found in this checkout:
 | `bar_onboarding_submit` | Venue onboarding submission. |
 | `bar_search` | Client-safe venue search. |
 | `dispatch-match-alerts` | Scheduled kickoff/final-score notification dispatch. |
+| `fan-trivia` | Fan Trivia gameplay boundary. |
 | `generate-pool-social-card` | Social card payload/storage for challenge sharing. |
 | `import-football-data` | Football data import. |
 | `menu_ingest_create` | Persistent menu image import jobs. |
 | `menu_ingest_worker` | OCR/import worker for menu ingestion. |
 | `menu_ocr_parse` | Stateless menu OCR endpoint. |
+| `music-bingo` | Music Bingo gameplay boundary. |
 | `order_create` | Customer order creation through validated server boundary. |
 | `order_mark_paid` | Compatibility wrapper for audited manual payment confirmation. |
 | `order_update_status` | Compatibility wrapper for lifecycle transitions. |
@@ -515,7 +517,9 @@ Active Edge Functions found in this checkout:
 | `push-notify` | Push notification dispatch. |
 | `ring_bell` | Customer staff-call requests. |
 | `settle-match-pools` | Idempotent challenge/pool settlement. |
+| `song-guess` | Song Guess gameplay boundary. |
 | `submit_claim` | Venue claim submission. |
+| `sync-livescore-football` | LiveScore football fixture/status synchronization. |
 | `venue_claim` | Venue claim workflow. |
 | `whatsapp-otp` | WhatsApp OTP send/verify and custom session issuance. |
 

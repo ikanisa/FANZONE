@@ -49,9 +49,7 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 final teamSearchCatalogProvider = Provider<TeamSearchCatalog>((ref) {
-  throw UnimplementedError(
-    'teamSearchCatalogProvider must be overridden at app startup via ProviderScope.',
-  );
+  return activeTeamSearchCatalog;
 });
 
 BootstrapConfigService? _bootstrapRuntimeService;

@@ -1,4 +1,4 @@
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/material.dart';
 import 'dart:async' show TimeoutException;
 import 'dart:io' show SocketException;

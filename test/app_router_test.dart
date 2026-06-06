@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fanzone/app_router.dart';
 import 'package:fanzone/core/config/bootstrap_config.dart';
 import 'package:fanzone/core/config/runtime_bootstrap.dart';
+import 'package:fanzone/features/auth/screens/splash_screen.dart';
 
 void main() {
   group('governedAppRouteForPath', () {
@@ -144,6 +145,12 @@ void main() {
         ),
         '/match/match_42?entry=notification',
       );
+      expect(
+        governedAppRouteForPath(
+          'https://fanzone.ikanisa.com/home/matches?source=home-view-all',
+        ),
+        '/home/matches?source=home-view-all',
+      );
     });
 
     test('normalizes legacy prediction links into active pools routes', () {
@@ -240,6 +247,52 @@ void main() {
       );
       expect(governedAppRouteForPath(''), '/home');
       expect(governedAppRouteForPath('', fallback: '/pools'), '/pools');
+    });
+  });
+
+  group('splash and guest routing', () {
+    test('fresh launches land on Home by default', () {
+      expect(resolveSplashNextRoute(), '/home');
+      expect(
+        resolveSplashNextRoute(
+          venueRoute: '/v/live-sports-bar',
+          returnTo: '/pools/games',
+          pendingRoute: '/settings',
+        ),
+        '/v/live-sports-bar',
+      );
+      expect(
+        resolveSplashNextRoute(
+          returnTo: '/pools/games',
+          pendingRoute: '/settings',
+        ),
+        '/pools/games',
+      );
+    });
+
+    test('public guest surfaces are reachable without onboarding redirect', () {
+      for (final path in [
+        '/',
+        '/home',
+        '/pools',
+        '/pools/games',
+        '/games',
+        '/settings',
+        '/settings/privacy',
+        '/venues',
+        '/bar',
+        '/home/matches',
+        '/match/match_1',
+        '/pool/pool_1',
+        '/pools/share_1',
+        '/game/game_1',
+      ]) {
+        expect(isGuestReachableRoute(path), isTrue, reason: path);
+      }
+
+      for (final path in ['/wallet', '/orders', '/checkout']) {
+        expect(isGuestReachableRoute(path), isFalse, reason: path);
+      }
     });
   });
 }

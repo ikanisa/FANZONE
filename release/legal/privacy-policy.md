@@ -1,4 +1,4 @@
-# Privacy Policy Draft
+# Privacy Policy Release Evidence
 
 Canonical source: `docs/privacy-policy.md`.
 
@@ -13,10 +13,12 @@ Minimum covered data categories:
 - Fan profile team preferences.
 - Venue interactions.
 - Orders and manual payment status.
-- FET wallet and ledger activity.
+- FET rewards-ledger activity.
 - Pool, game, team, and invite participation.
 - Firebase Cloud Messaging token if notifications are enabled.
+- Optional location data when the user enables nearby venue discovery.
 - Runtime diagnostics and crash/error telemetry if enabled.
 
-The policy must state that FANZONE does not process external payment credentials and that FET has no cash-out.
-
+The policy states that FANZONE does not process external payment credentials,
+that FET has no cash-out, and that data access/account deletion requests can
+be made through support or the verified in-app account flow.
