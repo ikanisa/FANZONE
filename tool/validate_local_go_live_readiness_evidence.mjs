@@ -48,9 +48,12 @@ const requiredGateGroups = new Map([
     "release-evidence-validators",
     [
       "node tool/validate_android_device_uat_evidence.mjs",
+      "node tool/validate_android_release_evidence.mjs",
+      "node tool/validate_critical_uat_signoff.mjs",
       "node tool/validate_current_fullstack_supabase_evidence.mjs",
       "node tool/validate_edge_function_release_contract.mjs",
       "node tool/validate_games_livescore_fullstack_evidence.mjs",
+      "node tool/validate_load_reliability_evidence.mjs",
       "node tool/validate_onboarding_team_catalog_evidence.mjs",
       "node tool/validate_privacy_legal_code_evidence.mjs",
     ],

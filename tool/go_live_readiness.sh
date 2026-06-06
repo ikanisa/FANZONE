@@ -112,8 +112,10 @@ run node --check tool/test_bff_health.mjs
 run node --check tool/validate_edge_function_release_contract.mjs
 run node --check tool/validate_secret_rotation_evidence.mjs
 run node --check tool/validate_critical_uat_signoff.mjs
+run node tool/validate_critical_uat_signoff.mjs
 run node --check tool/validate_ios_testflight_evidence.mjs
 run node --check tool/validate_android_release_evidence.mjs
+run node tool/validate_android_release_evidence.mjs
 run node --check tool/validate_android_device_uat_evidence.mjs
 run node tool/validate_android_device_uat_evidence.mjs
 run node --check tool/validate_mobile_backend_uat_evidence.mjs
@@ -169,6 +171,7 @@ run node --check tool/validate_privacy_legal_readiness_evidence.mjs
 run node --check tool/validate_privacy_legal_code_evidence.mjs
 run node tool/validate_privacy_legal_code_evidence.mjs
 run node --check tool/validate_load_reliability_evidence.mjs
+run node tool/validate_load_reliability_evidence.mjs
 run node --check tool/validate_local_go_live_readiness_evidence.mjs
 run node tool/validate_local_go_live_readiness_evidence.mjs
 run node tool/validate_edge_function_release_contract.mjs

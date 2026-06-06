@@ -56,6 +56,8 @@
       "status": "PASS",
       "commands": [
         "node tool/validate_android_device_uat_evidence.mjs",
+        "node tool/validate_android_release_evidence.mjs",
+        "node tool/validate_critical_uat_signoff.mjs",
         "node tool/validate_mobile_backend_uat_evidence.mjs",
         "node tool/validate_mobile_security_code_evidence.mjs",
         "node tool/validate_api_authorization_abuse_evidence.mjs",
@@ -78,6 +80,7 @@
         "node tool/validate_onboarding_team_catalog_evidence.mjs",
         "node tool/validate_privacy_public_surface_copy.mjs",
         "node tool/validate_privacy_legal_code_evidence.mjs",
+        "node tool/validate_load_reliability_evidence.mjs",
         "node tool/validate_edge_function_release_contract.mjs"
       ]
     }
