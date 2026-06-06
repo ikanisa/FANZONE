@@ -5,11 +5,16 @@ import 'package:fanzone/core/di/gateway_providers.dart';
 import 'package:fanzone/core/cache/cache_service.dart';
 import 'package:fanzone/core/supabase/supabase_connection.dart';
 import 'package:fanzone/features/auth/data/auth_gateway.dart';
+import 'package:fanzone/features/games/data/games_repository.dart';
 import 'package:fanzone/features/home/data/competition_catalog_gateway.dart';
 import 'package:fanzone/features/home/data/event_catalog_gateway.dart';
 import 'package:fanzone/features/home/data/match_listing_gateway.dart';
 import 'package:fanzone/features/home/data/team_catalog_gateway.dart';
 import 'package:fanzone/features/onboarding/data/onboarding_gateway.dart';
+import 'package:fanzone/features/ordering/data/bell_gateway.dart';
+import 'package:fanzone/features/ordering/data/order_gateway.dart';
+import 'package:fanzone/features/ordering/data/venue_gateway.dart';
+import 'package:fanzone/features/pools/data/pools_repository.dart';
 import 'package:fanzone/features/settings/data/account_settings_gateway.dart';
 import 'package:fanzone/features/settings/data/notification_settings_gateway.dart';
 import 'package:fanzone/features/wallet/data/wallet_gateway.dart';
@@ -109,6 +114,30 @@ void main() {
         expect(gateway.allTeams, isEmpty);
       },
     );
+  });
+
+  group('Ordering and venue providers resolve', () {
+    test('venueGatewayProvider returns VenueGateway', () {
+      expect(container.read(venueGatewayProvider), isA<VenueGateway>());
+    });
+
+    test('orderGatewayProvider returns OrderGateway', () {
+      expect(container.read(orderGatewayProvider), isA<OrderGateway>());
+    });
+
+    test('bellGatewayProvider returns BellGateway', () {
+      expect(container.read(bellGatewayProvider), isA<BellGateway>());
+    });
+  });
+
+  group('Play providers resolve', () {
+    test('poolsRepositoryProvider returns PoolsRepository', () {
+      expect(container.read(poolsRepositoryProvider), isA<PoolsRepository>());
+    });
+
+    test('gamesRepositoryProvider returns GamesRepository', () {
+      expect(container.read(gamesRepositoryProvider), isA<GamesRepository>());
+    });
   });
 
   group('Wallet providers resolve', () {

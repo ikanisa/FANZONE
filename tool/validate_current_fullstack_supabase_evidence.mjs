@@ -891,6 +891,11 @@ requireCommand(
 if (!String(flutter.providerWiring?.proof || "").includes("Onboarding gateway")) {
   errors.push("flutterClient.providerWiring.proof must mention Onboarding gateway.");
 }
+for (const fragment of ["ordering/venue", "pools", "games"]) {
+  if (!String(flutter.providerWiring?.proof || "").includes(fragment)) {
+    errors.push(`flutterClient.providerWiring.proof must mention ${fragment}.`);
+  }
+}
 if (!Number.isInteger(flutter.testsPassed) || flutter.testsPassed <= 0) {
   errors.push("flutterClient.testsPassed must be positive.");
 }

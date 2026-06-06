@@ -479,7 +479,7 @@
     "providerWiring": {
       "command": "flutter test test/gateway_providers_test.dart",
       "status": "PASS",
-      "proof": "Riverpod gateway graph resolves core, auth, catalog, settings, onboarding, and wallet providers. Onboarding gateway now resolves safely with the active Supabase-hydrated team catalog or an offline empty fallback before startup overrides finish."
+      "proof": "Riverpod gateway graph resolves core, auth, catalog, settings, onboarding, ordering/venue, pools, games, and wallet providers. Onboarding gateway resolves safely with the active Supabase-hydrated team catalog or an offline empty fallback before startup overrides finish."
     },
     "coverage": {
       "command": "node tool/validate_flutter_coverage_evidence.mjs",
