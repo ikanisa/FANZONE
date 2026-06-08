@@ -5,6 +5,8 @@
 /// at the time of adding (preventing price-change confusion).
 library;
 
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/hospitality/menu_item_model.dart';
@@ -80,13 +82,21 @@ class CartItem {
   }
 
   /// Create a CartItem from a MenuItemModel.
-  factory CartItem.fromMenuItem(MenuItemModel item) {
+  factory CartItem.fromMenuItem(
+    MenuItemModel item, {
+    int quantity = 1,
+    List<Map<String, dynamic>> addOns = const [],
+    String? specialInstructions,
+  }) {
     return CartItem(
       menuItemId: item.id,
       name: item.name,
       description: item.description,
-      unitPrice: item.price,
+      unitPrice: item.price + menuAddOnsTotal(addOns),
       currencyCode: item.currencyCode,
+      quantity: quantity,
+      addOns: addOns,
+      specialInstructions: specialInstructions,
     );
   }
 }
@@ -177,21 +187,45 @@ class CartNotifier extends StateNotifier<CartState> {
 
   /// Add a menu item to the cart (or increment quantity if already present).
   void addItem(MenuItemModel menuItem) {
+    addConfiguredItem(menuItem);
+  }
+
+  /// Add a menu item with selected add-ons, quantity, and prep notes.
+  void addConfiguredItem(
+    MenuItemModel menuItem, {
+    int quantity = 1,
+    List<Map<String, dynamic>> addOns = const [],
+    String? specialInstructions,
+  }) {
+    if (quantity <= 0) return;
+
+    final normalizedInstructions = _normalizeInstructions(specialInstructions);
+    final canonicalAddOns = _canonicalAddOnsKey(addOns);
     final existing = state.items.indexWhere(
-      (item) => item.menuItemId == menuItem.id,
+      (item) =>
+          item.menuItemId == menuItem.id &&
+          _canonicalAddOnsKey(item.addOns) == canonicalAddOns &&
+          _normalizeInstructions(item.specialInstructions) ==
+              normalizedInstructions,
     );
 
     if (existing >= 0) {
-      // Increment quantity
       final updated = List<CartItem>.from(state.items);
       updated[existing] = updated[existing].copyWith(
-        quantity: updated[existing].quantity + 1,
+        quantity: updated[existing].quantity + quantity,
       );
       state = state.copyWith(items: updated);
     } else {
-      // Add new item
       state = state.copyWith(
-        items: [...state.items, CartItem.fromMenuItem(menuItem)],
+        items: [
+          ...state.items,
+          CartItem.fromMenuItem(
+            menuItem,
+            quantity: quantity,
+            addOns: addOns,
+            specialInstructions: normalizedInstructions,
+          ),
+        ],
       );
     }
   }
@@ -258,11 +292,17 @@ class CartNotifier extends StateNotifier<CartState> {
 
   /// Get the quantity of a specific item in the cart.
   int getQuantity(String menuItemId) {
-    final item = state.items.cast<CartItem?>().firstWhere(
-      (item) => item!.menuItemId == menuItemId,
+    return state.items
+        .where((item) => item.menuItemId == menuItemId)
+        .fold<int>(0, (sum, item) => sum + item.quantity);
+  }
+
+  /// Get the first cart line for a menu item.
+  CartItem? getFirstLine(String menuItemId) {
+    return state.items.cast<CartItem?>().firstWhere(
+      (item) => item?.menuItemId == menuItemId,
       orElse: () => null,
     );
-    return item?.quantity ?? 0;
   }
 
   /// Clear the entire cart.
@@ -284,3 +324,31 @@ final cartItemCountProvider = Provider<int>((ref) {
 final cartIsEmptyProvider = Provider<bool>((ref) {
   return ref.watch(cartProvider).isEmpty;
 });
+
+double menuAddOnsTotal(List<Map<String, dynamic>> addOns) {
+  return addOns.fold<double>(0, (sum, addOn) => sum + menuAddOnPrice(addOn));
+}
+
+double menuAddOnPrice(Map<String, dynamic> addOn) {
+  final raw = addOn['price'] ?? addOn['amount'] ?? addOn['unit_price'];
+  if (raw is num) return raw.toDouble();
+  if (raw is String) return double.tryParse(raw.trim()) ?? 0;
+  return 0;
+}
+
+String? _normalizeInstructions(String? value) {
+  final normalized = value?.trim().replaceAll(RegExp(r'\s+'), ' ');
+  if (normalized == null || normalized.isEmpty) return null;
+  return normalized;
+}
+
+String _canonicalAddOnsKey(List<Map<String, dynamic>> addOns) {
+  final normalized = addOns.map(Map<String, dynamic>.from).map((addOn) {
+    final sorted = Map.fromEntries(
+      addOn.entries.toList()
+        ..sort((a, b) => a.key.toString().compareTo(b.key.toString())),
+    );
+    return sorted;
+  }).toList();
+  return jsonEncode(normalized);
+}

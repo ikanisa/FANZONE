@@ -19,14 +19,14 @@ void main() {
       expect(FzColors.darkMuted, isA<Color>());
     });
 
-    test('compat light token names resolve to the dark palette', () {
-      expect(FzColors.lightBg, FzColors.darkBg);
-      expect(FzColors.lightSurface, FzColors.darkSurface);
-      expect(FzColors.lightSurface2, FzColors.darkSurface2);
-      expect(FzColors.lightSurface3, FzColors.darkSurface3);
-      expect(FzColors.lightBorder, FzColors.darkBorder);
-      expect(FzColors.lightText, FzColors.darkText);
-      expect(FzColors.lightMuted, FzColors.darkMuted);
+    test('light theme tokens are distinct and valid', () {
+      expect(FzColors.lightBg, isNot(FzColors.darkBg));
+      expect(FzColors.lightSurface, isNot(FzColors.darkSurface));
+      expect(FzColors.lightSurface2, isNot(FzColors.darkSurface2));
+      expect(FzColors.lightSurface3, isNot(FzColors.darkSurface3));
+      expect(FzColors.lightBorder, isNot(FzColors.darkBorder));
+      expect(FzColors.lightText, isNot(FzColors.darkText));
+      expect(FzColors.lightMuted, isNot(FzColors.darkMuted));
     });
 
     // Content palette
@@ -108,16 +108,16 @@ void main() {
       expect(FzColors.darkColorScheme.onSurface, FzColors.darkText);
     });
 
-    test('compat light color scheme resolves to the supported dark scheme', () {
-      expect(FzColors.lightColorScheme, same(FzColors.darkColorScheme));
-      expect(FzColors.lightColorScheme.surface, FzColors.darkSurface);
-      expect(FzColors.lightColorScheme.onSurface, FzColors.darkText);
+    test('light color scheme uses light surfaces', () {
+      expect(FzColors.lightColorScheme.brightness, Brightness.light);
+      expect(FzColors.lightColorScheme.surface, FzColors.lightSurface);
+      expect(FzColors.lightColorScheme.onSurface, FzColors.lightText);
     });
 
-    test('dark and compat light schemes share the same surface', () {
+    test('dark and light schemes use distinct surfaces', () {
       expect(
         FzColors.lightColorScheme.surface,
-        FzColors.darkColorScheme.surface,
+        isNot(FzColors.darkColorScheme.surface),
       );
     });
 
@@ -125,16 +125,36 @@ void main() {
       expect(FzColors.darkColorScheme.brightness, Brightness.dark);
     });
 
-    test('compat light scheme brightness is dark', () {
-      expect(FzColors.lightColorScheme.brightness, Brightness.dark);
+    test('high contrast schemes expose stronger outlines', () {
+      expect(FzColors.highContrastDarkColorScheme.outline, Colors.white);
+      expect(FzColors.highContrastLightColorScheme.outline, Colors.black);
     });
   });
 
-  group('Dark-only theme enforcement', () {
-    test('compat light theme builder resolves to dark ThemeData', () {
+  group('System theme support', () {
+    test('light theme builder returns light ThemeData', () {
       final theme = FzTheme.light();
+      expect(theme.brightness, Brightness.light);
+      expect(theme.colorScheme, FzColors.lightColorScheme);
+      expect(theme.scaffoldBackgroundColor, FzColors.lightBg);
+    });
+
+    test('dark theme builder returns dark ThemeData', () {
+      final theme = FzTheme.dark();
       expect(theme.brightness, Brightness.dark);
-      expect(theme.colorScheme, same(FzColors.darkColorScheme));
+      expect(theme.colorScheme, FzColors.darkColorScheme);
+      expect(theme.scaffoldBackgroundColor, FzColors.darkBg);
+    });
+
+    test('high contrast themes use high contrast schemes', () {
+      expect(
+        FzTheme.highContrastDark().colorScheme,
+        FzColors.highContrastDarkColorScheme,
+      );
+      expect(
+        FzTheme.highContrastLight().colorScheme,
+        FzColors.highContrastLightColorScheme,
+      );
     });
   });
 
@@ -177,7 +197,7 @@ void main() {
       );
     });
 
-    test('compat light text aliases still preserve dark-mode contrast', () {
+    test('light text on light bg has sufficient contrast', () {
       final textLuminance = FzColors.lightText.computeLuminance();
       final bgLuminance = FzColors.lightBg.computeLuminance();
 
@@ -188,7 +208,7 @@ void main() {
       expect(
         ratio,
         greaterThan(4.5),
-        reason: 'Dark-only aliases should meet WCAG AA',
+        reason: 'Light text tokens should meet WCAG AA',
       );
     });
   });

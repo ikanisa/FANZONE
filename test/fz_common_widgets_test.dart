@@ -86,6 +86,30 @@ void main() {
     expect(decoration.borderRadius, BorderRadius.circular(FzRadii.card));
   });
 
+  testWidgets('FzCard provides a Material surface for ListTile ink', (
+    tester,
+  ) async {
+    var tapped = false;
+
+    await pumpAppScreen(
+      tester,
+      Scaffold(
+        body: FzCard(
+          child: ListTile(
+            title: const Text('Settings'),
+            onTap: () => tapped = true,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+
+    expect(tapped, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('FzEmptyState renders reference structure and action', (
     tester,
   ) async {

@@ -30,6 +30,13 @@ void main() {
   });
 
   group('OrderPlacementNotifier', () {
+    test('normalizes payment proof references without exposing raw input', () {
+      expect(normalizePaymentProofText('  MOMO   123  '), 'MOMO 123');
+      expect(normalizePaymentProofText('   '), isNull);
+      expect(normalizePaymentProofText(null), isNull);
+      expect(normalizePaymentProofText('x' * 140), hasLength(120));
+    });
+
     test('does not expose backend exception text in checkout errors', () async {
       final cart = CartNotifier()
         ..addItem(

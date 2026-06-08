@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// FANZONE Dark Sports-Gaming design tokens.
+/// FANZONE sports-hospitality design tokens.
 ///
 /// Near-black surfaces, cyan/orange/red controlled accents,
 /// warm off-white text. No bright whites, no dirty greys.
@@ -19,16 +19,16 @@ abstract final class FzColors {
   static const darkMuted = Color(0xFF6F7280);
 
   // ════════════════════════════════════════════
-  // Compatibility light-theme aliases
-  // FANZONE is dark-only, so these resolve to the dark palette.
+  // Light Theme — match-day hospitality surfaces
   // ════════════════════════════════════════════
-  static const lightBg = darkBg;
-  static const lightSurface = darkSurface;
-  static const lightSurface2 = darkSurface2;
-  static const lightSurface3 = darkSurface3;
-  static const lightBorder = darkBorder;
-  static const lightText = darkText;
-  static const lightMuted = darkMuted;
+  static const lightBg = Color(0xFFF7F9FC);
+  static const lightSurface = Color(0xFFFFFFFF);
+  static const lightSurface2 = Color(0xFFF0F4F8);
+  static const lightSurface3 = Color(0xFFE4EAF1);
+  static const lightBorder = Color(0xFFD5DEE8);
+  static const lightText = Color(0xFF10131A);
+  static const lightTextSecondary = Color(0xFF3E4654);
+  static const lightMuted = Color(0xFF657084);
 
   // ════════════════════════════════════════════
   // Primary accents — cyan/orange/red sports-gaming palette
@@ -89,5 +89,45 @@ abstract final class FzColors {
     surfaceContainerHighest: darkSurface3,
   );
 
-  static const lightColorScheme = darkColorScheme;
+  static const lightColorScheme = ColorScheme.light(
+    surface: lightSurface,
+    onSurface: lightText,
+    primary: accent,
+    onPrimary: onPrimary,
+    secondary: secondary,
+    onSecondary: onSecondary,
+    tertiary: accent3,
+    error: error,
+    onError: Colors.white,
+    outline: lightBorder,
+    surfaceContainerHighest: lightSurface3,
+  );
+
+  static const highContrastDarkColorScheme = ColorScheme.dark(
+    surface: darkSurface,
+    onSurface: Colors.white,
+    primary: Color(0xFF66EAFF),
+    onPrimary: Color(0xFF000000),
+    secondary: Color(0xFFFFA47F),
+    onSecondary: Color(0xFF000000),
+    tertiary: Color(0xFFFFDD75),
+    error: Color(0xFFFF7A82),
+    onError: Color(0xFF000000),
+    outline: Colors.white,
+    surfaceContainerHighest: darkSurface4,
+  );
+
+  static const highContrastLightColorScheme = ColorScheme.light(
+    surface: Colors.white,
+    onSurface: Color(0xFF000000),
+    primary: Color(0xFF006B7A),
+    onPrimary: Colors.white,
+    secondary: Color(0xFF9A350F),
+    onSecondary: Colors.white,
+    tertiary: Color(0xFF725700),
+    error: Color(0xFFB00020),
+    onError: Colors.white,
+    outline: Color(0xFF000000),
+    surfaceContainerHighest: Color(0xFFE8EDF3),
+  );
 }

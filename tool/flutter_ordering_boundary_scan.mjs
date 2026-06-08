@@ -76,8 +76,11 @@ const checks = [
     required: [
       "bellGatewayProvider",
       ".ringBell(",
-      "Order issue: Order #",
-      "Call staff",
+      "Order support ${type.auditLabel}: Order #",
+      "Report issue",
+      "Request cancellation",
+      "Request refund review",
+      "It does not change order or payment status automatically.",
       "canSubmitPaymentForOrder(widget.order)",
       "Awaiting venue.",
       "PaymentStatus.paymentSubmitted",

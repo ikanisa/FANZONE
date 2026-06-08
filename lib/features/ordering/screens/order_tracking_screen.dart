@@ -276,17 +276,27 @@ class _PaymentStatusCardState extends ConsumerState<_PaymentStatusCard> {
   bool _submitting = false;
 
   Future<void> _submitPayment() async {
+    final proof = await _showPaymentProofSheet(context, widget.order);
+    if (proof == null || !mounted) return;
+
     setState(() => _submitting = true);
     try {
-      await submitPaymentForOrder(ref, widget.order);
+      await submitPaymentForOrder(
+        ref,
+        widget.order,
+        externalReference: proof.externalReference,
+        note: proof.note,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Awaiting venue.')));
+      ).showSnackBar(const SnackBar(content: Text('Payment proof sent.')));
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment submission failed: $error')),
+        const SnackBar(
+          content: Text('Could not send payment proof. Try again.'),
+        ),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -374,6 +384,138 @@ class _PaymentStatusCardState extends ConsumerState<_PaymentStatusCard> {
   }
 }
 
+class _PaymentProofDraft {
+  const _PaymentProofDraft({this.externalReference, this.note});
+
+  final String? externalReference;
+  final String? note;
+}
+
+Future<_PaymentProofDraft?> _showPaymentProofSheet(
+  BuildContext context,
+  OrderModel order,
+) {
+  final referenceController = TextEditingController();
+  final noteController = TextEditingController();
+
+  return showModalBottomSheet<_PaymentProofDraft>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheetContext) {
+      final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
+      final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+      final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+
+      return AnimatedPadding(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: border,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: FzColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    LucideIcons.receiptText,
+                    color: FzColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Payment proof',
+                        style: Theme.of(sheetContext).textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      Text(
+                        '${order.paymentMethod.label} - staff confirms payment.',
+                        style: TextStyle(
+                          color: muted,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            TextField(
+              key: const ValueKey('payment_proof_reference'),
+              controller: referenceController,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(LucideIcons.hash),
+                labelText: 'Reference optional',
+                hintText: 'MoMo code or Revolut note',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              key: const ValueKey('payment_proof_note'),
+              controller: noteController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(LucideIcons.messageSquare),
+                labelText: 'Note optional',
+                hintText: 'Anything staff should verify',
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'This does not mark the order paid. Venue staff still confirm it.',
+              style: TextStyle(color: muted, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 18),
+            FilledButton.icon(
+              key: const ValueKey('payment_proof_submit'),
+              onPressed: () {
+                Navigator.of(sheetContext).pop(
+                  _PaymentProofDraft(
+                    externalReference: normalizePaymentProofText(
+                      referenceController.text,
+                    ),
+                    note: normalizePaymentProofText(noteController.text),
+                  ),
+                );
+              },
+              icon: const Icon(LucideIcons.send, size: 17),
+              label: const Text('Send proof'),
+            ),
+          ],
+        ),
+      );
+    },
+  ).whenComplete(() {
+    _disposeControllersAfterRouteRemoval([referenceController, noteController]);
+  });
+}
+
 class _OrderIssueCard extends ConsumerStatefulWidget {
   const _OrderIssueCard({required this.order});
 
@@ -386,9 +528,16 @@ class _OrderIssueCard extends ConsumerStatefulWidget {
 class _OrderIssueCardState extends ConsumerState<_OrderIssueCard> {
   bool _submitting = false;
 
-  Future<void> _callStaff() async {
+  Future<void> _openSupportRequest(_OrderSupportRequestType type) async {
     final tableId = widget.order.tableId;
     if (tableId == null || tableId.trim().isEmpty) return;
+
+    final note = await _showOrderSupportRequestSheet(
+      context,
+      order: widget.order,
+      type: type,
+    );
+    if (note == null || !mounted) return;
 
     setState(() => _submitting = true);
     try {
@@ -397,18 +546,21 @@ class _OrderIssueCardState extends ConsumerState<_OrderIssueCard> {
           .ringBell(
             venueId: widget.order.venueId,
             tableId: tableId,
-            message:
-                'Order issue: Order #${widget.order.orderCode} needs help.',
+            message: _supportRequestMessage(
+              type: type,
+              order: widget.order,
+              note: note,
+            ),
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Staff call sent for this order.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(type.snackBarMessage)));
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Could not call staff: $error')));
+      ).showSnackBar(const SnackBar(content: Text('Could not send request.')));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -417,6 +569,7 @@ class _OrderIssueCardState extends ConsumerState<_OrderIssueCard> {
   @override
   Widget build(BuildContext context) {
     final hasTable = widget.order.tableId?.trim().isNotEmpty ?? false;
+    final requestTypes = _availableSupportRequestTypes(widget.order);
 
     return FzCard(
       padding: const EdgeInsets.all(16),
@@ -438,7 +591,7 @@ class _OrderIssueCardState extends ConsumerState<_OrderIssueCard> {
                     const SizedBox(height: 4),
                     Text(
                       hasTable
-                          ? 'Call staff about this order.'
+                          ? 'Send an issue, cancellation, or refund review request to staff.'
                           : 'Ask venue staff directly for this order.',
                       style: AppTypography.secondary.copyWith(
                         color: AppColors.muted,
@@ -451,20 +604,27 @@ class _OrderIssueCardState extends ConsumerState<_OrderIssueCard> {
           ),
           if (hasTable) ...[
             const SizedBox(height: AppSpacing.lg),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _submitting ? null : _callStaff,
-                icon: _submitting
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(LucideIcons.bellRing, size: 16),
-                label: const Text('Call staff'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+            ...requestTypes.map(
+              (type) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _submitting
+                        ? null
+                        : () => _openSupportRequest(type),
+                    icon: _submitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(type.icon, size: 16),
+                    label: Text(type.label),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -473,6 +633,207 @@ class _OrderIssueCardState extends ConsumerState<_OrderIssueCard> {
       ),
     );
   }
+}
+
+enum _OrderSupportRequestType {
+  issue,
+  cancel,
+  refund;
+
+  String get label {
+    return switch (this) {
+      _OrderSupportRequestType.issue => 'Report issue',
+      _OrderSupportRequestType.cancel => 'Request cancellation',
+      _OrderSupportRequestType.refund => 'Request refund review',
+    };
+  }
+
+  IconData get icon {
+    return switch (this) {
+      _OrderSupportRequestType.issue => LucideIcons.messageSquareWarning,
+      _OrderSupportRequestType.cancel => LucideIcons.circleX,
+      _OrderSupportRequestType.refund => LucideIcons.receiptText,
+    };
+  }
+
+  String get sheetTitle {
+    return switch (this) {
+      _OrderSupportRequestType.issue => 'Report issue',
+      _OrderSupportRequestType.cancel => 'Cancellation request',
+      _OrderSupportRequestType.refund => 'Refund review',
+    };
+  }
+
+  String get hint {
+    return switch (this) {
+      _OrderSupportRequestType.issue => 'Example: missing item or wrong table',
+      _OrderSupportRequestType.cancel => 'Tell staff why you need to cancel',
+      _OrderSupportRequestType.refund => 'Tell staff what they should review',
+    };
+  }
+
+  String get snackBarMessage {
+    return switch (this) {
+      _OrderSupportRequestType.issue => 'Issue request sent to staff.',
+      _OrderSupportRequestType.cancel => 'Cancellation request sent to staff.',
+      _OrderSupportRequestType.refund => 'Refund review sent to staff.',
+    };
+  }
+
+  String get auditLabel {
+    return switch (this) {
+      _OrderSupportRequestType.issue => 'issue',
+      _OrderSupportRequestType.cancel => 'cancel_request',
+      _OrderSupportRequestType.refund => 'refund_review',
+    };
+  }
+}
+
+List<_OrderSupportRequestType> _availableSupportRequestTypes(OrderModel order) {
+  final types = <_OrderSupportRequestType>[_OrderSupportRequestType.issue];
+  if (!order.status.isTerminal && !order.status.isServedOrLater) {
+    types.add(_OrderSupportRequestType.cancel);
+  }
+  if (order.paymentStatus == PaymentStatus.paid ||
+      order.paymentStatus == PaymentStatus.paymentSubmitted ||
+      order.paymentStatus == PaymentStatus.failed ||
+      order.paymentStatus == PaymentStatus.disputed ||
+      order.status == OrderStatus.served ||
+      order.status == OrderStatus.completed) {
+    types.add(_OrderSupportRequestType.refund);
+  }
+  return types;
+}
+
+Future<String?> _showOrderSupportRequestSheet(
+  BuildContext context, {
+  required OrderModel order,
+  required _OrderSupportRequestType type,
+}) {
+  final noteController = TextEditingController();
+
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheetContext) {
+      final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
+      final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+      final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+
+      return AnimatedPadding(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: border,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: FzColors.warning.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(type.icon, color: FzColors.warning),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        type.sheetTitle,
+                        style: Theme.of(sheetContext).textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      Text(
+                        'Order #${order.orderCode}',
+                        style: TextStyle(
+                          color: muted,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              key: const ValueKey('order_support_note'),
+              controller: noteController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(LucideIcons.notebookPen),
+                labelText: 'Details optional',
+                hintText: type.hint,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Staff reviews this request. It does not change order or payment status automatically.',
+              style: TextStyle(color: muted, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 18),
+            FilledButton.icon(
+              key: const ValueKey('order_support_submit'),
+              onPressed: () {
+                Navigator.of(
+                  sheetContext,
+                ).pop(_normalizeOrderSupportNote(noteController.text) ?? '');
+              },
+              icon: const Icon(LucideIcons.send, size: 17),
+              label: const Text('Send request'),
+            ),
+          ],
+        ),
+      );
+    },
+  ).whenComplete(() {
+    _disposeControllersAfterRouteRemoval([noteController]);
+  });
+}
+
+void _disposeControllersAfterRouteRemoval(
+  List<TextEditingController> controllers,
+) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    for (final controller in controllers) {
+      controller.dispose();
+    }
+  });
+}
+
+String _supportRequestMessage({
+  required _OrderSupportRequestType type,
+  required OrderModel order,
+  required String note,
+}) {
+  final details = note.trim().isEmpty ? 'No extra details.' : note.trim();
+  return 'Order support ${type.auditLabel}: Order #${order.orderCode}. $details';
+}
+
+String? _normalizeOrderSupportNote(String? raw) {
+  final normalized = raw?.trim().replaceAll(RegExp(r'\s+'), ' ');
+  if (normalized == null || normalized.isEmpty) return null;
+  return normalized.length > 180 ? normalized.substring(0, 180) : normalized;
 }
 
 class _TimelineItem extends StatelessWidget {

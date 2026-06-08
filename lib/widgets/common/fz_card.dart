@@ -28,12 +28,30 @@ class FzCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final card = Container(
-      margin: margin,
+    final radius = BorderRadius.circular(borderRadius);
+    final content = padding != null
+        ? Padding(padding: padding!, child: child)
+        : child;
+    final materialContent = Material(
+      type: MaterialType.transparency,
+      borderRadius: radius,
       clipBehavior: Clip.antiAlias,
+      child: onTap == null
+          ? content
+          : InkWell(
+              onTap: onTap,
+              splashColor: FzColors.primary.withValues(alpha: 0.08),
+              highlightColor: FzColors.primary.withValues(alpha: 0.04),
+              borderRadius: radius,
+              child: content,
+            ),
+    );
+
+    return Container(
+      margin: margin,
       decoration: BoxDecoration(
         color: color ?? (isDark ? FzColors.darkSurface : FzColors.lightSurface),
-        borderRadius: BorderRadius.circular(borderRadius),
+        borderRadius: radius,
         border: Border.all(
           color:
               borderColor ??
@@ -50,23 +68,7 @@ class FzCard extends StatelessWidget {
               ]
             : null,
       ),
-      child: padding != null ? Padding(padding: padding!, child: child) : child,
+      child: materialContent,
     );
-
-    if (onTap != null) {
-      return Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: InkWell(
-          onTap: onTap,
-          splashColor: FzColors.primary.withValues(alpha: 0.08),
-          highlightColor: FzColors.primary.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(borderRadius),
-          child: card,
-        ),
-      );
-    }
-
-    return card;
   }
 }

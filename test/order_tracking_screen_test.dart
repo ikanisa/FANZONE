@@ -56,7 +56,7 @@ void main() {
     expect(find.text('Received'), findsNothing);
   });
 
-  testWidgets('order tracking can call staff about the order', (tester) async {
+  testWidgets('order tracking sends issue request to staff', (tester) async {
     final order = _orderWithStatus(OrderStatus.preparing);
     final bellGateway = _FakeBellGateway();
 
@@ -75,15 +75,54 @@ void main() {
     await tester.drag(find.byType(Scrollable), const Offset(0, -700));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Call staff'));
+    expect(find.text('Request cancellation'), findsOneWidget);
+    expect(find.text('Request refund review'), findsOneWidget);
+
+    await tester.tap(find.text('Report issue'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('order_support_note')),
+      'missing fries',
+    );
+    await tester.tap(find.byKey(const ValueKey('order_support_submit')));
     await tester.pumpAndSettle();
 
     expect(bellGateway.calls, hasLength(1));
     expect(bellGateway.calls.single.venueId, 'venue_1');
     expect(bellGateway.calls.single.tableId, 'table_1');
-    expect(bellGateway.calls.single.message, contains('Order #FZ-1001'));
-    expect(find.text('Staff call sent for this order.'), findsOneWidget);
+    expect(
+      bellGateway.calls.single.message,
+      contains('Order support issue: Order #FZ-1001. missing fries'),
+    );
+    expect(find.text('Issue request sent to staff.'), findsOneWidget);
   });
+
+  testWidgets(
+    'order tracking shows refund review without cancellation after served',
+    (tester) async {
+      final order = _orderWithStatus(OrderStatus.served);
+
+      await pumpAppScreen(
+        tester,
+        const OrderTrackingScreen(orderId: 'order_1'),
+        overrides: [
+          orderRealtimeProvider(
+            'order_1',
+          ).overrideWith((ref) => Stream.value(order)),
+          bellGatewayProvider.overrideWithValue(_FakeBellGateway()),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(Scrollable), const Offset(0, -700));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Report issue'), findsOneWidget);
+      expect(find.text('Request cancellation'), findsNothing);
+      expect(find.text('Request refund review'), findsOneWidget);
+    },
+  );
 }
 
 class _RingBellCall {

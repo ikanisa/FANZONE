@@ -15,6 +15,7 @@ import '../../../widgets/common/state_view.dart';
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
 import '../providers/venue_context_provider.dart';
+import '../widgets/menu_item_detail_sheet.dart';
 
 class VenueMenuScreen extends ConsumerWidget {
   const VenueMenuScreen({super.key, this.venueSlug});
@@ -359,6 +360,8 @@ class _MenuItemCard extends ConsumerWidget {
     final quantity = ref.watch(cartProvider.notifier).getQuantity(item.id);
     return FzCard(
       key: ValueKey('menu_item_${item.id}'),
+      onTap: () =>
+          showMenuItemDetailSheet(context: context, ref: ref, item: item),
       padding: EdgeInsets.zero,
       borderRadius: FzRadii.card,
       child: Column(
@@ -434,14 +437,29 @@ class _QuantityControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (quantity == 0) {
       return ConstrainedBox(
         constraints: const BoxConstraints(minWidth: 76, maxWidth: 92),
         child: FilledButton.icon(
           key: ValueKey('menu_item_add_${item.id}'),
-          onPressed: () => ref.read(cartProvider.notifier).addItem(item),
+          onPressed: item.isAvailable
+              ? () {
+                  if (_shouldOpenItemDetail(item)) {
+                    showMenuItemDetailSheet(
+                      context: context,
+                      ref: ref,
+                      item: item,
+                    );
+                  } else {
+                    ref.read(cartProvider.notifier).addItem(item);
+                  }
+                }
+              : null,
           icon: const Icon(LucideIcons.plus, size: 16),
-          label: const Text('Add'),
+          label: Text(item.isAvailable ? 'Add' : 'Out'),
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             textStyle: const TextStyle(
@@ -456,9 +474,11 @@ class _QuantityControls extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: FzColors.darkSurface2,
+        color: isDark ? FzColors.darkSurface2 : FzColors.lightSurface2,
         borderRadius: FzRadii.fullRadius,
-        border: Border.all(color: FzColors.darkBorder),
+        border: Border.all(
+          color: isDark ? FzColors.darkBorder : FzColors.lightBorder,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -482,7 +502,19 @@ class _QuantityControls extends ConsumerWidget {
           ),
           IconButton(
             tooltip: 'Add one',
-            onPressed: () => ref.read(cartProvider.notifier).addItem(item),
+            onPressed: item.isAvailable
+                ? () {
+                    if (_shouldOpenItemDetail(item)) {
+                      showMenuItemDetailSheet(
+                        context: context,
+                        ref: ref,
+                        item: item,
+                      );
+                    } else {
+                      ref.read(cartProvider.notifier).addItem(item);
+                    }
+                  }
+                : null,
             icon: const Icon(
               LucideIcons.plus,
               size: 18,
@@ -575,4 +607,11 @@ class _CartPill extends StatelessWidget {
 String _compactWords(String value, int maxWords) {
   final words = value.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
   return words.take(maxWords).join(' ');
+}
+
+bool _shouldOpenItemDetail(MenuItemModel item) {
+  return item.hasAddOns ||
+      item.allergens.isNotEmpty ||
+      menuItemIsAgeRestricted(item) ||
+      !item.isAvailable;
 }

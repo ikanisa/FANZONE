@@ -231,15 +231,31 @@ bool canSubmitPaymentForOrder(OrderModel order) {
           order.paymentStatus == PaymentStatus.unpaid);
 }
 
-Future<void> submitPaymentForOrder(WidgetRef ref, OrderModel order) async {
+Future<void> submitPaymentForOrder(
+  WidgetRef ref,
+  OrderModel order, {
+  String? externalReference,
+  String? note,
+}) async {
   await ref
       .read(orderGatewayProvider)
-      .submitPayment(orderId: order.id, method: order.paymentMethod);
+      .submitPayment(
+        orderId: order.id,
+        method: order.paymentMethod,
+        externalReference: normalizePaymentProofText(externalReference),
+        note: normalizePaymentProofText(note),
+      );
 
   ref.invalidate(orderDetailProvider(order.id));
   ref.invalidate(orderRealtimeProvider(order.id));
   ref.invalidate(orderHistoryProvider);
   ref.invalidate(activeOrdersProvider);
+}
+
+String? normalizePaymentProofText(String? raw) {
+  final normalized = raw?.trim().replaceAll(RegExp(r'\s+'), ' ');
+  if (normalized == null || normalized.isEmpty) return null;
+  return normalized.length > 120 ? normalized.substring(0, 120) : normalized;
 }
 
 /// Convenience: place order using the current venue context.

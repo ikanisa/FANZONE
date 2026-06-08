@@ -14,9 +14,11 @@ abstract final class FzTypography {
 
   /// Base text theme using Outfit for the entire app.
   static TextTheme textTheme(Brightness brightness) {
-    const color = Color(0xFFFFFDF3);
+    final color = brightness == Brightness.dark
+        ? const Color(0xFFFFFDF3)
+        : const Color(0xFF10131A);
 
-    const baseTheme = TextTheme(
+    final baseTheme = TextTheme(
       // Display
       displayLarge: TextStyle(
         fontSize: 52,
@@ -228,10 +230,12 @@ abstract final class FzTypography {
 
   /// Section label style: uppercase, compact, theme-aware muted color.
   /// Keeps compact metadata legible without dropping below 12px.
-  static TextStyle sectionLabel(Brightness brightness) => const TextStyle(
+  static TextStyle sectionLabel(Brightness brightness) => TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w900,
-    color: Color(0xFF6F7280),
+    color: brightness == Brightness.dark
+        ? const Color(0xFF6F7280)
+        : const Color(0xFF657084),
     letterSpacing: 0,
   );
 

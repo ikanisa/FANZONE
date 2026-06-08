@@ -16,6 +16,7 @@ VALIDATORS=(
   "Edge CORS smoke evidence|node|tool/validate_edge_cors_smoke_evidence.mjs"
   "Admin auth deployment smoke evidence|node|tool/validate_admin_auth_deploy_smoke_evidence.mjs"
   "Flutter coverage evidence|node|tool/validate_flutter_coverage_evidence.mjs"
+  "Flutter mobile UX matrix inventory|node|tool/validate_flutter_mobile_ux_matrix.mjs"
   "Games/LiveScore fullstack evidence|node|tool/validate_games_livescore_fullstack_evidence.mjs"
   "Android device UAT evidence|node|tool/validate_android_device_uat_evidence.mjs"
   "Mobile backend UAT evidence|node|tool/validate_mobile_backend_uat_evidence.mjs"

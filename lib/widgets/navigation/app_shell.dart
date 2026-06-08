@@ -20,49 +20,150 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final items = _getNavItems(ref);
 
-    return Scaffold(
-      extendBody: true,
-      body: Column(
-        children: [
-          const FzOfflineBanner(),
-          Expanded(
-            child: Stack(
-              children: [
-                navigationShell,
-                if (!keyboardOpen)
-                  const Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 96,
-                    child: Center(child: LiveOrderStatusPill()),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: _BottomNavBar(
-        navigationShell: navigationShell,
-        currentLocation: currentLocation,
+    return AppAdaptiveNavigationScaffold(
+      body: navigationShell,
+      currentIndex: navigationShell.currentIndex,
+      items: items,
+      onSelect: (item, isSelected) => navigationShell.goBranch(
+        item.branchIndex,
+        initialLocation: isSelected,
       ),
     );
   }
 }
 
-class _BottomNavBar extends ConsumerWidget {
-  const _BottomNavBar({
-    required this.navigationShell,
-    required this.currentLocation,
+class AppAdaptiveNavigationScaffold extends StatelessWidget {
+  const AppAdaptiveNavigationScaffold({
+    super.key,
+    required this.body,
+    required this.currentIndex,
+    required this.items,
+    required this.onSelect,
+    this.showOfflineBanner = true,
+    this.showLiveOrderPill = true,
   });
 
-  final StatefulNavigationShell navigationShell;
-  final String currentLocation;
+  static const double mediumBreakpoint = 600;
+  static const double expandedBreakpoint = 840;
+
+  final Widget body;
+  final int currentIndex;
+  final List<NavItem> items;
+  final void Function(NavItem item, bool isSelected) onSelect;
+  final bool showOfflineBanner;
+  final bool showLiveOrderPill;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final items = _getNavItems(ref);
+  Widget build(BuildContext context) {
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final useRail = width >= mediumBreakpoint;
+        final railExtended = width >= expandedBreakpoint;
+
+        return Scaffold(
+          extendBody: !useRail,
+          bottomNavigationBar: useRail
+              ? null
+              : _BottomNavBar(
+                  items: items,
+                  currentIndex: currentIndex,
+                  onSelect: onSelect,
+                ),
+          body: Column(
+            children: [
+              if (showOfflineBanner) const FzOfflineBanner(),
+              Expanded(
+                child: useRail
+                    ? Row(
+                        children: [
+                          _SideNavRail(
+                            items: items,
+                            currentIndex: currentIndex,
+                            extended: railExtended,
+                            onSelect: onSelect,
+                          ),
+                          const VerticalDivider(width: 1),
+                          Expanded(
+                            child: _ShellBodyStack(
+                              keyboardOpen: keyboardOpen,
+                              showLiveOrderPill: showLiveOrderPill,
+                              liveOrderBottom: AppSpacing.lg,
+                              child: body,
+                            ),
+                          ),
+                        ],
+                      )
+                    : _ShellBodyStack(
+                        keyboardOpen: keyboardOpen,
+                        showLiveOrderPill: showLiveOrderPill,
+                        liveOrderBottom: 96,
+                        child: body,
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ShellBodyStack extends StatelessWidget {
+  const _ShellBodyStack({
+    required this.child,
+    required this.keyboardOpen,
+    required this.showLiveOrderPill,
+    required this.liveOrderBottom,
+  });
+
+  final Widget child;
+  final bool keyboardOpen;
+  final bool showLiveOrderPill;
+  final double liveOrderBottom;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        child,
+        if (showLiveOrderPill && !keyboardOpen)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: liveOrderBottom,
+            child: const Center(child: LiveOrderStatusPill()),
+          ),
+      ],
+    );
+  }
+}
+
+class _BottomNavBar extends StatelessWidget {
+  const _BottomNavBar({
+    required this.items,
+    required this.currentIndex,
+    required this.onSelect,
+  });
+
+  final List<NavItem> items;
+  final int currentIndex;
+  final void Function(NavItem item, bool isSelected) onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final disableAnimations = MediaQuery.disableAnimationsOf(context);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+    final border = isDark ? FzColors.darkBorder : FzColors.lightBorder;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
 
     return SafeArea(
       top: false,
@@ -76,9 +177,9 @@ class _BottomNavBar extends ConsumerWidget {
         height: 68,
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         decoration: BoxDecoration(
-          color: FzColors.darkSurface,
+          color: surface,
           borderRadius: FzRadii.heroRadius,
-          border: Border.all(color: FzColors.darkBorder),
+          border: Border.all(color: border),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.4),
@@ -89,7 +190,7 @@ class _BottomNavBar extends ConsumerWidget {
         ),
         child: Row(
           children: items.map((item) {
-            final isSelected = navigationShell.currentIndex == item.branchIndex;
+            final isSelected = currentIndex == item.branchIndex;
             return Expanded(
               child: Semantics(
                 label: '${item.label} tab',
@@ -99,13 +200,12 @@ class _BottomNavBar extends ConsumerWidget {
                   message: item.label,
                   child: InkWell(
                     key: ValueKey('bottom_nav_${item.keyName}'),
-                    onTap: () => navigationShell.goBranch(
-                      item.branchIndex,
-                      initialLocation: isSelected,
-                    ),
+                    onTap: () => onSelect(item, isSelected),
                     borderRadius: AppRadii.cardRadius,
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
+                      duration: disableAnimations
+                          ? Duration.zero
+                          : const Duration(milliseconds: 180),
                       curve: Curves.easeOut,
                       height: double.infinity,
                       decoration: BoxDecoration(
@@ -119,9 +219,7 @@ class _BottomNavBar extends ConsumerWidget {
                         children: [
                           AppSvgIcon(
                             item.icon,
-                            color: isSelected
-                                ? FzColors.accent
-                                : FzColors.darkMuted,
+                            color: isSelected ? FzColors.accent : muted,
                             size: 22,
                           ),
                           const SizedBox(height: 3),
@@ -132,9 +230,7 @@ class _BottomNavBar extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w900,
-                              color: isSelected
-                                  ? FzColors.accent
-                                  : FzColors.darkMuted,
+                              color: isSelected ? FzColors.accent : muted,
                             ),
                           ),
                         ],
@@ -146,6 +242,69 @@ class _BottomNavBar extends ConsumerWidget {
             );
           }).toList(),
         ),
+      ),
+    );
+  }
+}
+
+class _SideNavRail extends StatelessWidget {
+  const _SideNavRail({
+    required this.items,
+    required this.currentIndex,
+    required this.extended,
+    required this.onSelect,
+  });
+
+  final List<NavItem> items;
+  final int currentIndex;
+  final bool extended;
+  final void Function(NavItem item, bool isSelected) onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final surface = isDark ? FzColors.darkSurface : FzColors.lightSurface;
+    final muted = isDark ? FzColors.darkMuted : FzColors.lightMuted;
+
+    return SafeArea(
+      right: false,
+      child: NavigationRail(
+        key: const ValueKey('adaptive_navigation_rail'),
+        selectedIndex: currentIndex,
+        extended: extended,
+        minWidth: 88,
+        minExtendedWidth: 180,
+        backgroundColor: surface,
+        indicatorColor: FzColors.accent.withValues(alpha: 0.14),
+        selectedIconTheme: const IconThemeData(color: FzColors.accent),
+        unselectedIconTheme: IconThemeData(color: muted),
+        selectedLabelTextStyle: const TextStyle(
+          color: FzColors.accent,
+          fontWeight: FontWeight.w900,
+        ),
+        unselectedLabelTextStyle: TextStyle(
+          color: muted,
+          fontWeight: FontWeight.w800,
+        ),
+        onDestinationSelected: (index) {
+          final item = items[index];
+          onSelect(item, currentIndex == item.branchIndex);
+        },
+        destinations: [
+          for (final item in items)
+            NavigationRailDestination(
+              icon: Tooltip(
+                message: item.label,
+                child: AppSvgIcon(item.icon, color: muted, size: 22),
+              ),
+              selectedIcon: Tooltip(
+                message: item.label,
+                child: AppSvgIcon(item.icon, color: FzColors.accent, size: 22),
+              ),
+              label: Text(item.label),
+            ),
+        ],
       ),
     );
   }
