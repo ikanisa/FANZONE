@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Coins,
   Flag,
+  Gamepad2,
   Globe2,
   ListChecks,
   ScrollText,
@@ -74,6 +75,12 @@ const NAV_ITEMS: NavItem[] = [
     label: "Pools",
     path: ROUTES.POOLS,
     icon: <Trophy size={18} />,
+    minRole: "admin",
+  },
+  {
+    label: "Game Ops",
+    path: ROUTES.GAME_OPS,
+    icon: <Gamepad2 size={18} />,
     minRole: "admin",
   },
   {

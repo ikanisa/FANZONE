@@ -3,10 +3,21 @@ import '../../../config/app_config.dart';
 import '../../../core/cache/cache_service.dart';
 import '../../../core/logging/app_logger.dart';
 import '../../../core/supabase/supabase_connection.dart';
+import '../../../models/auth_and_user/account_data_request_model.dart';
 import '../../../models/auth_and_user/account_deletion_request_model.dart';
 import '../../../models/auth_and_user/privacy_settings_model.dart';
 
 abstract interface class AccountSettingsGateway {
+  Future<AccountDataRequestModel?> getAccountDataRequest(String userId);
+
+  Future<AccountDataRequestModel> submitAccountDataRequest({
+    required String userId,
+    required String reason,
+    String? contactEmail,
+  });
+
+  Future<void> cancelAccountDataRequest(String userId);
+
   Future<AccountDeletionRequestModel?> getAccountDeletionRequest(String userId);
 
   Future<AccountDeletionRequestModel> submitAccountDeletionRequest({
@@ -31,8 +42,124 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
   final CacheService _cache;
   final SupabaseConnection _connection;
 
+  static const _dataRequestPrefix = 'settings.data_request.';
   static const _deletionPrefix = 'settings.deletion.';
   static const _privacyPrefix = 'settings.privacy.';
+
+  @override
+  Future<AccountDataRequestModel?> getAccountDataRequest(String userId) async {
+    final cached = await _cachedDataRequest(userId);
+    final client = _connection.client;
+    if (client == null) return cached;
+
+    try {
+      final row = await client
+          .from('account_data_requests')
+          .select()
+          .eq('user_id', userId)
+          .order('requested_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      if (row == null) return cached;
+
+      final request = AccountDataRequestModel.fromJson(
+        Map<String, dynamic>.from(row),
+      );
+      await _cacheDataRequest(userId, request);
+      return request;
+    } catch (error) {
+      AppLogger.d('Failed to load account data request: $error');
+      return cached;
+    }
+  }
+
+  @override
+  Future<AccountDataRequestModel> submitAccountDataRequest({
+    required String userId,
+    required String reason,
+    String? contactEmail,
+  }) async {
+    final client = _connection.client;
+    if (AppConfig.isReviewMode || client == null) {
+      final request = AccountDataRequestModel(
+        id: 'data_${DateTime.now().millisecondsSinceEpoch}',
+        status: 'pending',
+        requestedAt: DateTime.now(),
+        requestType: 'export',
+        reason: reason,
+        contactEmail: contactEmail,
+      );
+      await _cacheDataRequest(userId, request);
+      return request;
+    }
+
+    try {
+      final row = await client
+          .from('account_data_requests')
+          .insert({
+            'user_id': userId,
+            'request_type': 'export',
+            'reason': reason,
+            'contact_email': contactEmail,
+            'status': 'pending',
+          })
+          .select()
+          .single();
+      final request = AccountDataRequestModel.fromJson(
+        Map<String, dynamic>.from(row),
+      );
+      await _cacheDataRequest(userId, request);
+      return request;
+    } catch (error) {
+      AppLogger.d('Failed to create account data request: $error');
+      final request = AccountDataRequestModel(
+        id: 'data_${DateTime.now().millisecondsSinceEpoch}',
+        status: 'pending',
+        requestedAt: DateTime.now(),
+        requestType: 'export',
+        reason: reason,
+        contactEmail: contactEmail,
+      );
+      await _cacheDataRequest(userId, request);
+      return request;
+    }
+  }
+
+  @override
+  Future<void> cancelAccountDataRequest(String userId) async {
+    final client = _connection.client;
+    if (!AppConfig.isReviewMode && client != null) {
+      try {
+        await client
+            .from('account_data_requests')
+            .update({
+              'status': 'cancelled',
+              'processed_at': DateTime.now().toUtc().toIso8601String(),
+            })
+            .eq('user_id', userId)
+            .eq('status', 'pending');
+      } catch (error) {
+        AppLogger.d('Failed to cancel account data request: $error');
+      }
+    }
+
+    final existing = await getAccountDataRequest(userId);
+    if (existing == null) return;
+
+    await _cacheDataRequest(
+      userId,
+      AccountDataRequestModel(
+        id: existing.id,
+        status: 'cancelled',
+        requestedAt: existing.requestedAt,
+        requestType: existing.requestType,
+        reason: existing.reason,
+        contactEmail: existing.contactEmail,
+        resolutionNotes: existing.resolutionNotes,
+        processedAt: DateTime.now(),
+      ),
+    );
+  }
 
   @override
   Future<AccountDeletionRequestModel?> getAccountDeletionRequest(
@@ -214,6 +341,24 @@ class SupabaseAccountSettingsGateway implements AccountSettingsGateway {
     return _cache.setJson(
       '$_deletionPrefix$userId',
       accountDeletionToJson(request),
+    );
+  }
+
+  Future<AccountDataRequestModel?> _cachedDataRequest(String userId) async {
+    final row = await _cache.getJsonMap(
+      '$_dataRequestPrefix$userId',
+      debugLabel: 'account data request',
+    );
+    return row == null ? null : AccountDataRequestModel.fromJson(row);
+  }
+
+  Future<void> _cacheDataRequest(
+    String userId,
+    AccountDataRequestModel request,
+  ) {
+    return _cache.setJson(
+      '$_dataRequestPrefix$userId',
+      accountDataRequestToJson(request),
     );
   }
 

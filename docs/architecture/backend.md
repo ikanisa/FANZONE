@@ -95,6 +95,7 @@ Destructive retired-object cleanup is intentionally outside this migration inven
 | `bar_search` | Searches venue/bar records. | Client-safe read with validation. |
 | `dispatch-match-alerts` | Scheduled kickoff/result alert dispatch. | `x-cron-secret`; calls push pipeline. |
 | `fan-trivia` | Fan Trivia game sessions, teams, questions, and answers through the shared game edge boundary. | Authenticated user JWT; RLS/RPC enforced. |
+| `generate-weekly-game-packs` | Generates weekly review-gated game content packs for Malta and Rwanda before admin approval and venue assignment. | `x-cron-secret` or service role; generated content remains pending review. |
 | `generate-pool-social-card` | Generates or stores pool social share card data. | Authenticated pool/venue/admin checks plus service role write. |
 | `import-football-data` | Imports curated football data. | Cron/admin secret protected. |
 | `menu_ingest_create` | Creates persistent menu image import jobs. | Authenticated venue member. |

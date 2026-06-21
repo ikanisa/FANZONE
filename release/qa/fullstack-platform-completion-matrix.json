@@ -1,0 +1,309 @@
+{
+  "schemaVersion": 1,
+  "generatedAtUtc": "2026-06-21T15:23:38Z",
+  "scope": "FANZONE fullstack platform completion matrix for Flutter client, venue/bar PWA, admin panels, TV games PWA, backend, database policies, Malta/Rwanda localization, permissions, chat, and AI-managed weekly games.",
+  "statusLegend": {
+    "pass": "Current implementation and evidence prove this requirement is complete.",
+    "partial": "Some implementation or evidence exists, but the requirement is not fully proven.",
+    "planned": "Required for the target state, but implementation or evidence is still missing.",
+    "blocked": "Blocked by missing external access, credentials, signoff, or live provider state.",
+    "not_applicable": "Intentionally out of scope for the target release."
+  },
+  "requiredEvidenceKeys": [
+    "frontend",
+    "backend",
+    "databasePolicy",
+    "testCoverage",
+    "releaseEvidence",
+    "owner",
+    "nextAction"
+  ],
+  "rows": [
+    {
+      "id": "flutter_customer_app_ux",
+      "surface": "flutter_customer_app",
+      "category": "frontend",
+      "priority": "P0",
+      "status": "partial",
+      "requirement": "Customer Flutter app has complete route, overlay, wizard, adaptive, accessibility, localization, permission, order, support, rewards, games, and evidence coverage.",
+      "sources": [
+        "lib/",
+        "release/qa/flutter-mobile-ux-matrix.json",
+        "docs/release/flutter-mobile-ux-matrix-summary.md"
+      ],
+      "evidence": {
+        "frontend": "Flutter UX inventory exists for 57 current surfaces; app shell/theme/order/support/privacy gaps have partial implementation.",
+        "backend": "Order, privacy, venue support, payment proof, and FET flows use existing gateways/RPC/Edge paths where implemented.",
+        "databasePolicy": "New account_data_requests and venue_support_requests migrations define RLS; live dry-run proof is blocked by database credential/connectivity.",
+        "testCoverage": "Focused Flutter suite covers representative app shell, accessibility, ordering, payment recovery, privacy, venue support, and design-token behavior.",
+        "releaseEvidence": "Strict UX matrix remains incomplete: 56 applicable rows are not pass.",
+        "owner": "mobile",
+        "nextAction": "Capture compact/medium/expanded screenshots and assistive-tech evidence for every P0/P1 Flutter matrix row, then promote only proven rows to pass."
+      }
+    },
+    {
+      "id": "venue_bar_pwa_operations",
+      "surface": "venue_bar_pwa",
+      "category": "frontend",
+      "priority": "P0",
+      "status": "partial",
+      "requirement": "Venue/bar PWA fully supports staff orders, menus, table support, chat, manual payments, rewards configuration, pools, games operations, localization, realtime, and role-scoped workflows.",
+      "sources": [
+        "apps/venue-portal/",
+        "docs/venue-dashboard-uat.md"
+      ],
+      "evidence": {
+        "frontend": "Venue portal exists, but current matrix does not yet prove full Malta/Rwanda localization, chat, games scheduling, or PWA evidence.",
+        "backend": "Existing order, bell, reward, pool, and game services/RPCs need row-by-row verification against requested scope.",
+        "databasePolicy": "Venue membership and RLS patterns exist; chat and game generation policies are not yet proven.",
+        "testCoverage": "Workspace typecheck/lint/build/test must be rerun and linked to this row.",
+        "releaseEvidence": "No current pass evidence for complete venue/bar PWA scope.",
+        "owner": "venue",
+        "nextAction": "Inventory venue portal routes/components, add chat/game-management requirements, and create venue PWA evidence matrix."
+      }
+    },
+    {
+      "id": "admin_panels_platform_ops",
+      "surface": "admin_panels",
+      "category": "frontend",
+      "priority": "P0",
+      "status": "partial",
+      "requirement": "Admin panels manage countries, venues, games, weekly AI content, random bar assignments, moderation, audit, roles, feature flags, rewards, notifications, and operational evidence.",
+      "sources": [
+        "apps/admin/",
+        "apps/admin/src/features/game-ops/GameOpsPage.tsx",
+        "apps/admin/src/features/game-ops/useGameOps.ts",
+        "supabase/functions/admin_user_management/",
+        "supabase/functions/admin_approve_onboarding/",
+        "supabase/functions/generate-weekly-game-packs/",
+        "supabase/migrations/20260621170000_weekly_game_content_governance.sql"
+      ],
+      "evidence": {
+        "frontend": "Admin app now includes a lazy-loaded Game Ops route for weekly run queueing, pack approval/rejection, random assignment, publishing, and retirement.",
+        "backend": "Admin Edge/RPC paths exist for core operations; weekly game generation and assignment RPCs are now implemented but still need live deployment proof.",
+        "databasePolicy": "New game governance migration adds admin-only RLS/RPCs and audit logs for generation runs, pack reviews, and assignment overrides.",
+        "testCoverage": "Admin typecheck passes for the new route; route tests, mutation-dialog tests, SQL execution, and browser screenshots remain required.",
+        "releaseEvidence": "Partial code-owned evidence is linked through release/qa/games-livescore-fullstack-evidence.json.",
+        "owner": "admin",
+        "nextAction": "Capture admin Game Ops browser evidence, add focused route/mutation tests, deploy the Edge function, and run linked SQL/RLS contracts."
+      }
+    },
+    {
+      "id": "tv_games_pwa_display",
+      "surface": "tv_games_pwa",
+      "category": "frontend",
+      "priority": "P0",
+      "status": "planned",
+      "requirement": "TV PWA displays venue-safe game lobby, live questions, leaderboards, join instructions, screen pairing, venue branding, localization, and realtime updates without leaking cross-venue data.",
+      "sources": [
+        "apps/tv-display/"
+      ],
+      "evidence": {
+        "frontend": "TV display app exists, but current proof does not cover all game states and localization requirements.",
+        "backend": "Game sessions and realtime reads must be venue/screen scoped.",
+        "databasePolicy": "TV display must only read screen-safe venue scoped data through public-safe views/RPCs.",
+        "testCoverage": "TV route, pairing, live game, leaderboard, and cross-venue isolation tests are required.",
+        "releaseEvidence": "No complete TV games PWA release evidence is linked.",
+        "owner": "tv",
+        "nextAction": "Create TV PWA route/state inventory and add tests for pairing, question display, leaderboard, and data isolation."
+      }
+    },
+    {
+      "id": "malta_rwanda_market_architecture",
+      "surface": "all",
+      "category": "localization",
+      "priority": "P0",
+      "status": "planned",
+      "requirement": "Platform architecture is explicitly two-market first: Malta and Rwanda only, with locale, currency, country, phone, timezone, payment-handoff, legal-copy, and venue discovery behavior structured by market.",
+      "sources": [
+        "lib/config/",
+        "supabase/migrations/",
+        "apps/admin/src",
+        "apps/venue-portal/src",
+        "apps/tv-display/src",
+        "apps/website/src"
+      ],
+      "evidence": {
+        "frontend": "Flutter and web surfaces need explicit MT/RW locale and market switch proof.",
+        "backend": "Backend must enforce supported countries in config, venue onboarding, search, games, payments, notifications, and admin operations.",
+        "databasePolicy": "Country/market tables, constraints, RLS, and seed/config proof must be linked.",
+        "testCoverage": "Market-specific unit and integration tests required for EUR/RWF, MT/RW phones, timezone, and payment copy.",
+        "releaseEvidence": "No current full two-country architecture evidence is linked.",
+        "owner": "platform",
+        "nextAction": "Add a market architecture spec and tests proving unsupported countries are gated."
+      }
+    },
+    {
+      "id": "permissions_location_notifications",
+      "surface": "flutter_customer_app",
+      "category": "permissions",
+      "priority": "P0",
+      "status": "planned",
+      "requirement": "All needed app permissions are implemented with native-quality request flows, settings recovery, localized rationale, denied states, and backend/device-token lifecycle for location and notifications.",
+      "sources": [
+        "lib/features/ordering/screens/location_access_screen.dart",
+        "lib/features/profile/screens/notifications_screen.dart",
+        "supabase/functions/push-notify/"
+      ],
+      "evidence": {
+        "frontend": "Location access route exists; notification and settings flows need complete native permission proof.",
+        "backend": "Device token storage, push dispatch, and opt-out handling need current proof.",
+        "databasePolicy": "Device token and notification preference RLS must be verified for user scoping.",
+        "testCoverage": "Permission denied/permanently denied/enabled/revoked tests and device proof are required.",
+        "releaseEvidence": "No complete current permission evidence bundle is linked.",
+        "owner": "mobile",
+        "nextAction": "Implement and test permission state machines for location and notifications across Android/iOS."
+      }
+    },
+    {
+      "id": "client_to_bar_chat",
+      "surface": "flutter_customer_app,venue_bar_pwa",
+      "category": "realtime",
+      "priority": "P0",
+      "status": "partial",
+      "requirement": "In-app chat connects customer Flutter app to the assigned venue/bar PWA with venue-scoped threads, staff assignment, moderation, attachments policy, notifications, read state, audit, and RLS.",
+      "sources": [
+        "lib/features/ordering/screens/venue_chat_screen.dart",
+        "lib/features/ordering/data/venue_chat_gateway.dart",
+        "apps/venue-portal/src/features/chat/VenueChatPage.tsx",
+        "apps/venue-portal/src/services/venueChatOperations.ts",
+        "supabase/migrations/20260621133000_venue_chat_threads.sql",
+        "supabase/tests/venue_chat_contract.sql"
+      ],
+      "evidence": {
+        "frontend": "Flutter venue chat screen and venue PWA chat inbox are implemented with send/reply/resolve flows.",
+        "backend": "Audited RPCs create threads, send messages, and close threads; direct client writes are not granted.",
+        "databasePolicy": "Migration adds venue_chat_threads and venue_chat_messages with customer, venue-operator, and admin RLS read scope.",
+        "testCoverage": "Flutter model tests, venue PWA typecheck/lint, and SQL contract file exist; linked Supabase execution is blocked by database credentials/connectivity.",
+        "releaseEvidence": "Partial code-owned evidence only; realtime/device/browser screenshots, SQL execution, notifications, moderation workflow, attachments policy, and abuse testing remain required.",
+        "owner": "platform",
+        "nextAction": "Run linked Supabase SQL contract, add notification/read-state/moderation evidence, and capture mobile/venue PWA chat screenshots."
+      }
+    },
+    {
+      "id": "weekly_ai_game_generation",
+      "surface": "backend,admin_panels",
+      "category": "games",
+      "priority": "P0",
+      "status": "planned",
+      "requirement": "AI content pipeline generates 100 game packs per week with 20 questions each, validates structured output, stores versioned packs, supports admin review/approval, and never publishes unsafe or unreviewed content.",
+      "sources": [
+        "supabase/functions/_shared/gemini.ts",
+        "supabase/functions/fan-trivia/",
+        "supabase/functions/music-bingo/",
+        "supabase/functions/song-guess/",
+        "apps/admin/",
+        "apps/admin/src/features/game-ops/GameOpsPage.tsx",
+        "supabase/functions/generate-weekly-game-packs/",
+        "supabase/migrations/20260621170000_weekly_game_content_governance.sql"
+      ],
+      "evidence": {
+        "frontend": "Admin Game Ops page now exposes run queueing, pack review/approval, and assignment controls.",
+        "backend": "generate-weekly-game-packs Edge function now batches Gemini generation, validates exactly 20 questions per pack, blocks betting/wagering/cash-out language, and writes generated content as pending review only.",
+        "databasePolicy": "20260621170000_weekly_game_content_governance.sql adds generation runs, game content packs, venue assignments, admin RLS, venue-scoped assignment reads, and audited admin RPCs.",
+        "testCoverage": "Admin typecheck and Deno check for generate-weekly-game-packs pass; linked migration application, live generation dry-run/apply, and SQL/RLS contract execution remain required.",
+        "releaseEvidence": "release/qa/games-livescore-fullstack-evidence.json now records the Game Ops implementation, but the function is not yet deployed and no live 100-pack generation evidence is captured.",
+        "owner": "games",
+        "nextAction": "Apply the migration, deploy generate-weekly-game-packs, run a credentialed dry-run/apply with Gemini credentials, execute SQL/RLS contracts, and capture admin review screenshots."
+      }
+    },
+    {
+      "id": "bar_random_game_assignment",
+      "surface": "backend,venue_bar_pwa,tv_games_pwa",
+      "category": "games",
+      "priority": "P0",
+      "status": "partial",
+      "requirement": "Each bar receives random approved weekly game selections with market/venue constraints, deterministic auditability, override controls, scheduling windows, and TV/client visibility.",
+      "sources": [
+        "supabase/migrations/",
+        "supabase/migrations/20260621170000_weekly_game_content_governance.sql",
+        "apps/admin/src/features/game-ops/GameOpsPage.tsx",
+        "apps/venue-portal/",
+        "apps/tv-display/",
+        "lib/features/games/"
+      ],
+      "evidence": {
+        "frontend": "Admin Game Ops page now exposes weekly assignment controls and assignment status actions; venue and TV visibility still need dedicated UI proof.",
+        "backend": "admin_assign_weekly_game_packs now selects approved packs per active MT/RW venue using deterministic seed-based random ordering and records replacement/override audit events.",
+        "databasePolicy": "venue_game_assignments has admin write policies, venue-scoped read policies, rank/pack uniqueness, and approved-pack read scoping.",
+        "testCoverage": "Admin typecheck passes; SQL contract, linked Supabase execution, venue PWA display, TV display, and cross-venue isolation evidence remain required.",
+        "releaseEvidence": "Code-owned assignment implementation exists, but no live assignment run or browser evidence is captured.",
+        "owner": "games",
+        "nextAction": "Run linked SQL tests, deploy/apply the migration, execute assignment with approved packs, and add venue/TV assigned-game visibility proof."
+      }
+    },
+    {
+      "id": "three_core_games_complete",
+      "surface": "flutter_customer_app,venue_bar_pwa,tv_games_pwa,backend",
+      "category": "games",
+      "priority": "P0",
+      "status": "partial",
+      "requirement": "The three core games are fully implemented end-to-end: customer play, venue control, TV display, scoring, anti-abuse, rewards, realtime, admin moderation, and audit.",
+      "sources": [
+        "lib/features/games/",
+        "apps/venue-portal/",
+        "apps/tv-display/",
+        "supabase/functions/fan-trivia/",
+        "supabase/functions/music-bingo/",
+        "supabase/functions/song-guess/"
+      ],
+      "evidence": {
+        "frontend": "Game surfaces and Edge functions exist, but complete end-to-end proof for all three games is not linked.",
+        "backend": "Existing game functions need contract review against final game rules and weekly pack requirements.",
+        "databasePolicy": "Game sessions, teams, answers, scoring, rewards, and TV reads need RLS proof.",
+        "testCoverage": "Unit, Edge, SQL/RLS, venue control, TV display, and Flutter gameplay tests are required.",
+        "releaseEvidence": "Games/LiveScore evidence exists but does not prove the expanded 100 games/week requirement.",
+        "owner": "games",
+        "nextAction": "Inventory each core game flow and add missing end-to-end tests and admin/venue/TV controls."
+      }
+    },
+    {
+      "id": "database_policy_quality",
+      "surface": "backend,database",
+      "category": "security",
+      "priority": "P0",
+      "status": "partial",
+      "requirement": "Every client-exposed table/view/RPC/Edge mutation has RLS, grants, role checks, audit events, abuse limits, and SQL/Edge verification for customer, venue staff, admin, and TV contexts.",
+      "sources": [
+        "supabase/migrations/",
+        "supabase/tests/",
+        "supabase/functions/",
+        "tool/supabase_rls_audit.sh"
+      ],
+      "notApplicableEvidenceKeys": [
+        "frontend"
+      ],
+      "evidence": {
+        "frontend": "N/A for frontend; all clients depend on this boundary.",
+        "backend": "Audited RPC/Edge patterns exist for orders, chat, games, and weekly game governance.",
+        "databasePolicy": "Chat and weekly game governance migrations add RLS, admin/venue/customer scopes, server-side RPC mutations, and audit logging; linked dry-run still must pass after provider access is restored.",
+        "testCoverage": "venue_chat_contract.sql exists; game-governance SQL/RLS contract and linked execution are still required.",
+        "releaseEvidence": "Local Supabase dry-run currently blocked by database credential/connectivity; current repo evidence validators pass where they do not require the missing DB password.",
+        "owner": "backend",
+        "nextAction": "Add and execute SQL tests for game generation/assignment policies, then rerun linked Supabase validation with SUPABASE_DB_PASSWORD or a valid DB URL."
+      }
+    },
+    {
+      "id": "release_quality_evidence",
+      "surface": "all",
+      "category": "release",
+      "priority": "P0",
+      "status": "blocked",
+      "requirement": "All Flutter, web, Supabase, security, Android, iOS, operations, privacy/legal, and world-class evidence gates pass with source-commit-bound artifacts.",
+      "sources": [
+        "tool/check_world_class_evidence.sh",
+        "tool/go_live_readiness.sh",
+        "docs/release/world-class-evidence-matrix.md"
+      ],
+      "evidence": {
+        "frontend": "Flutter focused tests/analyzer/product-boundary pass; full web workspace validation still required for this expanded scope.",
+        "backend": "Some validators pass; live Supabase dry-run is blocked by missing SUPABASE_DB_PASSWORD/connectivity.",
+        "databasePolicy": "Policy quality is not fully proven until Supabase migrations/tests pass against linked database.",
+        "testCoverage": "World-class evidence gate currently fails on release evidence/signoff/artifact blockers.",
+        "releaseEvidence": "Current blockers include credential rotation, Android release evidence, iOS TestFlight evidence, operations readiness, privacy/legal signoff, and strict Flutter UX matrix.",
+        "owner": "release",
+        "nextAction": "Close external signoffs/artifact freshness and rerun tool/check_world_class_evidence.sh until green."
+      }
+    }
+  ]
+}

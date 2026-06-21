@@ -10,6 +10,7 @@ import {
   Gamepad2,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   MonitorPlay,
   Plus,
   Settings,
@@ -30,6 +31,7 @@ import { useVenueAuth } from '../../hooks/useVenueAuth';
 const navItems = [
   { label: 'Overview', path: '/overview', icon: <LayoutDashboard size={20} /> },
   { label: 'Orders', path: '/orders', icon: <ClipboardList size={20} /> },
+  { label: 'Chat', path: '/chat', icon: <MessageCircle size={20} /> },
   { label: 'Menu', path: '/menu', icon: <Utensils size={20} /> },
   { label: 'Pools', path: '/pools', icon: <Trophy size={20} /> },
   { label: 'Games', path: '/games', icon: <Gamepad2 size={20} /> },

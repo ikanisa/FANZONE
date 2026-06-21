@@ -54,10 +54,28 @@ const expectedJobs = new Map([
       ],
     },
   ],
+  [
+    "generate-weekly-game-packs",
+    {
+      command: "tool/run_supabase_cron_job.sh generate-weekly-game-packs",
+      edgeFunction: "generate-weekly-game-packs",
+      targetPath: "/functions/v1/generate-weekly-game-packs",
+      scheduleExpression: "weekly Monday 03:17 UTC",
+      cronExpression: "17 3 * * 1",
+      maxLagMinutes: 10080,
+      payloadFragments: [
+        '"marketCodes":["MT","RW"]',
+        '"targetPackCount":100',
+        '"questionsPerPack":20',
+        '"batchSize":5',
+      ],
+    },
+  ],
 ]);
 
 const requiredRefs = [
   "supabase/migrations/20260606170000_scheduler_run_history_and_missed_run_alerts.sql",
+  "supabase/migrations/20260621172000_weekly_game_pack_scheduler_expectation.sql",
   "tool/run_supabase_cron_job.sh",
   "tool/scheduler_payload_smoke.sh",
   "release/operations/scheduler-post-deploy-audit-smoke-evidence.json",
@@ -177,9 +195,10 @@ for (const ref of requiredRefs) {
   }
 }
 
-const migration = readText(
-  "supabase/migrations/20260606170000_scheduler_run_history_and_missed_run_alerts.sql",
-);
+const migration =
+  readText("supabase/migrations/20260606170000_scheduler_run_history_and_missed_run_alerts.sql") +
+  "\n" +
+  readText("supabase/migrations/20260621172000_weekly_game_pack_scheduler_expectation.sql");
 const runner = readText("tool/run_supabase_cron_job.sh");
 const docs = readText("docs/operations/scheduler-observability.md");
 for (const [id, expected] of expectedJobs) {

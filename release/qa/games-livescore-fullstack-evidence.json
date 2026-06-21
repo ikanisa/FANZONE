@@ -1,5 +1,5 @@
 {
-  "generatedAtUtc": "2026-06-06T04:09:15Z",
+  "generatedAtUtc": "2026-06-21T16:38:07Z",
   "projectRef": "kjuhheobmdvjwgnzlcwx",
   "scope": "Flutter games repository, deployed game Edge Functions, and LiveScore football sync path",
   "deployedFunctions": [
@@ -51,7 +51,7 @@
     "outputPath": "/tmp/fanzone_livescore_smoke.json"
   },
   "codeFix": {
-    "summary": "The Python LiveScore synchronizer stores starts_at as UTC while preserving provider local_date/local_time for the configured resource timezone. The Supabase Edge synchronizer now preserves the same provider-local date/time fields instead of deriving them from UTC. The Flutter games repository uses the mapped game Edge Function for live Fan Trivia and Song Guess current-question reads when an authenticated session token is available, with direct RPC preserved for legacy or unauthenticated fallback paths. The standard cron runner now exposes sync-livescore-football so operator schedulers can invoke the deployed sync function without putting provider or service-role secrets in Flutter. Deployment and operator evidence now include deploy commands and release smoke coverage for fan-trivia, song-guess, and music-bingo.",
+    "summary": "The Python LiveScore synchronizer stores starts_at as UTC while preserving provider local_date/local_time for the configured resource timezone. The Supabase Edge synchronizer now preserves the same provider-local date/time fields instead of deriving them from UTC. The Flutter games repository uses the mapped game Edge Function for live Fan Trivia and Song Guess current-question reads when an authenticated session token is available, with direct RPC preserved for legacy or unauthenticated fallback paths. The standard cron runner now exposes sync-livescore-football so operator schedulers can invoke the deployed sync function without putting provider or service-role secrets in Flutter. Weekly Game Ops now adds review-gated AI pack generation for 100 packs per week with 20 questions each, admin approval controls, and deterministic random venue assignment for Malta and Rwanda. Deployment and operator evidence now include deploy commands and release smoke coverage for fan-trivia, song-guess, music-bingo, and generate-weekly-game-packs.",
     "files": [
       "lib/features/games/data/games_repository.dart",
       "test/features/games/games_repository_test.dart",
@@ -59,6 +59,11 @@
       "tool/livescore_ingest_test.py",
       "supabase/functions/sync-livescore-football/livescore.ts",
       "supabase/functions/sync-livescore-football/livescore_test.ts",
+      "supabase/functions/generate-weekly-game-packs/index.ts",
+      "supabase/migrations/20260621170000_weekly_game_content_governance.sql",
+      "supabase/tests/game_content_governance_contract.sql",
+      "apps/admin/src/features/game-ops/GameOpsPage.tsx",
+      "apps/admin/src/features/game-ops/useGameOps.ts",
       "tool/run_supabase_cron_job.sh",
       ".github/workflows/cron-livescore-football.yml",
       "tool/validate_operations_readiness_evidence.mjs",
@@ -107,6 +112,14 @@
     },
     {
       "command": "deno check supabase/functions/fan-trivia/index.ts supabase/functions/song-guess/index.ts supabase/functions/music-bingo/index.ts supabase/functions/_shared/game_edge.ts",
+      "status": "PASS"
+    },
+    {
+      "command": "deno check supabase/functions/generate-weekly-game-packs/index.ts",
+      "status": "PASS"
+    },
+    {
+      "command": "npm run typecheck --workspace apps/admin",
       "status": "PASS"
     },
     {

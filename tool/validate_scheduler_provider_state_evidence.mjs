@@ -36,6 +36,14 @@ const expectedJobs = new Map([
       expectedCron: "7 * * * *",
     },
   ],
+  [
+    "generate-weekly-game-packs",
+    {
+      workflowName: "Weekly Game Pack Generation Cron",
+      workflowPath: ".github/workflows/cron-generate-weekly-game-packs.yml",
+      expectedCron: "17 3 * * 1",
+    },
+  ],
 ]);
 
 const allowedProviderStates = new Set([

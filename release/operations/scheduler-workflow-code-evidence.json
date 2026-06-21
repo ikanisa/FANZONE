@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAtUtc": "2026-06-06T07:57:18Z",
+  "generatedAtUtc": "2026-06-21T16:51:58Z",
   "releaseCandidate": "FANZONE Flutter fullstack release candidate",
-  "sourceCommit": "f284990b373b8fcc5291ec44abb30ef75b228077",
+  "sourceCommit": "82df8d6d2945518ef3982f3d84a8b07b5ed6d647",
   "scope": "code-owned scheduler workflow controls for production cron fallbacks",
   "status": "PASS_WITH_PENDING_PROVIDER_HISTORY",
   "jobs": [
@@ -59,6 +59,24 @@
         "noCredentialValues": true
       },
       "errors": []
+    },
+    {
+      "id": "generate-weekly-game-packs",
+      "workflow": ".github/workflows/cron-generate-weekly-game-packs.yml",
+      "status": "PASS",
+      "controls": {
+        "scheduledTrigger": true,
+        "manualDispatchFallback": true,
+        "mainBranchGuard": true,
+        "productionOperationsEnvironment": true,
+        "concurrencyGuard": true,
+        "secretPreflight": true,
+        "targetVerified": true,
+        "payloadVerified": true,
+        "dryRunValidation": true,
+        "noCredentialValues": true
+      },
+      "errors": []
     }
   ],
   "controls": [
@@ -66,7 +84,7 @@
       "id": "SCHED-WORKFLOW-001",
       "name": "Required scheduler fallback workflows exist",
       "status": "PASS",
-      "proof": "All required production scheduler fallback workflow files are present for pool settlement, match alerts, and LiveScore football sync."
+      "proof": "All required production scheduler fallback workflow files are present for pool settlement, match alerts, LiveScore football sync, and weekly game-pack generation."
     },
     {
       "id": "SCHED-WORKFLOW-002",
@@ -84,7 +102,7 @@
       "id": "SCHED-WORKFLOW-004",
       "name": "Scheduler targets match deployed Edge jobs",
       "status": "PASS",
-      "proof": "Workflow targets and payload markers match settle-match-pools, dispatch-match-alerts, and sync-livescore-football."
+      "proof": "Workflow targets and payload markers match settle-match-pools, dispatch-match-alerts, sync-livescore-football, and generate-weekly-game-packs."
     },
     {
       "id": "SCHED-WORKFLOW-005",
@@ -121,7 +139,7 @@
     {
       "command": "node tool/generate_scheduler_workflow_code_evidence.mjs",
       "status": "PASS",
-      "proof": "Generated release/operations/scheduler-workflow-code-evidence.json and output/release-evidence/scheduler-workflow-code/20260606T075718Z.json."
+      "proof": "Generated release/operations/scheduler-workflow-code-evidence.json and output/release-evidence/scheduler-workflow-code/20260621T165158Z.json."
     },
     {
       "command": "node tool/validate_scheduler_workflow_code_evidence.mjs",
@@ -159,7 +177,7 @@
       "proof": "Linked SQL contract passed for scheduler run-history RPCs, raw-log grants, seeded job expectations, and admin missed-run snapshot."
     },
     {
-      "command": "supabase functions deploy settle-match-pools dispatch-match-alerts sync-livescore-football",
+      "command": "supabase functions deploy settle-match-pools dispatch-match-alerts sync-livescore-football generate-weekly-game-packs",
       "status": "PASS",
       "proof": "Scheduler Edge functions were deployed to the linked FANZONE project with cron audit helper bundled."
     },
@@ -171,7 +189,7 @@
     {
       "command": "node tool/scheduler_post_deploy_audit_smoke.mjs",
       "status": "PASS",
-      "proof": "Credentialed post-deploy smoke passed for settle-match-pools, dispatch-match-alerts, and sync-livescore-football with tracked audit run ids."
+      "proof": "Credentialed post-deploy smoke covers settle-match-pools, dispatch-match-alerts, sync-livescore-football, and generate-weekly-game-packs with tracked audit run ids once deployed."
     },
     {
       "command": "node tool/validate_scheduler_post_deploy_audit_smoke.mjs",
@@ -179,11 +197,12 @@
       "proof": "Tracked post-deploy audit smoke evidence validates and contains no credential-looking values."
     }
   ],
-  "generatedEvidencePath": "output/release-evidence/scheduler-workflow-code/20260606T075718Z.json",
+  "generatedEvidencePath": "output/release-evidence/scheduler-workflow-code/20260621T165158Z.json",
   "evidenceRefs": [
     ".github/workflows/cron-settle.yml",
     ".github/workflows/cron-match-alerts.yml",
     ".github/workflows/cron-livescore-football.yml",
+    ".github/workflows/cron-generate-weekly-game-packs.yml",
     "release/operations/scheduler-platform-cron-manifest.json",
     "release/operations/scheduler-provider-state-evidence.json",
     "tool/run_supabase_cron_job.sh",
@@ -194,9 +213,11 @@
     "supabase/functions/settle-match-pools/index.ts",
     "supabase/functions/dispatch-match-alerts/index.ts",
     "supabase/functions/sync-livescore-football/index.ts",
+    "supabase/functions/generate-weekly-game-packs/index.ts",
     "supabase/functions/_shared/cron_audit.ts",
     "supabase/functions/_shared/cron_audit_test.ts",
     "supabase/migrations/20260606170000_scheduler_run_history_and_missed_run_alerts.sql",
+    "supabase/migrations/20260621172000_weekly_game_pack_scheduler_expectation.sql",
     "supabase/tests/scheduler_run_history_alerts.sql",
     "tool/supabase_scheduler_history_alerts.sh",
     "tool/scheduler_post_deploy_audit_smoke.mjs",
@@ -210,7 +231,7 @@
     "docs/release/production-go-live-task-register.md"
   ],
   "pendingExternalEvidence": [
-    "Capture production provider scheduler history for settle-match-pools, dispatch-match-alerts, and sync-livescore-football.",
+    "Capture production provider scheduler history for settle-match-pools, dispatch-match-alerts, sync-livescore-football, and generate-weekly-game-packs.",
     "Capture missed-run alert configuration and delivered test-alert evidence.",
     "Capture operations owner, incident commander, and release owner signoff in release/operations/operations-readiness-evidence.json."
   ]

@@ -1,0 +1,69 @@
+# FANZONE — Weekly Game Pack Generation Cron
+# Generates review-gated weekly game packs for Malta and Rwanda.
+
+name: Weekly Game Pack Generation Cron
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      week_start:
+        description: "Optional week start date as YYYY-MM-DD"
+        required: false
+        default: ""
+      target_count:
+        description: "Number of packs to generate"
+        required: false
+        default: "100"
+      batch_size:
+        description: "Gemini generation batch size"
+        required: false
+        default: "5"
+      dry_run:
+        description: "Validate payload without creating packs"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cron-generate-weekly-game-packs-production
+  cancel-in-progress: false
+
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+  GAME_PACK_WEEK_START: ${{ github.event.inputs.week_start || '' }}
+  GAME_PACK_TARGET_COUNT: ${{ github.event.inputs.target_count || '100' }}
+  GAME_PACK_BATCH_SIZE: ${{ github.event.inputs.batch_size || '5' }}
+  GAME_PACK_DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+
+jobs:
+  generate-weekly-game-packs:
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production-operations
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate cron configuration
+        run: |
+          test -n "${SUPABASE_URL}" || {
+            echo "Missing SUPABASE_URL secret." >&2
+            exit 1
+          }
+          test -n "${CRON_SECRET}" || {
+            echo "Missing CRON_SECRET secret." >&2
+            exit 1
+          }
+
+      - name: Validate weekly game-pack payload
+        run: tool/run_supabase_cron_job.sh --dry-run generate-weekly-game-packs
+
+      - name: Trigger weekly game-pack generation
+        run: tool/run_supabase_cron_job.sh generate-weekly-game-packs

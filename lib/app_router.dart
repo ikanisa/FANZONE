@@ -22,6 +22,7 @@ import 'features/ordering/screens/order_receipt_screen.dart';
 import 'features/ordering/screens/order_success_screen.dart';
 import 'features/ordering/screens/order_tracking_screen.dart';
 import 'features/ordering/screens/orders_screen.dart';
+import 'features/ordering/screens/venue_chat_screen.dart';
 import 'features/ordering/screens/venue_detail_screen.dart';
 import 'features/ordering/screens/venue_menu_screen.dart';
 import 'features/ordering/widgets/venue_entry_wrapper.dart';
@@ -181,6 +182,17 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) => _fadeSlideTransition(
         state,
         VenueDetailScreen(venueId: state.pathParameters['venueId']!),
+      ),
+    ),
+    GoRoute(
+      name: 'venue_chat',
+      path: '/venue/:venueId/chat',
+      pageBuilder: (context, state) => _fadeSlideTransition(
+        state,
+        VenueChatScreen(
+          venueId: state.pathParameters['venueId']!,
+          orderId: state.uri.queryParameters['order'],
+        ),
       ),
     ),
     GoRoute(

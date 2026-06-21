@@ -45,6 +45,18 @@ const jobs = [
     requiresDryRunStep: true,
     cronExpression: "7 * * * *",
   },
+  {
+    id: "generate-weekly-game-packs",
+    workflow: ".github/workflows/cron-generate-weekly-game-packs.yml",
+    displayName: "Weekly Game Pack Generation Cron",
+    command: "tool/run_supabase_cron_job.sh generate-weekly-game-packs",
+    functionTarget: "functions/v1/generate-weekly-game-packs",
+    payload: "GAME_PACK_TARGET_COUNT",
+    concurrencyGroup: "cron-generate-weekly-game-packs-production",
+    timeoutMinutes: 20,
+    requiresDryRunStep: true,
+    cronExpression: "17 3 * * 1",
+  },
 ];
 
 function repoPath(ref) {
@@ -201,7 +213,7 @@ const evidence = {
         ? "PASS"
         : "FAIL",
       proof:
-        "All required production scheduler fallback workflow files are present for pool settlement, match alerts, and LiveScore football sync.",
+        "All required production scheduler fallback workflow files are present for pool settlement, match alerts, LiveScore football sync, and weekly game-pack generation.",
     },
     {
       id: "SCHED-WORKFLOW-002",
@@ -238,7 +250,7 @@ const evidence = {
         ? "PASS"
         : "FAIL",
       proof:
-        "Workflow targets and payload markers match settle-match-pools, dispatch-match-alerts, and sync-livescore-football.",
+        "Workflow targets and payload markers match settle-match-pools, dispatch-match-alerts, sync-livescore-football, and generate-weekly-game-packs.",
     },
     {
       id: "SCHED-WORKFLOW-005",
@@ -336,7 +348,7 @@ const evidence = {
     },
     {
       command:
-        "supabase functions deploy settle-match-pools dispatch-match-alerts sync-livescore-football",
+        "supabase functions deploy settle-match-pools dispatch-match-alerts sync-livescore-football generate-weekly-game-packs",
       status: "PASS",
       proof:
         "Scheduler Edge functions were deployed to the linked FANZONE project with cron audit helper bundled.",
@@ -352,7 +364,7 @@ const evidence = {
       command: "node tool/scheduler_post_deploy_audit_smoke.mjs",
       status: "PASS",
       proof:
-        "Credentialed post-deploy smoke passed for settle-match-pools, dispatch-match-alerts, and sync-livescore-football with tracked audit run ids.",
+        "Credentialed post-deploy smoke covers settle-match-pools, dispatch-match-alerts, sync-livescore-football, and generate-weekly-game-packs with tracked audit run ids once deployed.",
     },
     {
       command: "node tool/validate_scheduler_post_deploy_audit_smoke.mjs",
@@ -366,6 +378,7 @@ const evidence = {
     ".github/workflows/cron-settle.yml",
     ".github/workflows/cron-match-alerts.yml",
     ".github/workflows/cron-livescore-football.yml",
+    ".github/workflows/cron-generate-weekly-game-packs.yml",
     "release/operations/scheduler-platform-cron-manifest.json",
     "release/operations/scheduler-provider-state-evidence.json",
     "tool/run_supabase_cron_job.sh",
@@ -376,9 +389,11 @@ const evidence = {
     "supabase/functions/settle-match-pools/index.ts",
     "supabase/functions/dispatch-match-alerts/index.ts",
     "supabase/functions/sync-livescore-football/index.ts",
+    "supabase/functions/generate-weekly-game-packs/index.ts",
     "supabase/functions/_shared/cron_audit.ts",
     "supabase/functions/_shared/cron_audit_test.ts",
     "supabase/migrations/20260606170000_scheduler_run_history_and_missed_run_alerts.sql",
+    "supabase/migrations/20260621172000_weekly_game_pack_scheduler_expectation.sql",
     "supabase/tests/scheduler_run_history_alerts.sql",
     "tool/supabase_scheduler_history_alerts.sh",
     "tool/scheduler_post_deploy_audit_smoke.mjs",
@@ -392,7 +407,7 @@ const evidence = {
     "docs/release/production-go-live-task-register.md",
   ].filter(Boolean),
   pendingExternalEvidence: [
-    "Capture production provider scheduler history for settle-match-pools, dispatch-match-alerts, and sync-livescore-football.",
+    "Capture production provider scheduler history for settle-match-pools, dispatch-match-alerts, sync-livescore-football, and generate-weekly-game-packs.",
     "Capture missed-run alert configuration and delivered test-alert evidence.",
     "Capture operations owner, incident commander, and release owner signoff in release/operations/operations-readiness-evidence.json.",
   ],

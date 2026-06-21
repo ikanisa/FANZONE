@@ -8,6 +8,7 @@ export const ROUTES = {
   TEAMS: '/teams',
   CURATED_MATCHES: '/matches',
   POOLS: '/pools',
+  GAME_OPS: '/games',
   FET_WALLETS: '/wallets',
   SETTLEMENTS: '/settlements',
   REWARD_RULES: '/rewards',

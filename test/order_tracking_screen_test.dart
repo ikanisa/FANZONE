@@ -123,6 +123,35 @@ void main() {
       expect(find.text('Request refund review'), findsOneWidget);
     },
   );
+
+  testWidgets('order tracking lets customers recover failed payment proof', (
+    tester,
+  ) async {
+    final order = _orderWithStatus(
+      OrderStatus.preparing,
+      paymentStatus: PaymentStatus.failed,
+    );
+
+    await pumpAppScreen(
+      tester,
+      const OrderTrackingScreen(orderId: 'order_1'),
+      overrides: [
+        orderRealtimeProvider(
+          'order_1',
+        ).overrideWith((ref) => Stream.value(order)),
+      ],
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Failed'), findsOneWidget);
+    expect(
+      find.text(
+        'Payment was not verified. Send updated proof or ask venue staff.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Send updated proof'), findsOneWidget);
+  });
 }
 
 class _RingBellCall {
@@ -177,7 +206,10 @@ class _FakeBellGateway implements BellGateway {
   }
 }
 
-OrderModel _orderWithStatus(OrderStatus status) {
+OrderModel _orderWithStatus(
+  OrderStatus status, {
+  PaymentStatus paymentStatus = PaymentStatus.paymentSubmitted,
+}) {
   return OrderModel.fromJson({
     'id': 'order_1',
     'venue_id': 'venue_1',
@@ -186,7 +218,9 @@ OrderModel _orderWithStatus(OrderStatus status) {
     'order_code': 'FZ-1001',
     'status': status.name,
     'payment_method': 'momo',
-    'payment_status': 'payment_submitted',
+    'payment_status': paymentStatus == PaymentStatus.paymentSubmitted
+        ? 'payment_submitted'
+        : paymentStatus.name,
     'currency_code': 'EUR',
     'subtotal_amount': 10,
     'tax_amount': 0,

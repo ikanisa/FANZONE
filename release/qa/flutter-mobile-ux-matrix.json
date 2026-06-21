@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAtUtc": "2026-06-08T00:00:00Z",
+  "generatedAtUtc": "2026-06-21T15:23:38Z",
   "scope": "FANZONE Flutter customer mobile route, wizard, sheet, and dialog UX completion matrix",
   "statusLegend": {
     "pass": "All required adaptive, accessibility, state, boundary, and evidence proofs are current.",
@@ -241,6 +241,30 @@
       }
     },
     {
+      "id": "route_venue_chat",
+      "type": "route",
+      "path": "/venue/:venueId/chat",
+      "name": "Venue chat",
+      "source": "lib/features/ordering/screens/venue_chat_screen.dart",
+      "owner": "mobile",
+      "priority": "P0",
+      "status": "partial",
+      "proof": {
+        "compact": "pending route-specific screenshot proof",
+        "medium": "pending route-specific screenshot proof",
+        "expanded": "pending route-specific screenshot proof",
+        "largeText": "pending 200 percent text-scale proof",
+        "screenReader": "pending semantics proof",
+        "contrast": "pending contrast proof",
+        "keyboardSafeArea": "pending composer keyboard proof",
+        "reducedMotion": "pending reduced-motion proof",
+        "errorEmptyLoading": "loading/unauthenticated/empty states implemented; screenshot proof pending",
+        "productBoundary": "venue-scoped support chat only; no betting, wallet, odds, or payment execution behavior",
+        "testEvidence": "test/venue_chat_model_test.dart",
+        "evidencePath": "pending current mobile UX evidence"
+      }
+    },
+    {
       "id": "route_venues",
       "type": "route",
       "path": "/venues",
@@ -344,7 +368,7 @@
       "source": "lib/features/ordering/screens/checkout_screen.dart",
       "owner": "mobile",
       "priority": "P0",
-      "status": "planned",
+      "status": "partial",
       "proof": {
         "compact": "pending",
         "medium": "pending",
@@ -352,11 +376,11 @@
         "largeText": "pending order summary proof",
         "screenReader": "pending focus order proof",
         "contrast": "pending",
-        "keyboardSafeArea": "pending table/payment proof inputs",
+        "keyboardSafeArea": "table number, special instructions, and FET input are editable fields; large keyboard screenshot proof pending",
         "reducedMotion": "pending",
         "errorEmptyLoading": "pending cart empty/error proof",
-        "productBoundary": "pending off-platform payment proof",
-        "testEvidence": "pending",
+        "productBoundary": "test/checkout_payment_handoff_test.dart covers off-platform payment methods and manual table normalization; checkout preflights venue table matching and keeps staff manual verification fallback",
+        "testEvidence": "test/checkout_payment_handoff_test.dart",
         "evidencePath": "pending"
       }
     },
@@ -416,7 +440,7 @@
       "source": "lib/features/ordering/screens/order_tracking_screen.dart",
       "owner": "mobile",
       "priority": "P0",
-      "status": "planned",
+      "status": "partial",
       "proof": {
         "compact": "pending",
         "medium": "pending",
@@ -426,9 +450,9 @@
         "contrast": "pending",
         "keyboardSafeArea": "pending",
         "reducedMotion": "pending live status proof",
-        "errorEmptyLoading": "pending tracking unavailable proof",
-        "productBoundary": "pending order-support boundary proof",
-        "testEvidence": "pending",
+        "errorEmptyLoading": "pending tracking unavailable proof; failed payment recovery state covered in widget test",
+        "productBoundary": "test/order_tracking_screen_test.dart covers order support requests and failed off-platform payment proof recovery without mutating order or payment status client-side",
+        "testEvidence": "test/order_tracking_screen_test.dart",
         "evidencePath": "pending"
       }
     },
@@ -913,6 +937,54 @@
       }
     },
     {
+      "id": "overlay_account_data_request_sheet",
+      "type": "overlay",
+      "path": "sheet:account-data-request",
+      "name": "Account data request sheet",
+      "source": "lib/features/settings/screens/privacy_settings_screen.dart",
+      "owner": "mobile",
+      "priority": "P0",
+      "status": "partial",
+      "proof": {
+        "compact": "pending sheet screenshot proof",
+        "medium": "pending sheet screenshot proof",
+        "expanded": "pending sheet screenshot proof",
+        "largeText": "pending scroll-safe proof",
+        "screenReader": "pending form semantics proof",
+        "contrast": "pending",
+        "keyboardSafeArea": "account data form uses bottom inset padding; visual keyboard proof pending",
+        "reducedMotion": "pending",
+        "errorEmptyLoading": "pending submit/cancel failure proof",
+        "productBoundary": "test/screen_widgets_test.dart covers privacy data/account entry point; request uses AccountDataRequestService and does not expose raw account data immediately",
+        "testEvidence": "test/screen_widgets_test.dart",
+        "evidencePath": "pending current screenshot/device evidence"
+      }
+    },
+    {
+      "id": "overlay_account_deletion_request_sheet",
+      "type": "overlay",
+      "path": "sheet:account-deletion-request",
+      "name": "Account deletion request sheet",
+      "source": "lib/features/settings/screens/privacy_settings_screen.dart",
+      "owner": "mobile",
+      "priority": "P0",
+      "status": "partial",
+      "proof": {
+        "compact": "pending sheet screenshot proof",
+        "medium": "pending sheet screenshot proof",
+        "expanded": "pending sheet screenshot proof",
+        "largeText": "pending scroll-safe proof",
+        "screenReader": "pending form semantics proof",
+        "contrast": "pending",
+        "keyboardSafeArea": "account deletion form uses bottom inset padding; visual keyboard proof pending",
+        "reducedMotion": "pending",
+        "errorEmptyLoading": "pending submit/cancel failure proof",
+        "productBoundary": "test/screen_widgets_test.dart covers privacy data/account entry point; request uses AccountDeletionService and does not immediately delete accounts",
+        "testEvidence": "test/screen_widgets_test.dart",
+        "evidencePath": "pending current screenshot/device evidence"
+      }
+    },
+    {
       "id": "overlay_session_expired_dialog",
       "type": "overlay",
       "path": "dialog:session-expired",
@@ -1033,6 +1105,30 @@
       }
     },
     {
+      "id": "overlay_venue_support_request_sheet",
+      "type": "overlay",
+      "path": "sheet:venue-support-request",
+      "name": "Venue support request sheet",
+      "source": "lib/features/ordering/screens/venue_detail_screen.dart",
+      "owner": "mobile",
+      "priority": "P0",
+      "status": "partial",
+      "proof": {
+        "compact": "pending sheet screenshot proof",
+        "medium": "pending sheet screenshot proof",
+        "expanded": "pending sheet screenshot proof",
+        "largeText": "pending scroll-safe proof",
+        "screenReader": "pending form semantics proof",
+        "contrast": "pending",
+        "keyboardSafeArea": "venue support form uses bottom inset padding; visual keyboard proof pending",
+        "reducedMotion": "pending",
+        "errorEmptyLoading": "pending submit failure proof",
+        "productBoundary": "test/venue_support_request_test.dart verifies venue support request submission; request is support/contact only and does not mutate order, payment, FET, odds, or wagering state",
+        "testEvidence": "test/venue_support_request_test.dart",
+        "evidencePath": "pending current screenshot/device evidence"
+      }
+    },
+    {
       "id": "overlay_payment_handoff_sheet",
       "type": "overlay",
       "path": "sheet:payment-handoff",
@@ -1098,9 +1194,9 @@
         "contrast": "pending",
         "keyboardSafeArea": "payment proof form uses bottom inset padding; visual keyboard proof pending",
         "reducedMotion": "pending",
-        "errorEmptyLoading": "pending failed-submit recovery proof",
-        "productBoundary": "test/features/ordering/order_provider_test.dart covers proof normalization and UI copy states that venue staff still confirms payment",
-        "testEvidence": "test/features/ordering/order_provider_test.dart",
+        "errorEmptyLoading": "test/order_tracking_screen_test.dart covers failed payment recovery state; failed submit snack proof pending",
+        "productBoundary": "test/features/ordering/order_provider_test.dart and test/order_tracking_screen_test.dart cover proof normalization, failed-payment recovery, and UI copy states that venue staff still confirms payment",
+        "testEvidence": "test/features/ordering/order_provider_test.dart; test/order_tracking_screen_test.dart",
         "evidencePath": "pending current screenshot/device evidence"
       }
     },

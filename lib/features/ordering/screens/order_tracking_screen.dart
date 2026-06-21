@@ -275,6 +275,12 @@ class _PaymentStatusCard extends ConsumerStatefulWidget {
 class _PaymentStatusCardState extends ConsumerState<_PaymentStatusCard> {
   bool _submitting = false;
 
+  String get _submitLabel {
+    return widget.order.paymentStatus == PaymentStatus.failed
+        ? 'Send updated proof'
+        : 'I paid';
+  }
+
   Future<void> _submitPayment() async {
     final proof = await _showPaymentProofSheet(context, widget.order);
     if (proof == null || !mounted) return;
@@ -347,6 +353,13 @@ class _PaymentStatusCardState extends ConsumerState<_PaymentStatusCard> {
           ),
           if (canSubmit) ...[
             const SizedBox(height: AppSpacing.lg),
+            if (status == PaymentStatus.failed) ...[
+              Text(
+                'Payment was not verified. Send updated proof or ask venue staff.',
+                style: AppTypography.secondary.copyWith(color: AppColors.muted),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -358,7 +371,7 @@ class _PaymentStatusCardState extends ConsumerState<_PaymentStatusCard> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(LucideIcons.checkCircle2, size: 16),
-                label: const Text('I paid'),
+                label: Text(_submitLabel),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -369,6 +382,12 @@ class _PaymentStatusCardState extends ConsumerState<_PaymentStatusCard> {
             const SizedBox(height: AppSpacing.md),
             Text(
               'Awaiting venue.',
+              style: AppTypography.secondary.copyWith(color: AppColors.muted),
+            ),
+          ] else if (status == PaymentStatus.failed) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Payment was not verified. Send updated proof or ask venue staff.',
               style: AppTypography.secondary.copyWith(color: AppColors.muted),
             ),
           ] else if (status == PaymentStatus.paid) ...[

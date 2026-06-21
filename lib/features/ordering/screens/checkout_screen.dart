@@ -14,6 +14,7 @@ import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
 import '../providers/venue_context_provider.dart';
 import '../data/order_gateway.dart';
+import '../data/venue_gateway.dart';
 import '../widgets/payment_handoff_sheet.dart';
 import '../../../models/hospitality/order_model.dart';
 import '../../../models/hospitality/venue_model.dart';
@@ -34,9 +35,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _fetSpendController = TextEditingController();
   bool _useFetSpend = false;
   bool _submitting = false;
+  bool _tableValidationBusy = false;
+  VenueTableValidationResult? _tableValidation;
 
   Future<void> _placeOrder() async {
-    if (_submitting) return;
+    if (_submitting || _tableValidationBusy) return;
     final tableNumber = normalizeManualTableNumber(_tableNumberController.text);
     if (tableNumber == null) {
       await showFzNoticeSheet(
@@ -49,6 +52,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
       return;
     }
+
+    final venue = ref.read(venueContextProvider).venue;
+    await _validateTablePreflight(venue, tableNumber);
+    if (!mounted) return;
 
     final fetSpendAmount = _useFetSpend
         ? int.tryParse(_fetSpendController.text.trim()) ?? 0
@@ -161,6 +168,36 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (mounted) {
       setState(() => _submitting = false);
     }
+  }
+
+  Future<void> _validateTablePreflight(
+    VenueModel? venue,
+    String tableNumber,
+  ) async {
+    if (venue == null) return;
+
+    setState(() => _tableValidationBusy = true);
+    late final VenueTableValidationResult result;
+    try {
+      result = await ref
+          .read(venueGatewayProvider)
+          .validateTableNumber(venueId: venue.id, tableNumber: tableNumber);
+      if (!mounted) return;
+      setState(() => _tableValidation = result);
+    } finally {
+      if (mounted) setState(() => _tableValidationBusy = false);
+    }
+
+    if (result.isMatched || !mounted) return;
+    await showFzNoticeSheet(
+      context,
+      title: 'Staff will verify table',
+      message:
+          'We could not match table ${result.tableNumber} in the venue list. The venue will still receive the order and verify the table number manually.',
+      icon: LucideIcons.hash,
+      iconColor: FzColors.warning,
+      primaryLabel: 'Continue',
+    );
   }
 
   Future<bool> _launchPaymentHandoff(PaymentHandoff handoff) async {
@@ -322,12 +359,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               controller: _tableNumberController,
               textInputAction: TextInputAction.next,
               textCapitalization: TextCapitalization.characters,
+              onChanged: (_) => setState(() => _tableValidation = null),
               decoration: const InputDecoration(
                 prefixIcon: Icon(LucideIcons.hash),
                 labelText: 'Table number',
                 hintText: 'Example: 12 or VIP 2',
               ),
             ),
+            if (_tableValidationBusy || _tableValidation != null) ...[
+              const SizedBox(height: 8),
+              _TableValidationHint(
+                busy: _tableValidationBusy,
+                result: _tableValidation,
+              ),
+            ],
             const SizedBox(height: 12),
             TextField(
               key: const ValueKey('checkout_special_instructions'),
@@ -533,6 +578,54 @@ Uri? paymentHandoffLaunchUri(PaymentHandoff handoff) {
 
 bool _hasCheckoutText(String? value) =>
     value != null && value.trim().isNotEmpty;
+
+class _TableValidationHint extends StatelessWidget {
+  const _TableValidationHint({required this.busy, required this.result});
+
+  final bool busy;
+  final VenueTableValidationResult? result;
+
+  @override
+  Widget build(BuildContext context) {
+    final matched = result?.isMatched == true;
+    final color = busy
+        ? FzColors.lightMuted
+        : matched
+        ? FzColors.success
+        : FzColors.warning;
+    final text = busy
+        ? 'Checking table with venue...'
+        : matched
+        ? 'Table matched by venue.'
+        : 'Staff will verify this table number manually.';
+
+    return Row(
+      key: const ValueKey('checkout_table_validation_hint'),
+      children: [
+        Icon(
+          busy
+              ? LucideIcons.loaderCircle
+              : matched
+              ? LucideIcons.checkCircle2
+              : LucideIcons.info,
+          size: 16,
+          color: color,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class _PaymentMethodTile extends StatelessWidget {
   const _PaymentMethodTile({

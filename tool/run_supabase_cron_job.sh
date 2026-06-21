@@ -9,6 +9,7 @@ set -euo pipefail
 #   tool/run_supabase_cron_job.sh settle-match-pools
 #   tool/run_supabase_cron_job.sh dispatch-match-alerts
 #   tool/run_supabase_cron_job.sh sync-livescore-football
+#   tool/run_supabase_cron_job.sh generate-weekly-game-packs
 
 json_bool() {
   local value="${1:-}"
@@ -73,8 +74,23 @@ case "${JOB}" in
     LIVESCORE_DELAY_MS="$(json_int "${LIVESCORE_DELAY_MS:-750}")"
     PAYLOAD="{\"resource_id\":\"${LIVESCORE_RESOURCE_ID}\",\"apply\":${LIVESCORE_APPLY},\"include_details\":${LIVESCORE_INCLUDE_DETAILS},\"include_scoreboard\":${LIVESCORE_INCLUDE_SCOREBOARD},\"limit\":${LIVESCORE_LIMIT},\"delay_ms\":${LIVESCORE_DELAY_MS}}"
     ;;
+  generate-weekly-game-packs)
+    GAME_PACK_WEEK_START="${GAME_PACK_WEEK_START:-}"
+    GAME_PACK_TARGET_COUNT="$(json_int "${GAME_PACK_TARGET_COUNT:-100}")"
+    GAME_PACK_BATCH_SIZE="$(json_int "${GAME_PACK_BATCH_SIZE:-5}")"
+    GAME_PACK_DRY_RUN="$(json_bool "${GAME_PACK_DRY_RUN:-false}")"
+    if [[ -n "${GAME_PACK_WEEK_START}" && ! "${GAME_PACK_WEEK_START}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+      echo "Expected GAME_PACK_WEEK_START as YYYY-MM-DD, got '${GAME_PACK_WEEK_START}'." >&2
+      exit 1
+    fi
+    if [[ -n "${GAME_PACK_WEEK_START}" ]]; then
+      PAYLOAD="{\"weekStart\":\"${GAME_PACK_WEEK_START}\",\"marketCodes\":[\"MT\",\"RW\"],\"targetPackCount\":${GAME_PACK_TARGET_COUNT},\"questionsPerPack\":20,\"batchSize\":${GAME_PACK_BATCH_SIZE},\"dryRun\":${GAME_PACK_DRY_RUN}}"
+    else
+      PAYLOAD="{\"marketCodes\":[\"MT\",\"RW\"],\"targetPackCount\":${GAME_PACK_TARGET_COUNT},\"questionsPerPack\":20,\"batchSize\":${GAME_PACK_BATCH_SIZE},\"dryRun\":${GAME_PACK_DRY_RUN}}"
+    fi
+    ;;
   *)
-    echo "Usage: $0 [--dry-run] settle-match-pools|dispatch-match-alerts|sync-livescore-football" >&2
+    echo "Usage: $0 [--dry-run] settle-match-pools|dispatch-match-alerts|sync-livescore-football|generate-weekly-game-packs" >&2
     exit 1
     ;;
 esac

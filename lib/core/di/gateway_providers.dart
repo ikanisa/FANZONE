@@ -36,7 +36,9 @@ import '../../features/wallet/data/wallet_gateway.dart';
 // ── Ordering / venue gateways ──────────────────────────────
 import '../../features/ordering/data/bell_gateway.dart';
 import '../../features/ordering/data/order_gateway.dart';
+import '../../features/ordering/data/venue_chat_gateway.dart';
 import '../../features/ordering/data/venue_gateway.dart';
+import '../../features/ordering/data/venue_support_gateway.dart';
 
 // ═══════════════════════════════════════════════════════════
 // CORE SINGLETONS
@@ -437,6 +439,14 @@ final venueGatewayProvider = Provider<VenueGateway>((ref) {
 
 final bellGatewayProvider = Provider<BellGateway>((ref) {
   return SupabaseBellGateway(ref.watch(supabaseConnectionProvider));
+});
+
+final venueSupportGatewayProvider = Provider<VenueSupportGateway>((ref) {
+  return SupabaseVenueSupportGateway(ref.watch(supabaseConnectionProvider));
+});
+
+final venueChatGatewayProvider = Provider<VenueChatGateway>((ref) {
+  return SupabaseVenueChatGateway(ref.watch(supabaseConnectionProvider));
 });
 
 final orderGatewayProvider = Provider<OrderGateway>((ref) {

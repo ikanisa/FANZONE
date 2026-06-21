@@ -1,9 +1,11 @@
 import '../../../models/auth_and_user/account_deletion_request_model.dart';
+import '../../../models/auth_and_user/account_data_request_model.dart';
 
 /// Cache key constants for settings gateways.
 const marketPreferencesCacheKey = 'preferences.market';
 const privacySettingsCachePrefix = 'preferences.privacy.';
 const deletionRequestCachePrefix = 'preferences.account_deletion.';
+const dataRequestCachePrefix = 'preferences.account_data_request.';
 const notificationPreferencesCachePrefix = 'preferences.notifications.';
 const notificationLogCachePrefix = 'preferences.notification_log.';
 const matchAlertsCachePrefix = 'preferences.match_alerts.';
@@ -17,6 +19,20 @@ Map<String, dynamic> accountDeletionToJson(
     'id': request.id,
     'status': request.status,
     'requested_at': request.requestedAt.toIso8601String(),
+    'reason': request.reason,
+    'contact_email': request.contactEmail,
+    'resolution_notes': request.resolutionNotes,
+    'processed_at': request.processedAt?.toIso8601String(),
+  };
+}
+
+/// Serializes an [AccountDataRequestModel] for local cache storage.
+Map<String, dynamic> accountDataRequestToJson(AccountDataRequestModel request) {
+  return {
+    'id': request.id,
+    'status': request.status,
+    'requested_at': request.requestedAt.toIso8601String(),
+    'request_type': request.requestType,
     'reason': request.reason,
     'contact_email': request.contactEmail,
     'resolution_notes': request.resolutionNotes,

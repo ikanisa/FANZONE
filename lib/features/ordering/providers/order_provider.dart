@@ -228,7 +228,8 @@ bool canSubmitPaymentForOrder(OrderModel order) {
   return hasExternalPayment &&
       !order.status.isTerminal &&
       (order.paymentStatus == PaymentStatus.pending ||
-          order.paymentStatus == PaymentStatus.unpaid);
+          order.paymentStatus == PaymentStatus.unpaid ||
+          order.paymentStatus == PaymentStatus.failed);
 }
 
 Future<void> submitPaymentForOrder(

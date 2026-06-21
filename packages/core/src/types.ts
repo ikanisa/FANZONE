@@ -535,6 +535,59 @@ export interface BellRequestRow {
   created_at: string;
 }
 
+export type VenueChatTopic =
+  | "general"
+  | "accessibility"
+  | "venue"
+  | "order"
+  | "payment"
+  | "safety";
+
+export type VenueChatStatus =
+  | "open"
+  | "in_review"
+  | "resolved"
+  | "closed"
+  | "cancelled";
+
+export type VenueChatSenderRole =
+  | "customer"
+  | "venue_staff"
+  | "admin"
+  | "system";
+
+export interface VenueChatThreadRow {
+  [key: string]: unknown;
+  id: string;
+  venue_id: string;
+  customer_user_id: string;
+  order_id: string | null;
+  support_request_id: string | null;
+  topic: VenueChatTopic;
+  subject: string | null;
+  status: VenueChatStatus;
+  assigned_to: string | null;
+  resolution_notes: string | null;
+  last_message_at: string;
+  closed_at: string | null;
+  closed_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VenueChatMessageRow {
+  [key: string]: unknown;
+  id: string;
+  thread_id: string;
+  venue_id: string;
+  sender_user_id: string | null;
+  sender_role: VenueChatSenderRole;
+  body: string;
+  message_type: "text" | "system";
+  moderation_status: "visible" | "hidden" | "flagged";
+  created_at: string;
+}
+
 export interface VenueFetWalletRow {
   [key: string]: unknown;
   venue_id: string;
@@ -927,6 +980,8 @@ export interface Database {
       payment_events: TableDefinition<PaymentEventRow>;
       tables: TableDefinition<VenueTableRow>;
       bell_requests: TableDefinition<BellRequestRow>;
+      venue_chat_threads: TableDefinition<VenueChatThreadRow>;
+      venue_chat_messages: TableDefinition<VenueChatMessageRow>;
       venue_fet_wallets: TableDefinition<VenueFetWalletRow>;
       venue_fet_wallet_transactions: TableDefinition<VenueFetWalletTransactionRow>;
       match_pools: TableDefinition<MatchPoolRow>;

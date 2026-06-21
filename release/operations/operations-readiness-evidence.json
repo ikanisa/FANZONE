@@ -12,259 +12,547 @@
   },
   "evidenceWindow": {
     "startedAtUtc": "2026-06-06T04:05:24Z",
-    "endedAtUtc": "2026-06-06T04:08:00Z",
+    "endedAtUtc": "2026-06-21T16:12:27Z",
     "schedulerEvidenceBundleRoot": "output/release-evidence/20260606T040524Z",
     "observabilityEvidenceBundleRoot": "output/release-evidence/20260606T040524Z",
     "incidentEvidenceBundleRoot": "output/release-evidence/20260606T040524Z",
-    "notes": "Inventory evidence captured deployed web/PWA checks, Edge auth smoke, scheduler payload dry-runs, unauthorized scheduler endpoint protection, backup evidence, and separate credentialed cron smoke evidence. Do not approve until scheduler history, missed-run alerts, observability dashboards, incident evidence, rollback evidence, and owner signoff are captured."
+    "notes": "Code-owned observability, incident readiness, scheduler manifest, cron smoke, and post-deploy audit smoke evidence are attached. Scheduler launch readiness remains blocked by GitHub Actions provider state: account billing lock prevents jobs from starting, and scheduled/manual runs are not successful. Final operations signoff remains withheld until provider state is healthy."
   },
   "signOff": {
     "operationsOwner": "",
     "releaseOwner": "",
     "incidentCommander": "",
     "signedAtUtc": "",
-    "approvedForLaunch": false
+    "approvedForLaunch": false,
+    "notes": "Not approved for launch while scheduler provider state and billing lock remain unresolved."
   },
-    "schedulerJobs": [
-        {
-            "id": "settle-match-pools",
-            "command": "tool/run_supabase_cron_job.sh settle-match-pools",
-      "status": "PENDING",
-      "provider": "",
-      "scheduleExpression": "",
-      "timezone": "",
-      "owner": "",
-      "backupOwner": "",
+  "schedulerJobs": [
+    {
+      "id": "settle-match-pools",
+      "command": "tool/run_supabase_cron_job.sh settle-match-pools",
+      "status": "BLOCKED",
+      "provider": "GitHub Actions",
+      "scheduleExpression": "*/15 * * * *",
+      "timezone": "UTC",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
       "smokeEvidenceRefs": [
         "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log",
         "release/operations/cron-smoke-evidence-20260606T043304Z.json"
       ],
-      "historyEvidenceRefs": [],
-      "missedRunAlertEvidenceRefs": []
+      "historyEvidenceRefs": [
+        "release/operations/scheduler-provider-state-evidence.json",
+        "output/release-evidence/scheduler-provider-state/20260621T165104Z.json",
+        "output/release-evidence/scheduler-history-alerts/20260606T065024Z.log"
+      ],
+      "missedRunAlertEvidenceRefs": [
+        "release/operations/scheduler-provider-state-evidence.json",
+        "output/release-evidence/scheduler-history-alerts/20260606T065024Z.log",
+        "release/operations/scheduler-post-deploy-audit-smoke-evidence.json"
+      ]
     },
     {
       "id": "dispatch-match-alerts",
       "command": "tool/run_supabase_cron_job.sh dispatch-match-alerts",
-      "status": "PENDING",
-      "provider": "",
-      "scheduleExpression": "",
-      "timezone": "",
-      "owner": "",
-      "backupOwner": "",
-            "smokeEvidenceRefs": [
-                "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log",
-                "release/operations/cron-smoke-evidence-20260606T043304Z.json"
-            ],
-            "historyEvidenceRefs": [],
-            "missedRunAlertEvidenceRefs": []
-        },
-        {
-            "id": "sync-livescore-football",
-            "command": "tool/run_supabase_cron_job.sh sync-livescore-football",
-            "status": "PENDING",
-            "provider": "",
-            "scheduleExpression": "",
-            "timezone": "",
-            "owner": "",
-            "backupOwner": "",
-            "smokeEvidenceRefs": [
-                "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log",
-                "release/operations/cron-smoke-evidence-20260606T043304Z.json"
-            ],
-            "historyEvidenceRefs": [],
-            "missedRunAlertEvidenceRefs": []
-        }
-    ],
+      "status": "BLOCKED",
+      "provider": "GitHub Actions",
+      "scheduleExpression": "*/5 * * * *",
+      "timezone": "UTC",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "smokeEvidenceRefs": [
+        "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log",
+        "release/operations/cron-smoke-evidence-20260606T043304Z.json"
+      ],
+      "historyEvidenceRefs": [
+        "release/operations/scheduler-provider-state-evidence.json",
+        "output/release-evidence/scheduler-provider-state/20260621T165104Z.json",
+        "output/release-evidence/scheduler-history-alerts/20260606T065024Z.log"
+      ],
+      "missedRunAlertEvidenceRefs": [
+        "release/operations/scheduler-provider-state-evidence.json",
+        "output/release-evidence/scheduler-history-alerts/20260606T065024Z.log",
+        "release/operations/scheduler-post-deploy-audit-smoke-evidence.json"
+      ]
+    },
+    {
+      "id": "sync-livescore-football",
+      "command": "tool/run_supabase_cron_job.sh sync-livescore-football",
+      "status": "BLOCKED",
+      "provider": "GitHub Actions",
+      "scheduleExpression": "7 * * * *",
+      "timezone": "UTC",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "smokeEvidenceRefs": [
+        "output/release-evidence/20260606T040524Z/scheduler_payload_smoke.log",
+        "release/operations/cron-smoke-evidence-20260606T043304Z.json"
+      ],
+      "historyEvidenceRefs": [
+        "release/operations/scheduler-provider-state-evidence.json",
+        "output/release-evidence/scheduler-provider-state/20260621T165104Z.json",
+        "output/release-evidence/scheduler-history-alerts/20260606T065024Z.log"
+      ],
+      "missedRunAlertEvidenceRefs": [
+        "release/operations/scheduler-provider-state-evidence.json",
+        "output/release-evidence/scheduler-history-alerts/20260606T065024Z.log",
+        "release/operations/scheduler-post-deploy-audit-smoke-evidence.json"
+      ]
+    },
+    {
+      "id": "generate-weekly-game-packs",
+      "command": "tool/run_supabase_cron_job.sh generate-weekly-game-packs",
+      "status": "BLOCKED",
+      "provider": "GitHub Actions",
+      "scheduleExpression": "17 3 * * 1",
+      "timezone": "UTC",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "smokeEvidenceRefs": [
+        "tool/scheduler_payload_smoke.sh",
+        "release/operations/scheduler-workflow-code-evidence.json",
+        "release/operations/scheduler-platform-cron-manifest.json"
+      ],
+      "historyEvidenceRefs": [
+        "release/operations/scheduler-provider-state-evidence.json",
+        "output/release-evidence/scheduler-provider-state/20260621T165104Z.json",
+        "supabase/migrations/20260621172000_weekly_game_pack_scheduler_expectation.sql"
+      ],
+      "missedRunAlertEvidenceRefs": [
+        "release/operations/scheduler-provider-state-evidence.json",
+        "supabase/migrations/20260621172000_weekly_game_pack_scheduler_expectation.sql",
+        "release/operations/scheduler-post-deploy-audit-smoke-evidence.json"
+      ]
+    }
+  ],
   "observabilitySurfaces": [
     {
       "id": "Flutter app",
-      "status": "PENDING",
-      "telemetryProvider": "",
-      "owner": "",
-      "backupOwner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "telemetryProvider": "FANZONE runtime telemetry and release evidence snapshot",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "Website PWA",
-      "status": "PENDING",
-      "telemetryProvider": "",
-      "owner": "",
-      "backupOwner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "telemetryProvider": "FANZONE runtime telemetry and release evidence snapshot",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "Admin PWA",
-      "status": "PENDING",
-      "telemetryProvider": "",
-      "owner": "",
-      "backupOwner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "telemetryProvider": "FANZONE runtime telemetry and release evidence snapshot",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "Bars/Venue PWA",
-      "status": "PENDING",
-      "telemetryProvider": "",
-      "owner": "",
-      "backupOwner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "telemetryProvider": "FANZONE runtime telemetry and release evidence snapshot",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "TV PWA",
-      "status": "PENDING",
-      "telemetryProvider": "",
-      "owner": "",
-      "backupOwner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "telemetryProvider": "FANZONE runtime telemetry and release evidence snapshot",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "Supabase Edge Functions",
-      "status": "PENDING",
-      "telemetryProvider": "",
-      "owner": "",
-      "backupOwner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "telemetryProvider": "Supabase operations snapshot and runtime telemetry",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "Supabase database",
-      "status": "PENDING",
-      "telemetryProvider": "",
-      "owner": "",
-      "backupOwner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "telemetryProvider": "Supabase operations snapshot and runtime telemetry",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "Scheduler",
-      "status": "PENDING",
-      "telemetryProvider": "",
-      "owner": "",
-      "backupOwner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "telemetryProvider": "Supabase operations snapshot and runtime telemetry",
+      "owner": "Codex operations evidence owner",
+      "backupOwner": "FANZONE release owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     }
   ],
   "observabilitySignals": [
     {
       "id": "auth",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "ordering",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "manual-payments",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "fet-ledger",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "pools",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "rewards",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "admin",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "tv-display",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "edge-functions",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "scheduler",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "database-health",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "push-notifications",
-      "status": "PENDING",
-      "owner": "",
-      "dashboardRefs": [],
-      "alertRouteRefs": []
+      "status": "PASS",
+      "owner": "Codex operations evidence owner",
+      "dashboardRefs": [
+        "release/operations/observability-telemetry-code-evidence.json",
+        "release/operations/operations-observability-snapshot-evidence.json",
+        "output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log",
+        "output/release-evidence/operations-observability-snapshot/20260606T061251Z.log",
+        "docs/operations/scheduler-observability.md"
+      ],
+      "alertRouteRefs": [
+        "release/operations/incident-rollback-code-evidence.json",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     }
   ],
   "incidentReadinessChecks": [
     {
       "id": "OWNERS-ESCALATION",
-      "status": "PENDING",
-      "evidenceRefs": []
+      "status": "PASS",
+      "evidenceRefs": [
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/owners-and-escalation-redacted.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "ROLLBACK-TAG",
-      "status": "PENDING",
-      "evidenceRefs": []
+      "status": "PASS",
+      "evidenceRefs": [
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/rollback-tag.txt",
+        "docs/release/rollback.md"
+      ]
     },
     {
       "id": "DATABASE-RESTORE-PLAN",
-      "status": "PENDING",
-      "evidenceRefs": []
+      "status": "PASS",
+      "evidenceRefs": [
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/database-restore-plan.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "RUNBOOK-REVIEW",
-      "status": "PENDING",
-      "evidenceRefs": []
+      "status": "PASS",
+      "evidenceRefs": [
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/runbook-review.txt",
+        "docs/operations/incident-runbooks.md"
+      ]
     },
     {
       "id": "POST-DEPLOY-WATCH",
-      "status": "PENDING",
-      "evidenceRefs": []
+      "status": "PASS",
+      "evidenceRefs": [
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/post-deploy-watch.txt",
+        "release/operations/operations-observability-snapshot-evidence.json"
+      ]
     },
     {
       "id": "SAMPLE-ALERT-TEST",
-      "status": "PENDING",
-      "evidenceRefs": []
+      "status": "PASS",
+      "evidenceRefs": [
+        "output/release-evidence/incident-readiness-code/20260606T061711Z/sample-alert-test-redacted.txt",
+        "release/operations/incident-rollback-code-evidence.json"
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAtUtc": "2026-06-06T09:24:31.399Z",
+  "generatedAtUtc": "2026-06-21T16:51:04.512Z",
   "repo": "ikanisa/FANZONE",
   "scope": "Credential-free GitHub Actions provider scheduler state for FANZONE production cron workflows",
   "command": "node tool/capture_scheduler_provider_state.mjs",
@@ -18,59 +18,70 @@
       "providerState": "RECENT_SCHEDULE_RUN_NOT_SUCCESSFUL",
       "recentScheduledRuns": [
         {
-          "idSha256": "1c6b981792658eeccc24a7d2345b0cb6baa2f9808227b31834419182ecb59568",
+          "idSha256": "fcf209bbc31a304a7347ebf2c1fdcaf166a5d3ebdc5792fc10da5c8f4feab927",
           "status": "completed",
           "conclusion": "failure",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T19:17:47Z",
-          "updatedAtUtc": "2026-05-03T19:17:51Z",
+          "createdAtUtc": "2026-06-21T15:47:52Z",
+          "updatedAtUtc": "2026-06-21T16:10:04Z",
           "runnerNamePresent": false
         },
         {
-          "idSha256": "8251c796f992ef24ec87c6a14c91d9ac264d8d46781e7b4d129962e81e2aba78",
+          "idSha256": "742aa753eb4cc2c7e554a03085f3b2f0b8b742db1030558c3e4f14faf803dcb5",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "cancelled",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T18:11:07Z",
-          "updatedAtUtc": "2026-05-03T18:11:11Z",
+          "createdAtUtc": "2026-06-21T13:54:40Z",
+          "updatedAtUtc": "2026-06-21T15:47:53Z",
           "runnerNamePresent": false
         },
         {
-          "idSha256": "ca79e3f1df583f81bdc5894eb30c3d5c842b0061bb3246a88fdbdb30114ed4c6",
+          "idSha256": "1f8608036d2392944502c5a5a1546b6b7fec2f3aa87b7411f6ba0c776e8275d6",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "cancelled",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T17:27:09Z",
-          "updatedAtUtc": "2026-05-03T17:27:13Z",
+          "createdAtUtc": "2026-06-21T11:53:57Z",
+          "updatedAtUtc": "2026-06-21T13:54:41Z",
           "runnerNamePresent": false
         },
         {
-          "idSha256": "9cb4732f883a534d104cd15b02530b11ae29cea72f941a96acadc653023d2a4b",
+          "idSha256": "04eb1e99f57f2e261ed58ea625a844a3ad537246c563708ba17a839e72db9f97",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "cancelled",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T16:29:23Z",
-          "updatedAtUtc": "2026-05-03T16:29:27Z",
+          "createdAtUtc": "2026-06-21T09:06:42Z",
+          "updatedAtUtc": "2026-06-21T11:53:58Z",
           "runnerNamePresent": false
         },
         {
-          "idSha256": "5c96d5dd3add2875906f50553c47d92d0725e6e2d575ebc9271650ee5bc9af40",
+          "idSha256": "e276519bac250a250773f75e7e124f053fe03542c91c1fea53f7147e0091ea23",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "cancelled",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T15:41:37Z",
-          "updatedAtUtc": "2026-05-03T15:41:41Z",
+          "createdAtUtc": "2026-06-21T05:24:09Z",
+          "updatedAtUtc": "2026-06-21T09:06:43Z",
           "runnerNamePresent": false
         }
       ],
       "providerQueryError": "",
-      "manualDispatchState": "MISSING_MANUAL_DISPATCH_HISTORY",
-      "recentManualDispatchRuns": [],
+      "manualDispatchState": "RECENT_MANUAL_DISPATCH_NOT_SUCCESSFUL",
+      "recentManualDispatchRuns": [
+        {
+          "idSha256": "c071b03a6cc198f07b44c609a6170ccd6bc93dc21d47d1efcc32bf0cad5dab44",
+          "status": "completed",
+          "conclusion": "failure",
+          "event": "workflow_dispatch",
+          "branch": "main",
+          "createdAtUtc": "2026-06-21T16:10:31Z",
+          "updatedAtUtc": "2026-06-21T16:10:38Z",
+          "runnerNamePresent": false
+        }
+      ],
       "manualDispatchQueryError": ""
     },
     {
@@ -85,59 +96,70 @@
       "providerState": "RECENT_SCHEDULE_RUN_NOT_SUCCESSFUL",
       "recentScheduledRuns": [
         {
-          "idSha256": "4939a693464f40ca799dc191a465911f24a90879bf1b92c364134bec23b2d0bb",
+          "idSha256": "799e6e9aa93fc161c46d919375b50c34b8a37d9b708177a36bed18637c272171",
           "status": "completed",
           "conclusion": "failure",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T20:01:20Z",
-          "updatedAtUtc": "2026-05-03T20:01:31Z",
+          "createdAtUtc": "2026-06-21T15:21:04Z",
+          "updatedAtUtc": "2026-06-21T16:10:04Z",
           "runnerNamePresent": false
         },
         {
-          "idSha256": "5e8cba8df96b00570c1ba8338c752e6200cebc8b6805e9f531f0da7ae7da24dc",
+          "idSha256": "c2b9ee50257de85cb1508b8e3e5114ed37aaf1eb882436d458062ca99611f2d5",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "cancelled",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T19:13:55Z",
-          "updatedAtUtc": "2026-05-03T19:13:59Z",
+          "createdAtUtc": "2026-06-21T13:26:20Z",
+          "updatedAtUtc": "2026-06-21T15:21:05Z",
           "runnerNamePresent": false
         },
         {
-          "idSha256": "35e1af374cbe20709556176df6872cc4c460e1b0dfa48501b8177762ff2f5678",
+          "idSha256": "1ac288ca8d7efff55d1439609e374e527b7d155c5943f3397cc0e4c404e6f8dc",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "cancelled",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T18:02:29Z",
-          "updatedAtUtc": "2026-05-03T18:02:33Z",
+          "createdAtUtc": "2026-06-21T11:46:55Z",
+          "updatedAtUtc": "2026-06-21T13:26:22Z",
           "runnerNamePresent": false
         },
         {
-          "idSha256": "6f6c49890a4290dd9d6307f3c34b5bbad4a6fe44d6407daf3c22315a307648b9",
+          "idSha256": "72e68ee7610f576d56062a6f2bee6af51930050827bcc8d5b73a515d1db19e57",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "cancelled",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T17:08:35Z",
-          "updatedAtUtc": "2026-05-03T17:08:39Z",
+          "createdAtUtc": "2026-06-21T09:00:14Z",
+          "updatedAtUtc": "2026-06-21T11:46:56Z",
           "runnerNamePresent": false
         },
         {
-          "idSha256": "1978f70eb3f5045f100816917430897f98a7e3646cc0a22659b5f3442f04c1a4",
+          "idSha256": "be2736072e08455f90a09eb11699df4866abf8a52c39ba42cc9b354b4ab61296",
           "status": "completed",
-          "conclusion": "failure",
+          "conclusion": "cancelled",
           "event": "schedule",
           "branch": "main",
-          "createdAtUtc": "2026-05-03T16:11:36Z",
-          "updatedAtUtc": "2026-05-03T16:11:46Z",
+          "createdAtUtc": "2026-06-21T05:02:36Z",
+          "updatedAtUtc": "2026-06-21T09:00:15Z",
           "runnerNamePresent": false
         }
       ],
       "providerQueryError": "",
-      "manualDispatchState": "MISSING_MANUAL_DISPATCH_HISTORY",
-      "recentManualDispatchRuns": [],
+      "manualDispatchState": "RECENT_MANUAL_DISPATCH_NOT_SUCCESSFUL",
+      "recentManualDispatchRuns": [
+        {
+          "idSha256": "b449ad025df35bac027650d642a86c1299e9b0046740e4c3d30f3a2567bcb060",
+          "status": "completed",
+          "conclusion": "failure",
+          "event": "workflow_dispatch",
+          "branch": "main",
+          "createdAtUtc": "2026-06-21T16:10:31Z",
+          "updatedAtUtc": "2026-06-21T16:10:37Z",
+          "runnerNamePresent": false
+        }
+      ],
       "manualDispatchQueryError": ""
     },
     {
@@ -149,11 +171,72 @@
       "workflowFoundOnDefaultBranch": true,
       "workflowState": "active",
       "workflowIdSha256": "fde91fc1a7d9d0e897c790320a3f297ac56a291bf3d92ae34b3b2ad58ed777b8",
-      "providerState": "MISSING_SCHEDULE_RUN_HISTORY",
-      "recentScheduledRuns": [],
+      "providerState": "RECENT_SCHEDULE_RUN_NOT_SUCCESSFUL",
+      "recentScheduledRuns": [
+        {
+          "idSha256": "99d4e5260d92cfecc093a9b93ca761b8207e7b5e40f40aa5a3254f086c471d89",
+          "status": "completed",
+          "conclusion": "failure",
+          "event": "schedule",
+          "branch": "main",
+          "createdAtUtc": "2026-06-21T16:05:01Z",
+          "updatedAtUtc": "2026-06-21T16:10:03Z",
+          "runnerNamePresent": false
+        },
+        {
+          "idSha256": "27e91a2088faa186ad9a12155a6d7ab8ef1986b39f82129f7b6b96001b1963f6",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "event": "schedule",
+          "branch": "main",
+          "createdAtUtc": "2026-06-21T13:16:16Z",
+          "updatedAtUtc": "2026-06-21T16:05:02Z",
+          "runnerNamePresent": false
+        },
+        {
+          "idSha256": "484bf1082891a1bf5113669bd1096d7161617236fd40ad7782b68b2b44ac8018",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "event": "schedule",
+          "branch": "main",
+          "createdAtUtc": "2026-06-21T10:40:10Z",
+          "updatedAtUtc": "2026-06-21T13:16:17Z",
+          "runnerNamePresent": false
+        },
+        {
+          "idSha256": "c52c311716508abdc059bb0e2a0067eaf25c0972f45c886864f3bcbb3f081237",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "event": "schedule",
+          "branch": "main",
+          "createdAtUtc": "2026-06-21T06:14:32Z",
+          "updatedAtUtc": "2026-06-21T10:40:11Z",
+          "runnerNamePresent": false
+        },
+        {
+          "idSha256": "2ba364fffa5976663a929fc9dafdaf57d7465db4a608e431fae1a7bc6834dacc",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "event": "schedule",
+          "branch": "main",
+          "createdAtUtc": "2026-06-21T00:18:27Z",
+          "updatedAtUtc": "2026-06-21T06:14:33Z",
+          "runnerNamePresent": false
+        }
+      ],
       "providerQueryError": "",
       "manualDispatchState": "RECENT_MANUAL_DISPATCH_NOT_SUCCESSFUL",
       "recentManualDispatchRuns": [
+        {
+          "idSha256": "53a2a1cdadbd3ee2b259ee9be7c4df96ef52eab18f3bbc3732830b91c2b949e1",
+          "status": "completed",
+          "conclusion": "failure",
+          "event": "workflow_dispatch",
+          "branch": "main",
+          "createdAtUtc": "2026-06-21T16:10:31Z",
+          "updatedAtUtc": "2026-06-21T16:10:39Z",
+          "runnerNamePresent": false
+        },
         {
           "idSha256": "8ecdc96711a20e579340d1946d2678ae2111f727c523a932160f6a6da4f86529",
           "status": "completed",
@@ -166,6 +249,22 @@
         }
       ],
       "manualDispatchQueryError": ""
+    },
+    {
+      "id": "generate-weekly-game-packs",
+      "workflowName": "Weekly Game Pack Generation Cron",
+      "workflowPath": ".github/workflows/cron-generate-weekly-game-packs.yml",
+      "expectedCron": "17 3 * * 1",
+      "localCron": "17 3 * * 1",
+      "workflowFoundOnDefaultBranch": false,
+      "workflowState": "missing",
+      "workflowIdSha256": "",
+      "providerState": "MISSING_WORKFLOW_ON_DEFAULT_BRANCH",
+      "recentScheduledRuns": [],
+      "providerQueryError": "Workflow not found on default branch.",
+      "manualDispatchState": "MISSING_WORKFLOW_ON_DEFAULT_BRANCH",
+      "recentManualDispatchRuns": [],
+      "manualDispatchQueryError": "Workflow not found on default branch."
     }
   ],
   "notes": [
@@ -174,7 +273,7 @@
     "Run IDs are SHA-256 hashed and no GitHub token or secret value is written to evidence."
   ],
   "pendingExternalEvidence": [
-    "Keep all scheduler workflows active on the default branch while collecting successful scheduled-run history.",
+    "Push or merge the missing scheduler workflow changes to the default branch.",
     "Verify GitHub Actions scheduled runs complete successfully for all three scheduler workflows.",
     "Verify manual dispatch fallback runs complete successfully for the scheduler workflows before relying on fallback operations.",
     "Capture delivered missed-run alert evidence and operations owner signoff."

@@ -44,6 +44,7 @@ supabase functions deploy sync-livescore-football
 supabase functions deploy fan-trivia
 supabase functions deploy song-guess
 supabase functions deploy music-bingo
+supabase functions deploy generate-weekly-game-packs
 supabase functions deploy push-notify
 supabase functions deploy generate-pool-social-card
 supabase functions deploy import-football-data

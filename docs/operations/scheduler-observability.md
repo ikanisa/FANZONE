@@ -7,7 +7,8 @@ Current release status: `PENDING`. The 2026-06-06 evidence run proved deployed
 web surfaces, Supabase validation, backup evidence, production env isolation,
 unauthorized scheduler endpoint protection, credential-free scheduler payload
 dry-runs, credentialed cron smoke for `settle-match-pools`,
-`dispatch-match-alerts`, and `sync-livescore-football`, and code-owned runtime
+`dispatch-match-alerts`, `sync-livescore-football`, and
+`generate-weekly-game-packs`, and code-owned runtime
 telemetry hardening for bounded/redacted Supabase RPC writes and nested
 metadata/property redaction, including linked SQL proof at
 `output/release-evidence/observability-telemetry-hardening/20260606T060909Z.log`.
@@ -22,9 +23,9 @@ payload, max lag, severity, and `CRON_SECRET` secret name while keeping each job
 marked `PENDING_PROVIDER_ACTIVATION` until provider evidence is captured.
 `release/operations/scheduler-provider-state-evidence.json` captures the current
 GitHub Actions provider state without writing tokens or run URLs. The current
-provider evidence is `BLOCKED_PROVIDER_STATE`: the two default-branch scheduler
-workflows have recent failed scheduled runs and the LiveScore workflow is not
-present on the default branch yet.
+provider evidence is `BLOCKED_PROVIDER_STATE`: current scheduler workflows
+cannot start while the GitHub Actions account is locked by billing state, and
+new local workflow changes still need default-branch provider history.
 The scheduled Edge functions also write database-backed run-history records via
 `cron_job_start` and `cron_job_finish`, with `admin_scheduler_health_snapshot`
 providing an admin-only missed-run and alert-required view over
@@ -63,6 +64,7 @@ Required jobs:
 - `settle-match-pools`
 - `dispatch-match-alerts`
 - `sync-livescore-football`
+- `generate-weekly-game-packs`
 
 Required evidence bundle:
 
@@ -80,6 +82,8 @@ Required files:
   `tool/run_supabase_cron_job.sh dispatch-match-alerts`.
 - `sync-livescore-football-smoke.log`: output from
   `tool/run_supabase_cron_job.sh sync-livescore-football`.
+- `generate-weekly-game-packs-smoke.log`: output from
+  `tool/run_supabase_cron_job.sh generate-weekly-game-packs`.
 - `scheduler-history-redacted.txt`: provider history showing recent successful
   runs for each job.
 - `missed-run-alert-redacted.txt`: alert rule, destination, severity, and owner.
@@ -90,7 +94,8 @@ entries in `release/operations/operations-readiness-evidence.json`.
 Each scheduler entry must keep the expected smoke command:
 `tool/run_supabase_cron_job.sh settle-match-pools` or
 `tool/run_supabase_cron_job.sh dispatch-match-alerts` or
-`tool/run_supabase_cron_job.sh sync-livescore-football`.
+`tool/run_supabase_cron_job.sh sync-livescore-football` or
+`tool/run_supabase_cron_job.sh generate-weekly-game-packs`.
 
 Current smoke evidence:
 
@@ -117,6 +122,7 @@ environment or ignored `.env`:
 tool/run_supabase_cron_job.sh settle-match-pools
 tool/run_supabase_cron_job.sh dispatch-match-alerts
 tool/run_supabase_cron_job.sh sync-livescore-football
+tool/run_supabase_cron_job.sh generate-weekly-game-packs
 ```
 
 After scheduler Edge deployments, run the audit-aware smoke to prove the

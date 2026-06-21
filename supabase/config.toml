@@ -427,6 +427,9 @@ verify_jwt = false
 [functions.music-bingo]
 verify_jwt = false
 
+[functions.generate-weekly-game-packs]
+verify_jwt = false
+
 [functions.generate-pool-social-card]
 verify_jwt = false
 

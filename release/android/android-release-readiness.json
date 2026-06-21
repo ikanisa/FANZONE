@@ -70,8 +70,8 @@
       "id": "APK",
       "status": "PASS",
       "path": "build/app/outputs/flutter-apk/app-release.apk",
-      "sha256": "d5722a6b228db6e8aac0b8607a60f264d8b77ebfda409a2b22c84ae9905640a7",
-      "sizeBytes": 74464432,
+      "sha256": "03c3ac4cd3bad53ba4494e7ef3f6be6c7a157362449f5dfde0f086f649444146",
+      "sizeBytes": 74480816,
       "versionName": "1.1.3",
       "versionCode": 11,
       "builtAtUtc": "2026-06-06T08:23:24Z",
@@ -83,8 +83,8 @@
         "output/release-evidence/android-core-smoke/20260605T225754Z.log",
         "output/release-evidence/android-device-screens/release-installed-launch.png",
         "output/release-evidence/android-deep-link-smoke/20260605T220932Z.log",
-        "/tmp/fanzone-pixel4a-home-matches-applink.png",
-        "/tmp/fanzone-pixel4a-final-home-settled.png",
+        "output/release-evidence/android-device-screens/release-installed-home-direct-20260606T0319Z.png",
+        "output/release-evidence/android-device-screens/release-installed-current-final-home-20260606T045939Z.png",
         "output/release-evidence/android-core-smoke/20260605T231213Z.log",
         "supabase/migrations/20260606110000_seed_mobile_uat_app_fixtures.sql",
         "output/release-evidence/android-signature/20260605T231705Z.log",
@@ -128,7 +128,7 @@
         "output/release-evidence/android-device-screens/release-installed-current-otp-verified-20260606T051017Z.png",
         "output/release-evidence/android-device-screens/release-installed-current-favorite-local-fixed-20260606T051445Z.png"
       ],
-      "notes": "Release APK rebuilt locally from release candidate 1.1.3+11 after the Home/Play/Settings shell, OTP copy, Malta UAT phone validation, and fan-profile local-team fixes. Current APK size is 74464432 bytes with SHA-256 d5722a6b228db6e8aac0b8607a60f264d8b77ebfda409a2b22c84ae9905640a7. Pixel 4a UAT evidence remains recorded against the previously installed APK in release/qa/android-device-uat-current.json, and that file tracks the required physical-device rerun for this exact current APK. Production Play submission and owner signoff remain external release gates."
+      "notes": "Release APK on disk is 74480816 bytes with SHA-256 03c3ac4cd3bad53ba4494e7ef3f6be6c7a157362449f5dfde0f086f649444146. Pixel 4a UAT evidence remains recorded against the previously installed APK in release/qa/android-device-uat-current.json, and that file tracks the required physical-device rerun for this exact current APK. Production Play submission and owner signoff remain external release gates."
     }
   ],
   "signOff": {
@@ -215,8 +215,8 @@
         "output/release-evidence/android-core-smoke/20260605T225754Z.log",
         "output/release-evidence/android-device-screens/release-installed-launch.png",
         "output/release-evidence/android-deep-link-smoke/20260605T220932Z.log",
-        "/tmp/fanzone-pixel4a-home-matches-applink.png",
-        "/tmp/fanzone-pixel4a-final-home-settled.png",
+        "output/release-evidence/android-device-screens/release-installed-home-direct-20260606T0319Z.png",
+        "output/release-evidence/android-device-screens/release-installed-current-final-home-20260606T045939Z.png",
         "output/release-evidence/android-core-smoke/20260605T231213Z.log",
         "supabase/migrations/20260606110000_seed_mobile_uat_app_fixtures.sql",
         "output/release-evidence/android-core-smoke/20260605T232326Z.log",
@@ -257,7 +257,7 @@
         "output/release-evidence/android-device-screens/release-installed-current-otp-verified-20260606T051017Z.png",
         "output/release-evidence/android-device-screens/release-installed-current-favorite-local-fixed-20260606T051445Z.png"
       ],
-      "notes": "Current release APK rebuilt at 2026-06-06T08:23:24Z, size 74464432 bytes, SHA-256 d5722a6b228db6e8aac0b8607a60f264d8b77ebfda409a2b22c84ae9905640a7. The previous Pixel 4a install/UAT evidence remains recorded separately, and release/qa/android-device-uat-current.json tracks the blocked physical-device rerun for this exact APK."
+      "notes": "Current release APK on disk is 74480816 bytes with SHA-256 03c3ac4cd3bad53ba4494e7ef3f6be6c7a157362449f5dfde0f086f649444146. The previous Pixel 4a install/UAT evidence remains recorded separately, and release/qa/android-device-uat-current.json tracks the blocked physical-device rerun for this exact APK."
     },
     {
       "id": "ANDROID-SIGNATURE-001",
@@ -292,8 +292,8 @@
         "output/release-evidence/android-core-smoke/20260605T225754Z.log",
         "output/release-evidence/android-device-screens/release-installed-launch.png",
         "output/release-evidence/android-deep-link-smoke/20260605T220932Z.log",
-        "/tmp/fanzone-pixel4a-home-matches-applink.png",
-        "/tmp/fanzone-pixel4a-final-home-settled.png",
+        "output/release-evidence/android-device-screens/release-installed-home-direct-20260606T0319Z.png",
+        "output/release-evidence/android-device-screens/release-installed-current-final-home-20260606T045939Z.png",
         "output/release-evidence/android-core-smoke/20260605T231213Z.log",
         "supabase/migrations/20260606110000_seed_mobile_uat_app_fixtures.sql",
         "output/release-evidence/android-core-smoke/20260605T232326Z.log",
@@ -347,8 +347,8 @@
         "output/release-evidence/android-install-launch/20260603T090528Z.log",
         "build/app/outputs/flutter-apk/app-release.apk",
         "output/release-evidence/android-device-screens/release-installed-launch.png",
-        "/tmp/fanzone-pixel4a-final-home-settled.png",
-        "/tmp/fanzone-pixel4a-home-matches-applink.png",
+        "output/release-evidence/android-device-screens/release-installed-current-final-home-20260606T045939Z.png",
+        "output/release-evidence/android-device-screens/release-installed-home-direct-20260606T0319Z.png",
         "output/release-evidence/android-core-smoke/20260605T231213Z.log",
         "supabase/migrations/20260606110000_seed_mobile_uat_app_fixtures.sql",
         "output/release-evidence/android-core-smoke/20260605T232326Z.log",
@@ -387,7 +387,7 @@
         "test/app_router_test.dart",
         "output/release-evidence/android-deep-link-smoke/20260603T090550Z.log",
         "output/release-evidence/android-deep-link-smoke/20260605T220932Z.log",
-        "/tmp/fanzone-pixel4a-home-matches-applink.png"
+        "output/release-evidence/android-device-screens/release-installed-home-direct-20260606T0319Z.png"
       ],
       "notes": "Expanded probe-mode Android deep-link smoke passed on the installed Pixel 4a release APK for verified production domains, legacy fanzone.app links, custom schemes, venue routes, pool routes, legacy /predict normalization, and the new Home branch /home and /home/matches app links. Direct device proof for https://fanzone.ikanisa.com/home/matches landed on the Matches screen. Owner release approval and real-fixture release-mode smoke remain tracked outside this route-contract check."
     },

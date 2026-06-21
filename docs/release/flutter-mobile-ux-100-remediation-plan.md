@@ -46,16 +46,22 @@ Completed on 2026-06-08:
 - Phase 1 foundation started: the app shell now switches from bottom navigation on compact widths to a `NavigationRail` on medium and expanded widths.
 - Phase 2 foundation started: `MaterialApp.router` now wires light, dark, high-contrast light, and high-contrast dark themes through `ThemeMode.system`.
 - Phase 4 foundation started: menu item detail/customization now uses a scroll-safe bottom sheet with add-ons, prep notes, allergen confirmation, age-restriction confirmation, and unavailable-item handling; configured add-ons and notes flow through the existing cart/order DTO path.
+- Phase 4 foundation continued: checkout now preflights manually entered table numbers against the server `venue_tables` surface when available, shows matched/manual-verification state, and preserves manual table-number ordering as the fallback without restoring QR ordering.
 - Phase 4 foundation continued: order tracking now collects optional external payment reference and verification notes before submitting proof to the existing venue-confirmed payment RPC; this does not mark customer payments as paid in the app.
+- Phase 4 foundation continued: failed off-platform payments now expose a recovery state that lets customers send updated proof back through the existing staff-reviewed payment submission path; this still does not mark payments as paid client-side.
 - Phase 4 foundation continued: order tracking now exposes staff-reviewed issue, cancellation, and refund-review request sheets through the existing staff bell channel; these requests do not mutate order or payment status client-side.
+- Phase 4 foundation continued: venue detail now exposes a verified-user venue support/contact request sheet backed by the append-only `venue_support_requests` table with user/venue-operator RLS; requests do not mutate order, payment, FET, odds, or wagering state.
+- Phase 4 foundation continued: privacy settings now exposes account data request/cancel UI backed by `AccountDataRequestService` and the append-only `account_data_requests` table with RLS; requests are support-reviewed and do not expose raw account data immediately.
+- Phase 4 foundation continued: privacy settings now exposes account deletion request/cancel UI backed by the existing `AccountDeletionService` and `account_deletion_requests` path; requests are support-reviewed and do not immediately delete accounts.
 - Phase 5 foundation started: `release/qa/flutter-mobile-ux-matrix.json` now tracks every current Flutter mobile route, redirect, wizard, modal sheet, dialog, and reusable modal component; `tool/validate_flutter_mobile_ux_matrix.mjs` validates inventory coverage and provides strict `--require-pass` mode for the final 100% gate.
+- Phase 5 foundation continued: `tool/generate_flutter_mobile_ux_summary.mjs` now generates `docs/release/flutter-mobile-ux-matrix-summary.md` from the matrix, and `tool/check_world_class_evidence.sh` validates the summary is current before the final release evidence gate can pass.
 
 Still required before any `100%` claim:
 
 - Route and overlay inventory validation must be promoted from inventory mode to strict `--require-pass` mode after every matrix row has current evidence.
 - Large-text, keyboard, reduced-motion, and screen-reader tests must be expanded across every route group and overlay group.
 - Feature screens still need hard-coded color/style cleanup against the design system.
-- Hospitality-critical flows in Phase 4 still need table/session validation, deeper failed-payment recovery states, venue support/contact beyond table-scoped staff requests, account request flows, and backend/audit evidence.
+- Hospitality-critical flows in Phase 4 still need backend/audit evidence.
 - The screen-by-screen completion matrix exists, but most rows are still `partial` or `planned`; they must become evidence-backed `pass` rows before the world-class gate can claim completion.
 
 ### Phase 0 - Stabilize Current Gates

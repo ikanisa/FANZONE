@@ -38,6 +38,7 @@ const expectedRoutes = [
   { path: "/v/:venueSlug", type: "route", routerPath: "/v/:venueSlug" },
   { path: "/bar", type: "route", routerPath: "/bar" },
   { path: "/venue/:venueId", type: "route", routerPath: "/venue/:venueId" },
+  { path: "/venue/:venueId/chat", type: "route", routerPath: "/venue/:venueId/chat" },
   { path: "/venues", type: "route", routerPath: "/venues" },
   { path: "/venues/location", type: "route", routerPath: "/venues/location" },
   { path: "/search", type: "route", routerPath: "/search" },
@@ -73,11 +74,14 @@ const expectedRoutes = [
 ];
 
 const expectedOverlays = [
+  "overlay_account_data_request_sheet",
+  "overlay_account_deletion_request_sheet",
   "overlay_session_expired_dialog",
   "overlay_sign_in_required_sheet",
   "overlay_onboarding_country_code_picker",
   "overlay_login_country_picker",
   "overlay_menu_item_detail_sheet",
+  "overlay_venue_support_request_sheet",
   "overlay_payment_handoff_sheet",
   "overlay_order_support_request_sheet",
   "overlay_payment_proof_sheet",

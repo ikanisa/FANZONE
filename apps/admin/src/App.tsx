@@ -47,6 +47,10 @@ const PoolOperationsPage = lazyPage(
   () => import('./features/pool-operations/PoolOperationsPage'),
   'PoolOperationsPage',
 );
+const GameOpsPage = lazyPage(
+  () => import('./features/game-ops/GameOpsPage'),
+  'GameOpsPage',
+);
 const WalletOversightPage = lazyPage(
   () => import('./features/wallets/WalletOversightPage'),
   'WalletOversightPage',
@@ -84,6 +88,7 @@ function ProtectedRoutes() {
           <Route path={ROUTES.TEAMS} element={<RoleGuard minRole="admin"><LazyRoute><TeamsPage /></LazyRoute></RoleGuard>} />
           <Route path={ROUTES.CURATED_MATCHES} element={<RoleGuard minRole="admin"><LazyRoute><MatchCurationPage /></LazyRoute></RoleGuard>} />
           <Route path={ROUTES.POOLS} element={<RoleGuard minRole="admin"><LazyRoute><PoolOperationsPage /></LazyRoute></RoleGuard>} />
+          <Route path={ROUTES.GAME_OPS} element={<RoleGuard minRole="admin"><LazyRoute><GameOpsPage /></LazyRoute></RoleGuard>} />
           <Route path={ROUTES.FET_WALLETS} element={<RoleGuard minRole="admin"><LazyRoute><WalletOversightPage /></LazyRoute></RoleGuard>} />
           <Route
             path={ROUTES.SETTLEMENTS}

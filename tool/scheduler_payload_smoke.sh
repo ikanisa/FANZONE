@@ -6,6 +6,7 @@ set -euo pipefail
 tool/run_supabase_cron_job.sh --dry-run settle-match-pools
 tool/run_supabase_cron_job.sh --dry-run dispatch-match-alerts
 tool/run_supabase_cron_job.sh --dry-run sync-livescore-football
+tool/run_supabase_cron_job.sh --dry-run generate-weekly-game-packs
 tool/supabase_edge_job_smoke.sh --unauthorized-only
 
 echo "Scheduler payload and unauthorized Edge smoke passed."

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAtUtc": "2026-06-06T07:45:00Z",
+  "generatedAtUtc": "2026-06-21T16:38:07Z",
   "projectRef": "kjuhheobmdvjwgnzlcwx",
   "scope": "Production platform-cron manifest for FANZONE scheduled Supabase Edge Functions",
   "status": "PASS_WITH_PENDING_PROVIDER_ACTIVATION",
@@ -52,10 +52,32 @@
         "delay_ms": 750
       },
       "activationStatus": "PENDING_PROVIDER_ACTIVATION"
+    },
+    {
+      "id": "generate-weekly-game-packs",
+      "command": "tool/run_supabase_cron_job.sh generate-weekly-game-packs",
+      "edgeFunction": "generate-weekly-game-packs",
+      "targetPath": "/functions/v1/generate-weekly-game-packs",
+      "scheduleExpression": "weekly Monday 03:17 UTC",
+      "cronExpression": "17 3 * * 1",
+      "maxLagMinutes": 10080,
+      "missedRunSeverity": "high",
+      "payload": {
+        "marketCodes": [
+          "MT",
+          "RW"
+        ],
+        "targetPackCount": 100,
+        "questionsPerPack": 20,
+        "batchSize": 5,
+        "dryRun": false
+      },
+      "activationStatus": "PENDING_PROVIDER_ACTIVATION"
     }
   ],
   "evidenceRefs": [
     "supabase/migrations/20260606170000_scheduler_run_history_and_missed_run_alerts.sql",
+    "supabase/migrations/20260621172000_weekly_game_pack_scheduler_expectation.sql",
     "tool/run_supabase_cron_job.sh",
     "tool/scheduler_payload_smoke.sh",
     "release/operations/scheduler-post-deploy-audit-smoke-evidence.json",

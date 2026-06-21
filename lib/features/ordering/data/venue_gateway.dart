@@ -48,8 +48,30 @@ abstract interface class VenueGateway {
     String venueId,
   );
 
+  /// Checks an app-entered table number against the server table surface.
+  Future<VenueTableValidationResult> validateTableNumber({
+    required String venueId,
+    required String tableNumber,
+  });
+
   /// Fetch venues owned by a user (for venue dashboard entry).
   Future<List<VenueModel>> getMyVenues(String userId);
+}
+
+enum VenueTableValidationStatus { matched, manualFallback }
+
+class VenueTableValidationResult {
+  const VenueTableValidationResult({
+    required this.status,
+    required this.tableNumber,
+    this.tableId,
+  });
+
+  final VenueTableValidationStatus status;
+  final String tableNumber;
+  final String? tableId;
+
+  bool get isMatched => status == VenueTableValidationStatus.matched;
 }
 
 class SupabaseVenueGateway implements VenueGateway {
@@ -286,6 +308,50 @@ class SupabaseVenueGateway implements VenueGateway {
           .toList(growable: false);
     }
     return grouped;
+  }
+
+  @override
+  Future<VenueTableValidationResult> validateTableNumber({
+    required String venueId,
+    required String tableNumber,
+  }) async {
+    final normalized = tableNumber.trim().replaceAll(RegExp(r'\s+'), ' ');
+    final client = _connection.client;
+    if (client == null) {
+      return VenueTableValidationResult(
+        status: VenueTableValidationStatus.manualFallback,
+        tableNumber: normalized,
+      );
+    }
+
+    try {
+      final row = await client
+          .from('venue_tables')
+          .select('id, table_number')
+          .eq('venue_id', venueId)
+          .eq('is_active', true)
+          .ilike('table_number', normalized)
+          .limit(1)
+          .maybeSingle();
+      if (row == null) {
+        return VenueTableValidationResult(
+          status: VenueTableValidationStatus.manualFallback,
+          tableNumber: normalized,
+        );
+      }
+
+      return VenueTableValidationResult(
+        status: VenueTableValidationStatus.matched,
+        tableNumber: row['table_number']?.toString() ?? normalized,
+        tableId: row['id']?.toString(),
+      );
+    } catch (error) {
+      AppLogger.w('Failed to validate venue table number: $error');
+      return VenueTableValidationResult(
+        status: VenueTableValidationStatus.manualFallback,
+        tableNumber: normalized,
+      );
+    }
   }
 
   @override

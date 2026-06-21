@@ -383,7 +383,14 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Allow Friends to Find Me'), findsNothing);
-      expect(find.text('Verify WhatsApp'), findsOneWidget);
+      expect(find.text('Verify WhatsApp'), findsAtLeastNWidgets(1));
+      expect(find.text('DATA AND ACCOUNT REQUESTS'), findsOneWidget);
+      expect(
+        find.text(
+          'Verify WhatsApp to request account deletion or data support.',
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('settings support info pages render in-app destinations', (

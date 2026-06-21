@@ -32,7 +32,7 @@
   },
   "currentArtifactDeviceRerun": {
     "status": "BLOCKED_EXTERNAL",
-    "proof": "The recorded Pixel 4a UAT flows passed on the installed APK above. The current release APK was rebuilt from HEAD, but adb devices -l currently returns no attached Android devices, so this exact artifact still needs a physical-device Pixel 4a rerun before claiming current-build device UAT."
+    "proof": "The recorded Pixel 4a UAT flows passed on the installed APK above. The current release APK was rebuilt, but its current release APK source commit is behind HEAD after release-relevant changes; rebuild the APK from HEAD, then rerun physical-device Pixel 4a UAT. adb devices -l currently returns no attached Android devices, so this exact artifact still needs a physical-device Pixel 4a rerun before claiming current-build device UAT."
   },
   "validatedFlows": [
     {

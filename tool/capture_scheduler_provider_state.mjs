@@ -33,6 +33,12 @@ const expectedJobs = [
     workflowPath: ".github/workflows/cron-livescore-football.yml",
     expectedCron: "7 * * * *",
   },
+  {
+    id: "generate-weekly-game-packs",
+    workflowName: "Weekly Game Pack Generation Cron",
+    workflowPath: ".github/workflows/cron-generate-weekly-game-packs.yml",
+    expectedCron: "17 3 * * 1",
+  },
 ];
 
 function repoPath(ref) {

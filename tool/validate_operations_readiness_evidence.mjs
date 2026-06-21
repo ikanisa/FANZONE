@@ -14,11 +14,13 @@ const requiredSchedulerJobs = new Set([
   "settle-match-pools",
   "dispatch-match-alerts",
   "sync-livescore-football",
+  "generate-weekly-game-packs",
 ]);
 const requiredSchedulerCommands = new Map([
   ["settle-match-pools", "tool/run_supabase_cron_job.sh settle-match-pools"],
   ["dispatch-match-alerts", "tool/run_supabase_cron_job.sh dispatch-match-alerts"],
   ["sync-livescore-football", "tool/run_supabase_cron_job.sh sync-livescore-football"],
+  ["generate-weekly-game-packs", "tool/run_supabase_cron_job.sh generate-weekly-game-packs"],
 ]);
 const requiredSurfaces = new Set([
   "Flutter app",

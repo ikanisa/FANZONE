@@ -85,6 +85,9 @@ expect_status "dispatch-match-alerts unauthorized" "${dispatch_match_alerts_unau
 sync_livescore_unauth="$(call_edge "sync-livescore-football" "" '{}')"
 expect_status "sync-livescore-football unauthorized" "${sync_livescore_unauth}" "401"
 
+generate_game_packs_unauth="$(call_edge "generate-weekly-game-packs" "" '{}')"
+expect_status "generate-weekly-game-packs unauthorized" "${generate_game_packs_unauth}" "401"
+
 push_notify_unauth="$(call_edge "push-notify" "" '{}')"
 expect_status "push-notify unauthorized" "${push_notify_unauth}" "401"
 
@@ -127,6 +130,16 @@ if [[ "${sync_livescore_auth}" != "200" ]]; then
   expect_non_auth_error "sync-livescore-football authorized" "${sync_livescore_auth}"
   echo "sync-livescore-football authorized expected HTTP 200 but got ${sync_livescore_auth}"
   cat /tmp/sync-livescore-football.body 2>/dev/null || true
+  exit 1
+fi
+
+generate_game_packs_auth="$(call_edge "generate-weekly-game-packs" "" \
+  '{"targetPackCount":1,"questionsPerPack":20,"batchSize":1,"dryRun":true}' \
+  -H "x-cron-secret: ${CRON_SECRET}")"
+if [[ "${generate_game_packs_auth}" != "200" ]]; then
+  expect_non_auth_error "generate-weekly-game-packs authorized" "${generate_game_packs_auth}"
+  echo "generate-weekly-game-packs authorized dry-run expected HTTP 200 but got ${generate_game_packs_auth}"
+  cat /tmp/generate-weekly-game-packs.body 2>/dev/null || true
   exit 1
 fi
 

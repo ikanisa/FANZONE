@@ -45,6 +45,11 @@ const LiveOrderQueuePage = lazy(() =>
     default: module.LiveOrderQueuePage,
   })),
 );
+const VenueChatPage = lazy(() =>
+  import("./features/chat/VenueChatPage").then((module) => ({
+    default: module.VenueChatPage,
+  })),
+);
 const OrderDetailPage = lazy(() =>
   import("./features/orders/OrderDetailPage").then((module) => ({
     default: module.OrderDetailPage,
@@ -116,6 +121,7 @@ function VenueRoutes() {
             <Route path="overview" element={lazyPage(<OverviewPage />)} />
             <Route path="orders" element={lazyPage(<LiveOrderQueuePage />)} />
             <Route path="orders/:orderId" element={lazyPage(<OrderDetailPage />)} />
+            <Route path="chat" element={lazyPage(<VenueChatPage />)} />
             <Route path="menu" element={lazyPage(<MenuArchitectPage />)} />
             <Route path="menu/items/new" element={<MenuItemEditorPage />} />
             <Route path="menu/items/:itemId" element={<MenuItemEditorPage />} />
