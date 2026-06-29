@@ -21,7 +21,7 @@
     "validate:fullstack-platform": "node tool/validate_fullstack_platform_completion_matrix.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1",
+    "@playwright/test": "^1.61.1",
     "typescript": "~6.0.2"
   }
 }
